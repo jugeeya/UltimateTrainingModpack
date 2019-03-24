@@ -1,0 +1,8 @@
+%rename link                old_link
+
+*link:
+%(old_link) -T %:getenv(TOPDIR /switch.ld) -pie --gc-sections -z text --build-id=sha1
+
+*startfile:
+crti%O%s crtbegin%O%s
+
