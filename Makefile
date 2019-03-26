@@ -29,7 +29,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=	saltysd_plugin_example
+TARGET		:=	hitbox_visualizer
 BUILD		:=	build
 SOURCES		:=	source source/lua
 DATA		:=	data
