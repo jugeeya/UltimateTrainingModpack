@@ -17,6 +17,7 @@
 #include "lua/lstate.h"
 
 #include "l2c.h"
+#include "saltysd_helper.h"
 
 u32 __nx_applet_type = AppletType_None;
 
@@ -80,46 +81,6 @@ void __attribute__((weak)) NORETURN __libnx_exit(int rc)
     SaltySD_printf("SaltySD Plugin: jumping to %p\n", orig_saved_lr);
 
     __nx_exit(0, orig_saved_lr);
-}
-
-extern uint64_t _ZN2nn2fs8ReadFileEPmNS0_10FileHandleElPvm(uint64_t idk1, uint64_t idk2, uint64_t idk3, uint64_t idk4, uint64_t idk5) LINKABLE;
-extern uint64_t _ZN2nn2fs8ReadFileENS0_10FileHandleElPvm(uint64_t handle, uint64_t offset, uint64_t out, uint64_t size) LINKABLE;
-
-extern uint64_t _ZN2nn4util14DecompressZlibEPvmPKvmS1_m(void * idk1, unsigned long idk2, void const* idk3, unsigned long idk4, void * idk5, unsigned long idk6) LINKABLE;
-extern uint64_t _ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmi(uint64_t *module, void const* idk1, void * idk2, unsigned long idk3, int idk4) LINKABLE;
-
-uint64_t _ZN2nn4util14DecompressZlibEPvmPKvmS1_m_intercept(void * idk1, unsigned long idk2, void const* idk3, unsigned long idk4, void * idk5, unsigned long idk6) {
-	uint64_t ret = _ZN2nn4util14DecompressZlibEPvmPKvmS1_m(idk1, idk2, idk3, idk4, idk5, idk6);
-	SaltySD_printf("SaltySD Plugin: DecompressZlib(%llx, %llx, %llx, %llx, %llx, %llx) -> %llx\n", idk1, idk2, idk3, idk4, idk5, idk6, ret);
-	return ret;
-}
-
-uint64_t _ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmi_intercept(uint64_t *module, void const* idk1, void * idk2, unsigned long idk3, int idk4) {
-	uint64_t ret = _ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmi(module, idk1, idk2, idk3, idk4);
-	SaltySD_printf("SaltySD Plugin: nn::ro::LoadModule(%llx, %llx, %llx, %llx, %llx) -> %llx\n", module, idk1, idk2, idk3, idk4, ret);
-	return ret;
-}
-
-uint64_t ReadFile_intercept(uint64_t idk1, uint64_t idk2, uint64_t idk3, uint64_t idk4, uint64_t idk5)
-{
-    uint64_t ret = _ZN2nn2fs8ReadFileEPmNS0_10FileHandleElPvm(idk1, idk2, idk3, idk4, idk5);
-    SaltySD_printf("SaltySD Plugin: ReadFile(%llx, %llx, %llx, %llx, %llx) -> %llx\n", idk1, idk2, idk3, idk4, idk5, ret);
-    return ret;
-}
-
-uint64_t ReadFile_intercept2(uint64_t handle, uint64_t offset, uint64_t out, uint64_t size)
-{
-    uint64_t ret = _ZN2nn2fs8ReadFileENS0_10FileHandleElPvm(handle, offset, out, size);
-    SaltySD_printf("SaltySD Plugin: ReadFile2(%llx, %llx, %llx, %llx) -> %llx\n", handle, offset, out, size, ret);
-    return ret;
-}
-
-void get_lua_stack(__int64_t* l2c_agent, int index, __int64_t* l2c_val) {
-	 __int64_t (*lib_L2CAgent_pop_lua_stack)(__int64_t, int) = 
-    (__int64_t (*)(__int64_t, int))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgent13pop_lua_stackEi"));
-	
-	asm("mov x8, %x0" : : "r"(l2c_val) : "x8" );
-    lib_L2CAgent_pop_lua_stack(l2c_agent, index);
 }
 
 void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
@@ -238,24 +199,6 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   
 }
 
-int SaltySD_function_replace(u64 addr, u64 new_func) {
-	if (addr) {
-		SaltySD_Memcpy(addr, "\x49\x00\x00\x58", 4); // LDR X9, .+8
-		SaltySD_Memcpy(addr+4, "\x20\x01\x1F\xD6", 4); // BR X9
-		SaltySD_Memcpy(addr+8, &new_func, 8); // .dword newaddr
-		
-		SaltySD_printf("SaltySD Plugin: forcing function at %llx to jump to %11x\n", addr, new_func);
-		
-		return 0;
-	}
-	
-	return -1;
-}
-
-int SaltySD_function_replace_sym(char* function_sym, u64 new_func) {
-	u64 addr = SaltySDCore_FindSymbol(function_sym);
-	return SaltySD_function_replace(addr, new_func);
-}
 
 int main(int argc, char *argv[])
 {
@@ -276,13 +219,9 @@ int main(int argc, char *argv[])
         SaltySD_Memcpy(dst_3, "noice v%d%d%d", 13);
     }
 	
+    // Install animCMD function replacement
 	SaltySD_function_replace_sym("_ZN3app10sv_animcmd6ATTACKEP9lua_State", &_ZN3app10sv_animcmd6ATTACKEP9lua_State_replace);
-							
-    SaltySDCore_ReplaceImport("_ZN2nn2fs8ReadFileEPmNS0_10FileHandleElPvm", ReadFile_intercept);
-    SaltySDCore_ReplaceImport("_ZN2nn2fs8ReadFileENS0_10FileHandleElPvm", ReadFile_intercept2);
-	SaltySDCore_ReplaceImport("_ZN2nn4util14DecompressZlibEPvmPKvmS1_m", _ZN2nn4util14DecompressZlibEPvmPKvmS1_m_intercept);
-	SaltySDCore_ReplaceImport("_ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmi",  _ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmi_intercept);
-	
+    
     __libnx_exit(0);
 }
 
