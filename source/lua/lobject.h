@@ -58,10 +58,7 @@ typedef union Value {
 #define TValuefields	Value value_; lu_byte tt_
 
 typedef struct TValue {
-  //TValuefields;
-  uint32_t tt_;
-  uint32_t unk;
-  Value value_;
+  TValuefields;
 } TValue;
 
 

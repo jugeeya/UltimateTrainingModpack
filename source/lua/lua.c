@@ -602,7 +602,6 @@ static int pmain (lua_State *L) {
   return 1;
 }
 
-
 // int main (int argc, char **argv) {
   // int status, result;
   // lua_State *L = luaL_newstate();  /* create state */
@@ -619,4 +618,3 @@ static int pmain (lua_State *L) {
   // lua_close(L);
   // return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
 // }
-

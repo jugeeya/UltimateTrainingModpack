@@ -173,7 +173,6 @@ LUA_API void  (lua_copy) (lua_State *L, int fromidx, int toidx);
 LUA_API int   (lua_checkstack) (lua_State *L, int n);
 
 LUA_API void  (lua_xmove) (lua_State *from, lua_State *to, int n);
-LUA_API char *(index2value) (lua_State *L, int idx);
 
 
 /*
