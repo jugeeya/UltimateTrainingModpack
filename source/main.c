@@ -123,6 +123,8 @@ void get_lua_stack(__int64_t* l2c_agent, int index, __int64_t* l2c_val) {
 }
 
 void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
+  // Stretched bones fix: Scale down by ModelModule::scale() with lua_State arg of bone?
+	
   __int64_t v1; // x19
   uint64_t v2; // x9
   uint64_t i; // x8
@@ -168,14 +170,6 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   get_lua_stack(&l2c_agent, 14, &y2);
   L2CValue z2;
   get_lua_stack(&l2c_agent, 15, &z2);
-  
-  // PLAN: 
-  // - Iterate through lua_State stack, store all values (in an array?)
-  // - Pop all values off of the stack
-  // - Push our own values on the stack 
-  // - Call simple animcmd function with the stack
-  // - Pop all values off the stack
-  // - Push the stored values back on the stack in the proper order
 
   v1 = a1;
   u64 attack_code_addr = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State");
@@ -184,7 +178,7 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   
   // EFFECT_FOLLOW_COLOR(Graphic, Bone, Z, Y, X, ZRot, YRot, XRot, Size, unknown=0x1, Red, Green, Blue)
   // FIRST, to test, let's assume single hitbox, not extended, so ignore x2,y2,z2.
-  //"GFXLeft,GFXRight,Bone, Z, Y, X, ZRot, YRot, XRot, Size,Terminate,unknown,R,G,B"}
+  // EFFECT_FOLLOW_FLIP_COLOR(GFXLeft,GFXRight,Bone, Z, Y, X, ZRot, YRot, XRot, Size,Terminate,unknown,R,G,B)
   float sizeMult = 19.0 / 200.0;
   Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
   
@@ -195,67 +189,43 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   L2CValue unkParam = {.raw = (int) 1, .type = L2C_integer};
   L2CValue unkParam2 = {.raw = (float) 35.0f, .type = L2C_number};
   L2CValue effectSize = {.raw_float = (float) size.raw_float * sizeMult, .type = L2C_number};
-  L2CValue red = {.raw_float = (float) 0.0, .type = L2C_number};
-  L2CValue green = {.raw_float = (float) 255.0, .type = L2C_number};
-  L2CValue blue = {.raw_float = (float) 255.0, .type = L2C_number};
+  L2CValue red = {.raw_float = (float) 255.0, .type = L2C_number};
+  L2CValue green = {.raw_float = (float) 0.0, .type = L2C_number};
+  L2CValue blue = {.raw_float = (float) 0.0, .type = L2C_number};
+	
+  int num_effects;
+  if (x2.type != L2C_void && y2.type != L2C_void && z2.type != L2C_void) {
+	  num_effects = 4;
+  } else {
+	x2 = x;
+	y2 = y; 
+	z2 = z;
+	num_effects = 1;
+  }
   
-  lib_L2CAgent_clear_lua_stack(&l2c_agent);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &bone);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &x);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &y);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &z);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &xRot);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &yRot);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &zRot);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &effectSize);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &red);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &green);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &blue);
-  app_sv_animcmd_EFFECT_FOLLOW_FLIP_COLOR(l2c_agent.lua_state_agent);
-  
-  // Test:
-  
-  Hash40 effectHash1 = {.hash = 0x1446E1363ALL};
-  Hash40 effectHash2 = {.hash = 0x31ED91FCALL};
-  L2CValue v33 = {.raw = effectHash1.hash, .type = L2C_hash};
-  L2CValue v31 = {.raw = effectHash2.hash, .type = L2C_hash};
-  L2CValue v28 = {.raw = (int)0, .type = L2C_integer};
-  L2CValue v27 = {.raw_float = (float)8.5, .type = L2C_number};
-  L2CValue v26 = {.raw = (int)-13, .type = L2C_integer};
-  L2CValue v25 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v24 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v23 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v22 = {.raw =  (int)1, .type = L2C_integer};
-  L2CValue v21 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v20 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v19 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v18 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v17 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v16 = {.raw =  (int)0, .type = L2C_integer};
-  L2CValue v15 = {.raw = (bool) 1, .type = L2C_bool};
-  lib_L2CAgent_clear_lua_stack(&l2c_agent);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v33);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v31);  
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v28);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v27);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v26);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v25);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v24);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v23);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v22);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v21);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v20);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v19);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v18);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v17);  
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v16);
-  lib_L2CAgent_push_lua_stack(&l2c_agent, &v15);
-  
-  app_sv_animcmd_EFFECT(l2c_agent.lua_state_agent);
+  for (int i = 0; i < num_effects; i++) {
+	L2CValue currX = {.raw_float = (float) x.raw_float + ((x2.raw_float - x.raw_float) /  3 * i), .type = L2C_number};
+	L2CValue currY = {.raw_float = (float) y.raw_float + ((y2.raw_float - y.raw_float) /  3 * i), .type = L2C_number};
+	L2CValue currZ = {.raw_float = (float) z.raw_float + ((z2.raw_float - z.raw_float) /  3 * i), .type = L2C_number};
+	  
+	lib_L2CAgent_clear_lua_stack(&l2c_agent);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &bone);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &currX);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &currY);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &currZ);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &xRot);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &yRot);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &zRot);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &effectSize);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &red);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &green);
+	lib_L2CAgent_push_lua_stack(&l2c_agent, &blue);
+	app_sv_animcmd_EFFECT_FOLLOW_FLIP_COLOR(l2c_agent.lua_state_agent);
+  }
   
   // clear_lua_stack section
   v2 = *(__int64_t *)(v1 + 16);
