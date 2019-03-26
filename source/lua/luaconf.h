@@ -120,7 +120,7 @@
 #if LUAI_BITSINT >= 32  /* use 'int' if big enough */
 #define LUA_INT_TYPE	LUA_INT_INT
 #else  /* otherwise use 'long' */
-#define LUA_INT_TYPE	LUA_INT_LONGLONG
+#define LUA_INT_TYPE	LUA_INT_LONG
 #endif
 #define LUA_FLOAT_TYPE	LUA_FLOAT_FLOAT
 
@@ -128,9 +128,8 @@
 /*
 ** largest types available for C89 ('long' and 'double')
 */
-//#define LUA_INT_TYPE	LUA_INT_INT
-#define LUA_INT_TYPE	LUA_INT_LONGLONG
-#define LUA_FLOAT_TYPE	LUA_FLOAT_FLOAT
+#define LUA_INT_TYPE	LUA_INT_LONG
+#define LUA_FLOAT_TYPE	LUA_FLOAT_DOUBLE
 
 #endif				/* } */
 
@@ -139,12 +138,11 @@
 ** default configuration for 64-bit Lua ('long long' and 'double')
 */
 #if !defined(LUA_INT_TYPE)
-//#define LUA_INT_TYPE	LUA_INT_INT
 #define LUA_INT_TYPE	LUA_INT_LONGLONG
 #endif
 
 #if !defined(LUA_FLOAT_TYPE)
-#define LUA_FLOAT_TYPE	LUA_FLOAT_FLOAT
+#define LUA_FLOAT_TYPE	LUA_FLOAT_DOUBLE
 #endif
 
 /* }================================================================== */
