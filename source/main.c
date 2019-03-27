@@ -60,6 +60,11 @@ void __attribute__((weak)) NORETURN __libnx_exit(int rc)
     __nx_exit(0, orig_saved_lr);
 }
 
+uint64_t is_training_mode() {
+    u8 *modeByte_71066b5720 = IMPORT(0x71066b5720);
+    return (*modeByte_71066b5720 == 0xC) || (*modeByte_71066b5720 == 0x20);
+}
+
 void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   // Stretched bones fix: Scale down by ModelModule::scale() with lua_State arg of bone?
 	
@@ -113,50 +118,52 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   sub_71019420D0(*(__int64_t *)(*(__int64_t *)(a1 - 8) + 416LL), a1);
   
   // EFFECT_FOLLOW_COLOR(Graphic, Bone, Z, Y, X, ZRot, YRot, XRot, Size, unknown=0x1, Red, Green, Blue)
-  float sizeMult = 19.0 / 200.0;
-  Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
-  
-  L2CValue shieldEffect = {.raw = shieldEffectHash.hash, .type = L2C_hash};
-  L2CValue xRot = {.raw_float = (float) 0.0, .type = L2C_number};
-  L2CValue yRot = {.raw_float = (float) 0.0, .type = L2C_number};
-  L2CValue zRot = {.raw_float = (float) 0.0, .type = L2C_number};
-  L2CValue unkParam = {.raw = (int) 1, .type = L2C_integer};
-  L2CValue unkParam2 = {.raw = (float) 35.0f, .type = L2C_number};
-  L2CValue effectSize = {.raw_float = (float) size.raw_float * sizeMult, .type = L2C_number};
-  L2CValue red = {.raw_float = (float) 255.0, .type = L2C_number};
-  L2CValue green = {.raw_float = (float) 0.0, .type = L2C_number};
-  L2CValue blue = {.raw_float = (float) 0.0, .type = L2C_number};
-	
-  int num_effects;
-  if (x2.type != L2C_void && y2.type != L2C_void && z2.type != L2C_void) {
-	  num_effects = 4;
-  } else {
-	x2 = x;
-	y2 = y; 
-	z2 = z;
-	num_effects = 1;
-  }
-  
-  for (int i = 0; i < num_effects; i++) {
-	L2CValue currX = {.raw_float = (float) x.raw_float + ((x2.raw_float - x.raw_float) /  3 * i), .type = L2C_number};
-	L2CValue currY = {.raw_float = (float) y.raw_float + ((y2.raw_float - y.raw_float) /  3 * i), .type = L2C_number};
-	L2CValue currZ = {.raw_float = (float) z.raw_float + ((z2.raw_float - z.raw_float) /  3 * i), .type = L2C_number};
-	  
-	lib_L2CAgent_clear_lua_stack(&l2c_agent);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &bone);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &currX);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &currY);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &currZ);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &xRot);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &yRot);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &zRot);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &effectSize);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &red);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &green);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &blue);
-	app_sv_animcmd_EFFECT_FOLLOW_COLOR(l2c_agent.lua_state_agent);
+  if (is_training_mode()){
+      float sizeMult = 19.0 / 200.0;
+      Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
+      
+      L2CValue shieldEffect = {.raw = shieldEffectHash.hash, .type = L2C_hash};
+      L2CValue xRot = {.raw_float = (float) 0.0, .type = L2C_number};
+      L2CValue yRot = {.raw_float = (float) 0.0, .type = L2C_number};
+      L2CValue zRot = {.raw_float = (float) 0.0, .type = L2C_number};
+      L2CValue unkParam = {.raw = (int) 1, .type = L2C_integer};
+      L2CValue unkParam2 = {.raw = (float) 35.0f, .type = L2C_number};
+      L2CValue effectSize = {.raw_float = (float) size.raw_float * sizeMult, .type = L2C_number};
+      L2CValue red = {.raw_float = (float) 255.0, .type = L2C_number};
+      L2CValue green = {.raw_float = (float) 0.0, .type = L2C_number};
+      L2CValue blue = {.raw_float = (float) 0.0, .type = L2C_number};
+        
+      int num_effects;
+      if (x2.type != L2C_void && y2.type != L2C_void && z2.type != L2C_void) {
+          num_effects = 4;
+      } else {
+        x2 = x;
+        y2 = y; 
+        z2 = z;
+        num_effects = 1;
+      }
+      
+      for (int i = 0; i < num_effects; i++) {
+        L2CValue currX = {.raw_float = (float) x.raw_float + ((x2.raw_float - x.raw_float) /  3 * i), .type = L2C_number};
+        L2CValue currY = {.raw_float = (float) y.raw_float + ((y2.raw_float - y.raw_float) /  3 * i), .type = L2C_number};
+        L2CValue currZ = {.raw_float = (float) z.raw_float + ((z2.raw_float - z.raw_float) /  3 * i), .type = L2C_number};
+          
+        lib_L2CAgent_clear_lua_stack(&l2c_agent);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &bone);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &currX);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &currY);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &currZ);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &xRot);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &yRot);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &zRot);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &effectSize);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &red);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &green);
+        lib_L2CAgent_push_lua_stack(&l2c_agent, &blue);
+        app_sv_animcmd_EFFECT_FOLLOW_COLOR(l2c_agent.lua_state_agent);
+      }
   }
   
   // clear_lua_stack section

@@ -1,6 +1,6 @@
 #include <switch.h>
 
-#define ANCHOR_REL 0x7100000000
+#define ANCHOR_REL 0x70ffffc000
 u64 ANCHOR_ABS;
 #define IMPORT(x) (x - ANCHOR_REL + ANCHOR_ABS)
 
