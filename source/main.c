@@ -19,6 +19,10 @@
 #include "l2c.h"
 #include "saltysd_helper.h"
 
+u64 ANCHOR_REL;
+u64 ANCHOR_ABS;
+#define IMPORT(x) (x - ANCHOR_REL + ANCHOR_ABS)
+
 u32 __nx_applet_type = AppletType_None;
 
 static char g_heap[0x8000];
@@ -54,6 +58,9 @@ __int64_t (*app_sv_animcmd_EFFECT)(__int64_t);
 
 // app::sv::animcmd::EFFECT_FOLLOW_FLIP_COLOR(lua_State* a1)
 __int64_t (*app_sv_animcmd_EFFECT_FOLLOW_FLIP_COLOR)(__int64_t);
+
+// app::sv::animcmd::EFFECT_FOLLOW_COLOR(lua_State* a1)
+__int64_t (*app_sv_animcmd_EFFECT_FOLLOW_COLOR)(__int64_t);
 
 void __libnx_init(void* ctx, Handle main_thread, void* saved_lr)
 {
@@ -103,7 +110,6 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   lua_replace((lua_State*) l2c_agent.lua_state_agent, 4); 
   */
   
-  
   // Get all necessary hitbox params
   L2CValue bone;
   get_lua_stack(&l2c_agent, 3, &bone);
@@ -133,13 +139,10 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
   get_lua_stack(&l2c_agent, 15, &z2);
 
   v1 = a1;
-  u64 attack_code_addr = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State");
-  void (*sub_71019420D0)(__int64_t, __int64_t) = (void (*)(__int64_t, __int64_t))(attack_code_addr + 96);
+  void (*sub_71019420D0)(__int64_t, __int64_t) = (void (*)(__int64_t, __int64_t))(IMPORT(0x71019420D0));
   sub_71019420D0(*(__int64_t *)(*(__int64_t *)(a1 - 8) + 416LL), a1);
   
   // EFFECT_FOLLOW_COLOR(Graphic, Bone, Z, Y, X, ZRot, YRot, XRot, Size, unknown=0x1, Red, Green, Blue)
-  // FIRST, to test, let's assume single hitbox, not extended, so ignore x2,y2,z2.
-  // EFFECT_FOLLOW_FLIP_COLOR(GFXLeft,GFXRight,Bone, Z, Y, X, ZRot, YRot, XRot, Size,Terminate,unknown,R,G,B)
   float sizeMult = 19.0 / 200.0;
   Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
   
@@ -171,7 +174,6 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
 	  
 	lib_L2CAgent_clear_lua_stack(&l2c_agent);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &shieldEffect);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &bone);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &currX);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &currY);
@@ -181,11 +183,10 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &zRot);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &effectSize);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
-	lib_L2CAgent_push_lua_stack(&l2c_agent, &unkParam);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &red);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &green);
 	lib_L2CAgent_push_lua_stack(&l2c_agent, &blue);
-	app_sv_animcmd_EFFECT_FOLLOW_FLIP_COLOR(l2c_agent.lua_state_agent);
+	app_sv_animcmd_EFFECT_FOLLOW_COLOR(l2c_agent.lua_state_agent);
   }
   
   // clear_lua_stack section
@@ -204,14 +205,18 @@ int main(int argc, char *argv[])
 {
     SaltySD_printf("SaltySD Plugin: alive\n");
 	
-	// get necessary functions
+	// Get anchor for imports
+	ANCHOR_REL = 0x7101942070;
+	ANCHOR_ABS = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State");
+	
+	// Get necessary functions
 	lib_L2CAgent = (__int64_t (*)(__int64_t*, __int64_t))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgentC2EP9lua_State"));
 	lib_L2CAgent_push_lua_stack = (__int64_t (*)(__int64_t, const __int64_t*))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgent14push_lua_stackERKNS_8L2CValueE"));
 	lib_L2CAgent_pop_lua_stack = (__int64_t (*)(__int64_t, int))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgent13pop_lua_stackEi"));
     lib_L2CAgent_clear_lua_stack = (__int64_t (*)(__int64_t))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgent15clear_lua_stackEv"));
 	app_sv_animcmd_EFFECT = (__int64_t (*)(__int64_t))(SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6EFFECTEP9lua_State"));
 	app_sv_animcmd_EFFECT_FOLLOW_FLIP_COLOR = (__int64_t (*)(__int64_t))(SaltySDCore_FindSymbol("_ZN3app10sv_animcmd24EFFECT_FOLLOW_FLIP_COLOREP9lua_State"));
-	
+	app_sv_animcmd_EFFECT_FOLLOW_COLOR = (__int64_t (*)(__int64_t))(IMPORT(0x7101955F10));
     
     char* ver = "Ver. %d.%d.%d";
     u64 dst_3 = SaltySDCore_findCode(ver, strlen(ver));
