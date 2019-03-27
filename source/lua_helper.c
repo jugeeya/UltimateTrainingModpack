@@ -2,6 +2,7 @@
 #include "saltysd_core.h"
 #include "saltysd_ipc.h"
 #include "saltysd_dynamic.h"
+#include "acmd_imports.h"
 
 __int64_t (*lib_L2CAgent_pop_lua_stack)(__int64_t, int) = NULL;
 

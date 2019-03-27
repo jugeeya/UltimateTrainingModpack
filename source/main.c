@@ -18,6 +18,8 @@
 
 #include "l2c.h"
 #include "saltysd_helper.h"
+#include "l2c_imports.h"
+#include "acmd_imports.h"
 
 u64 ANCHOR_REL;
 u64 ANCHOR_ABS;
@@ -30,34 +32,6 @@ static char g_heap[0x8000];
 Handle orig_main_thread;
 void* orig_ctx;
 void* orig_saved_lr;
-
-// lib::L2CAgent::L2CAgent(L2CAgent*, lua_State *)
-__int64_t (*lib_L2CAgent)(__int64_t*, __int64_t);
-
-// L2CAgent *__fastcall lib::L2CAgent::push_lua_stack(L2CAgent *result, const lib::L2CValue *a2)
-__int64_t (*lib_L2CAgent_push_lua_stack)(__int64_t, const __int64_t*);
-
-// pop_lua_stack
-// Notes: 
-// Actually takes three arguments, but the third is given through X8 due to how 
-// AArch64 treats struct pointers that are used as pass by reference to get the value.
-// Thus, my current solution is to use inline ASM before using this to pass the 
-// last arg. This is done using asm("mov x8, %x0" : : "r"(&popped) : "x8" );, where
-// popped is an L2CValue that will be populated by the function.
-// FURTHERMORE, this function does NOT actually pop the stack, it only returns the value at the
-// position indicated by the second argument.
-// This index is either positive, meaning absolute position in the stack, or negative,
-// which is more traditional, i.e. -1 is the top of the stack.
-__int64_t (*lib_L2CAgent_pop_lua_stack)(__int64_t, int);
-
-// L2CAgent *__fastcall lib::L2CAgent::clear_lua_stack(L2CAgent *result)
-__int64_t (*lib_L2CAgent_clear_lua_stack)(__int64_t);
-
-// app::sv::animcmd::EFFECT(lua_State* a1)
-__int64_t (*app_sv_animcmd_EFFECT)(__int64_t);
-
-// app::sv::animcmd::EFFECT_FOLLOW_FLIP_COLOR(lua_State* a1)
-__int64_t (*app_sv_animcmd_EFFECT_FOLLOW_FLIP_COLOR)(__int64_t);
 
 // app::sv::animcmd::EFFECT_FOLLOW_COLOR(lua_State* a1)
 __int64_t (*app_sv_animcmd_EFFECT_FOLLOW_COLOR)(__int64_t);
@@ -210,12 +184,6 @@ int main(int argc, char *argv[])
 	ANCHOR_ABS = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State");
 	
 	// Get necessary functions
-	lib_L2CAgent = (__int64_t (*)(__int64_t*, __int64_t))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgentC2EP9lua_State"));
-	lib_L2CAgent_push_lua_stack = (__int64_t (*)(__int64_t, const __int64_t*))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgent14push_lua_stackERKNS_8L2CValueE"));
-	lib_L2CAgent_pop_lua_stack = (__int64_t (*)(__int64_t, int))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgent13pop_lua_stackEi"));
-    lib_L2CAgent_clear_lua_stack = (__int64_t (*)(__int64_t))(SaltySDCore_FindSymbol("_ZN3lib8L2CAgent15clear_lua_stackEv"));
-	app_sv_animcmd_EFFECT = (__int64_t (*)(__int64_t))(SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6EFFECTEP9lua_State"));
-	app_sv_animcmd_EFFECT_FOLLOW_FLIP_COLOR = (__int64_t (*)(__int64_t))(SaltySDCore_FindSymbol("_ZN3app10sv_animcmd24EFFECT_FOLLOW_FLIP_COLOREP9lua_State"));
 	app_sv_animcmd_EFFECT_FOLLOW_COLOR = (__int64_t (*)(__int64_t))(IMPORT(0x7101955F10));
     
     char* ver = "Ver. %d.%d.%d";
