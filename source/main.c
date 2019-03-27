@@ -21,10 +21,6 @@
 #include "l2c_imports.h"
 #include "acmd_imports.h"
 
-u64 ANCHOR_REL;
-u64 ANCHOR_ABS;
-#define IMPORT(x) (x - ANCHOR_REL + ANCHOR_ABS)
-
 u32 __nx_applet_type = AppletType_None;
 
 static char g_heap[0x8000];
@@ -171,17 +167,14 @@ void _ZN3app10sv_animcmd6ATTACKEP9lua_State_replace(__int64_t a1) {
     *(__int32_t *)(v2 + 8) = 0;
   }
   *(__int64_t *)(v1 + 16) = i;
-  
 }
-
 
 int main(int argc, char *argv[])
 {
     SaltySD_printf("SaltySD Plugin: alive\n");
 	
 	// Get anchor for imports
-	ANCHOR_REL = 0x7101942070;
-	ANCHOR_ABS = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State");
+	ANCHOR_ABS = SaltySDCore_getCodeStart();
 	
 	// Get necessary functions
 	app_sv_animcmd_EFFECT_FOLLOW_COLOR = (__int64_t (*)(__int64_t))(IMPORT(0x7101955F10));
