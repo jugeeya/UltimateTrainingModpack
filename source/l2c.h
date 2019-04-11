@@ -9,6 +9,13 @@ typedef struct Hash40
     uint64_t hash : 40;
 } Hash40;
 
+typedef struct Vector3f
+{
+    float x;
+    float y;
+    float z;
+} Vector3f;
+
 enum L2CVarType
 {
     L2C_void = 0,
