@@ -29,6 +29,8 @@ Handle orig_main_thread;
 void *orig_ctx;
 void *orig_saved_lr;
 
+void (*AttackModule_set_attack_lua_state)(__int64_t, __int64_t);
+
 void (*AttackModule_clear_all_orig)(__int64_t);
 
 void __libnx_init(void *ctx, Handle main_thread, void *saved_lr)
@@ -136,8 +138,7 @@ void app_sv_animcmd_ATTACK_replace(__int64_t a1)
 
     // original code: parse lua stack and call AttackModule::set_attack()
     v1 = a1;
-    void (*sub_71019420D0)(__int64_t, __int64_t) = (void (*)(__int64_t, __int64_t))(IMPORT(0x71019420D0));
-    sub_71019420D0(*(__int64_t *)(*(__int64_t *)(a1 - 8) + 416LL), a1);
+    AttackModule_set_attack_lua_state(*(__int64_t *)(*(__int64_t *)(a1 - 8) + 416LL), a1);
 
     if (is_training_mode())
     {
@@ -239,6 +240,8 @@ int main(int argc, char *argv[])
     {
         SaltySD_Memcpy(dst_3, "Noice v%d%d%d", 13);
     }
+
+    AttackModule_set_attack_lua_state = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") + 0xD0 - 0x70;
 
     // Install animCMD function replacement
     SaltySD_function_replace_sym("_ZN3app10sv_animcmd6ATTACKEP9lua_State",
