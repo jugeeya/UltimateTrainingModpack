@@ -49,3 +49,13 @@ extern uint64_t _ZN3app10sv_animcmd23LAST_EFFECT_SET_SCALE_WEP9lua_State(__int64
 // app::sv_animcmd::LAST_EFFECT_SET_RATE(lua_State * a1)
 #define app_sv_animcmd_LAST_EFFECT_SET_RATE _ZN3app10sv_animcmd20LAST_EFFECT_SET_RATEEP9lua_State
 extern uint64_t _ZN3app10sv_animcmd20LAST_EFFECT_SET_RATEEP9lua_State(__int64_t) LINKABLE;
+
+// app::sv_animcmd::LAST_EFFECT_SET_ALPHA(lua_State * a1)
+#define app_sv_animcmd_LAST_EFFECT_SET_ALPHA _ZN3app10sv_animcmd21LAST_EFFECT_SET_ALPHAEP9lua_State
+extern uint64_t _ZN3app10sv_animcmd21LAST_EFFECT_SET_ALPHAEP9lua_State(__int64_t) LINKABLE;
+
+#define app_sv_animcmd_frame _ZN3app10sv_animcmd5frameEP9lua_Statef
+extern uint64_t _ZN3app10sv_animcmd5frameEP9lua_Statef(__int64_t, float) LINKABLE;
+
+#define app_sv_animcmd_is_excute _ZN3app10sv_animcmd9is_excuteEP9lua_State
+extern uint64_t _ZN3app10sv_animcmd9is_excuteEP9lua_State(__int64_t) LINKABLE;

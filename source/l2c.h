@@ -79,8 +79,8 @@ typedef struct L2CAgent
     uint64_t unk20;
     uint64_t unk28;
     uint64_t unk30;
-    uint64_t unk38;
-    uint64_t lua_state_agentbase;
+    uint64_t battle_object;
+    uint64_t battle_module_object_accessor;
 } L2CAgent;
 
 typedef struct lua_State_smash

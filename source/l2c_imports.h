@@ -29,3 +29,12 @@ extern uint64_t _ZN3lib8L2CAgent13pop_lua_stackEi(__int64_t unk1, int unk2) LINK
 // __int64_t (*lib_L2CAgent_clear_lua_stack)(__int64_t);
 #define lib_L2CAgent_clear_lua_stack _ZN3lib8L2CAgent15clear_lua_stackEv
 extern uint64_t _ZN3lib8L2CAgent15clear_lua_stackEv(__int64_t unk1) LINKABLE;
+
+#define lib_utility_Variadic_get_format _ZN3lib7utility8VariadicC1Ev
+extern uint64_t _ZN3lib7utility8VariadicC1Ev(__int64_t unk1) LINKABLE;
+
+#define lib_L2CValue_push_variadic _ZN3lib8L2CValue13push_variadicEmPKcRNS_7utility8VariadicE
+extern uint64_t _ZN3lib8L2CValue13push_variadicEmPKcRNS_7utility8VariadicE(__int64_t unk1, __int64_t unk2, __int64_t unk3, __int64_t unk4) LINKABLE;
+
+#define lib_L2CValue_del_L2CValue _ZN3lib8L2CValueD1Ev
+extern uint64_t _ZN3lib8L2CValueD1Ev(__int64_t unk1) LINKABLE;
