@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#define LOAD64(x) *(u64 *)(x)
+
 #define LINKABLE __attribute__ ((weak))
 
 #define debug_log(...) \

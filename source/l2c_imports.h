@@ -1,14 +1,15 @@
 #include <switch.h>
+#include "l2c.h"
 
 // lib::L2CAgent::L2CAgent(L2CAgent*, lua_State *)
-//__int64_t (*lib_L2CAgent)(__int64_t*, __int64_t);
+//u64 (*lib_L2CAgent)(u64*, u64);
 #define lib_L2CAgent _ZN3lib8L2CAgentC2EP9lua_State
-extern uint64_t _ZN3lib8L2CAgentC2EP9lua_State(__int64_t* unk1, __int64_t unk2) LINKABLE;
+extern u64 _ZN3lib8L2CAgentC2EP9lua_State(L2CAgent* unk1, u64 unk2) LINKABLE;
 
 // L2CAgent *__fastcall lib::L2CAgent::push_lua_stack(L2CAgent *result, const lib::L2CValue *a2)
-//__int64_t (*lib_L2CAgent_push_lua_stack)(__int64_t, const __int64_t*);
+//u64 (*lib_L2CAgent_push_lua_stack)(u64, const u64*);
 #define lib_L2CAgent_push_lua_stack _ZN3lib8L2CAgent14push_lua_stackERKNS_8L2CValueE
-extern uint64_t _ZN3lib8L2CAgent14push_lua_stackERKNS_8L2CValueE(__int64_t unk1, const __int64_t* unk2) LINKABLE;
+extern u64 _ZN3lib8L2CAgent14push_lua_stackERKNS_8L2CValueE(L2CAgent* unk1, const L2CValue* unk2) LINKABLE;
 
 // pop_lua_stack
 // Notes: 
@@ -21,20 +22,20 @@ extern uint64_t _ZN3lib8L2CAgent14push_lua_stackERKNS_8L2CValueE(__int64_t unk1,
 // position indicated by the second argument.
 // This index is either positive, meaning absolute position in the stack, or negative,
 // which is more traditional, i.e. -1 is the top of the stack.
-//__int64_t (*lib_L2CAgent_pop_lua_stack)(__int64_t, int);
+//u64 (*lib_L2CAgent_pop_lua_stack)(u64, int);
 #define lib_L2CAgent_pop_lua_stack _ZN3lib8L2CAgent13pop_lua_stackEi
-extern uint64_t _ZN3lib8L2CAgent13pop_lua_stackEi(__int64_t unk1, int unk2) LINKABLE;
+extern u64 _ZN3lib8L2CAgent13pop_lua_stackEi(L2CAgent* unk1, int unk2) LINKABLE;
 
 // L2CAgent *__fastcall lib::L2CAgent::clear_lua_stack(L2CAgent *result)
-// __int64_t (*lib_L2CAgent_clear_lua_stack)(__int64_t);
+// u64 (*lib_L2CAgent_clear_lua_stack)(u64);
 #define lib_L2CAgent_clear_lua_stack _ZN3lib8L2CAgent15clear_lua_stackEv
-extern uint64_t _ZN3lib8L2CAgent15clear_lua_stackEv(__int64_t unk1) LINKABLE;
+extern u64 _ZN3lib8L2CAgent15clear_lua_stackEv(L2CAgent* unk1) LINKABLE;
 
 #define lib_utility_Variadic_get_format _ZN3lib7utility8VariadicC1Ev
-extern uint64_t _ZN3lib7utility8VariadicC1Ev(__int64_t unk1) LINKABLE;
+extern u64 _ZN3lib7utility8VariadicC1Ev(u64 unk1) LINKABLE;
 
 #define lib_L2CValue_push_variadic _ZN3lib8L2CValue13push_variadicEmPKcRNS_7utility8VariadicE
-extern uint64_t _ZN3lib8L2CValue13push_variadicEmPKcRNS_7utility8VariadicE(__int64_t unk1, __int64_t unk2, __int64_t unk3, __int64_t unk4) LINKABLE;
+extern u64 _ZN3lib8L2CValue13push_variadicEmPKcRNS_7utility8VariadicE(u64 unk1, u64 unk2, u64 unk3, u64 unk4) LINKABLE;
 
 #define lib_L2CValue_del_L2CValue _ZN3lib8L2CValueD1Ev
-extern uint64_t _ZN3lib8L2CValueD1Ev(__int64_t unk1) LINKABLE;
+extern u64 _ZN3lib8L2CValueD1Ev(u64 unk1) LINKABLE;
