@@ -164,6 +164,10 @@ void print_char( u64 module_accessor, char to_print, int line_num, float horiz_o
 }
 
 void print_string( u64 module_accessor, const char* print_str) {
+    // Delete any previous strings
+    Hash40 raygunShot = {.hash = 0x11e470b07fLL};
+    EffectModule_kill_kind(module_accessor, raygunShot.hash, 0, 1);
+
     int line_num = 0;
     float horiz_offset = 0;
     int char_num = 0;

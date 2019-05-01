@@ -1,12 +1,12 @@
 #include <switch.h>
 
 #include <dirent.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <switch/kernel/ipc.h>
 #include <sys/iosupport.h>
 #include <sys/reent.h>
-#include <math.h>
 
 #include "crc32.h"
 #include "useful.h"
@@ -23,8 +23,8 @@
 #include "l2c_imports.h"
 #include "lua_bind.h"
 #include "lua_helper.h"
-#include "saltysd_helper.h"
 #include "raygun_printer.h"
+#include "saltysd_helper.h"
 
 #include "taunt_toggles.h"
 
@@ -72,7 +72,8 @@ void __attribute__((weak)) NORETURN __libnx_exit(int rc) {
   SaltySD_printf("SaltySD Plugin: jumping to %p\n", orig_saved_lr);
 
   __nx_exit(0, orig_saved_lr);
-  while (true);
+  while (true)
+    ;
 }
 
 Vector3f id_colors[8] = {
@@ -89,15 +90,11 @@ void AttackModule_clear_all_replace(u64 attack_module) {
   AttackModule_clear_all_orig(attack_module);
 
   if (is_training_mode()) {
-    u64 battle_object_module_accessor = LOAD64(attack_module + 0x8);
+    u64 module_accessor = LOAD64(attack_module + 0x8);
 
     // Clear graphics every time we clear all hitboxes.
-    u64 effect_module = LOAD64(battle_object_module_accessor + 0x140);
-    void (*EffectModule_kill_kind)(u64, u64, bool, bool) = (void (*)(
-        u64, u64, bool, bool))(LOAD64(LOAD64(effect_module) + 0xE0LL));
-
     Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
-    EffectModule_kill_kind(effect_module, shieldEffectHash.hash, 0, 1);
+    EffectModule_kill_kind(module_accessor, shieldEffectHash.hash, 0, 1);
   }
 }
 
@@ -121,7 +118,6 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
                              L2CValue *size, L2CValue *x, L2CValue *y,
                              L2CValue *z, L2CValue *x2, L2CValue *y2,
                              L2CValue *z2) {
-
   float sizeMult = 19.0 / 200.0;
   Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
 
@@ -187,7 +183,7 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
 }
 
 void app_sv_animcmd_ATTACK_replace(u64 a1) {
-  u64 v1;       // x19
+  u64 v1;  // x19
   u64 v2;  // x9
   u64 i;   // x8
 
@@ -218,20 +214,21 @@ void app_sv_animcmd_ATTACK_replace(u64 a1) {
 
   if (HITBOX_VIS && is_training_mode()) {
     // Replace AttackModule::clear_all() and AttackModule::clear(int)
-    u64 battle_object_module_accessor = LOAD64(LOAD64(a1 - 8) + 416LL);
-    u64 attack_module = LOAD64(battle_object_module_accessor + 0xA0);
+    u64 module_accessor = LOAD64(LOAD64(a1 - 8) + 416LL);
+    u64 attack_module = LOAD64(module_accessor + 0xA0);
     u64 attack_module_clear_all = LOAD64(attack_module) + 0x50LL;
     if (AttackModule_clear_all_orig == 0) {
       AttackModule_clear_all_orig =
           (void (*)(u64))(LOAD64(attack_module_clear_all));
     }
-    LOAD64(attack_module_clear_all) = (u64) AttackModule_clear_all_replace;
+    LOAD64(attack_module_clear_all) = (u64)AttackModule_clear_all_replace;
 
     u64 attack_module_clear = LOAD64(attack_module) + 0x58LL;
     if (AttackModule_clear_orig == 0) {
-      AttackModule_clear_orig = (void (*)(u64, int))(LOAD64(attack_module_clear));
+      AttackModule_clear_orig =
+          (void (*)(u64, int))(LOAD64(attack_module_clear));
     }
-    LOAD64(attack_module_clear) = (u64) AttackModule_clear_replace;
+    LOAD64(attack_module_clear) = (u64)AttackModule_clear_replace;
 
     // Generate hitbox effect(s)
     generate_hitbox_effects(&l2c_agent, &id, &bone, &size, &x, &y, &z, &x2, &y2,
@@ -247,12 +244,11 @@ void app_sv_animcmd_ATTACK_replace(u64 a1) {
   LOAD64(v1 + 16) = i;
 }
 
-bool is_operation_cpu(u64 battle_object_module_accessor) {
+bool is_operation_cpu(u64 module_accessor) {
   // entry_id_var: 0x10000000;
   int entry_id_var;
   if (lib_lua_bind_get_value(0xF370199DB936C5ED, &entry_id_var) & 1) {
-    int entry_id =
-        WorkModule_get_int(battle_object_module_accessor, entry_id_var);
+    int entry_id = WorkModule_get_int(module_accessor, entry_id_var);
     u64 fighter_information = FighterManager_get_fighter_information(
         LOAD64(fighter_manager_addr), entry_id);
     return FighterInformation_is_operation_cpu(fighter_information);
@@ -261,24 +257,23 @@ bool is_operation_cpu(u64 battle_object_module_accessor) {
   return false;
 }
 
-u64 WorkModule_enable_transition_term_group_impl_replace(
-    u64 battle_object_module_accessor, u64 transition_group) {
+u64 WorkModule_enable_transition_term_group_impl_replace(u64 module_accessor,
+                                                         u64 transition_group) {
   if (TOGGLE_STATE == MASH_AIRDODGE && is_training_mode()) {
     // 0x1F00000D for airdodge
     if (transition_group == 0x1F00000D) {
-      if (is_operation_cpu(battle_object_module_accessor)) {
-        int status_kind =
-            StatusModule_status_kind(battle_object_module_accessor);
+      if (is_operation_cpu(module_accessor)) {
+        int status_kind = StatusModule_status_kind(module_accessor);
         // Damage -> DamageFall
         if (status_kind >= 0x48 && status_kind <= 0x50)
-          StatusModule_change_status_request_from_script(
-              battle_object_module_accessor, 0x22, 1);
+          StatusModule_change_status_request_from_script(module_accessor, 0x22,
+                                                         1);
       }
     }
   }
 
   // call original WorkModule::enable_transition_term_group_impl
-  u64 work_module = LOAD64(battle_object_module_accessor + 0x50);
+  u64 work_module = LOAD64(module_accessor + 0x50);
   u64 enable_transition_term_group_impl = LOAD64(work_module) + 0x140LL;
 
   u64 (*work_module_enable_transition_term_group_impl)(u64, u64) =
@@ -288,26 +283,24 @@ u64 WorkModule_enable_transition_term_group_impl_replace(
                                                        transition_group);
 }
 
-void show_angle(u64 battle_object_module_accessor, float y, float x, float zrot) {
-    Hash40 raygunShot = {.hash = 0x11e470b07fLL};
-    Hash40 top = {.hash = 0x031ed91fcaLL};
+void show_angle(u64 module_accessor, float y, float x, float zrot) {
+  Hash40 raygunShot = {.hash = 0x11e470b07fLL};
+  Hash40 top = {.hash = 0x031ed91fcaLL};
 
-    Vector3f pos = {.x = x, .y = y, .z = 0};
-    Vector3f rot = {.x = 0, .y = 90, .z = zrot};
-    Vector3f random = {.x = 0, .y = 0, .z = 0};
+  Vector3f pos = {.x = x, .y = y, .z = 0};
+  Vector3f rot = {.x = 0, .y = 90, .z = zrot};
+  Vector3f random = {.x = 0, .y = 0, .z = 0};
 
-    float size = 0.5;
+  float size = 0.5;
 
-    EffectModule_req_on_joint(battle_object_module_accessor, raygunShot.hash, top.hash, 
-        &pos, &rot, size, 
-        &random, &random, 
-        0, 0, 0, 0);
+  EffectModule_req_on_joint(module_accessor, raygunShot.hash, top.hash, &pos,
+                            &rot, size, &random, &random, 0, 0, 0, 0);
 }
 
-float WorkModule_get_float_replace(u64 battle_object_module_accessor, int var) {
+float WorkModule_get_float_replace(u64 module_accessor, int var) {
   if (DI_STATE != NONE && is_training_mode()) {
-    if (is_operation_cpu(battle_object_module_accessor)) {
-      int status_kind = StatusModule_status_kind(battle_object_module_accessor);
+    if (is_operation_cpu(module_accessor)) {
+      int status_kind = StatusModule_status_kind(module_accessor);
       // Damage -> DamageFall
       if (status_kind >= 0x48 && status_kind <= 0x50) {
         int DI_stick_x_ID;
@@ -326,7 +319,7 @@ float WorkModule_get_float_replace(u64 battle_object_module_accessor, int var) {
   }
 
   // call original WorkModule::get_float_impl
-  u64 work_module = LOAD64(battle_object_module_accessor + 0x50);
+  u64 work_module = LOAD64(module_accessor + 0x50);
   u64 get_float_impl = LOAD64(work_module) + 0x58LL;
 
   float (*work_module_get_float_impl)(u64, int) =
@@ -335,8 +328,8 @@ float WorkModule_get_float_replace(u64 battle_object_module_accessor, int var) {
   return work_module_get_float_impl(work_module, var);
 }
 
-void MotionModule_change_motion_replace(u64 battle_object_module_accessor,
-                                        u64 hash, float start_frame,
+void MotionModule_change_motion_replace(u64 module_accessor, u64 hash,
+                                        float start_frame,
                                         float frame_speed_mult, bool unk1,
                                         float unk2, bool unk3, bool unk4) {
   const char *down_taunt_l = "appeal_lw_l";
@@ -350,32 +343,34 @@ void MotionModule_change_motion_replace(u64 battle_object_module_accessor,
   if (hash == hash40(down_taunt_l) || hash == hash40(down_taunt_r)) {
     TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
     if (TOGGLE_STATE)
-        print_string(battle_object_module_accessor, "MASH\nAIRDODGE");
+      print_string(module_accessor, "MASH\nAIRDODGE");
     else
-        print_string(battle_object_module_accessor, "NONE");
+      print_string(module_accessor, "NONE");
   }
   // Up Taunt
   else if (hash == hash40(up_taunt_l) || hash == hash40(up_taunt_r)) {
     HITBOX_VIS = !HITBOX_VIS;
     if (HITBOX_VIS)
-        print_string(battle_object_module_accessor, "HITBOX\nVIS");
+      print_string(module_accessor, "HITBOX\nVIS");
     else
-        print_string(battle_object_module_accessor, "NO\nHITBOX");
+      print_string(module_accessor, "NO\nHITBOX");
   }
   // Side Taunt
   else if (hash == hash40(side_taunt_l) || hash == hash40(side_taunt_r)) {
-    // currently has issues: sometimes crashes. We'll use global parameters instead.
+    // currently has issues: sometimes crashes. We'll use global parameters
+    // instead.
     /*
     DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
     if (DI_STATE != NONE) {
         float angle = (DI_STATE - 1) * PI / 4.0;
-        show_angle(battle_object_module_accessor, -10*sin(angle)+10, 10*cos(angle), -1 * angle * 180.0 / PI );
+        show_angle(module_accessor, -10*sin(angle)+10, 10*cos(angle), -1 * angle
+    * 180.0 / PI );
     }
     */
   }
 
   // call original WorkModule::enable_transition_term_group_impl
-  u64 motion_module = LOAD64(battle_object_module_accessor + 0x88);
+  u64 motion_module = LOAD64(module_accessor + 0x88);
   u64 change_motion_impl = LOAD64(motion_module) + 0xD8LL;
 
   void (*motion_module_change_motion_impl)(u64, u64, float, float, bool, float,
@@ -387,16 +382,14 @@ void MotionModule_change_motion_replace(u64 battle_object_module_accessor,
                                    frame_speed_mult, unk1, unk2, unk3, unk4);
 }
 
-
-
 int main(int argc, char *argv[]) {
   SaltySD_printf("SaltySD Plugin: alive\n");
 
   // Get anchor for imports
   ANCHOR_ABS = SaltySDCore_getCodeStart();
 
-  const char* ver = "Ver. %d.%d.%d";
-  u64 dst_3 = SaltySDCore_findCode((u8*)ver, strlen(ver));
+  const char *ver = "Ver. %d.%d.%d";
+  u64 dst_3 = SaltySDCore_findCode((u8 *)ver, strlen(ver));
   if (dst_3) {
     SaltySD_Memcpy(dst_3, (u64) "Noice v%d%d%d", 13);
   }
@@ -405,8 +398,7 @@ int main(int argc, char *argv[]) {
   fighter_manager_addr = SaltySDCore_FindSymbol("_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E");
 
   AttackModule_set_attack_lua_state =
-      (void (*)(u64, u64)) SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") + 0xD0 -
-      0x70;
+      (void (*)(u64, u64))SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") + 0xD0 - 0x70;
 
   // Install animCMD function replacement
   SaltySD_function_replace_sym("_ZN3app10sv_animcmd6ATTACKEP9lua_State",
