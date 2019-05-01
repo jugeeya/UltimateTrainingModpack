@@ -6,6 +6,7 @@
 #include <switch/kernel/ipc.h>
 #include <sys/iosupport.h>
 #include <sys/reent.h>
+#include <math.h>
 
 #include "crc32.h"
 #include "useful.h"
@@ -23,6 +24,7 @@
 #include "lua_bind.h"
 #include "lua_helper.h"
 #include "saltysd_helper.h"
+#include "raygun_printer.h"
 
 #include "taunt_toggles.h"
 
@@ -43,6 +45,8 @@ void (*AttackModule_set_attack_lua_state)(u64, u64);
 
 void (*AttackModule_clear_all_orig)(u64);
 void (*AttackModule_clear_orig)(u64, int);
+
+#define PI 3.14159265358979323846
 
 void __libnx_init(void *ctx, Handle main_thread, void *saved_lr) {
   extern char *fake_heap_start;
@@ -250,7 +254,7 @@ bool is_operation_cpu(u64 battle_object_module_accessor) {
     int entry_id =
         WorkModule_get_int(battle_object_module_accessor, entry_id_var);
     u64 fighter_information = FighterManager_get_fighter_information(
-        *(u64 *)fighter_manager_addr, entry_id);
+        LOAD64(fighter_manager_addr), entry_id);
     return FighterInformation_is_operation_cpu(fighter_information);
   }
 
@@ -284,22 +288,39 @@ u64 WorkModule_enable_transition_term_group_impl_replace(
                                                        transition_group);
 }
 
+void show_angle(u64 battle_object_module_accessor, float y, float x, float zrot) {
+    Hash40 raygunShot = {.hash = 0x11e470b07fLL};
+    Hash40 top = {.hash = 0x031ed91fcaLL};
+
+    Vector3f pos = {.x = x, .y = y, .z = 0};
+    Vector3f rot = {.x = 0, .y = 90, .z = zrot};
+    Vector3f random = {.x = 0, .y = 0, .z = 0};
+
+    float size = 0.5;
+
+    EffectModule_req_on_joint(battle_object_module_accessor, raygunShot.hash, top.hash, 
+        &pos, &rot, size, 
+        &random, &random, 
+        0, 0, 0, 0);
+}
+
 float WorkModule_get_float_replace(u64 battle_object_module_accessor, int var) {
-  if (DI_STATE == DI_RIGHT && is_training_mode()) {
+  if (DI_STATE != NONE && is_training_mode()) {
     if (is_operation_cpu(battle_object_module_accessor)) {
       int status_kind = StatusModule_status_kind(battle_object_module_accessor);
       // Damage -> DamageFall
       if (status_kind >= 0x48 && status_kind <= 0x50) {
         int DI_stick_x_ID;
         int DI_stick_y_ID;
+        float angle = (DI_STATE - 1) * PI / 4.0;
 
         if (lib_lua_bind_get_value(0xA4D50A730E36970E, &DI_stick_x_ID) &&
             var == DI_stick_x_ID)
-          return 1.0;
+          return cos(angle);
 
         if (lib_lua_bind_get_value(0xEED4095B229D825B, &DI_stick_y_ID) &&
             var == DI_stick_y_ID)
-          return 1.0;
+          return sin(angle);
       }
     }
   }
@@ -328,14 +349,29 @@ void MotionModule_change_motion_replace(u64 battle_object_module_accessor,
   // Down Taunt
   if (hash == hash40(down_taunt_l) || hash == hash40(down_taunt_r)) {
     TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
+    if (TOGGLE_STATE)
+        print_string(battle_object_module_accessor, "MASH\nAIRDODGE");
+    else
+        print_string(battle_object_module_accessor, "NONE");
   }
   // Up Taunt
   else if (hash == hash40(up_taunt_l) || hash == hash40(up_taunt_r)) {
     HITBOX_VIS = !HITBOX_VIS;
+    if (HITBOX_VIS)
+        print_string(battle_object_module_accessor, "HITBOX\nVIS");
+    else
+        print_string(battle_object_module_accessor, "NO\nHITBOX");
   }
   // Side Taunt
   else if (hash == hash40(side_taunt_l) || hash == hash40(side_taunt_r)) {
+    // currently has issues: sometimes crashes. We'll use global parameters instead.
+    /*
     DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
+    if (DI_STATE != NONE) {
+        float angle = (DI_STATE - 1) * PI / 4.0;
+        show_angle(battle_object_module_accessor, -10*sin(angle)+10, 10*cos(angle), -1 * angle * 180.0 / PI );
+    }
+    */
   }
 
   // call original WorkModule::enable_transition_term_group_impl
@@ -350,6 +386,8 @@ void MotionModule_change_motion_replace(u64 battle_object_module_accessor,
   motion_module_change_motion_impl(motion_module, hash, start_frame,
                                    frame_speed_mult, unk1, unk2, unk3, unk4);
 }
+
+
 
 int main(int argc, char *argv[]) {
   SaltySD_printf("SaltySD Plugin: alive\n");

@@ -1,4 +1,8 @@
+#ifndef LUA_BIND_H
+#define LUA_BIND_H
+
 #include <switch.h>
+#include "l2c.h"
 
 #define StatusModule_change_status_request_from_script _ZN3app8lua_bind52StatusModule__change_status_request_from_script_implEPNS_26BattleObjectModuleAccessorEib
 extern u64 _ZN3app8lua_bind52StatusModule__change_status_request_from_script_implEPNS_26BattleObjectModuleAccessorEib(u64, int, bool) LINKABLE;
@@ -15,5 +19,14 @@ extern int _ZN3app8lua_bind24WorkModule__get_int_implEPNS_26BattleObjectModuleAc
 #define FighterManager_get_fighter_information _ZN3app8lua_bind44FighterManager__get_fighter_information_implEPNS_14FighterManagerENS_14FighterEntryIDE
 extern u64 _ZN3app8lua_bind44FighterManager__get_fighter_information_implEPNS_14FighterManagerENS_14FighterEntryIDE(u64, int) LINKABLE;
 
+// boma, effect, joint, pos, rot, size, random_pos, random_rot, NO_SCALE?, attr?, unkint1, unkint2
+#define EffectModule_req_on_joint _ZN3app8lua_bind31EffectModule__req_on_joint_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40ES4_RKNS3_8Vector3fES7_fS7_S7_bjii
+extern uint _ZN3app8lua_bind31EffectModule__req_on_joint_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40ES4_RKNS3_8Vector3fES7_fS7_S7_bjii(u64, u64, u64, const Vector3f*, const Vector3f*, float a6, const Vector3f*, const Vector3f*, bool, uint, int, int) LINKABLE;
+
+#define PostureModule_lr _ZN3app8lua_bind22PostureModule__lr_implEPNS_26BattleObjectModuleAccessorE
+extern float _ZN3app8lua_bind22PostureModule__lr_implEPNS_26BattleObjectModuleAccessorE(u64) LINKABLE;
+
 #define lib_lua_bind_get_value _ZN3lib18lua_bind_get_valueIiEEbmRT_
 extern bool _ZN3lib18lua_bind_get_valueIiEEbmRT_(u64, int*) LINKABLE;
+
+#endif // LUA_BIND_H
