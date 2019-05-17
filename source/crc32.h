@@ -74,7 +74,7 @@ uint32_t crc32(const void *buf, size_t size)
 	return crc ^ ~0U;
 }
 
-uint64_t hash40(const void* data)
+uint64_t hash40(const char* data)
 {
 	size_t len = strlen(data); 
     return crc32(data, len) | (len & 0xFF) << 32;

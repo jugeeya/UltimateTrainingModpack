@@ -5,8 +5,10 @@
 
 #include "useful.h"
 
-extern u64 SaltySDCore_getCodeStart() LINKABLE;
-extern u64 SaltySDCore_getCodeSize() LINKABLE;
-extern u64 SaltySDCore_findCode(u8* code, size_t size) LINKABLE;
+extern "C" {
+u64 SaltySDCore_getCodeStart() LINKABLE;
+u64 SaltySDCore_getCodeSize() LINKABLE;
+u64 SaltySDCore_findCode(u8* code, size_t size) LINKABLE;
+}
 
 #endif // SALTYSD_CORE_H
