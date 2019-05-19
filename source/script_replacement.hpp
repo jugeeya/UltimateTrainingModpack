@@ -9,7 +9,12 @@
 #include "acmd_wrapper.hpp"
 #include "lua_helper.hpp"
 
+#include "raygun_printer.hpp"
+
 #include "const_value_table.h"
+#include "taunt_toggles.h"
+
+#include <vector>
 
 #define LOAD64 *(u64 *)
 
@@ -17,6 +22,9 @@ using namespace lib;
 using namespace app::lua_bind;
 
 u64 shine_replace(L2CAgent* l2c_agent, void* variadic);
+u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic);
+u64 appeal_hi_replace(L2CAgent* l2c_agent, void* variadic);
+u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic);
 
 void replace_scripts(L2CAgent* l2c_agent, u8 category, uint kind) {
     // fighter
@@ -30,12 +38,77 @@ void replace_scripts(L2CAgent* l2c_agent, u8 category, uint kind) {
         // peach
         if (kind == FIGHTER_KIND_PEACH) {
         }
+
+        l2c_agent->sv_set_function_hash(&appeal_lw_replace, hash40("effect_appeallwl"));
+        l2c_agent->sv_set_function_hash(&appeal_lw_replace, hash40("effect_appeallwr"));
+        l2c_agent->sv_set_function_hash(&appeal_hi_replace, hash40("effect_appealhil"));
+        l2c_agent->sv_set_function_hash(&appeal_hi_replace, hash40("effect_appealhir"));
+        l2c_agent->sv_set_function_hash(&appeal_s_replace, hash40("effect_appealsl"));
+        l2c_agent->sv_set_function_hash(&appeal_s_replace, hash40("effect_appealsr"));
     }
+}
+
+u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
+  ACMD acmd = ACMD(l2c_agent);
+  
+  acmd.frame(1);
+  if (acmd.is_excute()) {
+    TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
+    if (TOGGLE_STATE)
+      print_string(acmd.module_accessor, "MASH\nAIRDODGE");
+    else
+      print_string(acmd.module_accessor, "NONE");
+  }
+
+  return 0;
+}
+
+u64 appeal_hi_replace(L2CAgent* l2c_agent, void* variadic) {
+  ACMD acmd = ACMD(l2c_agent);
+
+  acmd.frame(1);
+  if (acmd.is_excute()) {
+    HITBOX_VIS = !HITBOX_VIS;
+    if (HITBOX_VIS)
+      print_string(acmd.module_accessor, "HITBOX\nVIS");
+    else
+      print_string(acmd.module_accessor, "NO\nHITBOX");
+  }
+
+  return 0;
+}
+
+void show_angle(u64 module_accessor, float y, float x, float zrot) {
+  Hash40 raygunShot = {.hash = 0x11e470b07fLL};
+  Hash40 top = {.hash = 0x031ed91fcaLL};
+
+  Vector3f pos = {.x = x, .y = y, .z = 0};
+  Vector3f rot = {.x = 0, .y = 90, .z = zrot};
+  Vector3f random = {.x = 0, .y = 0, .z = 0};
+
+  float size = 0.5;
+
+  EffectModule::req_on_joint(module_accessor, raygunShot.hash, top.hash, &pos,
+                            &rot, size, &random, &random, 0, 0, 0, 0);
+}
+
+u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
+  ACMD acmd = ACMD(l2c_agent);
+
+  acmd.frame(1);
+  if (acmd.is_excute()) {
+    DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
+    const char* DI_strings[NUM_DI_STATES] = {"NONE", "AWAY", "DOWN AWAY", "DOWN", "DOWN IN",
+      "IN", "UP IN", "UP", "UP AWAY"};
+    print_string(acmd.module_accessor, DI_strings[DI_STATE]);
+  }
+
+  return 0;
 }
 
 // AnimCMD replacement function
 u64 shine_replace(L2CAgent* l2c_agent, void* variadic) {
-  ACMD acmd = ACMD{.l2c_agent = l2c_agent};
+  ACMD acmd = ACMD(l2c_agent);
 
   acmd.frame(1);
   if (acmd.is_excute()) {

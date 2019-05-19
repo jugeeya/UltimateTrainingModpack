@@ -7,7 +7,24 @@
 #include "l2c_imports.hpp"
 #include "lua_helper.hpp"
 
+#include <initializer_list>
+#include <vector>
+
 using namespace lib;
+
+struct ACMDReplacement {
+    void* func;
+    int battle_object_category;
+    int battle_object_kind;
+    const char* acmd_script;
+};
+
+std::vector<ACMDReplacement> acmd_replacements;
+
+namespace app::sv_system
+{
+    u64 battle_object_module_accessor(u64) asm("_ZN3app9sv_system29battle_object_module_accessorEP9lua_State") LINKABLE;
+}
 
 namespace app::lua_bind
 {
@@ -70,6 +87,13 @@ namespace app::lua_bind
 struct ACMD
 {
     L2CAgent* l2c_agent;
+    u64 module_accessor;
+
+    ACMD(L2CAgent* agent) {
+        l2c_agent = agent;
+        module_accessor = app::sv_system::battle_object_module_accessor(l2c_agent->lua_state_agent);
+    }
+
     void frame(float f) {
         app::sv_animcmd::frame(l2c_agent->lua_state_agent, f);
         l2c_agent->clear_lua_stack();
@@ -82,6 +106,16 @@ struct ACMD
         bool excute = is_excute.raw;
         l2c_agent->clear_lua_stack();
         return excute;
+    }
+
+    void wrap( u64 (*acmd_func)(u64), std::initializer_list<L2CValue> list )
+    {
+        l2c_agent->clear_lua_stack(); 
+        for( auto elem : list )
+            l2c_agent->push_lua_stack(&L2CValue(elem));
+
+        acmd_func(l2c_agent->lua_state_agent);
+        l2c_agent->clear_lua_stack();    
     }
 
     void ATTACK(
@@ -123,42 +157,42 @@ struct ACMD
         u64 i23
     ) {
         L2CValue hitbox_params[36] = {
-            {.type = L2C_integer, .raw = i1},    // ID
-            {.type = L2C_integer, .raw = i2},    // Unk
-            {.type = L2C_hash, .raw = h1},   // Joint
-            {.type = L2C_number, .raw_float = f1}, // Damage
-            {.type = L2C_integer, .raw = i3},   // Angle
-            {.type = L2C_integer, .raw = i4},   // KBG
-            {.type = L2C_integer, .raw = i5},    // WBKB
-            {.type = L2C_integer, .raw = i6},   // BKB
-            {.type = L2C_number, .raw_float = f2}, // Size
-            {.type = L2C_number, .raw_float = f3},   // X
-            {.type = L2C_number, .raw_float = f4}, // Y
-            {.type = L2C_number, .raw_float = f5},   // Z
-            {.type = L2C_void, .raw = 0},   // X2
-            {.type = L2C_void, .raw = 0},   // Y2
-            {.type = L2C_void, .raw = 0},   // Z2
-            {.type = L2C_number, .raw_float = f6},   // Hitlag
-            {.type = L2C_number, .raw_float = f7},   // SDI
-            {.type = L2C_integer, .raw = i7},
-            {.type = L2C_integer, .raw = i8},
-            {.type = L2C_integer, .raw = i9},
-            {.type = L2C_integer, .raw = i10},
-            {.type = L2C_number, .raw_float = f8},
-            {.type = L2C_integer, .raw = i11},
-            {.type = L2C_integer, .raw = i12},
-            {.type = L2C_integer, .raw = i13},
-            {.type = L2C_integer, .raw = i14},
-            {.type = L2C_integer, .raw = i15},
-            {.type = L2C_integer, .raw = i16},
-            {.type = L2C_integer, .raw = i17},
-            {.type = L2C_integer, .raw = i18},
-            {.type = L2C_integer, .raw = i19},
-            {.type = L2C_integer, .raw = i20},
-            {.type = L2C_hash, .raw = h2},
-            {.type = L2C_integer, .raw = i21},
-            {.type = L2C_integer, .raw = i22},
-            {.type = L2C_integer, .raw = i23},
+            L2CValue(i1),    // ID
+            L2CValue(i2),    // Unk
+            L2CValue(h1),   // Joint
+            L2CValue(f1), // Damage
+            L2CValue(i3),   // Angle
+            L2CValue(i4),   // KBG
+            L2CValue(i5),    // WBKB
+            L2CValue(i6),   // BKB
+            L2CValue(f2), // Size
+            L2CValue(f3),   // X
+            L2CValue(f4), // Y
+            L2CValue(f5),   // Z
+            L2CValue("void"),   // X2
+            L2CValue("void"),   // Y2
+            L2CValue("void"),   // Z2
+            L2CValue(f6),   // Hitlag
+            L2CValue(f7),   // SDI
+            L2CValue(i7),
+            L2CValue(i8),
+            L2CValue(i9),
+            L2CValue(i10),
+            L2CValue(f8),
+            L2CValue(i11),
+            L2CValue(i12),
+            L2CValue(i13),
+            L2CValue(i14),
+            L2CValue(i15),
+            L2CValue(i16),
+            L2CValue(i17),
+            L2CValue(i18),
+            L2CValue(i19),
+            L2CValue(i20),
+            L2CValue(h2),
+            L2CValue(i21),
+            L2CValue(i22),
+            L2CValue(i23)
         };
 
         for (size_t i = 0; i < 36; i++)

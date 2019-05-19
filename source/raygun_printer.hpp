@@ -1,3 +1,6 @@
+#ifndef RAYGUN_PRINTER_H
+#define RAYGUN_PRINTER_H
+
 #include <switch.h>
 #include <ctype.h>
 
@@ -205,3 +208,5 @@ void print_string( u64 module_accessor, const char* print_str) {
         }
     }
 }
+
+#endif // RAYGUN_PRINTER_H

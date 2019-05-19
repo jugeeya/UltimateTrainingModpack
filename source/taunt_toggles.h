@@ -11,7 +11,7 @@ extern bool HITBOX_VIS = 1;
 // 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
 
 extern int DI_STATE = 0;
-#define NUM_DI_STATES 2
+#define NUM_DI_STATES 9
 
 // Down Taunt
 #define MASH_AIRDODGE 1

@@ -28,10 +28,6 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind26WorkModule__get_float_implEPNS_26BattleObjectModuleAccessorEi",
         (u64)&WorkModule_get_float_replace);
-
-    SaltySD_function_replace_sym(
-        "_ZN3app8lua_bind32MotionModule__change_motion_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40Effbfbb",
-        (u64)&MotionModule_change_motion_replace);
 }
 
 bool is_operation_cpu(u64 module_accessor) {
@@ -43,6 +39,7 @@ bool is_operation_cpu(u64 module_accessor) {
     return FighterInformation::is_operation_cpu(fighter_information);
 }
 
+// Force airdodge
 u64 WorkModule_enable_transition_term_group_replace(u64 module_accessor,
                                                          u64 transition_group) {
   if (TOGGLE_STATE == MASH_AIRDODGE && is_training_mode()) {
@@ -69,27 +66,18 @@ u64 WorkModule_enable_transition_term_group_replace(u64 module_accessor,
                                                        transition_group);
 }
 
-void show_angle(u64 module_accessor, float y, float x, float zrot) {
-  Hash40 raygunShot = {.hash = 0x11e470b07fLL};
-  Hash40 top = {.hash = 0x031ed91fcaLL};
-
-  Vector3f pos = {.x = x, .y = y, .z = 0};
-  Vector3f rot = {.x = 0, .y = 90, .z = zrot};
-  Vector3f random = {.x = 0, .y = 0, .z = 0};
-
-  float size = 0.5;
-
-  EffectModule::req_on_joint(module_accessor, raygunShot.hash, top.hash, &pos,
-                            &rot, size, &random, &random, 0, 0, 0, 0);
-}
-
+// Force DI
 float WorkModule_get_float_replace(u64 module_accessor, int var) {
-  if (is_training_mode()) {
+  if (is_training_mode() && DI_STATE != NONE) {
     if (is_operation_cpu(module_accessor)) {
       int status_kind = StatusModule::status_kind(module_accessor);
       // Damage -> DamageFall
       if (status_kind >= 0x48 && status_kind <= 0x50) {
-        float angle = 0;//(DI_STATE - 1) * PI / 4.0;
+        float angle = (DI_STATE - 1) * M_PI / 4.0;
+
+        // If facing left, reverse angle
+        if (PostureModule::lr(module_accessor) != -1.0)
+          angle -= M_PI;
 
         if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
           return cos(angle);
@@ -108,47 +96,4 @@ float WorkModule_get_float_replace(u64 module_accessor, int var) {
       (float (*)(u64, int))(LOAD64(get_float_impl));
 
   return work_module_get_float_impl(work_module, var);
-}
-
-void MotionModule_change_motion_replace(u64 module_accessor, u64 hash,
-                                        float start_frame,
-                                        float frame_speed_mult, bool unk1,
-                                        float unk2, bool unk3, bool unk4) {
-  const char *down_taunt_l = "appeal_lw_l";
-  const char *down_taunt_r = "appeal_lw_r";
-  const char *up_taunt_l = "appeal_hi_l";
-  const char *up_taunt_r = "appeal_hi_r";
-  const char *side_taunt_l = "appeal_s_l";
-  const char *side_taunt_r = "appeal_s_r";
-
-  char buffer[16];
-  // Down Taunt
-  if (hash == hash40(down_taunt_l) || hash == hash40(down_taunt_r)) {
-    TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
-    if (TOGGLE_STATE)
-      print_string(module_accessor, "MASH\nAIRDODGE");
-    else
-      print_string(module_accessor, "NONE");
-  }
-  // Up Taunt
-  else if (hash == hash40(up_taunt_l) || hash == hash40(up_taunt_r)) {
-    HITBOX_VIS = !HITBOX_VIS;
-    if (HITBOX_VIS)
-      print_string(module_accessor, "HITBOX\nVIS");
-    else
-      print_string(module_accessor, "NO\nHITBOX");
-  }
-  // Side Taunt
-  else if (hash == hash40(side_taunt_l) || hash == hash40(side_taunt_r)) {
-  }
-
-  // call original WorkModule::enable_transition_term_group_impl
-  u64 motion_module = LOAD64(module_accessor + 0x88);
-  u64 change_motion_impl = LOAD64(motion_module) + 0xD8LL;
-
-  void (*motion_module_change_motion_impl)(u64, u64, float, float, bool, float, bool, bool) =
-      (void (*)(u64, u64, float, float, bool, float, bool, bool))(
-          LOAD64(change_motion_impl));
-
-  motion_module_change_motion_impl(motion_module, hash, start_frame, frame_speed_mult, unk1, unk2, unk3, unk4);
 }

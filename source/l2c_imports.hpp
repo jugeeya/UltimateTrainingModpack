@@ -61,6 +61,28 @@ namespace lib
         struct L2CInnerFunctionBase* raw_innerfunc;
         //std::string* raw_string;
       };
+
+      L2CValue() {}
+
+      L2CValue(bool val) {
+        type = L2C_bool;
+        raw = val;
+      }
+
+      L2CValue(u64 val) {
+        type = L2C_integer;
+        raw = val;
+      }
+
+      L2CValue(float val) {
+        type = L2C_number;
+        raw_float = val;
+      }
+
+      L2CValue(const char* str) {
+        type = L2C_void;
+      }
+
     };
 
     struct L2CAgent
