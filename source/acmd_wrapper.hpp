@@ -1,3 +1,6 @@
+#ifndef ACMD_WRAPPER_H
+#define ACMD_WRAPPER_H
+
 #include <switch.h>
 
 #include "acmd_imports.hpp"
@@ -75,7 +78,7 @@ struct ACMD
     bool is_excute() {
         app::sv_animcmd::is_excute(l2c_agent->lua_state_agent);
         L2CValue is_excute;
-        get_lua_stack(l2c_agent, 1, &is_excute);
+        l2c_agent->get_lua_stack(1, &is_excute);
         bool excute = is_excute.raw;
         l2c_agent->clear_lua_stack();
         return excute;
@@ -166,3 +169,5 @@ struct ACMD
         l2c_agent->clear_lua_stack();
     }
 };
+
+#endif // ACMD_WRAPPER_H

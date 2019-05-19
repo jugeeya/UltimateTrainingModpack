@@ -1,3 +1,6 @@
+#ifndef TAUNT_TOGGLES_H
+#define TAUNT_TOGGLES_H
+
 #define NONE 0
 
 // Up Taunt
@@ -15,3 +18,5 @@ extern int DI_STATE = 0;
 
 int TOGGLE_STATE = 1;
 #define NUM_TOGGLE_STATES 2
+
+#endif // TAUNT_TOGGLES_H

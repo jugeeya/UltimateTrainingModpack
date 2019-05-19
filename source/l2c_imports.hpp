@@ -5,6 +5,8 @@
 #include "l2c.hpp"
 #include "lua_bind_hash.hpp"
 
+u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
+
 namespace lib
 {
     enum L2CVarType
@@ -88,13 +90,19 @@ namespace lib
       // which is more traditional, i.e. -1 is the top of the stack.
       //__int64_t (*lib_L2CAgent_pop_lua_stack)(__int64_t, int);
       u64 pop_lua_stack(int index) asm("_ZN3lib8L2CAgent13pop_lua_stackEi") LINKABLE;
+
+      void get_lua_stack(int index, lib::L2CValue* l2c_val) {
+        asm("mov x8, %x0" : : "r"(l2c_val) : "x8" );
+        pop_lua_stack(index);
+      }
+
       u64 sv_set_function_hash(void* func, u64 hash) asm("_ZN3lib8L2CAgent20sv_set_function_hashEPvN3phx6Hash40E") LINKABLE;
       u64 clear_lua_stack() asm("_ZN3lib8L2CAgent15clear_lua_stackEv") LINKABLE;
     };
 
     bool lua_bind_get_value(u64, int*) asm("_ZN3lib18lua_bind_get_valueIiEEbmRT_") LINKABLE;
 
-    int CONST_VALUE(const char* str) {
+    int lua_const(const char* str) {
         int val;
         if (lua_bind_get_value(lua_bind_hash_str(str), &val))
             return val;

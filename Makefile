@@ -29,7 +29,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=	my_plugin
+TARGET		:=	hitbox_visualizer
 BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data

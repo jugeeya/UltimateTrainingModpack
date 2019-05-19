@@ -9,6 +9,8 @@
 #include "acmd_wrapper.hpp"
 #include "lua_helper.hpp"
 
+#include "const_value_table.h"
+
 #define LOAD64 *(u64 *)
 
 using namespace lib;
@@ -18,15 +20,15 @@ u64 shine_replace(L2CAgent* l2c_agent, void* variadic);
 
 void replace_scripts(L2CAgent* l2c_agent, u8 category, uint kind) {
     // fighter
-    if (category == CONST_VALUE("BATTLE_OBJECT_CATEGORY_FIGHTER")) {
+    if (category == BATTLE_OBJECT_CATEGORY_FIGHTER) {
         // fox
-        if (kind == CONST_VALUE("FIGHTER_KIND_FOX")) {
+        if (kind == FIGHTER_KIND_FOX) {
             l2c_agent->sv_set_function_hash(&shine_replace, hash40("game_speciallwstart"));
             l2c_agent->sv_set_function_hash(&shine_replace, hash40("game_specialairlwstart"));
         }
 
         // peach
-        if (kind == CONST_VALUE("FIGHTER_KIND_PEACH")) {
+        if (kind == FIGHTER_KIND_PEACH) {
         }
     }
 }
