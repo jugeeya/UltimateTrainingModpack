@@ -64,6 +64,7 @@ void __attribute__((weak)) NORETURN __libnx_exit(int rc)
     SaltySD_printf("SaltySD Plugin: jumping to %p\n", orig_saved_lr);
 
     __nx_exit(0, orig_saved_lr);
+    while (true);
 }
 
 int main(int argc, char *argv[])

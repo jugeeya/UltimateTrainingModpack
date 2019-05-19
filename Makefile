@@ -47,7 +47,7 @@ CFLAGS	:=	-Wall -O2 \
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -std=gnu++11
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -Wno-parentheses -Wno-write-strings -Wno-pointer-arith -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(TOPDIR)/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)

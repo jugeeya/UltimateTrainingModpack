@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-uint64_t lua_bind_hash(void* data_, size_t len) {
-    int64_t *data = data_;
+uint64_t lua_bind_hash(const void* data_, size_t len) {
+    int64_t *data = (int64_t*)data_;
     size_t hash = len;
     int64_t hash_add = 0x27d4eb2f165667c4;
     int64_t* data_end = (int64_t *)((int64_t)data + len);
@@ -92,6 +92,6 @@ uint64_t lua_bind_hash(void* data_, size_t len) {
     return final_hash ^ final_hash >> 0x20;
 }
 
-uint64_t lua_bind_hash_str(char* str) {
+uint64_t lua_bind_hash_str(const char* str) {
     return lua_bind_hash(str, strlen(str));
 }

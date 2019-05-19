@@ -183,7 +183,7 @@ void print_string( u64 module_accessor, const char* print_str) {
         line_num = 1;
     horiz_offset = 0;
     char_num = 0;
-    for (int i = 0; i < strlen(print_str); i++) {
+    for (size_t i = 0; i < strlen(print_str); i++) {
         char curr_char = print_str[i];
         if (curr_char == '\n') {
             horiz_offset = 0;

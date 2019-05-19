@@ -26,19 +26,9 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic);
 u64 appeal_hi_replace(L2CAgent* l2c_agent, void* variadic);
 u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic);
 
-void replace_scripts(L2CAgent* l2c_agent, u8 category, uint kind) {
+void replace_scripts(L2CAgent* l2c_agent, u8 category, int kind) {
     // fighter
     if (category == BATTLE_OBJECT_CATEGORY_FIGHTER) {
-        // fox
-        if (kind == FIGHTER_KIND_FOX) {
-            l2c_agent->sv_set_function_hash(&shine_replace, hash40("game_speciallwstart"));
-            l2c_agent->sv_set_function_hash(&shine_replace, hash40("game_specialairlwstart"));
-        }
-
-        // peach
-        if (kind == FIGHTER_KIND_PEACH) {
-        }
-
         l2c_agent->sv_set_function_hash(&appeal_lw_replace, hash40("effect_appeallwl"));
         l2c_agent->sv_set_function_hash(&appeal_lw_replace, hash40("effect_appeallwr"));
         l2c_agent->sv_set_function_hash(&appeal_hi_replace, hash40("effect_appealhil"));
@@ -76,20 +66,6 @@ u64 appeal_hi_replace(L2CAgent* l2c_agent, void* variadic) {
   }
 
   return 0;
-}
-
-void show_angle(u64 module_accessor, float y, float x, float zrot) {
-  Hash40 raygunShot = {.hash = 0x11e470b07fLL};
-  Hash40 top = {.hash = 0x031ed91fcaLL};
-
-  Vector3f pos = {.x = x, .y = y, .z = 0};
-  Vector3f rot = {.x = 0, .y = 90, .z = zrot};
-  Vector3f random = {.x = 0, .y = 0, .z = 0};
-
-  float size = 0.5;
-
-  EffectModule::req_on_joint(module_accessor, raygunShot.hash, top.hash, &pos,
-                            &rot, size, &random, &random, 0, 0, 0, 0);
 }
 
 u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
@@ -142,7 +118,7 @@ u64 clear_lua_stack_replace(u64 l2c_agent) {
   u64 lua_state = LOAD64(l2c_agent + 8);
   if (lua_state-8 && LOAD64(lua_state-8) && LOAD64(LOAD64(lua_state - 8) + 416LL)) {
     u8 battle_object_category = *(u8 *)(LOAD64(lua_state - 8) + 404LL);
-    uint battle_object_kind = *(uint *)(LOAD64(lua_state - 8) + 408LL);
+    int battle_object_kind = *(int *)(LOAD64(lua_state - 8) + 408LL);
     replace_scripts((L2CAgent*)l2c_agent, battle_object_category, battle_object_kind);
   }
 

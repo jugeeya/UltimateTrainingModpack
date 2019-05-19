@@ -111,8 +111,8 @@ struct ACMD
     void wrap( u64 (*acmd_func)(u64), std::initializer_list<L2CValue> list )
     {
         l2c_agent->clear_lua_stack(); 
-        for( auto elem : list )
-            l2c_agent->push_lua_stack(&L2CValue(elem));
+        for( L2CValue elem : list )
+            l2c_agent->push_lua_stack(&elem);
 
         acmd_func(l2c_agent->lua_state_agent);
         l2c_agent->clear_lua_stack();    

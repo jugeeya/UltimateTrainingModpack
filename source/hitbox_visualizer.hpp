@@ -53,16 +53,16 @@ void AttackModule_clear_all_replace(u64 module_accessor) {
   }
 }
 
-void push_color(L2CAgent *l2c_agent, Vector3f color) {
-  l2c_agent->push_lua_stack(&L2CValue(color.x));
-  l2c_agent->push_lua_stack(&L2CValue(color.y));
-  l2c_agent->push_lua_stack(&L2CValue(color.z));
-}
-
 void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
                              L2CValue *size, L2CValue *x, L2CValue *y,
                              L2CValue *z, L2CValue *x2, L2CValue *y2,
                              L2CValue *z2) {
+  Vector3f color = id_colors[id->raw % 8];
+  L2CValue red(color.x);
+  L2CValue green(color.y);
+  L2CValue blue(color.z);
+
+
   float sizeMult = 19.0 / 200.0;
   Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
 
@@ -91,16 +91,13 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
     L2CValue currY(y->raw_float + ((y2->raw_float - y->raw_float) / 3 * i));
     L2CValue currZ(z->raw_float + ((z2->raw_float - z->raw_float) / 3 * i));
 
-    ACMD acmd{.l2c_agent = l2c_agent};
+    ACMD acmd(l2c_agent);
     acmd.wrap(EFFECT_FOLLOW_NO_SCALE, 
       {shieldEffect, *bone, currX, currY, currZ, xRot, yRot, zRot, effectSize, terminate}
     );
 
     // Set to hitbox ID color
-    // LAST_EFFECT_SET_COLOR(Red, Green, Blue)
-    l2c_agent->clear_lua_stack();
-    push_color(l2c_agent, id_colors[id->raw % 8]);
-    LAST_EFFECT_SET_COLOR(l2c_agent->lua_state_agent);
+    acmd.wrap(LAST_EFFECT_SET_COLOR, {red, green, blue});
 
     // Speed up animation by rate to remove pulsing effect
     // LAST_EFFECT_SET_RATE(Rate)
@@ -109,10 +106,6 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
 }
 
 void app_sv_animcmd_ATTACK_replace(u64 a1) {
-  u64 v1;  // x19
-  u64 v2;  // x9
-  u64 i;   // x8
-
   // Instantiate our own L2CAgent with the given lua_State
   L2CAgent l2c_agent;
   l2c_agent.L2CAgent_constr(a1);
@@ -135,13 +128,15 @@ void app_sv_animcmd_ATTACK_replace(u64 a1) {
   l2c_agent.get_lua_stack(15, &z2);
 
   // original code: parse lua stack and call AttackModule::set_attack()
-  v1 = a1;
   AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
   if (HITBOX_VIS && is_training_mode()) {
     // Generate hitbox effect(s)
     generate_hitbox_effects(&l2c_agent, &id, &bone, &size, &x, &y, &z, &x2, &y2, &z2);
   }
+
+  u64 v1, v2, i;
+  v1 = a1;
 
   // original code: clear_lua_stack section
   v2 = LOAD64(v1 + 16);
