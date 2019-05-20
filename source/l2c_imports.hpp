@@ -5,6 +5,8 @@
 #include "l2c.hpp"
 #include "lua_bind_hash.hpp"
 
+#define LOAD64 *(u64 *)
+
 u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
 
 namespace lib

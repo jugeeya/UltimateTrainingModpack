@@ -17,39 +17,23 @@ Vector3f id_colors[8] = {
     {0.7843f, 0.0f, 1.0f},    {0.3765f, 0.2863f, 0.5294f},
 };
 
-void app_sv_animcmd_ATTACK_replace(u64 a1);
-void AttackModule_clear_all_replace(u64 module_accessor);
-void AttackModule_clear_replace(u64 module_accessor, int id, bool unk);
-
-void hitbox_vis_main() {
-    AttackModule_set_attack_lua_state =
-      (void (*)(u64, u64))SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") + 0xD0 - 0x70;
-
-    SaltySD_function_replace_sym(
-      "_ZN3app10sv_animcmd6ATTACKEP9lua_State",
-      (u64)&app_sv_animcmd_ATTACK_replace);
-
-    SaltySD_function_replace_sym(
-      "_ZN3app8lua_bind28AttackModule__clear_all_implEPNS_26BattleObjectModuleAccessorE",
-      (u64)&AttackModule_clear_all_replace);
-}
-
-void AttackModule_clear_all_replace(u64 module_accessor) {
-  u64 attack_module = LOAD64(module_accessor + 0xA0);
-  u64 attack_module_clear_all = LOAD64(attack_module) + 0x50LL;
-  u64 (*attack_module_clear_all_impl)(u64) =
-    (u64(*)(u64))(LOAD64(attack_module_clear_all));
-
-  attack_module_clear_all_impl(attack_module);
-
-  if (is_training_mode()) {
-    // Clear graphics every time we clear all hitboxes.
-    // Only if we're not shielding.
-    int status_kind = StatusModule::status_kind(module_accessor);
-    if (!(status_kind >= 0x1b && status_kind <= 0x1d)) {
-      Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
-      EffectModule::kill_kind(module_accessor, shieldEffectHash.hash, 0, 1);
+namespace app::lua_bind::AttackModule {
+  // Clear graphics every time we clear all hitboxes
+  void clear_all_replace(u64 module_accessor) {
+    if (is_training_mode()) {
+      // Only if we're not shielding
+      int status_kind = StatusModule::status_kind(module_accessor);
+      if (!(status_kind >= FIGHTER_STATUS_KIND_GUARD_ON && status_kind <= FIGHTER_STATUS_KIND_GUARD_OFF)) {
+        Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
+        EffectModule::kill_kind(module_accessor, shieldEffectHash.hash, 0, 1);
+      }
     }
+
+    // call original AttackModule::clear_all_impl
+    u64 attack_module = load_module(module_accessor, 0xA0);
+    void (*clear_all)(u64) = (void(*)(u64))(load_module_impl(attack_module, 0x50));
+
+    return clear_all(attack_module);
   }
 }
 
@@ -105,44 +89,59 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
   }
 }
 
-void app_sv_animcmd_ATTACK_replace(u64 a1) {
-  // Instantiate our own L2CAgent with the given lua_State
-  L2CAgent l2c_agent;
-  l2c_agent.L2CAgent_constr(a1);
+namespace app::sv_animcmd {
+  void ATTACK_replace(u64 a1) {
+    // Instantiate our own L2CAgent with the given lua_State
+    L2CAgent l2c_agent;
+    l2c_agent.L2CAgent_constr(a1);
 
-  // Get all necessary hitbox params
-  L2CValue id, bone, damage, angle, kbg, wkb, bkb, size, x, y, z, x2, y2, z2;
-  l2c_agent.get_lua_stack(1, &id);
-  l2c_agent.get_lua_stack(3, &bone);
-  l2c_agent.get_lua_stack(4, &damage);
-  l2c_agent.get_lua_stack(5, &angle);
-  l2c_agent.get_lua_stack(6, &kbg);
-  l2c_agent.get_lua_stack(7, &wkb);
-  l2c_agent.get_lua_stack(8, &bkb);
-  l2c_agent.get_lua_stack(9, &size);
-  l2c_agent.get_lua_stack(10, &x);
-  l2c_agent.get_lua_stack(11, &y);
-  l2c_agent.get_lua_stack(12, &z);
-  l2c_agent.get_lua_stack(13, &x2);
-  l2c_agent.get_lua_stack(14, &y2);
-  l2c_agent.get_lua_stack(15, &z2);
+    // Get all necessary hitbox params
+    L2CValue id, bone, damage, angle, kbg, wkb, bkb, size, x, y, z, x2, y2, z2;
+    l2c_agent.get_lua_stack(1, &id);
+    l2c_agent.get_lua_stack(3, &bone);
+    l2c_agent.get_lua_stack(4, &damage);
+    l2c_agent.get_lua_stack(5, &angle);
+    l2c_agent.get_lua_stack(6, &kbg);
+    l2c_agent.get_lua_stack(7, &wkb);
+    l2c_agent.get_lua_stack(8, &bkb);
+    l2c_agent.get_lua_stack(9, &size);
+    l2c_agent.get_lua_stack(10, &x);
+    l2c_agent.get_lua_stack(11, &y);
+    l2c_agent.get_lua_stack(12, &z);
+    l2c_agent.get_lua_stack(13, &x2);
+    l2c_agent.get_lua_stack(14, &y2);
+    l2c_agent.get_lua_stack(15, &z2);
 
-  // original code: parse lua stack and call AttackModule::set_attack()
-  AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
+    // original code: parse lua stack and call AttackModule::set_attack()
+    AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
-  if (HITBOX_VIS && is_training_mode()) {
-    // Generate hitbox effect(s)
-    generate_hitbox_effects(&l2c_agent, &id, &bone, &size, &x, &y, &z, &x2, &y2, &z2);
+    if (HITBOX_VIS && is_training_mode()) {
+      // Generate hitbox effect(s)
+      generate_hitbox_effects(&l2c_agent, &id, &bone, &size, &x, &y, &z, &x2, &y2, &z2);
+    }
+
+    u64 v1, v2, i;
+    v1 = a1;
+
+    // original code: clear_lua_stack section
+    v2 = LOAD64(v1 + 16);
+    for (i = **(u64 **)(v1 + 32) + 16LL; v2 < i; v2 = LOAD64(v1 + 16)) {
+      LOAD64(v1 + 16) = v2 + 16;
+      *(__int32_t *)(v2 + 8) = 0;
+    }
+    LOAD64(v1 + 16) = i;
   }
+}
 
-  u64 v1, v2, i;
-  v1 = a1;
+void hitbox_vis_main() {
+    AttackModule_set_attack_lua_state =
+      (void (*)(u64, u64))SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") + 0xD0 - 0x70;
 
-  // original code: clear_lua_stack section
-  v2 = LOAD64(v1 + 16);
-  for (i = **(u64 **)(v1 + 32) + 16LL; v2 < i; v2 = LOAD64(v1 + 16)) {
-    LOAD64(v1 + 16) = v2 + 16;
-    *(__int32_t *)(v2 + 8) = 0;
-  }
-  LOAD64(v1 + 16) = i;
+    SaltySD_function_replace_sym(
+      "_ZN3app10sv_animcmd6ATTACKEP9lua_State",
+      (u64)&ATTACK_replace);
+
+    SaltySD_function_replace_sym(
+      "_ZN3app8lua_bind28AttackModule__clear_all_implEPNS_26BattleObjectModuleAccessorE",
+      (u64)&AttackModule::clear_all_replace);
 }

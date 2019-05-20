@@ -8,18 +8,17 @@
 #include "lua_helper.hpp"
 
 #include <initializer_list>
-#include <vector>
 
 using namespace lib;
 
-struct ACMDReplacement {
-    void* func;
-    int battle_object_category;
-    int battle_object_kind;
-    const char* acmd_script;
-};
+u64 load_module(u64 module_accessor, u64 module_offset) {
+    return LOAD64(module_accessor + module_offset);
+}
 
-std::vector<ACMDReplacement> acmd_replacements;
+void* load_module_impl(u64 module, u64 function_offset) {
+    u64 function_impl = LOAD64(module) + function_offset;
+    return (void*) LOAD64(function_impl);
+}
 
 namespace app::sv_system
 {
