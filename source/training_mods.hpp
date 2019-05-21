@@ -58,8 +58,8 @@ namespace app::lua_bind::WorkModule {
           float angle = (DI_STATE - 1) * M_PI / 4.0;
 
           // Either 0 (right) or PI (left)
-          if (DI_STATE = DI_RANDOM_IN_AWAY) {
-            angle = (rand() % 2) * M_PI;
+          if (DI_STATE == DI_RANDOM_IN_AWAY) {
+            angle = app::sv_math::rand(hash40("fighter"), 2) * M_PI;
           }
 
           // If facing left, reverse angle

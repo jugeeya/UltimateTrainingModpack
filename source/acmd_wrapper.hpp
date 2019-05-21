@@ -25,6 +25,11 @@ namespace app::sv_system
     u64 battle_object_module_accessor(u64) asm("_ZN3app9sv_system29battle_object_module_accessorEP9lua_State") LINKABLE;
 }
 
+namespace app::sv_math
+{
+    int rand(u64 hash, int endIndex) asm("_ZN3app7sv_math4randEN3phx6Hash40Ei") LINKABLE;
+}
+
 namespace app::lua_bind
 {
     namespace AttackModule
