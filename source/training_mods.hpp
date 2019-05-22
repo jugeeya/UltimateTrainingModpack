@@ -23,6 +23,21 @@ bool is_in_hitstun(u64 module_accessor) {
   return status_kind >= FIGHTER_STATUS_KIND_DAMAGE && status_kind <= FIGHTER_STATUS_KIND_DAMAGE_FALL;
 }
 
+void perform_jump(u64 module_accessor) {
+  int jump_count = WorkModule::get_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT);
+  int max_jump_count = WorkModule::get_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT_MAX);
+  if (jump_count < max_jump_count) {
+    if (StatusModule::situation_kind(module_accessor) == SITUATION_KIND_AIR) {
+      if (WorkModule::get_param_int(module_accessor, 0xB99CC3FBCLL, 0) == FIGHTER_JUMP_AERIAL_TYPE_NORMAL)
+        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_AERIAL, 1);
+      else
+        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_FLY, 1);
+    } else if (StatusModule::situation_kind(module_accessor) == SITUATION_KIND_GROUND)
+      StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_SQUAT, 1);      
+    WorkModule::inc_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT);
+  }
+}
+
 namespace app::lua_bind::WorkModule {
   // Force option out of hitstun
   u64 enable_transition_term_group_replace(u64 module_accessor, int transition_group) {
@@ -36,9 +51,9 @@ namespace app::lua_bind::WorkModule {
         // Jump
         else if (TOGGLE_STATE == MASH_JUMP) {
           if  (transition_group == FIGHTER_STATUS_TRANSITION_GROUP_CHK_AIR_JUMP_AERIAL)
-            StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_AERIAL, 1);
+            perform_jump(module_accessor);
           else if (transition_group == FIGHTER_STATUS_TRANSITION_GROUP_CHK_GROUND_JUMP)
-            StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_SQUAT, 1);
+            perform_jump(module_accessor);
         }
       }
     }
@@ -85,23 +100,25 @@ namespace app::lua_bind::WorkModule {
 
 namespace app::lua_bind::MotionModule {
   void change_motion_replace(u64 module_accessor, u64 motion_kind, float start_frame, float frame_speed_mult, bool unk1, float unk2, bool unk3, bool unk4) {
-
+    
     u64 curr_motion_kind = MotionModule::motion_kind(module_accessor);
-    if (curr_motion_kind == hash40("damage_air") && motion_kind == hash40("fall")) {
+    if ((curr_motion_kind == hash40("damage_air_1") ||
+          curr_motion_kind == hash40("damage_air_2") ||
+          curr_motion_kind == hash40("damage_air_3"))  && motion_kind == hash40("fall")) {
       if (is_training_mode() && is_operation_cpu(module_accessor)) {
         // Airdodge
         if (TOGGLE_STATE == MASH_AIRDODGE)
           StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_ESCAPE_AIR, 1);
         // Jump
         else if (TOGGLE_STATE == MASH_JUMP)
-          StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_AERIAL, 1);
+          perform_jump(module_accessor);
       }
     }
 
     // call original
     u64 motion_module = load_module(module_accessor, 0x88);
     void (*change_motion)(u64, u64, float, float, bool, float, bool, bool) =
-        (void (*)(u64, u64, float, float, bool, float, bool, bool)) load_module(motion_module, 0xD8);
+        (void (*)(u64, u64, float, float, bool, float, bool, bool)) load_module_impl(motion_module, 0xD8);
 
     change_motion(motion_module, motion_kind, start_frame, frame_speed_mult, unk1, unk2, unk3, unk4);
   }
