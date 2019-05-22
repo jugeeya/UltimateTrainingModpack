@@ -83,6 +83,30 @@ namespace app::lua_bind::WorkModule {
   }
 }
 
+namespace app::lua_bind::MotionModule {
+  void change_motion_replace(u64 module_accessor, u64 motion_kind, float start_frame, float frame_speed_mult, bool unk1, float unk2, bool unk3, bool unk4) {
+
+    u64 curr_motion_kind = MotionModule::motion_kind(module_accessor);
+    if (curr_motion_kind == hash40("damage_air") && motion_kind == hash40("fall")) {
+      if (is_training_mode() && is_operation_cpu(module_accessor)) {
+        // Airdodge
+        if (TOGGLE_STATE == MASH_AIRDODGE)
+          StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_ESCAPE_AIR, 1);
+        // Jump
+        else if (TOGGLE_STATE == MASH_JUMP)
+          StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_AERIAL, 1);
+      }
+    }
+
+    // call original
+    u64 motion_module = load_module(module_accessor, 0x88);
+    void (*change_motion)(u64, u64, float, float, bool, float, bool, bool) =
+        (void (*)(u64, u64, float, float, bool, float, bool, bool)) load_module(motion_module, 0xD8);
+
+    change_motion(motion_module, motion_kind, start_frame, frame_speed_mult, unk1, unk2, unk3, unk4);
+  }
+}
+
 void training_mods_main() {
     fighter_manager_addr = SaltySDCore_FindSymbol("_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E");
 
@@ -93,4 +117,8 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind26WorkModule__get_float_implEPNS_26BattleObjectModuleAccessorEi",
         (u64)&WorkModule::get_float_replace);
+
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind32MotionModule__change_motion_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40Effbfbb",
+        (u64)&MotionModule::change_motion_replace);
 }
