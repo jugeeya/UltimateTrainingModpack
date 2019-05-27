@@ -65,28 +65,26 @@ void generate_hitbox_effects(L2CAgent *l2c_agent,
 	L2CValue effectSize((float)size->raw_float * sizeMult);
 
 	L2CValue rate(8.0f);
-  
-	float xDist = x2->raw_float - x->raw_float;
-	float yDist = y2->raw_float - y->raw_float;
-	float zDist = z2->raw_float - z->raw_float;
 
-	int num_effects;
+	float xDist, yDist, zDist;
+	int nEffects;
 	if (x2->type != L2C_void && y2->type != L2C_void && z2->type != L2C_void) { // extended hitbox
-		float dist = sqrt(xDist * xDist + yDist * yDist + xDist * xDist);
-		num_effects = ceil(dist / (size->raw_float * 0.95)); // just enough effects to form a continuous line
-		if (num_effects < 2)
-		    num_effects = 2;
-		if (num_effects > 16)
-		    num_effects = 16;
+		xDist = x2->raw_float - x->raw_float;
+		yDist = y2->raw_float - y->raw_float;
+		zDist = z2->raw_float - z->raw_float;
+		float dist = sqrtf(xDist * xDist + yDist * yDist + zDist * zDist);
+		nEffects = (int)ceilf(dist / (size->raw_float * 1.875f)) + 1; // just enough effects to form a continuous line
+		if (nEffects < 2)
+		    nEffects = 2;
+		if (nEffects > 16)
+		    nEffects = 16;
 	} else { // non-extended hitbox
-		*x2 = *x;
-		*y2 = *y;
-		*z2 = *z;
-		num_effects = 1;
+		xDist = yDist = zDist = 0;
+		nEffects = 1;
 	}
 
-	for (int i = 0; i < num_effects; i++) {
-		float mult = (float)i / num_effects;
+	for (int i = 0; i < nEffects; i++) {
+		float mult = nEffects <= 1 ? 0 : (float)i / (nEffects - 1);
 		L2CValue currX(x->raw_float + xDist * mult);
 		L2CValue currY(y->raw_float + yDist * mult);
 		L2CValue currZ(z->raw_float + zDist * mult);
