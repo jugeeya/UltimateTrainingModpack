@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "l2c.hpp"
 #include "saltysd_helper.hpp"
 #include "l2c_imports.hpp"
@@ -37,10 +39,10 @@ namespace app::lua_bind::AttackModule {
   }
 }
 
-void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
-                             L2CValue *size, L2CValue *x, L2CValue *y,
-                             L2CValue *z, L2CValue *x2, L2CValue *y2,
-                             L2CValue *z2) {
+void generate_hitbox_effects(L2CAgent *l2c_agent,
+                             L2CValue *id, L2CValue *bone, L2CValue *size,
+                             L2CValue *x, L2CValue *y, L2CValue *z,
+                             L2CValue *x2, L2CValue *y2, L2CValue *z2) {
   Vector3f color = id_colors[id->raw % 8];
   L2CValue red(color.x);
   L2CValue green(color.y);
@@ -58,12 +60,20 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
   L2CValue effectSize((float)size->raw_float * sizeMult);
 
   L2CValue rate(8.0f);
+  
+  float xDist = x2->raw_float - x->raw_float;
+  float yDist = y2->raw_float - y->raw_float;
+  float zDist = z2->raw_float - z->raw_float;
 
-  // Extended Hitboxes if x2, y2, z2 are not L2CValue::nil
   int num_effects;
-  if (x2->type != L2C_void && y2->type != L2C_void && z2->type != L2C_void) {
-    num_effects = 4;
-  } else {
+  if (x2->type != L2C_void && y2->type != L2C_void && z2->type != L2C_void) { // extended hitbox
+    float dist = sqrt(xDist * xDist + yDist * yDist + xDist * xDist);
+    num_effects = ceil(dist / (size->raw_float * 0.95)); // just enough effects to form a continuous line
+    if (num_effects < 2)
+      num_effects = 2;
+    if (num_effects > 16)
+      num_effects = 16;
+  } else { // non-extended hitbox
     *x2 = *x;
     *y2 = *y;
     *z2 = *z;
@@ -71,21 +81,20 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone,
   }
 
   for (int i = 0; i < num_effects; i++) {
-    L2CValue currX(x->raw_float + ((x2->raw_float - x->raw_float) / 3 * i));
-    L2CValue currY(y->raw_float + ((y2->raw_float - y->raw_float) / 3 * i));
-    L2CValue currZ(z->raw_float + ((z2->raw_float - z->raw_float) / 3 * i));
+    float mult = (float)i / num_effects;
+    L2CValue currX(x->raw_float + xDist * mult);
+    L2CValue currY(y->raw_float + yDist * mult);
+    L2CValue currZ(z->raw_float + zDist * mult);
 
     ACMD acmd(l2c_agent);
-    acmd.wrap(EFFECT_FOLLOW_NO_SCALE, 
-      {shieldEffect, *bone, currX, currY, currZ, xRot, yRot, zRot, effectSize, terminate}
-    );
+    acmd.wrap(EFFECT_FOLLOW_NO_SCALE, { shieldEffect, *bone, currX, currY, currZ, xRot, yRot, zRot, effectSize, terminate });
 
     // Set to hitbox ID color
-    acmd.wrap(LAST_EFFECT_SET_COLOR, {red, green, blue});
+    acmd.wrap(LAST_EFFECT_SET_COLOR, { red, green, blue });
 
     // Speed up animation by rate to remove pulsing effect
     // LAST_EFFECT_SET_RATE(Rate)
-    acmd.wrap(LAST_EFFECT_SET_RATE, {rate});
+    acmd.wrap(LAST_EFFECT_SET_RATE, { rate });
   }
 }
 
