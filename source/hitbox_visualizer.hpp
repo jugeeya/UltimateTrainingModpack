@@ -6,6 +6,7 @@
 #include "saltysd_helper.hpp"
 #include "const_value_table.h"
 #include "taunt_toggles.h"
+#include "useful.h"
 
 using namespace lib;
 using namespace app::lua_bind;
@@ -13,16 +14,17 @@ using namespace app::sv_animcmd;
 
 void (*AttackModule_set_attack_lua_state)(u64, u64);
 
-Vector3f id_colors[8] = {
-	{ 1.0f, 0.0f, 0.0f }, // 0xff0000 (red)
-	{ 0.7843f, 0.3529f, 1.0f }, // 0xc85aff (purple)
-	{ 1.0f, 0.7843f, 0.7843f }, // 0xffc8c8 (pink)
-	{ 0.0f, 1.0f, 0.8431f }, // 0x00ffd7 (turquoise)
-	{ 1.0f, 0.4706f, 0.0f }, // 0xff7800 (orange)
-	{ 0.7843f, 0.7059f, 0.0f }, // 0xc8b400 (dark goldenrod)
-	{ 0.7843f, 0.0f, 1.0f }, //  0xc800ff (purple)
-	{ 0.3765f, 0.2863f, 0.5294f }, // 0x604987 (dark blue-gray)
+Vector3f ID_COLORS[8] = { // used to tint the hitbox effects -- make sure that at least one component is equal to 1.0
+	{ 1.0f, 0.0f, 0.0f }, // #ff0000 (red)
+	{ 1.0f, 0.4f, 0.0f }, // #ff9900 (orange)
+	{ 0.8f, 1.0f, 0.0f }, // #ccff00 (yellow)
+	{ 0.2f, 1.0f, 0.2f }, // #00ff33 (green)
+	{ 0.0f, 0.8f, 1.0f }, // #00ccff (sky blue)
+	{ 0.4f, 0.4f, 1.0f }, // #6666ff (blue)
+	{ 0.8f, 0.0f, 1.0f }, // #cc00ff (purple)
+	{ 1.0f, 0.2f, 0.8f }, // #ff33cc (pink)
 };
+int MAX_EFFECTS_PER_HITBOX = 16; // max # of circles drawn for an extended hitbox
 
 namespace app::lua_bind::AttackModule {
 	// clear graphics every time we clear all hitboxes
@@ -44,17 +46,20 @@ namespace app::lua_bind::AttackModule {
 	}
 }
 
-void generate_hitbox_effects(L2CAgent *l2c_agent,
-							 L2CValue *id, L2CValue *bone, L2CValue *size,
-							 L2CValue *x, L2CValue *y, L2CValue *z,
-							 L2CValue *x2, L2CValue *y2, L2CValue *z2) {
-	Vector3f color = id_colors[id->raw % 8];
+Vector3f generate_hitbox_effect_color(L2CAgent *l2c_agent, L2CValue *id, L2CValue *damage) {
+	float t = 0.375f + 0.625f * unlerpBounded(1.0f, 17.0f, damage->raw_float);
+	Vector3f color = ID_COLORS[id->raw % 8];
+	return colorLerp({ 1.0f, 1.0f, 1.0f }, color, t, 0.875f);
+}
+
+void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone, L2CValue *damage, L2CValue *size,
+		L2CValue *x, L2CValue *y, L2CValue *z, L2CValue *x2, L2CValue *y2, L2CValue *z2) {
+	Vector3f color = generate_hitbox_effect_color(l2c_agent, id, damage);
 	L2CValue red(color.x);
 	L2CValue green(color.y);
 	L2CValue blue(color.z);
 
-
-	float sizeMult = 19.0 / 200.0;
+	float sizeMult = 19.0f / 200.0f;
 	Hash40 shieldEffectHash = { .hash = 0xAFAE75F05LL };
 
 	L2CValue shieldEffect(shieldEffectHash.hash);
@@ -76,18 +81,18 @@ void generate_hitbox_effects(L2CAgent *l2c_agent,
 		nEffects = (int)ceilf(dist / (size->raw_float * 1.875f)) + 1; // just enough effects to form a continuous line
 		if (nEffects < 2)
 		    nEffects = 2;
-		if (nEffects > 16)
-		    nEffects = 16;
+		if (nEffects > MAX_EFFECTS_PER_HITBOX)
+		    nEffects = MAX_EFFECTS_PER_HITBOX;
 	} else { // non-extended hitbox
 		xDist = yDist = zDist = 0;
 		nEffects = 1;
 	}
 
 	for (int i = 0; i < nEffects; i++) {
-		float mult = nEffects <= 1 ? 0 : (float)i / (nEffects - 1);
-		L2CValue currX(x->raw_float + xDist * mult);
-		L2CValue currY(y->raw_float + yDist * mult);
-		L2CValue currZ(z->raw_float + zDist * mult);
+		float t = nEffects <= 1 ? 0 : (float)i / (nEffects - 1);
+		L2CValue currX(x->raw_float + xDist * t);
+		L2CValue currY(y->raw_float + yDist * t);
+		L2CValue currZ(z->raw_float + zDist * t);
 
 		ACMD acmd(l2c_agent);
 		acmd.wrap(EFFECT_FOLLOW_NO_SCALE, { shieldEffect, *bone, currX, currY, currZ, xRot, yRot, zRot, effectSize, terminate });
@@ -127,7 +132,7 @@ namespace app::sv_animcmd {
 		AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
 		if (HITBOX_VIS && is_training_mode()) {
-		    generate_hitbox_effects(&l2c_agent, &id, &bone, &size, &x, &y, &z, &x2, &y2, &z2); // generate hitbox effect(s)
+		    generate_hitbox_effects(&l2c_agent, &id, &bone, &damage, &size, &x, &y, &z, &x2, &y2, &z2); // generate hitbox effect(s)
 		}
 
 		u64 v1, v2, i;
