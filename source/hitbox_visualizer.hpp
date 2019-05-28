@@ -72,7 +72,7 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone, L2CValue *size
 		yDist = y2->raw_float - y->raw_float;
 		zDist = z2->raw_float - z->raw_float;
 		float dist = sqrtf(xDist * xDist + yDist * yDist + zDist * zDist);
-		nEffects = (int)ceilf(dist / (size->raw_float * 1.875f)) + 1; // just enough effects to form a continuous line
+		nEffects = (int)ceilf(dist / (size->raw_float * 1.75f)) + 1; // just enough effects to form a continuous line
 		if (nEffects < 2)
 		    nEffects = 2;
 		if (nEffects > MAX_EFFECTS_PER_HITBOX)
