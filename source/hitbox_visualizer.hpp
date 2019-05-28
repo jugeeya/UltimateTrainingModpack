@@ -127,9 +127,9 @@ namespace app::sv_animcmd {
 		AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
 		if (HITBOX_VIS && is_training_mode()) { // generate hitbox effect(s)
-			float color_t;
+			float color_scale;
 			if (false) { // color intensity scales with damage
-				color_t = 0.5f + 0.5f * powf(unlerp_bounded(1.0f, 18.0f, damage.raw_float), 0.5f); // non-linear scaling to magnify differences at lower damage levels
+				color_scale = unlerp_bounded(1.0f, 18.0f, damage.raw_float);
 			} else { // color intensity scales with total KB
 				// calculate the expected KB a character with 95 weight will receive at 80% pre-hit
 				float TARGET_PERCENT = 80.0f;
@@ -142,8 +142,9 @@ namespace app::sv_animcmd {
 				}
 				float weight_component = 200.0f / (TARGET_WEIGHT + 100);
 				float kb = (percent_component * weight_component * 1.4f + 18.0f) * (kbg.raw * 0.01f) + bkb.raw;
-				color_t = 0.5f + 0.5f * powf(unlerp_bounded(50.0f, 200.0f, kb), 0.5f); // non-linear scaling to magnify differences at lower KB levels
+				color_scale = unlerp_bounded(50.0f, 200.0f, kb);
 			}
+			float color_t = 0.6f + 0.4f * powf(color_scale, 0.5f); // non-linear scaling to magnify differences at lower values
 			Vector3f color = color_lerp({ 1.0f, 1.0f, 1.0f }, ID_COLORS[id.raw % 8], color_t);
 		    generate_hitbox_effects(&l2c_agent, &bone, &size, &x, &y, &z, &x2, &y2, &z2, &color);
 		}
