@@ -1,6 +1,6 @@
-#include "l2c.hpp"
-#include "saltysd_helper.hpp"
+#include "useful.h"
 #include "l2c_imports.hpp"
+#include "saltysd_helper.hpp"
 #include "acmd_imports.hpp"
 #include "taunt_toggles.h"
 #include "raygun_printer.hpp"

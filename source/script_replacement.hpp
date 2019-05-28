@@ -3,8 +3,8 @@
 #include <stdint.h>
 
 #include "crc32.h"
+#include "useful.h"
 
-#include "l2c.hpp"
 #include "l2c_imports.hpp"
 #include "acmd_wrapper.hpp"
 

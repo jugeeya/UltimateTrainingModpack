@@ -5,10 +5,9 @@
 
 #include <math.h>
 
-#include "l2c.hpp"
-#include "lua_bind_hash.hpp"
+#include "useful.h"
 
-#define LOAD64 *(u64 *)
+#include "lua_bind_hash.hpp"
 
 u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
 
@@ -25,14 +24,14 @@ namespace lib {
 		L2C_string = 8,
 	};
 
-	struct L2CTable_meta {
+	typedef struct L2CTable_meta {
 		uint64_t a;
 		uint64_t b;
 		uint64_t c;
 		uint64_t d;
-	};
+	} L2CTable_meta;
   
-	struct L2CTable {
+	typedef struct L2CTable {
 		uint32_t refcnt;
 		uint32_t unk;
 
@@ -41,9 +40,9 @@ namespace lib {
 		uint64_t also_end; // L2CValue*
 		struct L2CTable_meta meta;
 		uint64_t unk_ptr;
-	};
+	} L2CTable;
 
-	struct L2CInnerFunctionBase {
+	typedef struct L2CInnerFunctionBase {
 		uint64_t unk;
 		uint32_t refcnt;
 	} L2CInnerFunctionBase;

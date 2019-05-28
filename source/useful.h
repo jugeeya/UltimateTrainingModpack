@@ -5,38 +5,22 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "l2c.hpp"
-
 #define LINKABLE __attribute__ ((weak))
 
-#define debug_log(...) \
-	{char log_buf[0x200]; snprintf(log_buf, 0x200, __VA_ARGS__); \
-	svcOutputDebugString(log_buf, strlen(log_buf));}
+#define LOAD64 *(u64 *)
 
-/**
- * Rounds a number to the nearest multiple of another number.
- */
-float round_to(float val, float align);
+#define debug_log(...) {\
+	char log_buf[0x200]; snprintf(log_buf, 0x200, __VA_ARGS__); \
+	svcOutputDebugString(log_buf, strlen(log_buf)); }
 
-/**
- * Linearly interpolates between two numbers, without bounds checking.
- */
-float lerp(float min, float max, float t);
-float unlerp(float min, float max, float val);
-/**
- * Linearly interpolates between two numbers, with bounds checking.
- */
-float lerp_bounded(float min, float max, float t);
-float unlerp_bounded(float min, float max, float val);
+typedef struct Hash40 {
+	uint64_t hash : 40;
+} Hash40;
 
-/**
- * Linearly nterpolates between two colors, with bounds checking, accounting for gamma.
- * arguments:
- * - min_color (Vector3f) -- xyz maps to rgb, components are usually in the range [0.0f, 1.0f] but can go beyond to account for super-bright or super-dark colors
- * - max_Color (Vector3f) -- same as minColor
- * - t (float) -- how far to interpolate between the colors
- * - gamma (float = 2.0f) -- used for color correction, helps avoid ugly dark colors when interpolating b/t bright colors
- */
-Vector3f color_lerp(Vector3f min_color, Vector3f max_color, float t, float gamma = 2.0f);
+typedef struct Vector3f {
+	float x;
+	float y;
+	float z;
+} Vector3f;
 	
 #endif // USEFUL_H

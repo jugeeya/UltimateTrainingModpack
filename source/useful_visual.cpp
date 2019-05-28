@@ -1,8 +1,8 @@
-#include "useful.h"
+#include "useful_visual.h"
 
 #include <math.h>
 
-#include "l2c.hpp"
+#include "useful.h"
 
 float round_to(float val, float align) {
 	return roundf(val / align) * align;

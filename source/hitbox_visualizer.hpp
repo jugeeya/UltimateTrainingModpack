@@ -1,12 +1,13 @@
 #include <math.h>
 
-#include "l2c.hpp"
+#include "useful.h"
+#include "useful_visual.h"
+
 #include "l2c_imports.hpp"
 #include "acmd_wrapper.hpp"
 #include "saltysd_helper.hpp"
 #include "const_value_table.h"
 #include "taunt_toggles.h"
-#include "useful.h"
 
 using namespace lib;
 using namespace app::lua_bind;

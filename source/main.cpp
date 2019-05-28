@@ -14,7 +14,6 @@
 #include "saltysd_dynamic.h"
 
 #include "saltysd_helper.hpp"
-#include "l2c.hpp"
 #include "l2c_imports.hpp"
 #include "acmd_imports.hpp"
 
