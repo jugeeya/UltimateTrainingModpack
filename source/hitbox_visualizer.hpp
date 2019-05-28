@@ -53,43 +53,43 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone, L2CValue *size
 	L2CValue green(color->y);
 	L2CValue blue(color->z);
 
-	float sizeMult = 19.0f / 200.0f;
-	Hash40 shieldEffectHash = { .hash = 0xAFAE75F05LL };
+	float size_mult = 19.0f / 200.0f;
+	Hash40 shield_effect_hash = { .hash = 0xAFAE75F05LL };
 
-	L2CValue shieldEffect(shieldEffectHash.hash);
-	L2CValue xRot(0.0f);
-	L2CValue yRot(0.0f);
-	L2CValue zRot(0.0f);
+	L2CValue shieldEffect(shield_effect_hash.hash);
+	L2CValue x_rot(0.0f);
+	L2CValue y_rot(0.0f);
+	L2CValue z_rot(0.0f);
 	L2CValue terminate(true);
-	L2CValue effectSize((float)size->raw_float * sizeMult);
+	L2CValue effect_size((float)size->raw_float * size_mult);
 
 	L2CValue rate(8.0f);
 
-	float xDist, yDist, zDist;
-	int nEffects;
+	float x_dist, y_dist, z_dist;
+	int n_effects;
 	if (x2->type != L2C_void && y2->type != L2C_void && z2->type != L2C_void) { // extended hitbox
-		xDist = x2->raw_float - x->raw_float;
-		yDist = y2->raw_float - y->raw_float;
-		zDist = z2->raw_float - z->raw_float;
-		float dist = sqrtf(xDist * xDist + yDist * yDist + zDist * zDist);
-		nEffects = (int)ceilf(dist / (size->raw_float * 1.75f)) + 1; // just enough effects to form a continuous line
-		if (nEffects < 2)
-		    nEffects = 2;
-		if (nEffects > MAX_EFFECTS_PER_HITBOX)
-		    nEffects = MAX_EFFECTS_PER_HITBOX;
+		x_dist = x2->raw_float - x->raw_float;
+		y_dist = y2->raw_float - y->raw_float;
+		z_dist = z2->raw_float - z->raw_float;
+		float dist = sqrtf(x_dist * x_dist + y_dist * y_dist + z_dist * z_dist);
+		n_effects = (int)ceilf(dist / (size->raw_float * 1.75f)) + 1; // just enough effects to form a continuous line
+		if (n_effects < 2)
+		    n_effects = 2;
+		if (n_effects > MAX_EFFECTS_PER_HITBOX)
+		    n_effects = MAX_EFFECTS_PER_HITBOX;
 	} else { // non-extended hitbox
-		xDist = yDist = zDist = 0;
-		nEffects = 1;
+		x_dist = y_dist = z_dist = 0;
+		n_effects = 1;
 	}
 
-	for (int i = 0; i < nEffects; i++) {
-		float t = nEffects <= 1 ? 0 : (float)i / (nEffects - 1);
-		L2CValue currX(x->raw_float + xDist * t);
-		L2CValue currY(y->raw_float + yDist * t);
-		L2CValue currZ(z->raw_float + zDist * t);
+	for (int i = 0; i < n_effects; i++) {
+		float t = n_effects <= 1 ? 0 : (float)i / (n_effects - 1);
+		L2CValue x_curr(x->raw_float + x_dist * t);
+		L2CValue y_curr(y->raw_float + y_dist * t);
+		L2CValue z_curr(z->raw_float + z_dist * t);
 
 		ACMD acmd(l2c_agent);
-		acmd.wrap(EFFECT_FOLLOW_NO_SCALE, { shieldEffect, *bone, currX, currY, currZ, xRot, yRot, zRot, effectSize, terminate });
+		acmd.wrap(EFFECT_FOLLOW_NO_SCALE, { shieldEffect, *bone, x_curr, y_curr, z_curr, x_rot, y_rot, z_rot, effect_size, terminate });
 
 		// set to hitbox ID color
 		acmd.wrap(LAST_EFFECT_SET_COLOR, { red, green, blue });
@@ -126,8 +126,8 @@ namespace app::sv_animcmd {
 		AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
 		if (HITBOX_VIS && is_training_mode()) { // generate hitbox effect(s)
-			float colorT = 0.375f + 0.625f * unlerpBounded(1.0f, 17.0f, damage.raw_float);
-			Vector3f color = colorLerp({ 1.0f, 1.0f, 1.0f }, ID_COLORS[id.raw % 8], colorT, 0.875f); // color saturation scales with hitbox damage
+			float color_t = 0.5f + 0.5f * powf(unlerp_bounded(1.0f, 18.0f, damage.raw_float), 0.5f); // color scales non-linearly with damage
+			Vector3f color = color_lerp({ 1.0f, 1.0f, 1.0f }, ID_COLORS[id.raw % 8], color_t);
 		    generate_hitbox_effects(&l2c_agent, &bone, &size, &x, &y, &z, &x2, &y2, &z2, &color);
 		}
 
