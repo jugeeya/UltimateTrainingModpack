@@ -106,27 +106,43 @@ namespace app::sv_animcmd {
 		l2c_agent.L2CAgent_constr(a1);
 
 		// get all necessary hitbox params
-		L2CValue id, bone, damage, /* angle, kbg, wkb, bkb, */ size, x, y, z, x2, y2, z2;
-		l2c_agent.get_lua_stack(1, &id);
-		l2c_agent.get_lua_stack(3, &bone);
-		l2c_agent.get_lua_stack(4, &damage);
-		// l2c_agent.get_lua_stack(5, &angle);
-		// l2c_agent.get_lua_stack(6, &kbg);
-		// l2c_agent.get_lua_stack(7, &wkb);
-		// l2c_agent.get_lua_stack(8, &bkb);
-		l2c_agent.get_lua_stack(9, &size);
-		l2c_agent.get_lua_stack(10, &x);
-		l2c_agent.get_lua_stack(11, &y);
-		l2c_agent.get_lua_stack(12, &z);
-		l2c_agent.get_lua_stack(13, &x2);
-		l2c_agent.get_lua_stack(14, &y2);
-		l2c_agent.get_lua_stack(15, &z2);
+		L2CValue id, bone, damage, angle, kbg, fkb, bkb, size, x, y, z, x2, y2, z2;
+		l2c_agent.get_lua_stack(1, &id); // int
+		l2c_agent.get_lua_stack(3, &bone); // hash40
+		l2c_agent.get_lua_stack(4, &damage); // float
+		l2c_agent.get_lua_stack(5, &angle); // int
+		l2c_agent.get_lua_stack(6, &kbg); // int
+		l2c_agent.get_lua_stack(7, &fkb); // int
+		l2c_agent.get_lua_stack(8, &bkb); // int
+		l2c_agent.get_lua_stack(9, &size); // float
+		l2c_agent.get_lua_stack(10, &x); // float
+		l2c_agent.get_lua_stack(11, &y); // float
+		l2c_agent.get_lua_stack(12, &z); // float
+		l2c_agent.get_lua_stack(13, &x2); // float or void
+		l2c_agent.get_lua_stack(14, &y2); // float or void
+		l2c_agent.get_lua_stack(15, &z2); // float or void
 
 		// original code: parse lua stack and call AttackModule::set_attack()
 		AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
 		if (HITBOX_VIS && is_training_mode()) { // generate hitbox effect(s)
-			float color_t = 0.5f + 0.5f * powf(unlerp_bounded(1.0f, 18.0f, damage.raw_float), 0.5f); // color scales non-linearly with damage
+			float color_t;
+			if (false) { // color intensity scales with damage
+				color_t = 0.5f + 0.5f * powf(unlerp_bounded(1.0f, 18.0f, damage.raw_float), 0.5f); // non-linear scaling to magnify differences at lower damage levels
+			} else { // color intensity scales with total KB
+				// calculate the expected KB a character with 95 weight will receive at 80% pre-hit
+				float TARGET_PERCENT = 80.0f;
+				int TARGET_WEIGHT = 95;
+				float percent_component;
+				if (fkb.raw > 0) {
+					percent_component = (10.0f + fkb.raw) * 0.1f * (1.0f + fkb.raw * 0.5f);
+				} else {
+					percent_component = (TARGET_PERCENT + damage.raw_float) * 0.1f * (1.0f + damage.raw_float * 0.5f);
+				}
+				float weight_component = 200.0f / (TARGET_WEIGHT + 100);
+				float kb = (percent_component * weight_component * 1.4f + 18.0f) * (kbg.raw * 0.01f) + bkb.raw;
+				color_t = 0.5f + 0.5f * powf(unlerp_bounded(50.0f, 200.0f, kb), 0.5f); // non-linear scaling to magnify differences at lower KB levels
+			}
 			Vector3f color = color_lerp({ 1.0f, 1.0f, 1.0f }, ID_COLORS[id.raw % 8], color_t);
 		    generate_hitbox_effects(&l2c_agent, &bone, &size, &x, &y, &z, &x2, &y2, &z2, &color);
 		}
