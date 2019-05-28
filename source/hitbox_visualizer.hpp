@@ -46,18 +46,12 @@ namespace app::lua_bind::AttackModule {
 	}
 }
 
-Vector3f generate_hitbox_effect_color(L2CAgent *l2c_agent, L2CValue *id, L2CValue *damage) {
-	float t = 0.375f + 0.625f * unlerpBounded(1.0f, 17.0f, damage->raw_float);
-	Vector3f color = ID_COLORS[id->raw % 8];
-	return colorLerp({ 1.0f, 1.0f, 1.0f }, color, t, 0.875f);
-}
-
-void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *id, L2CValue *bone, L2CValue *damage, L2CValue *size,
-		L2CValue *x, L2CValue *y, L2CValue *z, L2CValue *x2, L2CValue *y2, L2CValue *z2) {
-	Vector3f color = generate_hitbox_effect_color(l2c_agent, id, damage);
-	L2CValue red(color.x);
-	L2CValue green(color.y);
-	L2CValue blue(color.z);
+void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone, L2CValue *size,
+		L2CValue *x, L2CValue *y, L2CValue *z, L2CValue *x2, L2CValue *y2, L2CValue *z2,
+		Vector3f *color) {
+	L2CValue red(color->x);
+	L2CValue green(color->y);
+	L2CValue blue(color->z);
 
 	float sizeMult = 19.0f / 200.0f;
 	Hash40 shieldEffectHash = { .hash = 0xAFAE75F05LL };
@@ -112,14 +106,14 @@ namespace app::sv_animcmd {
 		l2c_agent.L2CAgent_constr(a1);
 
 		// get all necessary hitbox params
-		L2CValue id, bone, damage, angle, kbg, wkb, bkb, size, x, y, z, x2, y2, z2;
+		L2CValue id, bone, damage, /* angle, kbg, wkb, bkb, */ size, x, y, z, x2, y2, z2;
 		l2c_agent.get_lua_stack(1, &id);
 		l2c_agent.get_lua_stack(3, &bone);
 		l2c_agent.get_lua_stack(4, &damage);
-		l2c_agent.get_lua_stack(5, &angle);
-		l2c_agent.get_lua_stack(6, &kbg);
-		l2c_agent.get_lua_stack(7, &wkb);
-		l2c_agent.get_lua_stack(8, &bkb);
+		// l2c_agent.get_lua_stack(5, &angle);
+		// l2c_agent.get_lua_stack(6, &kbg);
+		// l2c_agent.get_lua_stack(7, &wkb);
+		// l2c_agent.get_lua_stack(8, &bkb);
 		l2c_agent.get_lua_stack(9, &size);
 		l2c_agent.get_lua_stack(10, &x);
 		l2c_agent.get_lua_stack(11, &y);
@@ -131,8 +125,10 @@ namespace app::sv_animcmd {
 		// original code: parse lua stack and call AttackModule::set_attack()
 		AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
-		if (HITBOX_VIS && is_training_mode()) {
-		    generate_hitbox_effects(&l2c_agent, &id, &bone, &damage, &size, &x, &y, &z, &x2, &y2, &z2); // generate hitbox effect(s)
+		if (HITBOX_VIS && is_training_mode()) { // generate hitbox effect(s)
+			float colorT = 0.375f + 0.625f * unlerpBounded(1.0f, 17.0f, damage.raw_float);
+			Vector3f color = colorLerp({ 1.0f, 1.0f, 1.0f }, ID_COLORS[id.raw % 8], colorT, 0.875f); // color saturation scales with hitbox damage
+		    generate_hitbox_effects(&l2c_agent, &bone, &size, &x, &y, &z, &x2, &y2, &z2, &color);
 		}
 
 		u64 v1, v2, i;
