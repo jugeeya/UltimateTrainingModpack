@@ -23,21 +23,21 @@ using namespace app::lua_bind;
 */
 
 const float segment_dict[15][5] = {
-        {0,RAYGUN_HEIGHT*2,0,0,0.25}, // a
-        {0,RAYGUN_HEIGHT,RAYGUN_LENGTH,90,0.25}, // b
-        {0,0,RAYGUN_LENGTH,90,0.25}, // c
-        {0,0,0,0,0.25}, // d
-        {0,0,0,90,0.25}, //e
-        {0,RAYGUN_HEIGHT,0,90,0.25}, // f
-        {0,RAYGUN_HEIGHT,0,0,0.25}, // g mid
-        {0,RAYGUN_HEIGHT,RAYGUN_LENGTH/2,90,0.25}, // h
-        {0,RAYGUN_HEIGHT,RAYGUN_LENGTH/2,52,0.2}, // i
-        {0,RAYGUN_HEIGHT,RAYGUN_LENGTH/2,-52,0.2}, //j
-        {0,0,RAYGUN_LENGTH/2,90,0.25}, // k
-        {0,RAYGUN_HEIGHT/2,RAYGUN_LENGTH*3/16,52,0.2}, // l
-        {0,RAYGUN_HEIGHT*3/2,RAYGUN_LENGTH*3/16,-52,0.2}, // m
-        {0,RAYGUN_HEIGHT,0,0,0.15}, // n
-        {0,RAYGUN_HEIGHT,RAYGUN_LENGTH/2,0,0.15}, // o
+        {0, RAYGUN_HEIGHT*2,   0,                    0, 0.25}, // a
+        {0, RAYGUN_HEIGHT,     RAYGUN_LENGTH,       90, 0.25}, // b
+        {0, 0,                 RAYGUN_LENGTH,       90, 0.25}, // c
+        {0, 0,                 0,                    0, 0.25}, // d
+        {0, 0,                 0,                   90, 0.25}, // e
+        {0, RAYGUN_HEIGHT,     0,                   90, 0.25}, // f
+        {0, RAYGUN_HEIGHT,     0,                    0, 0.25}, // g mid
+        {0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2,     90, 0.25}, // h
+        {0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2,     52, 0.2},  // i
+        {0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2,    -52, 0.2},  // j
+        {0, 0,                 RAYGUN_LENGTH/2,     90, 0.25}, // k
+        {0, RAYGUN_HEIGHT/2,   RAYGUN_LENGTH*3/16,  52, 0.2},  // l
+        {0, RAYGUN_HEIGHT*3/2, RAYGUN_LENGTH*3/16, -52, 0.2},  // m
+        {0, RAYGUN_HEIGHT,     0,                    0, 0.15}, // n
+        {0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2,      0, 0.15}, // o
     };
 
 /* 
@@ -107,12 +107,12 @@ const char segment_rev[15] = {
 };
 
 void show_segment(u64 battle_object_module_accessor, float z, float y, float x, float zrot, float size) {
-    Hash40 raygunShot = {.hash = 0x11e470b07fLL};
-    Hash40 top = {.hash = 0x031ed91fcaLL};
+    Hash40 raygunShot = { .hash = 0x11e470b07fLL };
+    Hash40 top = { .hash = 0x031ed91fcaLL };
 
-    Vector3f pos = {.x = x, .y = y, .z = z};
-    Vector3f rot = {.x = 0, .y = 90, .z = zrot};
-    Vector3f random = {.x = 0, .y = 0, .z = 0};
+    Vector3f pos = { .x = x, .y = y, .z = z };
+    Vector3f rot = { .x = 0, .y = 90, .z = zrot };
+    Vector3f random = { .x = 0, .y = 0, .z = 0 };
 
     EffectModule::req_on_joint(battle_object_module_accessor, raygunShot.hash, top.hash, 
         &pos, &rot, size, 
@@ -150,9 +150,9 @@ void print_char( u64 module_accessor, char to_print, int line_num, float horiz_o
         const float* segment;
         int index = segment_str[i] - 'a';
 
-        if (facing_left == -1) 
+        if (facing_left == -1) {
             index = segment_rev[index] - 'a';
-
+		}
         segment = segment_dict[index];
 
         float z = segment[0];
@@ -170,7 +170,7 @@ void print_char( u64 module_accessor, char to_print, int line_num, float horiz_o
 
 void print_string( u64 module_accessor, const char* print_str) {
     // Delete any previous strings
-    Hash40 raygunShot = {.hash = 0x11e470b07fLL};
+    Hash40 raygunShot = { .hash = 0x11e470b07fLL };
     EffectModule::kill_kind(module_accessor, raygunShot.hash, 0, 1);
 
     int line_num = 0;
@@ -179,8 +179,9 @@ void print_string( u64 module_accessor, const char* print_str) {
 
     float facing_left = PostureModule::lr(module_accessor);
 
-    if (strlen(print_str) <= 8 && strchr(print_str, '\n') == NULL)
+    if (strlen(print_str) <= 8 && strchr(print_str, '\n') == NULL) {
         line_num = 1;
+	}
     horiz_offset = 0;
     char_num = 0;
     for (size_t i = 0; i < strlen(print_str); i++) {
@@ -196,10 +197,11 @@ void print_string( u64 module_accessor, const char* print_str) {
 
         char_num++;
         // short characters
-        if (curr_char == 'D' || curr_char == '1' )
+        if (curr_char == 'D' || curr_char == '1') {
             horiz_offset += facing_left * (RAYGUN_LENGTH/2 + 3);
-        else 
-            horiz_offset += facing_left * (RAYGUN_LENGTH+3);
+        } else {
+            horiz_offset += facing_left * (RAYGUN_LENGTH + 3);
+		}
 
         if (char_num > 8) {
             horiz_offset = 0;
