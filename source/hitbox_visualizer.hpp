@@ -8,12 +8,14 @@
 #include "saltysd_helper.hpp"
 #include "const_value_table.h"
 #include "taunt_toggles.h"
+#include "raygun_printer.hpp"
 
 using namespace lib;
 using namespace app::lua_bind;
 using namespace app::sv_animcmd;
 
 void (*AttackModule_set_attack_lua_state)(u64, u64);
+u64 Catch_jumpback;
 
 Vector3f ID_COLORS[8] = { // used to tint the hitbox effects -- make sure that at least one component is equal to 1.0
 	{ 1.0f, 0.0f, 0.0f }, // #ff0000 (red)
@@ -44,6 +46,26 @@ namespace app::lua_bind::AttackModule {
 		void (*clear_all)(u64) = (void(*)(u64))(load_module_impl(attack_module, 0x50));
 
 		return clear_all(attack_module);
+	}
+}
+
+namespace app::lua_bind::GrabModule {
+	// clear graphics every time we clear rebound
+	void set_rebound_replace(u64 module_accessor, bool rebound) {
+		if (is_training_mode() && rebound == false) {
+			// only if we're not shielding
+			int status_kind = StatusModule::status_kind(module_accessor);
+			if (!(status_kind >= FIGHTER_STATUS_KIND_GUARD_ON && status_kind <= FIGHTER_STATUS_KIND_GUARD_OFF)) {
+				Hash40 shieldEffectHash = { .hash = 0xAFAE75F05LL };
+				EffectModule::kill_kind(module_accessor, shieldEffectHash.hash, 0, 1);
+			}
+		}
+
+		// call original GrabModule::set_rebound_impl
+		u64 grab_module = load_module(module_accessor, 0x158);
+		void (*set_rebound)(u64, bool) = (void(*)(u64, bool))(load_module_impl(grab_module, 0x100));
+
+		return set_rebound(grab_module, rebound);
 	}
 }
 
@@ -144,7 +166,7 @@ namespace app::sv_animcmd {
 				float kb = (percent_component * weight_component * 1.4f + 18.0f) * (kbg.raw * 0.01f) + bkb.raw;
 				color_scale = unlerp_bounded(50.0f, 200.0f, kb);
 			}
-			float color_t = 0.6f + 0.4f * powf(color_scale, 0.5f); // non-linear scaling to magnify differences at lower values
+			float color_t = 0.8f + 0.2f * powf(color_scale, 0.5f); // non-linear scaling to magnify differences at lower values
 			Vector3f color = color_lerp({ 1.0f, 1.0f, 1.0f }, ID_COLORS[id.raw % 8], color_t);
 		    generate_hitbox_effects(&l2c_agent, &bone, &size, &x, &y, &z, &x2, &y2, &z2, &color);
 		}
@@ -160,14 +182,55 @@ namespace app::sv_animcmd {
 		}
 		LOAD64(v1 + 16) = i;
 	}
+
+	void CATCH_replace(u64 a1) {
+		L2CAgent l2c_agent;
+		l2c_agent.L2CAgent_constr(a1);
+
+		// get all necessary grabbox params
+		L2CValue id, joint, size, x, y, z, x2, y2, z2;
+		l2c_agent.get_lua_stack(1, &id); // int
+		l2c_agent.get_lua_stack(2, &joint); // hash40
+		l2c_agent.get_lua_stack(3, &size); // float
+		l2c_agent.get_lua_stack(4, &x); // float
+		l2c_agent.get_lua_stack(5, &y); // float
+		l2c_agent.get_lua_stack(6, &z); // float
+		l2c_agent.get_lua_stack(7, &x2); // float or void
+		l2c_agent.get_lua_stack(8, &y2); // float or void
+		l2c_agent.get_lua_stack(9, &z2); // float or void
+
+		asm("MOV X9, %x0" : : "r"(Catch_jumpback));
+		asm("MOV X0, %x0" : : "r"(l2c_agent.lua_state_agent));
+
+		asm("SUB SP, SP, #0xC0");
+		asm("STR X25, [SP, #0x70]");
+		asm("STP X24, X23, [SP, #0x80]");
+		asm("STP X22, X21, [SP, #0x90]");
+		asm("BLR X9");
+
+		if (HITBOX_VIS && is_training_mode()) {
+			Vector3f color = ID_COLORS[(id.raw + 3) % 8];
+			generate_hitbox_effects(&l2c_agent, &joint, &size, &x, &y, &z, &x2, &y2, &z2, &color);
+		}
+	}
 }
 
 void hitbox_vis_main() {
 	AttackModule_set_attack_lua_state = (void (*)(u64, u64))SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") + 0xD0 - 0x70;
+	Catch_jumpback = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd5CATCHEP9lua_State") + (4*4);
 	SaltySD_function_replace_sym(
 		"_ZN3app10sv_animcmd6ATTACKEP9lua_State",
 		(u64)&ATTACK_replace);
+
+	SaltySD_function_replace_sym(
+		"_ZN3app10sv_animcmd5CATCHEP9lua_State",
+		(u64)&CATCH_replace);
+
 	SaltySD_function_replace_sym(
 		"_ZN3app8lua_bind28AttackModule__clear_all_implEPNS_26BattleObjectModuleAccessorE",
 		(u64)&AttackModule::clear_all_replace);
+
+	SaltySD_function_replace_sym(
+		"_ZN3app8lua_bind28GrabModule__set_rebound_implEPNS_26BattleObjectModuleAccessorEb",
+		(u64)&GrabModule::set_rebound_replace);	
 }

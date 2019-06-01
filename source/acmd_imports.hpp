@@ -16,4 +16,8 @@ namespace app::sv_animcmd {
 	extern u64 LAST_EFFECT_SET_RATE(u64) asm("_ZN3app10sv_animcmd20LAST_EFFECT_SET_RATEEP9lua_State") LINKABLE;
 }
 
+namespace app::sv_module_access {
+	extern u64 grab(u64) asm("_ZN3app16sv_module_access4grabEP9lua_State") LINKABLE;
+}
+
 #endif // ACMD_IMPORTS_H

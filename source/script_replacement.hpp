@@ -39,13 +39,15 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
   
     acmd.frame(1);
     if (acmd.is_excute()) {
-		TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
-		if (TOGGLE_STATE == MASH_AIRDODGE)
-		    print_string(acmd.module_accessor, "MASH\nAIRDODGE");
-		else if (TOGGLE_STATE == MASH_JUMP)
-		    print_string(acmd.module_accessor, "MASH\nJUMP");
-		else
-		    print_string(acmd.module_accessor, "NONE");
+		if (is_training_mode()) {
+			TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
+			if (TOGGLE_STATE == MASH_AIRDODGE)
+				print_string(acmd.module_accessor, "MASH\nAIRDODGE");
+			else if (TOGGLE_STATE == MASH_JUMP)
+				print_string(acmd.module_accessor, "MASH\nJUMP");
+			else
+				print_string(acmd.module_accessor, "NONE");
+		}
     }
 
     return 0;
@@ -56,11 +58,13 @@ u64 appeal_hi_replace(L2CAgent* l2c_agent, void* variadic) {
 
 	acmd.frame(1);
 	if (acmd.is_excute()) {
-		HITBOX_VIS = !HITBOX_VIS;
-		if (HITBOX_VIS)
-			print_string(acmd.module_accessor, "HITBOX\nVIS");
-		else
-			print_string(acmd.module_accessor, "NO\nHITBOX");
+		if (is_training_mode()) {
+			HITBOX_VIS = !HITBOX_VIS;
+			if (HITBOX_VIS)
+				print_string(acmd.module_accessor, "HITBOX\nVIS");
+			else
+				print_string(acmd.module_accessor, "NO\nHITBOX");
+		}
 	}
 
 	return 0;
@@ -71,10 +75,12 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
 
 	acmd.frame(1);
 	if (acmd.is_excute()) {
-		DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
-		const char* DI_strings[NUM_DI_STATES] = {"NONE", "AWAY", "DOWN AWAY", "DOWN", "DOWN IN",
-			"IN", "UP IN", "UP", "UP AWAY", "RANDOM\nIN AWAY"};
-		print_string(acmd.module_accessor, DI_strings[DI_STATE]);
+		if (is_training_mode()) {
+			DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
+			const char* DI_strings[NUM_DI_STATES] = {"NONE", "AWAY", "DOWN AWAY", "DOWN", "DOWN IN",
+				"IN", "UP IN", "UP", "UP AWAY", "RANDOM\nIN AWAY"};
+			print_string(acmd.module_accessor, DI_strings[DI_STATE]);
+		}
 	}
 
 	return 0;
