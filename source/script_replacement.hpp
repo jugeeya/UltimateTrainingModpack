@@ -45,6 +45,10 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
 				print_string(acmd.module_accessor, "MASH\nAIRDODGE");
 			else if (TOGGLE_STATE == MASH_JUMP)
 				print_string(acmd.module_accessor, "MASH\nJUMP");
+			else if (TOGGLE_STATE == HOLD_SHIELD)
+				print_string(acmd.module_accessor, "HOLD\nSHIELD");
+			else if (TOGGLE_STATE == INFINITE_SHIELD)
+				print_string(acmd.module_accessor, "INFINITE\nSHIELD");
 			else
 				print_string(acmd.module_accessor, "NONE");
 		}

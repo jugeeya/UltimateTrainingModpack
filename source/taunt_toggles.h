@@ -17,8 +17,10 @@ int DI_STATE = 0;
 // Down Taunt
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
+#define INFINITE_SHIELD 3
+#define HOLD_SHIELD 4
 
 int TOGGLE_STATE = 0;
-#define NUM_TOGGLE_STATES 3
+#define NUM_TOGGLE_STATES 5
 
 #endif // TAUNT_TOGGLES_H

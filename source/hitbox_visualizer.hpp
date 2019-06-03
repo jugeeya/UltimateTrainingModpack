@@ -113,7 +113,7 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone, L2CValue *size
 
 		ACMD acmd(l2c_agent);
 		acmd.wrap(EFFECT_FOLLOW_NO_SCALE, { shieldEffect, *bone, x_curr, y_curr, z_curr, x_rot, y_rot, z_rot, effect_size, terminate });
-
+		
 		// set to hitbox ID color
 		acmd.wrap(LAST_EFFECT_SET_COLOR, { red, green, blue });
 
@@ -199,13 +199,25 @@ namespace app::sv_animcmd {
 		l2c_agent.get_lua_stack(8, &y2); // float or void
 		l2c_agent.get_lua_stack(9, &z2); // float or void
 
+		// SaltySD_function_replace_sym works by replacing the 
+		// first four instructions of a function with instructions
+		// to jump to a replacement function like CATCH_replace.
+		// if we want to jump back, we just need to reimplement the
+		// first four instructions and jump back to the original address
+		// + the length of 4 instructions
+
+		// load address, along with lua_state as first arg
 		asm("MOV X9, %x0" : : "r"(Catch_jumpback));
 		asm("MOV X0, %x0" : : "r"(l2c_agent.lua_state_agent));
 
+		// the first four instructions: they will usually be 
+		// setting up the stack for local variables
 		asm("SUB SP, SP, #0xC0");
 		asm("STR X25, [SP, #0x70]");
 		asm("STP X24, X23, [SP, #0x80]");
 		asm("STP X22, X21, [SP, #0x90]");
+
+		// jump to Catch_jumpback
 		asm("BLR X9");
 
 		if (HITBOX_VIS && is_training_mode()) {
