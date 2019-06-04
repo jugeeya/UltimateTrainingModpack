@@ -39,11 +39,10 @@ void perform_jump(u64 module_accessor) {
 	}
 }
 
-	namespace app::lua_bind {
-		namespace WorkModule {
+namespace app::lua_bind {
+	namespace WorkModule {
 		// Force option out of hitstun
-		u64 enable_transition_term_group_replace(u64 module_accessor,
-																						int transition_group) {
+		u64 enable_transition_term_group_replace(u64 module_accessor, int transition_group) {
 			if (is_training_mode() && is_operation_cpu(module_accessor)) {
 				if (is_in_hitstun(module_accessor)) {
 					if (TOGGLE_STATE == MASH_AIRDODGE) {  // airdodge
@@ -101,8 +100,7 @@ void perform_jump(u64 module_accessor) {
 			return get_float(work_module, var);
 		}
 
-		float get_param_float_replace(u64 module_accessor, u64 param_type,
-																	u64 param_hash) {
+		float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
 			if (is_training_mode()) {
 				if (TOGGLE_STATE == INFINITE_SHIELD) {
 					if (param_type == hash40("common")) {
@@ -229,11 +227,10 @@ void perform_jump(u64 module_accessor) {
 					save_state_situation_kind = &save_state_situation_kind_player;
 					save_state = &save_state_player_state;
 				}
+
 				// Grab + Dpad up: reset state
-				if (ControlModule::check_button_on(module_accessor,
-																					CONTROL_PAD_BUTTON_CATCH) &&
-						ControlModule::check_button_trigger(module_accessor,
-																								CONTROL_PAD_BUTTON_APPEAL_HI)) {
+				if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
+						ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_HI)) {
 					if (*save_state == DEFAULT) {
 						save_state_player_state = CAMERA_MOVE;
 						save_state_cpu_state = CAMERA_MOVE;
@@ -260,30 +257,24 @@ void perform_jump(u64 module_accessor) {
 					Vector3f pos = {.x = *save_state_x, .y = *save_state_y, .z = 0};
 					PostureModule::set_pos(module_accessor, &pos);
 					PostureModule::set_lr(module_accessor, *save_state_lr);
-					DamageModule::add_damage(
-							module_accessor, -1.0 * DamageModule::damage(module_accessor, 0), 0);
+					DamageModule::add_damage(module_accessor, -1.0 * DamageModule::damage(module_accessor, 0), 0);
 					DamageModule::add_damage(module_accessor, *save_state_percent, 0);
-					StatusModule::set_situation_kind(module_accessor,
-																					*save_state_situation_kind, 0);
+					StatusModule::set_situation_kind(module_accessor, *save_state_situation_kind, 0);
 
 					// Doesn't work, and I don't know why yet.
-					/*if (*save_state_situation_kind == SITUATION_KIND_GROUND)
-									StatusModule::change_status_request_from_script(module_accessor,
-					FIGHTER_STATUS_KIND_WAIT, 1); if (save_state_situtation_kind_player ==
-					SITUATION_KIND_AIR)
-									StatusModule::change_status_request_from_script(module_accessor,
-					FIGHTER_STATUS_KIND_FALL, 1); if (*save_state_situation_kind ==
-					SITUATION_KIND_CLIFF)
-									StatusModule::change_status_request_from_script(module_accessor,
-					FIGHTER_STATUS_KIND_CLIFF_CATCH, 1);
+					/*
+					if (*save_state_situation_kind == SITUATION_KIND_GROUND)
+						StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_WAIT, 1); 
+					if (save_state_situtation_kind_player == SITUATION_KIND_AIR)
+						StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_FALL, 1); 
+					if (*save_state_situation_kind == SITUATION_KIND_CLIFF)
+						StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_CLIFF_CATCH, 1);
 					*/
 				}
 
 				// Grab + Dpad up: Save state
-				if (ControlModule::check_button_on(module_accessor,
-																					CONTROL_PAD_BUTTON_CATCH) &&
-						ControlModule::check_button_trigger(module_accessor,
-																								CONTROL_PAD_BUTTON_APPEAL_LW)) {
+				if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
+						ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_LW)) {
 					save_state_player_state = SAVE_STATE;
 					save_state_cpu_state = SAVE_STATE;
 				}
@@ -295,8 +286,7 @@ void perform_jump(u64 module_accessor) {
 					*save_state_y = PostureModule::pos_y(module_accessor);
 					*save_state_lr = PostureModule::lr(module_accessor);
 					*save_state_percent = DamageModule::damage(module_accessor, 0);
-					*save_state_situation_kind =
-							StatusModule::situation_kind(module_accessor);
+					*save_state_situation_kind = StatusModule::situation_kind(module_accessor);
 				}
 			}
 
