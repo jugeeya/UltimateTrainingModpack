@@ -18,13 +18,17 @@
 using namespace lib;
 using namespace app::lua_bind;
 
+void sv_replace_status_func(u64 l2c_agentbase, int status_kind, u64 key, void* func);
+
 u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic);
 u64 appeal_hi_replace(L2CAgent* l2c_agent, void* variadic);
 u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic);
+u64 pre_GuardDamage_replace(L2CAgent* l2c_fighter, L2CAgent* l2c_agent);
 
 void replace_scripts(L2CAgent* l2c_agent, u8 category, int kind) {
     // fighter
     if (category == BATTLE_OBJECT_CATEGORY_FIGHTER) {
+		// taunt toggles
         l2c_agent->sv_set_function_hash(&appeal_lw_replace, hash40("effect_appeallwl"));
         l2c_agent->sv_set_function_hash(&appeal_lw_replace, hash40("effect_appeallwr"));
         l2c_agent->sv_set_function_hash(&appeal_hi_replace, hash40("effect_appealhil"));

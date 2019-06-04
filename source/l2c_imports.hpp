@@ -137,6 +137,8 @@ namespace lib {
 		u64 clear_lua_stack() asm("_ZN3lib8L2CAgent15clear_lua_stackEv") LINKABLE;
 	};
 
+	u64 L2CValue_int(L2CValue*, int) asm("_ZN3lib8L2CValueC1Ei") LINKABLE;
+
 	bool lua_bind_get_value(u64, int*) asm("_ZN3lib18lua_bind_get_valueIiEEbmRT_") LINKABLE;
 
 	int lua_const(const char* str) {
