@@ -145,6 +145,24 @@ namespace app::sv_animcmd {
 		l2c_agent.get_lua_stack(14, &y2); // float or void
 		l2c_agent.get_lua_stack(15, &z2); // float or void
 
+		// hacky way of forcing no shield damage on all hitboxes
+		if (is_training_mode() && TOGGLE_STATE == INFINITE_SHIELD) {
+			L2CValue hitbox_params[36];
+			for (size_t i = 0; i < 36; i++)
+				l2c_agent.get_lua_stack(i+1, &hitbox_params[i]);
+			
+			l2c_agent.clear_lua_stack();
+
+			for (size_t i = 0; i < 36; i++) {
+				if (i == 20) {
+					L2CValue no_shield_damage(-999);
+					l2c_agent.push_lua_stack(&no_shield_damage);
+				}
+				else
+					l2c_agent.push_lua_stack(&hitbox_params[i]);
+			}
+		}
+
 		// original code: parse lua stack and call AttackModule::set_attack()
 		AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
