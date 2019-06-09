@@ -3,8 +3,11 @@
 
 #include <switch.h>
 
-#include "acmd_imports.hpp"
-#include "l2c_imports.hpp"
+#include "imports/app/sv_animcmd.hpp"
+#include "imports/app/sv_system.hpp"
+#include "imports/app/sv_math.hpp"
+#include "imports/app/lua_bind.hpp"
+#include "imports/lib/l2c.hpp"
 
 #include <initializer_list>
 
@@ -19,84 +22,9 @@ void* load_module_impl(u64 module, u64 function_offset) {
 	return (void*) LOAD64(function_impl);
 }
 
-namespace app::sv_math {
-	int rand(u64, int) asm("_ZN3app7sv_math4randEN3phx6Hash40Ei") LINKABLE;
-}
-
-namespace app::sv_system {
-	u64 battle_object(u64) asm("_ZN3app9sv_system13battle_objectEP9lua_State") LINKABLE;
-	u64 battle_object_module_accessor(u64) asm("_ZN3app9sv_system29battle_object_module_accessorEP9lua_State") LINKABLE;
-	u8 battle_object_category(u64) asm("_ZN3app9sv_system22battle_object_categoryEP9lua_State") LINKABLE;
-	int battle_object_kind(u64) asm("_ZN3app9sv_system18battle_object_kindEP9lua_State") LINKABLE;
-}
-
-namespace app::lua_bind {
-	namespace AttackModule {
-		void clear_all(u64) asm("_ZN3app8lua_bind28AttackModule__clear_all_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-	}
-
-	namespace ControlModule {
-		bool check_button_on(u64, int) asm("_ZN3app8lua_bind35ControlModule__check_button_on_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-		bool check_button_trigger(u64, int) asm("_ZN3app8lua_bind40ControlModule__check_button_trigger_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-	}  
-
-	namespace DamageModule {
-		float damage(u64, int) asm("_ZN3app8lua_bind25DamageModule__damage_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-		void add_damage(u64, float, int) asm("_ZN3app8lua_bind29DamageModule__add_damage_implEPNS_26BattleObjectModuleAccessorEfi") LINKABLE;
-	}
-
-	namespace EffectModule {
-		// boma, effect, joint, pos, rot, size, random_pos, random_rot, NO_SCALE?, attr?, unkint1, unkint2
-		uint req_on_joint(u64, u64, u64, const Vector3f*, const Vector3f*, float a6, const Vector3f*, const Vector3f*, bool, uint, int, int) 
-			asm("_ZN3app8lua_bind31EffectModule__req_on_joint_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40ES4_RKNS3_8Vector3fES7_fS7_S7_bjii") LINKABLE;
-
-		void kill_kind(u64, u64, bool, bool) asm("_ZN3app8lua_bind28EffectModule__kill_kind_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40Ebb") LINKABLE;
-	}
-
-	namespace FighterManager {
-		u64 get_fighter_information(u64, int) asm("_ZN3app8lua_bind44FighterManager__get_fighter_information_implEPNS_14FighterManagerENS_14FighterEntryIDE") LINKABLE;
-	}
-
-	namespace FighterInformation {
-		bool is_operation_cpu(u64) asm("_ZN3app8lua_bind41FighterInformation__is_operation_cpu_implEPNS_18FighterInformationE") LINKABLE;
-	}
-
-	namespace FighterStatusModuleImpl {
-		u64 set_fighter_status_data(u64,bool,int,bool,bool,bool,u64,uint,uint,uint) asm("_ZN3app8lua_bind53FighterStatusModuleImpl__set_fighter_status_data_implEPNS_26BattleObjectModuleAccessorEbibbbmjjj") LINKABLE;
-	}
-
-	namespace MotionModule {
-		float frame(u64) asm("_ZN3app8lua_bind24MotionModule__frame_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-		u64 motion_kind(u64) asm("_ZN3app8lua_bind30MotionModule__motion_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-	}
-
-	namespace PostureModule {
-		float lr(u64) asm("_ZN3app8lua_bind22PostureModule__lr_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-		void set_lr(u64, float) asm("_ZN3app8lua_bind26PostureModule__set_lr_implEPNS_26BattleObjectModuleAccessorEf") LINKABLE;
-		float pos_x(u64) asm("_ZN3app8lua_bind25PostureModule__pos_x_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-		float pos_y(u64) asm("_ZN3app8lua_bind25PostureModule__pos_y_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-		void set_pos(u64, const Vector3f*) asm("_ZN3app8lua_bind27PostureModule__set_pos_implEPNS_26BattleObjectModuleAccessorERKN3phx8Vector3fE") LINKABLE;
-	}
-
-	namespace StatusModule {
-		u64 change_status_request_from_script(u64, int, bool) asm("_ZN3app8lua_bind52StatusModule__change_status_request_from_script_implEPNS_26BattleObjectModuleAccessorEib") LINKABLE;
-		int status_kind(u64) asm("_ZN3app8lua_bind30StatusModule__status_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-		int situation_kind(u64) asm("_ZN3app8lua_bind33StatusModule__situation_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-		u64 set_situation_kind(u64,int,bool) asm("_ZN3app8lua_bind37StatusModule__set_situation_kind_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEb") LINKABLE;
-		u64 init_settings(u64,int,int,uint,int,bool,int,int,int,int) asm("_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii") LINKABLE;
-	}
-
-	namespace WorkModule {
-		float get_float(u64, int) asm("_ZN3app8lua_bind26WorkModule__get_float_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-		bool get_int(u64, int) asm("_ZN3app8lua_bind24WorkModule__get_int_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE; // this function must return a bool, otherwise Pokemon Trainer fails to load
-		void inc_int(u64, int) asm("_ZN3app8lua_bind24WorkModule__inc_int_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-		float get_param_float(u64, u64, u64) asm("_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm") LINKABLE;
-		int get_param_int(u64, u64, u64) asm("_ZN3app8lua_bind30WorkModule__get_param_int_implEPNS_26BattleObjectModuleAccessorEmm") LINKABLE;
-		void on_flag(u64, int) asm("_ZN3app8lua_bind24WorkModule__on_flag_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-		void off_flag(u64, int) asm("_ZN3app8lua_bind25WorkModule__off_flag_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-		float set_float(u64, float, int) asm("_ZN3app8lua_bind26WorkModule__set_float_implEPNS_26BattleObjectModuleAccessorEfi") LINKABLE;
-		int set_int(u64, int, int) asm("_ZN3app8lua_bind24WorkModule__set_int_implEPNS_26BattleObjectModuleAccessorEii") LINKABLE;
-	}
+bool is_before_frame(u64 lua_state, float f) {
+	u64 acmd_frame_obj = LOAD64(LOAD64(lua_state - 8) + 432LL);
+	return *(float*)((*((u32 *)acmd_frame_obj + 64) + 15) & 0xFFFFFFF0) < f; 
 }
 
 struct ACMD {
@@ -115,6 +43,48 @@ struct ACMD {
 		app::sv_animcmd::frame(l2c_agent->lua_state_agent, f);
 		l2c_agent->clear_lua_stack();
 	}
+
+	// attempted reimplementation of sv_animcmd::frame
+	bool _frame(float f) {
+        u64 acmd_obj = LOAD64(LOAD64(l2c_agent->lua_state_agent - 8) + 432);
+        if ( !is_before_frame(l2c_agent->lua_state_agent, f) )
+            return true;
+        
+        *(u8*)(acmd_obj + 47) = 3;
+        LOAD64(acmd_obj + 48) = (u64)&is_before_frame;
+        *(float*)(acmd_obj + 56) = f;
+        
+        u64 acmd_obj_other = LOAD64(acmd_obj);
+        if (*(u8*)(acmd_obj_other + 664)) {
+            void (*some_func)(u64) = (void (*)(u64)) LOAD64(LOAD64(LOAD64(acmd_obj_other + 656)) + 16);
+            some_func(LOAD64(acmd_obj_other + 656));
+            return true;
+        }
+
+        bool doThing = false;
+
+        if ( !*(u16*)(l2c_agent->lua_state_agent + 196)) {
+            u64 v4 = LOAD64(l2c_agent->lua_state_agent + 32);
+            *(u8*)(l2c_agent->lua_state_agent + 12) = 1;
+            LOAD64(v4 + 56) = LOAD64(v4) - LOAD64(l2c_agent->lua_state_agent + 56);
+            if ( *(u8*)(v4 + 66) & 2)
+                return true;
+            doThing = true;
+        }
+
+
+        if ( doThing || LOAD64(LOAD64(l2c_agent->lua_state_agent + 24) + 200) == l2c_agent->lua_state_agent) {
+            // throw 
+            u64 v4 = LOAD64(l2c_agent->lua_state_agent + 32);
+            LOAD64(v4 + 32) = 0;
+            LOAD64(v4) = LOAD64(l2c_agent->lua_state_agent + 16) - 16;
+            
+        }
+
+        return false;
+
+        // throw
+    }
 
 	void wait(float f) {
 		l2c_agent->clear_lua_stack();
@@ -138,6 +108,7 @@ struct ACMD {
 		l2c_agent->clear_lua_stack(); 
 		for (L2CValue elem : list)
 			l2c_agent->push_lua_stack(&elem);
+
 		acmd_func(l2c_agent->lua_state_agent);
 		l2c_agent->clear_lua_stack();    
 	}
@@ -165,7 +136,7 @@ struct ACMD {
 		u64 i9,  // Fixed Weight
 		u64 i10, // Shield Damage
 		float f8,  // Trip Chance
-		u64 i11, // Rehit Rate
+		u64 i11, // Rehite Rate
 		u64 i12, // Reflectable
 		u64 i13, // Absorbable
 		u64 i14, // Flinchless
@@ -183,11 +154,11 @@ struct ACMD {
 			L2CValue(i1), L2CValue(i2), L2CValue(h1), L2CValue(f1),
 			L2CValue(i3), L2CValue(i4), L2CValue(i5), L2CValue(i6),
 			L2CValue(f2), L2CValue(f3), L2CValue(f4), L2CValue(f5),
-			L2CValue(), L2CValue(), L2CValue(), L2CValue(f6),
+			L2CValue("void"), L2CValue("void"), L2CValue("void"), L2CValue(f6),
 			L2CValue(f7), L2CValue(i7), L2CValue(i8), L2CValue(i9),
 			L2CValue(i10), L2CValue(f8), L2CValue(i11), L2CValue(i12),
 			L2CValue(i13), L2CValue(i14), L2CValue(i15), L2CValue(i16),
-			L2CValue(i17), L2CValue(i18), L2CValue(i19), L2CValue(i20),
+ 			L2CValue(i17), L2CValue(i18), L2CValue(i19), L2CValue(i20),
 			L2CValue(h2), L2CValue(i21), L2CValue(i22), L2CValue(i23)
 		});
 	}
@@ -215,7 +186,7 @@ struct ACMD {
 		u64 i9,  // Fixed Weight
 		u64 i10, // Shield Damage
 		float f8,  // Trip Chance
-		u64 i11, // Rehit Rate
+		u64 i11, // Rehite Rate
 		u64 i12, // Reflectable
 		u64 i13, // Absorbable
 		u64 i14, // Flinchless
@@ -237,7 +208,7 @@ struct ACMD {
 			L2CValue(f7), L2CValue(i7), L2CValue(i8), L2CValue(i9),
 			L2CValue(i10), L2CValue(f8), L2CValue(i11), L2CValue(i12),
 			L2CValue(i13), L2CValue(i14), L2CValue(i15), L2CValue(i16),
-			L2CValue(i17), L2CValue(i18), L2CValue(i19), L2CValue(i20),
+ 			L2CValue(i17), L2CValue(i18), L2CValue(i19), L2CValue(i20),
 			L2CValue(h2), L2CValue(i21), L2CValue(i22), L2CValue(i23)
 		});
 	}

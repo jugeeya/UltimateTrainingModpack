@@ -1,14 +1,16 @@
+#ifndef HITBOX_VISUALIZER_H
+#define HITBOX_VISUALIZER_H
+
 #include <math.h>
 
-#include "useful.h"
-#include "useful_visual.h"
+#include "useful/useful.h"
+#include "useful/visual.h"
 
-#include "l2c_imports.hpp"
+#include "imports/lib/l2c.hpp"
 #include "acmd_wrapper.hpp"
-#include "saltysd_helper.hpp"
-#include "const_value_table.h"
+#include "saltysd/saltysd_helper.hpp"
+#include "useful/const_value_table.h"
 #include "taunt_toggles.h"
-#include "raygun_printer.hpp"
 
 using namespace lib;
 using namespace app::lua_bind;
@@ -264,3 +266,5 @@ void hitbox_vis_main() {
 		"_ZN3app8lua_bind28GrabModule__set_rebound_implEPNS_26BattleObjectModuleAccessorEb",
 		(u64)&GrabModule::set_rebound_replace);	
 }
+
+#endif // HITBOX_VISUALIZER_H

@@ -1,9 +1,20 @@
-#include "useful.h"
-#include "l2c_imports.hpp"
-#include "saltysd_helper.hpp"
-#include "acmd_imports.hpp"
+#ifndef TRAINING_MODS_H
+#define TRAINING_MODS_H
+
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+#include "useful/useful.h"
+#include "useful/crc32.h"
+#include "useful/const_value_table.h"
+
+#include "useful/raygun_printer.hpp"
+
+#include "imports/lib/l2c.hpp"
+#include "saltysd/saltysd_dynamic.h"
+#include "saltysd/saltysd_helper.hpp"
+#include "acmd_wrapper.hpp"
 #include "taunt_toggles.h"
-#include "raygun_printer.hpp"
 
 using namespace lib;
 using namespace app::lua_bind;
@@ -21,22 +32,6 @@ bool is_operation_cpu(u64 module_accessor) {
 bool is_in_hitstun(u64 module_accessor) {
 	int status_kind = StatusModule::status_kind(module_accessor);
 	return status_kind >= FIGHTER_STATUS_KIND_DAMAGE && status_kind <= FIGHTER_STATUS_KIND_DAMAGE_FALL;
-}
-
-void perform_jump(u64 module_accessor) {
-	int jump_count = WorkModule::get_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT);
-	int max_jump_count = WorkModule::get_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT_MAX);
-	if (jump_count < max_jump_count) {
-		if (StatusModule::situation_kind(module_accessor) == SITUATION_KIND_AIR) {
-		    if (WorkModule::get_param_int(module_accessor, hash40("aerial_type"), 0) == FIGHTER_JUMP_AERIAL_TYPE_NORMAL)
-				StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_AERIAL, 1);
-		    else
-				StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_FLY, 1);
-		} else if (StatusModule::situation_kind(module_accessor) == SITUATION_KIND_GROUND) {
-		    StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_JUMP_SQUAT, 1);   
-		}			
-		WorkModule::inc_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT);
-	}
 }
 
 namespace app::lua_bind {
@@ -228,13 +223,12 @@ namespace app::lua_bind {
 					StatusModule::set_situation_kind(module_accessor, *save_state_situation_kind, 0);
 
 					// Doesn't work, and I don't know why yet.
-					/*
-					if (*save_state_situation_kind == SITUATION_KIND_GROUND)
-						StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_WAIT, 1); 
-					if (save_state_situtation_kind_player == SITUATION_KIND_AIR)
-						StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_FALL, 1); 
-					if (*save_state_situation_kind == SITUATION_KIND_CLIFF)
-						StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_CLIFF_CATCH, 1);
+					/*if (*save_state_situation_kind == SITUATION_KIND_GROUND)
+						StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_WAIT, 0);
+					else if (*save_state_situation_kind == SITUATION_KIND_AIR)
+						StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_FALL, 0);
+					else if (*save_state_situation_kind == SITUATION_KIND_CLIFF)
+						StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_CLIFF_CATCH, 0);
 					*/
 				}
 
@@ -293,3 +287,5 @@ void training_mods_main() {
 		"_ZN3app8lua_bind32ControlModule__get_pad_flag_implEPNS_26BattleObjectModuleAccessorE",
 		(u64)&ControlModule::get_pad_flag_replace);*/
 }
+
+#endif // TRAINING_MODS_H

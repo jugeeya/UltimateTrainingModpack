@@ -6,7 +6,7 @@
 
 #include "useful.h"
 
-#include "acmd_wrapper.hpp"
+#include "../acmd_wrapper.hpp"
 
 #define RAYGUN_LENGTH 8
 #define RAYGUN_HEIGHT 6

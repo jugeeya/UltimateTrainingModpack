@@ -2,18 +2,16 @@
 
 #include <stdint.h>
 
-#include "crc32.h"
-#include "useful.h"
+#include "useful/crc32.h"
+#include "useful/useful.h"
 
-#include "l2c_imports.hpp"
+#include "useful/const_value_table.h"
+#include "useful/raygun_printer.hpp"
+
+#include "imports/lib/l2c.hpp"
 #include "acmd_wrapper.hpp"
 
-#include "raygun_printer.hpp"
-
-#include "const_value_table.h"
 #include "taunt_toggles.h"
-
-#include <vector>
 
 using namespace lib;
 using namespace app::lua_bind;

@@ -1,9 +1,16 @@
+#ifndef SALTYSD_HELPER_H
+#define SALTYSD_HELPER_H
+
 #include <switch.h>
 
 #include "saltysd_core.h"
 #include "saltysd_ipc.h"
 #include "saltysd_dynamic.h"
 #include "nn_ro.h"
+
+#define ANCHOR_REL 0x70ffffc000
+u64 ANCHOR_ABS;
+#define IMPORT(x) (x - ANCHOR_REL + ANCHOR_ABS)
 
 void (*SaltySD_installed_hook)(char*, u64) = NULL;
 
@@ -34,3 +41,5 @@ void SaltySD_install_nro_hook(u64 LoadModule_thunk_addr, void hook_main(char*, u
 	SaltySD_installed_hook = hook_main;
 	SaltySD_function_replace(LoadModule_thunk_addr, (u64) LoadModule);
 }
+
+#endif // SALTYSD_HELPER_H

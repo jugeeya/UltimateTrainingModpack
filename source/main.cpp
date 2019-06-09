@@ -7,15 +7,15 @@
 #include <sys/reent.h>
 #include <switch/kernel/ipc.h>
 
-#include "useful.h"
+#include "useful/useful.h"
 
-#include "saltysd_core.h"
-#include "saltysd_ipc.h"
-#include "saltysd_dynamic.h"
+#include "saltysd/saltysd_core.h"
+#include "saltysd/saltysd_ipc.h"
+#include "saltysd/saltysd_dynamic.h"
 
-#include "saltysd_helper.hpp"
-#include "l2c_imports.hpp"
-#include "acmd_imports.hpp"
+#include "saltysd/saltysd_helper.hpp"
+#include "imports/lib/l2c.hpp"
+#include "imports/app/sv_animcmd.hpp"
 
 #include "hitbox_visualizer.hpp"
 #include "script_replacement.hpp"

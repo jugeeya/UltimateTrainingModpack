@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "useful.h"
+#include "../useful/useful.h"
 
 extern "C" {
 	uint64_t SaltySDCore_GetSymbolAddr(void* base, char* name) LINKABLE;

@@ -1,12 +1,9 @@
-#ifndef L2C_IMPORTS_H
-#define L2C_IMPORTS_H
+#ifndef L2C_H
+#define L2C_H
 
 #include <switch.h>
 
-#include <math.h>
-
-#include "useful.h"
-
+#include "../../useful/useful.h"
 #include "lua_bind_hash.hpp"
 
 u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
@@ -24,14 +21,14 @@ namespace lib {
 		L2C_string = 8,
 	};
 
-	typedef struct L2CTable_meta {
+	struct L2CTable_meta {
 		uint64_t a;
 		uint64_t b;
 		uint64_t c;
 		uint64_t d;
-	} L2CTable_meta;
+	};
   
-	typedef struct L2CTable {
+	struct L2CTable {
 		uint32_t refcnt;
 		uint32_t unk;
 
@@ -40,9 +37,10 @@ namespace lib {
 		uint64_t also_end; // L2CValue*
 		struct L2CTable_meta meta;
 		uint64_t unk_ptr;
-	} L2CTable;
+	};
 
-	typedef struct L2CInnerFunctionBase {
+	struct L2CInnerFunctionBase
+	{
 		uint64_t unk;
 		uint32_t refcnt;
 	} L2CInnerFunctionBase;
@@ -53,15 +51,13 @@ namespace lib {
 		union {
 			uint64_t raw;
 			float raw_float;
-			// void* raw_pointer;
-			// struct L2CTable* raw_table;
-			// struct L2CInnerFunctionBase* raw_innerfunc;
+			void* raw_pointer;
+			struct L2CTable* raw_table;
+			struct L2CInnerFunctionBase* raw_innerfunc;
 			//std::string* raw_string;
 		};
 
-		L2CValue() {
-			type = L2C_void;
-		}
+		L2CValue() {}
 
 		L2CValue(bool val) {
 			type = L2C_bool;
@@ -79,21 +75,17 @@ namespace lib {
 		}
 
 		L2CValue(float val) {
-			if (isnan(val)) {
-				type = L2C_void;
-			} else {
-				type = L2C_number;
-				raw_float = val;
-			}
+			type = L2C_number;
+			raw_float = val;
 		}
 
 		L2CValue(double val) {
-			if (isnan(val)) {
-				type = L2C_void;
-			} else {
-				type = L2C_number;
-				raw_float = val;
-			}
+			type = L2C_number;
+			raw_float = val;
+		}
+
+		L2CValue(const char* str) {
+			type = L2C_void;
 		}
 
 		operator bool() asm("_ZNK3lib8L2CValuecvbEv") LINKABLE;
@@ -137,8 +129,6 @@ namespace lib {
 		u64 clear_lua_stack() asm("_ZN3lib8L2CAgent15clear_lua_stackEv") LINKABLE;
 	};
 
-	u64 L2CValue_int(L2CValue*, int) asm("_ZN3lib8L2CValueC1Ei") LINKABLE;
-
 	bool lua_bind_get_value(u64, int*) asm("_ZN3lib18lua_bind_get_valueIiEEbmRT_") LINKABLE;
 
 	int lua_const(const char* str) {
@@ -148,6 +138,12 @@ namespace lib {
 		else
 			return -1;
 	}
+
+	namespace utility {
+		namespace Variadic {
+			const char* get_format(void* variadic) asm("_ZNK3lib7utility8Variadic10get_formatEv") LINKABLE;
+		}
+	}
 }
 
-#endif // L2C_IMPORTS_H
+#endif // L2C_H

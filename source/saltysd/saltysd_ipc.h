@@ -3,7 +3,7 @@
 
 #include <switch.h>
 
-#include "useful.h"
+#include "../useful/useful.h"
 
 extern "C" {
 	void SaltySD_Init() LINKABLE;
