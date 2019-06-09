@@ -38,8 +38,15 @@ namespace app::lua_bind {
 	namespace WorkModule {
 		// Force DI
 		float get_float_replace(u64 module_accessor, int var) {
-			if (is_training_mode() && is_operation_cpu(module_accessor)) {
-				if (is_in_hitstun(module_accessor)) {
+			// call original WorkModule::get_float_impl
+			u64 work_module = load_module(module_accessor, 0x50);
+			float (*get_float)(u64, int) =
+					(float (*)(u64, int))(load_module_impl(work_module, 0x58));
+
+			float ret_val = get_float(work_module, var);
+
+			if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X || var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y) {
+				if (is_training_mode() && is_operation_cpu(module_accessor) && is_in_hitstun(module_accessor)) {
 					if (DI_STATE != NONE) {
 						float angle = (DI_STATE - 1) * M_PI / 4.0;
 
@@ -47,7 +54,6 @@ namespace app::lua_bind {
 						if (DI_STATE == DI_RANDOM_IN_AWAY) {
 							angle = app::sv_math::rand(hash40("fighter"), 2) * M_PI;
 						}
-
 						// If facing left, reverse angle
 						if (PostureModule::lr(module_accessor) != -1.0) angle -= M_PI;
 
@@ -59,13 +65,8 @@ namespace app::lua_bind {
 					}
 				}
 			}
-
-			// call original WorkModule::get_float_impl
-			u64 work_module = load_module(module_accessor, 0x50);
-			float (*get_float)(u64, int) =
-					(float (*)(u64, int))(load_module_impl(work_module, 0x58));
-
-			return get_float(work_module, var);
+			
+			return ret_val;
 		}
 
 		float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {

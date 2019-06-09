@@ -13,8 +13,8 @@ namespace app::lua_bind {
         u64 set_keep_situation_air(u64,bool) asm("_ZN3app8lua_bind41StatusModule__set_keep_situation_air_implEPNS_26BattleObjectModuleAccessorEb") LINKABLE;
         u64 set_situation_kind(u64,int situationKind,bool) asm("_ZN3app8lua_bind37StatusModule__set_situation_kind_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEb") LINKABLE;
         u64 set_status_kind_interrupt(u64,int) asm("_ZN3app8lua_bind44StatusModule__set_status_kind_interrupt_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-        u64 situation_kind(u64) asm("_ZN3app8lua_bind33StatusModule__situation_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-        u64 status_kind(u64) asm("_ZN3app8lua_bind30StatusModule__status_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
+        int situation_kind(u64) asm("_ZN3app8lua_bind33StatusModule__situation_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
+        int status_kind(u64) asm("_ZN3app8lua_bind30StatusModule__status_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 status_kind_interrupt(u64) asm("_ZN3app8lua_bind40StatusModule__status_kind_interrupt_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 status_kind_next(u64) asm("_ZN3app8lua_bind35StatusModule__status_kind_next_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 status_kind_que_from_script(u64) asm("_ZN3app8lua_bind46StatusModule__status_kind_que_from_script_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
