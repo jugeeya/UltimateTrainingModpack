@@ -88,6 +88,37 @@ namespace app::lua_bind {
 
 			return get_param_float(work_module, param_type, param_hash);
 		}
+
+		// Force option out of hitstun
+		u64 enable_transition_term_replace(u64 module_accessor, int transition_id) {
+			if (TOGGLE_STATE == LEDGE_OPTION && is_training_mode() && is_operation_cpu(module_accessor)) {
+				if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
+					if (transition_id == FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
+						int status = 0;
+
+						switch (app::sv_math::rand(hash40("fighter"), 4)) {
+							case 0:
+								status = FIGHTER_STATUS_KIND_CLIFF_CLIMB; break;
+							case 1:
+								status = FIGHTER_STATUS_KIND_CLIFF_ATTACK; break;
+							case 2:
+								status = FIGHTER_STATUS_KIND_CLIFF_ESCAPE; break;
+							case 3:
+								status = FIGHTER_STATUS_KIND_CLIFF_JUMP1; break;
+						}
+						
+						StatusModule::change_status_request_from_script(module_accessor, status, 1);
+					}
+				}
+			}
+
+			// call original WorkModule::enable_transition_term_group_impl
+			u64 work_module = load_module(module_accessor, 0x50);
+			u64 (*enable_transition_term)(u64, int) =
+					(u64(*)(u64, int))(load_module_impl(work_module, 0x188));
+
+			return enable_transition_term(work_module, transition_id);
+		}
 	}  // namespace WorkModule
 
 	namespace ControlModule {
@@ -98,14 +129,23 @@ namespace app::lua_bind {
 					(int (*)(u64, int))load_module_impl(control_module, 0x350);
 			int flag = get_command_flag_cat(control_module, category);
 
-			if (is_training_mode() && is_operation_cpu(module_accessor) && is_in_hitstun(module_accessor)) {
-				if (TOGGLE_STATE == MASH_AIRDODGE)
-					if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
-						flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
+			if (is_training_mode() && is_operation_cpu(module_accessor)) {
+				if (is_in_hitstun(module_accessor)) {
+					if (TOGGLE_STATE == MASH_AIRDODGE)
+						if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
+							flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
 
-				if (TOGGLE_STATE == MASH_JUMP)
-					if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
-						flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+					if (TOGGLE_STATE == MASH_JUMP)
+						if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
+							flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+				}
+
+				if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
+					if (TOGGLE_STATE == LEDGE_OPTION) {
+						if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
+							flag |= FIGHTER_PAD_CMD_CAT1_FLAG_WALK;
+					}
+				}
 			}
 
 			return flag;
@@ -282,6 +322,11 @@ void training_mods_main() {
 	SaltySD_function_replace_sym(
 		"_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm",
 		(u64)&WorkModule::get_param_float_replace);
+
+	// Ledge options
+	SaltySD_function_replace_sym(
+		"_ZN3app8lua_bind39WorkModule__enable_transition_term_implEPNS_26BattleObjectModuleAccessorEi",
+		(u64)&WorkModule::enable_transition_term_replace);
 
 	// Save states: in beta
 	/*SaltySD_function_replace_sym(

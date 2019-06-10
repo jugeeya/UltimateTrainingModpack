@@ -12,9 +12,13 @@
 #include "useful/const_value_table.h"
 #include "taunt_toggles.h"
 
+#include "useful/raygun_printer.hpp"
+
 using namespace lib;
 using namespace app::lua_bind;
 using namespace app::sv_animcmd;
+
+u64 effect_manager_addr;
 
 void (*AttackModule_set_attack_lua_state)(u64, u64);
 u64 Catch_jumpback;
@@ -69,6 +73,25 @@ namespace app::lua_bind::GrabModule {
 
 		return set_rebound(grab_module, rebound);
 	}
+}
+
+Vector3f EffectModule_last_get_scale_w(u64 effect_module)
+{
+  Vector3f ret;
+  uint handle = *(uint *)(effect_module + 36);
+  if ( handle && (signed int)handle >= 1 )
+  {
+    u64 effect = LOAD64(effect_manager_addr) + 768 * (handle >> 24);
+    bool is_exist_effect = effect && *(uint *)(effect + 4) == handle;
+    if ( is_exist_effect )
+    {
+	  float* scale = (float*)(effect + 256);
+	  ret.x = *(float *)(scale);
+	  ret.y = *(float *)(scale+1);
+	  ret.z = *(float *)(scale+2);
+    }
+  }
+  return ret;
 }
 
 void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone, L2CValue *size,
@@ -248,6 +271,8 @@ namespace app::sv_animcmd {
 }
 
 void hitbox_vis_main() {
+	effect_manager_addr = SaltySDCore_FindSymbol("_ZN3lib9SingletonINS_13EffectManagerEE9instance_E");
+
 	AttackModule_set_attack_lua_state = (void (*)(u64, u64))SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") + 0xD0 - 0x70;
 	Catch_jumpback = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd5CATCHEP9lua_State") + (4*4);
 	SaltySD_function_replace_sym(

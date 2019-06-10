@@ -43,16 +43,16 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
     if (acmd.is_excute()) {
 		if (is_training_mode()) {
 			TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
-			if (TOGGLE_STATE == MASH_AIRDODGE)
-				print_string(acmd.module_accessor, "MASH\nAIRDODGE");
-			else if (TOGGLE_STATE == MASH_JUMP)
-				print_string(acmd.module_accessor, "MASH\nJUMP");
-			else if (TOGGLE_STATE == HOLD_SHIELD)
-				print_string(acmd.module_accessor, "HOLD\nSHIELD");
-			else if (TOGGLE_STATE == INFINITE_SHIELD)
-				print_string(acmd.module_accessor, "INFINITE\nSHIELD");
-			else
-				print_string(acmd.module_accessor, "NONE");
+			const char* toggle_strings[NUM_TOGGLE_STATES] = {
+				"NONE",
+				"MASH\nAIRDODGE",
+				"MASH\nJUMP",
+				"INFINITE\nSHIELD",
+				"HOLD\nSHIELD",
+				"LEDGE\nOPTION"
+			};
+			
+			print_string(acmd.module_accessor, toggle_strings[TOGGLE_STATE]);
 		}
     }
 
@@ -83,8 +83,19 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
 	if (acmd.is_excute()) {
 		if (is_training_mode()) {
 			DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
-			const char* DI_strings[NUM_DI_STATES] = {"NONE", "AWAY", "DOWN AWAY", "DOWN", "DOWN IN",
-				"IN", "UP IN", "UP", "UP AWAY", "RANDOM\nIN AWAY"};
+			const char* DI_strings[NUM_DI_STATES] = {
+				"NONE", 
+				"AWAY", 
+				"DOWN AWAY", 
+				"DOWN", 
+				"DOWN IN",
+				"IN", 
+				"UP IN", 
+				"UP", 
+				"UP AWAY", 
+				"RANDOM\nIN AWAY"
+			};
+
 			print_string(acmd.module_accessor, DI_strings[DI_STATE]);
 		}
 	}

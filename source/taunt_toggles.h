@@ -19,8 +19,9 @@ int DI_STATE = 0;
 #define MASH_JUMP 2
 #define INFINITE_SHIELD 3
 #define HOLD_SHIELD 4
+#define LEDGE_OPTION 5
 
 int TOGGLE_STATE = 0;
-#define NUM_TOGGLE_STATES 5
+#define NUM_TOGGLE_STATES 6
 
 #endif // TAUNT_TOGGLES_H
