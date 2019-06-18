@@ -1,5 +1,7 @@
 # Ultimate Training Modpack Plugin
 
+[![Github all releases](https://img.shields.io/github/downloads/jugeeya/UltimateTrainingModpack/total.svg)](https://GitHub.com/jugeeya/UltimateTrainingModpack/releases/)
+
 A [SaltyNX](https://github.com/shinyquagsire23/SaltyNX) plugin for adding features to the training mode. 
 
 ## Dependencies
