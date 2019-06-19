@@ -166,6 +166,27 @@ namespace app::lua_bind {
 									flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW; break;
 							}
 						}
+
+					if (TOGGLE_STATE == MASH_RANDOM)
+						if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
+							int random_commands[] = {
+								FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+								FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+								0x80, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_N
+								0x100, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_F
+								0x200, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_B
+								0x400, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_HI
+								0x800, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_LW
+								FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
+								FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+								FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+								FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+							};
+
+							int random_cmd_index = app::sv_math::rand(hash40("fighter"), 11);
+
+							flag |= random_commands[random_cmd_index];
+						}
 				}
 			}
 

@@ -48,6 +48,7 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
 				"MASH\nAIRDODGE",
 				"MASH\nJUMP",
 				"MASH\nATTACK",
+				"MASH\nRANDOM",
 				"INFINITE\nSHIELD",
 				"HOLD\nSHIELD",
 				"LEDGE\nOPTION"
