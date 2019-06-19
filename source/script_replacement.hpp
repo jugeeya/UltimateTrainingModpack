@@ -47,6 +47,7 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
 				"NONE",
 				"MASH\nAIRDODGE",
 				"MASH\nJUMP",
+				"MASH\nATTACK",
 				"INFINITE\nSHIELD",
 				"HOLD\nSHIELD",
 				"LEDGE\nOPTION"
@@ -93,6 +94,21 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
 				};
 
 				print_string(acmd.module_accessor, LEDGE_strings[LEDGE_STATE]);
+			} else if (TOGGLE_STATE == MASH_ATTACK) {
+				ATTACK_STATE = (ATTACK_STATE + 1) % NUM_ATTACK_STATES;
+				const char* ATTACK_strings[NUM_ATTACK_STATES] = {
+					"NAIR",
+					"FAIR",
+					"BAIR",
+					"UPAIR",
+					"DAIR",
+					"NEUTRAL B",
+					"SIDE B",
+					"UP B",
+					"DOWN B"
+				};
+
+				print_string(acmd.module_accessor, ATTACK_strings[ATTACK_STATE]);
 			} else {
 				DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
 				const char* DI_strings[NUM_DI_STATES] = {

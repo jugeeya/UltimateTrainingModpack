@@ -142,6 +142,30 @@ namespace app::lua_bind {
 					if (TOGGLE_STATE == MASH_JUMP)
 						if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
 							flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+
+					if (TOGGLE_STATE == MASH_ATTACK)
+						if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
+							switch (ATTACK_STATE) {
+								case MASH_NAIR:
+									flag |= 0x80; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_N
+								case MASH_FAIR:
+									flag |= 0x100; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_F
+								case MASH_BAIR:
+									flag |= 0x200; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_B
+								case MASH_UPAIR:
+									flag |= 0x400; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_HI
+								case MASH_DAIR:
+									flag |= 0x800; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_LW
+								case MASH_NEUTRAL_B:
+									flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N; break;
+								case MASH_SIDE_B:
+									flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S; break;
+								case MASH_UP_B:
+									flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI; break;
+								case MASH_DOWN_B:
+									flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW; break;
+							}
+						}
 				}
 			}
 
