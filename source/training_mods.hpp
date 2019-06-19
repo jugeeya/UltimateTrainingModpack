@@ -89,22 +89,26 @@ namespace app::lua_bind {
 			return get_param_float(work_module, param_type, param_hash);
 		}
 
-		// Force option out of hitstun
+		// Force ledge option
 		u64 enable_transition_term_replace(u64 module_accessor, int transition_id) {
 			if (TOGGLE_STATE == LEDGE_OPTION && is_training_mode() && is_operation_cpu(module_accessor)) {
 				if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
 					if (transition_id == FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
 						int status = 0;
+						int ledge_case = LEDGE_OPTION;
+						
+						if (LEDGE_OPTION == RANDOM_LEDGE)
+							ledge_case = app::sv_math::rand(hash40("fighter"), 4) + 1;
 
-						switch (app::sv_math::rand(hash40("fighter"), 4)) {
-							case 0:
+						switch (ledge_case) {
+							case NEUTRAL_LEDGE:
 								status = FIGHTER_STATUS_KIND_CLIFF_CLIMB; break;
-							case 1:
-								status = FIGHTER_STATUS_KIND_CLIFF_ATTACK; break;
-							case 2:
+							case ROLL_LEDGE:
 								status = FIGHTER_STATUS_KIND_CLIFF_ESCAPE; break;
-							case 3:
+							case JUMP_LEDGE:
 								status = FIGHTER_STATUS_KIND_CLIFF_JUMP1; break;
+							case ATTACK_LEDGE:
+								status = FIGHTER_STATUS_KIND_CLIFF_ATTACK; break;
 						}
 						
 						StatusModule::change_status_request_from_script(module_accessor, status, 1);
@@ -138,13 +142,6 @@ namespace app::lua_bind {
 					if (TOGGLE_STATE == MASH_JUMP)
 						if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
 							flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
-				}
-
-				if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
-					if (TOGGLE_STATE == LEDGE_OPTION) {
-						if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
-							flag |= FIGHTER_PAD_CMD_CAT1_FLAG_WALK;
-					}
 				}
 			}
 

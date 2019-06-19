@@ -82,21 +82,34 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
 	acmd.frame(1);
 	if (acmd.is_excute()) {
 		if (is_training_mode()) {
-			DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
-			const char* DI_strings[NUM_DI_STATES] = {
-				"NONE", 
-				"AWAY", 
-				"DOWN AWAY", 
-				"DOWN", 
-				"DOWN IN",
-				"IN", 
-				"UP IN", 
-				"UP", 
-				"UP AWAY", 
-				"RANDOM\nIN AWAY"
-			};
+			if (TOGGLE_STATE == LEDGE_OPTION) {
+				LEDGE_STATE = (LEDGE_STATE + 1) % NUM_LEDGE_STATES;
+				const char* LEDGE_strings[NUM_LEDGE_STATES] = {
+					"RANDOM", 
+					"NORMAL",
+					"ROLL",
+					"JUMP",
+					"ATTACK"
+				};
 
-			print_string(acmd.module_accessor, DI_strings[DI_STATE]);
+				print_string(acmd.module_accessor, LEDGE_strings[LEDGE_STATE]);
+			} else {
+				DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
+				const char* DI_strings[NUM_DI_STATES] = {
+					"NONE", 
+					"AWAY", 
+					"DOWN AWAY", 
+					"DOWN", 
+					"DOWN IN",
+					"IN", 
+					"UP IN", 
+					"UP", 
+					"UP AWAY", 
+					"RANDOM\nIN AWAY"
+				};
+
+				print_string(acmd.module_accessor, DI_strings[DI_STATE]);
+			}
 		}
 	}
 
