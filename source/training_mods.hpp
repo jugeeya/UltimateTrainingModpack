@@ -147,15 +147,15 @@ namespace app::lua_bind {
 						if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
 							switch (ATTACK_STATE) {
 								case MASH_NAIR:
-									flag |= 0x80; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_N
+									flag |= lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_N"); break;
 								case MASH_FAIR:
-									flag |= 0x100; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_F
+									flag |= lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_F"); break;
 								case MASH_BAIR:
-									flag |= 0x200; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_B
+									flag |= lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_B"); break;
 								case MASH_UPAIR:
-									flag |= 0x400; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_HI
+									flag |= lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_HI"); break;
 								case MASH_DAIR:
-									flag |= 0x800; break; // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_LW
+									flag |= lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_LW"); break;
 								case MASH_NEUTRAL_B:
 									flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N; break;
 								case MASH_SIDE_B:
@@ -172,11 +172,11 @@ namespace app::lua_bind {
 							int random_commands[] = {
 								FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
 								FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-								0x80, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_N
-								0x100, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_F
-								0x200, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_B
-								0x400, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_HI
-								0x800, // FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_LW
+								lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_N"),
+                                lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_F"),
+                                lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_B"),
+                                lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_HI"),
+                                lua_const("FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_AIR_LW"),
 								FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
 								FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
 								FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
