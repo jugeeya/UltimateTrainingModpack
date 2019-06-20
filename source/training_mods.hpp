@@ -95,9 +95,9 @@ namespace app::lua_bind {
 				if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
 					if (transition_id == FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
 						int status = 0;
-						int ledge_case = LEDGE_OPTION;
+						int ledge_case = LEDGE_STATE;
 						
-						if (LEDGE_OPTION == RANDOM_LEDGE)
+						if (LEDGE_STATE == RANDOM_LEDGE)
 							ledge_case = app::sv_math::rand(hash40("fighter"), 4) + 1;
 
 						switch (ledge_case) {
