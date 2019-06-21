@@ -203,25 +203,53 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
 
             if (TOGGLE_STATE == MASH_RANDOM)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
-                    int random_commands[] = {
-                        FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-                        // one for each aerial
-                        FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-                        FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-                    };
+					int situation_kind = StatusModule::situation_kind(module_accessor);
 
-                    int random_cmd_index =
-                        app::sv_math::rand(hash40("fighter"), 11);
+					if (situation_kind == SITUATION_KIND_AIR) {
+						const int NUM_AIR_COMMANDS = 11;
+						int random_commands[NUM_AIR_COMMANDS] = {
+							FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+							FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+							// one for each aerial
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+						};
 
-                    flag |= random_commands[random_cmd_index];
+						int random_cmd_index = app::sv_math::rand(hash40("fighter"), NUM_AIR_COMMANDS);
+
+						flag |= random_commands[random_cmd_index];
+					} else if (situation_kind == SITUATION_KIND_GROUND) {
+						const int NUM_GROUND_COMMANDS = 16;
+						int random_commands[NUM_GROUND_COMMANDS] = {
+							FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+							FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+							FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+						};
+
+						int random_cmd_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_COMMANDS);
+
+						flag |= random_commands[random_cmd_index];
+					}
                 }
         }
     }
