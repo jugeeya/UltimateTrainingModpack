@@ -111,6 +111,8 @@ void print_char(u64 module_accessor, char to_print, int line_num,
         }
         segment = segment_dict[index];
 
+        const float size_mult = 0.5;
+
         float z = segment[0];
         float y = segment[1] + lineOffset;
         float x = segment[2] + horiz_offset;
@@ -119,6 +121,13 @@ void print_char(u64 module_accessor, char to_print, int line_num,
         if (facing_left == -1) zrot *= -1;
 
         float size = segment[4];
+
+        x *= size_mult;
+        x += facing_left * 5;
+        y *= size_mult;
+        y += 5;
+        z *= size_mult;
+        size *= size_mult;
         show_segment(module_accessor, z, y, x, zrot, size);
     }
 }

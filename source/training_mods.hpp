@@ -37,6 +37,12 @@ bool is_in_hitstun(u64 module_accessor) {
            status_kind <= FIGHTER_STATUS_KIND_DAMAGE_FALL;
 }
 
+bool is_in_landing(u64 module_accessor) {
+    int status_kind = StatusModule::status_kind(module_accessor);
+    return status_kind >= FIGHTER_STATUS_KIND_LANDING &&
+           status_kind <= FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT;
+}
+
 namespace app::lua_bind {
 namespace WorkModule {
 // Force DI
@@ -172,7 +178,7 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
     int flag = get_command_flag_cat(control_module, category);
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (is_in_hitstun(module_accessor)) {
+        if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
             if (TOGGLE_STATE == MASH_AIRDODGE)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
@@ -263,7 +269,8 @@ bool check_button_on_replace(u64 module_accessor, int button) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
             if (TOGGLE_STATE == HOLD_SHIELD || TOGGLE_STATE == INFINITE_SHIELD)
                 return true;
-            if (TOGGLE_STATE == MASH_AIRDODGE && is_in_hitstun(module_accessor))
+            if (TOGGLE_STATE == MASH_AIRDODGE && 
+                (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)))
                 return true;
         }
     }
