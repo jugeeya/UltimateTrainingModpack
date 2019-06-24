@@ -59,20 +59,21 @@ float get_float_replace(u64 module_accessor, int var) {
         if (is_training_mode() && is_operation_cpu(module_accessor) &&
             is_in_hitstun(module_accessor)) {
             if (DI_STATE != NONE) {
-                float angle = (DI_STATE - 1) * M_PI / 4.0;
-
-                // Either 0 (right) or PI (left)
-                if (DI_STATE == DI_RANDOM_IN_AWAY) {
-                    angle = app::sv_math::rand(hash40("fighter"), 2) * M_PI;
+				float stick_x = 0.0, stick_y = 0.0;
+				if (DI_STATE == SET_DI) {
+					stick_x = DI_stick_x;
+					stick_y = DI_stick_y;
+				} else if (DI_STATE == DI_RANDOM_IN_AWAY) {
+					// either 1.0 or -1.0
+                    stick_x = (float) (app::sv_math::rand(hash40("fighter"), 2) * 2.0) - 1;
+					stick_y = 0.0;
                 }
-                // If facing left, reverse angle
-                if (PostureModule::lr(module_accessor) != -1.0) angle -= M_PI;
 
-                if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
-                    return cos(angle);
-
-                if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y)
-                    return sin(angle);
+				// If facing left, reverse stick x
+				if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
+					return stick_x * PostureModule::lr(module_accessor);
+				if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y)
+					return stick_y;
             }
         }
     }

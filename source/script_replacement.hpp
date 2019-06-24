@@ -100,12 +100,20 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
                 print_string(acmd.module_accessor,
                              ATTACK_strings[ATTACK_STATE]);
             } else {
-                DI_STATE = (DI_STATE + 1) % NUM_DI_STATES;
+                if (ControlModule::check_button_on(acmd.module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_L)) {
+                    DI_STATE = DI_STATE == NONE ? DI_RANDOM_IN_AWAY : NONE; 
+                } else {
+                    DI_STATE = DI_STATE == NONE ? SET_DI : NONE; 
+                }
+
                 const char* DI_strings[NUM_DI_STATES] = {
-                    "NONE", "AWAY",  "DOWN AWAY", "DOWN",    "DOWN IN",
-                    "IN",   "UP IN", "UP",        "UP AWAY", "RANDOM\nIN AWAY"};
+                    "NONE", "SET_DI", "RANDOM\nIN AWAY"};
 
                 print_string(acmd.module_accessor, DI_strings[DI_STATE]);
+                if (DI_STATE == SET_DI) {
+                    DI_stick_x = ControlModule::get_stick_x(acmd.module_accessor);
+                    DI_stick_y = ControlModule::get_stick_y(acmd.module_accessor);
+                }
             }
         }
     }

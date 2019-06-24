@@ -6,15 +6,15 @@
 /* Up Taunt */
 bool HITBOX_VIS = 1;
 
-/* Side Taunt
- 0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
- 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
-*/
+/* Side Taunt */
 
 /* DI */
+float DI_stick_x = 0;
+float DI_stick_y = 0;
 int DI_STATE = NONE;
-#define DI_RANDOM_IN_AWAY 9
-#define NUM_DI_STATES 10
+#define SET_DI 1
+#define DI_RANDOM_IN_AWAY 2
+#define NUM_DI_STATES 3
 
 /* Attack Option */
 #define MASH_NAIR 0
