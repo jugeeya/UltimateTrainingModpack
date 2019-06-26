@@ -444,7 +444,13 @@ int vsnprintf_intercept(char * s, size_t n, const char * format, va_list arg) {
 	}
 
 
-	return vsnprintf(s, n, format, arg);
+	int ret = vsnprintf(s, n, format, arg);
+
+	if (strcmp(s, "Do Not Display") == 0) {
+		strcpy(s, "test");
+	}
+
+	return ret;
 }
 
 void training_mods_main() {

@@ -18,8 +18,7 @@ using namespace app::lua_bind;
     segment data list : {Z, Y, X, ZRot, Size}
     segment labels :
          _
-        |_| from top to top left, clockwise: a->f + g mid +  \|/ from top mid to
-   top left, clockwise: h->m + --two half g's: n, o
+        |_| from top to top left, clockwise: a->f + g mid +  \|/ from top mid to top left, clockwise: h->m + --two half g's: n, o
         |_|                                                  /|\
 */
 
@@ -68,9 +67,10 @@ void show_segment(u64 battle_object_module_accessor, float z, float y, float x,
     Vector3f rot = {.x = 0, .y = 90, .z = zrot};
     Vector3f random = {.x = 0, .y = 0, .z = 0};
 
-    EffectModule::req_on_joint(battle_object_module_accessor, hash40("sys_raygun_bullet"),
-                               hash40("top"), &pos, &rot, size, &random, &random, 0,
-                               0, 0, 0);
+    EffectModule::req_on_joint(battle_object_module_accessor, 
+        hash40("sys_raygun_bullet"), hash40("top"), 
+        &pos, &rot, size, &random, &random, 
+        0, 0, 0, 0);
 }
 
 int alphabet_index(char to_print) {
@@ -130,9 +130,8 @@ void print_char(u64 module_accessor, char to_print, int line_num,
 }
 
 void print_string(u64 module_accessor, const char* print_str) {
-    // Delete any previous strings
-    Hash40 raygunShot = {.hash = 0x11e470b07fLL};
-    EffectModule::kill_kind(module_accessor, raygunShot.hash, 0, 1);
+    // delete any previous strings
+    EffectModule::kill_kind(module_accessor, hash40("sys_raygun_bullet"), 0, 1);
 
     int line_num = 0;
     float horiz_offset = 0;

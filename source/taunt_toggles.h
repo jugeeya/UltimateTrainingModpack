@@ -3,12 +3,12 @@
 
 #define NONE 0
 
-/* Up Taunt */
+// Up Taunt
 bool HITBOX_VIS = 1;
 
-/* Side Taunt */
+// Side Taunt
 
-/* DI */
+// DI
 float DI_stick_x = 0;
 float DI_stick_y = 0;
 int DI_STATE = NONE;
@@ -16,7 +16,7 @@ int DI_STATE = NONE;
 #define DI_RANDOM_IN_AWAY 2
 #define NUM_DI_STATES 3
 
-/* Attack Option */
+// Attack Option
 #define MASH_NAIR 0
 #define MASH_FAIR 1
 #define MASH_BAIR 2
@@ -30,7 +30,7 @@ int DI_STATE = NONE;
 int ATTACK_STATE = MASH_NAIR;
 #define NUM_ATTACK_STATES 9
 
-/* Ledge Option */
+// Ledge Option
 #define RANDOM_LEDGE 0
 #define NEUTRAL_LEDGE 1
 #define ROLL_LEDGE 2
@@ -65,7 +65,5 @@ int ESCAPE_STATE = ESCAPE_LEDGE;
 #define SHIELD_HOLD 2
 int SHIELD_STATE = NONE;
 #define NUM_SHIELD_STATES 3
-
-
 
 #endif // TAUNT_TOGGLES_H
