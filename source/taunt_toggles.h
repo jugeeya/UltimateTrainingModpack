@@ -41,15 +41,31 @@ int LEDGE_STATE = RANDOM_LEDGE;
 #define NUM_LEDGE_STATES 5
 
 // Down Taunt
+#define MASH_TOGGLES 0
+#define ESCAPE_TOGGLES 1
+#define SHIELD_TOGGLES 2
+int TOGGLE_STATE = MASH_TOGGLES;
+#define NUM_TOGGLE_STATES 3
+
+// Mash States
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
-#define MASH_ATTACK 3
-#define MASH_RANDOM 4
-#define INFINITE_SHIELD 5
-#define HOLD_SHIELD 6
-#define LEDGE_OPTION 7
+#define MASH_RANDOM 3
+int MASH_STATE = NONE;
+#define NUM_MASH_STATES 4
+#define MASH_ATTACK 4 // unused for now
 
-int TOGGLE_STATE = NONE;
-#define NUM_TOGGLE_STATES 8
+// Escape States
+#define ESCAPE_LEDGE 1
+int ESCAPE_STATE = ESCAPE_LEDGE;
+#define NUM_ESCAPE_STATES 2
+
+// Shield States
+#define SHIELD_INFINITE 1
+#define SHIELD_HOLD 2
+int SHIELD_STATE = NONE;
+#define NUM_SHIELD_STATES 3
+
+
 
 #endif // TAUNT_TOGGLES_H

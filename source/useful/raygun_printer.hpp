@@ -64,15 +64,12 @@ const char segment_rev[15] = {
 
 void show_segment(u64 battle_object_module_accessor, float z, float y, float x,
                   float zrot, float size) {
-    Hash40 raygunShot = {.hash = 0x11e470b07fLL};
-    Hash40 top = {.hash = 0x031ed91fcaLL};
-
     Vector3f pos = {.x = x, .y = y, .z = z};
     Vector3f rot = {.x = 0, .y = 90, .z = zrot};
     Vector3f random = {.x = 0, .y = 0, .z = 0};
 
-    EffectModule::req_on_joint(battle_object_module_accessor, raygunShot.hash,
-                               top.hash, &pos, &rot, size, &random, &random, 0,
+    EffectModule::req_on_joint(battle_object_module_accessor, hash40("sys_raygun_bullet"),
+                               hash40("top"), &pos, &rot, size, &random, &random, 0,
                                0, 0, 0);
 }
 

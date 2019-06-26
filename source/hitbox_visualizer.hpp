@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "useful/useful.h"
+#include "useful/crc32.h"
 #include "useful/visual.h"
 
 #include "acmd_wrapper.hpp"
@@ -45,8 +46,7 @@ void clear_all_replace(u64 module_accessor) {
         int status_kind = StatusModule::status_kind(module_accessor);
         if (!(status_kind >= FIGHTER_STATUS_KIND_GUARD_ON &&
               status_kind <= FIGHTER_STATUS_KIND_GUARD_OFF)) {
-            Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
-            EffectModule::kill_kind(module_accessor, shieldEffectHash.hash, 0, 1);
+            EffectModule::kill_kind(module_accessor, hash40("sys_shield"), 0, 1);
         }
     }
 
@@ -67,8 +67,7 @@ void set_rebound_replace(u64 module_accessor, bool rebound) {
         int status_kind = StatusModule::status_kind(module_accessor);
         if (!(status_kind >= FIGHTER_STATUS_KIND_GUARD_ON &&
               status_kind <= FIGHTER_STATUS_KIND_GUARD_OFF)) {
-            Hash40 shieldEffectHash = {.hash = 0xAFAE75F05LL};
-            EffectModule::kill_kind(module_accessor, shieldEffectHash.hash, 0, 1);
+            EffectModule::kill_kind(module_accessor, hash40("sys_shield"), 0, 1);
         }
     }
 
@@ -106,7 +105,7 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone,
     L2CValue blue(color->z);
 
     float size_mult = 19.0f / 200.0f;
-    Hash40 shield_effect_hash = {.hash = 0xAFAE75F05LL};
+    Hash40 shield_effect_hash = {.hash = hash40("sys_shield")};
 
     L2CValue shieldEffect(shield_effect_hash.hash);
     L2CValue x_rot(0.0f);
@@ -177,7 +176,8 @@ void ATTACK_replace(u64 a1) {
     l2c_agent.get_lua_stack(15, &z2);     // float or void
 
     // hacky way of forcing no shield damage on all hitboxes
-    if (is_training_mode() && TOGGLE_STATE == INFINITE_SHIELD) {
+    if (is_training_mode() && 
+        TOGGLE_STATE == SHIELD_TOGGLES && SHIELD_STATE == SHIELD_INFINITE) {
         L2CValue hitbox_params[36];
         for (size_t i = 0; i < 36; i++)
             l2c_agent.get_lua_stack(i + 1, &hitbox_params[i]);
@@ -287,8 +287,8 @@ void hitbox_vis_main() {
     effect_manager_addr = SaltySDCore_FindSymbol(
         "_ZN3lib9SingletonINS_13EffectManagerEE9instance_E");
 
-    AttackModule_set_attack_lua_state = (void (*)(u64, u64))SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") +
-        0xD0 - 0x70;
+    AttackModule_set_attack_lua_state = (void (*)(u64, u64))(SaltySDCore_FindSymbol("_ZN3app10sv_animcmd6ATTACKEP9lua_State") +
+        0xD0 - 0x70);
     Catch_jumpback = SaltySDCore_FindSymbol("_ZN3app10sv_animcmd5CATCHEP9lua_State") + (4 * 4);
     SaltySD_function_replace_sym("_ZN3app10sv_animcmd6ATTACKEP9lua_State",
                                  (u64)&ATTACK_replace);

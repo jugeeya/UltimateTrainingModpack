@@ -49,13 +49,31 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
     acmd.frame(1);
     if (acmd.is_excute()) {
         if (is_training_mode()) {
-            TOGGLE_STATE = (TOGGLE_STATE + 1) % NUM_TOGGLE_STATES;
-            const char* toggle_strings[NUM_TOGGLE_STATES] = {
-                "NONE",         "MASH\nAIRDODGE", "MASH\nJUMP",
-                "MASH\nATTACK", "MASH\nRANDOM",   "INFINITE\nSHIELD",
-                "HOLD\nSHIELD", "LEDGE\nOPTION"};
+            if (TOGGLE_STATE == MASH_TOGGLES) {
+                MASH_STATE = (MASH_STATE + 1) % NUM_MASH_STATES;
+                const char* toggle_strings[NUM_MASH_STATES] = {
+                    "NONE", "AIRDODGE", "JUMP", "RANDOM"};
 
-            print_string(acmd.module_accessor, toggle_strings[TOGGLE_STATE]);
+                print_string(acmd.module_accessor, toggle_strings[MASH_STATE]);
+            }
+
+            if (TOGGLE_STATE == ESCAPE_TOGGLES) {
+                ESCAPE_STATE = (ESCAPE_STATE + 1) % NUM_ESCAPE_STATES;
+                const char* toggle_strings[NUM_ESCAPE_STATES] = {
+                    "NONE", "LEDGE"};
+
+                print_string(acmd.module_accessor, toggle_strings[ESCAPE_STATE]);
+            }
+
+            if (TOGGLE_STATE == SHIELD_TOGGLES) {
+                SHIELD_STATE = (SHIELD_STATE + 1) % NUM_SHIELD_STATES;
+                const char* toggle_strings[NUM_SHIELD_STATES] = {
+                    "NONE", "INFINITE", "HOLD"};
+
+                print_string(acmd.module_accessor, toggle_strings[SHIELD_STATE]);
+            }
+
+
         }
     }
 
@@ -85,13 +103,13 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
     acmd.frame(1);
     if (acmd.is_excute()) {
         if (is_training_mode()) {
-            if (TOGGLE_STATE == LEDGE_OPTION) {
+            if (TOGGLE_STATE == ESCAPE_TOGGLES && ESCAPE_STATE == ESCAPE_LEDGE) {
                 LEDGE_STATE = (LEDGE_STATE + 1) % NUM_LEDGE_STATES;
                 const char* LEDGE_strings[NUM_LEDGE_STATES] = {
                     "RANDOM", "NORMAL", "ROLL", "JUMP", "ATTACK"};
 
                 print_string(acmd.module_accessor, LEDGE_strings[LEDGE_STATE]);
-            } else if (TOGGLE_STATE == MASH_ATTACK) {
+            } else if (MASH_STATE == MASH_ATTACK) {
                 ATTACK_STATE = (ATTACK_STATE + 1) % NUM_ATTACK_STATES;
                 const char* ATTACK_strings[NUM_ATTACK_STATES] = {
                     "NAIR",      "FAIR",   "BAIR", "UPAIR", "DAIR",

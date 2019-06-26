@@ -4,6 +4,7 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+#include <stdarg.h>
 #include "useful/const_value_table.h"
 #include "useful/crc32.h"
 #include "useful/useful.h"
@@ -84,7 +85,7 @@ float get_float_replace(u64 module_accessor, int var) {
 float get_param_float_replace(u64 module_accessor, u64 param_type,
                               u64 param_hash) {
     if (is_training_mode()) {
-        if (TOGGLE_STATE == INFINITE_SHIELD) {
+        if (SHIELD_STATE == SHIELD_INFINITE) {
             if (param_type == hash40("common")) {
                 if (param_hash == hash40("shield_dec1")) return 0.0;
                 if (param_hash == hash40("shield_recovery1")) return 999.0;
@@ -104,7 +105,7 @@ float get_param_float_replace(u64 module_accessor, u64 param_type,
 
 // Force ledge option
 u64 enable_transition_term_replace(u64 module_accessor, int transition_id) {
-    if (TOGGLE_STATE == LEDGE_OPTION && is_training_mode() &&
+    if (ESCAPE_STATE == ESCAPE_LEDGE && is_training_mode() &&
         is_operation_cpu(module_accessor)) {
         if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
             if (transition_id == FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
@@ -148,7 +149,7 @@ int get_attack_air_kind_replace(u64 module_accessor) {
     int kind = get_attack_air_kind(control_module);
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (TOGGLE_STATE == MASH_ATTACK) {
+        if (MASH_STATE == MASH_ATTACK) {
             switch (ATTACK_STATE) {
                 case MASH_NAIR:
                     kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_N; break;
@@ -163,7 +164,7 @@ int get_attack_air_kind_replace(u64 module_accessor) {
             }
         }
 
-        if (TOGGLE_STATE == MASH_RANDOM) {
+        if (MASH_STATE == MASH_RANDOM) {
             kind = app::sv_math::rand(hash40("fighter"), 5) + 1;
         }
     }
@@ -180,15 +181,15 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
         if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
-            if (TOGGLE_STATE == MASH_AIRDODGE)
+            if (MASH_STATE == MASH_AIRDODGE)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
 
-            if (TOGGLE_STATE == MASH_JUMP)
+            if (MASH_STATE == MASH_JUMP)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
-            if (TOGGLE_STATE == MASH_ATTACK)
+            if (MASH_STATE == MASH_ATTACK)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
                     switch (ATTACK_STATE) {
                         case MASH_NAIR:
@@ -208,7 +209,7 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
                     }
                 }
 
-			if (TOGGLE_STATE == MASH_RANDOM)
+			if (MASH_STATE == MASH_RANDOM)
 				if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
 					int situation_kind = StatusModule::situation_kind(module_accessor);
 
@@ -268,9 +269,9 @@ bool check_button_on_replace(u64 module_accessor, int button) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD ||
         button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (TOGGLE_STATE == HOLD_SHIELD || TOGGLE_STATE == INFINITE_SHIELD)
+            if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE)
                 return true;
-            if (TOGGLE_STATE == MASH_AIRDODGE && 
+            if (MASH_STATE == MASH_AIRDODGE && 
                 (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)))
                 return true;
         }
@@ -287,7 +288,7 @@ bool check_button_off_replace(u64 module_accessor, int button) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD ||
         button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (TOGGLE_STATE == HOLD_SHIELD || TOGGLE_STATE == INFINITE_SHIELD)
+            if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE)
                 return false;
         }
     }
@@ -427,6 +428,25 @@ int get_pad_flag_replace(u64 module_accessor) {
 }  // namespace ControlModule
 }  // namespace app::lua_bind
 
+extern int vsnprintf(char * s, size_t n, const char * format, va_list arg) LINKABLE;
+
+int vsnprintf_intercept(char * s, size_t n, const char * format, va_list arg) {
+	if (strcmp(format, "mel_training_help_invincible0") == 0) {
+		HITBOX_VIS = false;
+	} else if (strcmp(format, "mel_training_help_invincible1") == 0) {
+		HITBOX_VIS = true;
+	} else if (strcmp(format, "mel_training_help_shift0") == 0) {
+		TOGGLE_STATE = MASH_TOGGLES;
+	} else if (strcmp(format, "mel_training_help_shift1") == 0) {
+		TOGGLE_STATE = ESCAPE_TOGGLES;
+	} else if (strcmp(format, "mel_training_help_shift2") == 0) {
+		TOGGLE_STATE = SHIELD_TOGGLES;
+	}
+
+
+	return vsnprintf(s, n, format, arg);
+}
+
 void training_mods_main() {
     fighter_manager_addr = SaltySDCore_FindSymbol(
         "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E");
@@ -465,6 +485,10 @@ void training_mods_main() {
     /*SaltySD_function_replace_sym(
             "_ZN3app8lua_bind32ControlModule__get_pad_flag_implEPNS_26BattleObjectModuleAccessorE",
             (u64)&ControlModule::get_pad_flag_replace);*/
+
+	// Menu replacements
+	SaltySDCore_ReplaceImport("vsnprintf", (void*) vsnprintf_intercept);
+
 }
 
 #endif  // TRAINING_MODS_H
