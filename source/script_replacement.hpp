@@ -59,8 +59,8 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
 
             if (TOGGLE_STATE == ESCAPE_TOGGLES) {
                 ESCAPE_STATE = (ESCAPE_STATE + 1) % NUM_ESCAPE_STATES;
-                const char* toggle_strings[NUM_ESCAPE_STATES] = {
-                    "NONE", "LEDGE"};
+                const char* toggle_strings[NUM_ESCAPE_STATES] = {"NONE",
+                                                                 "LEDGE"};
 
                 print_string(acmd.module_accessor, toggle_strings[ESCAPE_STATE]);
             }
@@ -72,8 +72,6 @@ u64 appeal_lw_replace(L2CAgent* l2c_agent, void* variadic) {
 
                 print_string(acmd.module_accessor, toggle_strings[SHIELD_STATE]);
             }
-
-
         }
     }
 
@@ -103,7 +101,8 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
     acmd.frame(1);
     if (acmd.is_excute()) {
         if (is_training_mode()) {
-            if (TOGGLE_STATE == ESCAPE_TOGGLES && ESCAPE_STATE == ESCAPE_LEDGE) {
+            if (TOGGLE_STATE == ESCAPE_TOGGLES &&
+                ESCAPE_STATE == ESCAPE_LEDGE) {
                 LEDGE_STATE = (LEDGE_STATE + 1) % NUM_LEDGE_STATES;
                 const char* LEDGE_strings[NUM_LEDGE_STATES] = {
                     "RANDOM", "NORMAL", "ROLL", "JUMP", "ATTACK"};
@@ -119,13 +118,13 @@ u64 appeal_s_replace(L2CAgent* l2c_agent, void* variadic) {
                              ATTACK_strings[ATTACK_STATE]);
             } else {
                 if (ControlModule::check_button_on(acmd.module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_L)) {
-                    DI_STATE = DI_STATE == NONE ? DI_RANDOM_IN_AWAY : NONE; 
+                    DI_STATE = DI_STATE == NONE ? DI_RANDOM_IN_AWAY : NONE;
                 } else {
-                    DI_STATE = DI_STATE == NONE ? SET_DI : NONE; 
+                    DI_STATE = DI_STATE == NONE ? SET_DI : NONE;
                 }
 
-                const char* DI_strings[NUM_DI_STATES] = {
-                    "NONE", "SET_DI", "RANDOM\nIN AWAY"};
+                const char* DI_strings[NUM_DI_STATES] = {"NONE", "SET_DI",
+                                                         "RANDOM\nIN AWAY"};
 
                 print_string(acmd.module_accessor, DI_strings[DI_STATE]);
                 if (DI_STATE == SET_DI) {

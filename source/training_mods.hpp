@@ -60,21 +60,23 @@ float get_float_replace(u64 module_accessor, int var) {
         if (is_training_mode() && is_operation_cpu(module_accessor) &&
             is_in_hitstun(module_accessor)) {
             if (DI_STATE != NONE) {
-				float stick_x = 0.0, stick_y = 0.0;
-				if (DI_STATE == SET_DI) {
-					stick_x = DI_stick_x;
-					stick_y = DI_stick_y;
-				} else if (DI_STATE == DI_RANDOM_IN_AWAY) {
-					// either 1.0 or -1.0
-                    stick_x = (float) (app::sv_math::rand(hash40("fighter"), 2) * 2.0) - 1;
-					stick_y = 0.0;
+                float stick_x = 0.0, stick_y = 0.0;
+                if (DI_STATE == SET_DI) {
+                    stick_x = DI_stick_x;
+                    stick_y = DI_stick_y;
+                } else if (DI_STATE == DI_RANDOM_IN_AWAY) {
+                    // either 1.0 or -1.0
+                    stick_x = (float)(app::sv_math::rand(hash40("fighter"), 2) * 2.0) - 1;
+                    stick_y = 0.0;
                 }
 
-				// If facing left, reverse stick x
-				if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
-					return stick_x * PostureModule::lr(module_accessor);
-				if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y)
-					return stick_y;
+                // If facing left, reverse stick x
+                if (var ==
+                    FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
+                    return stick_x * PostureModule::lr(module_accessor);
+                if (var ==
+                    FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y)
+                    return stick_y;
             }
         }
     }
@@ -107,8 +109,10 @@ float get_param_float_replace(u64 module_accessor, u64 param_type,
 u64 enable_transition_term_replace(u64 module_accessor, int transition_id) {
     if (ESCAPE_STATE == ESCAPE_LEDGE && is_training_mode() &&
         is_operation_cpu(module_accessor)) {
-        if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
-            if (transition_id == FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
+        if (StatusModule::status_kind(module_accessor) ==
+            FIGHTER_STATUS_KIND_CLIFF_WAIT) {
+            if (transition_id ==
+                FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
                 int status = 0;
                 int ledge_case = LEDGE_STATE;
 
@@ -117,16 +121,21 @@ u64 enable_transition_term_replace(u64 module_accessor, int transition_id) {
 
                 switch (ledge_case) {
                     case NEUTRAL_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_CLIMB; break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_CLIMB;
+                        break;
                     case ROLL_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_ESCAPE; break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_ESCAPE;
+                        break;
                     case JUMP_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_JUMP1; break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_JUMP1;
+                        break;
                     case ATTACK_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_ATTACK; break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_ATTACK;
+                        break;
                 }
 
-                StatusModule::change_status_request_from_script(module_accessor, status, 1);
+                StatusModule::change_status_request_from_script(module_accessor,
+                                                                status, 1);
             }
         }
     }
@@ -152,15 +161,20 @@ int get_attack_air_kind_replace(u64 module_accessor) {
         if (MASH_STATE == MASH_ATTACK) {
             switch (ATTACK_STATE) {
                 case MASH_NAIR:
-                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_N; break;
+                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
+                    break;
                 case MASH_FAIR:
-                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_F; break;
+                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_F;
+                    break;
                 case MASH_BAIR:
-                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_B; break;
+                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_B;
+                    break;
                 case MASH_UPAIR:
-                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_HI; break;
+                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_HI;
+                    break;
                 case MASH_DAIR:
-                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_LW; break;
+                    kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_LW;
+                    break;
             }
         }
 
@@ -197,68 +211,76 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
                         case MASH_BAIR:
                         case MASH_UPAIR:
                         case MASH_DAIR:
-                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N; break;
+                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
+                            break;
                         case MASH_NEUTRAL_B:
-                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N; break;
+                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N;
+                            break;
                         case MASH_SIDE_B:
-                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S; break;
+                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S;
+                            break;
                         case MASH_UP_B:
-                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI; break;
+                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI;
+                            break;
                         case MASH_DOWN_B:
-                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW; break;
+                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW;
+                            break;
                     }
                 }
 
-			if (MASH_STATE == MASH_RANDOM)
-				if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
-					int situation_kind = StatusModule::situation_kind(module_accessor);
+            if (MASH_STATE == MASH_RANDOM)
+                if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
+                    int situation_kind =
+                        StatusModule::situation_kind(module_accessor);
 
-					if (situation_kind == SITUATION_KIND_AIR) {
-						const int NUM_AIR_COMMANDS = 11;
-						int random_commands[NUM_AIR_COMMANDS] = {
-							FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
-							FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-							// one for each aerial
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-						};
+                    if (situation_kind == SITUATION_KIND_AIR) {
+                        const int NUM_AIR_COMMANDS = 11;
+                        int random_commands[NUM_AIR_COMMANDS] = {
+                            FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+                            // one for each aerial
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+                        };
 
-						int random_cmd_index = app::sv_math::rand(hash40("fighter"), NUM_AIR_COMMANDS);
+                        int random_cmd_index = app::sv_math::rand(
+                            hash40("fighter"), NUM_AIR_COMMANDS);
 
-						flag |= random_commands[random_cmd_index];
-					} else if (situation_kind == SITUATION_KIND_GROUND) {
-						const int NUM_GROUND_COMMANDS = 16;
-						int random_commands[NUM_GROUND_COMMANDS] = {
-							FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-							FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-							FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
-							FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
-						};
+                        flag |= random_commands[random_cmd_index];
+                    } else if (situation_kind == SITUATION_KIND_GROUND) {
+                        const int NUM_GROUND_COMMANDS = 16;
+                        int random_commands[NUM_GROUND_COMMANDS] = {
+                            FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+                            FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+                        };
 
-						int random_cmd_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_COMMANDS);
+                        int random_cmd_index = app::sv_math::rand(
+                            hash40("fighter"), NUM_GROUND_COMMANDS);
 
-						flag |= random_commands[random_cmd_index];
-					}
-				}
+                        flag |= random_commands[random_cmd_index];
+                    }
+                }
         }
     }
 
@@ -271,8 +293,9 @@ bool check_button_on_replace(u64 module_accessor, int button) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
             if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE)
                 return true;
-            if (MASH_STATE == MASH_AIRDODGE && 
-                (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)))
+            if (MASH_STATE == MASH_AIRDODGE &&
+                (is_in_hitstun(module_accessor) ||
+                 is_in_landing(module_accessor)))
                 return true;
         }
     }
@@ -428,29 +451,29 @@ int get_pad_flag_replace(u64 module_accessor) {
 }  // namespace ControlModule
 }  // namespace app::lua_bind
 
-extern int vsnprintf(char * s, size_t n, const char * format, va_list arg) LINKABLE;
+extern int vsnprintf(char* s, size_t n, const char* format,
+                     va_list arg) LINKABLE;
 
-int vsnprintf_intercept(char * s, size_t n, const char * format, va_list arg) {
-	if (strcmp(format, "mel_training_help_invincible0") == 0) {
-		HITBOX_VIS = false;
-	} else if (strcmp(format, "mel_training_help_invincible1") == 0) {
-		HITBOX_VIS = true;
-	} else if (strcmp(format, "mel_training_help_shift0") == 0) {
-		TOGGLE_STATE = MASH_TOGGLES;
-	} else if (strcmp(format, "mel_training_help_shift1") == 0) {
-		TOGGLE_STATE = ESCAPE_TOGGLES;
-	} else if (strcmp(format, "mel_training_help_shift2") == 0) {
-		TOGGLE_STATE = SHIELD_TOGGLES;
-	}
+int vsnprintf_intercept(char* s, size_t n, const char* format, va_list arg) {
+    if (strcmp(format, "mel_training_help_invincible0") == 0) {
+        HITBOX_VIS = false;
+    } else if (strcmp(format, "mel_training_help_invincible1") == 0) {
+        HITBOX_VIS = true;
+    } else if (strcmp(format, "mel_training_help_shift0") == 0) {
+        TOGGLE_STATE = MASH_TOGGLES;
+    } else if (strcmp(format, "mel_training_help_shift1") == 0) {
+        TOGGLE_STATE = ESCAPE_TOGGLES;
+    } else if (strcmp(format, "mel_training_help_shift2") == 0) {
+        TOGGLE_STATE = SHIELD_TOGGLES;
+    }
 
+    int ret = vsnprintf(s, n, format, arg);
 
-	int ret = vsnprintf(s, n, format, arg);
+    if (strcmp(s, "Do Not Display") == 0) {
+        strcpy(s, "test");
+    }
 
-	if (strcmp(s, "Do Not Display") == 0) {
-		strcpy(s, "test");
-	}
-
-	return ret;
+    return ret;
 }
 
 void training_mods_main() {
@@ -482,8 +505,8 @@ void training_mods_main() {
         "_ZN3app8lua_bind39WorkModule__enable_transition_term_implEPNS_26BattleObjectModuleAccessorEi",
         (u64)&WorkModule::enable_transition_term_replace);
 
-	// Mash attack
-	SaltySD_function_replace_sym(
+    // Mash attack
+    SaltySD_function_replace_sym(
         "_ZN3app8lua_bind39ControlModule__get_attack_air_kind_implEPNS_26BattleObjectModuleAccessorE",
         (u64)&ControlModule::get_attack_air_kind_replace);
 
@@ -492,9 +515,8 @@ void training_mods_main() {
             "_ZN3app8lua_bind32ControlModule__get_pad_flag_implEPNS_26BattleObjectModuleAccessorE",
             (u64)&ControlModule::get_pad_flag_replace);*/
 
-	// Menu replacements
-	SaltySDCore_ReplaceImport("vsnprintf", (void*) vsnprintf_intercept);
-
+    // Menu replacements
+    SaltySDCore_ReplaceImport("vsnprintf", (void*)vsnprintf_intercept);
 }
 
 #endif  // TRAINING_MODS_H
