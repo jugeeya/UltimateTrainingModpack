@@ -451,28 +451,40 @@ int get_pad_flag_replace(u64 module_accessor) {
 }  // namespace ControlModule
 }  // namespace app::lua_bind
 
-extern int vsnprintf(char* s, size_t n, const char* format,
-                     va_list arg) LINKABLE;
+extern int vsnprintf(char* s, size_t maxlen, const char* format, va_list arg) LINKABLE;
 
-int vsnprintf_intercept(char* s, size_t n, const char* format, va_list arg) {
-    if (strcmp(format, "mel_training_help_invincible0") == 0) {
-        HITBOX_VIS = false;
-    } else if (strcmp(format, "mel_training_help_invincible1") == 0) {
+int vsnprintf_intercept(char* s, size_t maxlen, const char* format, va_list arg) {
+    if (strcmp(format, "mel_training_help_invincible") == 0) {
         HITBOX_VIS = true;
+    } else if (strcmp(format, "mel_training_help_invincible_off") == 0) {
+        HITBOX_VIS = false;
     } else if (strcmp(format, "mel_training_help_shift0") == 0) {
         TOGGLE_STATE = MASH_TOGGLES;
+        if (MASH_STATE == NONE)
+            format = "mel_shortmsg_1";
+        if (MASH_STATE == MASH_AIRDODGE)
+            format = "mel_shortmsg_2";
+        if (MASH_STATE == MASH_JUMP)
+            format = "mel_shortmsg_3";
+        if (MASH_STATE == MASH_RANDOM)
+            format = "mel_shortmsg_4";
     } else if (strcmp(format, "mel_training_help_shift1") == 0) {
         TOGGLE_STATE = ESCAPE_TOGGLES;
+        if (ESCAPE_STATE == NONE)
+            format = "mel_shortmsg_5";
+        if (ESCAPE_STATE == ESCAPE_LEDGE)
+            format = "mel_shortmsg_6";
     } else if (strcmp(format, "mel_training_help_shift2") == 0) {
         TOGGLE_STATE = SHIELD_TOGGLES;
+        if (SHIELD_STATE == NONE)
+            format = "mel_shortmsg_7";
+        if (SHIELD_STATE == SHIELD_INFINITE)
+            format = "mel_shortmsg_8";
+        if (SHIELD_STATE == SHIELD_HOLD)
+            format = "mel_shortmsg_9";
     }
 
-    int ret = vsnprintf(s, n, format, arg);
-
-    if (strcmp(s, "Do Not Display") == 0) {
-        strcpy(s, "test");
-    }
-
+    int ret = vsnprintf(s, maxlen, format, arg);
     return ret;
 }
 
