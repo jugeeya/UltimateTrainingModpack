@@ -565,7 +565,7 @@ void change_motion_replace(u64 module_accessor, u64 motion_kind,
     // call original
     u64 motion_module = load_module(module_accessor, 0x88);
     void (*change_motion)(u64, u64, float, float, bool, float, bool, bool) =
-        (void (*)(u64, u64, float, float, bool, float, bool, bool))load_module(
+        (void (*)(u64, u64, float, float, bool, float, bool, bool))load_module_impl(
             motion_module, 0xD8);
 
     change_motion(motion_module, motion_kind, start_frame, frame_speed_mult,
