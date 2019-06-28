@@ -18,7 +18,6 @@
 #include "saltysd/saltysd_helper.hpp"
 
 #include "hitbox_visualizer.hpp"
-#include "script_replacement.hpp"
 #include "training_mods.hpp"
 
 extern "C" {
@@ -85,10 +84,6 @@ int main(int argc, char* argv[]) {
     if (version_string) {
         SaltySD_Memcpy(version_string, (u64) "Salty v%d%d%d", 13);
     }
-
-    // Necessary for script replacement
-    SaltySD_function_replace_sym("_ZN3lib8L2CAgent15clear_lua_stackEv",
-                                 (u64)&clear_lua_stack_replace);
 
     // Add function replacements here
     hitbox_vis_main();

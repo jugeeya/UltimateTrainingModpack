@@ -488,9 +488,98 @@ int vsnprintf_intercept(char* s, size_t maxlen, const char* format, va_list arg)
     return ret;
 }
 
+namespace app::lua_bind::MotionModule {
+void change_motion_replace(u64 module_accessor, u64 motion_kind,
+                           float start_frame, float frame_speed_mult, bool unk1,
+                           float unk2, bool unk3, bool unk4) {
+    if (motion_kind == hash40("appeal_lw_l") || motion_kind == hash40("appeal_lw_r")) {
+        if (is_training_mode()) {
+            if (TOGGLE_STATE == MASH_TOGGLES) {
+                MASH_STATE = (MASH_STATE + 1) % NUM_MASH_STATES;
+                const char* toggle_strings[NUM_MASH_STATES] = {
+                    "NONE", "AIRDODGE", "JUMP", "RANDOM"};
+
+                print_string(module_accessor, toggle_strings[MASH_STATE]);
+            }
+
+            if (TOGGLE_STATE == ESCAPE_TOGGLES) {
+                ESCAPE_STATE = (ESCAPE_STATE + 1) % NUM_ESCAPE_STATES;
+                const char* toggle_strings[NUM_ESCAPE_STATES] = {"NONE",
+                                                                 "LEDGE"};
+
+                print_string(module_accessor, toggle_strings[ESCAPE_STATE]);
+            }
+
+            if (TOGGLE_STATE == SHIELD_TOGGLES) {
+                SHIELD_STATE = (SHIELD_STATE + 1) % NUM_SHIELD_STATES;
+                const char* toggle_strings[NUM_SHIELD_STATES] = {
+                    "NONE", "INFINITE", "HOLD"};
+
+                print_string(module_accessor, toggle_strings[SHIELD_STATE]);
+            }
+        }
+    } else if (motion_kind == hash40("appeal_s_l") || motion_kind == hash40("appeal_s_r")) {
+		if (is_training_mode()) {
+            if (TOGGLE_STATE == ESCAPE_TOGGLES &&
+                ESCAPE_STATE == ESCAPE_LEDGE) {
+                LEDGE_STATE = (LEDGE_STATE + 1) % NUM_LEDGE_STATES;
+                const char* LEDGE_strings[NUM_LEDGE_STATES] = {
+                    "RANDOM", "NORMAL", "ROLL", "JUMP", "ATTACK"};
+
+                print_string(module_accessor, LEDGE_strings[LEDGE_STATE]);
+            } else if (MASH_STATE == MASH_ATTACK) {
+                ATTACK_STATE = (ATTACK_STATE + 1) % NUM_ATTACK_STATES;
+                const char* ATTACK_strings[NUM_ATTACK_STATES] = {
+                    "NAIR",      "FAIR",   "BAIR", "UPAIR", "DAIR",
+                    "NEUTRAL B", "SIDE B", "UP B", "DOWN B"};
+
+                print_string(module_accessor,
+                             ATTACK_strings[ATTACK_STATE]);
+            } else {
+                if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_L)) {
+                    DI_STATE = DI_STATE == NONE ? DI_RANDOM_IN_AWAY : NONE;
+                } else {
+                    DI_STATE = DI_STATE == NONE ? SET_DI : NONE;
+                }
+
+                const char* DI_strings[NUM_DI_STATES] = {"NONE", "SET_DI",
+                                                         "RANDOM\nIN AWAY"};
+
+                print_string(module_accessor, DI_strings[DI_STATE]);
+                if (DI_STATE == SET_DI) {
+                    DI_stick_x = ControlModule::get_stick_x(module_accessor);
+                    DI_stick_y = ControlModule::get_stick_y(module_accessor);
+                }
+            }
+        }
+	} else if (motion_kind == hash40("appeal_hi_l") || motion_kind == hash40("appeal_hi_r")) {
+		if (is_training_mode()) {
+            HITBOX_VIS = !HITBOX_VIS;
+            if (HITBOX_VIS)
+                print_string(module_accessor, "HITBOX\nVIS");
+            else
+                print_string(module_accessor, "NO\nHITBOX");
+        }
+	}
+
+    // call original
+    u64 motion_module = load_module(module_accessor, 0x88);
+    void (*change_motion)(u64, u64, float, float, bool, float, bool, bool) =
+        (void (*)(u64, u64, float, float, bool, float, bool, bool))load_module(
+            motion_module, 0xD8);
+
+    change_motion(motion_module, motion_kind, start_frame, frame_speed_mult,
+                  unk1, unk2, unk3, unk4);
+}
+}  // namespace app::lua_bind::MotionModule
+
 void training_mods_main() {
     fighter_manager_addr = SaltySDCore_FindSymbol(
         "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E");
+	SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind32MotionModule__change_motion_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40Effbfbb",
+        (u64)&MotionModule::change_motion_replace);
+
     // Mash airdodge/jump
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind40ControlModule__get_command_flag_cat_implEPNS_26BattleObjectModuleAccessorEi",
