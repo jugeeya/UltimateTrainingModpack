@@ -73,7 +73,7 @@ float get_float_replace(u64 module_accessor, int var) {
                 // If facing left, reverse stick x
                 if (var ==
                     FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
-                    return stick_x * PostureModule::lr(module_accessor);
+                    return stick_x * -1 * PostureModule::lr(module_accessor);
                 if (var ==
                     FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y)
                     return stick_y;

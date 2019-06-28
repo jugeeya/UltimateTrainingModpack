@@ -34,9 +34,9 @@ namespace app::lua_bind {
         u64 get_stick_angle(u64) asm("_ZN3app8lua_bind35ControlModule__get_stick_angle_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_stick_dir(u64) asm("_ZN3app8lua_bind33ControlModule__get_stick_dir_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_stick_prev_y(u64) asm("_ZN3app8lua_bind36ControlModule__get_stick_prev_y_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-        u64 get_stick_x(u64) asm("_ZN3app8lua_bind31ControlModule__get_stick_x_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
+        float get_stick_x(u64) asm("_ZN3app8lua_bind31ControlModule__get_stick_x_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_stick_x_no_clamp(u64) asm("_ZN3app8lua_bind40ControlModule__get_stick_x_no_clamp_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-        u64 get_stick_y(u64) asm("_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
+        float get_stick_y(u64) asm("_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_stick_y_no_clamp(u64) asm("_ZN3app8lua_bind40ControlModule__get_stick_y_no_clamp_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_trigger_count(u64,unsigned char) asm("_ZN3app8lua_bind37ControlModule__get_trigger_count_implEPNS_26BattleObjectModuleAccessorEh") LINKABLE;
         u64 get_trigger_count_prev(u64,unsigned char) asm("_ZN3app8lua_bind42ControlModule__get_trigger_count_prev_implEPNS_26BattleObjectModuleAccessorEh") LINKABLE;
