@@ -468,20 +468,22 @@ int vsnprintf_intercept(char* s, size_t maxlen, const char* format, va_list arg)
             format = "mel_shortmsg_3";
         if (MASH_STATE == MASH_RANDOM)
             format = "mel_shortmsg_4";
+        if (MASH_STATE == MASH_ATTACK)
+            format = "mel_shortmsg_5";
     } else if (strcmp(format, "mel_training_help_shift1") == 0) {
         TOGGLE_STATE = ESCAPE_TOGGLES;
         if (ESCAPE_STATE == NONE)
-            format = "mel_shortmsg_5";
-        if (ESCAPE_STATE == ESCAPE_LEDGE)
             format = "mel_shortmsg_6";
+        if (ESCAPE_STATE == ESCAPE_LEDGE)
+            format = "mel_shortmsg_7";
     } else if (strcmp(format, "mel_training_help_shift2") == 0) {
         TOGGLE_STATE = SHIELD_TOGGLES;
         if (SHIELD_STATE == NONE)
-            format = "mel_shortmsg_7";
-        if (SHIELD_STATE == SHIELD_INFINITE)
             format = "mel_shortmsg_8";
-        if (SHIELD_STATE == SHIELD_HOLD)
+        if (SHIELD_STATE == SHIELD_INFINITE)
             format = "mel_shortmsg_9";
+        if (SHIELD_STATE == SHIELD_HOLD)
+            format = "mel_shortmsg_10";
     }
 
     int ret = vsnprintf(s, maxlen, format, arg);
@@ -497,7 +499,7 @@ void change_motion_replace(u64 module_accessor, u64 motion_kind,
             if (TOGGLE_STATE == MASH_TOGGLES) {
                 MASH_STATE = (MASH_STATE + 1) % NUM_MASH_STATES;
                 const char* toggle_strings[NUM_MASH_STATES] = {
-                    "NONE", "AIRDODGE", "JUMP", "RANDOM"};
+                    "NONE", "AIRDODGE", "JUMP", "RANDOM", "ATTACK"};
 
                 print_string(module_accessor, toggle_strings[MASH_STATE]);
             }

@@ -51,9 +51,9 @@ int TOGGLE_STATE = MASH_TOGGLES;
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
 #define MASH_RANDOM 3
+#define MASH_ATTACK 4
 int MASH_STATE = NONE;
-#define NUM_MASH_STATES 4
-#define MASH_ATTACK 4 // unused for now
+#define NUM_MASH_STATES 5
 
 // Escape States
 #define ESCAPE_LEDGE 1
