@@ -38,11 +38,11 @@ struct ACMD {
     }
 
     void frame(float f) {
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
         L2CValue frame_val(f);
         l2c_agent->push_lua_stack(&frame_val);
         app::sv_animcmd::frame(l2c_agent->lua_state_agent, f);
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
     }
 
     // attempted reimplementation of sv_animcmd::frame
@@ -87,29 +87,29 @@ struct ACMD {
     }
 
     void wait(float f) {
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
         L2CValue frame_val(f);
         l2c_agent->push_lua_stack(&frame_val);
         app::sv_animcmd::wait(l2c_agent->lua_state_agent, f);
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
     }
 
     bool is_excute() {
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
         app::sv_animcmd::is_excute(l2c_agent->lua_state_agent);
         L2CValue is_excute;
         l2c_agent->get_lua_stack(1, &is_excute);
         bool excute = (bool)(is_excute);
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
         return excute;
     }
 
     void wrap(u64 (*acmd_func)(u64), std::initializer_list<L2CValue> list) {
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
         for (L2CValue elem : list) l2c_agent->push_lua_stack(&elem);
 
         acmd_func(l2c_agent->lua_state_agent);
-        l2c_agent->clear_lua_stack();
+        l2c_agent->_clear_lua_stack();
     }
 
     void ATTACK(u64 i1,    // ID

@@ -127,6 +127,18 @@ namespace lib {
 
 		u64 sv_set_function_hash(u64 (*func)(L2CAgent*, void*), u64 hash) asm("_ZN3lib8L2CAgent20sv_set_function_hashEPvN3phx6Hash40E") LINKABLE;
 		u64 clear_lua_stack() asm("_ZN3lib8L2CAgent15clear_lua_stackEv") LINKABLE;
+		u64 _clear_lua_stack() {
+			u64 v1, v2, i;
+			v1 = this->lua_state_agent;
+			
+			v2 = LOAD64(v1 + 16);
+			for (i = **(u64 **)(v1 + 32) + 16LL; v2 < i; v2 = LOAD64(v1 + 16)) {
+				LOAD64(v1 + 16) = v2 + 16;
+				*(__int32_t *)(v2 + 8) = 0;
+			}
+			LOAD64(v1 + 16) = i;
+			return (u64)this;
+		}
 	};
 
 	bool lua_bind_get_value(u64, int*) asm("_ZN3lib18lua_bind_get_valueIiEEbmRT_") LINKABLE;

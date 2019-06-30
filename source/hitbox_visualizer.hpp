@@ -227,16 +227,7 @@ void ATTACK_replace(u64 a1) {
         generate_hitbox_effects(&l2c_agent, &bone, &size, &x, &y, &z, &x2, &y2, &z2, &color);
     }
 
-    u64 v1, v2, i;
-    v1 = a1;
-
-    // original code: clear_lua_stack section
-    v2 = LOAD64(v1 + 16);
-    for (i = **(u64 **)(v1 + 32) + 16LL; v2 < i; v2 = LOAD64(v1 + 16)) {
-        LOAD64(v1 + 16) = v2 + 16;
-        *(__int32_t *)(v2 + 8) = 0;
-    }
-    LOAD64(v1 + 16) = i;
+    l2c_agent._clear_lua_stack();
 }
 
 void CATCH_replace(u64 a1) {
