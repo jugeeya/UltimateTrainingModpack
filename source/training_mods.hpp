@@ -24,10 +24,8 @@ using namespace app::sv_animcmd;
 u64 fighter_manager_addr;
 
 bool is_operation_cpu(u64 module_accessor) {
-    int entry_id = WorkModule::get_int(module_accessor,
-                                       FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
-    u64 fighter_information = FighterManager::get_fighter_information(
-        LOAD64(fighter_manager_addr), entry_id);
+    int entry_id = WorkModule::get_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
+    u64 fighter_information = FighterManager::get_fighter_information(LOAD64(fighter_manager_addr), entry_id);
 
     return FighterInformation::is_operation_cpu(fighter_information);
 }
@@ -48,10 +46,8 @@ namespace app::lua_bind {
 namespace WorkModule {
 // Force DI
 float get_float_replace(u64 module_accessor, int var) {
-    // call original WorkModule::get_float_impl
     u64 work_module = load_module(module_accessor, 0x50);
-    float (*get_float)(u64, int) =
-        (float (*)(u64, int))(load_module_impl(work_module, 0x58));
+    float (*get_float)(u64, int) = (float (*)(u64, int)) load_module_impl(work_module, 0x58);
 
     float ret_val = get_float(work_module, var);
 
@@ -71,11 +67,9 @@ float get_float_replace(u64 module_accessor, int var) {
                 }
 
                 // If facing left, reverse stick x
-                if (var ==
-                    FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
+                if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X)
                     return stick_x * -1 * PostureModule::lr(module_accessor);
-                if (var ==
-                    FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y)
+                if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y)
                     return stick_y;
             }
         }
@@ -97,22 +91,17 @@ float get_param_float_replace(u64 module_accessor, u64 param_type,
         }
     }
 
-    // call original
     u64 work_module = load_module(module_accessor, 0x50);
-    float (*get_param_float)(u64, u64, u64) =
-        (float (*)(u64, u64, u64))(load_module_impl(work_module, 0x240));
+    float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
 
     return get_param_float(work_module, param_type, param_hash);
 }
 
 // Force ledge option
 u64 enable_transition_term_replace(u64 module_accessor, int transition_id) {
-    if (ESCAPE_STATE == ESCAPE_LEDGE && is_training_mode() &&
-        is_operation_cpu(module_accessor)) {
-        if (StatusModule::status_kind(module_accessor) ==
-            FIGHTER_STATUS_KIND_CLIFF_WAIT) {
-            if (transition_id ==
-                FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
+    if (ESCAPE_STATE == ESCAPE_LEDGE && is_training_mode() && is_operation_cpu(module_accessor)) {
+        if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
+            if (transition_id == FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB) {
                 int status = 0;
                 int ledge_case = LEDGE_STATE;
 
@@ -121,17 +110,13 @@ u64 enable_transition_term_replace(u64 module_accessor, int transition_id) {
 
                 switch (ledge_case) {
                     case NEUTRAL_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_CLIMB;
-                        break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_CLIMB; break;
                     case ROLL_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_ESCAPE;
-                        break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_ESCAPE; break;
                     case JUMP_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_JUMP1;
-                        break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_JUMP1; break;
                     case ATTACK_LEDGE:
-                        status = FIGHTER_STATUS_KIND_CLIFF_ATTACK;
-                        break;
+                        status = FIGHTER_STATUS_KIND_CLIFF_ATTACK; break;
                 }
 
                 StatusModule::change_status_request_from_script(module_accessor,
@@ -153,8 +138,7 @@ namespace ControlModule {
 int get_attack_air_kind_replace(u64 module_accessor) {
     // call original
     u64 control_module = load_module(module_accessor, 0x48);
-    int (*get_attack_air_kind)(u64) =
-        (int (*)(u64))load_module_impl(control_module, 0x3B0);
+    int (*get_attack_air_kind)(u64) = (int (*)(u64)) load_module_impl(control_module, 0x3B0);
     int kind = get_attack_air_kind(control_module);
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
@@ -189,13 +173,14 @@ int get_attack_air_kind_replace(u64 module_accessor) {
 void save_states(u64);
 
 int get_command_flag_cat_replace(u64 module_accessor, int category) {
-    // call original
     u64 control_module = load_module(module_accessor, 0x48);
-    int (*get_command_flag_cat)(u64, int) =
-        (int (*)(u64, int))load_module_impl(control_module, 0x350);
+    int (*get_command_flag_cat)(u64, int) = (int (*)(u64, int)) load_module_impl(control_module, 0x350);
     int flag = get_command_flag_cat(control_module, category);
 
-    save_states(module_accessor);
+    //save_states(module_accessor);
+    
+    // Pause Effect AnimCMD if hitbox visualization is active
+    MotionAnimcmdModule::set_sleep_effect(module_accessor, is_training_mode() && HITBOX_VIS);
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
         if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
@@ -285,6 +270,25 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
                         flag |= random_commands[random_cmd_index];
                     }
                 }
+
+            if (ESCAPE_STATE == ESCAPE_LEDGE) {
+                int prev_status = StatusModule::prev_status_kind(module_accessor, 1);
+                if (prev_status == FIGHTER_STATUS_KIND_CLIFF_JUMP3) {
+                    flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
+                } else if (prev_status == FIGHTER_STATUS_KIND_CLIFF_CLIMB ||
+                           prev_status == FIGHTER_STATUS_KIND_CLIFF_ATTACK ||
+                           prev_status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) {
+                    const int NUM_GROUND_COMMANDS = 2;
+                    int random_commands[NUM_GROUND_COMMANDS] = {
+                        FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N, 
+                        FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+                    };
+
+                    int random_cmd_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_COMMANDS);
+
+                    flag |= random_commands[random_cmd_index];
+                }
+            }
         }
     }
 
@@ -292,38 +296,38 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
 }
 
 bool check_button_on_replace(u64 module_accessor, int button) {
-    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD ||
-        button == CONTROL_PAD_BUTTON_GUARD) {
+    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
             if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE)
                 return true;
-            if (MASH_STATE == MASH_AIRDODGE &&
-                (is_in_hitstun(module_accessor) ||
-                 is_in_landing(module_accessor)))
+            if (MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)))
                 return true;
+            if (ESCAPE_STATE == ESCAPE_LEDGE) {
+                int prev_status = StatusModule::prev_status_kind(module_accessor, 1);
+                if (prev_status == FIGHTER_STATUS_KIND_CLIFF_CLIMB ||
+                    prev_status == FIGHTER_STATUS_KIND_CLIFF_ATTACK ||
+                    prev_status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) {
+                    return true;
+                }
+            }
         }
     }
 
-    // call original
     u64 control_module = load_module(module_accessor, 0x48);
-    bool (*check_button_on)(u64, int) =
-        (bool (*)(u64, int))load_module_impl(control_module, 0x260);
+    bool (*check_button_on)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x260);
     return check_button_on(control_module, button);
 }
 
 bool check_button_off_replace(u64 module_accessor, int button) {
-    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD ||
-        button == CONTROL_PAD_BUTTON_GUARD) {
+    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
             if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE)
                 return false;
         }
     }
 
-    // call original
     u64 control_module = load_module(module_accessor, 0x48);
-    bool (*check_button_off)(u64, int) =
-        (bool (*)(u64, int))load_module_impl(control_module, 0x268);
+    bool (*check_button_off)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x268);
     return check_button_off(control_module, button);
 }
 
@@ -373,10 +377,8 @@ void save_states(u64 module_accessor) {
         }
 
         // Grab + Dpad up: reset state
-        if (ControlModule::check_button_on(module_accessor,
-                                           CONTROL_PAD_BUTTON_CATCH) &&
-            ControlModule::check_button_trigger(module_accessor,
-                                                CONTROL_PAD_BUTTON_APPEAL_HI)) {
+        if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
+            ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_HI)) {
             if (*save_state == DEFAULT) {
                 save_state_player_state = CAMERA_MOVE;
                 save_state_cpu_state = CAMERA_MOVE;
@@ -394,8 +396,7 @@ void save_states(u64 module_accessor) {
 
             Vector3f pos = {.x = left_right * 50, .y = y_pos, .z = 0};
             PostureModule::set_pos(module_accessor, &pos);
-            StatusModule::set_situation_kind(module_accessor,
-                                             SITUATION_KIND_AIR, 0);
+            StatusModule::set_situation_kind(module_accessor, SITUATION_KIND_AIR, 0);
         }
 
         // move to correct pos
@@ -409,27 +410,21 @@ void save_states(u64 module_accessor) {
                 module_accessor,
                 -1.0 * DamageModule::damage(module_accessor, 0), 0);
             DamageModule::add_damage(module_accessor, *save_state_percent, 0);
-            StatusModule::set_situation_kind(module_accessor,
-                                             *save_state_situation_kind, 0);
+            StatusModule::set_situation_kind(module_accessor, *save_state_situation_kind, 0);
 
             // Doesn't work, and I don't know why yet.
             /*if (*save_state_situation_kind == SITUATION_KIND_GROUND)
-                    StatusModule::change_status_request(module_accessor,
-            FIGHTER_STATUS_KIND_WAIT, 0); else if (*save_state_situation_kind ==
-            SITUATION_KIND_AIR)
-                    StatusModule::change_status_request(module_accessor,
-            FIGHTER_STATUS_KIND_FALL, 0); else if (*save_state_situation_kind ==
-            SITUATION_KIND_CLIFF)
-                    StatusModule::change_status_request(module_accessor,
-            FIGHTER_STATUS_KIND_CLIFF_CATCH, 0);
+                    StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_WAIT, 0); 
+            else if (*save_state_situation_kind == SITUATION_KIND_AIR)
+                    StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_FALL, 0); 
+            else if (*save_state_situation_kind == SITUATION_KIND_CLIFF)
+                    StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_CLIFF_CATCH, 0);
             */
         }
 
         // Grab + Dpad down: Save state
-        if (ControlModule::check_button_on(module_accessor,
-                                           CONTROL_PAD_BUTTON_CATCH) &&
-            ControlModule::check_button_trigger(module_accessor,
-                                                CONTROL_PAD_BUTTON_APPEAL_LW)) {
+        if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
+            ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_LW)) {
             save_state_player_state = SAVE_STATE;
             save_state_cpu_state = SAVE_STATE;
         }
@@ -452,11 +447,7 @@ void save_states(u64 module_accessor) {
 extern int vsnprintf(char* s, size_t maxlen, const char* format, va_list arg) LINKABLE;
 
 int vsnprintf_intercept(char* s, size_t maxlen, const char* format, va_list arg) {
-    if (strcmp(format, "mel_training_help_invincible") == 0) {
-        HITBOX_VIS = true;
-    } else if (strcmp(format, "mel_training_help_invincible_off") == 0) {
-        HITBOX_VIS = false;
-    } else if (strcmp(format, "mel_training_help_shift0") == 0) {
+    if (strcmp(format, "mel_training_help_shift0") == 0) {
         TOGGLE_STATE = MASH_TOGGLES;
         if (MASH_STATE == NONE)
             format = "mel_shortmsg_1";
@@ -484,8 +475,7 @@ int vsnprintf_intercept(char* s, size_t maxlen, const char* format, va_list arg)
             format = "mel_shortmsg_10";
     }
 
-    int ret = vsnprintf(s, maxlen, format, arg);
-    return ret;
+    return vsnprintf(s, maxlen, format, arg);
 }
 
 namespace app::lua_bind::MotionModule {
@@ -496,24 +486,24 @@ void change_motion_replace(u64 module_accessor, u64 motion_kind,
         if (is_training_mode()) {
             if (TOGGLE_STATE == MASH_TOGGLES) {
                 MASH_STATE = (MASH_STATE + 1) % NUM_MASH_STATES;
-                const char* toggle_strings[NUM_MASH_STATES] = {
-                    "NONE", "AIRDODGE", "JUMP", "RANDOM", "ATTACK"};
+                const char* toggle_strings[NUM_MASH_STATES] =
+                    {"NONE", "AIRDODGE", "JUMP", "RANDOM", "ATTACK"};
 
                 print_string(module_accessor, toggle_strings[MASH_STATE]);
             }
 
             if (TOGGLE_STATE == ESCAPE_TOGGLES) {
                 ESCAPE_STATE = (ESCAPE_STATE + 1) % NUM_ESCAPE_STATES;
-                const char* toggle_strings[NUM_ESCAPE_STATES] = {"NONE",
-                                                                 "LEDGE"};
+                const char* toggle_strings[NUM_ESCAPE_STATES] = 
+                    {"NONE", "LEDGE"};
 
                 print_string(module_accessor, toggle_strings[ESCAPE_STATE]);
             }
 
             if (TOGGLE_STATE == SHIELD_TOGGLES) {
                 SHIELD_STATE = (SHIELD_STATE + 1) % NUM_SHIELD_STATES;
-                const char* toggle_strings[NUM_SHIELD_STATES] = {
-                    "NONE", "INFINITE", "HOLD"};
+                const char* toggle_strings[NUM_SHIELD_STATES] =
+                    {"NONE", "INFINITE", "HOLD"};
 
                 print_string(module_accessor, toggle_strings[SHIELD_STATE]);
             }
@@ -523,14 +513,14 @@ void change_motion_replace(u64 module_accessor, u64 motion_kind,
             if (TOGGLE_STATE == ESCAPE_TOGGLES &&
                 ESCAPE_STATE == ESCAPE_LEDGE) {
                 LEDGE_STATE = (LEDGE_STATE + 1) % NUM_LEDGE_STATES;
-                const char* LEDGE_strings[NUM_LEDGE_STATES] = {
-                    "RANDOM", "NORMAL", "ROLL", "JUMP", "ATTACK"};
+                const char* LEDGE_strings[NUM_LEDGE_STATES] =
+                    {"RANDOM", "NORMAL", "ROLL", "JUMP", "ATTACK"};
 
                 print_string(module_accessor, LEDGE_strings[LEDGE_STATE]);
             } else if (MASH_STATE == MASH_ATTACK) {
                 ATTACK_STATE = (ATTACK_STATE + 1) % NUM_ATTACK_STATES;
-                const char* ATTACK_strings[NUM_ATTACK_STATES] = {
-                    "NAIR",      "FAIR",   "BAIR", "UPAIR", "DAIR",
+                const char* ATTACK_strings[NUM_ATTACK_STATES] =
+                    {"NAIR",      "FAIR",   "BAIR", "UPAIR", "DAIR",
                     "NEUTRAL B", "SIDE B", "UP B", "DOWN B"};
 
                 print_string(module_accessor,
@@ -542,8 +532,8 @@ void change_motion_replace(u64 module_accessor, u64 motion_kind,
                     DI_STATE = DI_STATE == NONE ? SET_DI : NONE;
                 }
 
-                const char* DI_strings[NUM_DI_STATES] = {"NONE", "SET_DI",
-                                                         "RANDOM\nIN AWAY"};
+                const char* DI_strings[NUM_DI_STATES] = 
+                    {"NONE", "SET_DI", "RANDOM\nIN AWAY"};
 
                 print_string(module_accessor, DI_strings[DI_STATE]);
                 if (DI_STATE == SET_DI) {
