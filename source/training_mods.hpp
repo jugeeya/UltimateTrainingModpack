@@ -186,12 +186,16 @@ int get_attack_air_kind_replace(u64 module_accessor) {
     return kind;
 }
 
+void save_states(u64);
+
 int get_command_flag_cat_replace(u64 module_accessor, int category) {
     // call original
     u64 control_module = load_module(module_accessor, 0x48);
     int (*get_command_flag_cat)(u64, int) =
         (int (*)(u64, int))load_module_impl(control_module, 0x350);
     int flag = get_command_flag_cat(control_module, category);
+
+    save_states(module_accessor);
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
         if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
@@ -344,7 +348,7 @@ float save_state_percent_cpu = 0;
 float save_state_lr_cpu = 1.0;
 int save_state_situation_kind_cpu = 0;
 
-int get_pad_flag_replace(u64 module_accessor) {
+void save_states(u64 module_accessor) {
     if (is_training_mode()) {
         float* save_state_x;
         float* save_state_y;
@@ -441,12 +445,6 @@ int get_pad_flag_replace(u64 module_accessor) {
                 StatusModule::situation_kind(module_accessor);
         }
     }
-
-    // call original
-    u64 control_module = load_module(module_accessor, 0x48);
-    int (*get_pad_flag)(u64) =
-        (int (*)(u64))load_module_impl(control_module, 0x348);
-    return get_pad_flag(control_module);
 }
 }  // namespace ControlModule
 }  // namespace app::lua_bind
@@ -612,11 +610,6 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind39ControlModule__get_attack_air_kind_implEPNS_26BattleObjectModuleAccessorE",
         (u64)&ControlModule::get_attack_air_kind_replace);
-
-    // Save states: in beta
-    /*SaltySD_function_replace_sym(
-            "_ZN3app8lua_bind32ControlModule__get_pad_flag_implEPNS_26BattleObjectModuleAccessorE",
-            (u64)&ControlModule::get_pad_flag_replace);*/
 
     // Menu replacements
     SaltySDCore_ReplaceImport("vsnprintf", (void*)vsnprintf_intercept);
