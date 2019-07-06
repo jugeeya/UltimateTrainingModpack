@@ -6,8 +6,6 @@
 #include "../../useful/useful.h"
 #include "lua_bind_hash.hpp"
 
-u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
-
 namespace lib {
 	enum L2CVarType {
 		L2C_void = 0,

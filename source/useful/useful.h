@@ -13,6 +13,8 @@
 	{char log_buf[0x200]; snprintf(log_buf, 0x200, __VA_ARGS__); \
 	svcOutputDebugString(log_buf, strlen(log_buf));}
 
+u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
+
 typedef struct Hash40 {
 	uint64_t hash : 40;
 } Hash40;
