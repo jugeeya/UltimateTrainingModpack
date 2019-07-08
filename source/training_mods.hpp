@@ -23,6 +23,7 @@
 #include "training/ledge.hpp"
 #include "training/mash.hpp"
 #include "training/selection.hpp"
+#include "training/shield.hpp"
 
 using namespace lib;
 using namespace app::lua_bind;
@@ -33,31 +34,21 @@ namespace WorkModule {
 // Force DI
 float get_float_replace(u64 module_accessor, int var) {
     bool replace;
-    float ret = DirectionalInfluence::get_float(module_accessor, var, &replace);
-    if (replace)
-        return ret;
+    float ret = DirectionalInfluence::get_float(module_accessor, var, replace);
+    if (replace) return ret;
 
     u64 work_module = load_module(module_accessor, 0x50);
     float (*get_float)(u64, int) = (float (*)(u64, int)) load_module_impl(work_module, 0x58);
     return get_float(work_module, var);
 }
 
-float get_param_float_replace(u64 module_accessor, u64 param_type,
-                              u64 param_hash) {
-    if (is_training_mode()) {
-        if (SHIELD_STATE == SHIELD_INFINITE) {
-            if (param_type == hash40("common")) {
-                if (param_hash == hash40("shield_dec1")) return 0.0;
-                if (param_hash == hash40("shield_recovery1")) return 999.0;
-                // doesn't work, somehow. This parameter isn't checked?
-                if (param_hash == hash40("shield_damage_mul")) return 0.0;
-            }
-        }
-    }
+float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
+    bool replace;
+    float ret = Shield::get_param_float(module_accessor, param_type, param_hash, replace);
+    if (replace) return ret;
 
     u64 work_module = load_module(module_accessor, 0x50);
     float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
-
     return get_param_float(work_module, param_type, param_hash);
 }
 
@@ -73,9 +64,8 @@ void enable_transition_term_replace(u64 module_accessor, int transition_id) {
 namespace ControlModule {
 int get_attack_air_kind_replace(u64 module_accessor) {
     bool replace;
-    int kind = Mash::get_attack_air_kind(module_accessor, &replace);
-    if (replace)
-        return kind;
+    int kind = Mash::get_attack_air_kind(module_accessor, replace);
+    if (replace) return kind;
 
     u64 control_module = load_module(module_accessor, 0x48);
     int (*get_attack_air_kind)(u64) = (int (*)(u64)) load_module_impl(control_module, 0x3B0);
@@ -84,37 +74,30 @@ int get_attack_air_kind_replace(u64 module_accessor) {
 
 int get_command_flag_cat_replace(u64 module_accessor, int category) {
     //save_states(module_accessor);
-    
+
     // Pause Effect AnimCMD if hitbox visualization is active
-    MotionAnimcmdModule::set_sleep_effect(module_accessor, is_training_mode() && HITBOX_VIS);
+    int status_kind = StatusModule::status_kind(module_accessor);
+    MotionAnimcmdModule::set_sleep_effect(module_accessor, 
+        is_training_mode() &&
+        HITBOX_VIS &&
+        !(status_kind >= FIGHTER_STATUS_KIND_CATCH && status_kind <= FIGHTER_STATUS_KIND_TREAD_FALL));
 
     u64 control_module = load_module(module_accessor, 0x48);
     int (*get_command_flag_cat)(u64, int) = (int (*)(u64, int)) load_module_impl(control_module, 0x350);
     int flag = get_command_flag_cat(control_module, category);
 
-    flag = Mash::get_command_flag_cat(module_accessor, category, flag);
-    flag = Ledge::get_command_flag_cat(module_accessor, category, flag);
+    Mash::get_command_flag_cat(module_accessor, category, flag);
+    Ledge::get_command_flag_cat(module_accessor, category, flag);
 
     return flag;
 }
 
 bool check_button_on_replace(u64 module_accessor, int button) {
-    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
-        if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE)
-                return true;
-            if (MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)))
-                return true;
-            if (ESCAPE_STATE == ESCAPE_LEDGE) {
-                int prev_status = StatusModule::prev_status_kind(module_accessor, 1);
-                if (prev_status == FIGHTER_STATUS_KIND_CLIFF_CLIMB ||
-                    prev_status == FIGHTER_STATUS_KIND_CLIFF_ATTACK ||
-                    prev_status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) {
-                    return true;
-                }
-            }
-        }
-    }
+    bool replace;
+    bool ret = Shield::check_button_on(module_accessor, button, replace);
+    if (replace) return ret;
+    ret = Mash::check_button_on(module_accessor, button, replace);
+    if (replace) return ret;
 
     u64 control_module = load_module(module_accessor, 0x48);
     bool (*check_button_on)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x260);
@@ -122,12 +105,9 @@ bool check_button_on_replace(u64 module_accessor, int button) {
 }
 
 bool check_button_off_replace(u64 module_accessor, int button) {
-    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
-        if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE)
-                return false;
-        }
-    }
+    bool replace;
+    bool ret = Shield::check_button_off(module_accessor, button, replace);
+    if (replace) return ret;
 
     u64 control_module = load_module(module_accessor, 0x48);
     bool (*check_button_off)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x268);
@@ -137,9 +117,7 @@ bool check_button_off_replace(u64 module_accessor, int button) {
 }  // namespace app::lua_bind
 
 namespace app::lua_bind::MotionModule {
-void change_motion_replace(u64 module_accessor, u64 motion_kind,
-                           float start_frame, float frame_speed_mult, bool unk1,
-                           float unk2, bool unk3, bool unk4) {
+void change_motion_replace(u64 module_accessor, u64 motion_kind, float start_frame, float frame_speed_mult, bool unk1, float unk2, bool unk3, bool unk4) {
     Selection::change_motion(module_accessor, motion_kind);
 
     u64 motion_module = load_module(module_accessor, 0x88);

@@ -28,31 +28,29 @@ void enable_transition_term(u64 module_accessor, int transition_id) {
     }
 }
 
-int get_command_flag_cat(u64 module_accessor, int category, int orig_flag) {
-    int flag = 0;
-    if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (ESCAPE_STATE == ESCAPE_LEDGE) {
-            int prev_status = StatusModule::prev_status_kind(module_accessor, 1);
-            if (prev_status == FIGHTER_STATUS_KIND_CLIFF_JUMP3 ||
-                prev_status == FIGHTER_STATUS_KIND_CLIFF_JUMP2 ||
-                prev_status == FIGHTER_STATUS_KIND_CLIFF_JUMP1) {
-                flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
-            } else if (prev_status == FIGHTER_STATUS_KIND_CLIFF_CLIMB ||
-                        prev_status == FIGHTER_STATUS_KIND_CLIFF_ATTACK ||
-                        prev_status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) {
-                const int NUM_GROUND_COMMANDS = 2;
-                int random_commands[NUM_GROUND_COMMANDS] = {
-                    FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N, 
-                    FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-                };
+void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
+    if (ESCAPE_STATE == ESCAPE_LEDGE) {
+        int status = StatusModule::status_kind(module_accessor);
+        if (status == FIGHTER_STATUS_KIND_CLIFF_JUMP3 ||
+            status == FIGHTER_STATUS_KIND_CLIFF_JUMP2 ||
+            status == FIGHTER_STATUS_KIND_CLIFF_JUMP1) {
+            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
+        }
 
-                int random_cmd_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_COMMANDS);
+        int prev_status = StatusModule::prev_status_kind(module_accessor, 0);
+        if (prev_status == FIGHTER_STATUS_KIND_CLIFF_CLIMB || 
+            prev_status == FIGHTER_STATUS_KIND_CLIFF_ATTACK || 
+            prev_status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) {
+            const int NUM_GROUND_STATUSES = 3;
+            int random_statuses[NUM_GROUND_STATUSES] = {
+                FIGHTER_STATUS_KIND_ESCAPE, 
+                FIGHTER_STATUS_KIND_ATTACK,
+                FIGHTER_STATUS_KIND_GUARD_ON
+            };
 
-                flag |= random_commands[random_cmd_index];
-            }
+            int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_STATUSES);
+            StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
         }
     }
-
-    return flag | orig_flag;
 }
 }

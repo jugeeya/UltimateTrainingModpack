@@ -1,11 +1,11 @@
 #include "common.hpp"
 
 namespace Mash {
-int get_attack_air_kind(u64 module_accessor, bool* replace) {
+int get_attack_air_kind(u64 module_accessor, bool& replace) {
     int kind = 0;
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
         if (MASH_STATE == MASH_ATTACK) {
-            *replace = true;
+            replace = true;
             switch (ATTACK_STATE) {
                 case MASH_NAIR:
                     kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_N; break;
@@ -22,17 +22,17 @@ int get_attack_air_kind(u64 module_accessor, bool* replace) {
         }
 
         if (MASH_STATE == MASH_RANDOM) {
-            *replace = true;
+            replace = true;
             return app::sv_math::rand(hash40("fighter"), 5) + 1;
         }
     }
 
-    *replace = false;
+    replace = false;
     return kind;
 }
 
-int get_command_flag_cat(u64 module_accessor, int category, int orig_flag) {
-    int flag = 0;
+void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
+
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
         if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
             if (MASH_STATE == MASH_AIRDODGE)
@@ -123,7 +123,19 @@ int get_command_flag_cat(u64 module_accessor, int category, int orig_flag) {
                 }
         }
     }
+}
 
-    return flag | orig_flag;
+bool check_button_on(u64 module_accessor, int button, bool& replace) {
+    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
+        if (is_training_mode() && is_operation_cpu(module_accessor)) {
+            if (MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor))) {
+                replace = true;
+                return true;
+            }
+        }
+    }
+
+    replace = false;
+    return false;
 }
 }

@@ -1,7 +1,7 @@
 #include "common.hpp"
 
 namespace DirectionalInfluence {
-float get_float(u64 module_accessor, int var, bool* replace) {
+float get_float(u64 module_accessor, int var, bool& replace) {
     if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X ||
         var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y) {
         if (is_training_mode() && is_operation_cpu(module_accessor) &&
@@ -19,18 +19,18 @@ float get_float(u64 module_accessor, int var, bool* replace) {
 
                 // If facing left, reverse stick x
                 if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X) {
-                    *replace = true;
+                    replace = true;
                     return stick_x * -1 * PostureModule::lr(module_accessor);
                 }
                 if (var == FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y) {
-                    *replace = true;
+                    replace = true;
                     return stick_y;
                 }
             }
         }
     }
 
-    *replace = false;
+    replace = false;
     return 0;
 }
 }
