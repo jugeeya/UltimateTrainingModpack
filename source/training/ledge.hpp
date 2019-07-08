@@ -5,10 +5,9 @@ void force_option(u64 module_accessor) {
     if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
         if (WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB)) {
             
-
             int random_getup = app::sv_math::rand(
                 hash40("fighter"), 
-                WorkModule::get_int(module_accessor, FIGHTER_STATUS_CLIFF_WORK_FLOAT_HIT_NORMAL_FRAME));
+                (int) WorkModule::get_float(module_accessor, FIGHTER_STATUS_CLIFF_WORK_FLOAT_HIT_NORMAL_FRAME));
                 
             if (random_getup == 0) {
                 int status = 0;
