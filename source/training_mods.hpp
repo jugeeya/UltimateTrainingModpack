@@ -1,9 +1,6 @@
 #ifndef TRAINING_MODS_H
 #define TRAINING_MODS_H
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 #include <stdarg.h>
 #include "useful/const_value_table.h"
 #include "useful/crc32.h"
@@ -50,14 +47,6 @@ float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_has
     u64 work_module = load_module(module_accessor, 0x50);
     float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
     return get_param_float(work_module, param_type, param_hash);
-}
-
-void enable_transition_term_replace(u64 module_accessor, int transition_id) {
-    Ledge::enable_transition_term(module_accessor, transition_id);
-
-    u64 work_module = load_module(module_accessor, 0x50);
-    void (*enable_transition_term)(u64, int) = (void (*) (u64, int)) load_module_impl(work_module, 0x188);
-    enable_transition_term(work_module, transition_id);
 }
 }  // namespace WorkModule
 
@@ -155,11 +144,6 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm",
         (u64)&WorkModule::get_param_float_replace);
-
-    // Ledge options
-    SaltySD_function_replace_sym(
-        "_ZN3app8lua_bind39WorkModule__enable_transition_term_implEPNS_26BattleObjectModuleAccessorEi",
-        (u64)&WorkModule::enable_transition_term_replace);
 
     // Mash attack
     SaltySD_function_replace_sym(
