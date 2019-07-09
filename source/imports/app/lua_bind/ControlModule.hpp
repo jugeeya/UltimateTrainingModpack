@@ -20,7 +20,7 @@ namespace app::lua_bind {
         u64 get_attack_hi3_fb_kind(u64) asm("_ZN3app8lua_bind42ControlModule__get_attack_hi3_fb_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_attack_lw3_fb_kind(u64) asm("_ZN3app8lua_bind42ControlModule__get_attack_lw3_fb_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_clatter_time(u64,int) asm("_ZN3app8lua_bind36ControlModule__get_clatter_time_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
-        u64 get_command_flag_cat(u64,int) asm("_ZN3app8lua_bind40ControlModule__get_command_flag_cat_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
+        int get_command_flag_cat(u64,int) asm("_ZN3app8lua_bind40ControlModule__get_command_flag_cat_implEPNS_26BattleObjectModuleAccessorEi") LINKABLE;
         u64 get_command_life(u64,int,int) asm("_ZN3app8lua_bind36ControlModule__get_command_life_implEPNS_26BattleObjectModuleAccessorEii") LINKABLE;
         u64 get_down_stand_fb_kind(u64) asm("_ZN3app8lua_bind42ControlModule__get_down_stand_fb_kind_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_flick_no_reset_x(u64) asm("_ZN3app8lua_bind40ControlModule__get_flick_no_reset_x_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
@@ -30,7 +30,7 @@ namespace app::lua_bind {
         u64 get_flick_x_dir(u64) asm("_ZN3app8lua_bind35ControlModule__get_flick_x_dir_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_flick_y(u64) asm("_ZN3app8lua_bind31ControlModule__get_flick_y_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_flick_y_dir(u64) asm("_ZN3app8lua_bind35ControlModule__get_flick_y_dir_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
-        u64 get_pad_flag(u64) asm("_ZN3app8lua_bind32ControlModule__get_pad_flag_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
+        int get_pad_flag(u64) asm("_ZN3app8lua_bind32ControlModule__get_pad_flag_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_stick_angle(u64) asm("_ZN3app8lua_bind35ControlModule__get_stick_angle_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_stick_dir(u64) asm("_ZN3app8lua_bind33ControlModule__get_stick_dir_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
         u64 get_stick_prev_y(u64) asm("_ZN3app8lua_bind36ControlModule__get_stick_prev_y_implEPNS_26BattleObjectModuleAccessorE") LINKABLE;
