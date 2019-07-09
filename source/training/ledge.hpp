@@ -5,11 +5,11 @@ void force_option(u64 module_accessor) {
     if (StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_WAIT) {
         if (WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB)) {
             
-            int random_getup = app::sv_math::rand(
+            int random_frame = app::sv_math::rand(
                 hash40("fighter"), 
-                (int) WorkModule::get_float(module_accessor, FIGHTER_STATUS_CLIFF_WORK_FLOAT_HIT_NORMAL_FRAME));
+                (int) MotionModule::end_frame(module_accessor));
                 
-            if (random_getup == 0) {
+            if (MotionModule::frame(module_accessor) == random_frame) {
                 int status = 0;
                 int ledge_case = LEDGE_STATE;
 
@@ -41,10 +41,10 @@ void defensive_option(u64 module_accessor, int category, int& flag) {
         flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
     }
 
-    int prev_status = StatusModule::prev_status_kind(module_accessor, 0);
-    if (prev_status == FIGHTER_STATUS_KIND_CLIFF_CLIMB || 
-        prev_status == FIGHTER_STATUS_KIND_CLIFF_ATTACK || 
-        prev_status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) {
+    if ((status == FIGHTER_STATUS_KIND_CLIFF_CLIMB || 
+        status == FIGHTER_STATUS_KIND_CLIFF_ATTACK || 
+        status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) && 
+        WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE)) {
         const int NUM_GROUND_STATUSES = 3;
         int random_statuses[NUM_GROUND_STATUSES] = {
             FIGHTER_STATUS_KIND_ESCAPE, 

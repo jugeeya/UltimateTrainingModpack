@@ -31,6 +31,14 @@ int vsnprintf_intercept(char* s, size_t maxlen, const char* format, va_list arg)
             format = "mel_shortmsg_10";
     }
 
+    // For Shulk
+    if (strcmp(format, "mel_info_fighter_shulk_special_00") == 0)
+        format = "mel_shortmsg_101"; // SMASH
+    else if (strcmp(format, "mel_info_fighter_shulk_special_03") == 0)
+        format = "mel_shortmsg_102"; // SPEED
+    else if (strcmp(format, "mel_info_fighter_shulk_special_02") == 0)
+        format = "mel_shortmsg_103"; // SHIELD
+
     if (strcmp(format, "mel_training_shift0") == 0)
         format = "mel_info_fighter_shulk_special_00"; // SMASH
     else if (strcmp(format, "mel_training_shift1") == 0)
@@ -52,7 +60,7 @@ if (motion_kind == hash40("appeal_lw_l") || motion_kind == hash40("appeal_lw_r")
             if (TOGGLE_STATE == MASH_TOGGLES) {
                 MASH_STATE = (MASH_STATE + 1) % NUM_MASH_STATES;
                 const char* toggle_strings[NUM_MASH_STATES] =
-                    {"NONE", "AIRDODGE", "JUMP", "RANDOM", "ATTACK"};
+                    {"NONE", "AIRDODGE", "JUMP", "ATTACK", "RANDOM"};
 
                 print_string(module_accessor, toggle_strings[MASH_STATE]);
             }
