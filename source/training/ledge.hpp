@@ -8,8 +8,10 @@ void force_option(u64 module_accessor) {
             int random_frame = app::sv_math::rand(
                 hash40("fighter"), 
                 (int) MotionModule::end_frame(module_accessor));
+
+            float frame = MotionModule::frame(module_accessor);
                 
-            if (MotionModule::frame(module_accessor) == random_frame) {
+            if (frame == random_frame || frame > 30.0) {
                 int status = 0;
                 int ledge_case = LEDGE_STATE;
 
