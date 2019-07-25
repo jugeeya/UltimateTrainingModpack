@@ -31,9 +31,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	training_modpack
 BUILD		:=	build
-SOURCES		:=	source
+SOURCES		:=	source code-mod-framework/framework/source code-mod-framework/framework/source/saltysd code-mod-framework/framework/source/imports/lib code-mod-framework/framework/source/useful
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	include code-mod-framework/framework/include
 EXEFS_SRC	:=	exefs_src
 
 #---------------------------------------------------------------------------------
@@ -52,13 +52,13 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -Wno-parentheses -Wno-write-strings -Wno-int-to-
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(TOPDIR)/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx -lm
+LIBS	:= -lnx_min -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX)
+LIBDIRS	:= $(PORTLIBS) $(CURDIR)/code-mod-framework/lib/libnx_min/nx/
 
 
 #---------------------------------------------------------------------------------

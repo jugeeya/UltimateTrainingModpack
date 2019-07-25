@@ -5,15 +5,15 @@
 
 #include "useful/useful.h"
 #include "useful/crc32.h"
-#include "useful/visual.h"
+#include "hitbox/visual.h"
 
-#include "acmd_wrapper.hpp"
-#include "imports/lib/l2c.hpp"
-#include "saltysd/saltysd_helper.hpp"
+#include "acmd_wrapper.h"
+#include "lib/l2c_imports.h"
+#include "saltysd/saltysd_helper.h"
 #include "taunt_toggles.h"
 #include "useful/const_value_table.h"
 
-#include "useful/raygun_printer.hpp"
+#include "useful/raygun_printer.h"
 
 using namespace lib;
 using namespace app::lua_bind;
@@ -105,9 +105,8 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone,
     L2CValue blue(color->z);
 
     float size_mult = 19.0f / 200.0f;
-    Hash40 shield_effect_hash = {.hash = hash40("sys_shield")};
 
-    L2CValue shieldEffect(shield_effect_hash.hash);
+    L2CValue shieldEffect(hash40("sys_shield"));
     L2CValue x_rot(0.0f);
     L2CValue y_rot(0.0f);
     L2CValue z_rot(0.0f);

@@ -6,12 +6,12 @@
 #include "useful/crc32.h"
 #include "useful/useful.h"
 
-#include "useful/raygun_printer.hpp"
+#include "useful/raygun_printer.h"
 
-#include "acmd_wrapper.hpp"
-#include "imports/lib/l2c.hpp"
+#include "acmd_wrapper.h"
+#include "lib/l2c_imports.h"
 #include "saltysd/saltysd_dynamic.h"
-#include "saltysd/saltysd_helper.hpp"
+#include "saltysd/saltysd_helper.h"
 #include "taunt_toggles.h"
 
 #include "training/common.hpp"

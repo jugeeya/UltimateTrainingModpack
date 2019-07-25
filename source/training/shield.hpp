@@ -1,5 +1,5 @@
 #include "common.hpp"
-#include "../useful/crc32.h"
+#include "useful/crc32.h"
 
 namespace Shield {
 float get_param_float(u64 module_accessor, u64 param_type, u64 param_hash, bool& replace) {

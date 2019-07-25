@@ -2,7 +2,7 @@
 #define USEFUL_VISUAL_H
 
 #include <math.h>
-#include "useful.h"
+#include "useful/useful.h"
 
 /**
  * Rounds a number to the nearest multiple of another number.

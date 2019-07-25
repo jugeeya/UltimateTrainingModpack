@@ -1,6 +1,6 @@
 #pragma once
-#include "../acmd_wrapper.hpp"
-#include "../useful/const_value_table.h"
+#include "acmd_wrapper.h"
+#include "useful/const_value_table.h"
 #include "../taunt_toggles.h"
 
 u64 fighter_manager_addr;

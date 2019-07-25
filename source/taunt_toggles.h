@@ -1,6 +1,8 @@
 #ifndef TAUNT_TOGGLES_H
 #define TAUNT_TOGGLES_H
 
+u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
+
 #define NONE 0
 
 // Up Taunt

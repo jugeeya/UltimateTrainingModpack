@@ -1,9 +1,9 @@
-#include <switch.h>
+#include <switch_min.h>
 
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
-#include <switch/kernel/ipc.h>
+#include <switch_min/kernel/ipc.h>
 #include <sys/iosupport.h>
 #include <sys/reent.h>
 
@@ -12,10 +12,7 @@
 #include "saltysd/saltysd_core.h"
 #include "saltysd/saltysd_dynamic.h"
 #include "saltysd/saltysd_ipc.h"
-
-#include "imports/app/sv_animcmd.hpp"
-#include "imports/lib/l2c.hpp"
-#include "saltysd/saltysd_helper.hpp"
+#include "saltysd/saltysd_helper.h"
 
 #include "hitbox_visualizer.hpp"
 #include "training_mods.hpp"
