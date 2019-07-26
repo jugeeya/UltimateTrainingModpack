@@ -21,6 +21,7 @@
 #include "training/mash.hpp"
 #include "training/selection.hpp"
 #include "training/shield.hpp"
+#include "training/input_recorder.hpp"
 
 using namespace lib;
 using namespace app::lua_bind;
@@ -74,6 +75,10 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
     u64 control_module = load_module(module_accessor, 0x48);
     int (*get_command_flag_cat)(u64, int) = (int (*)(u64, int)) load_module_impl(control_module, 0x350);
     int flag = get_command_flag_cat(control_module, category);
+
+    bool replace;
+    int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
+    if (replace) return ret;
 
     Mash::get_command_flag_cat(module_accessor, category, flag);
     Ledge::get_command_flag_cat(module_accessor, category, flag);

@@ -51,12 +51,15 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
         } else {
             if (INPUT_RECORD_STATE == NONE) {
                 if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
-                    ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_L))
+                    ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_L)) {
+                    print_string(module_accessor, "PRERECORD");
                     INPUT_RECORD_STATE = INPUT_PRE_RECORDING;
+                }
             } else if (INPUT_RECORD_STATE == INPUT_PRE_RECORDING) {
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
                     curr_pre_frame++;
                     if (curr_pre_frame == NUM_PRE_FRAME - 1) {
+                        print_string(module_accessor, "RECORDING");
                         INPUT_RECORD_STATE = INPUT_RECORDING;
                         curr_pre_frame = 0;
                     }
@@ -75,9 +78,23 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                     };
 
                     if (curr_frame == NUM_FRAME_INPUTS - 1) {
+                        print_string(module_accessor, "PLAYBACK");
                         INPUT_RECORD_STATE = INPUT_PLAYBACK;
                         curr_frame = 0;
                     }
+                }
+            } else if (INPUT_RECORD_STATE == INPUT_PLAYBACK) {
+                if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
+                    ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_R)) {
+                    print_string(module_accessor, "STOP");
+                    INPUT_RECORD_STATE = NONE;
+                    for (size_t i = 0; i < NUM_FRAME_INPUTS; i++)
+                        frame_inputs[i] = FrameInput{};
+                    curr_frame = 0;
+                }
+
+                if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
+                    curr_frame = (curr_frame + 1) % NUM_FRAME_INPUTS;
                 }
             }
         }
