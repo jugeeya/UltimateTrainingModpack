@@ -15,7 +15,7 @@ typedef struct FrameInput {
 FrameInput frame_inputs[NUM_FRAME_INPUTS];
 int curr_frame = 0;
 
-#define NUM_PRE_FRAME 60
+#define NUM_PRE_FRAME 90
 int curr_pre_frame = 0;
 
 #define INPUT_PRE_RECORDING 1
@@ -37,15 +37,16 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                     ; // Set color overlay to blue
                 else {
                     ; // Reset color overlay
-                    replace = true;
-                    if (category == 0)
-                        return frame_inputs[curr_frame].cat1_flag;
-                    else if (category == 1)
-                        return frame_inputs[curr_frame].cat2_flag;
-                    else if (category == 2)
-                        return frame_inputs[curr_frame].cat3_flag;
-                    else if (category == 3)
-                        return frame_inputs[curr_frame].cat4_flag;
+
+                replace = true;
+                if (category == 0)
+                    return frame_inputs[curr_frame].cat1_flag;
+                else if (category == 1)
+                    return frame_inputs[curr_frame].cat2_flag;
+                else if (category == 2)
+                    return frame_inputs[curr_frame].cat3_flag;
+                else if (category == 3)
+                    return frame_inputs[curr_frame].cat4_flag;
                 }
             }
         } else {

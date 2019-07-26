@@ -86,6 +86,42 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
     return flag;
 }
 
+int get_pad_flag(u64 module_accessor) {
+    u64 control_module = load_module(module_accessor, 0x48);
+    int (*get_pad_flag)(u64) = (int (*)(u64)) load_module_impl(control_module, GET_PAD_FLAG_FUNC_OFFSET);
+    int pad_flag = get_pad_flag(control_module);
+
+    bool replace;
+    int ret = InputRecorder::get_pad_flag(module_accessor, replace);
+    if (replace) return ret;
+
+    return pad_flag;
+}
+
+float get_stick_x_replace(u64 module_accessor) {
+    u64 control_module = load_module(module_accessor, 0x48);
+    float (*get_stick_x)(u64) = (float (*)(u64)) load_module_impl(control_module, GET_STICK_X_FUNC_OFFSET);
+    float stick_x = get_stick_x(control_module);
+
+    bool replace;
+    float ret = InputRecorder::get_stick_x(module_accessor, replace);
+    if (replace) return ret;
+
+    return stick_x;
+}
+
+float get_stick_y_replace(u64 module_accessor) {
+    u64 control_module = load_module(module_accessor, 0x48);
+    float (*get_stick_y)(u64) = (float (*)(u64)) load_module_impl(control_module, GET_STICK_Y_FUNC_OFFSET);
+    float stick_y = get_stick_y(control_module);
+
+    bool replace;
+    float ret = InputRecorder::get_stick_y(module_accessor, replace);
+    if (replace) return ret;
+
+    return stick_y;
+}
+
 bool check_button_on_replace(u64 module_accessor, int button) {
     bool replace;
     bool ret = Shield::check_button_on(module_accessor, button, replace);
@@ -154,6 +190,15 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind39ControlModule__get_attack_air_kind_implEPNS_26BattleObjectModuleAccessorE",
         (u64)&ControlModule::get_attack_air_kind_replace);
+
+    // Input recorder
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind31ControlModule__get_stick_x_implEPNS_26BattleObjectModuleAccessorE",
+        (u64)&ControlModule::get_stick_x_replace);
+
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE",
+        (u64)&ControlModule::get_stick_y_replace);
 
     Selection::menu_replace();
 }
