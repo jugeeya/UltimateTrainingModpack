@@ -54,7 +54,10 @@ float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_has
 namespace ControlModule {
 int get_attack_air_kind_replace(u64 module_accessor) {
     bool replace;
-    int kind = Mash::get_attack_air_kind(module_accessor, replace);
+    int kind = InputRecorder::get_attack_air_kind(module_accessor, replace);
+    if (replace) return kind;
+
+    kind = Mash::get_attack_air_kind(module_accessor, replace);
     if (replace) return kind;
 
     u64 control_module = load_module(module_accessor, 0x48);
@@ -195,7 +198,6 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind31ControlModule__get_stick_x_implEPNS_26BattleObjectModuleAccessorE",
         (u64)&ControlModule::get_stick_x_replace);
-
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE",
         (u64)&ControlModule::get_stick_y_replace);

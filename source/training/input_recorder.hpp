@@ -9,6 +9,7 @@ typedef struct FrameInput {
     int pad_flag;
     float stick_x;
     float stick_y;
+    int attack_air_kind;
 } FrameInput;
 
 #define NUM_FRAME_INPUTS 60
@@ -24,6 +25,11 @@ int curr_pre_frame = 0;
 int INPUT_RECORD_STATE = NONE;
 
 namespace InputRecorder {
+bool should_replace_input(u64 module_accessor) {
+    return is_training_mode() && is_operation_cpu(module_accessor) &&
+           (INPUT_RECORD_STATE == INPUT_RECORDING ||
+            INPUT_RECORD_STATE == INPUT_PLAYBACK)
+}
 
 int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& replace) {
     if (is_training_mode()) {
@@ -76,6 +82,7 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                         ControlModule::get_pad_flag(module_accessor),
                         ControlModule::get_stick_x(module_accessor),
                         ControlModule::get_stick_y(module_accessor),
+                        ControlModule::get_attack_air_kind(module_accessor)
                     };
 
                     if (curr_frame == NUM_FRAME_INPUTS - 1) {
@@ -85,6 +92,10 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                     }
                 }
             } else if (INPUT_RECORD_STATE == INPUT_PLAYBACK) {
+                if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
+                    curr_frame = (curr_frame + 1) % NUM_FRAME_INPUTS;
+                }
+
                 if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
                     ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_R)) {
                     print_string(module_accessor, "STOP");
@@ -92,10 +103,6 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                     for (size_t i = 0; i < NUM_FRAME_INPUTS; i++)
                         frame_inputs[i] = FrameInput{};
                     curr_frame = 0;
-                }
-
-                if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
-                    curr_frame = (curr_frame + 1) % NUM_FRAME_INPUTS;
                 }
             }
         }
@@ -106,12 +113,9 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
 }
 
 int get_pad_flag(u64 module_accessor, bool& replace) {
-    if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (INPUT_RECORD_STATE == INPUT_RECORDING ||
-            INPUT_RECORD_STATE == INPUT_PLAYBACK) {
-            replace = true;
-            return frame_inputs[curr_frame].pad_flag;
-        }
+    if (should_replace_input(module_accessor)) {
+        replace = true;
+        return frame_inputs[curr_frame].pad_flag;
     }
 
     replace = false;
@@ -119,12 +123,9 @@ int get_pad_flag(u64 module_accessor, bool& replace) {
 }
 
 float get_stick_x(u64 module_accessor, bool& replace) {
-    if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (INPUT_RECORD_STATE == INPUT_RECORDING || 
-            INPUT_RECORD_STATE == INPUT_PLAYBACK) {
-            replace = true;
-            return frame_inputs[curr_frame].stick_x;
-        }
+    if (should_replace_input(module_accessor)) {
+        replace = true;
+        return frame_inputs[curr_frame].stick_x;
     }
 
     replace = false;
@@ -132,12 +133,19 @@ float get_stick_x(u64 module_accessor, bool& replace) {
 }
 
 float get_stick_y(u64 module_accessor, bool& replace) {
-    if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (INPUT_RECORD_STATE == INPUT_RECORDING ||
-            INPUT_RECORD_STATE == INPUT_PLAYBACK) {
-            replace = true;
-            return frame_inputs[curr_frame].stick_y;
-        }
+    if (should_replace_input(module_accessor)) {
+        replace = true;
+        return frame_inputs[curr_frame].stick_y;
+    }
+
+    replace = false;
+    return 0;
+}
+
+int get_attack_air_kind(u64 module_accessor, bool& replace) {
+    if (should_replace_input(module_accessor)) {
+        replace = true;
+        return frame_inputs[curr_frame].stick_y;
     }
 
     replace = false;
