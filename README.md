@@ -89,9 +89,9 @@ CPUs DI randomly in or away when the player presses left taunt.
 Requires [DEVKITPRO](https://devkitpro.org/wiki/Getting_Started) in path.
 
 ```sh
-   git clone https://github.com/jugeeya/UltimateTrainingModpack.git
-   cd UltimateTrainingModpack/
-   make
+git clone --recursive https://github.com/jugeeya/UltimateTrainingModpack.git
+cd UltimateTrainingModpack/
+make
 ```
 
 
