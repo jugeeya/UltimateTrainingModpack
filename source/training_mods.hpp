@@ -79,9 +79,9 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
     int (*get_command_flag_cat)(u64, int) = (int (*)(u64, int)) load_module_impl(control_module, 0x350);
     int flag = get_command_flag_cat(control_module, category);
 
-    bool replace;
+    /*bool replace;
     int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
-    if (replace) return ret;
+    if (replace) return ret;*/
 
     Mash::get_command_flag_cat(module_accessor, category, flag);
     Ledge::get_command_flag_cat(module_accessor, category, flag);
@@ -91,7 +91,7 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
 
 int get_pad_flag(u64 module_accessor) {
     u64 control_module = load_module(module_accessor, 0x48);
-    int (*get_pad_flag)(u64) = (int (*)(u64)) load_module_impl(control_module, GET_PAD_FLAG_FUNC_OFFSET);
+    int (*get_pad_flag)(u64) = (int (*)(u64)) load_module_impl(control_module, 0x348);
     int pad_flag = get_pad_flag(control_module);
 
     bool replace;
@@ -103,7 +103,7 @@ int get_pad_flag(u64 module_accessor) {
 
 float get_stick_x_replace(u64 module_accessor) {
     u64 control_module = load_module(module_accessor, 0x48);
-    float (*get_stick_x)(u64) = (float (*)(u64)) load_module_impl(control_module, GET_STICK_X_FUNC_OFFSET);
+    float (*get_stick_x)(u64) = (float (*)(u64)) load_module_impl(control_module, 0x178);
     float stick_x = get_stick_x(control_module);
 
     bool replace;
@@ -115,7 +115,7 @@ float get_stick_x_replace(u64 module_accessor) {
 
 float get_stick_y_replace(u64 module_accessor) {
     u64 control_module = load_module(module_accessor, 0x48);
-    float (*get_stick_y)(u64) = (float (*)(u64)) load_module_impl(control_module, GET_STICK_Y_FUNC_OFFSET);
+    float (*get_stick_y)(u64) = (float (*)(u64)) load_module_impl(control_module, 0x188);
     float stick_y = get_stick_y(control_module);
 
     bool replace;
@@ -146,27 +146,28 @@ bool check_button_off_replace(u64 module_accessor, int button) {
     bool (*check_button_off)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x268);
     return check_button_off(control_module, button);
 }
+
+void clear_command_replace(u64 module_accessor, bool unk1) {
+    Selection::change_motion(module_accessor, MotionModule::motion_kind(module_accessor));
+
+    u64 control_module = load_module(module_accessor, 0x48);
+    void (*clear_command)(u64, bool) =
+        (void (*)(u64, bool)) load_module_impl(control_module, 0x358);
+
+    clear_command(control_module, unk1);
+}
 }  // namespace ControlModule
 }  // namespace app::lua_bind
 
-namespace app::lua_bind::MotionModule {
-void change_motion_replace(u64 module_accessor, u64 motion_kind, float start_frame, float frame_speed_mult, bool unk1, float unk2, bool unk3, bool unk4) {
-    Selection::change_motion(module_accessor, motion_kind);
 
-    u64 motion_module = load_module(module_accessor, 0x88);
-    void (*change_motion)(u64, u64, float, float, bool, float, bool, bool) =
-        (void (*)(u64, u64, float, float, bool, float, bool, bool)) load_module_impl(motion_module, 0xD8);
-
-    change_motion(motion_module, motion_kind, start_frame, frame_speed_mult, unk1, unk2, unk3, unk4);
-}
-}  // namespace app::lua_bind::MotionModule
 
 void training_mods_main() {
     fighter_manager_addr = SaltySDCore_FindSymbol(
         "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E");
-	SaltySD_function_replace_sym(
-        "_ZN3app8lua_bind32MotionModule__change_motion_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40Effbfbb",
-        (u64)&MotionModule::change_motion_replace);
+    // Taunt toggles
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind33ControlModule__clear_command_implEPNS_26BattleObjectModuleAccessorEb",
+        (u64)&ControlModule::clear_command_replace);
 
     // Mash airdodge/jump
     SaltySD_function_replace_sym(

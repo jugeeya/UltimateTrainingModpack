@@ -12,7 +12,7 @@ typedef struct FrameInput {
     int attack_air_kind;
 } FrameInput;
 
-#define NUM_FRAME_INPUTS 60
+#define NUM_FRAME_INPUTS 120
 FrameInput frame_inputs[NUM_FRAME_INPUTS];
 int curr_frame = 0;
 
@@ -28,7 +28,7 @@ namespace InputRecorder {
 bool should_replace_input(u64 module_accessor) {
     return is_training_mode() && is_operation_cpu(module_accessor) &&
            (INPUT_RECORD_STATE == INPUT_RECORDING ||
-            INPUT_RECORD_STATE == INPUT_PLAYBACK)
+            INPUT_RECORD_STATE == INPUT_PLAYBACK);
 }
 
 int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& replace) {
@@ -41,19 +41,19 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                 INPUT_RECORD_STATE == INPUT_PLAYBACK) {
                 if (INPUT_RECORD_STATE == INPUT_RECORDING)
                     ; // Set color overlay to blue
-                else {
+                else
                     ; // Reset color overlay
 
                 replace = true;
+                int frame = curr_frame > 0 ? curr_frame - 1 : NUM_FRAME_INPUTS - 1;
                 if (category == 0)
-                    return frame_inputs[curr_frame].cat1_flag;
+                    return frame_inputs[frame].cat1_flag & ~FIGHTER_PAD_CMD_CAT1_FLAG_TURN_DASH;
                 else if (category == 1)
-                    return frame_inputs[curr_frame].cat2_flag;
+                    return frame_inputs[frame].cat2_flag;
                 else if (category == 2)
-                    return frame_inputs[curr_frame].cat3_flag;
+                    return frame_inputs[frame].cat3_flag;
                 else if (category == 3)
-                    return frame_inputs[curr_frame].cat4_flag;
-                }
+                    return frame_inputs[frame].cat4_flag;
             }
         } else {
             if (INPUT_RECORD_STATE == NONE) {
@@ -73,7 +73,6 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                 }
             } else if (INPUT_RECORD_STATE == INPUT_RECORDING) {
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
-                    curr_frame++;
                     frame_inputs[curr_frame] = FrameInput{
                         flag,
                         ControlModule::get_command_flag_cat(module_accessor, 1),
@@ -84,6 +83,7 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                         ControlModule::get_stick_y(module_accessor),
                         ControlModule::get_attack_air_kind(module_accessor)
                     };
+                    curr_frame++;
 
                     if (curr_frame == NUM_FRAME_INPUTS - 1) {
                         print_string(module_accessor, "PLAYBACK");
@@ -115,7 +115,8 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
 int get_pad_flag(u64 module_accessor, bool& replace) {
     if (should_replace_input(module_accessor)) {
         replace = true;
-        return frame_inputs[curr_frame].pad_flag;
+        int frame = curr_frame > 0 ? curr_frame - 1 : NUM_FRAME_INPUTS - 1;
+        return frame_inputs[frame].pad_flag;
     }
 
     replace = false;
@@ -125,7 +126,8 @@ int get_pad_flag(u64 module_accessor, bool& replace) {
 float get_stick_x(u64 module_accessor, bool& replace) {
     if (should_replace_input(module_accessor)) {
         replace = true;
-        return frame_inputs[curr_frame].stick_x;
+        int frame = curr_frame > 0 ? curr_frame - 1 : NUM_FRAME_INPUTS - 1;
+        return frame_inputs[frame].stick_x;
     }
 
     replace = false;
@@ -135,7 +137,8 @@ float get_stick_x(u64 module_accessor, bool& replace) {
 float get_stick_y(u64 module_accessor, bool& replace) {
     if (should_replace_input(module_accessor)) {
         replace = true;
-        return frame_inputs[curr_frame].stick_y;
+        int frame = curr_frame > 0 ? curr_frame - 1 : NUM_FRAME_INPUTS - 1;
+        return frame_inputs[frame].stick_y;
     }
 
     replace = false;
@@ -145,7 +148,8 @@ float get_stick_y(u64 module_accessor, bool& replace) {
 int get_attack_air_kind(u64 module_accessor, bool& replace) {
     if (should_replace_input(module_accessor)) {
         replace = true;
-        return frame_inputs[curr_frame].stick_y;
+        int frame = curr_frame > 0 ? curr_frame - 1 : NUM_FRAME_INPUTS - 1;
+        return frame_inputs[frame].attack_air_kind;
     }
 
     replace = false;
