@@ -59,8 +59,9 @@ int MASH_STATE = NONE;
 
 // Escape States
 #define ESCAPE_LEDGE 1
+#define ESCAPE_TECH 2
 int ESCAPE_STATE = ESCAPE_LEDGE;
-#define NUM_ESCAPE_STATES 2
+#define NUM_ESCAPE_STATES 3
 
 // Shield States
 #define SHIELD_INFINITE 1

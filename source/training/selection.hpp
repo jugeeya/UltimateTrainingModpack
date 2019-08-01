@@ -54,7 +54,7 @@ void menu_replace() {
     SaltySDCore_ReplaceImport("vsnprintf", (void*)vsnprintf_intercept);
 }
 
-void change_motion(u64 module_accessor, u64 motion_kind) {
+void clear_command(u64 module_accessor, u64 motion_kind) {
 if (motion_kind == hash40("appeal_lw_l") || motion_kind == hash40("appeal_lw_r")) {
         if (is_training_mode()) {
             if (TOGGLE_STATE == MASH_TOGGLES) {
@@ -68,7 +68,7 @@ if (motion_kind == hash40("appeal_lw_l") || motion_kind == hash40("appeal_lw_r")
             if (TOGGLE_STATE == ESCAPE_TOGGLES) {
                 ESCAPE_STATE = (ESCAPE_STATE + 1) % NUM_ESCAPE_STATES;
                 const char* toggle_strings[NUM_ESCAPE_STATES] = 
-                    {"NONE", "LEDGE"};
+                    {"NONE", "LEDGE", "TECH"};
 
                 print_string(module_accessor, toggle_strings[ESCAPE_STATE]);
             }

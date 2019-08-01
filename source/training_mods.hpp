@@ -21,6 +21,7 @@
 #include "training/mash.hpp"
 #include "training/selection.hpp"
 #include "training/shield.hpp"
+#include "training/tech.h"
 #include "training/input_recorder.hpp"
 
 using namespace lib;
@@ -29,7 +30,6 @@ using namespace app::sv_animcmd;
 
 namespace app::lua_bind {
 namespace WorkModule {
-// Force DI
 float get_float_replace(u64 module_accessor, int var) {
     bool replace;
     float ret = DirectionalInfluence::get_float(module_accessor, var, replace);
@@ -148,7 +148,7 @@ bool check_button_off_replace(u64 module_accessor, int button) {
 }
 
 void clear_command_replace(u64 module_accessor, bool unk1) {
-    Selection::change_motion(module_accessor, MotionModule::motion_kind(module_accessor));
+    Selection::clear_command(module_accessor, MotionModule::motion_kind(module_accessor));
 
     u64 control_module = load_module(module_accessor, 0x48);
     void (*clear_command)(u64, bool) =
@@ -157,9 +157,19 @@ void clear_command_replace(u64 module_accessor, bool unk1) {
     clear_command(control_module, unk1);
 }
 }  // namespace ControlModule
+
+namespace StatusModule {
+void init_settings_replace(u64 module_accessor, int situationKind, int unk1, u64 unk2,int groundCliffCheckKind, bool unk3, int unk4, int unk5, int unk6, int unk7) {
+    Tech::init_settings(module_accessor, StatusModule::status_kind(module_accessor));
+
+    u64 status_module = load_module(module_accessor, STATUS_MODULE_OFFSET);
+    void (*init_settings)(u64,int,int,u64,int,bool,int,int,int,int) =
+        (void (*)(u64,int,int,u64,int,bool,int,int,int,int)) load_module_impl(status_module, INIT_SETTINGS_OFFSET);
+
+    init_settings(status_module, situationKind, unk1, unk2, groundCliffCheckKind, unk3, unk4, unk5, unk6, unk7);
+}
+} // namespace StatusModule
 }  // namespace app::lua_bind
-
-
 
 void training_mods_main() {
     fighter_manager_addr = SaltySDCore_FindSymbol(
@@ -202,6 +212,11 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE",
         (u64)&ControlModule::get_stick_y_replace);
+
+    // Tech options
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
+        (u64)&StatusModule::init_settings_replace);
 
     Selection::menu_replace();
 }
