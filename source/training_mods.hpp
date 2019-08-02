@@ -159,16 +159,18 @@ void clear_command_replace(u64 module_accessor, bool unk1) {
 }  // namespace ControlModule
 
 namespace StatusModule {
-void init_settings_replace(u64 module_accessor, int situationKind, int unk1, u64 unk2,int groundCliffCheckKind, bool unk3, int unk4, int unk5, int unk6, int unk7) {
-    Tech::init_settings(module_accessor, StatusModule::status_kind(module_accessor));
+void init_settings_replace(u64 module_accessor, int situationKind, int unk1, uint unk2, int groundCliffCheckKind, bool unk3, int unk4, int unk5, int unk6, int unk7) {
+    bool replace;
+    Tech::init_settings(module_accessor, StatusModule::status_kind(module_accessor), replace);
+    if (replace) return;
 
-    u64 status_module = load_module(module_accessor, STATUS_MODULE_OFFSET);
-    void (*init_settings)(u64,int,int,u64,int,bool,int,int,int,int) =
-        (void (*)(u64,int,int,u64,int,bool,int,int,int,int)) load_module_impl(status_module, INIT_SETTINGS_OFFSET);
+    u64 status_module = load_module(module_accessor, 0x40);
+    void (*init_settings)(u64,int,int,uint,int,bool,int,int,int,int) =
+        (void (*)(u64,int,int,uint,int,bool,int,int,int,int)) load_module_impl(status_module, 0x1C8);
 
     init_settings(status_module, situationKind, unk1, unk2, groundCliffCheckKind, unk3, unk4, unk5, unk6, unk7);
 }
-} // namespace StatusModule
+}  // namespace StatusModule
 }  // namespace app::lua_bind
 
 void training_mods_main() {
