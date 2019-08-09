@@ -216,9 +216,9 @@ void training_mods_main() {
         (u64)&ControlModule::get_stick_y_replace);
 
     // Tech options
-    SaltySD_function_replace_sym(
-        "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
-        (u64)&StatusModule::init_settings_replace);
+    // SaltySD_function_replace_sym(
+    //     "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
+    //     (u64)&StatusModule::init_settings_replace);
 
     Selection::menu_replace();
 }

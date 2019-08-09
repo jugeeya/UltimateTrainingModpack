@@ -5,7 +5,14 @@
 
 u64 fighter_manager_addr;
 
+u8 get_category(u64 module_accessor) {
+	return (u8)(*(u32*)(module_accessor + 8) >> 28);
+}
+
 bool is_operation_cpu(u64 module_accessor) {
+    if (get_category(module_accessor) != BATTLE_OBJECT_CATEGORY_FIGHTER)
+        return false;
+
     int entry_id = WorkModule::get_int(module_accessor, FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
     u64 fighter_information = FighterManager::get_fighter_information(LOAD64(fighter_manager_addr), entry_id);
 

@@ -42,6 +42,14 @@ int ATTACK_STATE = MASH_NAIR;
 int LEDGE_STATE = RANDOM_LEDGE;
 #define NUM_LEDGE_STATES 5
 
+// Tech Option
+#define RANDOM_TECH 0
+#define TECH_IN_PLACE 1
+#define TECH_ROLL 2
+
+int TECH_STATE = RANDOM_TECH;
+#define NUM_TECH_STATES 3
+
 // Down Taunt
 #define MASH_TOGGLES 0
 #define ESCAPE_TOGGLES 1
