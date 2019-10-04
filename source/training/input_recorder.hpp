@@ -44,6 +44,17 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                 else
                     ; // Reset color overlay
 
+                if (INPUT_RECORD_STATE == INPUT_PLAYBACK) {
+                    if (curr_frame == 0 && StatusModule::status_kind(module_accessor) != FIGHTER_STATUS_KIND_WAIT) {
+                        replace = false;
+                        return 0;
+                    } else {
+                        if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
+                            curr_frame = (curr_frame + 1) % NUM_FRAME_INPUTS;
+                        }
+                    }
+                }
+
                 replace = true;
                 int frame = curr_frame > 0 ? curr_frame - 1 : NUM_FRAME_INPUTS - 1;
                 if (category == 0)
@@ -55,7 +66,7 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                 else if (category == 3)
                     return frame_inputs[frame].cat4_flag;
             }
-        } else {
+        } else { // IS PLAYER
             if (INPUT_RECORD_STATE == NONE) {
                 if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
                     ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_L)) {
@@ -92,10 +103,6 @@ int get_command_flag_cat(u64 module_accessor, int category, int flag, bool& repl
                     }
                 }
             } else if (INPUT_RECORD_STATE == INPUT_PLAYBACK) {
-                if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
-                    curr_frame = (curr_frame + 1) % NUM_FRAME_INPUTS;
-                }
-
                 if (ControlModule::check_button_on(module_accessor, CONTROL_PAD_BUTTON_CATCH) &&
                     ControlModule::check_button_trigger(module_accessor, CONTROL_PAD_BUTTON_APPEAL_S_R)) {
                     print_string(module_accessor, "STOP");

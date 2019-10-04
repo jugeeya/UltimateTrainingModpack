@@ -13,7 +13,7 @@ void force_option(u64 module_accessor) {
                 
             if (frame == random_frame || frame > 30.0) {
                 int status = 0;
-                int ledge_case = LEDGE_STATE;
+                int ledge_case = LEDGE_STATE - 1;
 
                 if (LEDGE_STATE == RANDOM_LEDGE)
                     ledge_case = app::sv_math::rand(hash40("fighter"), 4) + 1;
@@ -60,7 +60,7 @@ void defensive_option(u64 module_accessor, int category, int& flag) {
 }
 
 void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
-    if (ESCAPE_STATE == ESCAPE_LEDGE && is_training_mode() && is_operation_cpu(module_accessor)) {
+    if (LEDGE_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor)) {
         force_option(module_accessor);
         defensive_option(module_accessor, category, flag);
     }

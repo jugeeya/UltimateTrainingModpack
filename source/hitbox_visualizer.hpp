@@ -138,7 +138,8 @@ void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone,
         L2CValue y_curr(y->raw_float + y_dist * t);
         L2CValue z_curr(z->raw_float + z_dist * t);
 
-        ACMD acmd(l2c_agent);
+        ACMD acmd("", "", "", "", [] (ACMD*) -> void {});
+        acmd.l2c_agent = l2c_agent;
         acmd.wrap(EFFECT_FOLLOW_NO_SCALE,
                   {shieldEffect, *bone, x_curr, y_curr, z_curr, x_rot, y_rot,
                    z_rot, effect_size, terminate});
@@ -181,7 +182,7 @@ void ATTACK_replace(u64 a1) {
         for (size_t i = 0; i < 36; i++)
             l2c_agent.get_lua_stack(i + 1, &hitbox_params[i]);
 
-        l2c_agent.clear_lua_stack();
+        l2c_agent._clear_lua_stack();
 
         for (size_t i = 0; i < 36; i++) {
             if (i == 20) {

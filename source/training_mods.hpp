@@ -28,6 +28,8 @@ using namespace lib;
 using namespace app::lua_bind;
 using namespace app::sv_animcmd;
 
+u64 prev_get_command_flag_cat = 0;
+
 namespace app::lua_bind {
 namespace WorkModule {
 float get_float_replace(u64 module_accessor, int var) {
@@ -66,6 +68,9 @@ int get_attack_air_kind_replace(u64 module_accessor) {
 }
 
 int get_command_flag_cat_replace(u64 module_accessor, int category) {
+    int (*prev_replace)(u64, int) = (int (*)(u64, int)) prev_get_command_flag_cat;
+    if (prev_replace)
+        prev_replace(module_accessor, category);
     //save_states(module_accessor);
 
     // Pause Effect AnimCMD if hitbox visualization is active
@@ -79,12 +84,13 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
     int (*get_command_flag_cat)(u64, int) = (int (*)(u64, int)) load_module_impl(control_module, 0x350);
     int flag = get_command_flag_cat(control_module, category);
 
-    /*bool replace;
+    bool replace;
     int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
-    if (replace) return ret;*/
+    if (replace) return ret;
 
     Mash::get_command_flag_cat(module_accessor, category, flag);
     Ledge::get_command_flag_cat(module_accessor, category, flag);
+    Tech::get_command_flag_cat(module_accessor, category, flag);
 
     return flag;
 }
@@ -182,9 +188,10 @@ void training_mods_main() {
         (u64)&ControlModule::clear_command_replace);
 
     // Mash airdodge/jump
-    SaltySD_function_replace_sym(
+    SaltySD_function_replace_sym_check_prev(
         "_ZN3app8lua_bind40ControlModule__get_command_flag_cat_implEPNS_26BattleObjectModuleAccessorEi",
-        (u64)&ControlModule::get_command_flag_cat_replace);
+        (u64)&ControlModule::get_command_flag_cat_replace,
+        prev_get_command_flag_cat);
 
     // Set DI
     SaltySD_function_replace_sym(
@@ -216,9 +223,9 @@ void training_mods_main() {
         (u64)&ControlModule::get_stick_y_replace);
 
     // Tech options
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
-    //     (u64)&StatusModule::init_settings_replace);
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
+        (u64)&StatusModule::init_settings_replace);
 
     Selection::menu_replace();
 }

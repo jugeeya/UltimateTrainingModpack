@@ -23,6 +23,7 @@ float save_state_lr_cpu = 1.0;
 int save_state_situation_kind_cpu = 0;
 
 void save_states(u64 module_accessor) {
+    int status = StatusModule::status_kind(module_accessor);
     if (is_training_mode()) {
         float* save_state_x;
         float* save_state_y;
@@ -71,8 +72,6 @@ void save_states(u64 module_accessor) {
 
         // move to correct pos
         if (*save_state == POS_MOVE) {
-            *save_state = DEFAULT;
-
             Vector3f pos = {.x = *save_state_x, .y = *save_state_y, .z = 0};
             PostureModule::set_pos(module_accessor, &pos);
             PostureModule::set_lr(module_accessor, *save_state_lr);
@@ -80,16 +79,18 @@ void save_states(u64 module_accessor) {
                 module_accessor,
                 -1.0 * DamageModule::damage(module_accessor, 0), 0);
             DamageModule::add_damage(module_accessor, *save_state_percent, 0);
+
             StatusModule::set_situation_kind(module_accessor, *save_state_situation_kind, 0);
 
             // Doesn't work, and I don't know why yet.
-            /*if (*save_state_situation_kind == SITUATION_KIND_GROUND)
+            if (*save_state_situation_kind == SITUATION_KIND_GROUND && status != FIGHTER_STATUS_KIND_WAIT)
                     StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_WAIT, 0); 
-            else if (*save_state_situation_kind == SITUATION_KIND_AIR)
+            else if (*save_state_situation_kind == SITUATION_KIND_AIR && status != FIGHTER_STATUS_KIND_FALL)
                     StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_FALL, 0); 
-            else if (*save_state_situation_kind == SITUATION_KIND_CLIFF)
+            else if (*save_state_situation_kind == SITUATION_KIND_CLIFF && status != FIGHTER_STATUS_KIND_CLIFF_CATCH)
                     StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_CLIFF_CATCH, 0);
-            */
+            
+            *save_state = DEFAULT;
         }
 
         // Grab + Dpad down: Save state
