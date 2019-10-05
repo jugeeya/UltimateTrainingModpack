@@ -63,6 +63,20 @@ void __attribute__((weak)) NORETURN __libnx_exit(int rc) {
         ;
 }
 
+extern int sprintf(char* s, const char* format, ...) LINKABLE;
+
+int sprintf_intercept(char* s, const char* format, ...) {
+    if (strcmp(format, "Ver. %d.%d.%d") == 0 || strcmp(format, "Salty v%d%d%d") == 0)
+       format = "Training Mods v1.4";
+    va_list vl;
+    va_start(vl,format);
+
+    int ret = vsprintf(s, format, vl);
+    va_end(vl);
+
+    return ret;
+}
+
 int main(int argc, char* argv[]) {
     SaltySD_printf("SaltySD Plugin: alive\n");
 
@@ -81,6 +95,8 @@ int main(int argc, char* argv[]) {
     if (version_string) {
         SaltySD_Memcpy(version_string, (u64) "Salty v%d%d%d", 13);
     }
+
+    SaltySDCore_ReplaceImport("sprintf", (void*)sprintf_intercept);
 
     // Add function replacements here
     hitbox_vis_main();

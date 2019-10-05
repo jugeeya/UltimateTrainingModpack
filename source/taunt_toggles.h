@@ -46,9 +46,10 @@ int LEDGE_STATE = RANDOM_LEDGE;
 #define RANDOM_TECH 1
 #define TECH_IN_PLACE 2
 #define TECH_ROLL 3
+#define TECH_MISS 4
 
 int TECH_STATE = RANDOM_TECH;
-#define NUM_TECH_STATES 4
+#define NUM_TECH_STATES 5
 
 // Down Taunt
 #define MASH_TOGGLES 0

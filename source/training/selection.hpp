@@ -102,7 +102,7 @@ if (motion_kind == hash40("appeal_lw_l") || motion_kind == hash40("appeal_lw_r")
                 ESCAPE_STATE == ESCAPE_TECH) {
                 TECH_STATE = (TECH_STATE + 1) % NUM_TECH_STATES;
                 const char* TECH_strings[NUM_TECH_STATES] =
-                    {"NONE", "RANDOM", "IN PLACE", "ROLL"};
+                    {"NONE", "RANDOM", "IN PLACE", "ROLL", "MISS TECH"};
 
                 print_string(module_accessor, TECH_strings[TECH_STATE]);
             } else if (MASH_STATE == MASH_ATTACK) {

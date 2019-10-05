@@ -50,8 +50,22 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
     if (TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor)) {
         int prev_status = StatusModule::prev_status_kind(module_accessor, 0);
         int status = StatusModule::status_kind(module_accessor);
-        if ((prev_status == FIGHTER_STATUS_KIND_PASSIVE || 
+        if (status == FIGHTER_STATUS_KIND_DOWN_WAIT || status == FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE) {
+            const int NUM_GETUP_STATUSES = 3;
+            int random_statuses[NUM_GETUP_STATUSES] = {
+                FIGHTER_STATUS_KIND_DOWN_STAND,
+                FIGHTER_STATUS_KIND_DOWN_STAND_FB, 
+                FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK
+            };
+
+            int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GETUP_STATUSES);
+            StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
+        }
+        else if ((prev_status == FIGHTER_STATUS_KIND_PASSIVE || 
             prev_status == FIGHTER_STATUS_KIND_PASSIVE_FB ||
+            prev_status == FIGHTER_STATUS_KIND_DOWN_STAND ||
+            prev_status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
+            prev_status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK ||
             status == FIGHTER_STATUS_KIND_DOWN_STAND ||
             status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
             status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK) && 
@@ -64,19 +78,6 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
             };
 
             int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_STATUSES);
-            StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
-        }
-        
-        if (WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_DOWN_STAND) &&
-            status != FIGHTER_STATUS_KIND_DOWN_DAMAGE) {
-            const int NUM_GETUP_STATUSES = 3;
-            int random_statuses[NUM_GETUP_STATUSES] = {
-                FIGHTER_STATUS_KIND_DOWN_STAND,
-                FIGHTER_STATUS_KIND_DOWN_STAND_FB, 
-                FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK
-            };
-
-            int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GETUP_STATUSES);
             StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
         }
     }
