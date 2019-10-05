@@ -65,6 +65,13 @@ Specific ledge options can be chosen with side taunt while this toggle is active
 
 CPUs will also perform a random defensive option after getting up.
 
+###### Tech Option
+CPUs will perform a random tech option. 
+Specific tech options can be chosen with side taunt while this toggle is active, and include:
+- In place, roll, and miss tech
+
+CPUs will also perform a random defensive option after getting up.
+
 ##### Shield
 
 ###### Infinite
