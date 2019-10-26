@@ -3,7 +3,10 @@
 #include "useful/const_value_table.h"
 #include "../taunt_toggles.h"
 
+using namespace app::lua_bind;
+
 u64 fighter_manager_addr;
+u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
 
 u8 get_category(u64 module_accessor) {
 	return (u8)(*(u32*)(module_accessor + 8) >> 28);

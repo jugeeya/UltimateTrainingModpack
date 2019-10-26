@@ -101,6 +101,14 @@ int main(int argc, char* argv[]) {
     // Add function replacements here
     hitbox_vis_main();
     training_mods_main();
+    FILE* f = SaltySDCore_fopen("sdmc:/SaltySD/training_modpack.log", "w");
+	if (f) {
+		SaltySD_printf("Writing training_modpack.log...\n");
+		char buffer[20];
+		snprintf(buffer, 20, "%lx", (u64)&menu);
+		SaltySDCore_fwrite(buffer, strlen(buffer), 1, f);
+		SaltySDCore_fclose(f);
+	}
 
     __libnx_exit(0);
 }

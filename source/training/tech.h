@@ -4,7 +4,7 @@ namespace Tech {
 void init_settings(u64 module_accessor, int status_kind, bool& replace) {
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
         if (status_kind == FIGHTER_STATUS_KIND_DOWN) {
-            if (TECH_STATE == RANDOM_TECH) {
+            if (menu.TECH_STATE == RANDOM_TECH) {
                 const int NUM_TECH_STATUSES = 3;
                 int random_statuses[NUM_TECH_STATUSES] = {
                     FIGHTER_STATUS_KIND_DOWN,
@@ -18,11 +18,11 @@ void init_settings(u64 module_accessor, int status_kind, bool& replace) {
                     replace = true;
                     return;
                 }
-            } else if (TECH_STATE == TECH_IN_PLACE) {
+            } else if (menu.TECH_STATE == TECH_IN_PLACE) {
                 StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_PASSIVE, 1);
                 replace = true;
                 return;
-            } else if (TECH_STATE == TECH_ROLL) {
+            } else if (menu.TECH_STATE == TECH_ROLL) {
                 StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_PASSIVE_FB, 1);
                 replace = true;
                 return;
@@ -47,7 +47,7 @@ void init_settings(u64 module_accessor, int status_kind, bool& replace) {
 }
 
 void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
-    if (TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor)) {
+    if (menu.TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor)) {
         int prev_status = StatusModule::prev_status_kind(module_accessor, 0);
         int status = StatusModule::status_kind(module_accessor);
         if (status == FIGHTER_STATUS_KIND_DOWN_WAIT || status == FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE) {

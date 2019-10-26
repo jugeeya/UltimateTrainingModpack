@@ -19,7 +19,6 @@
 #include "training/directional_influence.hpp"
 #include "training/ledge.hpp"
 #include "training/mash.hpp"
-#include "training/selection.hpp"
 #include "training/shield.hpp"
 #include "training/tech.h"
 #include "training/input_recorder.hpp"
@@ -77,7 +76,7 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
     int status_kind = StatusModule::status_kind(module_accessor);
     MotionAnimcmdModule::set_sleep_effect(module_accessor, 
         is_training_mode() &&
-        HITBOX_VIS &&
+        menu.HITBOX_VIS &&
         !(status_kind >= FIGHTER_STATUS_KIND_CATCH && status_kind <= FIGHTER_STATUS_KIND_TREAD_FALL));
 
     u64 control_module = load_module(module_accessor, 0x48);
@@ -152,16 +151,6 @@ bool check_button_off_replace(u64 module_accessor, int button) {
     bool (*check_button_off)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x268);
     return check_button_off(control_module, button);
 }
-
-void clear_command_replace(u64 module_accessor, bool unk1) {
-    Selection::clear_command(module_accessor, MotionModule::motion_kind(module_accessor));
-
-    u64 control_module = load_module(module_accessor, 0x48);
-    void (*clear_command)(u64, bool) =
-        (void (*)(u64, bool)) load_module_impl(control_module, 0x358);
-
-    clear_command(control_module, unk1);
-}
 }  // namespace ControlModule
 
 namespace StatusModule {
@@ -182,10 +171,6 @@ void init_settings_replace(u64 module_accessor, int situationKind, int unk1, uin
 void training_mods_main() {
     fighter_manager_addr = SaltySDCore_FindSymbol(
         "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E");
-    // Taunt toggles
-    SaltySD_function_replace_sym(
-        "_ZN3app8lua_bind33ControlModule__clear_command_implEPNS_26BattleObjectModuleAccessorEb",
-        (u64)&ControlModule::clear_command_replace);
 
     // Mash airdodge/jump
     SaltySD_function_replace_sym_check_prev(
@@ -226,8 +211,6 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
         (u64)&StatusModule::init_settings_replace);
-
-    Selection::menu_replace();
 }
 
 #endif  // TRAINING_MODS_H

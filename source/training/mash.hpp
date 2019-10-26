@@ -4,9 +4,9 @@ namespace Mash {
 int get_attack_air_kind(u64 module_accessor, bool& replace) {
     int kind = 0;
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (MASH_STATE == MASH_ATTACK) {
+        if (menu.MASH_STATE == MASH_ATTACK) {
             replace = true;
-            switch (ATTACK_STATE) {
+            switch (menu.ATTACK_STATE) {
                 case MASH_NAIR:
                     kind = FIGHTER_COMMAND_ATTACK_AIR_KIND_N; break;
                 case MASH_FAIR:
@@ -21,7 +21,7 @@ int get_attack_air_kind(u64 module_accessor, bool& replace) {
             return kind;
         }
 
-        if (MASH_STATE == MASH_RANDOM) {
+        if (menu.MASH_STATE == MASH_RANDOM) {
             replace = true;
             return app::sv_math::rand(hash40("fighter"), 5) + 1;
         }
@@ -35,17 +35,17 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
         if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
-            if (MASH_STATE == MASH_AIRDODGE)
+            if (menu.MASH_STATE == MASH_AIRDODGE)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
 
-            if (MASH_STATE == MASH_JUMP)
+            if (menu.MASH_STATE == MASH_JUMP)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
-            if (MASH_STATE == MASH_ATTACK)
+            if (menu.MASH_STATE == MASH_ATTACK)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
-                    switch (ATTACK_STATE) {
+                    switch (menu.ATTACK_STATE) {
                         case MASH_NAIR:
                         case MASH_FAIR:
                         case MASH_BAIR:
@@ -68,7 +68,7 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                     }
                 }
 
-            if (MASH_STATE == MASH_RANDOM)
+            if (menu.MASH_STATE == MASH_RANDOM)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
                     int situation_kind =
                         StatusModule::situation_kind(module_accessor);
@@ -128,7 +128,7 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
 bool check_button_on(u64 module_accessor, int button, bool& replace) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor))) {
+            if (menu.MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor))) {
                 replace = true;
                 return true;
             }

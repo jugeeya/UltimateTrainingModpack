@@ -10,7 +10,7 @@
 #include "acmd_wrapper.h"
 #include "lib/l2c_imports.h"
 #include "saltysd/saltysd_helper.h"
-#include "taunt_toggles.h"
+#include "training/common.hpp"
 #include "useful/const_value_table.h"
 
 #include "useful/raygun_printer.h"
@@ -176,8 +176,7 @@ void ATTACK_replace(u64 a1) {
     l2c_agent.get_lua_stack(15, &z2);     // float or void
 
     // hacky way of forcing no shield damage on all hitboxes
-    if (is_training_mode() && 
-        TOGGLE_STATE == SHIELD_TOGGLES && SHIELD_STATE == SHIELD_INFINITE) {
+    if (is_training_mode() && menu.SHIELD_STATE == SHIELD_INFINITE) {
         L2CValue hitbox_params[36];
         for (size_t i = 0; i < 36; i++)
             l2c_agent.get_lua_stack(i + 1, &hitbox_params[i]);
@@ -196,7 +195,7 @@ void ATTACK_replace(u64 a1) {
     // original code: parse lua stack and call AttackModule::set_attack()
     AttackModule_set_attack_lua_state(LOAD64(LOAD64(a1 - 8) + 416LL), a1);
 
-    if (HITBOX_VIS && is_training_mode()) {  // generate hitbox effect(s)
+    if (menu.HITBOX_VIS && is_training_mode()) {  // generate hitbox effect(s)
         float color_scale;
         if (false) {  // color intensity scales with damage
             color_scale = unlerp_bounded(1.0f, 18.0f, damage.raw_float);
@@ -267,7 +266,7 @@ void CATCH_replace(u64 a1) {
     // jump to Catch_jumpback
     asm("BLR X9");
 
-    if (HITBOX_VIS && is_training_mode()) {
+    if (menu.HITBOX_VIS && is_training_mode()) {
         Vector3f color = ID_COLORS[(id.raw + 3) % 8];
         generate_hitbox_effects(&l2c_agent, &joint, &size, &x, &y, &z, &x2, &y2, &z2, &color);
     }
