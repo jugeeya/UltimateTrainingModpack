@@ -6,9 +6,15 @@
 // Side Taunt
 
 // DI
-#define SET_DI 1
-#define DI_RANDOM_IN_AWAY 2
-#define NUM_DI_STATES 3
+/*
+ 0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
+ 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
+*/
+
+/* DI */
+int DI_STATE = NONE;
+#define DI_RANDOM_IN_AWAY 9
+const char* di_items[] = { "None", "Away", "Up Away", "Up", "Up In", "In", "Down In", "Down", "Down In", "Random In/Away"};
 
 // Attack Option
 #define MASH_NAIR 0
@@ -28,14 +34,14 @@ const char* attack_items[] = { "Neutral Air", "Forward Air", "Back Air", "Up Air
 #define ROLL_LEDGE 3
 #define JUMP_LEDGE 4
 #define ATTACK_LEDGE 5
-const char* ledge_items[] = { "Random", "Neutral Getup", "Roll", "Jump", "Attack" };
+const char* ledge_items[] = { "None", "Random", "Neutral Getup", "Roll", "Jump", "Attack" };
 
 // Tech Option
 #define RANDOM_TECH 1
 #define TECH_IN_PLACE 2
 #define TECH_ROLL 3
 #define TECH_MISS 4
-const char* tech_items[] = { "Random", "In-Place", "Roll", "Miss Tech" };
+const char* tech_items[] = { "None", "Random", "In-Place", "Roll", "Miss Tech" };
 
 // Mash States
 #define MASH_AIRDODGE 1
@@ -51,8 +57,6 @@ const char* shield_items[] = { "None", "Infinite", "Hold" };
 
 struct TrainingModpackMenu {
     bool HITBOX_VIS = 1;
-    float DI_stick_x = 0;
-    float DI_stick_y = 0;
     int DI_STATE = NONE;
     int ATTACK_STATE = MASH_NAIR;
     int LEDGE_STATE = RANDOM_LEDGE;
