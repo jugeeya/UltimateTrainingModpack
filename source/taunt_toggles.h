@@ -1,22 +1,20 @@
 #ifndef TAUNT_TOGGLES_H
 #define TAUNT_TOGGLES_H
 
-u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
-
 #define NONE 0
-
-// Up Taunt
-bool HITBOX_VIS = 1;
 
 // Side Taunt
 
 // DI
-float DI_stick_x = 0;
-float DI_stick_y = 0;
+/*
+ 0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
+ 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
+*/
+
+/* DI */
 int DI_STATE = NONE;
-#define SET_DI 1
-#define DI_RANDOM_IN_AWAY 2
-#define NUM_DI_STATES 3
+#define DI_RANDOM_IN_AWAY 9
+const char* di_items[] = { "None", "Away", "Up Away", "Up", "Up In", "In", "Down In", "Down", "Down In", "Random In/Away"};
 
 // Attack Option
 #define MASH_NAIR 0
@@ -28,9 +26,7 @@ int DI_STATE = NONE;
 #define MASH_SIDE_B 6
 #define MASH_UP_B 7
 #define MASH_DOWN_B 8
-
-int ATTACK_STATE = MASH_NAIR;
-#define NUM_ATTACK_STATES 9
+const char* attack_items[] = { "Neutral Air", "Forward Air", "Back Air", "Up Air", "Down Air", "Neutral B", "Side B", "Up B", "Down B" };
 
 // Ledge Option
 #define RANDOM_LEDGE 1
@@ -38,44 +34,45 @@ int ATTACK_STATE = MASH_NAIR;
 #define ROLL_LEDGE 3
 #define JUMP_LEDGE 4
 #define ATTACK_LEDGE 5
-
-int LEDGE_STATE = RANDOM_LEDGE;
-#define NUM_LEDGE_STATES 6
+const char* ledge_items[] = { "None", "Random", "Neutral Getup", "Roll", "Jump", "Attack" };
 
 // Tech Option
 #define RANDOM_TECH 1
 #define TECH_IN_PLACE 2
 #define TECH_ROLL 3
 #define TECH_MISS 4
-
-int TECH_STATE = RANDOM_TECH;
-#define NUM_TECH_STATES 5
-
-// Down Taunt
-#define MASH_TOGGLES 0
-#define ESCAPE_TOGGLES 1
-#define SHIELD_TOGGLES 2
-int TOGGLE_STATE = MASH_TOGGLES;
-#define NUM_TOGGLE_STATES 3
+const char* tech_items[] = { "None", "Random", "In-Place", "Roll", "Miss Tech" };
 
 // Mash States
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
 #define MASH_ATTACK 3
 #define MASH_RANDOM 4
-int MASH_STATE = NONE;
-#define NUM_MASH_STATES 5
-
-// Escape States
-#define ESCAPE_LEDGE 1
-#define ESCAPE_TECH 2
-int ESCAPE_STATE = ESCAPE_LEDGE;
-#define NUM_ESCAPE_STATES 3
+const char* mash_items[] = { "None", "Airdodge", "Jump", "Attack", "Random" };
 
 // Shield States
 #define SHIELD_INFINITE 1
 #define SHIELD_HOLD 2
-int SHIELD_STATE = NONE;
-#define NUM_SHIELD_STATES 3
+const char* shield_items[] = { "None", "Infinite", "Hold" };
+
+// Defensive States
+#define RANDOM_DEFENSIVE 1
+#define DEFENSIVE_SHIELD 2
+#define DEFENSIVE_SPOTDODGE 3
+#define DEFENSIVE_JAB 4
+const char* defensive_items[] = { "None", "Random", "Flash Shield", "Spotdodge", "Jab" };
+
+struct TrainingModpackMenu {
+    bool HITBOX_VIS = 1;
+    int DI_STATE = NONE;
+    int ATTACK_STATE = MASH_NAIR;
+    int LEDGE_STATE = RANDOM_LEDGE;
+    int TECH_STATE = RANDOM_TECH;
+    int MASH_STATE = NONE;
+    int SHIELD_STATE = NONE;
+    int DEFENSIVE_STATE = RANDOM_DEFENSIVE;
+    char print_buffer[256];
+    u64 print_buffer_len = 0;
+} menu;
 
 #endif // TAUNT_TOGGLES_H

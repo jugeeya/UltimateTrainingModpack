@@ -4,7 +4,7 @@
 namespace Shield {
 float get_param_float(u64 module_accessor, u64 param_type, u64 param_hash, bool& replace) {
     if (is_training_mode()) {
-        if (SHIELD_STATE == SHIELD_INFINITE) {
+        if (menu.SHIELD_STATE == SHIELD_INFINITE) {
             if (param_type == hash40("common")) {
                 if (param_hash == hash40("shield_dec1")) {
                     replace = true;
@@ -30,7 +30,7 @@ float get_param_float(u64 module_accessor, u64 param_type, u64 param_hash, bool&
 bool check_button_on(u64 module_accessor, int button, bool& replace) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE) {
+            if (menu.SHIELD_STATE == SHIELD_HOLD || menu.SHIELD_STATE == SHIELD_INFINITE) {
                 replace = true;
                 return true;
             }
@@ -44,7 +44,7 @@ bool check_button_on(u64 module_accessor, int button, bool& replace) {
 bool check_button_off(u64 module_accessor, int button, bool& replace) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (SHIELD_STATE == SHIELD_HOLD || SHIELD_STATE == SHIELD_INFINITE) {
+            if (menu.SHIELD_STATE == SHIELD_HOLD || menu.SHIELD_STATE == SHIELD_INFINITE) {
                 replace = true;
                 return false;
             }

@@ -66,8 +66,15 @@ void __attribute__((weak)) NORETURN __libnx_exit(int rc) {
 extern int sprintf(char* s, const char* format, ...) LINKABLE;
 
 int sprintf_intercept(char* s, const char* format, ...) {
-    if (strcmp(format, "Ver. %d.%d.%d") == 0 || strcmp(format, "Salty v%d%d%d") == 0)
-       format = "Training Mods v1.4";
+    if (strcmp(format, "Ver. %d.%d.%d") == 0 || strcmp(format, "Salty v%d%d%d") == 0) {
+        va_list vl;
+        va_start(vl, format);
+        major = va_arg(vl, int);
+        minor = va_arg(vl, int);
+        patch = va_arg(vl, int);
+        va_end(vl);
+        return vsprintf(s, "Training Mods v1.5", vl);
+    }
     va_list vl;
     va_start(vl,format);
 
@@ -101,6 +108,14 @@ int main(int argc, char* argv[]) {
     // Add function replacements here
     hitbox_vis_main();
     training_mods_main();
+    FILE* f = SaltySDCore_fopen("sdmc:/SaltySD/training_modpack.log", "w");
+	if (f) {
+		SaltySD_printf("Writing training_modpack.log...\n");
+		char buffer[20];
+		snprintf(buffer, 20, "%lx", (u64)&menu);
+		SaltySDCore_fwrite(buffer, strlen(buffer), 1, f);
+		SaltySDCore_fclose(f);
+	}
 
     __libnx_exit(0);
 }
