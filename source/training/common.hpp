@@ -33,3 +33,22 @@ bool is_in_landing(u64 module_accessor) {
     return status_kind >= FIGHTER_STATUS_KIND_LANDING &&
            status_kind <= FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT;
 }
+
+void perform_defensive_option(u64 module_accessor) {
+    if (menu.DEFENSIVE_STATE == RANDOM_DEFENSIVE) {
+        const int NUM_GROUND_STATUSES = 3;
+        int random_statuses[NUM_GROUND_STATUSES] = {
+            FIGHTER_STATUS_KIND_ESCAPE, 
+            FIGHTER_STATUS_KIND_ATTACK,
+            FIGHTER_STATUS_KIND_GUARD_ON
+        };
+
+        int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_STATUSES);
+        StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
+    } else if (menu.DEFENSIVE_STATE == DEFENSIVE_SHIELD)
+        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_GUARD_ON, 1);
+    else if (menu.DEFENSIVE_STATE == DEFENSIVE_SPOTDODGE)
+        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_ESCAPE, 1);
+    else if (menu.DEFENSIVE_STATE == DEFENSIVE_JAB)
+        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_ATTACK, 1);
+}

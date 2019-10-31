@@ -70,15 +70,7 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
             status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
             status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK) && 
             WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON)) {
-            const int NUM_GROUND_STATUSES = 3;
-            int random_statuses[NUM_GROUND_STATUSES] = {
-                FIGHTER_STATUS_KIND_ESCAPE, 
-                FIGHTER_STATUS_KIND_ATTACK,
-                FIGHTER_STATUS_KIND_GUARD_ON
-            };
-
-            int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_STATUSES);
-            StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
+            perform_defensive_option(module_accessor);
         }
     }
 }

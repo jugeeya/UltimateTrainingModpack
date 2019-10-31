@@ -55,6 +55,13 @@ const char* mash_items[] = { "None", "Airdodge", "Jump", "Attack", "Random" };
 #define SHIELD_HOLD 2
 const char* shield_items[] = { "None", "Infinite", "Hold" };
 
+// Defensive States
+#define RANDOM_DEFENSIVE 1
+#define DEFENSIVE_SHIELD 2
+#define DEFENSIVE_SPOTDODGE 3
+#define DEFENSIVE_JAB 4
+const char* defensive_items[] = { "None", "Random", "Flash Shield", "Spotdodge", "Jab" };
+
 struct TrainingModpackMenu {
     bool HITBOX_VIS = 1;
     int DI_STATE = NONE;
@@ -63,6 +70,7 @@ struct TrainingModpackMenu {
     int TECH_STATE = RANDOM_TECH;
     int MASH_STATE = NONE;
     int SHIELD_STATE = NONE;
+    int DEFENSIVE_STATE = RANDOM_DEFENSIVE;
     char print_buffer[256];
     u64 print_buffer_len = 0;
 } menu;

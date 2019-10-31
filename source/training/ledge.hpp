@@ -13,7 +13,7 @@ void force_option(u64 module_accessor) {
                 
             if (frame == random_frame || frame > 30.0) {
                 int status = 0;
-                int ledge_case = menu.LEDGE_STATE - 1;
+                int ledge_case = menu.LEDGE_STATE;
 
                 if (menu.LEDGE_STATE == RANDOM_LEDGE)
                     ledge_case = app::sv_math::rand(hash40("fighter"), 4) + 1;
@@ -47,15 +47,7 @@ void defensive_option(u64 module_accessor, int category, int& flag) {
         status == FIGHTER_STATUS_KIND_CLIFF_ATTACK || 
         status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) && 
         WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE)) {
-        const int NUM_GROUND_STATUSES = 3;
-        int random_statuses[NUM_GROUND_STATUSES] = {
-            FIGHTER_STATUS_KIND_ESCAPE, 
-            FIGHTER_STATUS_KIND_ATTACK,
-            FIGHTER_STATUS_KIND_GUARD_ON
-        };
-
-        int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_STATUSES);
-        StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
+        perform_defensive_option(module_accessor);
     }
 }
 
