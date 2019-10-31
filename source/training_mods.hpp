@@ -166,6 +166,24 @@ void init_settings_replace(u64 module_accessor, int situationKind, int unk1, uin
     init_settings(status_module, situationKind, unk1, unk2, groundCliffCheckKind, unk3, unk4, unk5, unk6, unk7);
 }
 }  // namespace StatusModule
+
+namespace MotionModule {
+u64 change_motion_replace(u64 module_accessor, u64 motion_kind, float unk1, float unk2, bool unk3, float unk4, bool unk5, bool unk6) {
+    if (menu.TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor)) {
+        if (motion_kind == hash40("passive_stand_f") || motion_kind == hash40("passive_stand_b")) {
+            int rand_int = app::sv_math::rand(hash40("fighter"), 2);
+            if (rand_int) motion_kind = hash40("passive_stand_f");
+            else motion_kind = hash40("passive_stand_b");
+        }
+    }
+
+    u64 motion_module = load_module(module_accessor, 0x88);
+    u64 (*change_motion)(u64,u64,float,float,bool,float,bool,bool) = 
+        (u64 (*)(u64,u64,float,float,bool,float,bool,bool)) load_module_impl(motion_module, 0xE0);
+
+    return change_motion(motion_module, motion_kind, unk1, unk2, unk3, unk4, unk5, unk6);
+}
+}  // namespace MotionModule
 }  // namespace app::lua_bind
 
 void training_mods_main() {
@@ -211,6 +229,9 @@ void training_mods_main() {
     SaltySD_function_replace_sym(
         "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
         (u64)&StatusModule::init_settings_replace);
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind32MotionModule__change_motion_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40Effbfbb",
+        (u64)&MotionModule::change_motion_replace);
 }
 
 #endif  // TRAINING_MODS_H

@@ -69,7 +69,8 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
             status == FIGHTER_STATUS_KIND_DOWN_STAND ||
             status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
             status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK) && 
-            WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON)) {
+            (WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON) || 
+            CancelModule::is_enable_cancel(module_accessor))) {
             perform_defensive_option(module_accessor);
         }
     }
