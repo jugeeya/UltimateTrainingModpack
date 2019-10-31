@@ -2,7 +2,7 @@
 
 [![Github all releases](https://img.shields.io/github/downloads/jugeeya/UltimateTrainingModpack/total.svg)](https://GitHub.com/jugeeya/UltimateTrainingModpack/releases/)
 
-A [SaltyNX](https://github.com/shinyquagsire23/SaltyNX) plugin for adding features to the training mode. 
+A [SaltyNX](https://github.com/shinyquagsire23/SaltyNX) plugin for adding features to the training mode. It interfaces with a fork of [Layoff](https://github.com/crc-32/layoff), a Switch custom overlay, for use as a menu to the features offered in training mode.
 
 Built releases can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/).
 
@@ -12,29 +12,13 @@ Built releases can be found [here](https://github.com/jugeeya/UltimateTrainingMo
 <a name="features"/>
 
 # Features
-Toggles are changed with taunts, with the following functionality:
-- **Up taunt**: Hitbox Visualization
-- **Down taunt**: Force CPU Options
-- **Side taunt**: Force CPU DI
+The features in this modpack are configured through the Layoff menu, which can be accessed at any time with by long pressing the Home button on a right Joy-con or Switch Pro controller. 
 
 #### Hitbox Visualization
-Hitbox visualization is toggled on or off with up taunt. Currently, hitboxes and grabboxes are supported.
-
-#### Force CPU Options
-CPU Toggles are split into groups, and are first chosen with the training mode menu's CPU Shuffling option.
-
-If you haven't installed the aesthetic `.msbt` file, these will look like:
-
-`CPU Shuffling: SMASH -> SPEED -> SHIELD`
-
-If you have installed the `.msbt`, it will look like:
-
-`CPU Toggles: Mash -> Escape -> Shield`,
-
-and the help text at the bottom will tell you your current option in the toggle group and other information.
+Currently, hitboxes and grabboxes are supported.
 
 
-##### Mash
+##### Mash Toggles
 ###### Airdodge
 CPUs will mash airdodge on the first frame out of hitstun.
 
@@ -45,7 +29,7 @@ CPUs will mash jump on the first frame out of hitstun.
 
 ###### Attack
 CPUs will mash an attack on the first frame out of hitstun and when landing. 
-Attacks can be chosen with side taunt while on this toggle, and include:
+Attacks that can be chosen include:
 - All aerials, followed by all specials
 
 ###### Random
@@ -56,21 +40,24 @@ The aerial options include:
 The grounded options include:
 - Jump, jab, all tilts, all smashes, all specials, grab, spotdodge, and rolls
 
-##### Escape
-
-###### Ledge Option
+##### Ledge Option
 CPUs will perform a random ledge option. 
-Specific ledge options can be chosen with side taunt while this toggle is active, and include:
+Specific ledge options that can be chosen include:
 - Normal, roll, jump, and attack
 
-CPUs will also perform a random defensive option after getting up.
+CPUs will also perform a defensive option after getting up.
 
-###### Tech Option
+##### Tech Option
 CPUs will perform a random tech option. 
-Specific tech options can be chosen with side taunt while this toggle is active, and include:
+Specific tech options that can be chosen include:
 - In place, roll, and miss tech
 
-CPUs will also perform a random defensive option after getting up.
+CPUs will also perform a defensive option after getting up.
+
+##### Defensive Option
+Choose the defensive option a CPU will perform after teching or getting up from the ledge. 
+Specific options include:
+    Flash shield, spotdodge, and jab
 
 ##### Shield
 
@@ -84,7 +71,7 @@ CPUs will hold a normal shield.
 ##### All DI Toggles
 
 ##### Specified Direction
-CPUs DI in the direction specified by the player's stick input when pressing right taunt.
+CPUs DI in the direction specified, relative to the player's facing position.
 
 ##### Random Direction
 CPUs DI randomly in or away when the player presses left taunt.
@@ -96,9 +83,17 @@ CPUs DI randomly in or away when the player presses left taunt.
 Requires [DEVKITPRO](https://devkitpro.org/wiki/Getting_Started) in path.
 
 ```sh
+# building the modpack ELF itself
 git clone --recursive https://github.com/jugeeya/UltimateTrainingModpack.git
 cd UltimateTrainingModpack/
 make
+# building the Layoff menu
+cd layoff/libnx
+make
+cd ..
+make
+# make_layeredfs.bat for windows
+./make_layeredfs.sh 
 ```
 
 
