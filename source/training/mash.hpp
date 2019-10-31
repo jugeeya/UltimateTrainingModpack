@@ -39,7 +39,7 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
 
-            if (menu.MASH_STATE == MASH_JUMP)
+            if (menu.MASH_STATE == MASH_JUMP && !is_in_landing(module_accessor))
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 

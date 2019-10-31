@@ -37,6 +37,7 @@ void force_option(u64 module_accessor) {
 
 void defensive_option(u64 module_accessor, int category, int& flag) {
     int status = StatusModule::status_kind(module_accessor);
+    int prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     if (status == FIGHTER_STATUS_KIND_CLIFF_JUMP3 ||
         status == FIGHTER_STATUS_KIND_CLIFF_JUMP2 ||
         status == FIGHTER_STATUS_KIND_CLIFF_JUMP1) {
@@ -46,7 +47,9 @@ void defensive_option(u64 module_accessor, int category, int& flag) {
     if ((status == FIGHTER_STATUS_KIND_CLIFF_CLIMB || 
         status == FIGHTER_STATUS_KIND_CLIFF_ATTACK || 
         status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE ||
-        StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_CLIFF_CLIMB) && 
+        prev_status == FIGHTER_STATUS_KIND_CLIFF_CLIMB ||
+        prev_status == FIGHTER_STATUS_KIND_CLIFF_ATTACK || 
+        prev_status == FIGHTER_STATUS_KIND_CLIFF_ESCAPE) && 
         (WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE) ||
         CancelModule::is_enable_cancel(module_accessor))) {
         perform_defensive_option(module_accessor);

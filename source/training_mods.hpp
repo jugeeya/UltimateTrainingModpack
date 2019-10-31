@@ -178,8 +178,12 @@ u64 change_motion_replace(u64 module_accessor, u64 motion_kind, float unk1, floa
     }
 
     u64 motion_module = load_module(module_accessor, 0x88);
+    u64 change_motion_offset = 0;
+    if (major < 4) change_motion_offset = 0xD8;
+    else change_motion_offset = 0xE0;
+    
     u64 (*change_motion)(u64,u64,float,float,bool,float,bool,bool) = 
-        (u64 (*)(u64,u64,float,float,bool,float,bool,bool)) load_module_impl(motion_module, 0xE0);
+        (u64 (*)(u64,u64,float,float,bool,float,bool,bool)) load_module_impl(motion_module, change_motion_offset);
 
     return change_motion(motion_module, motion_kind, unk1, unk2, unk3, unk4, unk5, unk6);
 }

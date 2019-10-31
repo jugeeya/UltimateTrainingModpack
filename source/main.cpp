@@ -66,8 +66,15 @@ void __attribute__((weak)) NORETURN __libnx_exit(int rc) {
 extern int sprintf(char* s, const char* format, ...) LINKABLE;
 
 int sprintf_intercept(char* s, const char* format, ...) {
-    if (strcmp(format, "Ver. %d.%d.%d") == 0 || strcmp(format, "Salty v%d%d%d") == 0)
-       format = "Training Mods v1.4";
+    if (strcmp(format, "Ver. %d.%d.%d") == 0 || strcmp(format, "Salty v%d%d%d") == 0) {
+        va_list vl;
+        va_start(vl, format);
+        major = va_arg(vl, int);
+        minor = va_arg(vl, int);
+        patch = va_arg(vl, int);
+        va_end(vl);
+        return vsprintf(s, "Training Mods v1.5", vl);
+    }
     va_list vl;
     va_start(vl,format);
 

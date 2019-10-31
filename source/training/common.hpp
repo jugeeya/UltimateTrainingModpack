@@ -5,6 +5,8 @@
 
 using namespace app::lua_bind;
 
+int major, minor, patch;
+
 u64 fighter_manager_addr;
 u64 is_training_mode(void) asm("_ZN3app9smashball16is_training_modeEv") LINKABLE;
 
