@@ -14,7 +14,7 @@
 /* DI */
 int DI_STATE = NONE;
 #define DI_RANDOM_IN_AWAY 9
-const char* di_items[] = { "None", "Away", "Up Away", "Up", "Up In", "In", "Down In", "Down", "Down In", "Random In/Away"};
+const char* di_items[] = { "None", "Away", "Up Away", "Up", "Up In", "In", "Down In", "Down", "Down Away", "Random In/Away"};
 
 // Attack Option
 #define MASH_NAIR 0
