@@ -1,0 +1,45 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+    env:
+      DEVKITPRO: /opt/devkitpro
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Sync submodules
+      run: git submodule sync --recursive && git submodule update --init --recursive
+    - name: Download DEVKITPRO
+      run: wget https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb
+    - name: Install DEVKITPRO
+      run: sudo dpkg -i devkitpro-pacman.deb
+    - name: Install dkp-pacman
+      run: printf "\nY" | sudo dkp-pacman -S switch-dev switch-freetype
+    - name: Make training_modpack.elf
+      run: make
+    - name: Copy built libnx fork
+      working-directory: layoff/
+      run: cp -a libnx_built/* libnx/nx
+    - name: Make layoff
+      working-directory: layoff
+      run: make && ./makelayeredfs.sh  
+    - name: Make SaltyNX
+      run: git clone https://github.com/shinyquagsire23/SaltyNX && cd SaltyNX && make
+    - name: Prepare folder layout
+      run: cp -r layoff/atmosphere . && cp -r SaltyNX/sdcard_out/* . && mkdir -p SaltySD/plugins/01006A800016E000 && cp training_modpack.elf SaltySD/plugins/01006A800016E000/training_modpack.elf
+    - name: ZIP Release
+      run: zip -r training_modpack.zip atmosphere SaltySD
+    - name: Upload Release
+      uses: majkrzak/create-release@latest
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: beta
+        code: beta
+        body: Beta built off of the latest code in the repository. Potentially unstable but with the latest features.
+        prerelease: true
+        recreate: true
+        assets: training_modpack.zip:training_modpack.zip:application/zip
