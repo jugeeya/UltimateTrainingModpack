@@ -48,6 +48,7 @@ const char* tech_items[] = { "None", "Random", "In-Place", "Roll", "Miss Tech" }
 // Mash States
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
+#define MASH_ATTACK 3
 #define MASH_SPOTDODGE 4
 #define MASH_RANDOM 5
 const char* mash_items[] = { "None", "Airdodge", "Jump", "Attack", "Spotdodge", "Random" };

@@ -36,7 +36,7 @@ bool is_in_shieldstun(u64 module_accessor) {
     // If we are taking shield damage or we are droping shield from taking shield damage we are in hitstun
     if(status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF))
     {
-        return true
+        return true;
     }
 
     return false;
