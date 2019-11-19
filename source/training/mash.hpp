@@ -34,7 +34,7 @@ int get_attack_air_kind(u64 module_accessor, bool& replace) {
 void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
+        if (is_in_hitstun(module_accessor) || is_in_landing(module_accessor) || is_in_shieldstun(module_accessor)) {
             if (menu.MASH_STATE == MASH_AIRDODGE)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
@@ -42,6 +42,10 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
             if (menu.MASH_STATE == MASH_JUMP && !is_in_landing(module_accessor))
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+
+            if (menu.MASH_STATE == MASH_SPOTDODGE)
+                if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
+                    flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
 
             if (menu.MASH_STATE == MASH_ATTACK)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
@@ -52,6 +56,9 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                         case MASH_UPAIR:
                         case MASH_DAIR:
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
+                            // If we are performing the attack OOS we also need to jump
+                            if(is_in_shieldstun(module_accessor))
+                                flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                             break;
                         case MASH_NEUTRAL_B:
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N;
@@ -64,6 +71,10 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                             break;
                         case MASH_DOWN_B:
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW;
+                        case MASH_UP_SMASH:
+                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4;
+                        case MASH_GRAB:
+                            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
                             break;
                     }
                 }

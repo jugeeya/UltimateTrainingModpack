@@ -30,7 +30,7 @@ float get_param_float(u64 module_accessor, u64 param_type, u64 param_hash, bool&
 bool check_button_on(u64 module_accessor, int button, bool& replace) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (menu.SHIELD_STATE == SHIELD_HOLD || menu.SHIELD_STATE == SHIELD_INFINITE) {
+            if (should_hold_shield(module_accessor)) {
                 replace = true;
                 return true;
             }
@@ -44,7 +44,7 @@ bool check_button_on(u64 module_accessor, int button, bool& replace) {
 bool check_button_off(u64 module_accessor, int button, bool& replace) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
-            if (menu.SHIELD_STATE == SHIELD_HOLD || menu.SHIELD_STATE == SHIELD_INFINITE) {
+            if (should_hold_shield(module_accessor)) {
                 replace = true;
                 return false;
             }
