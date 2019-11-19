@@ -71,8 +71,10 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                             break;
                         case MASH_DOWN_B:
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW;
+                            break;
                         case MASH_UP_SMASH:
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4;
+                            break;
                         case MASH_GRAB:
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
                             break;
