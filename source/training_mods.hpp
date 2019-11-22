@@ -175,6 +175,11 @@ u64 change_motion_replace(u64 module_accessor, u64 motion_kind, float unk1, floa
             if (rand_int) motion_kind = hash40("passive_stand_f");
             else motion_kind = hash40("passive_stand_b");
         }
+        if (motion_kind == hash40("down_stand_f") || motion_kind == hash40("down_stand_b")) {
+            int rand_int = app::sv_math::rand(hash40("fighter"), 2);
+            if (rand_int) motion_kind = hash40("down_stand_f");
+            else motion_kind = hash40("down_stand_b");
+        }
     }
 
     u64 motion_module = load_module(module_accessor, 0x88);
