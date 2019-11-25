@@ -95,5 +95,3 @@ make
 # make_layeredfs.bat for windows
 ./make_layeredfs.sh 
 ```
-
-
