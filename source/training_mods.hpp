@@ -169,18 +169,9 @@ void init_settings_replace(u64 module_accessor, int situationKind, int unk1, uin
 
 namespace MotionModule {
 u64 change_motion_replace(u64 module_accessor, u64 motion_kind, float unk1, float unk2, bool unk3, float unk4, bool unk5, bool unk6) {
-    if (menu.TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor)) {
-        if (motion_kind == hash40("passive_stand_f") || motion_kind == hash40("passive_stand_b")) {
-            int rand_int = app::sv_math::rand(hash40("fighter"), 2);
-            if (rand_int) motion_kind = hash40("passive_stand_f");
-            else motion_kind = hash40("passive_stand_b");
-        }
-        if (motion_kind == hash40("down_stand_f") || motion_kind == hash40("down_stand_b")) {
-            int rand_int = app::sv_math::rand(hash40("fighter"), 2);
-            if (rand_int) motion_kind = hash40("down_stand_f");
-            else motion_kind = hash40("down_stand_b");
-        }
-    }
+    bool replace;
+    u64 motion_kind_ret = Tech::change_motion(module_accessor, motion_kind, replace);
+    if (replace) motion_kind = motion_kind_ret;
 
     u64 motion_module = load_module(module_accessor, 0x88);
     u64 change_motion_offset = 0;

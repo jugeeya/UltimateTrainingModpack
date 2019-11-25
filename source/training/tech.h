@@ -75,4 +75,29 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
         }
     }
 }
+
+u64 change_motion(u64 module_accessor, u64 motion_kind, bool& replace) {
+    if (menu.TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor)) {
+        if (motion_kind == hash40("passive_stand_f") || motion_kind == hash40("passive_stand_b")) {
+            int rand_int = app::sv_math::rand(hash40("fighter"), 2);
+            if (rand_int) motion_kind = hash40("passive_stand_f");
+            else motion_kind = hash40("passive_stand_b");
+            replace = true;
+        }
+        if (motion_kind == hash40("down_forward_u") || motion_kind == hash40("down_back_u")) {
+            int rand_int = app::sv_math::rand(hash40("fighter"), 2);
+            if (rand_int) motion_kind = hash40("down_forward_u");
+            else motion_kind = hash40("down_back_u");
+            replace = true;
+        }
+        if (motion_kind == hash40("down_forward_d") || motion_kind == hash40("down_back_d")) {
+            int rand_int = app::sv_math::rand(hash40("fighter"), 2);
+            if (rand_int) motion_kind = hash40("down_forward_d");
+            else motion_kind = hash40("down_back_d");
+            replace = true;
+        }
+    }
+
+    return motion_kind;
+}
 }
