@@ -30,11 +30,47 @@ bool is_in_hitstun(u64 module_accessor) {
            status_kind <= FIGHTER_STATUS_KIND_DAMAGE_FALL;
 }
 
+bool is_in_shieldstun(u64 module_accessor) {
+    int status_kind = StatusModule::status_kind(module_accessor);
+    int prev_status = StatusModule::prev_status_kind(module_accessor, 0);
+    // If we are taking shield damage or we are droping shield from taking shield damage we are in hitstun
+    if(status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
 bool is_in_landing(u64 module_accessor) {
     int status_kind = StatusModule::status_kind(module_accessor);
     return status_kind >= FIGHTER_STATUS_KIND_LANDING &&
            status_kind <= FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT;
 }
+
+bool should_hold_shield(u64 module_accessor)
+{
+    // We should hold shield if the state requires it
+    if (menu.SHIELD_STATE == SHIELD_HOLD || menu.SHIELD_STATE == SHIELD_INFINITE) {
+        // If we are not mashing then we will always hold shield
+        if(menu.MASH_STATE == NONE)
+            return true;
+
+        if(!is_in_shieldstun(module_accessor))
+            return true;
+
+        // We will only drop shield if we are in shieldstun and our attack can be performed OOS
+        if(menu.MASH_STATE == MASH_ATTACK)
+        {
+            if(menu.ATTACK_STATE == MASH_NEUTRAL_B || menu.ATTACK_STATE == MASH_SIDE_B || menu.ATTACK_STATE == MASH_DOWN_B)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 
 void perform_defensive_option(u64 module_accessor) {
     if (menu.DEFENSIVE_STATE == RANDOM_DEFENSIVE) {

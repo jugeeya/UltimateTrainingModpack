@@ -26,7 +26,9 @@ const char* di_items[] = { "None", "Away", "Up Away", "Up", "Up In", "In", "Down
 #define MASH_SIDE_B 6
 #define MASH_UP_B 7
 #define MASH_DOWN_B 8
-const char* attack_items[] = { "Neutral Air", "Forward Air", "Back Air", "Up Air", "Down Air", "Neutral B", "Side B", "Up B", "Down B" };
+#define MASH_UP_SMASH 9
+#define MASH_GRAB 10
+const char* attack_items[] = { "Neutral Air", "Forward Air", "Back Air", "Up Air", "Down Air", "Neutral B", "Side B", "Up B", "Down B", "Up Smash", "Grab" };
 
 // Ledge Option
 #define RANDOM_LEDGE 1
@@ -47,8 +49,9 @@ const char* tech_items[] = { "None", "Random", "In-Place", "Roll", "Miss Tech" }
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
 #define MASH_ATTACK 3
-#define MASH_RANDOM 4
-const char* mash_items[] = { "None", "Airdodge", "Jump", "Attack", "Random" };
+#define MASH_SPOTDODGE 4
+#define MASH_RANDOM 5
+const char* mash_items[] = { "None", "Airdodge", "Jump", "Attack", "Spotdodge", "Random" };
 
 // Shield States
 #define SHIELD_INFINITE 1
