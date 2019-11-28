@@ -1,4 +1,4 @@
-#include "common.hpp"
+#include "common.h"
 
 namespace Ledge {
 void force_option(u64 module_accessor) {

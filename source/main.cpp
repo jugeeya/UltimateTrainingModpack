@@ -14,8 +14,8 @@
 #include "saltysd/saltysd_ipc.h"
 #include "saltysd/saltysd_helper.h"
 
-#include "hitbox_visualizer.hpp"
-#include "training_mods.hpp"
+#include "hitbox_visualizer.h"
+#include "training_mods.h"
 
 extern "C" {
 extern u32 __start__;

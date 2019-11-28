@@ -1,4 +1,4 @@
-#include "common.hpp"
+#include "common.h"
 #include "useful/crc32.h"
 
 namespace Shield {
@@ -25,6 +25,26 @@ float get_param_float(u64 module_accessor, u64 param_type, u64 param_hash, bool&
 
     replace = false;
     return 0.0;
+}
+
+bool should_hold_shield(u64 module_accessor) {
+    // We should hold shield if the state requires it
+    if (menu.SHIELD_STATE == SHIELD_HOLD || menu.SHIELD_STATE == SHIELD_INFINITE) {
+        // If we are not mashing then we will always hold shield
+        if(menu.MASH_STATE == NONE)
+            return true;
+
+        if(!is_in_shieldstun(module_accessor))
+            return true;
+
+        // We will only drop shield if we are in shieldstun and our attack can be performed OOS
+        if(menu.MASH_STATE == MASH_ATTACK) {
+            if(menu.ATTACK_STATE == MASH_NEUTRAL_B || menu.ATTACK_STATE == MASH_SIDE_B || menu.ATTACK_STATE == MASH_DOWN_B)
+                return true;
+        }
+    }
+
+    return false;
 }
 
 bool check_button_on(u64 module_accessor, int button, bool& replace) {

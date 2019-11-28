@@ -1,4 +1,4 @@
-#include "common.hpp"
+#include "common.h"
 
 namespace Mash {
 int get_attack_air_kind(u64 module_accessor, bool& replace) {

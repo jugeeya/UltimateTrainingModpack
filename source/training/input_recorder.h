@@ -1,5 +1,5 @@
 #pragma once
-#include "common.hpp"
+#include "common.h"
 
 typedef struct FrameInput {
     int cat1_flag;

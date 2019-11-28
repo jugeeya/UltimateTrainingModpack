@@ -14,14 +14,14 @@
 #include "saltysd/saltysd_helper.h"
 #include "taunt_toggles.h"
 
-#include "training/common.hpp"
-#include "training/save_states.hpp"
-#include "training/directional_influence.hpp"
-#include "training/ledge.hpp"
-#include "training/mash.hpp"
-#include "training/shield.hpp"
+#include "training/common.h"
+#include "training/save_states.h"
+#include "training/directional_influence.h"
+#include "training/ledge.h"
+#include "training/mash.h"
+#include "training/shield.h"
 #include "training/tech.h"
-#include "training/input_recorder.hpp"
+#include "training/input_recorder.h"
 
 using namespace lib;
 using namespace app::lua_bind;

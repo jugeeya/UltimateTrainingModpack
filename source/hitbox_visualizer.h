@@ -10,7 +10,7 @@
 #include "acmd_wrapper.h"
 #include "lib/l2c_imports.h"
 #include "saltysd/saltysd_helper.h"
-#include "training/common.hpp"
+#include "training/common.h"
 #include "useful/const_value_table.h"
 
 #include "useful/raygun_printer.h"

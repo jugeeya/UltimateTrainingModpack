@@ -1,4 +1,4 @@
-#include "common.hpp"
+#include "common.h"
 
 namespace Tech {
 void init_settings(u64 module_accessor, int status_kind, bool& replace) {
