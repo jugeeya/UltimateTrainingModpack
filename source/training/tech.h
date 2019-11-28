@@ -28,22 +28,23 @@ void init_settings(u64 module_accessor, int status_kind, bool& replace) {
                 return;
             } 
         }
-
-        // else if (status_kind == FIGHTER_STATUS_KIND_PASSIVE) {
-        //     const int NUM_TECH_STATUSES = 2;
-        //     int random_statuses[NUM_TECH_STATUSES] = {
-        //         FIGHTER_STATUS_KIND_PASSIVE,
-        //         FIGHTER_STATUS_KIND_PASSIVE_FB
-        //     };
-
-        //     int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_TECH_STATUSES);
-        //     if (random_statuses[random_status_index] != FIGHTER_STATUS_KIND_PASSIVE)
-        //         StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
-        // }
     }
 
     replace = false;
     return;
+}
+
+bool should_perform_defensive_option(u64 module_accessor, int prev_status, int status) {
+    return (prev_status == FIGHTER_STATUS_KIND_PASSIVE || 
+        prev_status == FIGHTER_STATUS_KIND_PASSIVE_FB ||
+        prev_status == FIGHTER_STATUS_KIND_DOWN_STAND ||
+        prev_status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
+        prev_status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK ||
+        status == FIGHTER_STATUS_KIND_DOWN_STAND ||
+        status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
+        status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK) && 
+        (WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON) || 
+        CancelModule::is_enable_cancel(module_accessor));
 }
 
 void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
@@ -61,19 +62,28 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
             int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GETUP_STATUSES);
             StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
         }
-        else if ((prev_status == FIGHTER_STATUS_KIND_PASSIVE || 
-            prev_status == FIGHTER_STATUS_KIND_PASSIVE_FB ||
-            prev_status == FIGHTER_STATUS_KIND_DOWN_STAND ||
-            prev_status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
-            prev_status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK ||
-            status == FIGHTER_STATUS_KIND_DOWN_STAND ||
-            status == FIGHTER_STATUS_KIND_DOWN_STAND_FB ||
-            status == FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK) && 
-            (WorkModule::is_enable_transition_term(module_accessor, FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON) || 
-            CancelModule::is_enable_cancel(module_accessor))) {
-            perform_defensive_option(module_accessor);
+        else if (should_perform_defensive_option(module_accessor, prev_status, status)) {
+            perform_defensive_option(module_accessor, flag);
         }
     }
+}
+
+bool check_button_on(u64 module_accessor, int button, bool& replace) {
+    if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
+        if (is_training_mode() && is_operation_cpu(module_accessor)) {
+            if (menu.DEFENSIVE_STATE == DEFENSIVE_SHIELD && 
+                should_perform_defensive_option(
+                    module_accessor, 
+                    StatusModule::prev_status_kind(module_accessor, 0), 
+                    StatusModule::status_kind(module_accessor))) {
+                replace = true;
+                return true;
+            }
+        }
+    }
+
+    replace = false;
+    return false;
 }
 
 u64 change_motion(u64 module_accessor, u64 motion_kind, bool& replace) {

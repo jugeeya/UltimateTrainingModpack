@@ -60,10 +60,11 @@ const char* shield_items[] = { "None", "Infinite", "Hold" };
 
 // Defensive States
 #define RANDOM_DEFENSIVE 1
-#define DEFENSIVE_SHIELD 2
-#define DEFENSIVE_SPOTDODGE 3
+#define DEFENSIVE_SPOTDODGE 2
+#define DEFENSIVE_ROLL 3
 #define DEFENSIVE_JAB 4
-const char* defensive_items[] = { "None", "Random", "Flash Shield", "Spotdodge", "Jab" };
+#define DEFENSIVE_SHIELD 5
+const char* defensive_items[] = { "None", "Random", "Spotdodge", "Roll", "Jab", "Flash Shield" };
 
 struct TrainingModpackMenu {
     bool HITBOX_VIS = 1;

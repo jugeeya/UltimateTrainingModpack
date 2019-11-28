@@ -50,21 +50,26 @@ bool is_in_landing(u64 module_accessor) {
 }
 
 
-void perform_defensive_option(u64 module_accessor) {
+void perform_defensive_option(u64 module_accessor, int& flag) {
     if (menu.DEFENSIVE_STATE == RANDOM_DEFENSIVE) {
-        const int NUM_GROUND_STATUSES = 3;
-        int random_statuses[NUM_GROUND_STATUSES] = {
-            FIGHTER_STATUS_KIND_ESCAPE, 
-            FIGHTER_STATUS_KIND_ATTACK,
-            FIGHTER_STATUS_KIND_GUARD_ON
+        const int NUM_DEFENSIVE_CMDS = 4;
+        int random_cmds[NUM_DEFENSIVE_CMDS] = {
+            FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+            FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+            FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+            FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N
         };
 
-        int random_status_index = app::sv_math::rand(hash40("fighter"), NUM_GROUND_STATUSES);
-        StatusModule::change_status_request_from_script(module_accessor, random_statuses[random_status_index], 1);
-    } else if (menu.DEFENSIVE_STATE == DEFENSIVE_SHIELD)
-        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_GUARD_ON, 1);
+        int random_cmd_index = app::sv_math::rand(hash40("fighter"), NUM_DEFENSIVE_CMDS);
+        flag |= random_cmds[random_cmd_index];
+    } else if (menu.DEFENSIVE_STATE == DEFENSIVE_ROLL) {
+        if (app::sv_math::rand(hash40("fighter"), 2))
+            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
+        else
+            flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
+    }
     else if (menu.DEFENSIVE_STATE == DEFENSIVE_SPOTDODGE)
-        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_ESCAPE, 1);
+        flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
     else if (menu.DEFENSIVE_STATE == DEFENSIVE_JAB)
-        StatusModule::change_status_request_from_script(module_accessor, FIGHTER_STATUS_KIND_ATTACK, 1);
+        flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
 }

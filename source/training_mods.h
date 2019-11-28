@@ -136,6 +136,10 @@ bool check_button_on_replace(u64 module_accessor, int button) {
     if (replace) return ret;
     ret = Mash::check_button_on(module_accessor, button, replace);
     if (replace) return ret;
+    ret = Tech::check_button_on(module_accessor, button, replace);
+    if (replace) return ret;
+    ret = Ledge::check_button_on(module_accessor, button, replace);
+    if (replace) return ret;
 
     u64 control_module = load_module(module_accessor, 0x48);
     bool (*check_button_on)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x260);
