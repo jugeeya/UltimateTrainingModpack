@@ -47,7 +47,7 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1)
                     flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
 
-            if (menu.MASH_STATE == MASH_ATTACK)
+            if (menu.MASH_STATE == MASH_ATTACK) {
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
                     switch (menu.ATTACK_STATE) {
                         case MASH_NAIR:
@@ -79,7 +79,11 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
                             break;
                     }
+                } else if (category == 1) {
+                    if (menu.ATTACK_STATE == MASH_GRAB)
+                        flag |= FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
                 }
+            }
 
             if (menu.MASH_STATE == MASH_RANDOM)
                 if (category == FIGHTER_PAD_COMMAND_CATEGORY1) {
