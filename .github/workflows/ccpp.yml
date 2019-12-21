@@ -27,10 +27,8 @@ jobs:
     - name: Make layoff
       working-directory: layoff
       run: make && ./makelayeredfs.sh  
-    - name: Make SaltyNX
-      run: git clone https://github.com/shinyquagsire23/SaltyNX && cd SaltyNX && make
     - name: Prepare folder layout
-      run: cp -r layoff/atmosphere . && cp -r SaltyNX/sdcard_out/* . && mkdir -p SaltySD/plugins/01006A800016E000 && cp training_modpack.elf SaltySD/plugins/01006A800016E000/training_modpack.elf
+      run: cp -r layoff/atmosphere . && mkdir -p SaltySD/plugins/01006A800016E000 && cp training_modpack.elf SaltySD/plugins/01006A800016E000/training_modpack.elf
     - name: ZIP Release
       run: zip -r training_modpack.zip atmosphere SaltySD
     - name: Upload Release
