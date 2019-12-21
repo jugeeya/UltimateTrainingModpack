@@ -78,7 +78,7 @@ int get_command_flag_cat_replace(u64 module_accessor, int category) {
         is_training_mode() &&
         menu.HITBOX_VIS &&
         !((status_kind >= FIGHTER_STATUS_KIND_CATCH && status_kind <= FIGHTER_STATUS_KIND_TREAD_FALL) ||
-          (status_kind >= FIGHTER_STATUS_KIND_WAIT && status_kind <= FIGHTER_STATUS_KIND_REBOUND_JUMP));
+          (status_kind >= FIGHTER_STATUS_KIND_WAIT && status_kind <= FIGHTER_STATUS_KIND_REBOUND_JUMP)));
 
     u64 control_module = load_module(module_accessor, 0x48);
     int (*get_command_flag_cat)(u64, int) = (int (*)(u64, int)) load_module_impl(control_module, 0x350);

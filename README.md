@@ -89,6 +89,7 @@ cd UltimateTrainingModpack/
 make
 # building the Layoff menu
 cd layoff/libnx
+pacman -Sy switch-freetype
 make
 cd ..
 make
