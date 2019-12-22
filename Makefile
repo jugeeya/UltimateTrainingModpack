@@ -45,7 +45,9 @@ CFLAGS	:=	-Wall -O2 \
 			-ffast-math \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -DSWITCH
+TIMESTAMP := $(shell date "+%m/%d %I:%M%p")
+
+CFLAGS	+=	$(INCLUDE) -DSWITCH -DBUILD_TS='"$(TIMESTAMP)"'
 
 CXXFLAGS	:= $(CFLAGS) -g3 -fno-rtti -Wno-parentheses -Wno-write-strings -Wno-int-to-pointer-cast -std=gnu++11
 

@@ -57,7 +57,7 @@ void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
                         case MASH_DAIR:
                             flag |= FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
                             // If we are performing the attack OOS we also need to jump
-                            if(is_in_shieldstun(module_accessor))
+                            if (is_in_shieldstun(module_accessor))
                                 flag |= FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                             break;
                         case MASH_NEUTRAL_B:
@@ -146,6 +146,15 @@ bool check_button_on(u64 module_accessor, int button, bool& replace) {
     if (button == CONTROL_PAD_BUTTON_GUARD_HOLD || button == CONTROL_PAD_BUTTON_GUARD) {
         if (is_training_mode() && is_operation_cpu(module_accessor)) {
             if (menu.MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor))) {
+                replace = true;
+                return true;
+            }
+        }
+    }
+
+    if (button == CONTROL_PAD_BUTTON_ATTACK || button == CONTROL_PAD_BUTTON_CATCH) {
+        if (is_training_mode() && is_operation_cpu(module_accessor)) {
+            if (menu.MASH_STATE == MASH_ATTACK && menu.ATTACK_STATE == MASH_GRAB && is_in_shieldstun(module_accessor)) {
                 replace = true;
                 return true;
             }

@@ -3,6 +3,22 @@
 #include "useful/const_value_table.h"
 #include "../taunt_toggles.h"
 
+// Uncomment the line below to debug using syslogger.
+// #define DEBUG
+
+#ifdef DEBUG
+struct LogPacket
+{
+    bool dirty = false;
+    bool to_sd = false;
+    char buffer[256];
+} logger;
+
+#define syslog(...) snprintf(logger.buffer, 256, __VA_ARGS__); logger.dirty = true; logger.to_sd = true;
+#else
+#define syslog(...) 
+#endif
+
 using namespace app::lua_bind;
 
 int major, minor, patch;

@@ -73,7 +73,11 @@ int sprintf_intercept(char* s, const char* format, ...) {
         minor = va_arg(vl, int);
         patch = va_arg(vl, int);
         va_end(vl);
+#if defined(DEBUG) && defined(BUILD_TS)
+        return vsprintf(s, BUILD_TS, vl);
+#else
         return vsprintf(s, "Training Mods v1.5", vl);
+#endif
     }
     va_list vl;
     va_start(vl,format);
@@ -116,6 +120,17 @@ int main(int argc, char* argv[]) {
 		SaltySDCore_fwrite(buffer, strlen(buffer), 1, f);
 		SaltySDCore_fclose(f);
 	}
+
+#ifdef DEBUG
+    f = SaltySDCore_fopen("sdmc:/SaltySD/syslog.conf", "w");
+    if (f) {
+        SaltySD_printf("Writing config file...\n");
+        char buffer[20];
+        snprintf(buffer, 20, "%lx", (u64)&logger);
+        SaltySDCore_fwrite(buffer, strlen(buffer), 1, f);
+        SaltySDCore_fclose(f);
+    }
+#endif
 
     __libnx_exit(0);
 }

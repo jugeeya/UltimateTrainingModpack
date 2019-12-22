@@ -80,20 +80,15 @@ void set_rebound_replace(u64 module_accessor, bool rebound) {
 }
 }  // namespace app::lua_bind::GrabModule
 
-Vector3f EffectModule_last_get_scale_w(u64 effect_module) {
-    Vector3f ret;
+void EffectModule_last_get_scale_w(u64 effect_module, Vector3f* scale) {
     uint handle = *(uint *)(effect_module + 36);
     if (handle && (signed int)handle >= 1) {
         u64 effect = LOAD64(effect_manager_addr) + 768 * (handle >> 24);
         bool is_exist_effect = effect && *(uint *)(effect + 4) == handle;
         if (is_exist_effect) {
-            float *scale = (float *)(effect + 256);
-            ret.x = *(float *)(scale);
-            ret.y = *(float *)(scale + 1);
-            ret.z = *(float *)(scale + 2);
+            *scale = *(Vector3f *)(effect + 256);
         }
     }
-    return ret;
 }
 
 void generate_hitbox_effects(L2CAgent *l2c_agent, L2CValue *bone,
