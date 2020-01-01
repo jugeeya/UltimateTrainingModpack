@@ -31,6 +31,10 @@ int get_attack_air_kind(u64 module_accessor, bool& replace) {
     return kind;
 }
 
+void get_random_command_flag(int& flag) {
+    return;
+}
+
 void get_command_flag_cat(u64 module_accessor, int category, int& flag) {
 
     if (is_training_mode() && is_operation_cpu(module_accessor)) {
