@@ -7,13 +7,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "no_std_test"
-version = "0.1.0"
-dependencies = [
- "skyline",
-]
-
-[[package]]
 name = "proc-macro2"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -29,13 +22,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2bdc6c187c65bca4260c9011c9e3132efe4909da44726bad24cf7572ae338d7f"
 dependencies = [
  "proc-macro2",
-]
-
-[[package]]
-name = "skyline"
-version = "0.0.1"
-dependencies = [
- "skyline_macro",
 ]
 
 [[package]]

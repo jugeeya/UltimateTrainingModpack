@@ -1,10 +1,16 @@
 [package]
-name = "skyline"
-version = "0.0.1"
+name = "skyline_macro"
+version = "0.1.0"
 authors = ["jam1garner <jam1.mcleod@hotmail.com>"]
 edition = "2018"
+
+[lib]
+proc-macro = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-skyline_macro = { path = "./skyline_macro" }
+syn = { version = "1", features = ["full", "extra-traits"] }
+quote = "1"
+proc-macro2 = "1"
+lazy_static = "1.4"

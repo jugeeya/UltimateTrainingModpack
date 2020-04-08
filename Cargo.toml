@@ -11,7 +11,3 @@ crate-type = ["cdylib"]
 
 [dependencies]
 skyline = { path = "./skyline" }
-
-[build-dependencies]
-tempfile = "3"
-
