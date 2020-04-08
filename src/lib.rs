@@ -3,7 +3,7 @@
 #![feature(lang_items, start, global_asm, const_generics, impl_trait_in_bindings)]
 
 use core::any::Any;
-use extern_alloc::Allocator;
+use skyline::Allocator;
 
 #[global_allocator]
 pub static ALLOCATOR: Allocator = Allocator;

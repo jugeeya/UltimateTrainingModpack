@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-extern_alloc = { path = "./extern_alloc" }
+skyline = { path = "./skyline" }
 
 [build-dependencies]
 tempfile = "3"

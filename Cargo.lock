@@ -7,10 +7,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
-name = "extern_alloc"
-version = "0.1.0"
-
-[[package]]
 name = "getrandom"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -31,7 +27,7 @@ checksum = "dea0c0405123bba743ee3f91f49b1c7cfb684eef0da0a50110f758ccf24cdff0"
 name = "no_std_test"
 version = "0.1.0"
 dependencies = [
- "extern_alloc",
+ "skyline",
  "tempfile",
 ]
 
@@ -96,6 +92,10 @@ checksum = "4a83fa3702a688b9359eccba92d153ac33fd2e8462f9e0e3fdf155239ea7792e"
 dependencies = [
  "winapi",
 ]
+
+[[package]]
+name = "skyline"
+version = "0.0.1"
 
 [[package]]
 name = "tempfile"
