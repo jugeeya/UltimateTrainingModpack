@@ -7,7 +7,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "nn"
+name = "nnsdk"
 version = "0.1.0"
 dependencies = [
  "skyline_libc",
@@ -42,7 +42,7 @@ dependencies = [
 name = "skyline"
 version = "0.0.1"
 dependencies = [
- "nn",
+ "nnsdk",
  "skyline_libc",
  "skyline_macro",
 ]

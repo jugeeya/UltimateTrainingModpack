@@ -7,7 +7,7 @@ extern fn eh_personality() {
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
 
-    crate::log("Panic at the Rust lib!\n");
+    crate::logging::log("Panic at the Rust lib!\n");
 
     loop {}
 }
@@ -41,4 +41,11 @@ impl<const LEN: usize> ModuleName<LEN> {
 #[link_section = ".rodata.module_name"]
 pub static MODULE_NAME: impl Any = ModuleName::new(b"no_std_test\0");
 
-
+/// one-time setup for skyline
+#[doc(hidden)]
+#[macro_export] macro_rules! setup {
+    () => {
+        #[global_allocator]
+        pub static ALLOCATOR: $crate::extern_alloc::Allocator = $crate::extern_alloc::Allocator;
+    };
+}

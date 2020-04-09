@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 skyline_macro = { path = "./skyline_macro" }
-nn = { path = "./nn" }
+nnsdk = { path = "./nnsdk" }
 skyline_libc = { path = "./skyline_libc" }
