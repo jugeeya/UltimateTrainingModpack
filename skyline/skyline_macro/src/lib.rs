@@ -55,12 +55,12 @@ pub fn hook(_: TokenStream, input: TokenStream) -> TokenStream {
 
     let mod_fn = mod_fn.sig.ident;
 
-    let info = quote::format_ident!(
+    let _info = quote::format_ident!(
         "{}_skyline_internal_hook_info",
         mod_fn
     );
 
-    let hook = quote::format_ident!(
+    let _hook = quote::format_ident!(
         "{}_skyline_internal_hook",
         mod_fn
     );

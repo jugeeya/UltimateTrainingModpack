@@ -1,17 +1,10 @@
 #![no_std]
 #![feature(proc_macro_hygiene)]
 
-use skyline::hook;
-
-#[hook(sym = "nn::fs::MountSaveData")]
-fn test1(path: *const u8, user_id: u64) {
-    println!("user id: {}", user_id);
-}
-
-#[hook(inline, offset = 0x71000030)]
-fn test2(x: u32) -> u64 {
-    (x as u64) + 1
-}
+use skyline::{
+    libc::{fopen, FileOpenMode, fwrite_slice, fclose},
+    c_str
+};
 
 #[skyline::main]
 pub fn main() {
@@ -21,7 +14,17 @@ pub fn main() {
         println!("{}", i);
     }
 
-    for hook in skyline::iter_hooks() {
-        println!("hook: {}", hook.info.fn_name);
+    println!("Writing to file!");
+    
+    write_to_file("sd:/test.txt\0", "test test test test");
+    
+    println!("Done writing to file!");
+}
+
+fn write_to_file(file: &str, contents: &str) {
+    unsafe {
+        let file = fopen(c_str(file), FileOpenMode::Write);
+        fwrite_slice(contents.as_bytes(), file);
+        fclose(file);
     }
 }

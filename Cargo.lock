@@ -7,6 +7,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
+name = "nn"
+version = "0.1.0"
+dependencies = [
+ "skyline_libc",
+]
+
+[[package]]
 name = "no_std_test"
 version = "0.1.0"
 dependencies = [
@@ -35,8 +42,14 @@ dependencies = [
 name = "skyline"
 version = "0.0.1"
 dependencies = [
+ "nn",
+ "skyline_libc",
  "skyline_macro",
 ]
+
+[[package]]
+name = "skyline_libc"
+version = "0.1.0"
 
 [[package]]
 name = "skyline_macro"

@@ -1,3 +1,5 @@
+#![no_std]
+
 //! Public exports of libc functions
 #![allow(non_camel_case_types)]
 
@@ -7,6 +9,7 @@ pub type c_char = u8;
 pub type time_t = i32;
 pub type wchar_t = u16;
 pub type c_long = i64;
+pub type c_ulong = u64;
 
 pub type c_schar = i8;
 pub type c_uchar = u8;
@@ -52,6 +55,16 @@ pub struct tm {
     pub tm_wday: c_int,
     pub tm_yday: c_int,
     pub tm_isdst: c_int,
+}
+
+#[allow(non_snake_case, non_upper_case_globals, dead_code)]
+pub mod FileOpenMode {
+    pub const Write: *const u8 = "w\0".as_bytes().as_ptr();
+    pub const Read: *const u8 = "r\0".as_bytes().as_ptr();
+    pub const Append: *const u8 = "a\0".as_bytes().as_ptr();
+    pub const ReadUpdate: *const u8 = "r+\0".as_bytes().as_ptr();
+    pub const WriteUpdate: *const u8 = "w+\0".as_bytes().as_ptr();
+    pub const AppendUpdate: *const u8 = "a+\0".as_bytes().as_ptr();
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -116,6 +129,7 @@ extern "C" {
         nobj: size_t,
         stream: *mut FILE,
     ) -> size_t;
+
     pub fn fseek(stream: *mut FILE, offset: c_long, whence: c_int) -> c_int;
     pub fn ftell(stream: *mut FILE) -> c_long;
     pub fn rewind(stream: *mut FILE);
@@ -285,4 +299,15 @@ extern "C" {
     ) -> ssize_t;
 
     pub fn fdopendir(fd: c_int) -> *mut DIR;
+}
+
+pub fn fwrite_slice<T: Sized>(slice: &[T], stream: *mut FILE) -> size_t {
+    unsafe {
+        fwrite(
+            slice.as_ptr() as _,
+            core::mem::size_of::<T>(),
+            slice.len(),
+            stream
+        )
+    }
 }

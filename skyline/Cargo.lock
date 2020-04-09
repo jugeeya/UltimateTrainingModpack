@@ -6,6 +6,13 @@ version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "nn"
+version = "0.1.0"
+dependencies = [
+ "skyline_libc 0.1.0",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -25,8 +32,14 @@ dependencies = [
 name = "skyline"
 version = "0.0.1"
 dependencies = [
+ "nn 0.1.0",
+ "skyline_libc 0.1.0",
  "skyline_macro 0.1.0",
 ]
+
+[[package]]
+name = "skyline_libc"
+version = "0.1.0"
 
 [[package]]
 name = "skyline_macro"
