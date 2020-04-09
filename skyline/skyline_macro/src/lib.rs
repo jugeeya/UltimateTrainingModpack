@@ -1,8 +1,7 @@
 use quote::{ToTokens, quote};
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, token, Token, Ident, Path, AttrStyle, punctuated::Punctuated};
+use syn::{parse_macro_input, token, Ident, AttrStyle};
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use syn::parse::Parser;
 
 
 fn new_attr(attr_name: &str) -> syn::Attribute {
@@ -38,66 +37,50 @@ pub fn main(_: TokenStream, item: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn hook(_: TokenStream, input: TokenStream) -> TokenStream {
-    let mod_fn = parse_macro_input!(input as syn::ItemFn);
+    let mut mod_fn = parse_macro_input!(input as syn::ItemFn);
     let mut output = TokenStream2::new();
+
+    // #[no_mangle]
+    mod_fn.attrs.push(
+        new_attr("no_mangle")
+    );
+
+    // extern "C"
+    mod_fn.sig.abi = Some(syn::Abi {
+        extern_token: syn::token::Extern { span: Span::call_site() },
+        name: Some(syn::LitStr::new("C", Span::call_site()))
+    });
 
     mod_fn.to_tokens(&mut output);
 
-    let ident = quote::format_ident!(
+    let mod_fn = mod_fn.sig.ident;
+
+    let info = quote::format_ident!(
         "{}_skyline_internal_hook_info",
-        mod_fn.sig.ident
+        mod_fn
+    );
+
+    let hook = quote::format_ident!(
+        "{}_skyline_internal_hook",
+        mod_fn
     );
 
     quote!(
-        #[allow(non_upper_case_globals)]
-        const #ident: ::skyline::hooks::HookInfo = ::skyline::hooks::HookInfo {
+        /*#[allow(non_upper_case_globals)]
+        static #info: ::skyline::hooks::HookInfo = ::skyline::hooks::HookInfo {
             name: None,
+            fn_name: stringify!(#mod_fn),
             offset: None,
             symbol: None,
             inline: false
         };
+        #[allow(non_upper_case_globals)]
+        #[link_section = ".rodata.hooks"]
+        static #hook: ::skyline::hooks::Hook = ::skyline::hooks::Hook{
+            ptr: #mod_fn as *const (),
+            info: &#info
+        };*/
     ).to_tokens(&mut output);
 
     output.into()
-}
-
-fn parse_hook_fns(input: TokenStream) -> syn::Result<Vec<Path>> {
-    Ok(
-        Punctuated::<Path, Token![,]>::parse_terminated
-            .parse(input)?
-            .into_iter()
-            .collect()
-    )
-}
-
-fn concat_path(path: &Path) -> Path {
-    let mut path = path.clone();
-    
-    let last = path.segments.iter_mut().last().unwrap();
-
-    last.ident = quote::format_ident!("{}_skyline_internal_hook_info", last.ident);
-
-    path
-}
-
-#[proc_macro]
-pub fn hooks(tokens: TokenStream) -> TokenStream {
-    parse_hook_fns(tokens)
-        .map(|hook_fns|{
-            let hook_fn_infos = hook_fns.iter().map(concat_path);
-            quote!{
-                ::skyline::hooks::Hooks(::skyline::alloc::vec![
-                    #(
-                        ::skyline::new_hook!(
-                            #hook_fns,
-                            #hook_fn_infos
-                        )
-                    ),*
-                ])
-            }
-        })
-        .unwrap_or_else(|e|{
-            e.to_compile_error()
-        })
-        .into()
 }

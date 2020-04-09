@@ -14,7 +14,10 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 
 global_asm!(include_str!("mod0.s"));
 
-#[no_mangle] pub extern "C" fn __custom_init() {}
+#[no_mangle] pub unsafe extern "C" fn __custom_init() {
+}
+
+
 #[no_mangle] pub extern "C" fn __custom_fini() {}
 
 #[repr(packed)]

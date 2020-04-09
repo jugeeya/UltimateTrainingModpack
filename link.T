@@ -17,7 +17,7 @@ SECTIONS
 
   .text : ALIGN(0x1000) {
     HIDDEN(__text_start = .);
-    KEEP(*(.nro_header))
+    *(.nro_header)
     KEEP(*(.text.jmp))
 
     . = 0x80;
@@ -32,7 +32,17 @@ SECTIONS
 
   . = ALIGN(0x1000);
   .module_name : { KEEP (*(.rodata.module_name)) } :rodata 
-  .rodata : { *(.rodata .rodata.*) } :rodata
+  
+  .hooks : {
+      __hook_array_start = .;
+      *(.rodata.hooks)
+      __hook_array_end = .;
+  } :rodata
+  
+  .rodata : {
+    *(.rodata .rodata.*) 
+  } :rodata
+
   .mod0 : {
     KEEP(crt0.nso.o(.data.mod0))
     KEEP(crt0.nro.o(.data.mod0))

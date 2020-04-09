@@ -1,7 +1,7 @@
 #![no_std]
 #![feature(proc_macro_hygiene)]
 
-use skyline::{hook, hooks};
+use skyline::hook;
 
 #[hook(sym = "nn::fs::MountSaveData")]
 fn test1(path: *const u8, user_id: u64) {
@@ -21,5 +21,7 @@ pub fn main() {
         println!("{}", i);
     }
 
-    hooks![test1, test2].install_hooks();
+    for hook in skyline::iter_hooks() {
+        println!("hook: {}", hook.info.fn_name);
+    }
 }

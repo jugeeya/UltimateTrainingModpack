@@ -9,7 +9,8 @@ pub mod hooks;
 pub mod build;
 pub mod extern_alloc;
 pub use extern_alloc::Allocator;
-pub use skyline_macro::{main, hook, hooks};
+pub use skyline_macro::{main, hook};
+pub use hooks::iter_hooks;
 
 extern "C" {
     fn skyline_tcp_send_raw(bytes: *const u8, usize: u64);
