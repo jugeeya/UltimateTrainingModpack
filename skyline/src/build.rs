@@ -1,5 +1,3 @@
-use core::any::Any;
-
 #[lang = "eh_personality"]
 extern fn eh_personality() {
 }
@@ -14,11 +12,19 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 
 global_asm!(include_str!("mod0.s"));
 
-#[no_mangle] pub unsafe extern "C" fn __custom_init() {
-}
-
-
+#[no_mangle] pub unsafe extern "C" fn __custom_init() {}
 #[no_mangle] pub extern "C" fn __custom_fini() {}
+
+#[macro_export] macro_rules! set_module_name {
+    ($lit:literal) => {
+        const __SKYLINE_INTERNAL_MODULE_LEN: usize = $lit.len() + 1;
+        #[link_section = ".rodata.module_name"]
+        pub static __MODULE_NAME: ::skyline::build::ModuleName<__SKYLINE_INTERNAL_MODULE_LEN> =
+            ::skyline::build::ModuleName::new(
+                ::skyline::skyline_macro::to_null_term_bytes!($lit)
+            );
+    };
+}
 
 #[repr(packed)]
 #[allow(unused_variables)]
@@ -32,14 +38,11 @@ impl<const LEN: usize> ModuleName<LEN> {
     pub const fn new(bytes: &[u8; LEN]) -> Self {
         Self {
             unk: 0,
-            name_length: LEN as u32,
+            name_length: LEN as u32 - 1,
             name: *bytes,
         }
     }
 }
-
-#[link_section = ".rodata.module_name"]
-pub static MODULE_NAME: impl Any = ModuleName::new(b"no_std_test\0");
 
 /// one-time setup for skyline
 #[doc(hidden)]

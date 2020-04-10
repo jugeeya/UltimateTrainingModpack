@@ -1596,7 +1596,7 @@ pub mod root {
                 );
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2os21TimedPeekMessageQueueEPmPKNS0_16MessageQueueTypeENS_8TimeSpanE"]
+                #[link_name = "\u{1}_ZN2nn2os21TimedPeekMessageQueueEPmPKNS0_16MessageQueueTypeE"]
                 pub fn TimedPeekMessageQueue(
                     arg1: *mut u64,
                     arg2: *const root::nn::os::MessageQueueType,
@@ -1638,7 +1638,7 @@ pub mod root {
                 pub fn BroadcastConditionVariable(arg1: *mut root::nn::os::ConditionVariableType);
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2os21WaitConditionVariableEPNS0_21ConditionVariableTypeEPNS0_9MutexTypeE"]
+                #[link_name = "\u{1}_ZN2nn2os21WaitConditionVariableEPNS0_21ConditionVariableTypeE"]
                 pub fn WaitConditionVariable(arg1: *mut root::nn::os::ConditionVariableType);
             }
             extern "C" {
@@ -2394,7 +2394,7 @@ pub mod root {
                 pub fn Initialize();
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2oe27SetPerformanceConfigurationENS0_15PerformanceModeEi"]
+                #[link_name = "\u{1}_ZN2nn2oe27SetPerformanceConfigurationEii"]
                 pub fn SetPerformanceConfiguration(
                     arg1: root::nn::oe::PerformanceMode,
                     arg2: root::s32,
@@ -2421,7 +2421,7 @@ pub mod root {
                 pub fn SetPerformanceModeChangedNotificationEnabled(arg1: bool);
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2oe20SetFocusHandlingModeENS0_17FocusHandlingModeE"]
+                #[link_name = "\u{1}_ZN2nn2oe20SetFocusHandlingModeEi"]
                 pub fn SetFocusHandlingMode(arg1: root::nn::oe::FocusHandlingMode);
             }
             extern "C" {
@@ -2521,6 +2521,19 @@ pub mod root {
                 #[link_name = "\u{1}_ZN2nn7account10InitializeEv"]
                 pub fn Initialize();
             }
+
+            extern "C" {
+                #[link_name = "\u{1}_ZN2nn7account15ShowUserCreatorEv"]
+                pub fn ShowUserCreator();
+            }
+
+            pub mod detail {
+                extern "C" {
+                    #[link_name = "\u{1}_ZN2nn7account6detail13IsInitializedEv"]
+                    pub fn IsInitialized() -> bool;
+                }
+            }
+
             extern "C" {
                 #[link_name = "\u{1}_ZN2nn7account12ListAllUsersEPiPNS0_3UidEi"]
                 pub fn ListAllUsers(
@@ -2625,7 +2638,7 @@ pub mod root {
                 ) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn7account12AsyncContextC2Ev"]
+                #[link_name = "\u{1}_ZN2nn7account12AsyncContextC1Ev"]
                 pub fn AsyncContext_AsyncContext(this: *mut root::nn::account::AsyncContext);
             }
             impl AsyncContext {
@@ -2849,7 +2862,7 @@ pub mod root {
                 pub fn QueryMountRomCacheSize(size: *mut u64) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2fs22QueryMountRomCacheSizeEPmi"]
+                #[link_name = "\u{1}_ZN2nn2fs22QueryMountRomCacheSizeEPmm"]
                 pub fn QueryMountRomCacheSize1(
                     size: *mut u64,
                     arg1: root::nn::ApplicationId,
@@ -2868,7 +2881,7 @@ pub mod root {
                 pub fn CanMountRomForDebug() -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2fs11CanMountRomENS_13ApplicationIdE"]
+                #[link_name = "\u{1}_ZN2nn2fs11CanMountRomEm"]
                 pub fn CanMountRom(arg1: root::nn::ApplicationId) -> root::Result;
             }
             extern "C" {
@@ -2892,7 +2905,7 @@ pub mod root {
                 pub fn EnsureSaveData(arg1: *const root::nn::account::Uid) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2fs13MountSaveDataEPKcNS_13ApplicationIdERKNS_7account3UidE"]
+                #[link_name = "\u{1}_ZN2nn2fs13MountSaveDataEPKcm"]
                 pub fn MountSaveData(
                     arg1: *const skyline_libc::c_char,
                     arg2: root::nn::fs::UserId,
@@ -2940,7 +2953,7 @@ pub mod root {
                 pub fn DeleteFile(filepath: *const skyline_libc::c_char) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2fs8ReadFileEPmNS0_10FileHandleElPvm"]
+                #[link_name = "\u{1}_ZN2nn2fs8ReadFileEPmNS0_10FileHandleElPvmRKi"]
                 pub fn ReadFile(
                     outSize: *mut u64,
                     handle: root::nn::fs::FileHandle,
@@ -3778,7 +3791,7 @@ pub mod root {
                 ) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2ro20UnregisterModuleInfoEPNS0_16RegistrationInfoE"]
+                #[link_name = "\u{1}_ZN2nn2ro20UnregisterModuleInfoEPNS0_16RegistrationInfoEPKv"]
                 pub fn UnregisterModuleInfo(
                     arg1: *mut root::nn::ro::RegistrationInfo,
                     arg2: *const skyline_libc::c_void,
@@ -4561,7 +4574,7 @@ pub mod root {
                 ) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn5prepo10PlayReport9SetBufferEPvm"]
+                #[link_name = "\u{1}_ZN2nn5prepo10PlayReport9SetBufferEv"]
                 pub fn PlayReport_SetBuffer(this: *mut root::nn::prepo::PlayReport)
                     -> root::Result;
             }
@@ -4601,7 +4614,7 @@ pub mod root {
                 ) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn5prepo10PlayReportC1EPKc"]
+                #[link_name = "\u{1}_ZN2nn5prepo10PlayReportC1Ev"]
                 pub fn PlayReport_PlayReport(this: *mut root::nn::prepo::PlayReport);
             }
             impl PlayReport {
@@ -4689,7 +4702,7 @@ pub mod root {
                 ) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn2vi11CreateLayerEPPNS0_5LayerEPNS0_7DisplayENS_4util10BitFlagSetILi32ENS0_15CompositorFlagsEEE"]
+                #[link_name = "\u{1}_ZN2nn2vi11CreateLayerEPNS0_5LayerEPNS0_7DisplayE"]
                 pub fn CreateLayer(
                     out_Layer: *mut root::nn::vi::Layer,
                     disp: *mut root::nn::vi::Display,
@@ -4899,7 +4912,7 @@ pub mod root {
                 ) -> root::s64;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn5image11JpegDecoder6DecodeEPvmiS2_m"]
+                #[link_name = "\u{1}_ZN2nn5image11JpegDecoder6DecodeEPvliS2_l"]
                 pub fn JpegDecoder_Decode(
                     this: *mut root::nn::image::JpegDecoder,
                     out: *mut skyline_libc::c_void,
@@ -4910,7 +4923,7 @@ pub mod root {
                 ) -> root::nn::image::JpegStatus;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn5image11JpegDecoderC2Ev"]
+                #[link_name = "\u{1}_ZN2nn5image11JpegDecoderC1Ev"]
                 pub fn JpegDecoder_JpegDecoder(this: *mut root::nn::image::JpegDecoder);
             }
             impl JpegDecoder {
@@ -4953,7 +4966,7 @@ pub mod root {
                 }
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn5image11JpegDecoderD0Ev"]
+                #[link_name = "\u{1}_ZN2nn5image11JpegDecoderD1Ev"]
                 pub fn JpegDecoder_JpegDecoder_destructor(this: *mut root::nn::image::JpegDecoder);
             }
         }
@@ -4966,7 +4979,7 @@ pub mod root {
                 pub fn Initialize();
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn7friends14GetProfileListEPNS0_12AsyncContextEPNS0_7ProfileEPKNS_7account23NetworkServiceAccountIdEi"]
+                #[link_name = "\u{1}_ZN2nn7friends14GetProfileListEPNS0_12AsyncContextEPNS0_7ProfileERKNS_7account3UidEPKmi"]
                 pub fn GetProfileList(
                     context: *mut root::nn::friends::AsyncContext,
                     profiles: *mut root::nn::friends::Profile,
@@ -5010,7 +5023,7 @@ pub mod root {
                 pub fn Profile_IsValid(this: *const root::nn::friends::Profile) -> bool;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZNK2nn7friends7Profile18GetProfileImageUrlEPNS0_3UrlENS0_9ImageSizeE"]
+                #[link_name = "\u{1}_ZN2nn7friends7Profile18GetProfileImageUrlEPA160_ci"]
                 pub fn Profile_GetProfileImageUrl(
                     this: *mut root::nn::friends::Profile,
                     arg1: *mut root::nn::friends::Url,
@@ -5081,7 +5094,7 @@ pub mod root {
                 ) -> root::Result;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn7friends12AsyncContextC2Ev"]
+                #[link_name = "\u{1}_ZN2nn7friends12AsyncContextC1Ev"]
                 pub fn AsyncContext_AsyncContext(this: *mut root::nn::friends::AsyncContext);
             }
             extern "C" {
@@ -5194,7 +5207,7 @@ pub mod root {
                     );
                 }
                 extern "C" {
-                    #[link_name = "\u{1}_ZN2nn4diag6detail9AbortImplEPKcS3_S3_i"]
+                    #[link_name = "\u{1}_ZN2nn4diag6detail9AbortImplEPKcS3_S3_ij"]
                     pub fn AbortImpl1(
                         arg1: *const skyline_libc::c_char,
                         arg2: *const skyline_libc::c_char,
@@ -5412,11 +5425,11 @@ pub mod root {
                 );
             }
             extern "C" {
-                #[link_name = "\u{1}_ZNK2nn3mem17StandardAllocator4DumpEv"]
+                #[link_name = "\u{1}_ZN2nn3mem17StandardAllocator4DumpEv"]
                 pub fn StandardAllocator_Dump(this: *mut root::nn::mem::StandardAllocator);
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn3mem17StandardAllocatorC2EPvmb"]
+                #[link_name = "\u{1}_ZN2nn3mem17StandardAllocatorC1Ev"]
                 pub fn StandardAllocator_StandardAllocator(
                     this: *mut root::nn::mem::StandardAllocator,
                 );
@@ -6522,7 +6535,7 @@ pub mod root {
                 pub fn IsNetworkRequestOnHold() -> bool;
             }
             extern "C" {
-                #[link_name = "\u{1}_ZN2nn4nifm26GetCurrentPrimaryIpAddressEP7in_addr"]
+                #[link_name = "\u{1}_ZN2nn4nifm26GetCurrentPrimaryIpAddressEPm"]
                 pub fn GetCurrentPrimaryIpAddress(inAddr: *mut u64) -> root::Result;
             }
         }

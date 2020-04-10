@@ -2,8 +2,9 @@
 #![feature(proc_macro_hygiene)]
 
 use skyline::nn::account::{self, Uid, GetLastOpenedUser, GetNickname, Nickname};
+use skyline::smash::hash40;
 
-#[skyline::main]
+#[skyline::main(name = "module_name_test")]
 pub fn main() {
     println!("Hello from Skyline Rust Plugin!\n");
 
@@ -11,18 +12,18 @@ pub fn main() {
         println!("{}", i);
     }
 
-    init_accounts();
-
     let nickname = unsafe { get_last_user_nickname() };
 
     println!("Last nickname: {}", nickname);
-}
 
-fn init_accounts() {
-    unsafe { account::Initialize() };
+    println!("Compile-time hash40 of 'accel_x': {:010X}", hash40("accel_x"));
+
+    let string = "accel_x";
+    println!("Runtime hash40 of '{}': {:010X}", string, hash40(string));
 }
 
 unsafe fn get_last_user_nickname() -> Nickname {
+    account::Initialize();
     let uid = &mut Uid::new();
     let mut nick = Nickname::new();
 

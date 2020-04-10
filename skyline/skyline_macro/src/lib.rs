@@ -1,8 +1,9 @@
 use quote::{ToTokens, quote};
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, token, Ident, AttrStyle};
+use syn::{parse_macro_input, token, Ident, AttrStyle, Lit, spanned::Spanned};
 use proc_macro2::{Span, TokenStream as TokenStream2};
 
+mod attributes;
 
 fn new_attr(attr_name: &str) -> syn::Attribute {
     syn::Attribute {
@@ -15,8 +16,10 @@ fn new_attr(attr_name: &str) -> syn::Attribute {
 }
 
 #[proc_macro_attribute]
-pub fn main(_: TokenStream, item: TokenStream) -> TokenStream {
+pub fn main(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let mut main_function = parse_macro_input!(item as syn::ItemFn);
+
+    let attr_code = parse_macro_input!(attrs as attributes::Attrs);
 
     main_function.attrs.push(
         new_attr("no_mangle")
@@ -27,6 +30,7 @@ pub fn main(_: TokenStream, item: TokenStream) -> TokenStream {
     let mut output = TokenStream2::new();
 
     quote!(
+        #attr_code
         use skyline::prelude::*;
         ::skyline::setup!();
     ).to_tokens(&mut output);
@@ -83,4 +87,63 @@ pub fn hook(_: TokenStream, input: TokenStream) -> TokenStream {
     ).to_tokens(&mut output);
 
     output.into()
+}
+
+fn lit_to_bytes(lit: &Lit) -> Option<Vec<u8>> {
+    match lit {
+        Lit::Str(lit_str) => {
+            Some(lit_str.value().into_bytes())
+        }
+        Lit::ByteStr(lit_str) => {
+            Some(lit_str.value())
+        }
+        _ => {
+            None
+        }
+    }
+}
+
+#[proc_macro]
+pub fn crc32(input: TokenStream) -> TokenStream {
+    let expr = parse_macro_input!(input as Lit);
+
+    match lit_to_bytes(&expr) {
+        Some(bytes) => {
+            let crc = crc::crc32::checksum_ieee(&bytes);
+            
+            TokenStream::from(quote! {
+                (#crc)
+            })
+        }
+        None => {
+            let span = expr.span();
+            TokenStream::from(quote::quote_spanned!{span =>
+                compile_error!("Invalid literal");
+            })
+        }
+    }
+    
+}
+
+#[proc_macro]
+pub fn to_null_term_bytes(input: TokenStream) -> TokenStream {
+    let expr = parse_macro_input!(input as Lit);
+
+    match lit_to_bytes(&expr) {
+        Some(mut bytes) => {
+            bytes.push(0);
+
+            let bytes = syn::LitByteStr::new(&bytes, expr.span());
+
+            TokenStream::from(quote! {
+                (#bytes)
+            })
+        }
+        None => {
+            let span = expr.span();
+            TokenStream::from(quote::quote_spanned!{span =>
+                compile_error!("Invalid literal");
+            })
+        }
+    }
 }
