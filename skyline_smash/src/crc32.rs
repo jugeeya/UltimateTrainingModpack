@@ -63,3 +63,4 @@ pub const fn crc32(bytes: &[u8]) -> u32 {
 
     !value
 }
+

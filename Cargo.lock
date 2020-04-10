@@ -33,6 +33,7 @@ name = "no_std_test"
 version = "0.1.0"
 dependencies = [
  "skyline",
+ "skyline_smash",
 ]
 
 [[package]]
@@ -76,6 +77,13 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "skyline_smash"
+version = "0.1.0"
+dependencies = [
+ "skyline_libc",
 ]
 
 [[package]]

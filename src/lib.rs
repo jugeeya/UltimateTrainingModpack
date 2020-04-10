@@ -2,7 +2,7 @@
 #![feature(proc_macro_hygiene)]
 
 use skyline::nn::account::{self, Uid, GetLastOpenedUser, GetNickname, Nickname};
-use skyline::smash::hash40;
+use smash::hash40;
 
 #[skyline::main(name = "module_name_test")]
 pub fn main() {

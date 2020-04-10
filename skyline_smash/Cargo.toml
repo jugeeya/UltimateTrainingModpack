@@ -1,14 +1,13 @@
 [package]
-name = "no_std_test"
+name = "skyline_smash"
 version = "0.1.0"
 authors = ["jam1garner <jam1.mcleod@hotmail.com>"]
 edition = "2018"
 
-[lib]
-crate-type = ["cdylib"]
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "smash"
+
 [dependencies]
-skyline = { path = "./skyline" }
-skyline_smash = { path = "./skyline_smash" }
+skyline_libc = { path = "../skyline/skyline_libc" }

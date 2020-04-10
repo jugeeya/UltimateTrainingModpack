@@ -1,6 +1,6 @@
 #![no_std]
 #![allow(incomplete_features)]
-#![feature(alloc_error_handler, lang_items, start, global_asm, const_generics, impl_trait_in_bindings, proc_macro_hygiene, alloc_prelude, const_if_match, const_loop)]
+#![feature(alloc_error_handler, lang_items, start, global_asm, const_generics, impl_trait_in_bindings, proc_macro_hygiene, alloc_prelude)]
 
 /// The rust core allocation and collections library
 pub extern crate alloc;
@@ -11,7 +11,6 @@ pub use skyline_macro;
 /// Types and functions for working with hooking
 pub mod hooks;
 pub mod logging;
-pub mod smash;
 
 #[doc(hidden)]
 pub mod extern_alloc;
