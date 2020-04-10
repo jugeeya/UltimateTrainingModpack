@@ -104,28 +104,6 @@ fn lit_to_bytes(lit: &Lit) -> Option<Vec<u8>> {
 }
 
 #[proc_macro]
-pub fn crc32(input: TokenStream) -> TokenStream {
-    let expr = parse_macro_input!(input as Lit);
-
-    match lit_to_bytes(&expr) {
-        Some(bytes) => {
-            let crc = crc::crc32::checksum_ieee(&bytes);
-            
-            TokenStream::from(quote! {
-                (#crc)
-            })
-        }
-        None => {
-            let span = expr.span();
-            TokenStream::from(quote::quote_spanned!{span =>
-                compile_error!("Invalid literal");
-            })
-        }
-    }
-    
-}
-
-#[proc_macro]
 pub fn to_null_term_bytes(input: TokenStream) -> TokenStream {
     let expr = parse_macro_input!(input as Lit);
 

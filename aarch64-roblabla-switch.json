@@ -16,6 +16,7 @@
   "executables": true,
   "has-elf-tls": false,
   "has-rpath": false,
+  "linker": "rust-lld",
   "linker-flavor": "ld.lld",
   "llvm-target": "aarch64-unknown-none",
   "max-atomic-width": 128,
