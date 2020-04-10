@@ -1,2 +1,2 @@
-[target.aarch64-roblabla-switch.dependencies]
-alloc = {}  # implies alloc
+[target.aarch64-skyline-switch.dependencies]
+alloc = {}
