@@ -9,7 +9,10 @@ pub struct Attrs {
 
 impl Parse for Attrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let meta: syn::MetaNameValue = input.parse()?;
+        let meta: syn::MetaNameValue = match input.parse() {
+            Ok(x) => x,
+            Err(_) => return Ok(Attrs { name: "skyline_rust_plugin".into() })
+        };
 
         if meta.path.get_ident().unwrap().to_string() == "name" {
             match meta.lit {

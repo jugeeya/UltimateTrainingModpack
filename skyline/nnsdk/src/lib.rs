@@ -3,6 +3,8 @@
 
 extern crate alloc;
 
+pub mod extensions;
+
 #[doc(inline)]
 pub use root::nn::*;
 

@@ -1,6 +1,6 @@
 #![no_std]
 #![allow(incomplete_features)]
-#![feature(alloc_error_handler, lang_items, start, global_asm, const_generics, impl_trait_in_bindings, proc_macro_hygiene, alloc_prelude)]
+#![feature(alloc_error_handler, lang_items, start, global_asm, const_generics, impl_trait_in_bindings, proc_macro_hygiene, alloc_prelude, panic_info_message)]
 
 /// The rust core allocation and collections library
 pub extern crate alloc;
@@ -19,9 +19,7 @@ pub mod extern_alloc;
 pub mod build;
 
 // nnsdk API bindings
-pub mod nn {
-    pub use nnsdk::root::nn::*;
-}
+pub mod nn;
 
 #[doc(inline)]
 pub use {

@@ -1,13 +1,22 @@
 #[lang = "eh_personality"]
-extern fn eh_personality() {
-}
+extern fn eh_personality() {}
 
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
+#[macro_export] macro_rules! install_panic_handler {
+    ($module_name:expr) => {
+        #[panic_handler]
+        fn panic(panic_info: &core::panic::PanicInfo) -> ! {
+            $crate::println!("{} panicked: {}", $module_name, panic_info);
 
-    crate::logging::log("Panic at the Rust lib!\n");
 
-    loop {}
+            loop {
+                unsafe {
+                    $crate::nn::os::SleepThread(
+                        $crate::nn::TimeSpan::milli(100)
+                    )
+                }
+            }
+        }
+    };
 }
 
 global_asm!(include_str!("mod0.s"));
@@ -17,6 +26,8 @@ global_asm!(include_str!("mod0.s"));
 
 #[macro_export] macro_rules! set_module_name {
     ($lit:literal) => {
+        ::skyline::install_panic_handler!($lit);
+
         const __SKYLINE_INTERNAL_MODULE_LEN: usize = $lit.len() + 1;
         #[link_section = ".rodata.module_name"]
         pub static __MODULE_NAME: ::skyline::build::ModuleName<__SKYLINE_INTERNAL_MODULE_LEN> =
