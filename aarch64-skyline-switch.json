@@ -21,7 +21,7 @@
   "llvm-target": "aarch64-unknown-none",
   "max-atomic-width": 128,
   "os": "switch",
-  "panic-strategy": "unwind",
+  "panic-strategy": "abort",
   "position-independent-executables": true,
   "pre-link-args": {
     "ld.lld": [

@@ -1,2 +1,22 @@
-[target.aarch64-skyline-switch.dependencies]
-alloc = {}
+[package]
+rust-src = "../rust-std-skyline/src"
+
+[dependencies.core]
+path = "../rust-std-skyline/src/libcore"
+#git = "https://github.com/jam1garner/rust-std-skyline-squashed.git"
+stage = 0
+
+[dependencies.alloc]
+path = "../rust-std-skyline/src/liballoc"
+#git = "https://github.com/jam1garner/rust-std-skyline-squashed.git"
+stage = 0
+
+[dependencies.std]
+path = "../rust-std-skyline/src/libstd"
+#git = "https://github.com/jam1garner/rust-std-skyline-squashed.git"
+stage = 1
+
+#[patch.crates-io]
+#rustc-std-workspace-core = { git = 'https://github.com/jam1garner/rust-std-skyline-squashed.git', branch = 'master' }
+#rustc-std-workspace-alloc = { git = 'https://github.com/jam1garner/rust-std-skyline-squashed.git', branch = 'master' }
+#rustc-std-workspace-std = { git = 'https://github.com/jam1garner/rust-std-skyline-squashed.git', branch = 'master' }

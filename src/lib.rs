@@ -1,4 +1,3 @@
-#![no_std]
 #![feature(proc_macro_hygiene)]
 
 use skyline::nn::account::{self, Uid, GetLastOpenedUser, GetNickname, Nickname};
@@ -6,7 +5,7 @@ use smash::hash40;
 
 #[skyline::main(name = "module_name_test")]
 pub fn main() {
-    println!("Hello from Skyline Rust Plugin!\n");
+    println!("Hello from Skyline Rust Plugin!");
 
     for i in 0..3 {
         println!("{}", i);
@@ -15,6 +14,8 @@ pub fn main() {
     let nickname = unsafe { get_last_user_nickname() };
 
     println!("Last nickname: {}", nickname);
+
+    println!("Contents of file: {:?}", std::fs::read_to_string("sd:/test.txt"));
 
     println!("Compile-time hash40 of 'accel_x': {:010X}", hash40("accel_x"));
 
