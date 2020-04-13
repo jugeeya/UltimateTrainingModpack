@@ -20,7 +20,8 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git commit -m "Add Documentation" -a
+        git add -A
+        git commit -m "Add Documentation"
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
