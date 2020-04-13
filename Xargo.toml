@@ -1,18 +1,18 @@
 [package]
-rust-src = "../rust-std-skyline/src"
+rust-src = "../rust-std-skyline-squashed/src"
 
 [dependencies.core]
-path = "../rust-std-skyline/src/libcore"
+path = "../rust-std-skyline-squashed/src/libcore"
 #git = "https://github.com/jam1garner/rust-std-skyline-squashed.git"
 stage = 0
 
 [dependencies.alloc]
-path = "../rust-std-skyline/src/liballoc"
+path = "../rust-std-skyline-squashed/src/liballoc"
 #git = "https://github.com/jam1garner/rust-std-skyline-squashed.git"
 stage = 0
 
 [dependencies.std]
-path = "../rust-std-skyline/src/libstd"
+path = "../rust-std-skyline-squashed/src/libstd"
 #git = "https://github.com/jam1garner/rust-std-skyline-squashed.git"
 stage = 1
 
