@@ -25,7 +25,7 @@
   "position-independent-executables": true,
   "pre-link-args": {
     "ld.lld": [
-      "-Tlink.T",
+      "-Tlink.ld",
       "-init=__custom_init",
       "-fini=__custom_fini",
       "--export-dynamic"
