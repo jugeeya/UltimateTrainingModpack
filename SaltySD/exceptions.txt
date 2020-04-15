@@ -1,0 +1,23 @@
+;Darksiders II Deathnitive Edition
+;1.0.0 has double speed gameplay
+010071800BA98000
+
+;GRID: Autosport
+;1.4.0RC9 and 1.5_46790 crashes, 1.4.1_45339 stucks in infinite loop
+0100DC800A602000
+
+;Luigi's Mansion 3
+;1.0.0, 1.1.0, 1.2.1 won't boot
+0100DCA0064A6000
+
+;Tesla Menu
+;Just in case
+010000000007E51A
+
+;The Talos Principle
+;1.0.0-1.0.1 crash OS
+010092A00D43C000
+
+;YouTube
+;Stucks in infinite loop
+01003A400C3DA000
