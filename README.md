@@ -2,6 +2,8 @@
 
 A template for writing skyline plugins for modding switch games using Rust and skyline-rs.
 
+[Documentation for skyline-rs](https://ultimate-research.github.io/skyline-rs-template/doc/skyline/index.html)
+
 ## Prerequisites
 
 * [Rust](https://www.rust-lang.org/install.html) - make sure rustup, cargo, and rustc (preferrably nightly) are installed.
