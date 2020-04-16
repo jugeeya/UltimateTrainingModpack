@@ -12,9 +12,8 @@ skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
 skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
 
 [profile.dev]
-opt-level = 0               # Use slightly better optimizations.
-debug = 2
 panic = "abort"
 
 [profile.release]
 panic = "abort"
+lto = true
