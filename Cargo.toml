@@ -1,5 +1,5 @@
 [package]
-name = "skyline_rs_template"
+name = "training_modpack"
 version = "0.1.0"
 authors = ["jam1garner <jam1.mcleod@hotmail.com>"]
 edition = "2018"
@@ -17,3 +17,6 @@ panic = "abort"
 [profile.release]
 panic = "abort"
 lto = true
+
+[package.metadata.skyline]
+titleid = "01006A800016E000"
