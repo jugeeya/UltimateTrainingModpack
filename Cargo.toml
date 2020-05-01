@@ -9,7 +9,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
-skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
+# skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
+skyline_smash = { path = "../../../../src/skyline-smash" }
 
 [profile.dev]
 panic = "abort"
