@@ -7,6 +7,7 @@
 #![feature(with_options)]
 
 mod hitbox_visualizer;
+mod training;
 mod common;
 
 use smash::hash40;
@@ -57,6 +58,7 @@ pub unsafe fn handle_load_module(
 pub fn main() {
     println!("Training modpack initialized.");
     hitbox_visualizer::hitbox_visualization();
+    training::training_mods();
 
     println!("OpenMode_Write: {} {}", nn::fs::OpenMode_OpenMode_Write, nn::fs::OpenMode_OpenMode_Write as i32);
     let buffer = format!("{:x}", &common::menu as *const _ as u64);

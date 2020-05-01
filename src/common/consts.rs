@@ -75,19 +75,3 @@ pub struct TrainingModpackMenu
     pub SHIELD_STATE : i32,
     pub DEFENSIVE_STATE : i32,
 }
-
-impl Default for TrainingModpackMenu {
-    fn default() -> TrainingModpackMenu {
-        TrainingModpackMenu {
-            HITBOX_VIS : true,
-            DI_STATE : NONE,
-            ATTACK_STATE : MASH_NAIR,
-            LEDGE_STATE : RANDOM_LEDGE,
-            TECH_STATE : RANDOM_TECH,
-            MASH_STATE : NONE,
-            SHIELD_STATE : NONE,
-            DEFENSIVE_STATE : RANDOM_DEFENSIVE,
-        }
-    }
-    
-}
