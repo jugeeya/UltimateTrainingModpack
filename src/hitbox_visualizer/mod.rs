@@ -1,13 +1,12 @@
 use smash::hash40;
-use smash::app::BattleObjectModuleAccessor;
-use smash::app::sv_animcmd::{self};
-use smash::app::lua_bind::*;
-use smash::lib::{self, L2CAgent, L2CValue};
-use smash::phx::{Hash40, Vector3f};
-use smash::lib::lua_const::{*};
-use smash::app::sv_system::{self};
 use smash::app::{self};
-use skyline::logging::hex_dump_ptr;
+use smash::app::sv_animcmd::{self};
+use smash::app::sv_system::{self};
+use smash::app::lua_bind::*;
+use smash::lib::lua_const::*;
+use smash::lib::{L2CAgent, L2CValue, L2CValueType};
+use smash::phx::{Hash40, Vector3f};
+use skyline::{logging::HexDump};
 use crate::common::*;
 
 /**
@@ -108,7 +107,7 @@ pub unsafe fn generate_hitbox_effects(l2c_agent: &mut L2CAgent, bone: L2CValue,
     let y_dist : f32;
     let z_dist : f32;
     let mut n_effects : i32;
-    if let lib::L2CValueType::Void = x2.val_type{ // && let lib::L2CValueType::Void = y2.val_type && let lib::L2CValueType::Void = z2.val_type {  // extended hitbox
+    if let L2CValueType::Void = x2.val_type { // && let lib::L2CValueType::Void = y2.val_type && let lib::L2CValueType::Void = z2.val_type {  // extended hitbox
         x_dist = 0.0; y_dist = 0.0; z_dist = 0.0;
         n_effects = 1;
     } 
@@ -177,7 +176,7 @@ unsafe fn handle_attack(lua_state: u64) {
 
     if menu.HITBOX_VIS && is_training_mode() {  // generate hitbox effect(s)
         let color_scale: f32;
-        if false {  // color intensity scales with damage
+        if true {  // color intensity scales with damage
             color_scale = unlerp_bounded(1.0, 18.0, damage.get_num());
         } else {  // color intensity scales with total KB
             // calculate the expected KB a character with 95 weight will receive
@@ -232,14 +231,14 @@ unsafe fn handle_catch(lua_state: u64) {
     }
 }
 
-pub unsafe fn is_shielding(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
+pub unsafe fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
     (FIGHTER_STATUS_KIND_GUARD_ON..=FIGHTER_STATUS_KIND_GUARD_OFF).contains(&status_kind)
 }
 
 #[allow(unused_unsafe)]
 #[skyline::hook(replace = AttackModule::clear_all)]
-pub unsafe fn handle_clear_all(module_accessor: *mut BattleObjectModuleAccessor) {
+pub unsafe fn handle_clear_all(module_accessor: *mut app::BattleObjectModuleAccessor) {
     if is_training_mode() {
         // only if we're not shielding
         if !is_shielding(module_accessor) {
@@ -252,7 +251,7 @@ pub unsafe fn handle_clear_all(module_accessor: *mut BattleObjectModuleAccessor)
 
 #[allow(unused_unsafe)]
 #[skyline::hook(replace = GrabModule::set_rebound)]
-pub unsafe fn handle_set_rebound(module_accessor: *mut BattleObjectModuleAccessor, rebound: bool) {
+pub unsafe fn handle_set_rebound(module_accessor: *mut app::BattleObjectModuleAccessor, rebound: bool) {
     if is_training_mode() && rebound == false {
         // only if we're not shielding
         if !is_shielding(module_accessor) {

@@ -1,78 +1,74 @@
-use smash::hash40;
-use smash::app::BattleObjectModuleAccessor;
-use smash::app::sv_animcmd::{self};
-use smash::app::lua_bind::*;
-use smash::lib::{self, L2CAgent, L2CValue};
+use smash::app::{self, sv_system, sv_animcmd, lua_bind::*, FighterManager};
+use smash::lib::{self, L2CAgent, L2CValue, lua_const::*};
 use smash::phx::{Hash40, Vector3f};
-use smash::lib::lua_const::{*};
-use smash::app::sv_system::{self};
-use smash::app::{self};
-use skyline::logging::hex_dump_ptr;
+use smash::hash40;
+use skyline::{c_str, nn::ro::LookupSymbol, logging::hex_dump_ptr};
+use crate::common::fighter_manager_addr;
 use crate::common::*;
+use crate::common::consts::*;
+
+mod DirectionalInfluence;
+mod Shield;
+mod Tech;
+mod Mash;
+mod Ledge;
 
 #[allow(unused_unsafe)]
 #[skyline::hook(replace = WorkModule::get_float)]
-pub unsafe fn handle_get_float(module_accessor: *mut BattleObjectModuleAccessor, var: i32) -> f32 {
-    let mut replace = false;
-    //float ret = DirectionalInfluence::get_float(module_accessor, var, replace);
-    //if (replace) return ret;
-
-    original!()(module_accessor, var)
+pub unsafe fn handle_get_float(module_accessor: &mut app::BattleObjectModuleAccessor, var: i32) -> f32 {
+    DirectionalInfluence::get_float(module_accessor, var).unwrap_or_else( || {
+        original!()(module_accessor, var)
+    })
 }
 
-// float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
-//     bool replace;
-//     float ret = Shield::get_param_float(module_accessor, param_type, param_hash, replace);
-//     if (replace) return ret;
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = WorkModule::get_param_float)]
+pub unsafe fn handle_get_param_float(module_accessor: &mut app::BattleObjectModuleAccessor, param_type: u64, param_hash: u64) -> f32 {
+    Shield::get_param_float(module_accessor, param_type, param_hash).unwrap_or_else( || {
+        original!()(module_accessor, param_type, param_hash)
+    })
+}
 
-//     u64 work_module = load_module(module_accessor, 0x50);
-//     float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
-//     return get_param_float(work_module, param_type, param_hash);
-// }
-// }  // namespace WorkModule
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = ControlModule::get_attack_air_kind)]
+pub unsafe fn handle_get_attack_air_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
+    // bool replace;
+    // int kind = InputRecorder::get_attack_air_kind(module_accessor, replace);
+    // if (replace) return kind;
 
-// namespace ControlModule {
-// int get_attack_air_kind_replace(u64 module_accessor) {
-//     bool replace;
-//     int kind = InputRecorder::get_attack_air_kind(module_accessor, replace);
-//     if (replace) return kind;
+    Mash::get_attack_air_kind(module_accessor).unwrap_or_else( || {
+        original!()(module_accessor)
+    })
+}
 
-//     kind = Mash::get_attack_air_kind(module_accessor, replace);
-//     if (replace) return kind;
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = ControlModule::get_command_flag_cat)]
+pub unsafe fn handle_get_command_flag_cat(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    category: i32) -> i32 
+{
+    //save_states(module_accessor);
 
-//     u64 control_module = load_module(module_accessor, 0x48);
-//     int (*get_attack_air_kind)(u64) = (int (*)(u64)) load_module_impl(control_module, 0x3B0);
-//     return get_attack_air_kind(control_module);
-// }
+    // Pause Effect AnimCMD if hitbox visualization is active
+    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    MotionAnimcmdModule::set_sleep_effect(module_accessor, 
+        is_training_mode() &&
+        menu.HITBOX_VIS &&
+        !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind) ||
+          (*FIGHTER_STATUS_KIND_WAIT..=*FIGHTER_STATUS_KIND_REBOUND_JUMP).contains(&status_kind)));
 
-// int get_command_flag_cat_replace(u64 module_accessor, int category) {
-//     int (*prev_replace)(u64, int) = (int (*)(u64, int)) prev_get_command_flag_cat;
-//     if (prev_replace)
-//         prev_replace(module_accessor, category);
-//     //save_states(module_accessor);
+    let mut flag = original!()(module_accessor, category);
 
-//     // Pause Effect AnimCMD if hitbox visualization is active
-//     int status_kind = StatusModule::status_kind(module_accessor);
-//     MotionAnimcmdModule::set_sleep_effect(module_accessor, 
-//         is_training_mode() &&
-//         menu.HITBOX_VIS &&
-//         !((status_kind >= FIGHTER_STATUS_KIND_CATCH && status_kind <= FIGHTER_STATUS_KIND_TREAD_FALL) ||
-//           (status_kind >= FIGHTER_STATUS_KIND_WAIT && status_kind <= FIGHTER_STATUS_KIND_REBOUND_JUMP)));
+    // bool replace;
+    // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
+    // if (replace) return ret;
 
-//     u64 control_module = load_module(module_accessor, 0x48);
-//     int (*get_command_flag_cat)(u64, int) = (int (*)(u64, int)) load_module_impl(control_module, 0x350);
-//     int flag = get_command_flag_cat(control_module, category);
+    Mash::get_command_flag_cat(module_accessor, category, &mut flag);
+    Ledge::get_command_flag_cat(module_accessor, category, &mut flag);
+    Tech::get_command_flag_cat(module_accessor, category, &mut flag);
 
-//     // bool replace;
-//     // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
-//     // if (replace) return ret;
-
-//     Mash::get_command_flag_cat(module_accessor, category, flag);
-//     Ledge::get_command_flag_cat(module_accessor, category, flag);
-//     Tech::get_command_flag_cat(module_accessor, category, flag);
-
-//     return flag;
-// }
+    flag
+}
 
 // int get_pad_flag(u64 module_accessor) {
 //     u64 control_module = load_module(module_accessor, 0x48);
@@ -110,96 +106,93 @@ pub unsafe fn handle_get_float(module_accessor: *mut BattleObjectModuleAccessor,
 //     return stick_y;
 // }
 
-// bool check_button_on_replace(u64 module_accessor, int button) {
-//     bool replace;
-//     bool ret = Shield::check_button_on(module_accessor, button, replace);
-//     if (replace) return ret;
-//     ret = Mash::check_button_on(module_accessor, button, replace);
-//     if (replace) return ret;
-//     ret = Tech::check_button_on(module_accessor, button, replace);
-//     if (replace) return ret;
-//     ret = Ledge::check_button_on(module_accessor, button, replace);
-//     if (replace) return ret;
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = ControlModule::check_button_on)]
+pub unsafe fn handle_check_button_on(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    button: i32) -> bool
+{
+    Shield::check_button_on(module_accessor, button).unwrap_or_else( || {
+        Mash::check_button_on(module_accessor, button).unwrap_or_else( || {
+            Tech::check_button_on(module_accessor, button).unwrap_or_else( || {
+                Ledge::check_button_on(module_accessor, button).unwrap_or_else( || {
+                    original!()(module_accessor, button)
+                })
+            })
+        })
+    })
+}
 
-//     u64 control_module = load_module(module_accessor, 0x48);
-//     bool (*check_button_on)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x260);
-//     return check_button_on(control_module, button);
-// }
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = ControlModule::check_button_off)]
+pub unsafe fn handle_check_button_off(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    button: i32) -> bool
+{
+    Shield::check_button_off(module_accessor, button).unwrap_or_else( || {
+        original!()(module_accessor, button)
+    })
+}
 
-// bool check_button_off_replace(u64 module_accessor, int button) {
-//     bool replace;
-//     bool ret = Shield::check_button_off(module_accessor, button, replace);
-//     if (replace) return ret;
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = StatusModule::init_settings)]
+pub unsafe fn handle_init_settings(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    situationKind: i32, 
+    unk1: i32, 
+    unk2: u32, 
+    groundCliffCheckKind: i32,
+    unk3: bool, 
+    unk4: i32, 
+    unk5: i32, 
+    unk6: i32, 
+    unk7: i32)
+{
+    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    Tech::init_settings(module_accessor, status_kind).unwrap_or_else( || {
+        original!()(module_accessor, situationKind, unk1, unk2, groundCliffCheckKind, unk3, unk4, unk5, unk6, unk7)
+    })
+}
 
-//     u64 control_module = load_module(module_accessor, 0x48);
-//     bool (*check_button_off)(u64, int) = (bool (*)(u64, int)) load_module_impl(control_module, 0x268);
-//     return check_button_off(control_module, button);
-// }
-// }  // namespace ControlModule
-
-// namespace StatusModule {
-// void init_settings_replace(u64 module_accessor, int situationKind, int unk1, uint unk2, int groundCliffCheckKind, bool unk3, int unk4, int unk5, int unk6, int unk7) {
-//     bool replace;
-//     Tech::init_settings(module_accessor, StatusModule::status_kind(module_accessor), replace);
-//     if (replace) return;
-
-//     u64 status_module = load_module(module_accessor, 0x40);
-//     void (*init_settings)(u64,int,int,uint,int,bool,int,int,int,int) =
-//         (void (*)(u64,int,int,uint,int,bool,int,int,int,int)) load_module_impl(status_module, 0x1C8);
-
-//     init_settings(status_module, situationKind, unk1, unk2, groundCliffCheckKind, unk3, unk4, unk5, unk6, unk7);
-// }
-// }  // namespace StatusModule
-
-// namespace MotionModule {
-// u64 change_motion_replace(u64 module_accessor, u64 motion_kind, float unk1, float unk2, bool unk3, float unk4, bool unk5, bool unk6) {
-//     bool replace;
-//     u64 motion_kind_ret = Tech::change_motion(module_accessor, motion_kind, replace);
-//     if (replace) motion_kind = motion_kind_ret;
-
-//     u64 motion_module = load_module(module_accessor, 0x88);
-//     u64 change_motion_offset = 0;
-//     if (major < 4) change_motion_offset = 0xD8;
-//     else change_motion_offset = 0xE0;
-    
-//     u64 (*change_motion)(u64,u64,float,float,bool,float,bool,bool) = 
-//         (u64 (*)(u64,u64,float,float,bool,float,bool,bool)) load_module_impl(motion_module, change_motion_offset);
-
-//     return change_motion(motion_module, motion_kind, unk1, unk2, unk3, unk4, unk5, unk6);
-// }
-// }  // namespace MotionModule
-// }  // namespace app::lua_bind
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = MotionModule::change_motion)]
+pub unsafe fn handle_change_motion(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    motion_kind: u64, 
+    unk1: f32, 
+    unk2: f32, 
+    unk3: bool, 
+    unk4: f32, 
+    unk5: bool, 
+    unk6: bool) -> u64
+{
+    Tech::change_motion(module_accessor, motion_kind).unwrap_or_else( || {
+        original!()(module_accessor, motion_kind, unk1, unk2, unk3, unk4, unk5, unk6)
+    })
+}
 
 
 pub fn training_mods() {
-    println!("Applying hitbox visualization mods.");
-    // fighter_manager_addr = SaltySDCore_FindSymbol(
-    //     "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E");
+    println!("Applying training mods.");
+    unsafe {
+        LookupSymbol(&mut fighter_manager_addr, c_str("_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E"));
+        println!("Lookup symbol output: {:#?}", fighter_manager_addr);
+    }
 
-    // // Mash airdodge/jump
-    // SaltySD_function_replace_sym_check_prev(
-    //     "_ZN3app8lua_bind40ControlModule__get_command_flag_cat_implEPNS_26BattleObjectModuleAccessorEi",
-    //     (u64)&ControlModule::get_command_flag_cat_replace,
-    //     prev_get_command_flag_cat);
+    // Mash airdodge/jump
+    skyline::install_hook!(handle_get_command_flag_cat);
 
     // Set DI
     skyline::install_hook!(handle_get_float);
 
     // Hold/Infinite shield
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind35ControlModule__check_button_on_implEPNS_26BattleObjectModuleAccessorEi",
-    //     (u64)&ControlModule::check_button_on_replace);
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind36ControlModule__check_button_off_implEPNS_26BattleObjectModuleAccessorEi",
-    //     (u64)&ControlModule::check_button_off_replace);
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm",
-    //     (u64)&WorkModule::get_param_float_replace);
+    skyline::install_hook!(handle_check_button_on);
+    skyline::install_hook!(handle_check_button_off);
 
-    // // Mash attack
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind39ControlModule__get_attack_air_kind_implEPNS_26BattleObjectModuleAccessorE",
-    //     (u64)&ControlModule::get_attack_air_kind_replace);
+    skyline::install_hook!(handle_get_param_float);
+
+    // Mash attack
+    skyline::install_hook!(handle_get_attack_air_kind);
 
     // // Input recorder
     // SaltySD_function_replace_sym(
@@ -209,11 +202,7 @@ pub fn training_mods() {
     //     "_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE",
     //     (u64)&ControlModule::get_stick_y_replace);
 
-    // // Tech options
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii",
-    //     (u64)&StatusModule::init_settings_replace);
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind32MotionModule__change_motion_implEPNS_26BattleObjectModuleAccessorEN3phx6Hash40Effbfbb",
-    //     (u64)&MotionModule::change_motion_replace);
+    // Tech options
+    skyline::install_hook!(handle_init_settings);
+    skyline::install_hook!(handle_change_motion);
 }
