@@ -68,8 +68,9 @@ pub unsafe fn should_perform_defensive_option(
     ) 
     &&
     (
-        WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON) || 
-        CancelModule::is_enable_cancel(module_accessor)
+        WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON) 
+        // || 
+        // CancelModule::is_enable_cancel(module_accessor)
     )
 }
 
@@ -125,13 +126,13 @@ pub unsafe fn change_motion(
             } else { 
                 return Some(hash40("passive_stand_b")) 
             }
-        } else if [hash40("down_forward_u") | hash40("down_back_u")].contains(&motion_kind) {
+        } else if [hash40("down_forward_u"), hash40("down_back_u")].contains(&motion_kind) {
             if app::sv_math::rand(hash40("fighter"), 2) != 0 { 
                 return Some(hash40("down_forward_u"))
             } else { 
                 return Some(hash40("down_back_u")) 
             }
-        } else if [hash40("down_forward_d") | hash40("down_back_d")].contains(&motion_kind) {
+        } else if [hash40("down_forward_d"), hash40("down_back_d")].contains(&motion_kind) {
             if app::sv_math::rand(hash40("fighter"), 2) != 0 { 
                 return Some(hash40("down_forward_d"))
             } else { 
