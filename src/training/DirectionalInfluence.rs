@@ -13,11 +13,11 @@ pub unsafe fn get_float(module_accessor: &mut app::BattleObjectModuleAccessor, v
         if is_training_mode() && 
             is_operation_cpu(module_accessor) && 
             is_in_hitstun(module_accessor) {
-            if menu.DI_STATE != NONE {
-                let mut angle = (menu.DI_STATE - 1) as f64 * PI / 4.0;
+            if (*menu).DI_STATE != NONE {
+                let mut angle = ((*menu).DI_STATE - 1) as f64 * PI / 4.0;
 
                 // Either 0 (right) or PI (left)
-                if menu.DI_STATE == DI_RANDOM_IN_AWAY {
+                if (*menu).DI_STATE == DI_RANDOM_IN_AWAY {
                     angle = app::sv_math::rand(hash40("fighter"), 2) as f64 * PI;
                 }
                 // If facing left, reverse angle

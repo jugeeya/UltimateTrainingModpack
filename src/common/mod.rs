@@ -7,7 +7,7 @@ use smash::app::lua_bind::{self, *};
 use smash::app::{FighterManager, FighterInformation};
 use smash::hash40;
 
-pub static menu : consts::TrainingModpackMenu = consts::TrainingModpackMenu{
+pub static mut menu_struct : consts::TrainingModpackMenu = consts::TrainingModpackMenu{
     HITBOX_VIS : true,
     DI_STATE : NONE,
     ATTACK_STATE : MASH_NAIR,
@@ -17,6 +17,8 @@ pub static menu : consts::TrainingModpackMenu = consts::TrainingModpackMenu{
     SHIELD_STATE : NONE,
     DEFENSIVE_STATE : RANDOM_DEFENSIVE,
 };
+
+pub static mut menu : *mut consts::TrainingModpackMenu = 0 as *mut consts::TrainingModpackMenu;
 
 pub static mut fighter_manager_addr : usize = 0;
 
@@ -84,7 +86,7 @@ pub unsafe fn perform_defensive_option(
     module_accessor: &mut app::BattleObjectModuleAccessor, 
     flag: &mut i32) 
 {
-    match menu.DEFENSIVE_STATE {
+    match (*menu).DEFENSIVE_STATE {
         RANDOM_DEFENSIVE => {
             let random_cmds = vec![
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,

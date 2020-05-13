@@ -13,6 +13,7 @@ mod Shield;
 mod Tech;
 mod Mash;
 mod Ledge;
+mod SaveStates;
 
 #[allow(unused_unsafe)]
 #[skyline::hook(replace = WorkModule::get_float)]
@@ -48,42 +49,7 @@ pub unsafe fn handle_get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32) -> i32 
 {
-    //save_states(module_accessor);
-
-    // apply only once per frame
-    if category == 0 && is_training_mode() && menu.HITBOX_VIS {
-        // Pause Effect AnimCMD if hitbox visualization is active
-        let status_kind = StatusModule::status_kind(module_accessor) as i32;
-        MotionAnimcmdModule::set_sleep_effect(module_accessor,
-            !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind) ||
-            (*FIGHTER_STATUS_KIND_WAIT..=*FIGHTER_STATUS_KIND_REBOUND_JUMP).contains(&status_kind)));
-
-        if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind) {
-            EffectModule::set_visible_kind(module_accessor, Hash40{hash: hash40("sys_shield")}, false);
-            EffectModule::kill_kind(module_accessor, Hash40{hash: hash40("sys_shield")}, false, true);
-            for i in 0..8 {
-                if AttackModule::is_attack(module_accessor, i, false) {
-                    let attack_data = *AttackModule::attack_data(module_accessor, i, false);
-                    let is_capsule = attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
-                    let mut x2 = None;
-                    let mut y2 = None;
-                    let mut z2 = None;
-                    if is_capsule {
-                        x2 = Some(attack_data.x2);
-                        y2 = Some(attack_data.y2);
-                        z2 = Some(attack_data.z2);
-                    }
-                    hitbox_visualizer::generate_hitbox_effects(
-                        module_accessor, 
-                        attack_data.node_, // joint 
-                        attack_data.size_, 
-                        attack_data.x, attack_data.y, attack_data.z, 
-                        x2, y2, z2, 
-                        hitbox_visualizer::ID_COLORS[(i % 8) as usize]);
-                }
-            }
-        }
-    }
+    SaveStates::save_states(module_accessor);
 
     let mut flag = original!()(module_accessor, category);
 
@@ -94,6 +60,7 @@ pub unsafe fn handle_get_command_flag_cat(
     Mash::get_command_flag_cat(module_accessor, category, &mut flag);
     Ledge::get_command_flag_cat(module_accessor, category, &mut flag);
     Tech::get_command_flag_cat(module_accessor, category, &mut flag);
+    hitbox_visualizer::get_command_flag_cat(module_accessor, category);
 
     flag
 }
@@ -199,6 +166,32 @@ pub unsafe fn handle_change_motion(
     })
 }
 
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = sv_animcmd::ATTACK)]
+pub unsafe fn handle_attack(lua_state: u64) {
+    let mut l2c_agent = L2CAgent::new(lua_state);
+
+    // get all necessary grabbox params
+    let id = l2c_agent.pop_lua_stack(1);     // int
+
+    // hacky way of forcing no shield damage on all hitboxes
+    if is_training_mode() && (*menu).SHIELD_STATE == SHIELD_INFINITE {
+        let hitbox_params : Vec<L2CValue> = (0..36).map(|i| l2c_agent.pop_lua_stack(i+1)).collect();
+        l2c_agent.clear_lua_stack();
+        for i in 0..36 {
+            let mut x = hitbox_params[i];
+            if i == 20 {
+                l2c_agent.push_lua_stack(&mut L2CValue::new_num(-999.0));
+            } else {
+                l2c_agent.push_lua_stack(&mut x);
+            }
+        }
+    }
+
+
+    original!()(lua_state);
+}
+
 
 pub fn training_mods() {
     println!("Applying training mods.");
@@ -216,6 +209,7 @@ pub fn training_mods() {
     // Hold/Infinite shield
     skyline::install_hook!(handle_check_button_on);
     skyline::install_hook!(handle_check_button_off);
+    skyline::install_hook!(handle_attack);
 
     skyline::install_hook!(handle_get_param_float);
 

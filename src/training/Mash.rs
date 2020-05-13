@@ -9,8 +9,8 @@ pub unsafe fn get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<i32>
 {
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        if menu.MASH_STATE == MASH_ATTACK {
-            match menu.ATTACK_STATE {
+        if (*menu).MASH_STATE == MASH_ATTACK {
+            match (*menu).ATTACK_STATE {
                 MASH_NAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_N),
                 MASH_FAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_F),
                 MASH_BAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_B),
@@ -20,7 +20,7 @@ pub unsafe fn get_attack_air_kind(
             }
         }
 
-        if menu.MASH_STATE == MASH_RANDOM {
+        if (*menu).MASH_STATE == MASH_RANDOM {
             return Some(app::sv_math::rand(hash40("fighter"), 5) + 1);
         }
     }
@@ -35,7 +35,7 @@ pub unsafe fn get_command_flag_cat(
 {
     if is_training_mode() && is_operation_cpu(module_accessor) {
         if is_in_hitstun(module_accessor) || is_in_landing(module_accessor) || is_in_shieldstun(module_accessor) {
-            match menu.MASH_STATE {
+            match (*menu).MASH_STATE {
                 MASH_AIRDODGE => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
@@ -53,7 +53,7 @@ pub unsafe fn get_command_flag_cat(
                 },
                 MASH_ATTACK => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                        match menu.ATTACK_STATE {
+                        match (*menu).ATTACK_STATE {
                             MASH_NAIR |
                             MASH_FAIR |
                             MASH_BAIR |
@@ -74,7 +74,7 @@ pub unsafe fn get_command_flag_cat(
                             _ => ()
                     }
                     } else if category == 1 {
-                        if menu.ATTACK_STATE == MASH_GRAB { *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH; }
+                        if (*menu).ATTACK_STATE == MASH_GRAB { *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH; }
                     }
                 },
                 MASH_RANDOM => {
@@ -140,7 +140,7 @@ pub unsafe fn check_button_on(
 {
     if [*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
         if is_training_mode() && is_operation_cpu(module_accessor) {
-            if menu.MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
+            if (*menu).MASH_STATE == MASH_AIRDODGE && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor)) {
                 return Some(true)
             }
         }
@@ -148,7 +148,7 @@ pub unsafe fn check_button_on(
 
     if [*CONTROL_PAD_BUTTON_ATTACK, *CONTROL_PAD_BUTTON_CATCH].contains(&button) {
         if is_training_mode() && is_operation_cpu(module_accessor) {
-            if menu.MASH_STATE == MASH_ATTACK && menu.ATTACK_STATE == MASH_GRAB && is_in_shieldstun(module_accessor) {
+            if (*menu).MASH_STATE == MASH_ATTACK && (*menu).ATTACK_STATE == MASH_GRAB && is_in_shieldstun(module_accessor) {
                 return Some(true)
             }
         }

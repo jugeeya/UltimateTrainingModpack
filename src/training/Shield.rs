@@ -8,7 +8,7 @@ use crate::common::consts::*;
 
 pub unsafe fn get_param_float(module_accessor: &mut app::BattleObjectModuleAccessor, param_type: u64, param_hash: u64) -> Option<f32> {
     if is_training_mode() {
-        if menu.SHIELD_STATE == SHIELD_INFINITE {
+        if (*menu).SHIELD_STATE == SHIELD_INFINITE {
             if param_type == hash40("common") {
                 if param_hash == hash40("shield_dec1") {
                     return Some(0.0)
@@ -29,9 +29,9 @@ pub unsafe fn get_param_float(module_accessor: &mut app::BattleObjectModuleAcces
 
 pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     // We should hold shield if the state requires it
-    if [SHIELD_HOLD, SHIELD_INFINITE].contains(&menu.SHIELD_STATE) {
+    if [SHIELD_HOLD, SHIELD_INFINITE].contains(&(*menu).SHIELD_STATE) {
         // If we are not mashing then we will always hold shield
-        if menu.MASH_STATE == NONE {
+        if (*menu).MASH_STATE == NONE {
             return true
         }
 
@@ -40,8 +40,8 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         }
 
         // We will only drop shield if we are in shieldstun and our attack can be performed OOS
-        if menu.MASH_STATE == MASH_ATTACK {
-            if [MASH_NEUTRAL_B, MASH_SIDE_B, MASH_DOWN_B].contains(&menu.ATTACK_STATE) {
+        if (*menu).MASH_STATE == MASH_ATTACK {
+            if [MASH_NEUTRAL_B, MASH_SIDE_B, MASH_DOWN_B].contains(&(*menu).ATTACK_STATE) {
                 return true
             }
         }

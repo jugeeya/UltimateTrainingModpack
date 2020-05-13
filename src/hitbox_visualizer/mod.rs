@@ -130,15 +130,6 @@ pub unsafe fn generate_hitbox_effects(
         let pos = Vector3f{x : x_curr, y : y_curr, z : z_curr};
         let zeros = Vector3f{x : 0.0, y : 0.0, z : 0.0};
 
-        // EffectModule::req_follow(module_accessor, 
-        //     Hash40{hash: hash40("sys_shield")}, Hash40{hash: bone}, 
-        //     &pos, &zeros, size * size_mult,
-        //     true, 
-        //     *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32 |
-        //     *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32 | 
-        //     *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32, 
-        //     0, 0, 0, 0, true, true);
-
         EffectModule::req_on_joint(module_accessor, 
             Hash40{hash: hash40("sys_shield")}, Hash40{hash: bone}, 
             &pos, &zeros, size * size_mult, &zeros, &zeros,
@@ -159,7 +150,7 @@ pub unsafe fn generate_hitbox_effects(
     }
 }
 
-    // if menu.HITBOX_VIS && is_training_mode() {  // generate hitbox effect(s)
+    // if (*menu).HITBOX_VIS && is_training_mode() {  // generate hitbox effect(s)
     //     let color_scale: f32;
     //     if true {  // color intensity scales with damage
     //         color_scale = unlerp_bounded(1.0, 18.0, damage.get_num());
@@ -198,6 +189,46 @@ pub unsafe fn generate_hitbox_effects(
     //         color);
     // }
 
+pub unsafe fn get_command_flag_cat(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    category: i32)
+{
+    // apply only once per frame
+    if category == 0 && is_training_mode() && (*menu).HITBOX_VIS {
+        // Pause Effect AnimCMD if hitbox visualization is active
+        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        MotionAnimcmdModule::set_sleep_effect(module_accessor,
+            !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind) ||
+            (*FIGHTER_STATUS_KIND_WAIT..=*FIGHTER_STATUS_KIND_REBOUND_JUMP).contains(&status_kind)));
+
+        if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind) {
+            EffectModule::set_visible_kind(module_accessor, Hash40{hash: hash40("sys_shield")}, false);
+            EffectModule::kill_kind(module_accessor, Hash40{hash: hash40("sys_shield")}, false, true);
+            for i in 0..8 {
+                if AttackModule::is_attack(module_accessor, i, false) {
+                    let attack_data = *AttackModule::attack_data(module_accessor, i, false);
+                    let is_capsule = attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
+                    let mut x2 = None;
+                    let mut y2 = None;
+                    let mut z2 = None;
+                    if is_capsule {
+                        x2 = Some(attack_data.x2);
+                        y2 = Some(attack_data.y2);
+                        z2 = Some(attack_data.z2);
+                    }
+                    generate_hitbox_effects(
+                        module_accessor, 
+                        attack_data.node, // joint 
+                        attack_data.size, 
+                        attack_data.x, attack_data.y, attack_data.z, 
+                        x2, y2, z2, 
+                        ID_COLORS[(i % 8) as usize]);
+                }
+            }
+        }
+    }
+}
+
 #[allow(unused_unsafe)]
 #[skyline::hook(replace = sv_animcmd::CATCH)]
 unsafe fn handle_catch(lua_state: u64) {
@@ -216,7 +247,7 @@ unsafe fn handle_catch(lua_state: u64) {
 
     original!()(lua_state);
 
-    if menu.HITBOX_VIS && is_training_mode() {
+    if (*menu).HITBOX_VIS && is_training_mode() {
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(), 
