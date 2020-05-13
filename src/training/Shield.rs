@@ -1,7 +1,6 @@
 
 use smash::hash40;
 use smash::app::{self};
-use smash::app::lua_bind::*;
 use smash::lib::lua_const::*;
 use crate::common::*;
 use crate::common::consts::*;

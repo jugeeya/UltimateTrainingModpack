@@ -1,4 +1,4 @@
-use smash::{hash40, phx::Hash40};
+use smash::hash40;
 use smash::app::{self};
 use smash::app::lua_bind::*;
 use smash::lib::lua_const::*;

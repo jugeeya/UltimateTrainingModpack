@@ -1,9 +1,8 @@
-use smash::{hash40, phx::Hash40, phx::Vector3f};
+use smash::{phx::Vector3f};
 use smash::app::{self};
 use smash::app::lua_bind::*;
 use smash::lib::lua_const::*;
 use crate::common::*;
-use crate::common::consts::*;
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -85,9 +84,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             let pos = Vector3f{x : *save_state_x, y : *save_state_y, z : 0.0};
             PostureModule::set_pos(module_accessor, &pos);
             PostureModule::set_lr(module_accessor, *save_state_lr);
-            // DamageModule::add_damage(
-            //     module_accessor,
-            //     -1.0 * DamageModule::damage(module_accessor, 0), 0);
             DamageModule::heal(module_accessor, -1.0 * DamageModule::damage(module_accessor, 0), 0);
             DamageModule::add_damage(module_accessor, *save_state_percent, 0);
 

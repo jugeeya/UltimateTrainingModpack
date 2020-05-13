@@ -1,30 +1,24 @@
 #![feature(proc_macro_hygiene)]
-#![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 #![feature(with_options)]
-#![feature(asm)]
 
 mod hitbox_visualizer;
 mod training;
 mod common;
 
-use smash::hash40;
+use crate::common::*;
+use crate::common::consts::*;
+
 use smash::lib::lua_const::{*};
-use smash::lib::{self, L2CAgent, L2CValue};
-use smash::app::{self};
+use smash::lib::L2CValue;
 use smash::app::lua_bind::{*};
-use smash::app::sv_animcmd::{self};
 use smash::app::sv_system::{self};
 use smash::lua2cpp::L2CFighterCommon;
-use skyline::libc::{size_t, c_int, c_void, strlen, fopen, fwrite, fclose};
-use smash::Result;
-use skyline::nn;
-use skyline::patching::patch_data_from_text;
-use skyline::{from_c_str, c_str, hooks::A64HookFunction, logging::hex_dump_ptr, logging::HexDump};
-use std::fs;
+use skyline::libc::{c_void, fopen, fwrite, fclose};
+use skyline::{c_str};
 use skyline::nro::{self, NroInfo};
 
 #[allow(unused_unsafe)]

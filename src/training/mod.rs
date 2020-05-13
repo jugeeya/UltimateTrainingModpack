@@ -1,8 +1,6 @@
-use smash::app::{self, sv_system, sv_animcmd, lua_bind::*, FighterManager};
-use smash::lib::{self, L2CAgent, L2CValue, lua_const::*};
-use smash::phx::{Hash40, Vector3f};
-use smash::hash40;
-use skyline::{c_str, nn::ro::LookupSymbol, logging::hex_dump_ptr};
+use smash::app::{self, sv_animcmd, lua_bind::*};
+use smash::lib::{L2CAgent, L2CValue};
+use skyline::{c_str, nn::ro::LookupSymbol};
 use crate::common::fighter_manager_addr;
 use crate::common::*;
 use crate::common::consts::*;

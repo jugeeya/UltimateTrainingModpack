@@ -4,9 +4,8 @@ use smash::app::sv_animcmd::{self};
 use smash::app::sv_system::{self};
 use smash::app::lua_bind::*;
 use smash::lib::lua_const::*;
-use smash::lib::{L2CAgent, L2CValue, L2CValueType};
+use smash::lib::{L2CAgent, L2CValue};
 use smash::phx::{Hash40, Vector3f};
-use skyline::{logging::HexDump};
 use crate::common::*;
 
 /**
@@ -33,7 +32,7 @@ pub fn unlerp_bounded(min: f32, max: f32, val: f32) -> f32 {
 }
  
  /**
-  * Linearly nterpolates between two colors, with bounds checking, accounting for
+  * Linearly interpolates between two colors, with bounds checking, accounting for
   * gamma. arguments:
   * - min_color (Vector3f) -- xyz maps to rgb, components are usually in the
   * range [0.0f, 1.0f] but can go beyond to account for super-bright or
@@ -149,45 +148,6 @@ pub unsafe fn generate_hitbox_effects(
         EffectModule::set_rate_last(module_accessor, 8.0);
     }
 }
-
-    // if (*menu).HITBOX_VIS && is_training_mode() {  // generate hitbox effect(s)
-    //     let color_scale: f32;
-    //     if true {  // color intensity scales with damage
-    //         color_scale = unlerp_bounded(1.0, 18.0, damage.get_num());
-    //     } else {  // color intensity scales with total KB
-    //         // calculate the expected KB a character with 95 weight will receive
-    //         // at 80% pre-hit
-    //         let target_percent = 80.0;
-    //         let target_weight = 95.0;
-    //         let percent_component: f32;
-    //         if fkb.get_int() > 0 {
-    //             percent_component = (10.0 + fkb.get_int() as f32) * 0.1 * (1.0 + fkb.get_int() as f32 * 0.5);
-    //         } else {
-    //             percent_component =  (target_percent + damage.get_num()) * 0.1 *
-    //                                 (1.0 + damage.get_num() * 0.5);
-    //         }
-    //         let weight_component: f32 = 200.0 / (target_weight + 100.0);
-    //         let kb: f32 = (percent_component * weight_component * 1.4 + 18.0) *
-    //                        (kbg.get_int() as f32 * 0.01) + bkb.get_int() as f32;
-    //         color_scale = unlerp_bounded(50.0, 200.0, kb);
-    //     }
-    //     // non-linear scaling to magnify
-    //     // differences at lower values
-    //     let color_t: f32 = 0.8 + 0.2 * color_scale.powf(0.5);
-    //     let color = color_lerp(
-    //         Vector3f{x: 1.0, y: 1.0, z: 1.0},
-    //         ID_COLORS[(id.get_int() % 8) as usize],
-    //         color_t, 
-    //         2.0
-    //     );
-    //     generate_hitbox_effects(
-    //         sv_system::battle_object_module_accessor(lua_state), 
-    //         bone.get_int(), 
-    //         size.get_num(), 
-    //         x.get_num(), y.get_num(), z.get_num(), 
-    //         x2.try_get_num(), y2.try_get_num(), z2.try_get_num(), 
-    //         color);
-    // }
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,

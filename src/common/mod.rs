@@ -3,8 +3,8 @@ pub mod consts;
 use smash::lib::lua_const::{*};
 use crate::common::consts::*;
 use smash::app::{self};
-use smash::app::lua_bind::{self, *};
-use smash::app::{FighterManager, FighterInformation};
+use smash::app::lua_bind::*;
+// use smash::app::{FighterManager, FighterInformation};
 use smash::hash40;
 
 pub static mut menu_struct : consts::TrainingModpackMenu = consts::TrainingModpackMenu{
