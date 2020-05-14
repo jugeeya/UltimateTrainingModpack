@@ -1,104 +1,88 @@
-# skyline-rs-template
+# Ultimate Training Modpack Plugin
 
-A template for writing skyline plugins for modding switch games using Rust and skyline-rs.
+[![Github all releases](https://img.shields.io/github/downloads/jugeeya/UltimateTrainingModpack/total.svg)](https://GitHub.com/jugeeya/UltimateTrainingModpack/releases/)
 
-[Documentation for skyline-rs](https://ultimate-research.github.io/skyline-rs-template/doc/skyline/index.html)
+A [Skyline](https://github.com/shadowninja108/Skyline) plugin for adding features to the training mode. It interfaces with a [Tesla](https://github.com/WerWolv/libtesla), a Switch custom overlay, for use as a menu to the features offered in training mode.
 
-## Prerequisites
+Built releases can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/).
 
-* [Rust](https://www.rust-lang.org/install.html) - make sure rustup, cargo, and rustc (preferrably nightly) are installed.
-* [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- [Features](#features)
+- [Build](#build)
 
-## Setup
+<a name="features"/>
 
-1. Install linkle and my fork of Xargo:
-```sh
-  # Install linkle
-  cargo install --features=binaries --git https://github.com/MegatonHammer/linkle
+# Features
+The features in this modpack are configured through the Tesla menu, which can be accessed at any time with by pressing `L+X+DPad Left`. This button configuration is fully configurable in the file `/config/tesla/config.ini`.
 
-  # Install Xargo
-  cargo install --force --git https://github.com/jam1garner/xargo.git
-```
-2. Make a folder for you to store all of your plugins
-```
-mkdir plugins
-cd plugins
-```
-3. Within your plugins folder, clone [rust-std-skyline-squashed](https://github.com/jam1garner/rust-std-skyline-squashed)
-```sh
-# Make sure you are inside of your plugins folder
-git clone https://github.com/jam1garner/rust-std-skyline-squashed
-```
-Note: you only have to clone the `std` once to be shared between every plugin in the folder.
+#### Save States
+At any time in Training Mode, you can press `Grab + DPad Down` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + DPad Up`. Use this instead of the built-in training mode reset!
 
-## Creating and building a plugin
+#### Hitbox Visualization
+Currently, hitboxes and grabboxes are supported. When visualization is active, other move effects are temporarily turned off for easier visualization.
 
-1. From within the same folder as where you cloned `rust-std-skyline-squashed` clone this repo and rename it to match the
-name of your plugin. To clone and rename all at once, use:
-```
-git clone https://github.com/jam1garner/skyline-rs-template [name of plugin]
-```
-2. Make sure you're inside the folder for your plugin:
-```sh
-cd [name of plugin]
-```
-3. There's a few places you'll need to rename your plugin. First in `Cargo.toml` near the top, change
-```
-name = "skyline-rs-template"
-```
-To a name suitable for your plugin. Next, go into `src/lib.rs` and edit the following line:
-```rust
-#[skyline::main(name = "module_name_test")]
-```
-to reflect what you want your module to be named on your console.
 
-4. Lastly, to compile your plugin use the following command in the root of the project (beside the `Cargo.toml` file):
-```sh
-cargo nro
-```
-Your resulting plugin will be the `.nro` found in the folder ```
-[plugin name]/target/aarch64-skyline-switch
-```
-To install (you must already have skyline installed on your switch), put the plugin on your SD at:
-```
-sd:/atmosphere/contents/[title id]/romfs/skyline/plugins
-```
-So, for example, smash plugins go in the following folder: ```
-sd:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins
-```
+##### Mash Toggles
+*Note:* Combine this with the shield toggles to force the CPU to perform options OoS when their shield is damaged!
 
-## Troubleshooting
+###### Airdodge
+CPUs will mash airdodge on the first frame out of hitstun.
 
-**"Cannot be used on stable"**
+CPUs will also shield quickly if they are hit and remain grounded.
 
-First, make sure you have a nightly installed: ```
-rustup install nightly
-```
-Second, make sure it is your default channel: ```
-rustup default nightly
-```
----
-```
-thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', src/bin/cargo-nro.rs:280:13
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-```
+###### Jump
+CPUs will mash jump on the first frame out of hitstun.
 
-Make sure you are *inside* the root of the plugin you created before running `cargo nro`
+###### Attack
+CPUs will mash an attack on the first frame out of hitstun and when landing. 
+Attacks that can be chosen include:
+- All aerials, followed by all specials
 
-Have a problem/solution that is missing here? Create an issue or a PR!
+###### Random
+CPUs will mash an aerial or grounded option on the first frame out of hitstun and when landing. 
+The aerial options include:
+- Airdodge, jump, all aerials, all specials
 
-## Updating
+The grounded options include:
+- Jump, jab, all tilts, all smashes, all specials, grab, spotdodge, and rolls
 
-For updating your dependencies such as skyline-rs:
+##### Ledge Option
+CPUs will perform a random ledge option. 
+Specific ledge options that can be chosen include:
+- Normal, roll, jump, and attack
 
-```
-cargo update
-```
+CPUs will also perform a defensive option after getting up.
 
-For updating your version of `rust-std-skyline-squashed`:
+##### Tech Option
+CPUs will perform a random tech option. 
+Specific tech options that can be chosen include:
+- In place, roll, and miss tech
 
-```
-# From inside your plugins folder
+CPUs will also perform a defensive option after getting up.
 
-rm -rf && git clone https://github.com/jam1garner/rust-std-skyline-squashed
-```
+##### Defensive Option
+Choose the defensive option a CPU will perform after teching or getting up from the ledge. 
+Specific options include:
+    Flash shield, spotdodge, and jab
+
+##### Shield
+
+###### Infinite
+CPUs will hold a shield that does not deteriorate over time or by damage.
+
+###### Hold
+CPUs will hold a normal shield.
+
+#### Force CPU DI
+##### All DI Toggles
+
+##### Specified Direction
+CPUs DI in the direction specified, relative to the player's facing position.
+
+##### Random Direction
+CPUs DI randomly in or away.
+
+<a name="build"/>
+
+# Build from Source
+
+[TODO]
