@@ -66,15 +66,15 @@ pub unsafe fn defensive_option(
 ) {
     let status = StatusModule::status_kind(module_accessor) as i32;
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
-    if [
-        *FIGHTER_STATUS_KIND_CLIFF_JUMP3,
-        *FIGHTER_STATUS_KIND_CLIFF_JUMP2,
-        *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
-    ]
-    .contains(&status)
-    {
-        *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
-    }
+    // if [
+    //     *FIGHTER_STATUS_KIND_CLIFF_JUMP3,
+    //     *FIGHTER_STATUS_KIND_CLIFF_JUMP2,
+    //     *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
+    // ]
+    // .contains(&status)
+    // {
+    //     *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
+    // }
 
     if should_perform_defensive_option(module_accessor, prev_status, status) {
         perform_defensive_option(module_accessor, flag);

@@ -68,19 +68,20 @@ pub unsafe fn should_perform_defensive_option(
         *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
     ]
     .contains(&prev_status)
-        || [
-            *FIGHTER_STATUS_KIND_DOWN_STAND,
-            *FIGHTER_STATUS_KIND_DOWN_STAND_FB,
-            *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
-        ]
-        .contains(&status))
+        // || [
+        //     *FIGHTER_STATUS_KIND_DOWN_STAND,
+        //     *FIGHTER_STATUS_KIND_DOWN_STAND_FB,
+        //     *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
+        // ]
+        // .contains(&status)
+    )
         && (
             WorkModule::is_enable_transition_term(
                 module_accessor,
                 *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
             )
-            // ||
-            // CancelModule::is_enable_cancel(module_accessor)
+            ||
+            CancelModule::is_enable_cancel(module_accessor)
         )
 }
 

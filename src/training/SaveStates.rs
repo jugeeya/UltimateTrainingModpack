@@ -64,6 +64,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 save_state_player_state = CameraMove;
                 save_state_cpu_state = CameraMove;
             }
+            return;
         }
 
         // move to camera bounds
@@ -72,10 +73,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
             let left_right =
                 (*save_state_x > 0.0) as i32 as f32 - (*save_state_x < 0.0) as i32 as f32;
-            let mut y_pos = 0.0;
-            if *save_state_situation_kind == SITUATION_KIND_GROUND {
-                y_pos = -50.0;
-            }
+            let y_pos = 0.0;
 
             let pos = Vector3f {
                 x: left_right * 50.0,
@@ -83,17 +81,22 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 z: 0.0,
             };
             PostureModule::set_pos(module_accessor, &pos);
-            StatusModule::set_situation_kind(
-                module_accessor,
-                app::SituationKind {
-                    situation_kind: *SITUATION_KIND_AIR,
-                },
-                false,
-            );
+
+            // force aerial, because from aerial state we can move anywhere
+            if StatusModule::situation_kind(module_accessor) == SITUATION_KIND_GROUND {
+                StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_JUMP_SQUAT, false);
+            }
+            return;
         }
 
         // move to correct pos
         if *save_state == PosMove {
+            if StatusModule::situation_kind(module_accessor) == SITUATION_KIND_GROUND {
+                return;
+            }
+
+            KineticModule::clear_speed_all(module_accessor);
+
             let pos = Vector3f {
                 x: *save_state_x,
                 y: *save_state_y,
@@ -116,13 +119,25 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 false,
             );
 
-            // Doesn't work, and I don't know why yet.
-            // if *save_state_situation_kind == SITUATION_KIND_GROUND && status != FIGHTER_STATUS_KIND_WAIT {
-            //     StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_WAIT, false);
-            // }
-            // else if (*save_state_situation_kind == SITUATION_KIND_AIR && status != FIGHTER_STATUS_KIND_FALL)
-            //         StatusModule::change_status_request(module_accessor, FIGHTER_STATUS_KIND_FALL, 0);
-            if *save_state_situation_kind == SITUATION_KIND_CLIFF
+            if *save_state_situation_kind == SITUATION_KIND_GROUND
+                && status != FIGHTER_STATUS_KIND_WAIT
+            {
+                StatusModule::change_status_request(
+                    module_accessor,
+                    *FIGHTER_STATUS_KIND_CLIFF_WAIT,
+                    false,
+                );
+            }
+            else if *save_state_situation_kind == SITUATION_KIND_AIR
+                && status != FIGHTER_STATUS_KIND_FALL
+            {
+                StatusModule::change_status_request(
+                    module_accessor,
+                    *FIGHTER_STATUS_KIND_FALL,
+                    false,
+                );
+            }
+            else if *save_state_situation_kind == SITUATION_KIND_CLIFF
                 && status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
                 && status != FIGHTER_STATUS_KIND_CLIFF_CATCH
             {
@@ -133,6 +148,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 );
             }
             *save_state = NoAction;
+            return;
         }
 
         // Grab + Dpad down: Save state

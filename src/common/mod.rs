@@ -25,6 +25,8 @@ pub static mut fighter_manager_addr: usize = 0;
 extern "C" {
     #[link_name = "\u{1}_ZN3app9smashball16is_training_modeEv"]
     pub fn is_training_mode() -> bool;
+    #[link_name = "\u{1}_ZN3app7utility8get_kindEPKNS_26BattleObjectModuleAccessorE"]
+    pub fn get_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32;
 }
 
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {

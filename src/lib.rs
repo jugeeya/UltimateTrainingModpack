@@ -44,6 +44,19 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
             }
         }
     }
+    if (*menu).MASH_STATE == MASH_SPOTDODGE {
+        if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+            if WorkModule::is_enable_transition_term(
+                module_accessor,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+            ) {
+                fighter.fighter_base.change_status(
+                    L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
+                    L2CValue::new_bool(true),
+                );
+            }
+        }
+    }
     original!()(fighter)
 }
 
@@ -57,7 +70,7 @@ fn nro_main(nro: &NroInfo) {
     }
 }
 
-#[skyline::main(name = "test")]
+#[skyline::main(name = "training_modpack")]
 pub fn main() {
     println!("Training modpack initialized.");
     hitbox_visualizer::hitbox_visualization();
@@ -73,7 +86,6 @@ pub fn main() {
             "w\u{0}".as_bytes().as_ptr(),
         );
 
-        println!("File pointer: {:#?}", f);
         if !f.is_null() {
             fwrite(c_str(&buffer) as *const c_void, 1, buffer.len(), f);
             fclose(f);

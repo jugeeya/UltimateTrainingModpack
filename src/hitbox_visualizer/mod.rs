@@ -235,13 +235,15 @@ pub unsafe fn get_command_flag_cat(
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
         MotionAnimcmdModule::set_sleep_effect(
             module_accessor,
-            !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL)
-                .contains(&status_kind)
-                || (*FIGHTER_STATUS_KIND_WAIT..=*FIGHTER_STATUS_KIND_REBOUND_JUMP)
-                    .contains(&status_kind)),
+            !((status_kind >= FIGHTER_STATUS_KIND_CATCH
+                && status_kind <= FIGHTER_STATUS_KIND_TREAD_FALL)
+                || (status_kind >= FIGHTER_STATUS_KIND_WAIT
+                    && status_kind <= FIGHTER_STATUS_KIND_REBOUND_JUMP)),
         );
 
-        if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind) {
+        if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind)
+            && !is_shielding(module_accessor)
+        {
             EffectModule::set_visible_kind(
                 module_accessor,
                 Hash40 {
