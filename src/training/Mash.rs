@@ -73,10 +73,6 @@ pub unsafe fn get_command_flag_cat(
                             MASH_GRAB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
                             _ => (),
                         }
-                    } else if category == 1 {
-                        if (*menu).ATTACK_STATE == MASH_GRAB {
-                            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
-                        }
                     }
                 }
                 MASH_RANDOM => {
@@ -146,17 +142,6 @@ pub unsafe fn check_button_on(
         if is_training_mode() && is_operation_cpu(module_accessor) {
             if (*menu).MASH_STATE == MASH_AIRDODGE
                 && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor))
-            {
-                return Some(true);
-            }
-        }
-    }
-
-    if [*CONTROL_PAD_BUTTON_ATTACK, *CONTROL_PAD_BUTTON_CATCH].contains(&button) {
-        if is_training_mode() && is_operation_cpu(module_accessor) {
-            if (*menu).MASH_STATE == MASH_ATTACK
-                && (*menu).ATTACK_STATE == MASH_GRAB
-                && is_in_shieldstun(module_accessor)
             {
                 return Some(true);
             }

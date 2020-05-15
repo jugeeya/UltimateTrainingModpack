@@ -44,6 +44,10 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         // We will only drop shield if we are in shieldstun and our attack can be performed OOS
         if (*menu).MASH_STATE == MASH_ATTACK {
             if [MASH_NEUTRAL_B, MASH_SIDE_B, MASH_DOWN_B].contains(&(*menu).ATTACK_STATE) {
+                return false;
+            }
+
+            if [MASH_SPOTDODGE, MASH_GRAB].contains(&(*menu).ATTACK_STATE) {
                 return true;
             }
         }
