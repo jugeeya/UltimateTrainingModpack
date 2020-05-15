@@ -17,7 +17,7 @@ use skyline::c_str;
 use skyline::libc::{c_void, mkdir, fclose, fopen, fwrite};
 use skyline::nro::{self, NroInfo};
 use smash::app::lua_bind::*;
-use smash::app::sv_system::{self};
+use smash::app::sv_system;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;

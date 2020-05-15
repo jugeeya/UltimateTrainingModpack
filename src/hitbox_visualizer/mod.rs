@@ -1,12 +1,7 @@
-use crate::common::*;
-use crate::common::consts::*;
-use smash::app::lua_bind::*;
-use smash::app::sv_animcmd::{self};
-use smash::app::sv_system::{self};
-use smash::app::{self};
+use crate::common::{*, consts::*};
+use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
 use smash::hash40;
-use smash::lib::lua_const::*;
-use smash::lib::{L2CAgent, L2CValue};
+use smash::lib::{lua_const::*, L2CAgent, L2CValue};
 use smash::phx::{Hash40, Vector3f};
 
 /**

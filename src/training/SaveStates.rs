@@ -1,6 +1,5 @@
 use crate::common::*;
-use smash::app::lua_bind::*;
-use smash::app::{self};
+use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::Vector3f;
 
