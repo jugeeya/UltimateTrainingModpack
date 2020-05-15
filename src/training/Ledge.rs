@@ -21,10 +21,10 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
                 let mut status = 0;
                 let ledge_case: i32;
 
-                if (*menu).LEDGE_STATE == RANDOM_LEDGE {
+                if menu.LEDGE_STATE == RANDOM_LEDGE {
                     ledge_case = app::sv_math::rand(hash40("fighter"), 4) + 2;
                 } else {
-                    ledge_case = (*menu).LEDGE_STATE;
+                    ledge_case = menu.LEDGE_STATE;
                 }
 
                 match ledge_case {
@@ -89,7 +89,7 @@ pub unsafe fn check_button_on(
         if is_training_mode() && is_operation_cpu(module_accessor) {
             let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
             let status = StatusModule::status_kind(module_accessor) as i32;
-            if (*menu).DEFENSIVE_STATE == DEFENSIVE_SHIELD
+            if menu.DEFENSIVE_STATE == DEFENSIVE_SHIELD
                 && should_perform_defensive_option(module_accessor, prev_status, status)
             {
                 return Some(true);
@@ -105,7 +105,7 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
-    if (*menu).LEDGE_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
+    if menu.LEDGE_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
         force_option(module_accessor);
         defensive_option(module_accessor, category, flag);
     }

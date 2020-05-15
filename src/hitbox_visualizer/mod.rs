@@ -233,11 +233,11 @@ pub unsafe fn get_command_flag_cat(
     // Pause Effect AnimCMD if hitbox visualization is active
     MotionAnimcmdModule::set_sleep_effect(
         module_accessor,
-        (*menu).HITBOX_VIS,
+        menu.HITBOX_VIS,
     );
 
     // apply only once per frame
-    if category == 0 && is_training_mode() && (*menu).HITBOX_VIS {
+    if category == 0 && is_training_mode() && menu.HITBOX_VIS {
         
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
         if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind)
@@ -312,7 +312,7 @@ unsafe fn handle_attack(lua_state: u64) {
     let z2 = l2c_agent.pop_lua_stack(15);     // float or void
 
     // hacky way of forcing no shield damage on all hitboxes
-    if is_training_mode() && (*menu).SHIELD_STATE == SHIELD_INFINITE {
+    if is_training_mode() && menu.SHIELD_STATE == SHIELD_INFINITE {
         let hitbox_params: Vec<L2CValue> =
             (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
         l2c_agent.clear_lua_stack();
@@ -328,7 +328,7 @@ unsafe fn handle_attack(lua_state: u64) {
 
     original!()(lua_state);
 
-    if (*menu).HITBOX_VIS && is_training_mode() {
+    if menu.HITBOX_VIS && is_training_mode() {
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(),
@@ -362,7 +362,7 @@ unsafe fn handle_catch(lua_state: u64) {
 
     original!()(lua_state);
 
-    if (*menu).HITBOX_VIS && is_training_mode() {
+    if menu.HITBOX_VIS && is_training_mode() {
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(),

@@ -4,6 +4,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 #![feature(with_options)]
+#![feature(const_mut_refs)]
 
 mod common;
 mod hitbox_visualizer;
@@ -26,7 +27,7 @@ use smash::lua2cpp::L2CFighterCommon;
 pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        if (*menu).MASH_STATE == MASH_ATTACK && (*menu).ATTACK_STATE == MASH_GRAB {
+        if menu.MASH_STATE == MASH_ATTACK && menu.ATTACK_STATE == MASH_GRAB {
             if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
                 if WorkModule::get_int(
                     module_accessor,
@@ -45,7 +46,7 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
                 }
             }
         }
-        if (*menu).MASH_STATE == MASH_SPOTDODGE {
+        if menu.MASH_STATE == MASH_SPOTDODGE {
             if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
                 if WorkModule::is_enable_transition_term(
                     module_accessor,
@@ -58,7 +59,7 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
                 }
             }
         }
-        if (*menu).MASH_STATE == MASH_UP_B {
+        if menu.MASH_STATE == MASH_UP_B {
             if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
                 // if WorkModule::is_enable_transition_term(
                 //     module_accessor,
@@ -71,7 +72,7 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
                 // }
             }
         }
-        if (*menu).MASH_STATE == MASH_UP_SMASH {
+        if menu.MASH_STATE == MASH_UP_SMASH {
             if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
                 // if WorkModule::is_enable_transition_term(
                 //     module_accessor,
@@ -106,8 +107,7 @@ pub fn main() {
     nro::add_hook(nro_main).unwrap();
 
     unsafe {
-        common::menu = &mut common::menu_struct;
-        let buffer = format!("{:x}", common::menu as u64);
+        let buffer = format!("{:x}", common::menu as *const _ as u64);
         println!("Writing training_modpack.log with {}...\n", buffer);
         mkdir("sd:/TrainingModpack/\u{0}".as_bytes().as_ptr(), 0777);
         let f = fopen(

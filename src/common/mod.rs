@@ -1,8 +1,7 @@
 pub mod consts;
 
 use crate::common::consts::*;
-use smash::app::lua_bind::*;
-use smash::app::{self};
+use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 // use smash::app::{FighterManager, FighterInformation};
 use smash::hash40;
@@ -18,7 +17,7 @@ pub static mut menu_struct: consts::TrainingModpackMenu = consts::TrainingModpac
     DEFENSIVE_STATE: RANDOM_DEFENSIVE,
 };
 
-pub static mut menu: *mut consts::TrainingModpackMenu = 0 as *mut consts::TrainingModpackMenu;
+pub static menu: &'static mut consts::TrainingModpackMenu = unsafe { &mut menu_struct};
 
 pub static mut fighter_manager_addr: usize = 0;
 
