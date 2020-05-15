@@ -1,10 +1,7 @@
-use crate::common::consts::*;
 use crate::common::fighter_manager_addr;
-use crate::common::*;
 use crate::hitbox_visualizer;
 use skyline::{c_str, nn::ro::LookupSymbol};
-use smash::app::{self, lua_bind::*, sv_animcmd};
-use smash::lib::{L2CAgent, L2CValue};
+use smash::app::{self, lua_bind::*};
 
 mod DirectionalInfluence;
 mod Ledge;
@@ -187,32 +184,6 @@ pub unsafe fn handle_change_motion(
     })
 }
 
-#[allow(unused_unsafe)]
-#[skyline::hook(replace = sv_animcmd::ATTACK)]
-pub unsafe fn handle_attack(lua_state: u64) {
-    let mut l2c_agent = L2CAgent::new(lua_state);
-
-    // get all necessary grabbox params
-    let id = l2c_agent.pop_lua_stack(1); // int
-
-    // hacky way of forcing no shield damage on all hitboxes
-    if is_training_mode() && (*menu).SHIELD_STATE == SHIELD_INFINITE {
-        let hitbox_params: Vec<L2CValue> =
-            (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
-        l2c_agent.clear_lua_stack();
-        for i in 0..36 {
-            let mut x = hitbox_params[i];
-            if i == 20 {
-                l2c_agent.push_lua_stack(&mut L2CValue::new_num(-999.0));
-            } else {
-                l2c_agent.push_lua_stack(&mut x);
-            }
-        }
-    }
-
-    original!()(lua_state);
-}
-
 pub fn training_mods() {
     println!("Applying training mods.");
     unsafe {
@@ -232,7 +203,6 @@ pub fn training_mods() {
     // Hold/Infinite shield
     skyline::install_hook!(handle_check_button_on);
     skyline::install_hook!(handle_check_button_off);
-    skyline::install_hook!(handle_attack);
 
     skyline::install_hook!(handle_get_param_float);
 

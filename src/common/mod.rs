@@ -51,7 +51,7 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
 
 pub unsafe fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    (FIGHTER_STATUS_KIND_DAMAGE..=FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
+    (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 
 pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -70,7 +70,7 @@ pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAcce
 
 pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    (FIGHTER_STATUS_KIND_LANDING..=FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT).contains(&status_kind)
+    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT).contains(&status_kind)
 }
 
 pub unsafe fn perform_defensive_option(

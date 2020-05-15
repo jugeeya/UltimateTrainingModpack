@@ -1,4 +1,5 @@
 use crate::common::*;
+use crate::common::consts::*;
 use smash::app::lua_bind::*;
 use smash::app::sv_animcmd::{self};
 use smash::app::sv_system::{self};
@@ -229,18 +230,16 @@ pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32,
 ) {
+    // Pause Effect AnimCMD if hitbox visualization is active
+    MotionAnimcmdModule::set_sleep_effect(
+        module_accessor,
+        (*menu).HITBOX_VIS,
+    );
+
     // apply only once per frame
     if category == 0 && is_training_mode() && (*menu).HITBOX_VIS {
-        // Pause Effect AnimCMD if hitbox visualization is active
+        
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
-        MotionAnimcmdModule::set_sleep_effect(
-            module_accessor,
-            !((status_kind >= FIGHTER_STATUS_KIND_CATCH
-                && status_kind <= FIGHTER_STATUS_KIND_TREAD_FALL)
-                || (status_kind >= FIGHTER_STATUS_KIND_WAIT
-                    && status_kind <= FIGHTER_STATUS_KIND_REBOUND_JUMP)),
-        );
-
         if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind)
             && !is_shielding(module_accessor)
         {
@@ -290,6 +289,61 @@ pub unsafe fn get_command_flag_cat(
     }
 }
 
+// Necessary to ensure we visualize on the first frame of the hitbox
+#[allow(unused_unsafe)]
+#[skyline::hook(replace = sv_animcmd::ATTACK)]
+unsafe fn handle_attack(lua_state: u64) {
+    let mut l2c_agent = L2CAgent::new(lua_state);
+
+    // get all necessary grabbox params
+    let id = l2c_agent.pop_lua_stack(1);      // int
+    let joint = l2c_agent.pop_lua_stack(3);    // hash40
+    let damage = l2c_agent.pop_lua_stack(4);  // float
+    let _angle = l2c_agent.pop_lua_stack(5);   // int
+    let kbg = l2c_agent.pop_lua_stack(6);     // int
+    let fkb = l2c_agent.pop_lua_stack(7);     // int
+    let bkb = l2c_agent.pop_lua_stack(8);     // int
+    let size = l2c_agent.pop_lua_stack(9);    // float
+    let x = l2c_agent.pop_lua_stack(10);      // float
+    let y = l2c_agent.pop_lua_stack(11);      // float
+    let z = l2c_agent.pop_lua_stack(12);      // float
+    let x2 = l2c_agent.pop_lua_stack(13);     // float or void
+    let y2 = l2c_agent.pop_lua_stack(14);     // float or void
+    let z2 = l2c_agent.pop_lua_stack(15);     // float or void
+
+    // hacky way of forcing no shield damage on all hitboxes
+    if is_training_mode() && (*menu).SHIELD_STATE == SHIELD_INFINITE {
+        let hitbox_params: Vec<L2CValue> =
+            (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
+        l2c_agent.clear_lua_stack();
+        for i in 0..36 {
+            let mut x = hitbox_params[i];
+            if i == 20 {
+                l2c_agent.push_lua_stack(&mut L2CValue::new_num(-999.0));
+            } else {
+                l2c_agent.push_lua_stack(&mut x);
+            }
+        }
+    }
+
+    original!()(lua_state);
+
+    if (*menu).HITBOX_VIS && is_training_mode() {
+        generate_hitbox_effects(
+            sv_system::battle_object_module_accessor(lua_state),
+            joint.get_int(),
+            size.get_num(),
+            x.get_num(),
+            y.get_num(),
+            z.get_num(),
+            x2.try_get_num(),
+            y2.try_get_num(),
+            z2.try_get_num(),
+            ID_COLORS[(id.get_int() % 8) as usize],
+        );
+    }
+}
+
 #[allow(unused_unsafe)]
 #[skyline::hook(replace = sv_animcmd::CATCH)]
 unsafe fn handle_catch(lua_state: u64) {
@@ -326,7 +380,7 @@ unsafe fn handle_catch(lua_state: u64) {
 
 pub unsafe fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    (FIGHTER_STATUS_KIND_GUARD_ON..=FIGHTER_STATUS_KIND_GUARD_OFF).contains(&status_kind)
+    (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
 }
 
 #[allow(unused_unsafe)]
@@ -361,6 +415,7 @@ pub unsafe fn handle_set_rebound(
 
 pub fn hitbox_visualization() {
     println!("Applying hitbox visualization mods.");
+    skyline::install_hook!(handle_attack);
     skyline::install_hook!(handle_catch);
     skyline::install_hook!(handle_set_rebound);
 }
