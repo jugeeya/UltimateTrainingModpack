@@ -86,7 +86,7 @@ pub unsafe fn should_perform_defensive_option(
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
+    _category: i32,
     flag: &mut i32,
 ) {
     if menu.TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor) {

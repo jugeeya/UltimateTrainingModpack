@@ -60,7 +60,7 @@ pub unsafe fn should_perform_defensive_option(
 
 pub unsafe fn defensive_option(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
+    _category: i32,
     flag: &mut i32,
 ) {
     let status = StatusModule::status_kind(module_accessor) as i32;

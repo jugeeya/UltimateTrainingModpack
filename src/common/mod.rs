@@ -38,7 +38,7 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
 
     let entry_id_int =
         WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
-    let entry_id = app::FighterEntryID(entry_id_int);
+    let _entry_id = app::FighterEntryID(entry_id_int);
     // let mut mgr = FighterManager{_address : fighter_manager_addr as u64};
     // let fighter_information = lua_bind::FighterManager::get_fighter_information(&mut mgr, entry_id) as *mut FighterInformation;
     // println!("FighterInformation: {:#?}", fighter_information);
@@ -72,7 +72,7 @@ pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccesso
 }
 
 pub unsafe fn perform_defensive_option(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    _module_accessor: &mut app::BattleObjectModuleAccessor,
     flag: &mut i32,
 ) {
     match (*menu).DEFENSIVE_STATE {

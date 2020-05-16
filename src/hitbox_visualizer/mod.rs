@@ -136,18 +136,18 @@ pub unsafe fn generate_hitbox_effects(
     z2: Option<f32>,
     color: Vector3f,
 ) {
-    let red = L2CValue::new_num(color.x);
-    let green = L2CValue::new_num(color.y);
-    let blue = L2CValue::new_num(color.z);
+    let _red = L2CValue::new_num(color.x);
+    let _green = L2CValue::new_num(color.y);
+    let _blue = L2CValue::new_num(color.z);
 
     let size_mult = 19.0 / 200.0;
 
-    let shield_effect = L2CValue::new_int(hash40("sys_shield"));
-    let zero_rot = L2CValue::new_num(0.0);
-    let terminate = L2CValue::new_bool(true);
-    let effect_size = L2CValue::new_num(size * size_mult);
+    let _shield_effect = L2CValue::new_int(hash40("sys_shield"));
+    let _zero_rot = L2CValue::new_num(0.0);
+    let _terminate = L2CValue::new_bool(true);
+    let _effect_size = L2CValue::new_num(size * size_mult);
 
-    let rate = L2CValue::new_num(8.0);
+    let _rate = L2CValue::new_num(8.0);
 
     let x_dist: f32;
     let y_dist: f32;
@@ -293,11 +293,11 @@ unsafe fn handle_attack(lua_state: u64) {
     // get all necessary grabbox params
     let id = l2c_agent.pop_lua_stack(1);      // int
     let joint = l2c_agent.pop_lua_stack(3);    // hash40
-    let damage = l2c_agent.pop_lua_stack(4);  // float
+    let _damage = l2c_agent.pop_lua_stack(4);  // float
     let _angle = l2c_agent.pop_lua_stack(5);   // int
-    let kbg = l2c_agent.pop_lua_stack(6);     // int
-    let fkb = l2c_agent.pop_lua_stack(7);     // int
-    let bkb = l2c_agent.pop_lua_stack(8);     // int
+    let _kbg = l2c_agent.pop_lua_stack(6);     // int
+    let _fkb = l2c_agent.pop_lua_stack(7);     // int
+    let _bkb = l2c_agent.pop_lua_stack(8);     // int
     let size = l2c_agent.pop_lua_stack(9);    // float
     let x = l2c_agent.pop_lua_stack(10);      // float
     let y = l2c_agent.pop_lua_stack(11);      // float

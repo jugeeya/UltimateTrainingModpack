@@ -5,7 +5,7 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub unsafe fn get_param_float(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    _module_accessor: &mut app::BattleObjectModuleAccessor,
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
