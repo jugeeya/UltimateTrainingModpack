@@ -1,4 +1,4 @@
-pub const NONE: i32 = 0;
+use smash::lib::lua_const::*;
 
 // Side Taunt
 
@@ -8,69 +8,209 @@ pub const NONE: i32 = 0;
  0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
 */
 
-/* DI */
-pub static mut DI_STATE: i32 = NONE;
-pub const DI_RANDOM_IN_AWAY: i32 = 9;
-// const std::vector<std::string> di_items{"None", "Out", "Up Out", "Up", "Up In", "In", "Down In", "Down", "Down Out", "Random"};
+/// DI
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DirectionalInfluence {
+    None = 0,
+    // lol what goes here jug smh my head
+    RandomInAway = 9,
+}
 
-// Attack Option
-pub const MASH_NAIR: i32 = 0;
-pub const MASH_FAIR: i32 = 1;
-pub const MASH_BAIR: i32 = 2;
-pub const MASH_UPAIR: i32 = 3;
-pub const MASH_DAIR: i32 = 4;
-pub const MASH_NEUTRAL_B: i32 = 5;
-pub const MASH_SIDE_B: i32 = 6;
-pub const MASH_UP_B: i32 = 7;
-pub const MASH_DOWN_B: i32 = 8;
-pub const MASH_UP_SMASH: i32 = 9;
-pub const MASH_GRAB: i32 = 10;
-// pub const std::vector<std::string> attack_items{"Neutral Air", "Forward Air", "Back Air", "Up Air", "Down Air", "Neutral B", "Side B", "Up B", "Down B", "Up Smash", "Grab"};
+/// Mash Attack States
+#[repr(i32)]
+#[derive(PartialEq, Debug, Copy, Clone)]
+pub enum Attack {
+    Nair = 0,
+    Fair = 1,
+    Bair = 2,
+    UpAir = 3,
+    Dair = 4,
+    NeutralB = 5,
+    SideB = 6,
+    UpB = 7,
+    DownB = 8,
+    UpSmash = 9,
+    Grab = 10
+}
+
+impl From<i32> for Attack {
+    fn from(x: i32) -> Self {
+        use Attack::*;
+
+        match x {
+            0 => Nair,
+            1 => Fair,
+            2 => Bair,
+            3 => UpAir,
+            4 => Dair,
+            5 => NeutralB,
+            6 => SideB,
+            7 => UpB,
+            8 => DownB,
+            9 => UpSmash,
+            10 => Grab,
+            _ => panic!("Invalid mash attack state {}", x)
+        }
+    }
+}
+
+impl Attack {
+    pub fn into_attack_air_kind(&self) -> Option<i32> {
+        use Attack::*;
+
+        Some(
+            match self {
+                Nair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
+                Fair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
+                Bair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
+                Dair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
+                UpAir => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
+                _ => return None,
+            }
+        )
+    }
+}
 
 // Ledge Option
-pub const RANDOM_LEDGE: i32 = 1;
-pub const NEUTRAL_LEDGE: i32 = 2;
-pub const ROLL_LEDGE: i32 = 3;
-pub const JUMP_LEDGE: i32 = 4;
-pub const ATTACK_LEDGE: i32 = 5;
-// pub const std::vector<std::string> ledge_items{"None", "Random", "Ntrl. Getup", "Roll", "Jump", "Attack"};
+#[repr(i32)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum LedgeOption {
+    None = 0,
+    Random = 1,
+    Neutral = 2,
+    Roll = 3,
+    Jump = 4,
+    Attack = 5,
+}
+
+impl From<i32> for LedgeOption {
+    fn from(x: i32) -> Self {
+        use LedgeOption::*;
+
+        match x {
+            0 => None,
+            1 => Random,
+            2 => Neutral,
+            3 => Roll,
+            4 => Jump,
+            5 => Attack,
+            _ => panic!("Invalid ledge option {}", x)
+        }
+    }
+}
+
+impl LedgeOption {
+    pub fn into_status(&self) -> Option<i32> {
+        Some(
+            match self {
+                LedgeOption::Neutral => *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
+                LedgeOption::Roll => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
+                LedgeOption::Jump => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
+                LedgeOption::Attack => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+                _ => return None,
+            }
+        )
+    }
+}
 
 // Tech Option
-pub const RANDOM_TECH: i32 = 1;
-pub const TECH_IN_PLACE: i32 = 2;
-pub const TECH_ROLL: i32 = 3;
-pub const TECH_MISS: i32 = 4;
-// pub const std::vector<std::string> tech_items{"None", "Random", "In-Place", "Roll", "Miss Tech"};
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TechOption {
+    None = 0,
+    Random = 1,
+    InPlace = 2,
+    Roll = 3,
+    Miss = 4
+}
 
-// Mash States
-pub const MASH_AIRDODGE: i32 = 1;
-pub const MASH_JUMP: i32 = 2;
-pub const MASH_ATTACK: i32 = 3;
-pub const MASH_SPOTDODGE: i32 = 4;
-pub const MASH_RANDOM: i32 = 5;
-// pub const std::vector<std::string> mash_items{"None", "Airdodge", "Jump", "Attack", "Spotdodge", "Random"};
+impl From<i32> for TechOption {
+    fn from(x: i32) -> Self {
+        use TechOption::*;
 
-// Shield States
-pub const SHIELD_INFINITE: i32 = 1;
-pub const SHIELD_HOLD: i32 = 2;
-// pub const std::vector<std::string> shield_items{"None", "Infinite", "Hold"};
+        match x {
+            0 => None,
+            1 => Random,
+            2 => InPlace,
+            3 => Roll,
+            4 => Miss,
+            _ => panic!("Invalid tech option {}", x)
+        }
+    }
+}
+
+/// Mash States
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Mash {
+    None = 0,
+    Airdodge = 1,
+    Jump = 2,
+    Attack = 3,
+    Spotdodge = 4,
+    Random = 5
+}
+
+impl From<i32> for Mash {
+    fn from(x: i32) -> Self {
+        match x {
+            0 => Mash::None,
+            1 => Mash::Airdodge,
+            2 => Mash::Jump,
+            3 => Mash::Attack,
+            4 => Mash::Spotdodge,
+            5 => Mash::Random,
+            _ => panic!("Invalid mash state {}", x)
+        }
+    }
+}
+
+/// Shield States
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Shield {
+    None = 0,
+    Infinite = 1,
+    Hold = 2,
+}
 
 // Defensive States
-pub const RANDOM_DEFENSIVE: i32 = 1;
-pub const DEFENSIVE_SPOTDODGE: i32 = 2;
-pub const DEFENSIVE_ROLL: i32 = 3;
-pub const DEFENSIVE_JAB: i32 = 4;
-pub const DEFENSIVE_SHIELD: i32 = 5;
-// pub const std::vector<std::string> defensive_items{"None", "Random", "Spotdodge", "Roll", "Jab", "Flash Shield"};
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Defensive {
+    None = 0,
+    Random = 1,
+    Spotdodge = 2,
+    Roll = 3,
+    Jab = 4,
+    Shield = 5,
+}
+
+impl From<i32> for Defensive {
+    fn from(x: i32) -> Self {
+        use Defensive::*;
+
+        match x {
+            0 => None,
+            1 => Random,
+            2 => Spotdodge,
+            3 => Roll,
+            4 => Jab,
+            5 => Shield,
+            _ => panic!("Invalid mash state {}", x)
+        }
+    }
+}
 
 #[repr(C)]
 pub struct TrainingModpackMenu {
-    pub HITBOX_VIS: bool,
-    pub DI_STATE: i32,
-    pub ATTACK_STATE: i32,
-    pub LEDGE_STATE: i32,
-    pub TECH_STATE: i32,
-    pub MASH_STATE: i32,
-    pub SHIELD_STATE: i32,
-    pub DEFENSIVE_STATE: i32,
+    pub hitbox_vis: bool,
+    pub di_state: DirectionalInfluence,
+    pub mash_attack_state: Attack,
+    pub ledge_state: LedgeOption,
+    pub tech_state: TechOption,
+    pub mash_state: Mash,
+    pub shield_state: Shield,
+    pub defensive_state: Defensive,
 }

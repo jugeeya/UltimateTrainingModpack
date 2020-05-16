@@ -1,6 +1,5 @@
 use crate::common::*;
-use smash::app::lua_bind::*;
-use smash::app::{self};
+use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::Vector3f;
 
@@ -12,23 +11,22 @@ enum SaveState {
     PosMove,
 }
 
-use crate::training::SaveStates::SaveState::*;
+use SaveState::*;
 
-static mut save_state_player_state: SaveState = NoAction;
-static mut save_state_cpu_state: SaveState = NoAction;
-static mut save_state_move_alert: bool = false;
+static mut SAVE_STATE_PLAYER_STATE: SaveState = NoAction;
+static mut SAVE_STATE_CPU_STATE: SaveState = NoAction;
 
-static mut save_state_x_player: f32 = 0.0;
-static mut save_state_y_player: f32 = 0.0;
-static mut save_state_percent_player: f32 = 0.0;
-static mut save_state_lr_player: f32 = 1.0;
-static mut save_state_situation_kind_player: i32 = 0 as i32;
+static mut SAVE_STATE_X_PLAYER: f32 = 0.0;
+static mut SAVE_STATE_Y_PLAYER: f32 = 0.0;
+static mut SAVE_STATE_PERCENT_PLAYER: f32 = 0.0;
+static mut SAVE_STATE_LR_PLAYER: f32 = 1.0;
+static mut SAVE_STATE_SITUATION_KIND_PLAYER: i32 = 0 as i32;
 
-static mut save_state_x_cpu: f32 = 0.0;
-static mut save_state_y_cpu: f32 = 0.0;
-static mut save_state_percent_cpu: f32 = 0.0;
-static mut save_state_lr_cpu: f32 = 1.0;
-static mut save_state_situation_kind_cpu: i32 = 0 as i32;
+static mut SAVE_STATE_X_CPU: f32 = 0.0;
+static mut SAVE_STATE_Y_CPU: f32 = 0.0;
+static mut SAVE_STATE_PERCENT_CPU: f32 = 0.0;
+static mut SAVE_STATE_LR_CPU: f32 = 1.0;
+static mut SAVE_STATE_SITUATION_KIND_CPU: i32 = 0 as i32;
 
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let status = StatusModule::status_kind(module_accessor) as i32;
@@ -40,29 +38,28 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         let save_state_situation_kind: *mut i32;
         let save_state: *mut SaveState;
         if is_operation_cpu(module_accessor) {
-            save_state_x = &mut save_state_x_cpu;
-            save_state_y = &mut save_state_y_cpu;
-            save_state_percent = &mut save_state_percent_cpu;
-            save_state_lr = &mut save_state_lr_cpu;
-            save_state_situation_kind = &mut save_state_situation_kind_cpu;
-            save_state = &mut save_state_cpu_state;
+            save_state_x = &mut SAVE_STATE_X_CPU;
+            save_state_y = &mut SAVE_STATE_Y_CPU;
+            save_state_percent = &mut SAVE_STATE_PERCENT_CPU;
+            save_state_lr = &mut SAVE_STATE_LR_CPU;
+            save_state_situation_kind = &mut SAVE_STATE_SITUATION_KIND_CPU;
+            save_state = &mut SAVE_STATE_CPU_STATE;
         } else {
-            save_state_x = &mut save_state_x_player;
-            save_state_y = &mut save_state_y_player;
-            save_state_percent = &mut save_state_percent_player;
-            save_state_lr = &mut save_state_lr_player;
-            save_state_situation_kind = &mut save_state_situation_kind_player;
-            save_state = &mut save_state_player_state;
+            save_state_x = &mut SAVE_STATE_X_PLAYER;
+            save_state_y = &mut SAVE_STATE_Y_PLAYER;
+            save_state_percent = &mut SAVE_STATE_PERCENT_PLAYER;
+            save_state_lr = &mut SAVE_STATE_LR_PLAYER;
+            save_state_situation_kind = &mut SAVE_STATE_SITUATION_KIND_PLAYER;
+            save_state = &mut SAVE_STATE_PLAYER_STATE;
         }
 
         // Grab + Dpad up: reset state
-        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH) != 0
+        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
-                != 0
         {
             if *save_state == NoAction {
-                save_state_player_state = CameraMove;
-                save_state_cpu_state = CameraMove;
+                SAVE_STATE_PLAYER_STATE = CameraMove;
+                SAVE_STATE_CPU_STATE = CameraMove;
             }
             return;
         }
@@ -152,12 +149,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // Grab + Dpad down: Save state
-        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH) != 0
+        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
-                != 0
         {
-            save_state_player_state = Save;
-            save_state_cpu_state = Save;
+            SAVE_STATE_PLAYER_STATE = Save;
+            SAVE_STATE_CPU_STATE = Save;
         }
 
         if *save_state == Save {

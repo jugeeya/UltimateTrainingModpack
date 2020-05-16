@@ -1,7 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
-use smash::app::lua_bind::*;
-use smash::app::{self};
+use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 
@@ -11,8 +10,8 @@ pub unsafe fn init_settings(
 ) -> Option<()> {
     if is_training_mode() && is_operation_cpu(module_accessor) {
         if status_kind == FIGHTER_STATUS_KIND_DOWN {
-            match (*menu).TECH_STATE {
-                RANDOM_TECH => {
+            match MENU.tech_state {
+                TechOption::Random => {
                     let random_statuses = vec![
                         *FIGHTER_STATUS_KIND_DOWN,
                         *FIGHTER_STATUS_KIND_PASSIVE,
@@ -31,7 +30,7 @@ pub unsafe fn init_settings(
                         return Some(());
                     }
                 }
-                TECH_IN_PLACE => {
+                TechOption::InPlace => {
                     StatusModule::change_status_request_from_script(
                         module_accessor,
                         *FIGHTER_STATUS_KIND_PASSIVE,
@@ -39,7 +38,7 @@ pub unsafe fn init_settings(
                     );
                     return Some(());
                 }
-                TECH_ROLL => {
+                TechOption::Roll => {
                     StatusModule::change_status_request_from_script(
                         module_accessor,
                         *FIGHTER_STATUS_KIND_PASSIVE_FB,
@@ -87,10 +86,10 @@ pub unsafe fn should_perform_defensive_option(
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
+    _category: i32,
     flag: &mut i32,
 ) {
-    if (*menu).TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
+    if MENU.tech_state != TechOption::None && is_training_mode() && is_operation_cpu(module_accessor) {
         let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
         let status = StatusModule::status_kind(module_accessor) as i32;
         if [
@@ -126,7 +125,7 @@ pub unsafe fn check_button_on(
         if is_training_mode() && is_operation_cpu(module_accessor) {
             let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
             let status = StatusModule::status_kind(module_accessor) as i32;
-            if (*menu).DEFENSIVE_STATE == DEFENSIVE_SHIELD
+            if MENU.defensive_state == Defensive::Shield
                 && should_perform_defensive_option(module_accessor, prev_status, status)
             {
                 return Some(true);
@@ -141,7 +140,7 @@ pub unsafe fn change_motion(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     motion_kind: u64,
 ) -> Option<u64> {
-    if (*menu).TECH_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
+    if MENU.tech_state != TechOption::None && is_training_mode() && is_operation_cpu(module_accessor) {
         if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
             if app::sv_math::rand(hash40("fighter"), 2) != 0 {
                 return Some(hash40("passive_stand_f"));

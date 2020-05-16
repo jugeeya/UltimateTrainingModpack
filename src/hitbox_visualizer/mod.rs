@@ -1,88 +1,9 @@
-use crate::common::*;
-use crate::common::consts::*;
-use smash::app::lua_bind::*;
-use smash::app::sv_animcmd::{self};
-use smash::app::sv_system::{self};
-use smash::app::{self};
+use crate::common::{*, consts::*};
+use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
 use smash::hash40;
-use smash::lib::lua_const::*;
-use smash::lib::{L2CAgent, L2CValue};
+use smash::lib::{lua_const::*, L2CAgent, L2CValue};
 use smash::phx::{Hash40, Vector3f};
 
-/**
- * Rounds a number to the nearest multiple of another number.
- */
-pub fn round_to(val: f32, align: f32) -> f32 {
-    (val / align).round() * align
-}
-
-/**
- * Linearly interpolates between two numbers, without bounds checking.
- */
-pub fn lerp(min: f32, max: f32, t: f32) -> f32 {
-    min + (max - min) * t
-}
-
-pub fn unlerp(min: f32, max: f32, val: f32) -> f32 {
-    (val - min) / (max - min)
-}
-
-/**
- * Linearly interpolates between two numbers, with bounds checking.
- */
-pub fn lerp_bounded(min: f32, max: f32, t: f32) -> f32 {
-    if t <= 0.0 {
-        min
-    } else {
-        if t >= 1.0 {
-            max
-        } else {
-            lerp(min, max, t)
-        }
-    }
-}
-pub fn unlerp_bounded(min: f32, max: f32, val: f32) -> f32 {
-    if val <= min {
-        0.0
-    } else {
-        if val >= max {
-            1.0
-        } else {
-            unlerp(min, max, val)
-        }
-    }
-}
-
-/**
- * Linearly interpolates between two colors, with bounds checking, accounting for
- * gamma. arguments:
- * - min_color (Vector3f) -- xyz maps to rgb, components are usually in the
- * range [0.0f, 1.0f] but can go beyond to account for super-bright or
- * super-dark colors
- * - max_Color (Vector3f) -- same as minColor
- * - t (float) -- how far to interpolate between the colors
- * - gamma (float = 2.0f) -- used for color correction, helps avoid ugly dark
- * colors when interpolating b/t bright colors
- */
-
-pub fn color_lerp(min_color: Vector3f, max_color: Vector3f, t: f32, gamma: f32) -> Vector3f {
-    let gamma_inv = 1.0 / gamma;
-    let align = 1.0 / 255.0; // color components must be a multiple of 1/255
-    Vector3f {
-        x: round_to(
-            lerp_bounded(min_color.x.powf(gamma), max_color.x.powf(gamma), t).powf(gamma_inv),
-            align,
-        ),
-        y: round_to(
-            lerp_bounded(min_color.y.powf(gamma), max_color.y.powf(gamma), t).powf(gamma_inv),
-            align,
-        ),
-        z: round_to(
-            lerp_bounded(min_color.z.powf(gamma), max_color.z.powf(gamma), t).powf(gamma_inv),
-            align,
-        ),
-    }
-}
 pub const ID_COLORS: &[Vector3f] = &[
     // used to tint the hitbox effects -- make sure that at least one component
     // is equal to 1.0
@@ -141,18 +62,18 @@ pub unsafe fn generate_hitbox_effects(
     z2: Option<f32>,
     color: Vector3f,
 ) {
-    let red = L2CValue::new_num(color.x);
-    let green = L2CValue::new_num(color.y);
-    let blue = L2CValue::new_num(color.z);
+    let _red = L2CValue::new_num(color.x);
+    let _green = L2CValue::new_num(color.y);
+    let _blue = L2CValue::new_num(color.z);
 
     let size_mult = 19.0 / 200.0;
 
-    let shield_effect = L2CValue::new_int(hash40("sys_shield"));
-    let zero_rot = L2CValue::new_num(0.0);
-    let terminate = L2CValue::new_bool(true);
-    let effect_size = L2CValue::new_num(size * size_mult);
+    let _shield_effect = L2CValue::new_int(hash40("sys_shield"));
+    let _zero_rot = L2CValue::new_num(0.0);
+    let _terminate = L2CValue::new_bool(true);
+    let _effect_size = L2CValue::new_num(size * size_mult);
 
-    let rate = L2CValue::new_num(8.0);
+    let _rate = L2CValue::new_num(8.0);
 
     let x_dist: f32;
     let y_dist: f32;
@@ -233,11 +154,11 @@ pub unsafe fn get_command_flag_cat(
     // Pause Effect AnimCMD if hitbox visualization is active
     MotionAnimcmdModule::set_sleep_effect(
         module_accessor,
-        (*menu).HITBOX_VIS,
+        MENU.hitbox_vis,
     );
 
     // apply only once per frame
-    if category == 0 && is_training_mode() && (*menu).HITBOX_VIS {
+    if category == 0 && is_training_mode() && MENU.hitbox_vis {
         
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
         if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind)
@@ -290,7 +211,6 @@ pub unsafe fn get_command_flag_cat(
 }
 
 // Necessary to ensure we visualize on the first frame of the hitbox
-#[allow(unused_unsafe)]
 #[skyline::hook(replace = sv_animcmd::ATTACK)]
 unsafe fn handle_attack(lua_state: u64) {
     let mut l2c_agent = L2CAgent::new(lua_state);
@@ -298,11 +218,11 @@ unsafe fn handle_attack(lua_state: u64) {
     // get all necessary grabbox params
     let id = l2c_agent.pop_lua_stack(1);      // int
     let joint = l2c_agent.pop_lua_stack(3);    // hash40
-    let damage = l2c_agent.pop_lua_stack(4);  // float
+    let _damage = l2c_agent.pop_lua_stack(4);  // float
     let _angle = l2c_agent.pop_lua_stack(5);   // int
-    let kbg = l2c_agent.pop_lua_stack(6);     // int
-    let fkb = l2c_agent.pop_lua_stack(7);     // int
-    let bkb = l2c_agent.pop_lua_stack(8);     // int
+    let _kbg = l2c_agent.pop_lua_stack(6);     // int
+    let _fkb = l2c_agent.pop_lua_stack(7);     // int
+    let _bkb = l2c_agent.pop_lua_stack(8);     // int
     let size = l2c_agent.pop_lua_stack(9);    // float
     let x = l2c_agent.pop_lua_stack(10);      // float
     let y = l2c_agent.pop_lua_stack(11);      // float
@@ -312,7 +232,7 @@ unsafe fn handle_attack(lua_state: u64) {
     let z2 = l2c_agent.pop_lua_stack(15);     // float or void
 
     // hacky way of forcing no shield damage on all hitboxes
-    if is_training_mode() && (*menu).SHIELD_STATE == SHIELD_INFINITE {
+    if is_training_mode() && MENU.shield_state == Shield::Infinite {
         let hitbox_params: Vec<L2CValue> =
             (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
         l2c_agent.clear_lua_stack();
@@ -328,7 +248,7 @@ unsafe fn handle_attack(lua_state: u64) {
 
     original!()(lua_state);
 
-    if (*menu).HITBOX_VIS && is_training_mode() {
+    if MENU.hitbox_vis && is_training_mode() {
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(),
@@ -344,7 +264,6 @@ unsafe fn handle_attack(lua_state: u64) {
     }
 }
 
-#[allow(unused_unsafe)]
 #[skyline::hook(replace = sv_animcmd::CATCH)]
 unsafe fn handle_catch(lua_state: u64) {
     let mut l2c_agent = L2CAgent::new(lua_state);
@@ -362,7 +281,7 @@ unsafe fn handle_catch(lua_state: u64) {
 
     original!()(lua_state);
 
-    if (*menu).HITBOX_VIS && is_training_mode() {
+    if MENU.hitbox_vis && is_training_mode() {
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(),
@@ -383,7 +302,6 @@ pub unsafe fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor
     (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
 }
 
-#[allow(unused_unsafe)]
 #[skyline::hook(replace = GrabModule::set_rebound)]
 pub unsafe fn handle_set_rebound(
     module_accessor: *mut app::BattleObjectModuleAccessor,
@@ -415,7 +333,9 @@ pub unsafe fn handle_set_rebound(
 
 pub fn hitbox_visualization() {
     println!("Applying hitbox visualization mods.");
-    skyline::install_hook!(handle_attack);
-    skyline::install_hook!(handle_catch);
-    skyline::install_hook!(handle_set_rebound);
+    skyline::install_hooks!(
+        handle_attack,
+        handle_catch,
+        handle_set_rebound
+    );
 }

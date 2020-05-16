@@ -1,7 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
-use smash::app::lua_bind::*;
-use smash::app::{self};
+use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 
@@ -19,20 +18,16 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
             let frame = MotionModule::frame(module_accessor) as f32;
             if frame == random_frame || frame > 30.0 {
                 let mut status = 0;
-                let ledge_case: i32;
+                let ledge_case: LedgeOption;
 
-                if (*menu).LEDGE_STATE == RANDOM_LEDGE {
-                    ledge_case = app::sv_math::rand(hash40("fighter"), 4) + 2;
+                if MENU.ledge_state == LedgeOption::Random {
+                    ledge_case = (app::sv_math::rand(hash40("fighter"), 4) + 2).into();
                 } else {
-                    ledge_case = (*menu).LEDGE_STATE;
+                    ledge_case = MENU.ledge_state;
                 }
 
-                match ledge_case {
-                    NEUTRAL_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
-                    ROLL_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
-                    JUMP_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
-                    ATTACK_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
-                    _ => (),
+                if let Some(new_status) = ledge_case.into_status() {
+                    status = new_status;
                 }
 
                 StatusModule::change_status_request_from_script(module_accessor, status, true);
@@ -61,7 +56,7 @@ pub unsafe fn should_perform_defensive_option(
 
 pub unsafe fn defensive_option(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
+    _category: i32,
     flag: &mut i32,
 ) {
     let status = StatusModule::status_kind(module_accessor) as i32;
@@ -89,7 +84,7 @@ pub unsafe fn check_button_on(
         if is_training_mode() && is_operation_cpu(module_accessor) {
             let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
             let status = StatusModule::status_kind(module_accessor) as i32;
-            if (*menu).DEFENSIVE_STATE == DEFENSIVE_SHIELD
+            if MENU.defensive_state == Defensive::Shield
                 && should_perform_defensive_option(module_accessor, prev_status, status)
             {
                 return Some(true);
@@ -105,7 +100,7 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
-    if (*menu).LEDGE_STATE != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
+    if MENU.ledge_state != LedgeOption::None && is_training_mode() && is_operation_cpu(module_accessor) {
         force_option(module_accessor);
         defensive_option(module_accessor, category, flag);
     }

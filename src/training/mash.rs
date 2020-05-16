@@ -1,7 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
-use smash::app::lua_bind::*;
-use smash::app::{self};
+use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 
@@ -9,23 +8,16 @@ pub unsafe fn get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> Option<i32> {
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        if (*menu).MASH_STATE == MASH_ATTACK {
-            match (*menu).ATTACK_STATE {
-                MASH_NAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_N),
-                MASH_FAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_F),
-                MASH_BAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_B),
-                MASH_UPAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_HI),
-                MASH_DAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_LW),
-                _ => (),
-            }
+        if MENU.mash_state == Mash::Attack {
+            MENU.mash_attack_state.into_attack_air_kind()
+        } else if MENU.mash_state == Mash::Random {
+            Some(app::sv_math::rand(hash40("fighter"), 5) + 1)
+        } else {
+            None
         }
-
-        if (*menu).MASH_STATE == MASH_RANDOM {
-            return Some(app::sv_math::rand(hash40("fighter"), 5) + 1);
-        }
+    } else {
+        None
     }
-
-    None
 }
 
 pub unsafe fn get_command_flag_cat(
@@ -38,44 +30,45 @@ pub unsafe fn get_command_flag_cat(
             || is_in_landing(module_accessor)
             || is_in_shieldstun(module_accessor)
         {
-            match (*menu).MASH_STATE {
-                MASH_AIRDODGE => {
+            match MENU.mash_state {
+                Mash::Airdodge => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
                     }
                 }
-                MASH_JUMP => {
+                Mash::Jump => {
                     if !is_in_landing(module_accessor) && category == FIGHTER_PAD_COMMAND_CATEGORY1
                     {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                     }
                 }
-                MASH_SPOTDODGE => {
+                Mash::Spotdodge => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
                     }
                 }
-                MASH_ATTACK => {
+                Mash::Attack => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                        match (*menu).ATTACK_STATE {
-                            MASH_NAIR | MASH_FAIR | MASH_BAIR | MASH_UPAIR | MASH_DAIR => {
+                        use Attack::*;
+
+                        match MENU.mash_attack_state {
+                            Nair | Fair | Bair | UpAir | Dair => {
                                 *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
                                 // If we are performing the attack OOS we also need to jump
                                 if is_in_shieldstun(module_accessor) {
                                     *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                                 }
                             }
-                            MASH_NEUTRAL_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
-                            MASH_SIDE_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-                            MASH_UP_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-                            MASH_DOWN_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-                            MASH_UP_SMASH => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
-                            MASH_GRAB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
-                            _ => (),
+                            NeutralB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
+                            SideB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+                            UpB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+                            DownB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+                            UpSmash => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
+                            Grab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
                         }
                     }
                 }
-                MASH_RANDOM => {
+                Mash::Random => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
 
@@ -140,7 +133,7 @@ pub unsafe fn check_button_on(
 ) -> Option<bool> {
     if [*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
         if is_training_mode() && is_operation_cpu(module_accessor) {
-            if (*menu).MASH_STATE == MASH_AIRDODGE
+            if MENU.mash_state == Mash::Airdodge
                 && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor))
             {
                 return Some(true);
