@@ -3,21 +3,12 @@ use crate::hitbox_visualizer;
 use skyline::{c_str, nn::ro::LookupSymbol};
 use smash::app::{self, lua_bind::*};
 
-mod directional_influence;
+pub mod directional_influence;
 mod ledge;
 mod mash;
 mod save_states;
-mod shield;
+pub mod shield;
 mod tech;
-
-#[skyline::hook(replace = WorkModule::get_float)]
-pub unsafe fn handle_get_float(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    var: i32,
-) -> f32 {
-    directional_influence::get_float(module_accessor, var)
-        .unwrap_or_else(|| original!()(module_accessor, var))
-}
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -191,7 +182,7 @@ pub fn training_mods() {
         handle_get_command_flag_cat,
 
         // Set DI
-        handle_get_float,
+        // handle_get_float,
 
         // Hold/Infinite shield
         handle_check_button_on,
