@@ -115,9 +115,15 @@ impl From<i32> for Mash {
 
 // pub const std::vector<std::string> mash_items{"None", "Airdodge", "Jump", "Attack", "Spotdodge", "Random"};
 
-// Shield States
-pub const SHIELD_INFINITE: i32 = 1;
-pub const SHIELD_HOLD: i32 = 2;
+/// Shield States
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Shield {
+    None = 0,
+    Infinite = 1,
+    Hold = 2,
+}
+
 // pub const std::vector<std::string> shield_items{"None", "Infinite", "Hold"};
 
 // Defensive States
@@ -136,6 +142,6 @@ pub struct TrainingModpackMenu {
     pub ledge_state: i32,
     pub tech_state: i32,
     pub mash_state: Mash,
-    pub shield_state: i32,
+    pub shield_state: Shield,
     pub defensive_state: i32,
 }

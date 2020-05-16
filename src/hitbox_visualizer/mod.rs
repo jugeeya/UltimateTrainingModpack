@@ -232,7 +232,7 @@ unsafe fn handle_attack(lua_state: u64) {
     let z2 = l2c_agent.pop_lua_stack(15);     // float or void
 
     // hacky way of forcing no shield damage on all hitboxes
-    if is_training_mode() && MENU.shield_state == SHIELD_INFINITE {
+    if is_training_mode() && MENU.shield_state == Shield::Infinite {
         let hitbox_params: Vec<L2CValue> =
             (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
         l2c_agent.clear_lua_stack();

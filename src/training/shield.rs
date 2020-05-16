@@ -10,7 +10,7 @@ pub unsafe fn get_param_float(
     param_hash: u64,
 ) -> Option<f32> {
     if is_training_mode() {
-        if MENU.shield_state == SHIELD_INFINITE {
+        if MENU.shield_state == Shield::Infinite {
             if param_type == hash40("common") {
                 if param_hash == hash40("shield_dec1") {
                     return Some(0.0);
@@ -31,7 +31,7 @@ pub unsafe fn get_param_float(
 
 pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     // We should hold shield if the state requires it
-    if [SHIELD_HOLD, SHIELD_INFINITE].contains(&MENU.shield_state) {
+    if [Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
         // If we are not mashing then we will always hold shield
         if MENU.mash_state == Mash::None {
             return true;
