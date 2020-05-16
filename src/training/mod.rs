@@ -194,20 +194,26 @@ pub fn training_mods() {
         println!("Lookup symbol output: {:#?}", fighter_manager_addr);
     }
 
-    // Mash airdodge/jump
-    skyline::install_hook!(handle_get_command_flag_cat);
+    skyline::install_hooks!(
+        // Mash airdodge/jump
+        handle_get_command_flag_cat,
 
-    // Set DI
-    skyline::install_hook!(handle_get_float);
+        // Set DI
+        handle_get_float,
 
-    // Hold/Infinite shield
-    skyline::install_hook!(handle_check_button_on);
-    skyline::install_hook!(handle_check_button_off);
-
-    skyline::install_hook!(handle_get_param_float);
-
-    // Mash attack
-    skyline::install_hook!(handle_get_attack_air_kind);
+        // Hold/Infinite shield
+        handle_check_button_on,
+        handle_check_button_off,
+    
+        handle_get_param_float,
+    
+        // Mash attack
+        handle_get_attack_air_kind,
+    
+        // Tech options
+        handle_init_settings,
+        handle_change_motion,
+    );
 
     // // Input recorder
     // SaltySD_function_replace_sym(
@@ -216,8 +222,4 @@ pub fn training_mods() {
     // SaltySD_function_replace_sym(
     //     "_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE",
     //     (u64)&ControlModule::get_stick_y_replace);
-
-    // Tech options
-    skyline::install_hook!(handle_init_settings);
-    skyline::install_hook!(handle_change_motion);
 }
