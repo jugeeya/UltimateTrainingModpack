@@ -14,13 +14,14 @@ pub unsafe fn get_float(
     {
         if is_training_mode() && is_operation_cpu(module_accessor) && is_in_hitstun(module_accessor)
         {
-            if MENU.di_state != NONE {
-                let mut angle = (MENU.di_state - 1) as f64 * PI / 4.0;
+            if MENU.di_state != DirectionalInfluence::None {
+                let mut angle = (MENU.di_state as i32 - 1) as f64 * PI / 4.0;
 
                 // Either 0 (right) or PI (left)
-                if MENU.di_state == DI_RANDOM_IN_AWAY {
+                if MENU.di_state == DirectionalInfluence::RandomInAway {
                     angle = app::sv_math::rand(hash40("fighter"), 2) as f64 * PI;
                 }
+
                 // If facing left, reverse angle
                 if PostureModule::lr(module_accessor) != -1.0 {
                     angle -= PI;

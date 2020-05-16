@@ -1,7 +1,5 @@
 use smash::lib::lua_const::*;
 
-pub const NONE: i32 = 0;
-
 // Side Taunt
 
 // DI
@@ -10,8 +8,14 @@ pub const NONE: i32 = 0;
  0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
 */
 
-/* DI */
-pub const DI_RANDOM_IN_AWAY: i32 = 9;
+/// DI
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DirectionalInfluence {
+    None = 0,
+    // lol what goes here jug smh my head
+    RandomInAway = 9,
+}
 
 /// Mash Attack States
 #[repr(i32)]
@@ -100,10 +104,10 @@ impl LedgeOption {
     pub fn into_status(&self) -> Option<i32> {
         Some(
             match self {
-                LedgeOption::Neutral => status = *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
-                LedgeOption::Roll => status = *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
-                LedgeOption::Jump => status = *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
-                LedgeOption::Attack => status = *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+                LedgeOption::Neutral => *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
+                LedgeOption::Roll => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
+                LedgeOption::Jump => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
+                LedgeOption::Attack => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 _ => return None,
             }
         )
@@ -202,7 +206,7 @@ impl From<i32> for Defensive {
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: bool,
-    pub di_state: i32,
+    pub di_state: DirectionalInfluence,
     pub mash_attack_state: Attack,
     pub ledge_state: LedgeOption,
     pub tech_state: TechOption,
