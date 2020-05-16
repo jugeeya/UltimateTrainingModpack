@@ -11,7 +11,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     mash_attack_state: Attack::Nair,
     ledge_state: RANDOM_LEDGE,
     tech_state: RANDOM_TECH,
-    mash_state: NONE,
+    mash_state: Mash::None,
     shield_state: NONE,
     defensive_state: RANDOM_DEFENSIVE,
 };

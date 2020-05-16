@@ -22,7 +22,7 @@ use smash::lua2cpp::L2CFighterCommon;
 pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        if MENU.mash_state == MASH_ATTACK && MENU.mash_attack_state == Attack::Grab {
+        if MENU.mash_state == Mash::Attack && MENU.mash_attack_state == Attack::Grab {
             if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
                 if WorkModule::get_int(
                     module_accessor,
@@ -41,7 +41,7 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
                 }
             }
         }
-        if MENU.mash_state == MASH_SPOTDODGE {
+        if MENU.mash_state == Mash::Spotdodge {
             if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
                 if WorkModule::is_enable_transition_term(
                     module_accessor,
@@ -55,7 +55,7 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
             }
         }
 
-        if MENU.mash_state == MASH_ATTACK {
+        if MENU.mash_state == Mash::Attack {
             if MENU.mash_attack_state == Attack::UpB {
                 if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
                     // if WorkModule::is_enable_transition_term(

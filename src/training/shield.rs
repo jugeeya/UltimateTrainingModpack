@@ -33,7 +33,7 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
     // We should hold shield if the state requires it
     if [SHIELD_HOLD, SHIELD_INFINITE].contains(&MENU.shield_state) {
         // If we are not mashing then we will always hold shield
-        if MENU.mash_state == NONE {
+        if MENU.mash_state == Mash::None {
             return true;
         }
 
@@ -42,7 +42,7 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         }
 
         // We will only drop shield if we are in shieldstun and our attack can be performed OOS
-        if MENU.mash_state == MASH_ATTACK {
+        if MENU.mash_state == Mash::Attack {
             if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
                 return false;
             }
@@ -52,7 +52,7 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
             }
         }
 
-        if MENU.mash_state == MASH_SPOTDODGE {
+        if MENU.mash_state == Mash::Spotdodge {
             return true;
         }
     }

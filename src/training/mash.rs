@@ -8,9 +8,9 @@ pub unsafe fn get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> Option<i32> {
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        if MENU.mash_state == MASH_ATTACK {
+        if MENU.mash_state == Mash::Attack {
             MENU.mash_attack_state.into_attack_air_kind()
-        } else if MENU.mash_state == MASH_RANDOM {
+        } else if MENU.mash_state == Mash::Random {
             Some(app::sv_math::rand(hash40("fighter"), 5) + 1)
         } else {
             None
@@ -31,23 +31,23 @@ pub unsafe fn get_command_flag_cat(
             || is_in_shieldstun(module_accessor)
         {
             match MENU.mash_state {
-                MASH_AIRDODGE => {
+                Mash::Airdodge => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
                     }
                 }
-                MASH_JUMP => {
+                Mash::Jump => {
                     if !is_in_landing(module_accessor) && category == FIGHTER_PAD_COMMAND_CATEGORY1
                     {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                     }
                 }
-                MASH_SPOTDODGE => {
+                Mash::Spotdodge => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
                     }
                 }
-                MASH_ATTACK => {
+                Mash::Attack => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         use Attack::*;
 
@@ -68,7 +68,7 @@ pub unsafe fn get_command_flag_cat(
                         }
                     }
                 }
-                MASH_RANDOM => {
+                Mash::Random => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
 
@@ -133,7 +133,7 @@ pub unsafe fn check_button_on(
 ) -> Option<bool> {
     if [*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
         if is_training_mode() && is_operation_cpu(module_accessor) {
-            if MENU.mash_state == MASH_AIRDODGE
+            if MENU.mash_state == Mash::Airdodge
                 && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor))
             {
                 return Some(true);

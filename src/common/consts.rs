@@ -14,6 +14,7 @@ pub const NONE: i32 = 0;
 pub const DI_RANDOM_IN_AWAY: i32 = 9;
 // const std::vector<std::string> di_items{"None", "Out", "Up Out", "Up", "Up In", "In", "Down In", "Down", "Down Out", "Random"};
 
+/// Mash Attack States
 #[repr(i32)]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Attack {
@@ -46,7 +47,7 @@ impl From<i32> for Attack {
             8 => DownB,
             9 => UpSmash,
             10 => Grab,
-            _ => panic!("Invalid mash state {}", x)
+            _ => panic!("Invalid mash attack state {}", x)
         }
     }
 }
@@ -86,12 +87,32 @@ pub const TECH_ROLL: i32 = 3;
 pub const TECH_MISS: i32 = 4;
 // pub const std::vector<std::string> tech_items{"None", "Random", "In-Place", "Roll", "Miss Tech"};
 
-// Mash States
-pub const MASH_AIRDODGE: i32 = 1;
-pub const MASH_JUMP: i32 = 2;
-pub const MASH_ATTACK: i32 = 3;
-pub const MASH_SPOTDODGE: i32 = 4;
-pub const MASH_RANDOM: i32 = 5;
+/// Mash States
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Mash {
+    None = 0,
+    Airdodge = 1,
+    Jump = 2,
+    Attack = 3,
+    Spotdodge = 4,
+    Random = 5
+}
+
+impl From<i32> for Mash {
+    fn from(x: i32) -> Self {
+        match x {
+            0 => Mash::None,
+            1 => Mash::Airdodge,
+            2 => Mash::Jump,
+            3 => Mash::Attack,
+            4 => Mash::Spotdodge,
+            5 => Mash::Random,
+            _ => panic!("Invalid mash state {}", x)
+        }
+    }
+}
+
 // pub const std::vector<std::string> mash_items{"None", "Airdodge", "Jump", "Attack", "Spotdodge", "Random"};
 
 // Shield States
@@ -114,7 +135,7 @@ pub struct TrainingModpackMenu {
     pub mash_attack_state: Attack,
     pub ledge_state: i32,
     pub tech_state: i32,
-    pub mash_state: i32,
+    pub mash_state: Mash,
     pub shield_state: i32,
     pub defensive_state: i32,
 }
