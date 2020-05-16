@@ -54,9 +54,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // Grab + Dpad up: reset state
-        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH) != 0
+        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
-                != 0
         {
             if *save_state == NoAction {
                 SAVE_STATE_PLAYER_STATE = CameraMove;
@@ -150,9 +149,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // Grab + Dpad down: Save state
-        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH) != 0
+        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
-                != 0
         {
             SAVE_STATE_PLAYER_STATE = Save;
             SAVE_STATE_CPU_STATE = Save;
