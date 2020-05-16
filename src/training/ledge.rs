@@ -18,19 +18,19 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
             let frame = MotionModule::frame(module_accessor) as f32;
             if frame == random_frame || frame > 30.0 {
                 let mut status = 0;
-                let ledge_case: i32;
+                let ledge_case: LedgeOption;
 
-                if MENU.ledge_state == RANDOM_LEDGE {
-                    ledge_case = app::sv_math::rand(hash40("fighter"), 4) + 2;
+                if MENU.ledge_state == LedgeOption::Random {
+                    ledge_case = (app::sv_math::rand(hash40("fighter"), 4) + 2).into();
                 } else {
                     ledge_case = MENU.ledge_state;
                 }
 
                 match ledge_case {
-                    NEUTRAL_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
-                    ROLL_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
-                    JUMP_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
-                    ATTACK_LEDGE => status = *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+                    LedgeOption::Neutral => status = *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
+                    LedgeOption::Roll => status = *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
+                    LedgeOption::Jump => status = *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
+                    LedgeOption::Attack => status = *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                     _ => (),
                 }
 
@@ -104,7 +104,7 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
-    if MENU.ledge_state != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
+    if MENU.ledge_state != LedgeOption::None && is_training_mode() && is_operation_cpu(module_accessor) {
         force_option(module_accessor);
         defensive_option(module_accessor, category, flag);
     }

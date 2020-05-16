@@ -72,11 +72,33 @@ impl Attack {
 // pub const std::vector<std::string> attack_items{"Neutral Air", "Forward Air", "Back Air", "Up Air", "Down Air", "Neutral B", "Side B", "Up B", "Down B", "Up Smash", "Grab"};
 
 // Ledge Option
-pub const RANDOM_LEDGE: i32 = 1;
-pub const NEUTRAL_LEDGE: i32 = 2;
-pub const ROLL_LEDGE: i32 = 3;
-pub const JUMP_LEDGE: i32 = 4;
-pub const ATTACK_LEDGE: i32 = 5;
+#[repr(i32)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum LedgeOption {
+    None = 0,
+    Random = 1,
+    Neutral = 2,
+    Roll = 3,
+    Jump = 4,
+    Attack = 5,
+}
+
+impl From<i32> for LedgeOption {
+    fn from(x: i32) -> Self {
+        use LedgeOption::*;
+
+        match x {
+            0 => None,
+            1 => Random,
+            2 => Neutral,
+            3 => Roll,
+            4 => Jump,
+            5 => Attack,
+            _ => panic!("Invalid ledge option {}", x)
+        }
+    }
+}
+
 // pub const std::vector<std::string> ledge_items{"None", "Random", "Ntrl. Getup", "Roll", "Jump", "Attack"};
 
 // Tech Option
@@ -161,7 +183,7 @@ pub struct TrainingModpackMenu {
     pub hitbox_vis: bool,
     pub di_state: i32,
     pub mash_attack_state: Attack,
-    pub ledge_state: i32,
+    pub ledge_state: LedgeOption,
     pub tech_state: i32,
     pub mash_state: Mash,
     pub shield_state: Shield,

@@ -9,7 +9,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     hitbox_vis: true,
     di_state: NONE,
     mash_attack_state: Attack::Nair,
-    ledge_state: RANDOM_LEDGE,
+    ledge_state: LedgeOption::Random,
     tech_state: RANDOM_TECH,
     mash_state: Mash::None,
     shield_state: Shield::None,
