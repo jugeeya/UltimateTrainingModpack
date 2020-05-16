@@ -13,7 +13,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     tech_state: RANDOM_TECH,
     mash_state: Mash::None,
     shield_state: Shield::None,
-    defensive_state: RANDOM_DEFENSIVE,
+    defensive_state: Defensive::Random,
 };
 
 pub static MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
@@ -77,7 +77,7 @@ pub unsafe fn perform_defensive_option(
     flag: &mut i32,
 ) {
     match MENU.defensive_state {
-        RANDOM_DEFENSIVE => {
+        Defensive::Random => {
             let random_cmds = vec![
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
@@ -89,15 +89,15 @@ pub unsafe fn perform_defensive_option(
                 app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
             *flag |= random_cmds[random_cmd_index];
         }
-        DEFENSIVE_ROLL => {
+        Defensive::Roll => {
             if app::sv_math::rand(hash40("fighter"), 2) == 0 {
                 *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
             } else {
                 *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
             }
         }
-        DEFENSIVE_SPOTDODGE => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-        DEFENSIVE_JAB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+        Defensive::Spotdodge => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+        Defensive::Jab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
         _ => (),
     }
 }

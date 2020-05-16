@@ -127,11 +127,33 @@ pub enum Shield {
 // pub const std::vector<std::string> shield_items{"None", "Infinite", "Hold"};
 
 // Defensive States
-pub const RANDOM_DEFENSIVE: i32 = 1;
-pub const DEFENSIVE_SPOTDODGE: i32 = 2;
-pub const DEFENSIVE_ROLL: i32 = 3;
-pub const DEFENSIVE_JAB: i32 = 4;
-pub const DEFENSIVE_SHIELD: i32 = 5;
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Defensive {
+    None = 0,
+    Random = 1,
+    Spotdodge = 2,
+    Roll = 3,
+    Jab = 4,
+    Shield = 5,
+}
+
+impl From<i32> for Defensive {
+    fn from(x: i32) -> Self {
+        use Defensive::*;
+
+        match x {
+            0 => None,
+            1 => Random,
+            2 => Spotdodge,
+            3 => Roll,
+            4 => Jab,
+            5 => Shield,
+            _ => panic!("Invalid mash state {}", x)
+        }
+    }
+}
+
 // pub const std::vector<std::string> defensive_items{"None", "Random", "Spotdodge", "Roll", "Jab", "Flash Shield"};
 
 #[repr(C)]
@@ -143,5 +165,5 @@ pub struct TrainingModpackMenu {
     pub tech_state: i32,
     pub mash_state: Mash,
     pub shield_state: Shield,
-    pub defensive_state: i32,
+    pub defensive_state: Defensive,
 }
