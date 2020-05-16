@@ -1,3 +1,5 @@
+use smash::lib::lua_const::*;
+
 pub const NONE: i32 = 0;
 
 // Side Taunt
@@ -12,18 +14,60 @@ pub const NONE: i32 = 0;
 pub const DI_RANDOM_IN_AWAY: i32 = 9;
 // const std::vector<std::string> di_items{"None", "Out", "Up Out", "Up", "Up In", "In", "Down In", "Down", "Down Out", "Random"};
 
-// Attack Option
-pub const MASH_NAIR: i32 = 0;
-pub const MASH_FAIR: i32 = 1;
-pub const MASH_BAIR: i32 = 2;
-pub const MASH_UPAIR: i32 = 3;
-pub const MASH_DAIR: i32 = 4;
-pub const MASH_NEUTRAL_B: i32 = 5;
-pub const MASH_SIDE_B: i32 = 6;
-pub const MASH_UP_B: i32 = 7;
-pub const MASH_DOWN_B: i32 = 8;
-pub const MASH_UP_SMASH: i32 = 9;
-pub const MASH_GRAB: i32 = 10;
+#[repr(i32)]
+#[derive(PartialEq, Debug, Copy, Clone)]
+pub enum Attack {
+    Nair = 0,
+    Fair = 1,
+    Bair = 2,
+    UpAir = 3,
+    Dair = 4,
+    NeutralB = 5,
+    SideB = 6,
+    UpB = 7,
+    DownB = 8,
+    UpSmash = 9,
+    Grab = 10
+}
+
+impl From<i32> for Attack {
+    fn from(x: i32) -> Self {
+        use Attack::*;
+
+        match x {
+            0 => Nair,
+            1 => Fair,
+            2 => Bair,
+            3 => UpAir,
+            4 => Dair,
+            5 => NeutralB,
+            6 => SideB,
+            7 => UpB,
+            8 => DownB,
+            9 => UpSmash,
+            10 => Grab,
+            _ => panic!("Invalid mash state {}", x)
+        }
+    }
+}
+
+impl Attack {
+    pub fn into_attack_air_kind(&self) -> Option<i32> {
+        use Attack::*;
+
+        Some(
+            match self {
+                Nair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
+                Fair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
+                Bair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
+                Dair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
+                UpAir => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
+                _ => return None,
+            }
+        )
+    }
+}
+
 // pub const std::vector<std::string> attack_items{"Neutral Air", "Forward Air", "Back Air", "Up Air", "Down Air", "Neutral B", "Side B", "Up B", "Down B", "Up Smash", "Grab"};
 
 // Ledge Option
@@ -67,7 +111,7 @@ pub const DEFENSIVE_SHIELD: i32 = 5;
 pub struct TrainingModpackMenu {
     pub hitbox_vis: bool,
     pub di_state: i32,
-    pub attack_state: i32,
+    pub mash_attack_state: Attack,
     pub ledge_state: i32,
     pub tech_state: i32,
     pub mash_state: i32,

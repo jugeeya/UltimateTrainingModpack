@@ -8,7 +8,7 @@ use smash::hash40;
 pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     hitbox_vis: true,
     di_state: NONE,
-    attack_state: MASH_NAIR,
+    mash_attack_state: Attack::Nair,
     ledge_state: RANDOM_LEDGE,
     tech_state: RANDOM_TECH,
     mash_state: NONE,

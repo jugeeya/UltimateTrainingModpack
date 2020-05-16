@@ -9,22 +9,15 @@ pub unsafe fn get_attack_air_kind(
 ) -> Option<i32> {
     if is_training_mode() && is_operation_cpu(module_accessor) {
         if MENU.mash_state == MASH_ATTACK {
-            match MENU.attack_state {
-                MASH_NAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_N),
-                MASH_FAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_F),
-                MASH_BAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_B),
-                MASH_UPAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_HI),
-                MASH_DAIR => return Some(*FIGHTER_COMMAND_ATTACK_AIR_KIND_LW),
-                _ => (),
-            }
+            MENU.mash_attack_state.into_attack_air_kind()
+        } else if MENU.mash_state == MASH_RANDOM {
+            Some(app::sv_math::rand(hash40("fighter"), 5) + 1)
+        } else {
+            None
         }
-
-        if MENU.mash_state == MASH_RANDOM {
-            return Some(app::sv_math::rand(hash40("fighter"), 5) + 1);
-        }
+    } else {
+        None
     }
-
-    None
 }
 
 pub unsafe fn get_command_flag_cat(
@@ -56,21 +49,22 @@ pub unsafe fn get_command_flag_cat(
                 }
                 MASH_ATTACK => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                        match MENU.attack_state {
-                            MASH_NAIR | MASH_FAIR | MASH_BAIR | MASH_UPAIR | MASH_DAIR => {
+                        use Attack::*;
+
+                        match MENU.mash_attack_state {
+                            Nair | Fair | Bair | UpAir | Dair => {
                                 *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
                                 // If we are performing the attack OOS we also need to jump
                                 if is_in_shieldstun(module_accessor) {
                                     *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                                 }
                             }
-                            MASH_NEUTRAL_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
-                            MASH_SIDE_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-                            MASH_UP_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-                            MASH_DOWN_B => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-                            MASH_UP_SMASH => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
-                            MASH_GRAB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
-                            _ => (),
+                            NeutralB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
+                            SideB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+                            UpB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+                            DownB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+                            UpSmash => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
+                            Grab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
                         }
                     }
                 }
