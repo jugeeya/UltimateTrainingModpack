@@ -1,8 +1,4 @@
 #![feature(proc_macro_hygiene)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
 #![feature(with_options)]
 #![feature(const_mut_refs)]
 
@@ -22,7 +18,6 @@ use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
-#[allow(unused_unsafe)]
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
 pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
