@@ -12,7 +12,6 @@ pub const NONE: i32 = 0;
 
 /* DI */
 pub const DI_RANDOM_IN_AWAY: i32 = 9;
-// const std::vector<std::string> di_items{"None", "Out", "Up Out", "Up", "Up In", "In", "Down In", "Down", "Down Out", "Random"};
 
 /// Mash Attack States
 #[repr(i32)]
@@ -69,8 +68,6 @@ impl Attack {
     }
 }
 
-// pub const std::vector<std::string> attack_items{"Neutral Air", "Forward Air", "Back Air", "Up Air", "Down Air", "Neutral B", "Side B", "Up B", "Down B", "Up Smash", "Grab"};
-
 // Ledge Option
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -99,15 +96,45 @@ impl From<i32> for LedgeOption {
     }
 }
 
-// pub const std::vector<std::string> ledge_items{"None", "Random", "Ntrl. Getup", "Roll", "Jump", "Attack"};
+impl LedgeOption {
+    pub fn into_status(&self) -> Option<i32> {
+        Some(
+            match self {
+                LedgeOption::Neutral => status = *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
+                LedgeOption::Roll => status = *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
+                LedgeOption::Jump => status = *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
+                LedgeOption::Attack => status = *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+                _ => return None,
+            }
+        )
+    }
+}
 
 // Tech Option
-pub const RANDOM_TECH: i32 = 1;
-pub const TECH_IN_PLACE: i32 = 2;
-pub const TECH_ROLL: i32 = 3;
-#[allow(dead_code)]
-pub const TECH_MISS: i32 = 4;
-// pub const std::vector<std::string> tech_items{"None", "Random", "In-Place", "Roll", "Miss Tech"};
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TechOption {
+    None = 0,
+    Random = 1,
+    InPlace = 2,
+    Roll = 3,
+    Miss = 4
+}
+
+impl From<i32> for TechOption {
+    fn from(x: i32) -> Self {
+        use TechOption::*;
+
+        match x {
+            0 => None,
+            1 => Random,
+            2 => InPlace,
+            3 => Roll,
+            4 => Miss,
+            _ => panic!("Invalid tech option {}", x)
+        }
+    }
+}
 
 /// Mash States
 #[repr(i32)]
@@ -135,8 +162,6 @@ impl From<i32> for Mash {
     }
 }
 
-// pub const std::vector<std::string> mash_items{"None", "Airdodge", "Jump", "Attack", "Spotdodge", "Random"};
-
 /// Shield States
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -145,8 +170,6 @@ pub enum Shield {
     Infinite = 1,
     Hold = 2,
 }
-
-// pub const std::vector<std::string> shield_items{"None", "Infinite", "Hold"};
 
 // Defensive States
 #[repr(i32)]
@@ -176,15 +199,13 @@ impl From<i32> for Defensive {
     }
 }
 
-// pub const std::vector<std::string> defensive_items{"None", "Random", "Spotdodge", "Roll", "Jab", "Flash Shield"};
-
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: bool,
     pub di_state: i32,
     pub mash_attack_state: Attack,
     pub ledge_state: LedgeOption,
-    pub tech_state: i32,
+    pub tech_state: TechOption,
     pub mash_state: Mash,
     pub shield_state: Shield,
     pub defensive_state: Defensive,

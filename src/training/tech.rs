@@ -11,7 +11,7 @@ pub unsafe fn init_settings(
     if is_training_mode() && is_operation_cpu(module_accessor) {
         if status_kind == FIGHTER_STATUS_KIND_DOWN {
             match MENU.tech_state {
-                RANDOM_TECH => {
+                TechOption::Random => {
                     let random_statuses = vec![
                         *FIGHTER_STATUS_KIND_DOWN,
                         *FIGHTER_STATUS_KIND_PASSIVE,
@@ -30,7 +30,7 @@ pub unsafe fn init_settings(
                         return Some(());
                     }
                 }
-                TECH_IN_PLACE => {
+                TechOption::InPlace => {
                     StatusModule::change_status_request_from_script(
                         module_accessor,
                         *FIGHTER_STATUS_KIND_PASSIVE,
@@ -38,7 +38,7 @@ pub unsafe fn init_settings(
                     );
                     return Some(());
                 }
-                TECH_ROLL => {
+                TechOption::Roll => {
                     StatusModule::change_status_request_from_script(
                         module_accessor,
                         *FIGHTER_STATUS_KIND_PASSIVE_FB,
@@ -89,7 +89,7 @@ pub unsafe fn get_command_flag_cat(
     _category: i32,
     flag: &mut i32,
 ) {
-    if MENU.tech_state != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
+    if MENU.tech_state != TechOption::None && is_training_mode() && is_operation_cpu(module_accessor) {
         let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
         let status = StatusModule::status_kind(module_accessor) as i32;
         if [
@@ -140,7 +140,7 @@ pub unsafe fn change_motion(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     motion_kind: u64,
 ) -> Option<u64> {
-    if MENU.tech_state != NONE && is_training_mode() && is_operation_cpu(module_accessor) {
+    if MENU.tech_state != TechOption::None && is_training_mode() && is_operation_cpu(module_accessor) {
         if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
             if app::sv_math::rand(hash40("fighter"), 2) != 0 {
                 return Some(hash40("passive_stand_f"));

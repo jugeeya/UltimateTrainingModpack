@@ -26,12 +26,8 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
                     ledge_case = MENU.ledge_state;
                 }
 
-                match ledge_case {
-                    LedgeOption::Neutral => status = *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
-                    LedgeOption::Roll => status = *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
-                    LedgeOption::Jump => status = *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
-                    LedgeOption::Attack => status = *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
-                    _ => (),
+                if let Some(new_status) = ledge_case.into_status() {
+                    status = new_status;
                 }
 
                 StatusModule::change_status_request_from_script(module_accessor, status, true);
