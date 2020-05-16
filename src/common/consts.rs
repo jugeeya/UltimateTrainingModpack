@@ -9,7 +9,6 @@ pub const NONE: i32 = 0;
 */
 
 /* DI */
-pub static mut DI_STATE: i32 = NONE;
 pub const DI_RANDOM_IN_AWAY: i32 = 9;
 // const std::vector<std::string> di_items{"None", "Out", "Up Out", "Up", "Up In", "In", "Down In", "Down", "Down Out", "Random"};
 
@@ -39,6 +38,7 @@ pub const ATTACK_LEDGE: i32 = 5;
 pub const RANDOM_TECH: i32 = 1;
 pub const TECH_IN_PLACE: i32 = 2;
 pub const TECH_ROLL: i32 = 3;
+#[allow(dead_code)]
 pub const TECH_MISS: i32 = 4;
 // pub const std::vector<std::string> tech_items{"None", "Random", "In-Place", "Roll", "Miss Tech"};
 
@@ -65,12 +65,12 @@ pub const DEFENSIVE_SHIELD: i32 = 5;
 
 #[repr(C)]
 pub struct TrainingModpackMenu {
-    pub HITBOX_VIS: bool,
-    pub DI_STATE: i32,
-    pub ATTACK_STATE: i32,
-    pub LEDGE_STATE: i32,
-    pub TECH_STATE: i32,
-    pub MASH_STATE: i32,
-    pub SHIELD_STATE: i32,
-    pub DEFENSIVE_STATE: i32,
+    pub hitbox_vis: bool,
+    pub di_state: i32,
+    pub attack_state: i32,
+    pub ledge_state: i32,
+    pub tech_state: i32,
+    pub mash_state: i32,
+    pub shield_state: i32,
+    pub defensive_state: i32,
 }

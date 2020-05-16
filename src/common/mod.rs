@@ -5,26 +5,27 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::hash40;
 
-pub static mut menu_struct: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
-    HITBOX_VIS: true,
-    DI_STATE: NONE,
-    ATTACK_STATE: MASH_NAIR,
-    LEDGE_STATE: RANDOM_LEDGE,
-    TECH_STATE: RANDOM_TECH,
-    MASH_STATE: NONE,
-    SHIELD_STATE: NONE,
-    DEFENSIVE_STATE: RANDOM_DEFENSIVE,
+pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
+    hitbox_vis: true,
+    di_state: NONE,
+    attack_state: MASH_NAIR,
+    ledge_state: RANDOM_LEDGE,
+    tech_state: RANDOM_TECH,
+    mash_state: NONE,
+    shield_state: NONE,
+    defensive_state: RANDOM_DEFENSIVE,
 };
 
-pub static menu: &'static mut consts::TrainingModpackMenu = unsafe { &mut menu_struct};
+pub static MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
 
-pub static mut fighter_manager_addr: usize = 0;
+pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app9smashball16is_training_modeEv"]
     pub fn is_training_mode() -> bool;
-    #[link_name = "\u{1}_ZN3app7utility8get_kindEPKNS_26BattleObjectModuleAccessorE"]
-    pub fn get_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32;
+    
+    //#[link_name = "\u{1}_ZN3app7utility8get_kindEPKNS_26BattleObjectModuleAccessorE"]
+    //pub fn get_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32;
 }
 
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
@@ -75,7 +76,7 @@ pub unsafe fn perform_defensive_option(
     _module_accessor: &mut app::BattleObjectModuleAccessor,
     flag: &mut i32,
 ) {
-    match (*menu).DEFENSIVE_STATE {
+    match MENU.defensive_state {
         RANDOM_DEFENSIVE => {
             let random_cmds = vec![
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
