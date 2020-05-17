@@ -20,7 +20,7 @@ jobs:
       run: printf "\nY" | sudo dkp-pacman -S switch-dev
     - name: Make Tesla overlay
       working-directory: TrainingModpackOverlay
-      run: make
+      run: DEVKITPRO=/opt/devkitpro make
     - name: Install cargo-skyline
       run: cargo install --git https://github.com/jam1garner/cargo-skyline
     - name: Install rust-std-skyline-squashed
