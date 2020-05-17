@@ -174,9 +174,11 @@ pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32,
 ) {
-    // Pause Effect AnimCMD if hitbox visualization is active
-    MotionAnimcmdModule::set_sleep_effect(module_accessor, MENU.hitbox_vis
-     && !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&StatusModule::status_kind(module_accessor))));
+    if is_training_mode() {
+        // Pause Effect AnimCMD if hitbox visualization is active
+        MotionAnimcmdModule::set_sleep_effect(module_accessor, MENU.hitbox_vis
+        && !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&StatusModule::status_kind(module_accessor))));
+    }
 
     // apply only once per frame
     if category == 0 && is_training_mode() && MENU.hitbox_vis {
