@@ -49,27 +49,27 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
 }
 
 pub unsafe fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor);
     (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 
 pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor);
+    let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     // If we are taking shield damage or we are droping shield from taking shield damage we are in hitstun
-    if status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+    status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE
         || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
             && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF)
-    {
-        return true;
-    }
-
-    false
 }
 
 pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor);
     (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT).contains(&status_kind)
+}
+
+pub unsafe fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+    (*FIGHTER_STATUS_KIND_TREAD_DAMAGE..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind)
 }
 
 pub unsafe fn perform_defensive_option(

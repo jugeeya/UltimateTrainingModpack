@@ -125,7 +125,7 @@ pub unsafe fn handle_init_settings(
     unk6: i32,
     unk7: i32,
 ) {
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor);
     tech::init_settings(module_accessor, status_kind).unwrap_or_else(|| {
         original!()(
             module_accessor,
