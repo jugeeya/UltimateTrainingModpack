@@ -19,7 +19,7 @@ static mut SAVE_STATE_CPU_STATE: SaveState = NoAction;
 static mut SAVE_STATE_X_PLAYER: f32 = 0.0;
 static mut SAVE_STATE_Y_PLAYER: f32 = 0.0;
 static mut SAVE_STATE_PERCENT_PLAYER: f32 = 0.0;
-static mut SAVE_STATE_LR_PLAYER: f32 = 1.0;
+static mut SAVE_STATE_LR_PLAYER: f32 = -1.0;
 static mut SAVE_STATE_SITUATION_KIND_PLAYER: i32 = 0 as i32;
 
 static mut SAVE_STATE_X_CPU: f32 = 0.0;

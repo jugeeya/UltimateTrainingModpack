@@ -32,8 +32,12 @@ pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i3
     return (module_accessor.info >> 28) as u8 as i32;
 }
 
+pub unsafe fn is_fighter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    get_category(module_accessor) != BATTLE_OBJECT_CATEGORY_FIGHTER
+}
+
 pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if get_category(module_accessor) as i32 != BATTLE_OBJECT_CATEGORY_FIGHTER {
+    if is_fighter(module_accessor) {
         return false;
     }
 

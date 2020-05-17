@@ -1,4 +1,4 @@
-use crate::common::{*, consts::*};
+use crate::common::{consts::*, *};
 use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
 use smash::hash40;
 use smash::lib::{lua_const::*, L2CAgent, L2CValue};
@@ -120,24 +120,47 @@ pub unsafe fn generate_hitbox_effects(
             z: 0.0,
         };
 
-        EffectModule::req_on_joint(
-            module_accessor,
-            Hash40 {
-                hash: hash40("sys_shield"),
-            },
-            Hash40 { hash: bone },
-            &pos,
-            &zeros,
-            size * size_mult,
-            &zeros,
-            &zeros,
-            true,
-            *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
-                | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
-                | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
-            0,
-            0,
-        );
+        if is_fighter(module_accessor) {
+            EffectModule::req_on_joint(
+                module_accessor,
+                Hash40 {
+                    hash: hash40("sys_shield"),
+                },
+                Hash40 { hash: bone },
+                &pos,
+                &zeros,
+                size * size_mult,
+                &zeros,
+                &zeros,
+                true,
+                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
+                    | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
+                    | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+                0,
+                0,
+            );
+        } else {
+            EffectModule::req_follow(
+                module_accessor,
+                Hash40 {
+                    hash: hash40("sys_shield"),
+                },
+                Hash40 { hash: bone },
+                &pos,
+                &zeros,
+                size * size_mult,
+                true,
+                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
+                    | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
+                    | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+                0,
+                0,
+                0,
+                0,
+                true,
+                true,
+            );
+        }
 
         // set to hitbox ID color
         EffectModule::set_rgb_partial_last(module_accessor, color.x, color.y, color.z);
@@ -152,14 +175,11 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
 ) {
     // Pause Effect AnimCMD if hitbox visualization is active
-    MotionAnimcmdModule::set_sleep_effect(
-        module_accessor,
-        MENU.hitbox_vis,
-    );
+    MotionAnimcmdModule::set_sleep_effect(module_accessor, MENU.hitbox_vis
+     && !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&StatusModule::status_kind(module_accessor))));
 
     // apply only once per frame
     if category == 0 && is_training_mode() && MENU.hitbox_vis {
-        
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
         if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind)
             && !is_shielding(module_accessor)
@@ -216,20 +236,20 @@ unsafe fn handle_attack(lua_state: u64) {
     let mut l2c_agent = L2CAgent::new(lua_state);
 
     // get all necessary grabbox params
-    let id = l2c_agent.pop_lua_stack(1);      // int
-    let joint = l2c_agent.pop_lua_stack(3);    // hash40
-    let _damage = l2c_agent.pop_lua_stack(4);  // float
-    let _angle = l2c_agent.pop_lua_stack(5);   // int
-    let _kbg = l2c_agent.pop_lua_stack(6);     // int
-    let _fkb = l2c_agent.pop_lua_stack(7);     // int
-    let _bkb = l2c_agent.pop_lua_stack(8);     // int
-    let size = l2c_agent.pop_lua_stack(9);    // float
-    let x = l2c_agent.pop_lua_stack(10);      // float
-    let y = l2c_agent.pop_lua_stack(11);      // float
-    let z = l2c_agent.pop_lua_stack(12);      // float
-    let x2 = l2c_agent.pop_lua_stack(13);     // float or void
-    let y2 = l2c_agent.pop_lua_stack(14);     // float or void
-    let z2 = l2c_agent.pop_lua_stack(15);     // float or void
+    let id = l2c_agent.pop_lua_stack(1); // int
+    let joint = l2c_agent.pop_lua_stack(3); // hash40
+    let _damage = l2c_agent.pop_lua_stack(4); // float
+    let _angle = l2c_agent.pop_lua_stack(5); // int
+    let _kbg = l2c_agent.pop_lua_stack(6); // int
+    let _fkb = l2c_agent.pop_lua_stack(7); // int
+    let _bkb = l2c_agent.pop_lua_stack(8); // int
+    let size = l2c_agent.pop_lua_stack(9); // float
+    let x = l2c_agent.pop_lua_stack(10); // float
+    let y = l2c_agent.pop_lua_stack(11); // float
+    let z = l2c_agent.pop_lua_stack(12); // float
+    let x2 = l2c_agent.pop_lua_stack(13); // float or void
+    let y2 = l2c_agent.pop_lua_stack(14); // float or void
+    let z2 = l2c_agent.pop_lua_stack(15); // float or void
 
     // hacky way of forcing no shield damage on all hitboxes
     if is_training_mode() && MENU.shield_state == Shield::Infinite {
@@ -333,9 +353,5 @@ pub unsafe fn handle_set_rebound(
 
 pub fn hitbox_visualization() {
     println!("Applying hitbox visualization mods.");
-    skyline::install_hooks!(
-        handle_attack,
-        handle_catch,
-        handle_set_rebound
-    );
+    skyline::install_hooks!(handle_attack, handle_catch, handle_set_rebound);
 }

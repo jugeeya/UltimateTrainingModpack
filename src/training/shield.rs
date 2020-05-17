@@ -49,7 +49,9 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         if MENU.mash_state == Mash::Attack {
             if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
                 return false;
-            } else {
+            } 
+            
+            if MENU.mash_attack_state == Attack::Grab {
                 return true;
             }
         }
