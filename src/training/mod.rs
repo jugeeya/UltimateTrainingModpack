@@ -1,6 +1,6 @@
 use crate::common::FIGHTER_MANAGER_ADDR;
 use crate::hitbox_visualizer;
-use skyline::{c_str, nn::ro::LookupSymbol};
+use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 
 pub mod directional_influence;
@@ -168,21 +168,17 @@ pub unsafe fn handle_change_motion(
 }
 
 pub fn training_mods() {
-    println!("Applying training mods.");
+    println!("[Training Modpack] Applying training mods.");
     unsafe {
         LookupSymbol(
             &mut FIGHTER_MANAGER_ADDR,
-            c_str("_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E"),
+            "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E\u{0}".as_bytes().as_ptr(),
         );
-        println!("Lookup symbol output: {:#?}", FIGHTER_MANAGER_ADDR);
     }
 
     skyline::install_hooks!(
         // Mash airdodge/jump
         handle_get_command_flag_cat,
-
-        // Set DI
-        // handle_get_float,
 
         // Hold/Infinite shield
         handle_check_button_on,

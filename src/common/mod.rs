@@ -39,13 +39,11 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
 
     let entry_id_int =
         WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
-    let _entry_id = app::FighterEntryID(entry_id_int);
-    // let mut mgr = FighterManager{_address : fighter_manager_addr as u64};
-    // let fighter_information = lua_bind::FighterManager::get_fighter_information(&mut mgr, entry_id) as *mut FighterInformation;
-    // println!("FighterInformation: {:#?}", fighter_information);
+    let entry_id = app::FighterEntryID(entry_id_int);
+    let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+    let fighter_information = FighterManager::get_fighter_information( mgr, entry_id) as *mut app::FighterInformation;
 
-    // lua_bind::FighterInformation::is_operation_cpu(fighter_information)
-    entry_id_int > 0
+    FighterInformation::is_operation_cpu(fighter_information)
 }
 
 pub unsafe fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
