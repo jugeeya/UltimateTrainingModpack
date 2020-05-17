@@ -1,0 +1,3 @@
+[submodule "TrainingModpackOverlay"]
+	path = TrainingModpackOverlay
+	url = https://github.com/jugeeya/TrainingModpackOverlay
