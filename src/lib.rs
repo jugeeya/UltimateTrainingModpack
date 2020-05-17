@@ -24,24 +24,11 @@ fn nro_main(nro: &NroInfo<'_>) {
     }
 }
 
-#[skyline::hook(replace = smash::app::lua_bind::FighterManager::get_fighter_information)]
-pub unsafe fn handle_get_fighter_information(
-    fighter_manager: &mut smash::app::FighterManager,
-    entry_id: smash::app::FighterEntryID,
-) -> u64 {
-    println!("{:#?}", &fighter_manager as *const _);
-    println!("[Training Modpack] FighterManager address: 0x{:x}", FIGHTER_MANAGER_ADDR);
-    println!("[Training Modpack] FighterManager deref: 0x{:x}", *(FIGHTER_MANAGER_ADDR as *mut u64));
-    
-    original!()(fighter_manager, entry_id)
-}
-
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
     println!("[Training Modpack] Initialized.");
     hitbox_visualizer::hitbox_visualization();
     training::training_mods();
-    skyline::install_hook!(handle_get_fighter_information);
     nro::add_hook(nro_main).unwrap();
 
     unsafe {
