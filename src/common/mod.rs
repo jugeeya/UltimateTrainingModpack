@@ -33,11 +33,11 @@ pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i3
 }
 
 pub unsafe fn is_fighter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    get_category(module_accessor) != BATTLE_OBJECT_CATEGORY_FIGHTER
+    get_category(module_accessor) == BATTLE_OBJECT_CATEGORY_FIGHTER
 }
 
 pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if is_fighter(module_accessor) {
+    if !is_fighter(module_accessor) {
         return false;
     }
 
