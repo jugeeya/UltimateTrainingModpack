@@ -79,7 +79,7 @@ pub unsafe fn generate_hitbox_effects(
     let y_dist: f32;
     let z_dist: f32;
     let mut n_effects: i32;
-    if x2 == None {
+    if x2 == None && y2 == None && z2 == None {
         // && let lib::L2CValueType::Void = y2.val_type && let lib::L2CValueType::Void = z2.val_type {  // extended hitbox
         x_dist = 0.0;
         y_dist = 0.0;
@@ -87,9 +87,9 @@ pub unsafe fn generate_hitbox_effects(
         n_effects = 1;
     } else {
         // non-extended hitbox
-        x_dist = x2.unwrap() - x;
-        y_dist = y2.unwrap() - y;
-        z_dist = z2.unwrap() - z;
+        x_dist = x2.unwrap_or(0.0) - x;
+        y_dist = y2.unwrap_or(0.0) - y;
+        z_dist = z2.unwrap_or(0.0) - z;
         let dist_sq: f32 = x_dist * x_dist + y_dist * y_dist + z_dist * z_dist;
         let dist = dist_sq.sqrt();
         n_effects = ((dist / (size * 1.75)) + 1.0).ceil() as i32; // just enough effects to form a continuous line
