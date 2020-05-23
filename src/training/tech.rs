@@ -3,13 +3,18 @@ use crate::common::*;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
+use smash::app::sv_system;
+use smash::lib::L2CValue;
+use smash::lua2cpp::L2CFighterBase;
 
-pub unsafe fn init_settings(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    status_kind: i32,
-) -> Option<()> {
+#[skyline::hook(replace = smash::lua2cpp::L2CFighterBase_change_status)]
+pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2CValue, unk: L2CValue) -> L2CValue {
+    let mut status_kind = status_kind;
+    let mut unk = unk;
+    let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        if status_kind == FIGHTER_STATUS_KIND_DOWN {
+        let status_kind_int = status_kind.try_get_int().unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
+        if status_kind_int == FIGHTER_STATUS_KIND_DOWN {
             match MENU.tech_state {
                 TechOption::Random => {
                     let random_statuses = vec![
@@ -22,36 +27,24 @@ pub unsafe fn init_settings(
                         app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32)
                             as usize;
                     if random_statuses[random_status_index] != FIGHTER_STATUS_KIND_DOWN {
-                        StatusModule::change_status_request_from_script(
-                            module_accessor,
-                            random_statuses[random_status_index],
-                            true,
-                        );
-                        return Some(());
+                        status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
+                        unk = L2CValue::new_bool(true);
                     }
                 }
                 TechOption::InPlace => {
-                    StatusModule::change_status_request_from_script(
-                        module_accessor,
-                        *FIGHTER_STATUS_KIND_PASSIVE,
-                        true,
-                    );
-                    return Some(());
+                    status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE as u64);
+                    unk = L2CValue::new_bool(true);
                 }
                 TechOption::Roll => {
-                    StatusModule::change_status_request_from_script(
-                        module_accessor,
-                        *FIGHTER_STATUS_KIND_PASSIVE_FB,
-                        true,
-                    );
-                    return Some(());
+                    status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_FB as u64);
+                    unk = L2CValue::new_bool(true);
                 }
                 _ => (),
             }
         }
     }
 
-    None
+    original!()(fighter, status_kind, unk)
 }
 
 pub unsafe fn should_perform_defensive_option(
@@ -109,7 +102,7 @@ pub unsafe fn get_command_flag_cat(
             StatusModule::change_status_request_from_script(
                 module_accessor,
                 random_statuses[random_status_index],
-                true,
+                false,
             );
         } else if should_perform_defensive_option(module_accessor, prev_status, status) {
             perform_defensive_option(module_accessor, flag);

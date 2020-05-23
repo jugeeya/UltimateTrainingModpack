@@ -69,8 +69,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             *save_state = PosMove;
 
             let left_right =
-                (*save_state_x > 0.0) as i32 as f32 - (*save_state_x < 0.0) as i32 as f32;
-            let y_pos = 0.0;
+                (PostureModule::pos_x(module_accessor) > 0.0) as i32 as f32 - (PostureModule::pos_x(module_accessor) < 0.0) as i32 as f32;
+            let y_pos = 20.0;
 
             let pos = Vector3f {
                 x: left_right * 50.0,

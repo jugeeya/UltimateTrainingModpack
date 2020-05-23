@@ -4,11 +4,12 @@ use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 
 pub mod directional_influence;
+pub mod shield;
+pub mod tech;
+
 mod ledge;
 mod mash;
 mod save_states;
-pub mod shield;
-mod tech;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -112,36 +113,6 @@ pub unsafe fn handle_check_button_off(
         .unwrap_or_else(|| original!()(module_accessor, button))
 }
 
-#[skyline::hook(replace = StatusModule::init_settings)]
-pub unsafe fn handle_init_settings(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    situation_kind: i32,
-    unk1: i32,
-    unk2: u32,
-    ground_cliff_check_kind: i32,
-    unk3: bool,
-    unk4: i32,
-    unk5: i32,
-    unk6: i32,
-    unk7: i32,
-) {
-    let status_kind = StatusModule::status_kind(module_accessor);
-    tech::init_settings(module_accessor, status_kind).unwrap_or_else(|| {
-        original!()(
-            module_accessor,
-            situation_kind,
-            unk1,
-            unk2,
-            ground_cliff_check_kind,
-            unk3,
-            unk4,
-            unk5,
-            unk6,
-            unk7,
-        )
-    })
-}
-
 #[skyline::hook(replace = MotionModule::change_motion)]
 pub unsafe fn handle_change_motion(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -153,18 +124,18 @@ pub unsafe fn handle_change_motion(
     unk5: bool,
     unk6: bool,
 ) -> u64 {
-    tech::change_motion(module_accessor, motion_kind).unwrap_or_else(|| {
-        original!()(
-            module_accessor,
-            motion_kind,
-            unk1,
-            unk2,
-            unk3,
-            unk4,
-            unk5,
-            unk6,
-        )
-    })
+    let motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
+    
+    original!()(
+        module_accessor,
+        motion_kind,
+        unk1,
+        unk2,
+        unk3,
+        unk4,
+        unk5,
+        unk6,
+    )
 }
 
 pub fn training_mods() {
@@ -190,7 +161,6 @@ pub fn training_mods() {
         handle_get_attack_air_kind,
     
         // Tech options
-        handle_init_settings,
         handle_change_motion,
     );
 

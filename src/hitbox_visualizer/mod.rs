@@ -330,6 +330,6 @@ pub unsafe fn handle_set_rebound(
 }
 
 pub fn hitbox_visualization() {
-    println!("Applying hitbox visualization mods.");
+    println!("[Training Modpack] Applying hitbox visualization mods.");
     skyline::install_hooks!(handle_attack, handle_catch, handle_set_rebound);
 }
