@@ -1,7 +1,7 @@
 use crate::common::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
-use smash::phx::Vector3f;
+use smash::phx::{Vector3f, Hash40};
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -164,6 +164,29 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             *save_state_lr = PostureModule::lr(module_accessor);
             *save_state_percent = DamageModule::damage(module_accessor, 0);
             *save_state_situation_kind = StatusModule::situation_kind(module_accessor);
+
+            let zeros = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+
+            EffectModule::req_on_joint(
+                module_accessor,
+                Hash40::new("sys_deku_flash"),
+                Hash40::new("top"),
+                &zeros,
+                &zeros,
+                0.25,
+                &zeros,
+                &zeros,
+                true,
+                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
+                    | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
+                    | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+                0,
+                0,
+            );
         }
     }
 }

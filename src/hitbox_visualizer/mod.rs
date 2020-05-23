@@ -1,6 +1,5 @@
 use crate::common::{consts::*, *};
 use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
-use smash::hash40;
 use smash::lib::{lua_const::*, L2CAgent, L2CValue};
 use smash::phx::{Hash40, Vector3f};
 
@@ -62,18 +61,7 @@ pub unsafe fn generate_hitbox_effects(
     z2: Option<f32>,
     color: Vector3f,
 ) {
-    let _red = L2CValue::new_num(color.x);
-    let _green = L2CValue::new_num(color.y);
-    let _blue = L2CValue::new_num(color.z);
-
     let size_mult = 19.0 / 200.0;
-
-    let _shield_effect = L2CValue::new_int(hash40("sys_shield"));
-    let _zero_rot = L2CValue::new_num(0.0);
-    let _terminate = L2CValue::new_bool(true);
-    let _effect_size = L2CValue::new_num(size * size_mult);
-
-    let _rate = L2CValue::new_num(8.0);
 
     let x_dist: f32;
     let y_dist: f32;
@@ -123,10 +111,8 @@ pub unsafe fn generate_hitbox_effects(
         if is_fighter(module_accessor) {
             EffectModule::req_on_joint(
                 module_accessor,
-                Hash40 {
-                    hash: hash40("sys_shield"),
-                },
-                Hash40 { hash: bone },
+                Hash40::new("sys_shield"),
+                Hash40::new_raw(bone),
                 &pos,
                 &zeros,
                 size * size_mult,
@@ -142,10 +128,8 @@ pub unsafe fn generate_hitbox_effects(
         } else {
             EffectModule::req_follow(
                 module_accessor,
-                Hash40 {
-                    hash: hash40("sys_shield"),
-                },
-                Hash40 { hash: bone },
+                Hash40::new("sys_shield"),
+                Hash40::new_raw(bone),
                 &pos,
                 &zeros,
                 size * size_mult,
@@ -188,16 +172,12 @@ pub unsafe fn get_command_flag_cat(
         {
             EffectModule::set_visible_kind(
                 module_accessor,
-                Hash40 {
-                    hash: hash40("sys_shield"),
-                },
+                Hash40::new("sys_shield"),
                 false,
             );
             EffectModule::kill_kind(
                 module_accessor,
-                Hash40 {
-                    hash: hash40("sys_shield"),
-                },
+                Hash40::new("sys_shield"),
                 false,
                 true,
             );
@@ -334,16 +314,12 @@ pub unsafe fn handle_set_rebound(
         if !is_shielding(module_accessor) {
             EffectModule::set_visible_kind(
                 module_accessor,
-                Hash40 {
-                    hash: hash40("sys_shield"),
-                },
+                Hash40::new("sys_shield"),
                 false,
             );
             EffectModule::kill_kind(
                 module_accessor,
-                Hash40 {
-                    hash: hash40("sys_shield"),
-                },
+                Hash40::new("sys_shield"),
                 false,
                 true,
             );
