@@ -73,6 +73,8 @@ pub unsafe fn should_perform_defensive_option(
                 *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
             )
             ||
+            MotionModule::is_end(module_accessor)
+            ||
             CancelModule::is_enable_cancel(module_accessor)
         )
 }
