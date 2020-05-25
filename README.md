@@ -2,7 +2,7 @@
 
 [![Github all releases](https://img.shields.io/github/downloads/jugeeya/UltimateTrainingModpack/total.svg)](https://GitHub.com/jugeeya/UltimateTrainingModpack/releases/)
 
-A [Skyline](https://github.com/shadowninja108/Skyline) plugin for adding features to the training mode. It interfaces with a [Tesla](https://github.com/WerWolv/libtesla), a Switch custom overlay, for use as a menu to the features offered in training mode.
+A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyline](https://github.com/jam1garner/cargo-skyline) for adding features to the training mode. It interfaces with a [Tesla](https://github.com/WerWolv/libtesla), a Switch custom overlay, for use as a menu to the features offered in training mode.
 
 Built releases can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/).
 
@@ -15,7 +15,7 @@ Built releases can be found [here](https://github.com/jugeeya/UltimateTrainingMo
 The features in this modpack are configured through the Tesla menu, which can be accessed at any time with by pressing `L+X+DPad Left`. This button configuration is fully configurable in the file `/config/tesla/config.ini`.
 
 #### Save States
-At any time in Training Mode, you can press `Grab + DPad Down` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + DPad Up`. Use this instead of the built-in training mode reset!
+At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. Use this instead of the built-in training mode reset!
 
 #### Hitbox Visualization
 Currently, hitboxes and grabboxes are supported. When visualization is active, other move effects are temporarily turned off for easier visualization.
@@ -85,4 +85,23 @@ CPUs DI randomly in or away.
 
 # Build from Source
 
-[TODO]
+The overall process can be found in the [Github Actions specification file](https://github.com/jugeeya/UltimateTrainingModpack/blob/master/.github/workflows/rust.yml) as well.
+
+## Prerequisites
+- Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
+- [DEVKITPRO](https://devkitpro.org/wiki/Getting_Started) `switch-dev` installation 
+- Built [Skyline](https://github.com/shadowninja108/Skyline), [Tesla nx-ovlloader and Tesla Menu](https://gbatemp.net/threads/tesla-the-nintendo-switch-overlay-menu.557362/), and [libnro_hook.nro](https://github.com/ultimate-research/nro-hook-plugin)
+
+## Build steps
+```bash
+# clone the repository recursively
+git clone --recursive 
+
+# to build the training mod Skyline plugin
+# resulting build is found in target/aarch64-skyline-switch/release/libtraining_modpack.nro
+cargo skyline build --release
+
+# to build the training mod Tesla overlay
+# resulting build is ovlTrainingModpack.ovl
+cd TrainingModpackOverlay && make
+```
