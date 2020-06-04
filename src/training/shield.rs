@@ -28,9 +28,11 @@ pub unsafe fn get_param_float(
     if param_hash == hash40("shield_dec1") {
         return Some(0.0);
     }
+
     if param_hash == hash40("shield_recovery1") {
         return Some(999.0);
     }
+    
     // doesn't work, somehow. This parameter isn't checked?
     if param_hash == hash40("shield_damage_mul") {
         return Some(0.0);
