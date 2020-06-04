@@ -22,6 +22,8 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
     }
 
     let status_kind_int = status_kind.try_get_int().unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
+
+    // Wall Tech
     if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR {
         if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
             status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
@@ -31,6 +33,7 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
         return original!()(fighter, status_kind, unk);
     } 
     
+    // Ceiling Tech
     if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U {
         if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
             status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
@@ -44,6 +47,7 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
         return original!()(fighter, status_kind, unk);
     }
 
+    // Ground Tech
     match MENU.tech_state {
         TechOption::Random => {
             let random_statuses = vec![
