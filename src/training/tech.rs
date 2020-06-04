@@ -22,6 +22,24 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
     }
 
     let status_kind_int = status_kind.try_get_int().unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
+    if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR {
+        if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
+            status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
+            unk = L2CValue::new_bool(true);
+        }
+        
+        return original!()(fighter, status_kind, unk);
+    } 
+    
+    if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U {
+        if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
+            status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
+            unk = L2CValue::new_bool(true);
+        }
+        
+        return original!()(fighter, status_kind, unk);
+    }
+
     if status_kind_int != FIGHTER_STATUS_KIND_DOWN && status_kind_int != FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D {
         return original!()(fighter, status_kind, unk);
     }
@@ -41,17 +59,7 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
                 status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
                 unk = L2CValue::new_bool(true);
             }
-        } else if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR {
-            if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
-                status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
-                unk = L2CValue::new_bool(true);
-            }
-        } else if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U {
-            if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
-                status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
-                unk = L2CValue::new_bool(true);
-            }
-        }
+        } 
         TechOption::InPlace => {
             status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE as u64);
             unk = L2CValue::new_bool(true);
