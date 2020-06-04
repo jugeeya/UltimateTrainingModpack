@@ -32,7 +32,7 @@ pub unsafe fn get_param_float(
     if param_hash == hash40("shield_recovery1") {
         return Some(999.0);
     }
-    
+
     // doesn't work, somehow. This parameter isn't checked?
     if param_hash == hash40("shield_damage_mul") {
         return Some(0.0);
@@ -150,19 +150,7 @@ pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if !is_training_mode() {
-        return None;
-    }
-    
-    if !is_operation_cpu(module_accessor) {
-        return None;
-    }
-
-    if ![*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
-        return None;
-    }
-
-    if !should_hold_shield(module_accessor) {
+    if should_return_none_in_check_button(module_accessor, button) {
         return None;
     }
 
@@ -173,21 +161,33 @@ pub unsafe fn check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if !is_training_mode() {
-        return None;
-    }
-    
-    if !is_operation_cpu(module_accessor) {
-        return None;
-    }
-
-    if ![*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
-        return None;
-    }
-
-    if !should_hold_shield(module_accessor) {
+    if should_return_none_in_check_button(module_accessor, button) {
         return None;
     }
 
     Some(false)
+}
+
+unsafe fn should_return_none_in_check_button(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    button: i32,
+)
+->bool {
+    if !is_training_mode() {
+        return true;
+    }
+    
+    if !is_operation_cpu(module_accessor) {
+        return true;
+    }
+
+    if ![*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
+        return true;
+    }
+
+    if !should_hold_shield(module_accessor) {
+        return true;
+    }
+
+    false
 }
