@@ -42,7 +42,7 @@ pub unsafe fn get_command_flag_cat(
     || is_in_shieldstun(module_accessor)
     || is_in_footstool(module_accessor)
     || StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_ROBBED){
-        return
+        return;
     }
 
     match MENU.mash_state {

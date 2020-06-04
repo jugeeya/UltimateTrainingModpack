@@ -108,15 +108,15 @@ pub unsafe fn get_command_flag_cat(
     flag: &mut i32,
 ) {
     if MENU.ledge_state == LedgeOption::None{
-        return
+        return;
     }
     
     if !is_training_mode(){
-        return
+        return;
     }
     
     if !is_operation_cpu(module_accessor){
-        return
+        return;
     }
     
     force_option(module_accessor);
