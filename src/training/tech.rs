@@ -15,17 +15,17 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
     if !is_training_mode() {
         return original!()(fighter, status_kind, unk);
     }
-    
+
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     if !is_operation_cpu(module_accessor) {
         return original!()(fighter, status_kind, unk);
     }
 
     let status_kind_int = status_kind.try_get_int().unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
-    if status_kind_int != FIGHTER_STATUS_KIND_DOWN {
+    if status_kind_int != FIGHTER_STATUS_KIND_DOWN && status_kind_int != FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D {
         return original!()(fighter, status_kind, unk);
     }
-    
+
     match MENU.tech_state {
         TechOption::Random => {
             let random_statuses = vec![
@@ -41,6 +41,16 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
                 status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
                 unk = L2CValue::new_bool(true);
             }
+        } else if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR {
+            if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
+                status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
+                unk = L2CValue::new_bool(true);
+            }
+        } else if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U {
+            if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
+                status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
+                unk = L2CValue::new_bool(true);
+            }
         }
         TechOption::InPlace => {
             status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE as u64);
@@ -52,7 +62,7 @@ pub unsafe fn handle_change_status(fighter: &mut L2CFighterBase, status_kind: L2
         }
         _ => (),
     }
-    
+
     original!()(fighter, status_kind, unk)
 }
 
@@ -96,7 +106,7 @@ pub unsafe fn get_command_flag_cat(
     if !is_training_mode() {
         return;
     }
-    
+
     if !is_operation_cpu(module_accessor) {
         return;
     }
@@ -104,7 +114,7 @@ pub unsafe fn get_command_flag_cat(
     if MENU.tech_state == TechOption::None  {
         return;
     }
-    
+
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
     let status = StatusModule::status_kind(module_accessor) as i32;
     if [
@@ -138,7 +148,7 @@ pub unsafe fn check_button_on(
     if !is_training_mode() {
         return None;
     }
-    
+
     if !is_operation_cpu(module_accessor) {
         return None;
     }
@@ -150,7 +160,7 @@ pub unsafe fn check_button_on(
     if MENU.defensive_state != Defensive::Shield {
         return None;
     }
-    
+
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
     let status = StatusModule::status_kind(module_accessor) as i32;
     if !should_perform_defensive_option(module_accessor, prev_status, status)
@@ -168,7 +178,7 @@ pub unsafe fn change_motion(
     if !is_training_mode() {
         return None;
     }
-    
+
     if !is_operation_cpu(module_accessor) {
         return None;
     }
@@ -176,28 +186,28 @@ pub unsafe fn change_motion(
     if MENU.tech_state == TechOption::None {
         return None;
     }
-    
+
     if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
         if app::sv_math::rand(hash40("fighter"), 2) != 0 {
             return Some(hash40("passive_stand_f"));
-        } 
-            
+        }
+
         return Some(hash40("passive_stand_b"));
-    } 
-    
+    }
+
     if [hash40("down_forward_u"), hash40("down_back_u")].contains(&motion_kind) {
         if app::sv_math::rand(hash40("fighter"), 2) != 0 {
             return Some(hash40("down_forward_u"));
-        } 
-        
+        }
+
         return Some(hash40("down_back_u"));
-    } 
+    }
 
     if [hash40("down_forward_d"), hash40("down_back_d")].contains(&motion_kind) {
         if app::sv_math::rand(hash40("fighter"), 2) != 0 {
             return Some(hash40("down_forward_d"));
-        } 
-        
+        }
+
         return Some(hash40("down_back_d"));
     }
 
