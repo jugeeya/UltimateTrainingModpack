@@ -66,6 +66,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_PLAYER_STATE = CameraMove;
             SAVE_STATE_CPU_STATE = CameraMove;
         }
+        // Reset shield flag
+        crate::training::shield::set_shield_flag(false);
         return;
     }
 

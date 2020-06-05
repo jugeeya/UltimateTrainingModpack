@@ -1,6 +1,6 @@
-use crate::common::{consts::*, *};
+use crate::common::{*};
 use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
-use smash::lib::{lua_const::*, L2CAgent, L2CValue};
+use smash::lib::{lua_const::*, L2CAgent};
 use smash::phx::{Hash40, Vector3f};
 
 pub const ID_COLORS: &[Vector3f] = &[
@@ -215,6 +215,10 @@ pub unsafe fn get_command_flag_cat(
 // Necessary to ensure we visualize on the first frame of the hitbox
 #[skyline::hook(replace = sv_animcmd::ATTACK)]
 unsafe fn handle_attack(lua_state: u64) {
+    if !is_training_mode() {
+        return;
+    }
+
     let mut l2c_agent = L2CAgent::new(lua_state);
 
     // get all necessary grabbox params
@@ -233,24 +237,9 @@ unsafe fn handle_attack(lua_state: u64) {
     let y2 = l2c_agent.pop_lua_stack(14); // float or void
     let z2 = l2c_agent.pop_lua_stack(15); // float or void
 
-    // hacky way of forcing no shield damage on all hitboxes
-    if is_training_mode() && MENU.shield_state == Shield::Infinite {
-        let hitbox_params: Vec<L2CValue> =
-            (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
-        l2c_agent.clear_lua_stack();
-        for i in 0..36 {
-            let mut x = hitbox_params[i];
-            if i == 20 {
-                l2c_agent.push_lua_stack(&mut L2CValue::new_num(-999.0));
-            } else {
-                l2c_agent.push_lua_stack(&mut x);
-            }
-        }
-    }
-
     original!()(lua_state);
 
-    if MENU.hitbox_vis && is_training_mode() {
+    if MENU.hitbox_vis {
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(),
@@ -309,22 +298,30 @@ pub unsafe fn handle_set_rebound(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     rebound: bool,
 ) {
-    if is_training_mode() && rebound == false {
-        // only if we're not shielding
-        if !is_shielding(module_accessor) {
-            EffectModule::set_visible_kind(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                false,
-            );
-            EffectModule::kill_kind(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                false,
-                true,
-            );
-        }
+    if !is_training_mode() {
+        return original!()(module_accessor, rebound);
     }
+
+    if rebound == true {
+        return original!()(module_accessor, rebound);
+    }
+    
+    // only if we're not shielding
+    if is_shielding(module_accessor) {
+        return original!()(module_accessor, rebound);
+    }
+    
+    EffectModule::set_visible_kind(
+        module_accessor,
+        Hash40::new("sys_shield"),
+        false,
+    );
+    EffectModule::kill_kind(
+        module_accessor,
+        Hash40::new("sys_shield"),
+        false,
+        true,
+    );
 
     original!()(module_accessor, rebound);
 }

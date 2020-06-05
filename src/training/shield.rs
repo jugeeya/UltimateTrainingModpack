@@ -8,6 +8,16 @@ use smash::app::sv_system;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
+static mut SHIELD_FLAG: bool = false;
+
+pub unsafe fn set_shield_flag(value:bool){
+    SHIELD_FLAG = value;
+}
+
+pub unsafe fn get_shield_flag() ->bool {
+    SHIELD_FLAG
+}
+
 pub unsafe fn get_param_float(
     _module_accessor: &mut app::BattleObjectModuleAccessor,
     param_type: u64,
@@ -16,8 +26,12 @@ pub unsafe fn get_param_float(
     if !is_training_mode() {
         return None;
     }
-    
+
     if MENU.shield_state != Shield::Infinite {
+        return None;
+    }
+
+    if get_shield_flag() {
         return None;
     }
 
@@ -46,7 +60,7 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
     if ![Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
         return false;
     }
-    
+
     // If we are not mashing attack then we will always hold shield
     if MENU.mash_state != Mash::Attack {
         return true;
@@ -60,8 +74,8 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
     // and our attack can be performed OOS
     if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
         return false;
-    } 
-    
+    }
+
     if MENU.mash_attack_state == Attack::Grab {
         return true;
     }
@@ -79,11 +93,17 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
     if !is_operation_cpu(module_accessor) {
         return original!()(fighter);
     }
-    
+
     if StatusModule::prev_status_kind(module_accessor, 0) != FIGHTER_STATUS_KIND_GUARD_DAMAGE {
         return original!()(fighter);
     }
-    
+
+    // Continue with normal shield behavior
+    if MENU.shield_state == Shield::Infinite {
+        set_shield_flag(true);
+    }
+
+    // OOS Options
     if MENU.mash_state == Mash::Spotdodge {
         if WorkModule::is_enable_transition_term(
             module_accessor,
@@ -171,7 +191,7 @@ unsafe fn should_return_none_in_check_button(
     if !is_training_mode() {
         return true;
     }
-    
+
     if !is_operation_cpu(module_accessor) {
         return true;
     }
