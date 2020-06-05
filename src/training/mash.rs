@@ -159,10 +159,10 @@ pub unsafe fn check_button_on(
         return None;
     }
 
-    // Can't act here
+    // Buffer only in hitstun/landing/footstool
     if !is_in_hitstun(module_accessor)
     && !is_in_landing(module_accessor) 
-    && !is_in_footstool(module_accessor)){
+    && !is_in_footstool(module_accessor){
         return None;
     }
 

@@ -152,7 +152,7 @@ pub unsafe fn check_button_on(
         return None;
     }
     
-    if !is_operation_cpu(module_accessor)() {
+    if !is_operation_cpu(module_accessor) {
         return None;
     }
 
@@ -175,7 +175,7 @@ pub unsafe fn check_button_off(
         return None;
     }
     
-    if !is_operation_cpu(module_accessor)() {
+    if !is_operation_cpu(module_accessor) {
         return None;
     }
 

@@ -180,7 +180,7 @@ pub unsafe fn check_button_on(
         return None;
     }
 
-    Some(true);
+    Some(true)
 }
 
 pub unsafe fn change_motion(

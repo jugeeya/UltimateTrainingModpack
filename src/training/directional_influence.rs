@@ -12,13 +12,13 @@ pub static NO_DI : f64 = -69.0;
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_FighterStatusDamage__correctDamageVectorCommon)]
 pub unsafe fn handle_correct_damage_vector_common(fighter: &mut L2CFighterCommon, arg1: L2CValue) -> L2CValue {
-    if (!is_training_mode())
+    if !is_training_mode()
     {
         return original!()(fighter, arg1);
     }
 
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-    if  (!is_operation_cpu(module_accessor)) {
+    if  !is_operation_cpu(module_accessor) {
         return original!()(fighter, arg1);
     }
     
