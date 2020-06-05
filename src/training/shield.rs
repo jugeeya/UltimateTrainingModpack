@@ -17,7 +17,7 @@ pub unsafe fn get_param_float(
         return None;
     }
     
-    if MENU.shield_state ! Shield::Infinite {
+    if MENU.shield_state != Shield::Infinite {
         return None;
     }
 
