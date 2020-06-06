@@ -67,7 +67,7 @@ Specific options include:
 ##### Shield
 
 ###### Infinite
-CPUs will hold a shield that does not deteriorate over time or by damage.
+CPUs will hold a shield that does not deteriorate over time until hit.
 
 ###### Hold
 CPUs will hold a normal shield.
