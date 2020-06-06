@@ -10,12 +10,27 @@ use smash::lua2cpp::L2CFighterCommon;
 
 static mut SHIELD_FLAG: bool = false;
 
-pub unsafe fn set_shield_flag(value:bool){
+unsafe fn set_shield_flag(value:bool){
     SHIELD_FLAG = value;
 }
 
-pub unsafe fn get_shield_flag() ->bool {
+unsafe fn get_shield_flag() ->bool {
     SHIELD_FLAG
+}
+
+pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if !is_training_mode() {
+        return;
+    }
+
+    if !is_operation_cpu(module_accessor) {
+        return;
+    }
+
+    // Reset shield flag if not shielding
+    if !is_shielding(module_accessor){
+        set_shield_flag(false);
+    }
 }
 
 pub unsafe fn get_param_float(

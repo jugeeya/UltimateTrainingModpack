@@ -38,6 +38,7 @@ pub unsafe fn handle_get_command_flag_cat(
     category: i32,
 ) -> i32 {
     save_states::save_states(module_accessor);
+    shield::get_command_flag_cat(module_accessor);
 
     let mut flag = original!()(module_accessor, category);
 
@@ -125,7 +126,7 @@ pub unsafe fn handle_change_motion(
     unk6: bool,
 ) -> u64 {
     let motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
-    
+
     original!()(
         module_accessor,
         motion_kind,
@@ -154,12 +155,12 @@ pub fn training_mods() {
         // Hold/Infinite shield
         handle_check_button_on,
         handle_check_button_off,
-    
+
         handle_get_param_float,
-    
+
         // Mash attack
         handle_get_attack_air_kind,
-    
+
         // Tech options
         handle_change_motion,
     );

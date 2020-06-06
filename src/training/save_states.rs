@@ -41,7 +41,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     let save_state_lr: *mut f32;
     let save_state_situation_kind: *mut i32;
     let save_state: *mut SaveState;
-    
+
     if is_operation_cpu(module_accessor) {
         save_state_x = &mut SAVE_STATE_X_CPU;
         save_state_y = &mut SAVE_STATE_Y_CPU;
@@ -66,8 +66,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_PLAYER_STATE = CameraMove;
             SAVE_STATE_CPU_STATE = CameraMove;
         }
-        // Reset shield flag
-        crate::training::shield::set_shield_flag(false);
         return;
     }
 
