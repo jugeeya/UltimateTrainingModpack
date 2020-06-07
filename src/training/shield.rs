@@ -176,18 +176,17 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
     }
 
     // OOS Options
-    if MENU.mash_state == Mash::Spotdodge {
-        if WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-        ) {
-            fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
-                L2CValue::new_bool(true),
-            );
-        }
+
+    // Defensive
+
+    if WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+    ) {
+        handle_escape_mash(module_accessor, fighter);
     }
 
+    // Offensive
     if MENU.mash_state == Mash::Attack {
         handle_attack_mash(module_accessor, fighter);
     }
@@ -198,6 +197,33 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 pub unsafe fn allow_oos()->bool {
     // Delay OOS
     MULTI_HIT_OFFSET == 0
+}
+
+unsafe fn handle_escape_mash(module_accessor: &mut app::BattleObjectModuleAccessor,fighter: &mut L2CFighterCommon)
+{
+    if MENU.mash_state == Mash::Spotdodge {
+        fighter.fighter_base.change_status(
+            L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
+            L2CValue::new_bool(true),
+        );
+        return;
+    }
+
+    if MENU.mash_state == Mash::RollForward {
+        fighter.fighter_base.change_status(
+            L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_F as u64),
+            L2CValue::new_bool(true),
+        );
+        return;
+    }
+
+    if MENU.mash_state == Mash::RollBack {
+        fighter.fighter_base.change_status(
+            L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_B as u64),
+            L2CValue::new_bool(true),
+        );
+        return;
+    }
 }
 
 unsafe fn handle_attack_mash(module_accessor: &mut app::BattleObjectModuleAccessor,fighter: &mut L2CFighterCommon){

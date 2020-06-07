@@ -66,6 +66,12 @@ pub unsafe fn get_command_flag_cat(
         Mash::Spotdodge => {
             *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
         }
+        Mash::RollForward => {
+            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
+        }
+        Mash::RollBack => {
+            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
+        }
         Mash::Attack => {
             use Attack::*;
 
