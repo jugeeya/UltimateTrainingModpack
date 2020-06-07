@@ -1,7 +1,10 @@
 use crate::common::FIGHTER_MANAGER_ADDR;
+use crate::common::frame_counter;
+use crate::common::is_operation_cpu;
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
+use smash::lib::lua_const::FIGHTER_PAD_COMMAND_CATEGORY1;
 
 pub mod directional_influence;
 pub mod shield;
@@ -41,6 +44,14 @@ pub unsafe fn handle_get_command_flag_cat(
     shield::get_command_flag_cat(module_accessor);
 
     let mut flag = original!()(module_accessor, category);
+
+    /*
+    handle_get_command_flag_cat is called once per frame per category,
+    so if we stick to any category we can use it as frame counter
+    */
+    if category == FIGHTER_PAD_COMMAND_CATEGORY1 && is_operation_cpu(module_accessor) {
+        frame_counter::tick();
+    }
 
     // bool replace;
     // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
