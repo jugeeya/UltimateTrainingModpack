@@ -1,4 +1,5 @@
 pub mod consts;
+pub mod frame_counter;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
@@ -14,6 +15,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     mash_state: Mash::None,
     shield_state: Shield::None,
     defensive_state: Defensive::Random,
+    oos_offset: 1,
 };
 
 pub static MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
@@ -48,6 +50,12 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
     let fighter_information = FighterManager::get_fighter_information( mgr, entry_id) as *mut app::FighterInformation;
 
     FighterInformation::is_operation_cpu(fighter_information)
+}
+
+
+pub unsafe fn is_neutral_pos(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+    status_kind == FIGHTER_STATUS_KIND_WAIT
 }
 
 pub unsafe fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {

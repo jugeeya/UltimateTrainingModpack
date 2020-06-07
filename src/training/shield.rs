@@ -8,7 +8,14 @@ use smash::app::sv_system;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
+// Toggle for infinite shield decay
 static mut SHIELD_FLAG: bool = false;
+
+
+// How many hits to hold shield until picking an OOS option
+static mut MULTI_HIT_OFFSET : u8 = MENU.oos_offset;
+//
+static mut WAS_IN_SHIELDSTUN: bool = false;
 
 unsafe fn set_shield_flag(value:bool){
     SHIELD_FLAG = value;
@@ -16,6 +23,11 @@ unsafe fn set_shield_flag(value:bool){
 
 unsafe fn get_shield_flag() ->bool {
     SHIELD_FLAG
+}
+
+unsafe fn reset_multi_hit_offset(){
+    MULTI_HIT_OFFSET = MENU.oos_offset;
+    println!("[Training Modpack] Reset oos offset to {}", MENU.oos_offset);
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -27,7 +39,13 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         return;
     }
 
-    // Reset shield flag if not shielding
+    //
+    if is_neutral_pos(module_accessor)
+    || is_in_hitstun(module_accessor){
+        reset_multi_hit_offset();
+    }
+
+    // Reset when not shielding
     if !is_shielding(module_accessor){
         set_shield_flag(false);
     }
@@ -41,6 +59,12 @@ pub unsafe fn get_param_float(
     if !is_training_mode() {
         return None;
     }
+
+    if !is_operation_cpu(_module_accessor) {
+        return None;
+    }
+
+    handle_oos_offset(_module_accessor);
 
     if MENU.shield_state != Shield::Infinite {
         return None;
@@ -70,6 +94,30 @@ pub unsafe fn get_param_float(
     None
 }
 
+unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccessor)
+{
+    if is_in_shieldstun(module_accessor)
+    {
+        if !WAS_IN_SHIELDSTUN {
+            if MULTI_HIT_OFFSET > 0{
+                MULTI_HIT_OFFSET -= 1;
+            }
+            frame_counter::start_counting();
+        }
+
+        WAS_IN_SHIELDSTUN = true;
+        return;
+    }
+
+    if WAS_IN_SHIELDSTUN {
+        println!("[Training Modpack] exited shield stun {}, {}", frame_counter::get_frame_count(), MULTI_HIT_OFFSET);
+        frame_counter::stop_counting();
+        frame_counter::reset_frame_count();
+    }
+
+    WAS_IN_SHIELDSTUN = false;
+}
+
 pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     // We should not hold shield if the state doesn't require it
     if ![Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
@@ -78,6 +126,11 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
 
     // If we are not mashing attack then we will always hold shield
     if MENU.mash_state != Mash::Attack {
+        return true;
+    }
+
+    // Hold shield while oos is not allowd
+    if !allow_oos(){
         return true;
     }
 
@@ -118,6 +171,10 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
         set_shield_flag(true);
     }
 
+    if !allow_oos() {
+        return original!()(fighter);
+    }
+
     // OOS Options
     if MENU.mash_state == Mash::Spotdodge {
         if WorkModule::is_enable_transition_term(
@@ -136,6 +193,11 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
     }
 
     original!()(fighter)
+}
+
+pub unsafe fn allow_oos()->bool {
+    // Delay OOS
+    MULTI_HIT_OFFSET == 0
 }
 
 unsafe fn handle_attack_mash(module_accessor: &mut app::BattleObjectModuleAccessor,fighter: &mut L2CFighterCommon){

@@ -213,4 +213,5 @@ pub struct TrainingModpackMenu {
     pub mash_state: Mash,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
+    pub oos_offset: u8,
 }
