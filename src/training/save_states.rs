@@ -31,7 +31,7 @@ static mut SAVE_STATE_SITUATION_KIND_CPU: i32 = 0 as i32;
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let status = StatusModule::status_kind(module_accessor) as i32;
 
-    if !is_training_mode(){
+    if !is_training_mode() {
         return;
     }
 

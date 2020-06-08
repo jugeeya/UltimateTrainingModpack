@@ -11,10 +11,10 @@ use smash::lua2cpp::L2CFighterCommon;
 // Toggle for infinite shield decay
 static mut SHIELD_FLAG: bool = false;
 
-
 // How many hits to hold shield until picking an OOS option
 static mut MULTI_HIT_OFFSET : u8 = MENU.oos_offset;
-//
+
+// Used to only decrease the offset timer when we change status
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
 unsafe fn set_shield_flag(value:bool){

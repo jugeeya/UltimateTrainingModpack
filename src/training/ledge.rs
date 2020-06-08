@@ -92,7 +92,7 @@ pub unsafe fn check_button_on(
     if MENU.defensive_state == Defensive::Shield {
         return None;
     }
-    
+
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
     let status = StatusModule::status_kind(module_accessor) as i32;
     if should_perform_defensive_option(module_accessor, prev_status, status) {
@@ -107,18 +107,18 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
-    if !is_training_mode(){
-        return;
-    }
-    
-    if !is_operation_cpu(module_accessor){
+    if !is_training_mode() {
         return;
     }
 
-    if MENU.ledge_state == LedgeOption::None{
+    if !is_operation_cpu(module_accessor) {
         return;
     }
-    
+
+    if MENU.ledge_state == LedgeOption::None {
+        return;
+    }
+
     force_option(module_accessor);
     defensive_option(module_accessor, category, flag);
 }
