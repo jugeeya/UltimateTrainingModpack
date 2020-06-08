@@ -215,13 +215,24 @@ pub unsafe fn get_command_flag_cat(
 // Necessary to ensure we visualize on the first frame of the hitbox
 #[skyline::hook(replace = sv_animcmd::ATTACK)]
 unsafe fn handle_attack(lua_state: u64) {
+    mod_handle_attack(lua_state);
+
+    original!()(lua_state);
+}
+
+unsafe fn mod_handle_attack(lua_state: u64)
+{
     if !is_training_mode() {
+        return;
+    }
+
+    if !MENU.hitbox_vis {
         return;
     }
 
     let mut l2c_agent = L2CAgent::new(lua_state);
 
-    // get all necessary grabbox params
+    // get all necessary hitbox params
     let id = l2c_agent.pop_lua_stack(1); // int
     let joint = l2c_agent.pop_lua_stack(3); // hash40
     let _damage = l2c_agent.pop_lua_stack(4); // float
@@ -237,26 +248,36 @@ unsafe fn handle_attack(lua_state: u64) {
     let y2 = l2c_agent.pop_lua_stack(14); // float or void
     let z2 = l2c_agent.pop_lua_stack(15); // float or void
 
-    original!()(lua_state);
-
-    if MENU.hitbox_vis {
-        generate_hitbox_effects(
-            sv_system::battle_object_module_accessor(lua_state),
-            joint.get_int(),
-            size.get_num(),
-            x.get_num(),
-            y.get_num(),
-            z.get_num(),
-            x2.try_get_num(),
-            y2.try_get_num(),
-            z2.try_get_num(),
-            ID_COLORS[(id.get_int() % 8) as usize],
-        );
-    }
+    generate_hitbox_effects(
+        sv_system::battle_object_module_accessor(lua_state),
+        joint.get_int(),
+        size.get_num(),
+        x.get_num(),
+        y.get_num(),
+        z.get_num(),
+        x2.try_get_num(),
+        y2.try_get_num(),
+        z2.try_get_num(),
+        ID_COLORS[(id.get_int() % 8) as usize],
+    );
 }
 
 #[skyline::hook(replace = sv_animcmd::CATCH)]
 unsafe fn handle_catch(lua_state: u64) {
+    mod_handle_catch(lua_state);
+
+    original!()(lua_state);
+}
+
+unsafe fn mod_handle_catch(lua_state:u64) {
+    if !is_training_mode() {
+        return;
+    }
+
+    if !MENU.hitbox_vis {
+        return;
+    }
+
     let mut l2c_agent = L2CAgent::new(lua_state);
 
     // get all necessary grabbox params
@@ -270,22 +291,18 @@ unsafe fn handle_catch(lua_state: u64) {
     let y2 = l2c_agent.pop_lua_stack(8); // float or void
     let z2 = l2c_agent.pop_lua_stack(9); // float or void
 
-    original!()(lua_state);
-
-    if MENU.hitbox_vis && is_training_mode() {
-        generate_hitbox_effects(
-            sv_system::battle_object_module_accessor(lua_state),
-            joint.get_int(),
-            size.get_num(),
-            x.get_num(),
-            y.get_num(),
-            z.get_num(),
-            x2.try_get_num(),
-            y2.try_get_num(),
-            z2.try_get_num(),
-            ID_COLORS[(id.get_int() + 3 % 8) as usize],
-        );
-    }
+    generate_hitbox_effects(
+        sv_system::battle_object_module_accessor(lua_state),
+        joint.get_int(),
+        size.get_num(),
+        x.get_num(),
+        y.get_num(),
+        z.get_num(),
+        x2.try_get_num(),
+        y2.try_get_num(),
+        z2.try_get_num(),
+        ID_COLORS[(id.get_int() + 3 % 8) as usize],
+    );
 }
 
 pub unsafe fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
@@ -298,19 +315,28 @@ pub unsafe fn handle_set_rebound(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     rebound: bool,
 ) {
+    mod_handle_set_rebound(module_accessor, rebound);
+
+    original!()(module_accessor, rebound);
+}
+
+unsafe fn mod_handle_set_rebound(
+    module_accessor: *mut app::BattleObjectModuleAccessor,
+    rebound: bool,
+) {
     if !is_training_mode() {
-        return original!()(module_accessor, rebound);
+        return;
     }
 
-    if rebound == true {
-        return original!()(module_accessor, rebound);
+    if rebound {
+        return;
     }
-    
+
     // only if we're not shielding
     if is_shielding(module_accessor) {
-        return original!()(module_accessor, rebound);
+        return;
     }
-    
+
     EffectModule::set_visible_kind(
         module_accessor,
         Hash40::new("sys_shield"),
@@ -322,8 +348,6 @@ pub unsafe fn handle_set_rebound(
         false,
         true,
     );
-
-    original!()(module_accessor, rebound);
 }
 
 pub fn hitbox_visualization() {
