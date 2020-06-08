@@ -34,12 +34,15 @@ jobs:
         mkdir -p switch/.overlays/
         cp TrainingModpackOverlay/ovlTrainingModpack.ovl switch/.overlays/ovlTrainingModpack.ovl
         zip -r training_modpack_beta.zip atmosphere switch 
-    - name: Upload Release
-      uses: majkrzak/create-release@latest
+    - name: Update Release
+      uses: meeDamian/github-release@2.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        prerelease: true
+        allow_override: true
+        gzip: false
+        tag: beta
         name: beta
-        code: beta
         body: >
           Beta built off of the latest code in the repository. 
           
@@ -48,9 +51,5 @@ jobs:
           - `atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro` is the mod for the game itself
 
           - `switch/.overlays/ovlTrainingModpack.ovl` is the Tesla submenu
-        prerelease: true
-        recreate: true
-        assets: training_modpack_beta.zip:training_modpack_beta.zip:application/zip
-  
-
-
+        files: >
+          training_modpack_beta.zip
