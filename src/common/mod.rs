@@ -53,7 +53,7 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
 }
 
 
-pub unsafe fn is_neutral_pos(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub unsafe fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
     status_kind == FIGHTER_STATUS_KIND_WAIT
 }

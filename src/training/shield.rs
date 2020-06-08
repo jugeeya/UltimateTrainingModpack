@@ -40,7 +40,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     }
 
     //
-    if is_neutral_pos(module_accessor)
+    if is_idle(module_accessor)
     || is_in_hitstun(module_accessor){
         reset_multi_hit_offset();
     }
