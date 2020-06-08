@@ -183,7 +183,7 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
     ) {
-        handle_escape_mash(module_accessor, fighter);
+        handle_escape_mash(fighter);
     }
 
     // Offensive
@@ -199,72 +199,73 @@ pub unsafe fn allow_oos()->bool {
     MULTI_HIT_OFFSET == 0
 }
 
-unsafe fn handle_escape_mash(module_accessor: &mut app::BattleObjectModuleAccessor,fighter: &mut L2CFighterCommon)
-{
-    if MENU.mash_state == Mash::Spotdodge {
-        fighter.fighter_base.change_status(
-            L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
-            L2CValue::new_bool(true),
-        );
-        return;
-    }
-
-    if MENU.mash_state == Mash::RollForward {
-        fighter.fighter_base.change_status(
-            L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_F as u64),
-            L2CValue::new_bool(true),
-        );
-        return;
-    }
-
-    if MENU.mash_state == Mash::RollBack {
-        fighter.fighter_base.change_status(
-            L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_B as u64),
-            L2CValue::new_bool(true),
-        );
-        return;
+unsafe fn handle_escape_mash(fighter: &mut L2CFighterCommon) {
+    match MENU.mash_state {
+        Mash::Spotdodge => {
+            fighter.fighter_base.change_status(
+                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
+                L2CValue::new_bool(true),
+            );
+        },
+        Mash::RollForward => {
+            fighter.fighter_base.change_status(
+                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_F as u64),
+                L2CValue::new_bool(true),
+            );
+        },
+        Mash::RollBack => {
+            fighter.fighter_base.change_status(
+                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_B as u64),
+                L2CValue::new_bool(true),
+            );
+            return;
+        },
+        _ => {},
     }
 }
 
-unsafe fn handle_attack_mash(module_accessor: &mut app::BattleObjectModuleAccessor,fighter: &mut L2CFighterCommon){
-    if MENU.mash_attack_state == Attack::Grab {
-        if WorkModule::get_int(
-            module_accessor,
-            *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
-        ) == 0
-        {
+unsafe fn handle_attack_mash(module_accessor: &mut app::BattleObjectModuleAccessor,fighter: &mut L2CFighterCommon) {
+    match MENU.mash_attack_state {
+        Attack::Grab => {
+            if WorkModule::get_int(
+                module_accessor,
+                *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
+            ) == 0
+            {
+                if WorkModule::is_enable_transition_term(
+                    module_accessor,
+                    *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
+                ) {
+                    fighter.fighter_base.change_status(
+                        L2CValue::new_int(*FIGHTER_STATUS_KIND_CATCH as u64),
+                        L2CValue::new_bool(true),
+                    );
+                }
+            }
+        },
+        Attack::UpB => {
             if WorkModule::is_enable_transition_term(
                 module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
             ) {
                 fighter.fighter_base.change_status(
-                    L2CValue::new_int(*FIGHTER_STATUS_KIND_CATCH as u64),
-                    L2CValue::new_bool(true),
+                    L2CValue::new_int(*FIGHTER_STATUS_KIND_SPECIAL_HI as u64),
+                    L2CValue::new_bool(false),
                 );
             }
-        }
-    }
-    else if MENU.mash_attack_state == Attack::UpB {
-        if WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-        ) {
-            fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_SPECIAL_HI as u64),
-                L2CValue::new_bool(false),
-            );
-        }
-    }
-    else if MENU.mash_attack_state == Attack::UpSmash {
-        if WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-        ) {
-            fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ATTACK_HI4_START as u64),
-                L2CValue::new_bool(false),
-            );
-        }
+        },
+        Attack::UpSmash => {
+            if WorkModule::is_enable_transition_term(
+                module_accessor,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
+            ) {
+                fighter.fighter_base.change_status(
+                    L2CValue::new_int(*FIGHTER_STATUS_KIND_ATTACK_HI4_START as u64),
+                    L2CValue::new_bool(false),
+                );
+            }
+        },
+        _ => {},
     }
 }
 
