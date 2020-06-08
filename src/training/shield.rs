@@ -12,9 +12,6 @@ use smash::lua2cpp::L2CFighterCommon;
 static mut SHIELD_DECAY: bool = false;
 
 unsafe fn set_shield_decay(value: bool) {
-    if value != SHIELD_DECAY {
-        println!("[Training Modpack] SHIELD_DECAY: {}", value as u8);
-    }
     SHIELD_DECAY = value;
 }
 
