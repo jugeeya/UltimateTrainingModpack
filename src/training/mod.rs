@@ -45,6 +45,7 @@ pub unsafe fn handle_get_command_flag_cat(
     // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
     // if (replace) return ret;
 
+    shield::get_command_flag_cat(module_accessor);
     mash::get_command_flag_cat(module_accessor, category, &mut flag);
     ledge::get_command_flag_cat(module_accessor, category, &mut flag);
     tech::get_command_flag_cat(module_accessor, category, &mut flag);
@@ -125,7 +126,7 @@ pub unsafe fn handle_change_motion(
     unk6: bool,
 ) -> u64 {
     let motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
-    
+
     original!()(
         module_accessor,
         motion_kind,
@@ -154,12 +155,12 @@ pub fn training_mods() {
         // Hold/Infinite shield
         handle_check_button_on,
         handle_check_button_off,
-    
+
         handle_get_param_float,
-    
+
         // Mash attack
         handle_get_attack_air_kind,
-    
+
         // Tech options
         handle_change_motion,
     );
