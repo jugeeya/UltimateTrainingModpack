@@ -70,7 +70,7 @@ Specific options include:
 CPUs will hold a shield that does not deteriorate over time or by damage.
 
 ###### Hold
-CPUs will hold a normal shield.
+CPUs will hold a shield that does not deteriorate over time until hit for the first time.
 
 #### Force CPU DI
 ##### All DI Toggles

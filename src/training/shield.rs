@@ -8,13 +8,40 @@ use smash::app::sv_system;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
+// Toggle for shield decay
+static mut SHIELD_DECAY: bool = false;
+
+unsafe fn set_shield_decay(value: bool) {
+    SHIELD_DECAY = value;
+}
+
+unsafe fn should_pause_shield_decay() -> bool {
+    !SHIELD_DECAY
+}
+
+pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if !is_training_mode() {
+        return;
+    }
+
+    if !is_operation_cpu(module_accessor) {
+        return;
+    }
+
+    // Reset when not shielding
+    let status_kind = StatusModule::status_kind(module_accessor);
+    if !(status_kind == FIGHTER_STATUS_KIND_GUARD) {
+        set_shield_decay(false);
+    }
+}
+
 pub unsafe fn get_param_float(
     _module_accessor: &mut app::BattleObjectModuleAccessor,
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
     if is_training_mode() {
-        if MENU.shield_state == Shield::Infinite {
+        if MENU.shield_state == Shield::Infinite || should_pause_shield_decay() {
             if param_type == hash40("common") {
                 if param_hash == hash40("shield_dec1") {
                     return Some(0.0);
@@ -49,8 +76,8 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         if MENU.mash_state == Mash::Attack {
             if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
                 return false;
-            } 
-            
+            }
+
             if MENU.mash_attack_state == Attack::Grab {
                 return true;
             }
@@ -63,6 +90,14 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
 pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
+
+    // Enable shield decay
+    if is_training_mode()
+    && is_operation_cpu(module_accessor)
+    && StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+        set_shield_decay(true);
+    }
+
     if is_training_mode() && is_operation_cpu(module_accessor) {
         if MENU.mash_state == Mash::Attack && MENU.mash_attack_state == Attack::Grab {
             if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
