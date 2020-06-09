@@ -49,7 +49,6 @@ unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccesso
     // Decrease offset once if needed
     if MULTI_HIT_OFFSET > 0 {
         MULTI_HIT_OFFSET -= 1;
-        println!("Offset {}",MULTI_HIT_OFFSET);
     }
 
     // Mark that we were in shield stun, so we don't decrease again
