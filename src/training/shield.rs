@@ -84,14 +84,18 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
 }
 
 pub unsafe fn get_param_float(
-    _module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
+    if !is_operation_cpu(module_accessor) {
+        return None;
+    }
+
     if is_training_mode() {
 
         if MENU.shield_state != Shield::None {
-            handle_oos_offset(_module_accessor);
+            handle_oos_offset(module_accessor);
         }
 
         if MENU.shield_state == Shield::Infinite || should_pause_shield_decay() {
