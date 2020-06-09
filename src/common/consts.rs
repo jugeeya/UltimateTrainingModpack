@@ -149,7 +149,9 @@ pub enum Mash {
     Jump = 2,
     Attack = 3,
     Spotdodge = 4,
-    Random = 5
+    RollForward = 5,
+    RollBack = 6,
+    Random = 7,
 }
 
 impl From<i32> for Mash {
@@ -160,7 +162,9 @@ impl From<i32> for Mash {
             2 => Mash::Jump,
             3 => Mash::Attack,
             4 => Mash::Spotdodge,
-            5 => Mash::Random,
+            5 => Mash::RollForward,
+            6 => Mash::RollBack,
+            7 => Mash::Random,
             _ => panic!("Invalid mash state {}", x)
         }
     }

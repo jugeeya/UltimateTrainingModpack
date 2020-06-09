@@ -49,6 +49,16 @@ pub unsafe fn get_command_flag_cat(
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
                     }
                 }
+                Mash::RollForward => {
+                    if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
+                        *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
+                    }
+                }
+                Mash::RollBack => {
+                    if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
+                        *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
+                    }
+                }
                 Mash::Attack => {
                     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
                         use Attack::*;
