@@ -9,7 +9,7 @@ use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
 // How many hits to hold shield until picking an Out Of Shield option
-static mut MULTI_HIT_OFFSET : u8 = MENU.oos_offset;
+static mut MULTI_HIT_OFFSET: u8 = MENU.oos_offset;
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
@@ -24,7 +24,7 @@ unsafe fn should_pause_shield_decay() -> bool {
     !SHIELD_DECAY
 }
 
-unsafe fn reset_oos_offset(){
+unsafe fn reset_oos_offset() {
     /*
      * Need to offset by 1, since we decrease as soon as shield gets hit
      * but only check later if we can OOS
@@ -32,8 +32,7 @@ unsafe fn reset_oos_offset(){
     MULTI_HIT_OFFSET = MENU.oos_offset + 1;
 }
 
-unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccessor)
-{
+unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccessor) {
     // Check if we are currently in shield stun
     if !is_in_shieldstun(module_accessor) {
         // Make sure we don't forget and wait until we get hit on shield
@@ -55,7 +54,7 @@ unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccesso
     WAS_IN_SHIELDSTUN = true;
 }
 
-pub unsafe fn allow_oos()->bool {
+pub unsafe fn allow_oos() -> bool {
     // Delay OOS until offset hits 0
     MULTI_HIT_OFFSET == 0
 }
@@ -70,8 +69,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     }
 
     // Reset oos offset when standing
-    if is_idle(module_accessor)
-    || is_in_hitstun(module_accessor){
+    if is_idle(module_accessor) || is_in_hitstun(module_accessor) {
         reset_oos_offset();
     }
 
@@ -92,7 +90,6 @@ pub unsafe fn get_param_float(
     }
 
     if is_training_mode() {
-
         if MENU.shield_state != Shield::None {
             handle_oos_offset(module_accessor);
         }
@@ -162,9 +159,10 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 
     // Check for OOS delay
     if is_training_mode()
-    && is_operation_cpu(module_accessor)
-    && StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-    && !allow_oos() {
+        && is_operation_cpu(module_accessor)
+        && StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+        && !allow_oos()
+    {
         return original!()(fighter);
     }
 
