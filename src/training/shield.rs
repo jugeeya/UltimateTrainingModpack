@@ -147,127 +147,102 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
 pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue {
+    mod_handle_sub_guard_cont(fighter);
+    original!()(fighter)
+}
+
+unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
 
     // Enable shield decay
-    if is_training_mode()
-        && is_operation_cpu(module_accessor)
-        && StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+    if !is_training_mode()
+        || !is_operation_cpu(module_accessor)
+        || !StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
     {
-        set_shield_decay(true);
+        return;
     }
+
+    set_shield_decay(true);
 
     // Check for OOS delay
-    if is_training_mode()
-        && is_operation_cpu(module_accessor)
-        && StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-        && !allow_oos()
-    {
-        return original!()(fighter);
+    if !allow_oos() {
+        return;
     }
 
-    if is_training_mode() && is_operation_cpu(module_accessor) {
-        if MENU.mash_state == Mash::Attack && MENU.mash_attack_state == Attack::Grab {
-            if StatusModule::prev_status_kind(module_accessor, 0)
-                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-            {
-                if WorkModule::get_int(
-                    module_accessor,
-                    *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
-                ) == 0
-                {
-                    if WorkModule::is_enable_transition_term(
-                        module_accessor,
-                        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
-                    ) {
-                        fighter.fighter_base.change_status(
-                            L2CValue::new_int(*FIGHTER_STATUS_KIND_CATCH as u64),
-                            L2CValue::new_bool(true),
-                        );
-                    }
-                }
-            }
-        }
-        if MENU.mash_state == Mash::Spotdodge {
-            if StatusModule::prev_status_kind(module_accessor, 0)
-                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-            {
-                if WorkModule::is_enable_transition_term(
-                    module_accessor,
-                    *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-                ) {
-                    fighter.fighter_base.change_status(
-                        L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
-                        L2CValue::new_bool(true),
-                    );
-                }
-            }
-        }
-        if MENU.mash_state == Mash::RollForward {
-            if StatusModule::prev_status_kind(module_accessor, 0)
-                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-            {
-                if WorkModule::is_enable_transition_term(
-                    module_accessor,
-                    *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-                ) {
-                    fighter.fighter_base.change_status(
-                        L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_F as u64),
-                        L2CValue::new_bool(true),
-                    );
-                }
-            }
-        }
-        if MENU.mash_state == Mash::RollBack {
-            if StatusModule::prev_status_kind(module_accessor, 0)
-                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-            {
-                if WorkModule::is_enable_transition_term(
-                    module_accessor,
-                    *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-                ) {
-                    fighter.fighter_base.change_status(
-                        L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_B as u64),
-                        L2CValue::new_bool(true),
-                    );
-                }
-            }
-        }
-        if MENU.mash_state == Mash::Attack {
-            if MENU.mash_attack_state == Attack::UpB {
-                if StatusModule::prev_status_kind(module_accessor, 0)
-                    == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-                {
-                    if WorkModule::is_enable_transition_term(
-                        module_accessor,
-                        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-                    ) {
-                        fighter.fighter_base.change_status(
-                            L2CValue::new_int(*FIGHTER_STATUS_KIND_SPECIAL_HI as u64),
-                            L2CValue::new_bool(false),
-                        );
-                    }
-                }
-            }
-            if MENU.mash_attack_state == Attack::UpSmash {
-                if StatusModule::prev_status_kind(module_accessor, 0)
-                    == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-                {
-                    if WorkModule::is_enable_transition_term(
-                        module_accessor,
-                        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-                    ) {
-                        fighter.fighter_base.change_status(
-                            L2CValue::new_int(*FIGHTER_STATUS_KIND_ATTACK_HI4_START as u64),
-                            L2CValue::new_bool(false),
-                        );
-                    }
-                }
+    if MENU.mash_state == Mash::Attack && MENU.mash_attack_state == Attack::Grab {
+        if WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
+        ) == 0
+        {
+            if WorkModule::is_enable_transition_term(
+                module_accessor,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
+            ) {
+                fighter.fighter_base.change_status(
+                    L2CValue::new_int(*FIGHTER_STATUS_KIND_CATCH as u64),
+                    L2CValue::new_bool(true),
+                );
             }
         }
     }
-
-    original!()(fighter)
+    if MENU.mash_state == Mash::Spotdodge {
+        if WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+        ) {
+            fighter.fighter_base.change_status(
+                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
+                L2CValue::new_bool(true),
+            );
+        }
+    }
+    if MENU.mash_state == Mash::RollForward {
+        if WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+        ) {
+            fighter.fighter_base.change_status(
+                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_F as u64),
+                L2CValue::new_bool(true),
+            );
+        }
+    }
+    if MENU.mash_state == Mash::RollBack {
+        if WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+        ) {
+            fighter.fighter_base.change_status(
+                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_B as u64),
+                L2CValue::new_bool(true),
+            );
+        }
+    }
+    if MENU.mash_state == Mash::Attack {
+        if MENU.mash_attack_state == Attack::UpB {
+            if WorkModule::is_enable_transition_term(
+                module_accessor,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
+            ) {
+                fighter.fighter_base.change_status(
+                    L2CValue::new_int(*FIGHTER_STATUS_KIND_SPECIAL_HI as u64),
+                    L2CValue::new_bool(false),
+                );
+            }
+        }
+        if MENU.mash_attack_state == Attack::UpSmash {
+            if WorkModule::is_enable_transition_term(
+                module_accessor,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
+            ) {
+                fighter.fighter_base.change_status(
+                    L2CValue::new_int(*FIGHTER_STATUS_KIND_ATTACK_HI4_START as u64),
+                    L2CValue::new_bool(false),
+                );
+            }
+        }
+    }
 }
 
 pub unsafe fn check_button_on(
