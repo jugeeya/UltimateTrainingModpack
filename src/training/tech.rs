@@ -141,10 +141,6 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if MENU.tech_state == TechOption::Miss {
-        return;
-    }
-
     let status = StatusModule::status_kind(module_accessor) as i32;
 
     if [
