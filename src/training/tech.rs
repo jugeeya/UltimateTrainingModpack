@@ -181,19 +181,29 @@ pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if [*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
-        if is_training_mode() && is_operation_cpu(module_accessor) {
-            let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
-            let status = StatusModule::status_kind(module_accessor) as i32;
-            if MENU.defensive_state == Defensive::Shield
-                && should_perform_defensive_option(module_accessor, prev_status, status)
-            {
-                return Some(true);
-            }
-        }
+    if !is_training_mode() {
+        return None;
     }
 
-    None
+    if !is_operation_cpu(module_accessor) {
+        return None;
+    }
+
+    if ![*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
+        return None;
+    }
+
+    if !(MENU.defensive_state == Defensive::Shield) {
+        return None;
+    }
+
+    let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
+    let status = StatusModule::status_kind(module_accessor) as i32;
+    if !should_perform_defensive_option(module_accessor, prev_status, status) {
+        return None;
+    }
+
+    return Some(true);
 }
 
 pub unsafe fn change_motion(
