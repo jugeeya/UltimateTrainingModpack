@@ -159,7 +159,6 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 
 unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-
     if !is_training_mode()
         || !is_operation_cpu(module_accessor)
         || !StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
@@ -266,28 +265,41 @@ pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if [*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
-        if is_training_mode() && is_operation_cpu(module_accessor) {
-            if should_hold_shield(module_accessor) {
-                return Some(true);
-            }
-        }
+    if should_return_none_in_check_button(module_accessor, button) {
+        return None;
     }
-
-    None
+    Some(true)
 }
 
 pub unsafe fn check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if [*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
-        if is_training_mode() && is_operation_cpu(module_accessor) {
-            if should_hold_shield(module_accessor) {
-                return Some(false);
-            }
-        }
+    if should_return_none_in_check_button(module_accessor, button) {
+        return None;
+    }
+    Some(false)
+}
+
+unsafe fn should_return_none_in_check_button(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    button: i32,
+) -> bool {
+    if !is_training_mode() {
+        return true;
     }
 
-    None
+    if !is_operation_cpu(module_accessor) {
+        return true;
+    }
+
+    if ![*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
+        return true;
+    }
+
+    if !should_hold_shield(module_accessor) {
+        return true;
+    }
+
+    false
 }
