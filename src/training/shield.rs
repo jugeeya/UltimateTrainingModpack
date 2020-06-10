@@ -160,7 +160,6 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
 
-    // Enable shield decay
     if !is_training_mode()
         || !is_operation_cpu(module_accessor)
         || !StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
@@ -168,6 +167,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
+    // Enable shield decay
     set_shield_decay(true);
 
     // Check for OOS delay
