@@ -85,28 +85,32 @@ pub unsafe fn get_param_float(
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
+    if !is_training_mode() {
+        return None;
+    }
+
     if !is_operation_cpu(module_accessor) {
         return None;
     }
 
-    if is_training_mode() {
-        if MENU.shield_state != Shield::None {
-            handle_oos_offset(module_accessor);
-        }
+    if MENU.shield_state != Shield::None {
+        handle_oos_offset(module_accessor);
+    }
 
-        if MENU.shield_state == Shield::Infinite || should_pause_shield_decay() {
-            if param_type == hash40("common") {
-                if param_hash == hash40("shield_dec1") {
-                    return Some(0.0);
-                }
-                if param_hash == hash40("shield_recovery1") {
-                    return Some(999.0);
-                }
-                // doesn't work, somehow. This parameter isn't checked?
-                if param_hash == hash40("shield_damage_mul") {
-                    return Some(0.0);
-                }
-            }
+    // Shield Decay//Recovery
+    if MENU.shield_state == Shield::Infinite || should_pause_shield_decay() {
+        if param_type != hash40("common") {
+            return None;
+        }
+        if param_hash == hash40("shield_dec1") {
+            return Some(0.0);
+        }
+        if param_hash == hash40("shield_recovery1") {
+            return Some(999.0);
+        }
+        // doesn't work, somehow. This parameter isn't checked?
+        if param_hash == hash40("shield_damage_mul") {
+            return Some(0.0);
         }
     }
 
