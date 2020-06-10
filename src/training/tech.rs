@@ -13,15 +13,17 @@ pub unsafe fn handle_change_status(
     status_kind: L2CValue,
     unk: L2CValue,
 ) -> L2CValue {
-    mod_handle_change_status(fighter, status_kind, unk);
+    let mut status_kind = status_kind;
+    let mut unk = unk;
+    mod_handle_change_status(fighter, &mut status_kind, &mut unk);
 
     original!()(fighter, status_kind, unk)
 }
 
 unsafe fn mod_handle_change_status(
     fighter: &mut L2CFighterBase,
-    status_kind: L2CValue,
-    unk: L2CValue,
+    status_kind: &mut L2CValue,
+    unk: &mut L2CValue,
 ) {
     if !is_training_mode() {
         return;
@@ -39,9 +41,6 @@ unsafe fn mod_handle_change_status(
     if MENU.tech_state == TechOption::Miss {
         return;
     }
-
-    let mut status_kind = status_kind;
-    let mut unk = unk;
 
     let status_kind_int = status_kind
         .try_get_int()
@@ -62,17 +61,17 @@ unsafe fn mod_handle_change_status(
                 let random_status_index =
                     app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
                 if random_statuses[random_status_index] != FIGHTER_STATUS_KIND_DOWN {
-                    status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
-                    unk = L2CValue::new_bool(true);
+                    *status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
+                    *unk = L2CValue::new_bool(true);
                 }
             }
             TechOption::InPlace => {
-                status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE as u64);
-                unk = L2CValue::new_bool(true);
+                *status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE as u64);
+                *unk = L2CValue::new_bool(true);
             }
             TechOption::Roll => {
-                status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_FB as u64);
-                unk = L2CValue::new_bool(true);
+                *status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_FB as u64);
+                *unk = L2CValue::new_bool(true);
             }
             _ => (),
         }
@@ -84,8 +83,8 @@ unsafe fn mod_handle_change_status(
     if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
     {
-        status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
-        unk = L2CValue::new_bool(true);
+        *status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
+        *unk = L2CValue::new_bool(true);
         return;
     }
 
@@ -93,8 +92,8 @@ unsafe fn mod_handle_change_status(
     if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
     {
-        status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
-        unk = L2CValue::new_bool(true);
+        *status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
+        *unk = L2CValue::new_bool(true);
         return;
     }
 }
