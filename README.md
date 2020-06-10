@@ -13,6 +13,8 @@ Built releases can be found [here](https://github.com/jugeeya/UltimateTrainingMo
 
 # Features
 The features in this modpack are configured through the Tesla menu, which can be accessed at any time with by pressing `L+X+DPad Left`. This button configuration is fully configurable in the file `/config/tesla/config.ini`.
+[<img src="https://i.imgur.com/ZjbGRwy.jpg">](https://i.imgur.com/ZjbGRwy.jpg)
+[<img src="https://pbs.twimg.com/media/EZCN6c_UEAEViHA?format=jpg&name=large">](https://pbs.twimg.com/media/EZCN6c_UEAEViHA?format=jpg&name=large)
 
 #### Save States
 At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. Use this instead of the built-in training mode reset!
