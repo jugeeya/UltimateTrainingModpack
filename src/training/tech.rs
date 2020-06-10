@@ -13,6 +13,16 @@ pub unsafe fn handle_change_status(
     status_kind: L2CValue,
     unk: L2CValue,
 ) -> L2CValue {
+    mod_handle_change_status(fighter, status_kind, unk);
+
+    original!()(fighter, status_kind, unk)
+}
+
+unsafe fn mod_handle_change_status(
+    fighter: &mut L2CFighterBase,
+    status_kind: L2CValue,
+    unk: L2CValue,
+) {
     let mut status_kind = status_kind;
     let mut unk = unk;
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
@@ -66,8 +76,6 @@ pub unsafe fn handle_change_status(
             }
         }
     }
-
-    original!()(fighter, status_kind, unk)
 }
 
 pub unsafe fn should_perform_defensive_option(
