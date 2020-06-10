@@ -1,10 +1,10 @@
 use crate::common::consts::*;
 use crate::common::*;
 use smash::app;
-use smash::hash40;
-use smash::lib::lua_const::*;
 use smash::app::lua_bind::*;
 use smash::app::sv_system;
+use smash::hash40;
+use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
@@ -154,8 +154,9 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 
     // Enable shield decay
     if is_training_mode()
-    && is_operation_cpu(module_accessor)
-    && StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+        && is_operation_cpu(module_accessor)
+        && StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+    {
         set_shield_decay(true);
     }
 
@@ -169,7 +170,9 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 
     if is_training_mode() && is_operation_cpu(module_accessor) {
         if MENU.mash_state == Mash::Attack && MENU.mash_attack_state == Attack::Grab {
-            if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+            if StatusModule::prev_status_kind(module_accessor, 0)
+                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+            {
                 if WorkModule::get_int(
                     module_accessor,
                     *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
@@ -188,7 +191,9 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
             }
         }
         if MENU.mash_state == Mash::Spotdodge {
-            if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+            if StatusModule::prev_status_kind(module_accessor, 0)
+                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+            {
                 if WorkModule::is_enable_transition_term(
                     module_accessor,
                     *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
@@ -201,7 +206,9 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
             }
         }
         if MENU.mash_state == Mash::RollForward {
-            if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+            if StatusModule::prev_status_kind(module_accessor, 0)
+                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+            {
                 if WorkModule::is_enable_transition_term(
                     module_accessor,
                     *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
@@ -214,7 +221,9 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
             }
         }
         if MENU.mash_state == Mash::RollBack {
-            if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+            if StatusModule::prev_status_kind(module_accessor, 0)
+                == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+            {
                 if WorkModule::is_enable_transition_term(
                     module_accessor,
                     *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
@@ -228,7 +237,9 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
         }
         if MENU.mash_state == Mash::Attack {
             if MENU.mash_attack_state == Attack::UpB {
-                if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+                if StatusModule::prev_status_kind(module_accessor, 0)
+                    == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+                {
                     if WorkModule::is_enable_transition_term(
                         module_accessor,
                         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
@@ -241,7 +252,9 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
                 }
             }
             if MENU.mash_attack_state == Attack::UpSmash {
-                if StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE {
+                if StatusModule::prev_status_kind(module_accessor, 0)
+                    == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+                {
                     if WorkModule::is_enable_transition_term(
                         module_accessor,
                         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,

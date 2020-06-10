@@ -91,7 +91,10 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
-    if MENU.ledge_state != LedgeOption::None && is_training_mode() && is_operation_cpu(module_accessor) {
+    if MENU.ledge_state != LedgeOption::None
+        && is_training_mode()
+        && is_operation_cpu(module_accessor)
+    {
         force_option(module_accessor);
         defensive_option(module_accessor, category, flag);
     }

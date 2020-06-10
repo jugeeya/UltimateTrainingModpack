@@ -1,7 +1,7 @@
 use crate::common::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
-use smash::phx::{Vector3f, Hash40};
+use smash::phx::{Hash40, Vector3f};
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -68,8 +68,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if *save_state == CameraMove {
             *save_state = PosMove;
 
-            let left_right =
-                (PostureModule::pos_x(module_accessor) > 0.0) as i32 as f32 - (PostureModule::pos_x(module_accessor) < 0.0) as i32 as f32;
+            let left_right = (PostureModule::pos_x(module_accessor) > 0.0) as i32 as f32
+                - (PostureModule::pos_x(module_accessor) < 0.0) as i32 as f32;
             let y_pos = 20.0;
 
             let pos = Vector3f {
@@ -81,7 +81,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
             // force aerial, because from aerial state we can move anywhere
             if StatusModule::situation_kind(module_accessor) == SITUATION_KIND_GROUND {
-                StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_JUMP_SQUAT, false);
+                StatusModule::change_status_request(
+                    module_accessor,
+                    *FIGHTER_STATUS_KIND_JUMP_SQUAT,
+                    false,
+                );
             }
             return;
         }
@@ -124,8 +128,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     *FIGHTER_STATUS_KIND_CLIFF_WAIT,
                     false,
                 );
-            }
-            else if *save_state_situation_kind == SITUATION_KIND_AIR
+            } else if *save_state_situation_kind == SITUATION_KIND_AIR
                 && status != FIGHTER_STATUS_KIND_FALL
             {
                 StatusModule::change_status_request(
@@ -133,8 +136,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     *FIGHTER_STATUS_KIND_FALL,
                     false,
                 );
-            }
-            else if *save_state_situation_kind == SITUATION_KIND_CLIFF
+            } else if *save_state_situation_kind == SITUATION_KIND_CLIFF
                 && status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
                 && status != FIGHTER_STATUS_KIND_CLIFF_CATCH
             {

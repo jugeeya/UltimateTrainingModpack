@@ -9,7 +9,7 @@ mod training;
 use crate::common::*;
 
 use skyline::c_str;
-use skyline::libc::{c_void, mkdir, fclose, fopen, fwrite};
+use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
 use skyline::nro::{self, NroInfo};
 
 fn nro_main(nro: &NroInfo<'_>) {
@@ -34,10 +34,15 @@ pub fn main() {
 
     unsafe {
         let buffer = format!("{:x}", MENU as *const _ as u64);
-        println!("[Training Modpack] Writing training_modpack.log with {}...", buffer);
+        println!(
+            "[Training Modpack] Writing training_modpack.log with {}...",
+            buffer
+        );
         mkdir("sd:/TrainingModpack/\u{0}".as_bytes().as_ptr(), 0777);
         let f = fopen(
-            "sd:/TrainingModpack/training_modpack.log\u{0}".as_bytes().as_ptr(),
+            "sd:/TrainingModpack/training_modpack.log\u{0}"
+                .as_bytes()
+                .as_ptr(),
             "w\u{0}".as_bytes().as_ptr(),
         );
 
