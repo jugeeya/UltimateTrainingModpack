@@ -32,12 +32,22 @@ unsafe fn mod_handle_change_status(
         return;
     }
 
+    if MENU.tech_state == TechOption::None {
+        return;
+    }
+
+    if MENU.tech_state == TechOption::Miss {
+        return;
+    }
+
     let mut status_kind = status_kind;
     let mut unk = unk;
 
     let status_kind_int = status_kind
         .try_get_int()
         .unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
+
+    // Ground Tech
     if status_kind_int == FIGHTER_STATUS_KIND_DOWN
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D
     {
@@ -50,11 +60,9 @@ unsafe fn mod_handle_change_status(
                 ];
 
                 let random_status_index =
-                    app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32)
-                        as usize;
+                    app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
                 if random_statuses[random_status_index] != FIGHTER_STATUS_KIND_DOWN {
-                    status_kind =
-                        L2CValue::new_int(random_statuses[random_status_index] as u64);
+                    status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
                     unk = L2CValue::new_bool(true);
                 }
             }
@@ -68,20 +76,26 @@ unsafe fn mod_handle_change_status(
             }
             _ => (),
         }
-    } else if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL
+
+        return;
+    }
+
+    // Wall Tech
+    if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
     {
-        if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
-            status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
-            unk = L2CValue::new_bool(true);
-        }
-    } else if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL
+        status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_WALL as u64);
+        unk = L2CValue::new_bool(true);
+        return;
+    }
+
+    // Ceiling Tech
+    if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
     {
-        if MENU.tech_state != TechOption::None && MENU.tech_state != TechOption::Miss {
-            status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
-            unk = L2CValue::new_bool(true);
-        }
+        status_kind = L2CValue::new_int(*FIGHTER_STATUS_KIND_PASSIVE_CEIL as u64);
+        unk = L2CValue::new_bool(true);
+        return;
     }
 }
 
