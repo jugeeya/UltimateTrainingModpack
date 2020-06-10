@@ -210,28 +210,35 @@ pub unsafe fn change_motion(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     motion_kind: u64,
 ) -> Option<u64> {
-    if MENU.tech_state != TechOption::None
-        && is_training_mode()
-        && is_operation_cpu(module_accessor)
-    {
-        if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
-            if app::sv_math::rand(hash40("fighter"), 2) != 0 {
-                return Some(hash40("passive_stand_f"));
-            } else {
-                return Some(hash40("passive_stand_b"));
-            }
-        } else if [hash40("down_forward_u"), hash40("down_back_u")].contains(&motion_kind) {
-            if app::sv_math::rand(hash40("fighter"), 2) != 0 {
-                return Some(hash40("down_forward_u"));
-            } else {
-                return Some(hash40("down_back_u"));
-            }
-        } else if [hash40("down_forward_d"), hash40("down_back_d")].contains(&motion_kind) {
-            if app::sv_math::rand(hash40("fighter"), 2) != 0 {
-                return Some(hash40("down_forward_d"));
-            } else {
-                return Some(hash40("down_back_d"));
-            }
+    if !is_training_mode() {
+        return None;
+    }
+
+    if !is_operation_cpu(module_accessor) {
+        return None;
+    }
+
+    if MENU.tech_state == TechOption::None {
+        return None;
+    }
+
+    if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
+        if app::sv_math::rand(hash40("fighter"), 2) != 0 {
+            return Some(hash40("passive_stand_f"));
+        } else {
+            return Some(hash40("passive_stand_b"));
+        }
+    } else if [hash40("down_forward_u"), hash40("down_back_u")].contains(&motion_kind) {
+        if app::sv_math::rand(hash40("fighter"), 2) != 0 {
+            return Some(hash40("down_forward_u"));
+        } else {
+            return Some(hash40("down_back_u"));
+        }
+    } else if [hash40("down_forward_d"), hash40("down_back_d")].contains(&motion_kind) {
+        if app::sv_math::rand(hash40("fighter"), 2) != 0 {
+            return Some(hash40("down_forward_d"));
+        } else {
+            return Some(hash40("down_back_d"));
         }
     }
 
