@@ -222,20 +222,22 @@ pub unsafe fn change_motion(
         return None;
     }
 
+    let random_roll = app::sv_math::rand(hash40("fighter"), 2);
+
     if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
-        if app::sv_math::rand(hash40("fighter"), 2) != 0 {
+        if random_roll != 0 {
             return Some(hash40("passive_stand_f"));
         } else {
             return Some(hash40("passive_stand_b"));
         }
     } else if [hash40("down_forward_u"), hash40("down_back_u")].contains(&motion_kind) {
-        if app::sv_math::rand(hash40("fighter"), 2) != 0 {
+        if random_roll != 0 {
             return Some(hash40("down_forward_u"));
         } else {
             return Some(hash40("down_back_u"));
         }
     } else if [hash40("down_forward_d"), hash40("down_back_d")].contains(&motion_kind) {
-        if app::sv_math::rand(hash40("fighter"), 2) != 0 {
+        if random_roll != 0 {
             return Some(hash40("down_forward_d"));
         } else {
             return Some(hash40("down_back_d"));
