@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -25,6 +26,12 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
+    // Check for OOS delay
+    if is_training_mode() && is_operation_cpu(module_accessor)
+    && is_in_shieldstun(module_accessor) && !shield::allow_oos(){
+        return;
+    }
+
     if is_training_mode() && is_operation_cpu(module_accessor) {
         if is_in_hitstun(module_accessor)
             || is_in_landing(module_accessor)
