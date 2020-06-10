@@ -1,6 +1,9 @@
 # Ultimate Training Modpack Plugin
 
-[![Github all releases](https://img.shields.io/github/downloads/jugeeya/UltimateTrainingModpack/total.svg)](https://GitHub.com/jugeeya/UltimateTrainingModpack/releases/)
+![GitHub All Releases](https://img.shields.io/github/downloads/jugeeya/UltimateTrainingModpack/total?style=for-the-badge)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jugeeya/UltimateTrainingModpack/Rust?style=for-the-badge)
+![Discord](https://img.shields.io/discord/407970595418931200?style=for-the-badge)
+![Twitter Follow](https://img.shields.io/twitter/follow/jugeeya?style=for-the-badge)
 
 A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyline](https://github.com/jam1garner/cargo-skyline) for adding features to the training mode. It interfaces with a [Tesla](https://github.com/WerWolv/libtesla), a Switch custom overlay, for use as a menu to the features offered in training mode.
 
