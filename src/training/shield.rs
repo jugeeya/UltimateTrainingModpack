@@ -119,30 +119,32 @@ pub unsafe fn get_param_float(
 
 pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     // We should hold shield if the state requires it
-    if [Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
-        // If we are not mashing attack then we will always hold shield
-        if MENU.mash_state != Mash::Attack {
-            return true;
+    if ![Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
+        return false;
+    }
+
+    // If we are not mashing attack then we will always hold shield
+    if MENU.mash_state != Mash::Attack {
+        return true;
+    }
+
+    // Hold shield while OOS is not allowed
+    if !allow_oos() {
+        return true;
+    }
+
+    if !is_in_shieldstun(module_accessor) {
+        return true;
+    }
+
+    // We will only drop shield if we are in shieldstun and our attack can be performed OOS
+    if MENU.mash_state == Mash::Attack {
+        if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
+            return false;
         }
 
-        // Hold shield while OOS is not allowed
-        if !allow_oos() {
+        if MENU.mash_attack_state == Attack::Grab {
             return true;
-        }
-
-        if !is_in_shieldstun(module_accessor) {
-            return true;
-        }
-
-        // We will only drop shield if we are in shieldstun and our attack can be performed OOS
-        if MENU.mash_state == Mash::Attack {
-            if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
-                return false;
-            }
-
-            if MENU.mash_attack_state == Attack::Grab {
-                return true;
-            }
         }
     }
 
