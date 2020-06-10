@@ -153,7 +153,9 @@ pub unsafe fn check_button_on(
     if [*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
         if is_training_mode() && is_operation_cpu(module_accessor) {
             if MENU.mash_state == Mash::Airdodge
-                && (is_in_hitstun(module_accessor) || is_in_landing(module_accessor) || is_in_footstool(module_accessor))
+                && (is_in_hitstun(module_accessor)
+                    || is_in_landing(module_accessor)
+                    || is_in_footstool(module_accessor))
             {
                 return Some(true);
             }

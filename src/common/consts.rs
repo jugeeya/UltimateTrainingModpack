@@ -31,7 +31,7 @@ pub enum Attack {
     UpB = 7,
     DownB = 8,
     UpSmash = 9,
-    Grab = 10
+    Grab = 10,
 }
 
 impl From<i32> for Attack {
@@ -50,7 +50,7 @@ impl From<i32> for Attack {
             8 => DownB,
             9 => UpSmash,
             10 => Grab,
-            _ => panic!("Invalid mash attack state {}", x)
+            _ => panic!("Invalid mash attack state {}", x),
         }
     }
 }
@@ -59,16 +59,14 @@ impl Attack {
     pub fn into_attack_air_kind(&self) -> Option<i32> {
         use Attack::*;
 
-        Some(
-            match self {
-                Nair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
-                Fair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
-                Bair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
-                Dair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
-                UpAir => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
-                _ => return None,
-            }
-        )
+        Some(match self {
+            Nair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
+            Fair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
+            Bair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
+            Dair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
+            UpAir => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
+            _ => return None,
+        })
     }
 }
 
@@ -95,22 +93,20 @@ impl From<i32> for LedgeOption {
             3 => Roll,
             4 => Jump,
             5 => Attack,
-            _ => panic!("Invalid ledge option {}", x)
+            _ => panic!("Invalid ledge option {}", x),
         }
     }
 }
 
 impl LedgeOption {
     pub fn into_status(&self) -> Option<i32> {
-        Some(
-            match self {
-                LedgeOption::Neutral => *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
-                LedgeOption::Roll => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
-                LedgeOption::Jump => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
-                LedgeOption::Attack => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
-                _ => return None,
-            }
-        )
+        Some(match self {
+            LedgeOption::Neutral => *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
+            LedgeOption::Roll => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
+            LedgeOption::Jump => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
+            LedgeOption::Attack => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+            _ => return None,
+        })
     }
 }
 
@@ -122,7 +118,7 @@ pub enum TechOption {
     Random = 1,
     InPlace = 2,
     Roll = 3,
-    Miss = 4
+    Miss = 4,
 }
 
 impl From<i32> for TechOption {
@@ -135,7 +131,7 @@ impl From<i32> for TechOption {
             2 => InPlace,
             3 => Roll,
             4 => Miss,
-            _ => panic!("Invalid tech option {}", x)
+            _ => panic!("Invalid tech option {}", x),
         }
     }
 }
@@ -165,7 +161,7 @@ impl From<i32> for Mash {
             5 => Mash::RollForward,
             6 => Mash::RollBack,
             7 => Mash::Random,
-            _ => panic!("Invalid mash state {}", x)
+            _ => panic!("Invalid mash state {}", x),
         }
     }
 }
@@ -202,7 +198,7 @@ impl From<i32> for Defensive {
             3 => Roll,
             4 => Jab,
             5 => Shield,
-            _ => panic!("Invalid mash state {}", x)
+            _ => panic!("Invalid mash state {}", x),
         }
     }
 }

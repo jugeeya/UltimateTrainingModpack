@@ -160,8 +160,12 @@ pub unsafe fn get_command_flag_cat(
 ) {
     if is_training_mode() {
         // Pause Effect AnimCMD if hitbox visualization is active
-        MotionAnimcmdModule::set_sleep_effect(module_accessor, MENU.hitbox_vis
-        && !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&StatusModule::status_kind(module_accessor))));
+        MotionAnimcmdModule::set_sleep_effect(
+            module_accessor,
+            MENU.hitbox_vis
+                && !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL)
+                    .contains(&StatusModule::status_kind(module_accessor))),
+        );
     }
 
     // apply only once per frame
@@ -170,17 +174,8 @@ pub unsafe fn get_command_flag_cat(
         if !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind)
             && !is_shielding(module_accessor)
         {
-            EffectModule::set_visible_kind(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                false,
-            );
-            EffectModule::kill_kind(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                false,
-                true,
-            );
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_shield"), false);
+            EffectModule::kill_kind(module_accessor, Hash40::new("sys_shield"), false, true);
             for i in 0..8 {
                 if AttackModule::is_attack(module_accessor, i, false) {
                     let attack_data = *AttackModule::attack_data(module_accessor, i, false);
@@ -312,17 +307,8 @@ pub unsafe fn handle_set_rebound(
     if is_training_mode() && rebound == false {
         // only if we're not shielding
         if !is_shielding(module_accessor) {
-            EffectModule::set_visible_kind(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                false,
-            );
-            EffectModule::kill_kind(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                false,
-                true,
-            );
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_shield"), false);
+            EffectModule::kill_kind(module_accessor, Hash40::new("sys_shield"), false, true);
         }
     }
 
