@@ -130,34 +130,50 @@ pub unsafe fn get_command_flag_cat(
     _category: i32,
     flag: &mut i32,
 ) {
-    if MENU.tech_state != TechOption::None
-        && is_training_mode()
-        && is_operation_cpu(module_accessor)
-    {
-        let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
-        let status = StatusModule::status_kind(module_accessor) as i32;
-        if [
-            *FIGHTER_STATUS_KIND_DOWN_WAIT,
-            *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE,
-        ]
-        .contains(&status)
-        {
-            let random_statuses = vec![
-                *FIGHTER_STATUS_KIND_DOWN_STAND,
-                *FIGHTER_STATUS_KIND_DOWN_STAND_FB,
-                *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
-            ];
+    if !is_training_mode() {
+        return;
+    }
 
-            let random_status_index =
-                app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
-            StatusModule::change_status_request_from_script(
-                module_accessor,
-                random_statuses[random_status_index],
-                false,
-            );
-        } else if should_perform_defensive_option(module_accessor, prev_status, status) {
-            perform_defensive_option(module_accessor, flag);
-        }
+    if !is_operation_cpu(module_accessor) {
+        return;
+    }
+
+    if MENU.tech_state == TechOption::None {
+        return;
+    }
+
+    if MENU.tech_state == TechOption::Miss {
+        return;
+    }
+
+    let status = StatusModule::status_kind(module_accessor) as i32;
+
+    if [
+        *FIGHTER_STATUS_KIND_DOWN_WAIT,
+        *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE,
+    ]
+    .contains(&status)
+    {
+        let random_statuses = vec![
+            *FIGHTER_STATUS_KIND_DOWN_STAND,
+            *FIGHTER_STATUS_KIND_DOWN_STAND_FB,
+            *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
+        ];
+
+        let random_status_index =
+            app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
+        StatusModule::change_status_request_from_script(
+            module_accessor,
+            random_statuses[random_status_index],
+            false,
+        );
+        return;
+    }
+
+    let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
+
+    if should_perform_defensive_option(module_accessor, prev_status, status) {
+        perform_defensive_option(module_accessor, flag);
     }
 }
 
