@@ -168,31 +168,23 @@ pub unsafe fn get_command_flag_cat(
     }
 
     // Resume Effect AnimCMD incase we don't display hitboxes
-    MotionAnimcmdModule::set_sleep_effect(
-        module_accessor,
-        false,
-    );
+    MotionAnimcmdModule::set_sleep_effect(module_accessor, false);
 
-    if !MENU.hitbox_vis{
+    if !MENU.hitbox_vis {
         return;
     }
 
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    if (*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind)
-    {
+    if (*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind) {
         return;
     }
 
-    if (is_shielding(module_accessor))
-    {
+    if (is_shielding(module_accessor)) {
         return;
     }
 
     // Pause Effect AnimCMD if hitbox visualization is active
-    MotionAnimcmdModule::set_sleep_effect(
-        module_accessor,
-        true,
-    );
+    MotionAnimcmdModule::set_sleep_effect(module_accessor, true);
 
     EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_shield"), false);
     EffectModule::kill_kind(module_accessor, Hash40::new("sys_shield"), false, true);
@@ -202,8 +194,7 @@ pub unsafe fn get_command_flag_cat(
         }
 
         let attack_data = *AttackModule::attack_data(module_accessor, i, false);
-        let is_capsule =
-            attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
+        let is_capsule = attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
         let mut x2 = None;
         let mut y2 = None;
         let mut z2 = None;
@@ -230,26 +221,19 @@ pub unsafe fn get_command_flag_cat(
 // Necessary to ensure we visualize on the first frame of the hitbox
 #[skyline::hook(replace = sv_animcmd::ATTACK)]
 unsafe fn handle_attack(lua_state: u64) {
+    mod_handle_attack(lua_state);
+    original!()(lua_state);
+}
+
+unsafe fn mod_handle_attack(lua_state: u64) {
+    if !is_training_mode() {
+        return;
+    }
+
     let mut l2c_agent = L2CAgent::new(lua_state);
 
-    // get all necessary grabbox params
-    let id = l2c_agent.pop_lua_stack(1); // int
-    let joint = l2c_agent.pop_lua_stack(3); // hash40
-    let _damage = l2c_agent.pop_lua_stack(4); // float
-    let _angle = l2c_agent.pop_lua_stack(5); // int
-    let _kbg = l2c_agent.pop_lua_stack(6); // int
-    let _fkb = l2c_agent.pop_lua_stack(7); // int
-    let _bkb = l2c_agent.pop_lua_stack(8); // int
-    let size = l2c_agent.pop_lua_stack(9); // float
-    let x = l2c_agent.pop_lua_stack(10); // float
-    let y = l2c_agent.pop_lua_stack(11); // float
-    let z = l2c_agent.pop_lua_stack(12); // float
-    let x2 = l2c_agent.pop_lua_stack(13); // float or void
-    let y2 = l2c_agent.pop_lua_stack(14); // float or void
-    let z2 = l2c_agent.pop_lua_stack(15); // float or void
-
     // hacky way of forcing no shield damage on all hitboxes
-    if is_training_mode() && MENU.shield_state == Shield::Infinite {
+    if MENU.shield_state == Shield::Infinite {
         let hitbox_params: Vec<L2CValue> =
             (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
         l2c_agent.clear_lua_stack();
@@ -263,9 +247,24 @@ unsafe fn handle_attack(lua_state: u64) {
         }
     }
 
-    original!()(lua_state);
+    // Hitbox Visualization
+    if MENU.hitbox_vis {
+        // get all necessary grabbox params
+        let id = l2c_agent.pop_lua_stack(1); // int
+        let joint = l2c_agent.pop_lua_stack(3); // hash40
+        let _damage = l2c_agent.pop_lua_stack(4); // float
+        let _angle = l2c_agent.pop_lua_stack(5); // int
+        let _kbg = l2c_agent.pop_lua_stack(6); // int
+        let _fkb = l2c_agent.pop_lua_stack(7); // int
+        let _bkb = l2c_agent.pop_lua_stack(8); // int
+        let size = l2c_agent.pop_lua_stack(9); // float
+        let x = l2c_agent.pop_lua_stack(10); // float
+        let y = l2c_agent.pop_lua_stack(11); // float
+        let z = l2c_agent.pop_lua_stack(12); // float
+        let x2 = l2c_agent.pop_lua_stack(13); // float or void
+        let y2 = l2c_agent.pop_lua_stack(14); // float or void
+        let z2 = l2c_agent.pop_lua_stack(15); // float or void
 
-    if MENU.hitbox_vis && is_training_mode() {
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(),
