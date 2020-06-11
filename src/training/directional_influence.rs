@@ -29,7 +29,7 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     }
 
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-    if !is_operation_cpu(module_accessor)() {
+    if !is_operation_cpu(module_accessor) {
         return;
     }
 
@@ -62,12 +62,12 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     );
 }
 
-fn get_random_di() -> f64 {
+unsafe fn get_random_di() -> f64 {
     let rand = app::sv_math::rand(hash40("fighter"), 3);
     if [0, 1].contains(&rand) {
         // Either 0 (right) or PI (left)
-        rand as f64 * PI;
+        rand as f64 * PI
     } else {
-        NO_DI;
+        NO_DI
     }
 }
