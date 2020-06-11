@@ -83,24 +83,26 @@ pub unsafe fn get_command_flag_cat(
             }
         }
         Mash::Attack => {
-            if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                use Attack::*;
+            if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
+                return;
+            }
 
-                match MENU.mash_attack_state {
-                    Nair | Fair | Bair | UpAir | Dair => {
-                        *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
-                        // If we are performing the attack OOS we also need to jump
-                        if is_in_shieldstun(module_accessor) {
-                            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
-                        }
+            use Attack::*;
+
+            match MENU.mash_attack_state {
+                Nair | Fair | Bair | UpAir | Dair => {
+                    *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
+                    // If we are performing the attack OOS we also need to jump
+                    if is_in_shieldstun(module_accessor) {
+                        *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                     }
-                    NeutralB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
-                    SideB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-                    UpB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-                    DownB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-                    UpSmash => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
-                    Grab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
                 }
+                NeutralB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
+                SideB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+                UpB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+                DownB => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+                UpSmash => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
+                Grab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
             }
         }
         Mash::Random => {
