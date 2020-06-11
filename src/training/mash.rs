@@ -98,56 +98,65 @@ pub unsafe fn get_command_flag_cat(
             }
         }
         Mash::Random => {
-            let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+            let random_commands = get_random_command_list(module_accessor);
 
-            if situation_kind == SITUATION_KIND_AIR {
-                let random_commands = vec![
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-                    // one for each aerial
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-                ];
-
-                let random_cmd_index =
-                    app::sv_math::rand(hash40("fighter"), random_commands.len() as i32) as usize;
-
-                *flag |= random_commands[random_cmd_index];
-            } else if situation_kind == SITUATION_KIND_GROUND {
-                let random_commands = vec![
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
-                    *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
-                ];
-
-                let random_cmd_index =
-                    app::sv_math::rand(hash40("fighter"), random_commands.len() as i32) as usize;
-
-                *flag |= random_commands[random_cmd_index];
+            if random_commands.len() == 0 {
+                return;
             }
+
+            let random_cmd_index =
+                app::sv_math::rand(hash40("fighter"), random_commands.len() as i32) as usize;
+
+            *flag |= random_commands[random_cmd_index];
         }
         _ => (),
     }
+}
+
+unsafe fn get_random_command_list(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> Vec<i32> {
+    let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+
+    if situation_kind == SITUATION_KIND_AIR {
+        return vec![
+            *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+            // one for each aerial
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+        ];
+    }
+
+    if situation_kind == SITUATION_KIND_GROUND {
+        return vec![
+            *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+        ];
+    }
+
+    return vec![];
 }
 
 pub unsafe fn check_button_on(
