@@ -336,11 +336,11 @@ pub unsafe fn handle_set_rebound(
 }
 
 unsafe fn handle_set_rebound(module_accessor: *mut app::BattleObjectModuleAccessor, rebound: bool) {
-    if !is_training_mode()  {
+    if !is_training_mode() {
         return;
     }
 
-    if rebound != false{
+    if rebound != false {
         return;
     }
 
