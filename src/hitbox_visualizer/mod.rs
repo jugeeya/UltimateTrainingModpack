@@ -179,7 +179,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if (is_shielding(module_accessor)) {
+    if is_shielding(module_accessor) {
         return;
     }
 
@@ -335,7 +335,7 @@ pub unsafe fn handle_set_rebound(
     original!()(module_accessor, rebound);
 }
 
-unsafe fn handle_set_rebound(module_accessor: *mut app::BattleObjectModuleAccessor, rebound: bool) {
+unsafe fn mod_handle_handle_set_rebound(module_accessor: *mut app::BattleObjectModuleAccessor, rebound: bool) {
     if !is_training_mode() {
         return;
     }

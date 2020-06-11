@@ -12,7 +12,7 @@ pub unsafe fn get_attack_air_kind(
         return None;
     }
 
-    if !is_operation_cpu(module_accessor)() {
+    if !is_operation_cpu(module_accessor) {
         return None;
     }
 
@@ -38,7 +38,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if !is_operation_cpu(module_accessor)() {
+    if !is_operation_cpu(module_accessor) {
         return;
     }
 
@@ -168,7 +168,7 @@ pub unsafe fn check_button_on(
         return None;
     }
 
-    if !is_operation_cpu(module_accessor)() {
+    if !is_operation_cpu(module_accessor) {
         return None;
     }
 
@@ -176,7 +176,7 @@ pub unsafe fn check_button_on(
         return None;
     }
 
-    if !MENU.mash_state == Mash::Airdodge
+    if MENU.mash_state != Mash::Airdodge
         && !(is_in_hitstun(module_accessor)
             || is_in_landing(module_accessor)
             || is_in_footstool(module_accessor))

@@ -83,7 +83,7 @@ pub unsafe fn check_button_on(
         return None;
     }
 
-    if !is_operation_cpu(module_accessor)() {
+    if !is_operation_cpu(module_accessor) {
         return None;
     }
 
@@ -91,7 +91,7 @@ pub unsafe fn check_button_on(
         return None;
     }
 
-    if !MENU.defensive_state == Defensive::Shield {
+    if MENU.defensive_state != Defensive::Shield {
         return None;
     }
 
@@ -110,15 +110,15 @@ pub unsafe fn get_command_flag_cat(
     flag: &mut i32,
 ) {
     if !is_training_mode() {
-        return None;
+        return;
     }
 
-    if !is_operation_cpu(module_accessor)() {
-        return None;
+    if !is_operation_cpu(module_accessor) {
+        return;
     }
 
     if MENU.ledge_state == LedgeOption::None {
-        return None;
+        return;
     }
 
     force_option(module_accessor);
