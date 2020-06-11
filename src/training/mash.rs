@@ -34,6 +34,10 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
+    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
+        return;
+    }
+
     if !is_training_mode() {
         return;
     }
@@ -58,35 +62,23 @@ pub unsafe fn get_command_flag_cat(
 
     match MENU.mash_state {
         Mash::Airdodge => {
-            if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
-            }
+            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
         }
         Mash::Jump => {
-            if !is_in_landing(module_accessor) && category == FIGHTER_PAD_COMMAND_CATEGORY1 {
+            if !is_in_landing(module_accessor) {
                 *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
             }
         }
         Mash::Spotdodge => {
-            if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
-            }
+            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
         }
         Mash::RollForward => {
-            if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
-            }
+            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
         }
         Mash::RollBack => {
-            if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
-            }
+            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
         }
         Mash::Attack => {
-            if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-                return;
-            }
-
             use Attack::*;
 
             match MENU.mash_attack_state {
@@ -106,10 +98,6 @@ pub unsafe fn get_command_flag_cat(
             }
         }
         Mash::Random => {
-            if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-                return;
-            }
-
             let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
 
             if situation_kind == SITUATION_KIND_AIR {
