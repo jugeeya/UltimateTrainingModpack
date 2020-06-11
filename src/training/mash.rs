@@ -5,6 +5,30 @@ use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 
+static mut MASH_IN_NEUTRAL: bool = false;
+
+unsafe fn set_neutral_mash(value: bool) {
+    MASH_IN_NEUTRAL = value;
+}
+
+unsafe fn check_mash_toggle(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    // Grab + Dpad left -> start mashing
+    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
+    {
+        set_neutral_mash(true);
+        return;
+    }
+
+    // Grab + Dpad right -> stop mashing
+    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R)
+    {
+        set_neutral_mash(false);
+        return;
+    }
+}
+
 pub unsafe fn get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> Option<i32> {
@@ -34,6 +58,7 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
+    // Only do once per frame
     if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
@@ -41,6 +66,8 @@ pub unsafe fn get_command_flag_cat(
     if !is_training_mode() {
         return;
     }
+
+    check_mash_toggle(module_accessor);
 
     if !is_operation_cpu(module_accessor) {
         return;
@@ -55,6 +82,7 @@ pub unsafe fn get_command_flag_cat(
         || is_in_landing(module_accessor)
         || is_in_shieldstun(module_accessor)
         || is_in_footstool(module_accessor)
+        || MASH_IN_NEUTRAL
         || StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_ROBBED)
     {
         return;
