@@ -52,6 +52,16 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
     FighterInformation::is_operation_cpu(fighter_information)
 }
 
+pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+    let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+    situation_kind == SITUATION_KIND_GROUND
+}
+
+pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+    let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+    situation_kind == SITUATION_KIND_AIR
+}
+
 pub unsafe fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
     status_kind == FIGHTER_STATUS_KIND_WAIT
