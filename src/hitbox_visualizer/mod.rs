@@ -162,26 +162,18 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    // Pause Effect AnimCMD if hitbox visualization is active
-    MotionAnimcmdModule::set_sleep_effect(
-        module_accessor,
-        MENU.hitbox_vis
-            && !((*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL)
-                .contains(&StatusModule::status_kind(module_accessor))),
-    );
-
     // apply only once per frame
     if category != 0 {
         return;
     }
 
-    // Check that hitboxes visualisations are on
-    if !MENU.hitbox_vis{
-        return;
-    }
+    // Resume Effect AnimCMD incase we don't display hitboxes
+    MotionAnimcmdModule::set_sleep_effect(
+        module_accessor,
+        false,
+    );
 
-    if (is_shielding(module_accessor))
-    {
+    if !MENU.hitbox_vis{
         return;
     }
 
@@ -190,6 +182,17 @@ pub unsafe fn get_command_flag_cat(
     {
         return;
     }
+
+    if (is_shielding(module_accessor))
+    {
+        return;
+    }
+
+    // Pause Effect AnimCMD if hitbox visualization is active
+    MotionAnimcmdModule::set_sleep_effect(
+        module_accessor,
+        true,
+    );
 
     EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_shield"), false);
     EffectModule::kill_kind(module_accessor, Hash40::new("sys_shield"), false, true);
