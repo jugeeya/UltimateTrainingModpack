@@ -197,31 +197,33 @@ pub unsafe fn get_command_flag_cat(
     EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_shield"), false);
     EffectModule::kill_kind(module_accessor, Hash40::new("sys_shield"), false, true);
     for i in 0..8 {
-        if AttackModule::is_attack(module_accessor, i, false) {
-            let attack_data = *AttackModule::attack_data(module_accessor, i, false);
-            let is_capsule =
-                attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
-            let mut x2 = None;
-            let mut y2 = None;
-            let mut z2 = None;
-            if is_capsule {
-                x2 = Some(attack_data.x2);
-                y2 = Some(attack_data.y2);
-                z2 = Some(attack_data.z2);
-            }
-            generate_hitbox_effects(
-                module_accessor,
-                attack_data.node, // joint
-                attack_data.size,
-                attack_data.x,
-                attack_data.y,
-                attack_data.z,
-                x2,
-                y2,
-                z2,
-                ID_COLORS[(i % 8) as usize],
-            );
+        if !AttackModule::is_attack(module_accessor, i, false) {
+            continue;
         }
+
+        let attack_data = *AttackModule::attack_data(module_accessor, i, false);
+        let is_capsule =
+            attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
+        let mut x2 = None;
+        let mut y2 = None;
+        let mut z2 = None;
+        if is_capsule {
+            x2 = Some(attack_data.x2);
+            y2 = Some(attack_data.y2);
+            z2 = Some(attack_data.z2);
+        }
+        generate_hitbox_effects(
+            module_accessor,
+            attack_data.node, // joint
+            attack_data.size,
+            attack_data.x,
+            attack_data.y,
+            attack_data.z,
+            x2,
+            y2,
+            z2,
+            ID_COLORS[(i % 8) as usize],
+        );
     }
 }
 
