@@ -29,6 +29,8 @@ Currently, hitboxes and grabboxes are supported. When visualization is active, o
 ##### Mash Toggles
 *Note:* Combine this with the shield toggles to force the CPU to perform options OoS when their shield is damaged!
 
+You can also use grab + dpad left to let the CPU mash in neutral, use grab + dpad right to stop
+
 ###### Airdodge
 CPUs will mash airdodge on the first frame out of hitstun.
 
