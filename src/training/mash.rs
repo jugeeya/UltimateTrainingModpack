@@ -104,7 +104,7 @@ pub unsafe fn get_command_flag_cat(
             }
         }
         Mash::Random => {
-            if !category == FIGHTER_PAD_COMMAND_CATEGORY1 {
+            if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
                 return;
             }
 

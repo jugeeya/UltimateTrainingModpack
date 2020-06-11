@@ -5,7 +5,7 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if !StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_WAIT {
+    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT {
         return;
     }
 
