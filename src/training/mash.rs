@@ -47,11 +47,11 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if !is_in_hitstun(module_accessor)
-        && !is_in_landing(module_accessor)
-        && !is_in_shieldstun(module_accessor)
-        && !is_in_footstool(module_accessor)
-        && !StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_ROBBED
+    if !(is_in_hitstun(module_accessor)
+        || is_in_landing(module_accessor)
+        || is_in_shieldstun(module_accessor)
+        || is_in_footstool(module_accessor)
+        || StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_ROBBED)
     {
         return;
     }
