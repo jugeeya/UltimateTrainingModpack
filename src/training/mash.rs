@@ -12,17 +12,17 @@ unsafe fn set_neutral_mash(value: bool) {
 }
 
 unsafe fn check_mash_toggle(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    // Grab + Dpad left -> start mashing
-    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
+    // Attack + Dpad up -> start mashing
+    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
+        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
     {
         set_neutral_mash(true);
         return;
     }
 
-    // Grab + Dpad right -> stop mashing
-    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R)
+    // Attack + Dpad down -> stop mashing
+    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
+        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
     {
         set_neutral_mash(false);
         return;
