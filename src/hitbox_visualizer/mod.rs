@@ -170,7 +170,7 @@ pub unsafe fn get_command_flag_cat(
     // Resume Effect AnimCMD incase we don't display hitboxes
     MotionAnimcmdModule::set_sleep_effect(module_accessor, false);
 
-    if !MENU.hitbox_vis {
+    if MENU.hitbox_vis == HitboxVisualization::Off {
         return;
     }
 
@@ -248,7 +248,7 @@ unsafe fn mod_handle_attack(lua_state: u64) {
     }
 
     // Hitbox Visualization
-    if MENU.hitbox_vis {
+    if MENU.hitbox_vis == HitboxVisualization::On {
         // get all necessary grabbox params
         let id = l2c_agent.pop_lua_stack(1); // int
         let joint = l2c_agent.pop_lua_stack(3); // hash40
@@ -291,7 +291,7 @@ unsafe fn mod_handle_catch(lua_state: u64) {
         return;
     }
 
-    if !MENU.hitbox_vis {
+    if MENU.hitbox_vis == HitboxVisualization::Off {
         return;
     }
 
