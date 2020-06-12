@@ -1,6 +1,12 @@
 use smash::lib::lua_const::*;
 
-// Side Taunt
+/// Hitbox Visualization
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum HitboxVisualization {
+    Off = 0,
+    On = 1,
+}
 
 // DI
 /*
@@ -203,9 +209,17 @@ impl From<i32> for Defensive {
     }
 }
 
+/// Mash in neutral
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MashInNeutral {
+    Off = 0,
+    On = 1,
+}
+
 #[repr(C)]
 pub struct TrainingModpackMenu {
-    pub hitbox_vis: bool,
+    pub hitbox_vis: HitboxVisualization,
     pub di_state: DirectionalInfluence,
     pub mash_attack_state: Attack,
     pub ledge_state: LedgeOption,
@@ -213,5 +227,6 @@ pub struct TrainingModpackMenu {
     pub mash_state: Mash,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
-    pub oos_offset: u8,
+    pub oos_offset: i32,
+    pub mash_in_neutral: MashInNeutral
 }
