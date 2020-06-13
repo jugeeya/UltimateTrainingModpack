@@ -39,14 +39,14 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         DI_ANGLE = direction_to_angle(MENU.di_state)
     }
 
-    // If facing left, reverse angle
-    if DI_ANGLE != ANGLE_NONE && PostureModule::lr(module_accessor) != FIGHTER_FACING_RIGHT {
-        DI_ANGLE -= PI;
-    }
-
     // Nothig to do on no DI
     if DI_ANGLE == ANGLE_NONE {
         return;
+    }
+
+    // If facing left, reverse angle
+    if PostureModule::lr(module_accessor) != FIGHTER_FACING_RIGHT {
+        DI_ANGLE -= PI;
     }
 
     WorkModule::set_float(
