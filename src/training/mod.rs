@@ -1,5 +1,4 @@
 use crate::common::FIGHTER_MANAGER_ADDR;
-use crate::common::*;
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
