@@ -17,10 +17,36 @@ pub enum HitboxVisualization {
 /// DI
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DirectionalInfluence {
+pub enum Direction {
     None = 0,
+    Right =1,
+    UpRight = 2,
+    Up = 3,
+    UpLeft = 4,
+    Left = 5,
+    DownLeft = 6,
+    Down = 7,
+    DownRight = 8,
     // lol what goes here jug smh my head
-    RandomInAway = 9,
+    Random = 9,
+}
+
+impl From<i32> for Direction {
+    fn from(x: i32) -> Self {
+        match x {
+            0 => Direction::None,
+            1 => Direction::Right,
+            2 => Direction::UpRight,
+            3 => Direction::Up,
+            4 => Direction::UpLeft,
+            5 => Direction::Left,
+            6 => Direction::DownLeft,
+            7 => Direction::Down,
+            8 => Direction::DownRight,
+            9 => Direction::Random,
+            _ => panic!("Invalid direction {}", x),
+        }
+    }
 }
 
 /// Mash Attack States
@@ -220,7 +246,7 @@ pub enum MashInNeutral {
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
-    pub di_state: DirectionalInfluence,
+    pub di_state: Direction,
     pub mash_attack_state: Attack,
     pub ledge_state: LedgeOption,
     pub tech_state: TechOption,

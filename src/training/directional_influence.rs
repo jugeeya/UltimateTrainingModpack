@@ -24,7 +24,7 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         return;
     }
 
-    if MENU.di_state == DirectionalInfluence::None {
+    if MENU.di_state == Direction::None {
         return;
     }
 
@@ -34,7 +34,7 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     }
 
     // Either left, right, or none
-    if MENU.di_state == DirectionalInfluence::RandomInAway {
+    if MENU.di_state == Direction::Random {
         DI_ANGLE = get_random_di();
     } else {
         DI_ANGLE = (MENU.di_state as i32 - 1) as f64 * PI / 4.0;
