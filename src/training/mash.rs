@@ -34,6 +34,7 @@ pub unsafe fn get_command_flag_cat(
     category: i32,
     flag: &mut i32,
 ) {
+    // Only do once per frame
     if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
@@ -55,6 +56,7 @@ pub unsafe fn get_command_flag_cat(
         || is_in_landing(module_accessor)
         || is_in_shieldstun(module_accessor)
         || is_in_footstool(module_accessor)
+        || MENU.mash_in_neutral == MashInNeutral::On
         || StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_CLIFF_ROBBED)
     {
         return;
@@ -84,8 +86,8 @@ pub unsafe fn get_command_flag_cat(
             match MENU.mash_attack_state {
                 Nair | Fair | Bair | UpAir | Dair => {
                     *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
-                    // If we are performing the attack OOS we also need to jump
-                    if is_in_shieldstun(module_accessor) {
+                    // If we are grounded we also need to jump
+                    if is_grounded(module_accessor) {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                     }
                 }
