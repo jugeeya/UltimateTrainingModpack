@@ -260,6 +260,7 @@ pub enum MashInNeutral {
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
     pub di_state: Direction,
+    pub left_stick: Direction, // Currently only used for air dodge direction
     pub mash_attack_state: Attack,
     pub ledge_state: LedgeOption,
     pub tech_state: TechOption,

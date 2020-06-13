@@ -44,7 +44,7 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f6
         return ANGLE_NONE;
     }
 
-    STICK_DIRECTION = MENU.di_state;
+    STICK_DIRECTION = MENU.left_stick;
     let mut angle: f64 = pick_angle(STICK_DIRECTION);
 
     if angle == ANGLE_NONE {
