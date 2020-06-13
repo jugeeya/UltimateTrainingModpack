@@ -39,14 +39,14 @@ static mut PLAYER_ACTIONABLE : bool = false;
 static mut CPU_ACTIONABLE : bool = false;
 static mut PLAYER_ACTIVE_FRAME : u64 = 0;
 static mut CPU_ACTIVE_FRAME : u64 = 0;
-static mut FRAME_ADVANTAGE : i64 = 0;
+static mut FRAME_ADVANTAGE_CHECK : bool = false;
 
-pub unsafe fn was_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub unsafe fn was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
 }
 
-pub unsafe fn was_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
 }
@@ -88,52 +88,59 @@ pub unsafe fn handle_get_command_flag_cat(
 
     let mut flag = original!()(module_accessor, category);
 
-    if category == 0 {
-        // do only once.
-        if is_operation_cpu(module_accessor) {
-            
-            let player_module_accessor = get_module_accessor(0);
-            let cpu_module_accessor = get_module_accessor(1);
-            
+    if is_training_mode() {
+        if category == 0 {
+            let entry_id_int =
+            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+            // do only once.
+            if entry_id_int == 0 {
+                let player_module_accessor = get_module_accessor(0);
+                let cpu_module_accessor = get_module_accessor(1);
 
-            if is_actionable(cpu_module_accessor) {
-                CPU_ACTIONABLE = true;
-                CPU_ACTIVE_FRAME = FRAME_COUNTER;
-            } else {
-                CPU_ACTIONABLE = false;
-                if PLAYER_ACTIONABLE {
-                    FRAME_ADVANTAGE += 1;
-                }
-            }
-            
-            if is_actionable(player_module_accessor) {
-                PLAYER_ACTIVE_FRAME = FRAME_COUNTER;
-                PLAYER_ACTIONABLE = true;
-            } else {
-                PLAYER_ACTIONABLE = false;
-                if CPU_ACTIONABLE {
-                    FRAME_ADVANTAGE -= 1;
-                }
-            }
+                // Use to factor in that we should only update frame advantage if 
+                // there's been a hit that connects
+                // if AttackModule::is_infliction(
+                //     player_module_accessor, 
+                //     *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD) {
 
-            // if both are now active
-            if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
-                if FRAME_ADVANTAGE != 0 {
-                    if was_in_hitstun(module_accessor) || was_in_shieldstun(module_accessor) {
-                        let mut other_calc = 0;
-                        if CPU_ACTIVE_FRAME > PLAYER_ACTIVE_FRAME {
-                            other_calc = CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME;
-                        } else {
-                            other_calc = PLAYER_ACTIVE_FRAME - CPU_ACTIVE_FRAME;
+                // }
+
+                // the frame the fighter *becomes* actionable
+                if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) {
+                    CPU_ACTIVE_FRAME = FRAME_COUNTER;
+                }
+
+                if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
+                    PLAYER_ACTIVE_FRAME = FRAME_COUNTER;
+                }
+                
+                CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
+                PLAYER_ACTIONABLE = is_actionable(player_module_accessor);
+
+                // if neither are active
+                if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
+                    FRAME_ADVANTAGE_CHECK = true;
+                }
+
+                // if both are now active
+                if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
+                    if FRAME_ADVANTAGE_CHECK {
+                        if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
+                            let frame_advantage : i64;
+                            if PLAYER_ACTIVE_FRAME > CPU_ACTIVE_FRAME {
+                                frame_advantage = (PLAYER_ACTIVE_FRAME - CPU_ACTIVE_FRAME) as i64 * -1;
+                            } else {
+                                frame_advantage = (CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME) as i64;
+                            }
+                            println!("Frame advantage: {}", frame_advantage);
                         }
-                        println!("Frame advantage: {} or {}", FRAME_ADVANTAGE, other_calc);
+                        
+                        FRAME_ADVANTAGE_CHECK = false;
                     }
                 }
 
-                FRAME_ADVANTAGE = 0;
+                FRAME_COUNTER += 1;
             }
-
-            FRAME_COUNTER += 1;
         }
     }
 
