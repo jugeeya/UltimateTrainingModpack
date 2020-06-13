@@ -2,6 +2,8 @@ use crate::common::FIGHTER_MANAGER_ADDR;
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
+use smash::lib::{lua_const::*};
+use crate::common::*;
 
 pub mod directional_influence;
 pub mod shield;
@@ -32,6 +34,51 @@ pub unsafe fn handle_get_attack_air_kind(
     mash::get_attack_air_kind(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 
+static mut FRAME_COUNTER : u64 = 0;
+static mut PLAYER_ACTIONABLE : bool = false;
+static mut CPU_ACTIONABLE : bool = false;
+static mut PLAYER_ACTIVE_FRAME : u64 = 0;
+static mut CPU_ACTIVE_FRAME : u64 = 0;
+static mut FRAME_ADVANTAGE : i64 = 0;
+
+pub unsafe fn was_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
+    (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
+}
+
+pub unsafe fn was_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
+    prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+}
+
+pub unsafe fn get_module_accessor(entry_id_int: i32) -> *mut app::BattleObjectModuleAccessor {
+    let entry_id = app::FighterEntryID(entry_id_int);
+    let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+    let fighter_information =
+        FighterManager::get_fighter_information(mgr, entry_id) as *mut app::FighterInformation;
+    let fighter_entry =
+        FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
+    let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
+    app::sv_battle_object::module_accessor(current_fighter_id as u32)
+
+}
+
+pub unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+    WorkModule::is_enable_transition_term(
+    module_accessor, 
+    *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR) ||
+    WorkModule::is_enable_transition_term(
+        module_accessor, 
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR) ||
+    WorkModule::is_enable_transition_term(
+        module_accessor, 
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON) ||
+    WorkModule::is_enable_transition_term(
+        module_accessor, 
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE) ||
+    CancelModule::is_enable_cancel(module_accessor)
+}
+
 #[skyline::hook(replace = ControlModule::get_command_flag_cat)]
 pub unsafe fn handle_get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -40,6 +87,55 @@ pub unsafe fn handle_get_command_flag_cat(
     save_states::save_states(module_accessor);
 
     let mut flag = original!()(module_accessor, category);
+
+    if category == 0 {
+        // do only once.
+        if is_operation_cpu(module_accessor) {
+            
+            let player_module_accessor = get_module_accessor(0);
+            let cpu_module_accessor = get_module_accessor(1);
+            
+
+            if is_actionable(cpu_module_accessor) {
+                CPU_ACTIONABLE = true;
+                CPU_ACTIVE_FRAME = FRAME_COUNTER;
+            } else {
+                CPU_ACTIONABLE = false;
+                if PLAYER_ACTIONABLE {
+                    FRAME_ADVANTAGE += 1;
+                }
+            }
+            
+            if is_actionable(player_module_accessor) {
+                PLAYER_ACTIVE_FRAME = FRAME_COUNTER;
+                PLAYER_ACTIONABLE = true;
+            } else {
+                PLAYER_ACTIONABLE = false;
+                if CPU_ACTIONABLE {
+                    FRAME_ADVANTAGE -= 1;
+                }
+            }
+
+            // if both are now active
+            if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
+                if FRAME_ADVANTAGE != 0 {
+                    if was_in_hitstun(module_accessor) || was_in_shieldstun(module_accessor) {
+                        let mut other_calc = 0;
+                        if CPU_ACTIVE_FRAME > PLAYER_ACTIVE_FRAME {
+                            other_calc = CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME;
+                        } else {
+                            other_calc = PLAYER_ACTIVE_FRAME - CPU_ACTIVE_FRAME;
+                        }
+                        println!("Frame advantage: {} or {}", FRAME_ADVANTAGE, other_calc);
+                    }
+                }
+
+                FRAME_ADVANTAGE = 0;
+            }
+
+            FRAME_COUNTER += 1;
+        }
+    }
 
     // bool replace;
     // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
