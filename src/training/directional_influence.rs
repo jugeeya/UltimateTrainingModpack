@@ -33,12 +33,7 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     }
 
     // Either left, right, or none
-    if MENU.di_state == Direction::Random {
-        DI_ANGLE = get_random_di();
-    } else {
-        DI_ANGLE = direction_to_angle(MENU.di_state)
-    }
-
+    DI_ANGLE = get_angle(MENU.di_state);
     // Nothig to do on no DI
     if DI_ANGLE == ANGLE_NONE {
         return;
@@ -61,12 +56,23 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     );
 }
 
-unsafe fn get_random_di() -> f64 {
+unsafe fn get_angle(direction: Direction) -> f64 {
+    if direction == Direction::Random {
+        let rand_direction = get_random_direction();
+        return direction_to_angle(rand_direction);
+    }
+
+    direction_to_angle(direction)
+}
+
+unsafe fn get_random_direction() -> Direction {
+    // Choose Left/Right/None
     let rand = app::sv_math::rand(hash40("fighter"), 3);
-    if [0, 1].contains(&rand) {
-        // Either 0 (right) or PI (left)
-        rand as f64 * PI
+    if rand == 0 {
+        Direction::Left
+    } else if rand == 1 {
+        Direction::Right
     } else {
-        ANGLE_NONE
+        Direction::None
     }
 }
