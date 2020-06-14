@@ -220,10 +220,10 @@ unsafe fn handle_attack_option(
             if !WorkModule::is_enable_transition_term(
                 module_accessor,
                 *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
-            ) || !WorkModule::get_int(
+            ) || WorkModule::get_int(
                 module_accessor,
                 *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
-            ) == 0
+            ) != 0
             {
                 return;
             }
