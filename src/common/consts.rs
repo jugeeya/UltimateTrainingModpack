@@ -160,10 +160,10 @@ impl LedgeOption {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TechOption {
     None = 0,
-    Random = 1,
-    InPlace = 2,
-    Roll = 3,
-    Miss = 4,
+    Random = 0x10,
+    InPlace = 0x1,
+    Roll = 0x2,
+    Miss = 0x4,
 }
 
 impl From<i32> for TechOption {
@@ -172,10 +172,10 @@ impl From<i32> for TechOption {
 
         match x {
             0 => None,
-            1 => Random,
-            2 => InPlace,
-            3 => Roll,
-            4 => Miss,
+            0x10 => Random,
+            0x1 => InPlace,
+            0x2=> Roll,
+            0x4 => Miss,
             _ => panic!("Invalid tech option {}", x),
         }
     }
