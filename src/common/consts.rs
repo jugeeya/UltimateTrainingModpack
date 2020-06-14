@@ -58,7 +58,7 @@ pub fn direction_to_angle(direction: Direction) -> f64 {
         Direction::None => ANGLE_NONE,
         Direction::Random => ANGLE_NONE, // Random Direction should be handled by the calling context
         // Translate to bit position using trailing_zeros first
-        _ => (direction as u32).trailing_zeros()  as f64 * PI / 4.0,
+        _ => (direction as u32).trailing_zeros() as f64 * PI / 4.0,
     }
 }
 
@@ -66,17 +66,17 @@ pub fn direction_to_angle(direction: Direction) -> f64 {
 #[repr(i32)]
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Attack {
-    Nair = 0,
-    Fair = 1,
-    Bair = 2,
-    UpAir = 3,
-    Dair = 4,
-    NeutralB = 5,
-    SideB = 6,
-    UpB = 7,
-    DownB = 8,
-    UpSmash = 9,
-    Grab = 10,
+    Nair = 0x0,
+    Fair = 0x1,
+    Bair = 0x2,
+    UpAir = 0x4,
+    Dair = 0x8,
+    NeutralB = 0x10,
+    SideB = 0x20,
+    UpB = 0x40,
+    DownB = 0x80,
+    UpSmash = 0x100,
+    Grab = 0x200,
 }
 
 impl From<i32> for Attack {
@@ -84,17 +84,17 @@ impl From<i32> for Attack {
         use Attack::*;
 
         match x {
-            0 => Nair,
-            1 => Fair,
-            2 => Bair,
-            3 => UpAir,
-            4 => Dair,
-            5 => NeutralB,
-            6 => SideB,
-            7 => UpB,
-            8 => DownB,
-            9 => UpSmash,
-            10 => Grab,
+            0x0 => Nair,
+            0x1 => Fair,
+            0x2 => Bair,
+            0x4 => UpAir,
+            0x8 => Dair,
+            0x10 => NeutralB,
+            0x20 => SideB,
+            0x40 => UpB,
+            0x80 => DownB,
+            0x100 => UpSmash,
+            0x200 => Grab,
             _ => panic!("Invalid mash attack state {}", x),
         }
     }
