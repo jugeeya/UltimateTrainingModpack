@@ -216,8 +216,8 @@ impl From<i32> for Mash {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Shield {
     None = 0,
-    Infinite = 1,
-    Hold = 2,
+    Infinite = 0x1,
+    Hold = 0x2,
 }
 
 // Defensive States
