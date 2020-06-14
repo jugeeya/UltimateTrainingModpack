@@ -7,8 +7,8 @@ pub mod directional_influence;
 pub mod shield;
 pub mod tech;
 
-mod left_stick;
 mod ledge;
+mod left_stick;
 mod mash;
 mod save_states;
 
