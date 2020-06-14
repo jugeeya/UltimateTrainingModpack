@@ -1,5 +1,34 @@
+use crate::common::get_random_int;
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
+
+type BitMap = u32;
+
+/**
+ * Returns a random set bitflag from the bitmap, 0 if no flag is set
+ */
+unsafe fn random_bit(map: BitMap) -> u32 {
+    // Nothing set, return none
+    if map == 0 {
+        return 0;
+    }
+
+    // Select randomly from set bits otherwise
+    let mut vec: Vec<u32> = Vec::new();
+
+    // First, get all set bits
+    for x in 0..7 {
+        let position = 1 << x;
+        // Add position if bit is set
+        if (map & position) > 0 {
+            vec.push(position);
+        }
+    }
+
+    let rand_index = get_random_int(vec.len() as u32) as usize;
+
+    return vec[rand_index];
+}
 
 /// Hitbox Visualization
 #[repr(i32)]
@@ -62,6 +91,10 @@ pub fn direction_to_angle(direction: Direction) -> f64 {
     }
 }
 
+pub unsafe fn get_direction(bitmap: BitMap) -> Direction {
+    Direction::from(random_bit(bitmap) as i32)
+}
+
 /// Mash Attack States
 #[repr(i32)]
 #[derive(PartialEq, Debug, Copy, Clone)]
@@ -115,6 +148,10 @@ impl Attack {
     }
 }
 
+pub unsafe fn get_attack(bitmap: BitMap) -> Attack {
+    Attack::from(random_bit(bitmap) as i32)
+}
+
 // Ledge Option
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -155,6 +192,10 @@ impl LedgeOption {
     }
 }
 
+pub unsafe fn get_ledge_option(bitmap: BitMap) -> LedgeOption {
+    LedgeOption::from(random_bit(bitmap) as i32)
+}
+
 // Tech Option
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -179,6 +220,10 @@ impl From<i32> for TechOption {
             _ => panic!("Invalid tech option {}", x),
         }
     }
+}
+
+pub unsafe fn get_tech_option(bitmap: BitMap) -> TechOption {
+    TechOption::from(random_bit(bitmap) as i32)
 }
 
 /// Mash States
@@ -209,6 +254,10 @@ impl From<i32> for Mash {
             _ => panic!("Invalid mash state {}", x),
         }
     }
+}
+
+pub unsafe fn get_mash_option(bitmap: BitMap) -> Mash {
+    Mash::from(random_bit(bitmap) as i32)
 }
 
 /// Shield States
@@ -246,6 +295,10 @@ impl From<i32> for Defensive {
             _ => panic!("Invalid mash state {}", x),
         }
     }
+}
+
+pub unsafe fn get_defensive_option(bitmap: BitMap) -> Defensive {
+    Defensive::from(random_bit(bitmap) as i32)
 }
 
 /// Mash in neutral
