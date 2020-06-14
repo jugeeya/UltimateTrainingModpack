@@ -58,8 +58,7 @@ unsafe fn mod_handle_change_status(
                     *FIGHTER_STATUS_KIND_PASSIVE_FB,
                 ];
 
-                let random_status_index =
-                    app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
+                let random_status_index = get_random_int(random_statuses.len() as u32) as usize;
                 if random_statuses[random_status_index] != FIGHTER_STATUS_KIND_DOWN {
                     *status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
                     *unk = L2CValue::new_bool(true);
@@ -155,8 +154,7 @@ pub unsafe fn get_command_flag_cat(
             *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
         ];
 
-        let random_status_index =
-            app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
+        let random_status_index = get_random_int(random_statuses.len() as u32) as usize;
         StatusModule::change_status_request_from_script(
             module_accessor,
             random_statuses[random_status_index],
@@ -217,7 +215,7 @@ pub unsafe fn change_motion(
         return None;
     }
 
-    let random_roll = app::sv_math::rand(hash40("fighter"), 2);
+    let random_roll = get_random_int(2);
 
     if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
         if random_roll != 0 {

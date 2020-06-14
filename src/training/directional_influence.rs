@@ -1,8 +1,7 @@
 use crate::common::consts::*;
 use crate::common::*;
 use core::f64::consts::PI;
-use smash::app::{self, lua_bind::*, sv_system};
-use smash::hash40;
+use smash::app::{lua_bind::*, sv_system};
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
@@ -67,7 +66,7 @@ unsafe fn get_angle(direction: Direction) -> f64 {
 
 unsafe fn get_random_direction() -> Direction {
     // Choose Left/Right/None
-    let rand = app::sv_math::rand(hash40("fighter"), 3);
+    let rand = get_random_int(3);
     if rand == 0 {
         Direction::Left
     } else if rand == 1 {

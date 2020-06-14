@@ -1,7 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
 use smash::app::{self, lua_bind::*};
-use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -16,10 +15,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
-    let random_frame = app::sv_math::rand(
-        hash40("fighter"),
-        MotionModule::end_frame(module_accessor) as i32,
-    ) as f32;
+    let random_frame = get_random_int(MotionModule::end_frame(module_accessor) as u32) as f32;
 
     let frame = MotionModule::frame(module_accessor) as f32;
     if !(frame == random_frame || frame > 30.0) {
@@ -30,7 +26,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let ledge_case: LedgeOption;
 
     if MENU.ledge_state == LedgeOption::Random {
-        ledge_case = (app::sv_math::rand(hash40("fighter"), 4) + 2).into();
+        ledge_case = (get_random_int(4) + 2).into();
     } else {
         ledge_case = MENU.ledge_state;
     }

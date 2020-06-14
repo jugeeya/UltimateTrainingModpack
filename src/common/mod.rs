@@ -31,6 +31,13 @@ extern "C" {
 //pub fn get_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32;
 }
 
+/**
+ * Returns a random integer between 0..and max-1
+ */
+pub unsafe fn get_random_int(num_options: u32) -> i32 {
+    app::sv_math::rand(hash40("fighter"), num_options as i32)
+}
+
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
     return (module_accessor.info >> 28) as u8 as i32;
 }
@@ -54,12 +61,12 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
     FighterInformation::is_operation_cpu(fighter_information)
 }
 
-pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
     situation_kind == SITUATION_KIND_GROUND
 }
 
-pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
     situation_kind == SITUATION_KIND_AIR
 }
@@ -107,12 +114,11 @@ pub unsafe fn perform_defensive_option(
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
             ];
 
-            let random_cmd_index =
-                app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
+            let random_cmd_index = get_random_int(random_cmds.len() as u32) as usize;
             *flag |= random_cmds[random_cmd_index];
         }
         Defensive::Roll => {
-            if app::sv_math::rand(hash40("fighter"), 2) == 0 {
+            if get_random_int(2) == 0 {
                 *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
             } else {
                 *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;

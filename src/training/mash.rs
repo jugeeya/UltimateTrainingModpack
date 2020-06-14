@@ -2,7 +2,6 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::shield;
 use smash::app::{self, lua_bind::*};
-use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub unsafe fn get_attack_air_kind(
@@ -21,7 +20,7 @@ pub unsafe fn get_attack_air_kind(
             return MENU.mash_attack_state.into_attack_air_kind();
         }
         Mash::Random => {
-            return Some(app::sv_math::rand(hash40("fighter"), 5) + 1);
+            return Some(get_random_int(5) + 1);
         }
         _ => {
             return None;
@@ -87,8 +86,10 @@ pub unsafe fn get_command_flag_cat(
                 Nair | Fair | Bair | UpAir | Dair => {
                     *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
                     // If we are shielding we also need to jump
-                    if is_in_shieldstun(module_accessor) ||
-                        (is_grounded(module_accessor) && MENU.mash_in_neutral == MashInNeutral::On) {
+                    if is_in_shieldstun(module_accessor)
+                        || (is_grounded(module_accessor)
+                            && MENU.mash_in_neutral == MashInNeutral::On)
+                    {
                         *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
                     }
                 }
@@ -107,8 +108,7 @@ pub unsafe fn get_command_flag_cat(
                 return;
             }
 
-            let random_cmd_index =
-                app::sv_math::rand(hash40("fighter"), random_commands.len() as i32) as usize;
+            let random_cmd_index = get_random_int(random_commands.len() as u32) as usize;
 
             *flag |= random_commands[random_cmd_index];
         }

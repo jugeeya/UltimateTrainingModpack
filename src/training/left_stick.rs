@@ -2,7 +2,6 @@ use crate::common::consts::*;
 use crate::common::*;
 use core::f64::consts::PI;
 use smash::app::{self, lua_bind::*};
-use smash::hash40;
 
 static mut STICK_DIRECTION: Direction = Direction::None;
 
@@ -69,6 +68,6 @@ unsafe fn pick_angle(direction: Direction) -> f64 {
 }
 
 unsafe fn get_random_direction() -> Direction {
-    let rand = app::sv_math::rand(hash40("fighter"), 8);
+    let rand = get_random_int(8);
     Direction::from(rand)
 }
