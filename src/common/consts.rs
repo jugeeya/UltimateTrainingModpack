@@ -174,7 +174,7 @@ impl From<i32> for TechOption {
             0 => None,
             0x10 => Random,
             0x1 => InPlace,
-            0x2=> Roll,
+            0x2 => Roll,
             0x4 => Miss,
             _ => panic!("Invalid tech option {}", x),
         }
@@ -225,11 +225,11 @@ pub enum Shield {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Defensive {
     None = 0,
-    Random = 1,
-    Spotdodge = 2,
-    Roll = 3,
-    Jab = 4,
-    Shield = 5,
+    Random = 0x1,
+    Spotdodge = 0x2,
+    Roll = 0x4,
+    Jab = 0x8,
+    Shield = 0x10,
 }
 
 impl From<i32> for Defensive {
@@ -238,11 +238,11 @@ impl From<i32> for Defensive {
 
         match x {
             0 => None,
-            1 => Random,
-            2 => Spotdodge,
-            3 => Roll,
-            4 => Jab,
-            5 => Shield,
+            0x1 => Random,
+            0x2 => Spotdodge,
+            0x4 => Roll,
+            0x8 => Jab,
+            0x10 => Shield,
             _ => panic!("Invalid mash state {}", x),
         }
     }
