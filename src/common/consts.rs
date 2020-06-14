@@ -20,32 +20,32 @@ pub enum HitboxVisualization {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction {
     None = 0,
-    Right = 1,
-    UpRight = 2,
-    Up = 3,
-    UpLeft = 4,
-    Left = 5,
-    DownLeft = 6,
-    Down = 7,
-    DownRight = 8,
+    Right = 0x1,
+    UpRight = 0x2,
+    Up = 0x4,
+    UpLeft = 0x8,
+    Left = 0x10,
+    DownLeft = 0x20,
+    Down = 0x40,
+    DownRight = 0x80,
     // lol what goes here jug smh my head
-    Random = 9,
+    Random = 0x100,
 }
 
 impl From<i32> for Direction {
     fn from(x: i32) -> Self {
         match x {
             0 => Direction::None,
-            1 => Direction::Right,
-            2 => Direction::UpRight,
-            3 => Direction::Up,
-            4 => Direction::UpLeft,
-            5 => Direction::Left,
-            6 => Direction::DownLeft,
-            7 => Direction::Down,
-            8 => Direction::DownRight,
-            9 => Direction::Random,
-            _ => panic!("Invalid direction {}", x),
+            0x1 => Direction::Right,
+            0x2 => Direction::UpRight,
+            0x4 => Direction::Up,
+            0x8 => Direction::UpLeft,
+            0x10 => Direction::Left,
+            0x20 => Direction::DownLeft,
+            0x40 => Direction::Down,
+            0x80 => Direction::DownRight,
+            0x100 => Direction::Random,
+            _ => Direction::None,
         }
     }
 }
@@ -57,7 +57,8 @@ pub fn direction_to_angle(direction: Direction) -> f64 {
     match direction {
         Direction::None => ANGLE_NONE,
         Direction::Random => ANGLE_NONE, // Random Direction should be handled by the calling context
-        _ => (direction as i32 - 1) as f64 * PI / 4.0,
+        // Translate to bit position using trailing_zeros first
+        _ => (direction as u32).trailing_zeros()  as f64 * PI / 4.0,
     }
 }
 
