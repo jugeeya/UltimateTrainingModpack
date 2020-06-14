@@ -186,26 +186,26 @@ impl From<i32> for TechOption {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Mash {
     None = 0,
-    Airdodge = 1,
-    Jump = 2,
-    Attack = 3,
-    Spotdodge = 4,
-    RollForward = 5,
-    RollBack = 6,
-    Random = 7,
+    Airdodge = 0x1,
+    Jump = 0x2,
+    Attack = 0x4,
+    Spotdodge = 0x8,
+    RollForward = 0x10,
+    RollBack = 0x20,
+    Random = 0x40,
 }
 
 impl From<i32> for Mash {
     fn from(x: i32) -> Self {
         match x {
             0 => Mash::None,
-            1 => Mash::Airdodge,
-            2 => Mash::Jump,
-            3 => Mash::Attack,
-            4 => Mash::Spotdodge,
-            5 => Mash::RollForward,
-            6 => Mash::RollBack,
-            7 => Mash::Random,
+            0x1 => Mash::Airdodge,
+            0x2 => Mash::Jump,
+            0x4 => Mash::Attack,
+            0x8 => Mash::Spotdodge,
+            0x10 => Mash::RollForward,
+            0x20 => Mash::RollBack,
+            0x40 => Mash::Random,
             _ => panic!("Invalid mash state {}", x),
         }
     }
