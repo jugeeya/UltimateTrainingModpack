@@ -120,11 +120,11 @@ impl Attack {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum LedgeOption {
     None = 0,
-    Random = 1,
-    Neutral = 2,
-    Roll = 3,
-    Jump = 4,
-    Attack = 5,
+    Neutral = 0x1,
+    Roll = 0x2,
+    Jump = 0x4,
+    Attack = 0x8,
+    Random = 0x10,
 }
 
 impl From<i32> for LedgeOption {
@@ -133,11 +133,11 @@ impl From<i32> for LedgeOption {
 
         match x {
             0 => None,
-            1 => Random,
-            2 => Neutral,
-            3 => Roll,
-            4 => Jump,
-            5 => Attack,
+            0x10 => Random,
+            0x1 => Neutral,
+            0x2 => Roll,
+            0x4 => Jump,
+            0x8 => Attack,
             _ => panic!("Invalid ledge option {}", x),
         }
     }
