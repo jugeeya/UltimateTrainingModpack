@@ -8,7 +8,7 @@ mod training;
 
 use crate::common::*;
 
-use skyline::libc::{fclose, fopen, fwrite, mkdir, remove, access};
+use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir, remove, access};
 use skyline::nro::{self, NroInfo};
 
 fn nro_main(nro: &NroInfo<'_>) {
@@ -55,7 +55,7 @@ pub fn main() {
         );
 
         if !f.is_null() {
-            fwrite(c_str!(buffer), 1, buffer.len(), f);
+            fwrite(c_str!(buffer) as *const c_void, 1, buffer.len(), f);
             fclose(f);
         }
     }
