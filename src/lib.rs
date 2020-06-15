@@ -8,7 +8,6 @@ mod training;
 
 use crate::common::*;
 
-use skyline::c_str;
 use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir, remove, access};
 use skyline::nro::{self, NroInfo};
 
@@ -25,6 +24,12 @@ fn nro_main(nro: &NroInfo<'_>) {
     }
 }
 
+macro_rules! c_str {
+    ($l:tt) => { concat!($l, "\u{0}")
+                .as_bytes()
+                .as_ptr(); }
+}
+
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
     println!("[Training Modpack] Initialized.");
@@ -38,28 +43,19 @@ pub fn main() {
             "[Training Modpack] Writing training_modpack.log with {}...",
             buffer
         );
-        mkdir("sd:/TrainingModpack/\u{0}".as_bytes().as_ptr(), 0777);
+        mkdir(c_str!("sd:/TrainingModpack/"), 0777);
 
-        if access(
-            "sd:/TrainingModpack/training_modpack.conf\u{0}"
-                .as_bytes()
-                .as_ptr(),
-            0,
-        ) != -1 {
-            remove("sd:/TrainingModpack/training_modpack.conf\u{0}"
-                .as_bytes()
-                .as_ptr());
+        if access(c_str!("sd:/TrainingModpack/training_modpack.conf"), 0) != -1 {
+            remove(c_str!("sd:/TrainingModpack/training_modpack.conf"));
         }
 
         let f = fopen(
-            "sd:/TrainingModpack/training_modpack.log\u{0}"
-                .as_bytes()
-                .as_ptr(),
-            "w\u{0}".as_bytes().as_ptr(),
+            c_str!("sd:/TrainingModpack/training_modpack.log"),
+            c_str!("w"),
         );
 
         if !f.is_null() {
-            fwrite(c_str(&buffer) as *const c_void, 1, buffer.len(), f);
+            fwrite(c_str!(buffer), 1, buffer.len(), f);
             fclose(f);
         }
     }
