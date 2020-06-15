@@ -39,6 +39,18 @@ pub fn main() {
             buffer
         );
         mkdir("sd:/TrainingModpack/\u{0}".as_bytes().as_ptr(), 0777);
+
+        if access(
+            "sd:/TrainingModpack/training_modpack.conf\u{0}"
+                .as_bytes()
+                .as_ptr(),
+            0,
+        ) != -1 {
+            remove("sd:/TrainingModpack/training_modpack.conf\u{0}"
+                .as_bytes()
+                .as_ptr());
+        }
+
         let f = fopen(
             "sd:/TrainingModpack/training_modpack.log\u{0}"
                 .as_bytes()
