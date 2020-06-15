@@ -8,7 +8,7 @@ mod training;
 
 use crate::common::*;
 
-use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir, remove, access};
+use skyline::libc::{fclose, fopen, fwrite, mkdir, remove, access};
 use skyline::nro::{self, NroInfo};
 
 fn nro_main(nro: &NroInfo<'_>) {
@@ -25,8 +25,8 @@ fn nro_main(nro: &NroInfo<'_>) {
 }
 
 macro_rules! c_str {
-    ($l:tt) => { concat!($l, "\u{0}")
-                .as_bytes()
+    ($l:tt) => { [$l.as_bytes(), "\u{0}".as_bytes()]
+                .concat()
                 .as_ptr(); }
 }
 
