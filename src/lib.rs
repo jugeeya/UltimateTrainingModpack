@@ -9,7 +9,7 @@ mod training;
 use crate::common::*;
 
 use skyline::c_str;
-use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
+use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir, remove, access};
 use skyline::nro::{self, NroInfo};
 
 fn nro_main(nro: &NroInfo<'_>) {
