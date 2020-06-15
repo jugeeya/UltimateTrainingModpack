@@ -179,7 +179,7 @@ pub unsafe fn check_button_on(
     }
 
     if MENU.mash_state == Mash::Airdodge
-        && !(is_in_hitstun(module_accessor)
+        && (is_in_hitstun(module_accessor)
             || is_in_landing(module_accessor)
             || is_in_footstool(module_accessor))
     {

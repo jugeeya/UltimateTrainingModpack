@@ -7,7 +7,8 @@ use smash::lib::lua_const::*;
 
 pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     hitbox_vis: HitboxVisualization::On,
-    di_state: DirectionalInfluence::None,
+    di_state: Direction::None,
+    left_stick: Direction::None,
     mash_attack_state: Attack::Nair,
     ledge_state: LedgeOption::Random,
     tech_state: TechOption::Random,
