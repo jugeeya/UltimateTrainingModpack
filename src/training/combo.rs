@@ -54,14 +54,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if category != 0 {
-        return;
-    }
-
-    let entry_id_int =
-        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
-    // do only once.
-    if entry_id_int != (FighterId::Player as i32) {
+    if !once_per_frame(module_accessor, category) {
         return;
     }
 

@@ -16,7 +16,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     shield_state: Shield::None,
     defensive_state: Defensive::Random,
     oos_offset: 0,
-    mash_in_neutral: MashInNeutral::Off
+    mash_in_neutral: MashInNeutral::Off,
 };
 
 pub static mut MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
@@ -54,12 +54,12 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
     FighterInformation::is_operation_cpu(fighter_information)
 }
 
-pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
     situation_kind == SITUATION_KIND_GROUND
 }
 
-pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
     situation_kind == SITUATION_KIND_AIR
 }
@@ -122,4 +122,25 @@ pub unsafe fn perform_defensive_option(
         Defensive::Jab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
         _ => (),
     }
+}
+
+/**
+ * Returns true once per frame
+ */
+pub unsafe fn once_per_frame(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    category: i32,
+) -> bool {
+    if category != 0 {
+        return false;
+    }
+
+    let entry_id_int =
+        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+    // do only once.
+    if entry_id_int != (FighterId::Player as i32) {
+        return false;
+    }
+
+    true
 }
