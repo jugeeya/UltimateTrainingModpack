@@ -38,7 +38,7 @@ pub fn main() {
     nro::add_hook(nro_main).unwrap();
 
     unsafe {
-        let buffer = format!("{:x}", MENU as *const _ as u64);
+        let mut buffer = format!("{:x}", MENU as *const _ as u64);
         println!(
             "[Training Modpack] Writing training_modpack.log with {}...",
             buffer
@@ -49,8 +49,24 @@ pub fn main() {
             remove(c_str!("sd:/TrainingModpack/training_modpack.conf"));
         }
 
-        let f = fopen(
+        let mut f = fopen(
             c_str!("sd:/TrainingModpack/training_modpack.log"),
+            c_str!("w"),
+        );
+
+        if !f.is_null() {
+            fwrite(c_str!(buffer) as *const c_void, 1, buffer.len(), f);
+            fclose(f);
+        }
+
+        buffer = format!("{:x}", &FRAME_ADVANTAGE as *const _ as u64);
+        println!(
+            "[Training Modpack] Writing training_modpack_frame_adv.log with {}...",
+            buffer
+        );
+
+        f = fopen(
+            c_str!("sd:/TrainingModpack/training_modpack_frame_adv.log"),
             c_str!("w"),
         );
 

@@ -9,7 +9,7 @@ use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
 // How many hits to hold shield until picking an Out Of Shield option
-static mut MULTI_HIT_OFFSET: i32 = MENU.oos_offset;
+static mut MULTI_HIT_OFFSET: i32 = unsafe { MENU.oos_offset };
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 

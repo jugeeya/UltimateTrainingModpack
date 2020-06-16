@@ -69,6 +69,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to camera bounds
     if *save_state == CameraMove {
+        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+        FighterManager::reset_fighter(mgr, false);
+
         *save_state = PosMove;
 
         let left_right = (PostureModule::pos_x(module_accessor) > 0.0) as i32 as f32
