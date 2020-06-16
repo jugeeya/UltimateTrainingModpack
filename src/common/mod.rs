@@ -19,8 +19,6 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     mash_in_neutral: MashInNeutral::Off
 };
 
-pub static mut FRAME_ADVANTAGE: i32 = 0;
-
 pub static mut MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
 
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;

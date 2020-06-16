@@ -7,6 +7,7 @@ mod hitbox_visualizer;
 mod training;
 
 use crate::common::*;
+use training::combo::FRAME_ADVANTAGE;
 
 use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir, remove};
 use skyline::nro::{self, NroInfo};
