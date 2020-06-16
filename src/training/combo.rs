@@ -1,3 +1,4 @@
+use crate::common::consts::FighterId;
 use crate::common::FIGHTER_MANAGER_ADDR;
 use crate::common::*;
 use crate::training::*;
@@ -20,7 +21,8 @@ unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccesso
     prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
 }
 
-unsafe fn get_module_accessor(entry_id_int: i32) -> *mut app::BattleObjectModuleAccessor {
+unsafe fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
+    let entry_id_int = fighter_id as i32;
     let entry_id = app::FighterEntryID(entry_id_int);
     let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
     let fighter_entry = FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
@@ -59,53 +61,55 @@ pub unsafe fn get_command_flag_cat(
     let entry_id_int =
         WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
     // do only once.
-    if entry_id_int == 0 {
-        let player_module_accessor = get_module_accessor(0);
-        let cpu_module_accessor = get_module_accessor(1);
+    if entry_id_int != (FighterId::Player as i32) {
+        return;
+    }
 
-        // Use to factor in that we should only update frame advantage if
-        // there's been a hit that connects
-        // if AttackModule::is_infliction(
-        //     player_module_accessor,
-        //     *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD) {
+    let player_module_accessor = get_module_accessor(FighterId::Player);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
 
-        // }
+    // Use to factor in that we should only update frame advantage if
+    // there's been a hit that connects
+    // if AttackModule::is_infliction(
+    //     player_module_accessor,
+    //     *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD) {
 
-        // the frame the fighter *becomes* actionable
-        if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) {
-            CPU_ACTIVE_FRAME = FRAME_COUNTER;
-        }
+    // }
 
-        if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
-            PLAYER_ACTIVE_FRAME = FRAME_COUNTER;
-        }
+    // the frame the fighter *becomes* actionable
+    if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) {
+        CPU_ACTIVE_FRAME = FRAME_COUNTER;
+    }
 
-        CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
-        PLAYER_ACTIONABLE = is_actionable(player_module_accessor);
+    if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
+        PLAYER_ACTIVE_FRAME = FRAME_COUNTER;
+    }
 
-        // if neither are active
-        if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
-            FRAME_ADVANTAGE_CHECK = true;
-        }
+    CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
+    PLAYER_ACTIONABLE = is_actionable(player_module_accessor);
 
-        // if both are now active
-        if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
-            if FRAME_ADVANTAGE_CHECK {
-                if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
-                    let frame_advantage: i64;
-                    if PLAYER_ACTIVE_FRAME > CPU_ACTIVE_FRAME {
-                        frame_advantage = (PLAYER_ACTIVE_FRAME - CPU_ACTIVE_FRAME) as i64 * -1;
-                    } else {
-                        frame_advantage = (CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME) as i64;
-                    }
+    // if neither are active
+    if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
+        FRAME_ADVANTAGE_CHECK = true;
+    }
 
-                    FRAME_ADVANTAGE = frame_advantage as i32;
+    // if both are now active
+    if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
+        if FRAME_ADVANTAGE_CHECK {
+            if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
+                let frame_advantage: i64;
+                if PLAYER_ACTIVE_FRAME > CPU_ACTIVE_FRAME {
+                    frame_advantage = (PLAYER_ACTIVE_FRAME - CPU_ACTIVE_FRAME) as i64 * -1;
+                } else {
+                    frame_advantage = (CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME) as i64;
                 }
 
-                FRAME_ADVANTAGE_CHECK = false;
+                FRAME_ADVANTAGE = frame_advantage as i32;
             }
-        }
 
-        FRAME_COUNTER += 1;
+            FRAME_ADVANTAGE_CHECK = false;
+        }
     }
+
+    FRAME_COUNTER += 1;
 }
