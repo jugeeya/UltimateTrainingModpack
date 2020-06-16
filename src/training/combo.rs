@@ -65,23 +65,6 @@ pub unsafe fn get_command_flag_cat(
 
     // }
 
-    // Start frame counter when the player becomes inactionable
-    if PLAYER_ACTIONABLE && !is_actionable(player_module_accessor) {
-        // Some strings lock the CPU while the player can move, so we need to save the advantage
-        if PLAYER_ACTIVE_FRAME > 0 {
-            SAVED_FRAME = frame_counter::get_frame_count();
-
-            println!("Saving Frame {}", SAVED_FRAME);
-        }
-
-        frame_counter::reset_frame_count();
-        frame_counter::start_counting();
-        PLAYER_ACTIONABLE = false;
-        FRAME_ADVANTAGE_CHECK = true;
-
-        println!("Starting Counter");
-    }
-
     // Nothing to do until we want to start checking
     if !FRAME_ADVANTAGE_CHECK {
         if !check_start_counter(player_module_accessor) {
