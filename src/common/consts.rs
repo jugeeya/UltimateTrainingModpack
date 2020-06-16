@@ -1,3 +1,4 @@
+use core::f64::consts::PI;
 use smash::lib::lua_const::*;
 
 /// Hitbox Visualization
@@ -17,10 +18,48 @@ pub enum HitboxVisualization {
 /// DI
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DirectionalInfluence {
+pub enum Direction {
     None = 0,
+    Right = 1,
+    UpRight = 2,
+    Up = 3,
+    UpLeft = 4,
+    Left = 5,
+    DownLeft = 6,
+    Down = 7,
+    DownRight = 8,
     // lol what goes here jug smh my head
-    RandomInAway = 9,
+    Random = 9,
+}
+
+impl From<i32> for Direction {
+    fn from(x: i32) -> Self {
+        match x {
+            0 => Direction::None,
+            1 => Direction::Right,
+            2 => Direction::UpRight,
+            3 => Direction::Up,
+            4 => Direction::UpLeft,
+            5 => Direction::Left,
+            6 => Direction::DownLeft,
+            7 => Direction::Down,
+            8 => Direction::DownRight,
+            9 => Direction::Random,
+            _ => panic!("Invalid direction {}", x),
+        }
+    }
+}
+
+
+//pub static FIGHTER_FACING_LEFT: f32 = 1.0;
+pub static FIGHTER_FACING_RIGHT: f32 = -1.0;
+pub static ANGLE_NONE: f64 = -69.0;
+pub fn direction_to_angle(direction: Direction) -> f64 {
+    match direction {
+        Direction::None => ANGLE_NONE,
+        Direction::Random => ANGLE_NONE, // Random Direction should be handled by the calling context
+        _ => (direction as i32 - 1) as f64 * PI / 4.0,
+    }
 }
 
 /// Mash Attack States
@@ -220,7 +259,8 @@ pub enum MashInNeutral {
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
-    pub di_state: DirectionalInfluence,
+    pub di_state: Direction,
+    pub left_stick: Direction, // Currently only used for air dodge direction
     pub mash_attack_state: Attack,
     pub ledge_state: LedgeOption,
     pub tech_state: TechOption,
@@ -229,5 +269,4 @@ pub struct TrainingModpackMenu {
     pub defensive_state: Defensive,
     pub oos_offset: i32,
     pub mash_in_neutral: MashInNeutral
-    pub frame_advantage: i32
 }

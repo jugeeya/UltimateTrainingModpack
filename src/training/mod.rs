@@ -9,6 +9,7 @@ pub mod directional_influence;
 pub mod shield;
 pub mod tech;
 
+mod left_stick;
 mod ledge;
 mod mash;
 mod save_states;
@@ -54,8 +55,6 @@ pub unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAcc
 pub unsafe fn get_module_accessor(entry_id_int: i32) -> *mut app::BattleObjectModuleAccessor {
     let entry_id = app::FighterEntryID(entry_id_int);
     let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-    let fighter_information =
-        FighterManager::get_fighter_information(mgr, entry_id) as *mut app::FighterInformation;
     let fighter_entry =
         FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
     let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
@@ -132,8 +131,8 @@ pub unsafe fn handle_get_command_flag_cat(
                             } else {
                                 frame_advantage = (CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME) as i64;
                             }
-                            println!("Frame advantage: {}", frame_advantage);
-                            MENU.frame_advantage = frame_advantage as i32;
+
+                            FRAME_ADVANTAGE = frame_advantage as i32;
                         }
                         
                         FRAME_ADVANTAGE_CHECK = false;
@@ -156,6 +155,43 @@ pub unsafe fn handle_get_command_flag_cat(
     hitbox_visualizer::get_command_flag_cat(module_accessor, category);
 
     flag
+}
+
+/**
+ * This is called to get the stick position when
+ * shielding (shield tilt)
+ * 1 is fully right, -1 is fully left
+ */
+#[skyline::hook(replace = ControlModule::get_stick_x_no_clamp)]
+pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+}
+/**
+ * This is called to get the stick position when
+ * shielding (shield tilt)
+ * 1 is fully up, -1 is fully down
+ */
+#[skyline::hook(replace = ControlModule::get_stick_y_no_clamp)]
+pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    left_stick::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+}
+
+/**
+ * Called when:
+ * Walking in the facing direction
+ * Air Dodging
+ */
+#[skyline::hook(replace = ControlModule::get_stick_x)]
+pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+}
+
+/**
+ *
+ */
+#[skyline::hook(replace = ControlModule::get_stick_y)]
+pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    left_stick::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 
 // int get_pad_flag(u64 module_accessor) {
@@ -182,13 +218,13 @@ pub unsafe fn handle_get_command_flag_cat(
 //     return stick_x;
 // }
 
-// float get_stick_y_replace(u64 module_accessor) {
+// float get_attack_air_stick_x_replace(u64 module_accessor) {
 //     u64 control_module = load_module(module_accessor, 0x48);
-//     float (*get_stick_y)(u64) = (float (*)(u64)) load_module_impl(control_module, 0x188);
-//     float stick_y = get_stick_y(control_module);
+//     float (*get_attack_air_stick_x)(u64) = (float (*)(u64)) load_module_impl(control_module, 0x188);
+//     float stick_y = get_attack_air_stick_x(control_module);
 
 //     bool replace;
-//     float ret = InputRecorder::get_stick_y(module_accessor, replace);
+//     float ret = InputRecorder::get_attack_air_stick_x(module_accessor, replace);
 //     if (replace) return ret;
 
 //     return stick_y;
@@ -265,6 +301,9 @@ pub fn training_mods() {
         handle_get_attack_air_kind,
         // Tech options
         handle_change_motion,
+        // Directional AirDodge,
+        get_stick_x,
+        get_stick_y,
     );
 
     // // Input recorder
@@ -272,6 +311,6 @@ pub fn training_mods() {
     //     "_ZN3app8lua_bind31ControlModule__get_stick_x_implEPNS_26BattleObjectModuleAccessorE",
     //     (u64)&ControlModule::get_stick_x_replace);
     // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind31ControlModule__get_stick_y_implEPNS_26BattleObjectModuleAccessorE",
-    //     (u64)&ControlModule::get_stick_y_replace);
+    //     "_ZN3app8lua_bind31ControlModule__get_attack_air_stick_x_implEPNS_26BattleObjectModuleAccessorE",
+    //     (u64)&ControlModule::get_attack_air_stick_x_replace);
 }
