@@ -45,9 +45,8 @@ pub fn main() {
         );
         mkdir(c_str!("sd:/TrainingModpack/"), 0777);
 
-        if access(c_str!("sd:/TrainingModpack/training_modpack.conf"), 0) != -1 {
-            remove(c_str!("sd:/TrainingModpack/training_modpack.conf"));
-        }
+        println!("[Training Modpack] Removing training_modpack_menu.conf...");
+        remove(c_str!("sd:/TrainingModpack/training_modpack_menu.conf"));
 
         let mut f = fopen(
             c_str!("sd:/TrainingModpack/training_modpack.log"),
