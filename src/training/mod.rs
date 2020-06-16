@@ -133,6 +133,7 @@ pub unsafe fn handle_get_command_flag_cat(
                                 frame_advantage = (CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME) as i64;
                             }
                             println!("Frame advantage: {}", frame_advantage);
+                            MENU.frame_advantage = frame_advantage as i32;
                         }
                         
                         FRAME_ADVANTAGE_CHECK = false;
