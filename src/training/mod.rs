@@ -10,6 +10,7 @@ pub mod tech;
 
 pub mod combo;
 mod fast_fall;
+mod frame_counter;
 mod ledge;
 mod left_stick;
 mod mash;
@@ -55,6 +56,7 @@ pub unsafe fn handle_get_command_flag_cat(
 
     let mut flag = original!()(module_accessor, category);
 
+    frame_counter::get_command_flag_cat(module_accessor, category);
     combo::get_command_flag_cat(module_accessor, category);
 
     // bool replace;
