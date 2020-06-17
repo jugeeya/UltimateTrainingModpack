@@ -191,20 +191,20 @@ unsafe fn handle_escape_option(fighter: &mut L2CFighterCommon) {
     match MENU.mash_state {
         Mash::Spotdodge => {
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Mash::RollForward => {
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_F as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Mash::RollBack => {
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_B as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(),
+                LUA_TRUE,
             );
         }
         _ => (),
@@ -229,8 +229,8 @@ unsafe fn handle_attack_option(
             }
 
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_CATCH as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_CATCH.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Attack::UpB => {
@@ -241,8 +241,8 @@ unsafe fn handle_attack_option(
                 return;
             }
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_SPECIAL_HI as u64),
-                L2CValue::new_bool(false),
+                FIGHTER_STATUS_KIND_SPECIAL_HI.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Attack::UpSmash => {
@@ -253,8 +253,8 @@ unsafe fn handle_attack_option(
                 return;
             }
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ATTACK_HI4_START as u64),
-                L2CValue::new_bool(false),
+                FIGHTER_STATUS_KIND_ATTACK_HI4_START.as_lua_int(),
+                LUA_TRUE,
             );
         }
         _ => (),
