@@ -2,11 +2,13 @@ use crate::common::FIGHTER_MANAGER_ADDR;
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
+use smash::lib::lua_const::*;
 
 pub mod directional_influence;
 pub mod shield;
 pub mod tech;
 
+pub mod combo;
 mod ledge;
 mod left_stick;
 mod mash;
@@ -41,6 +43,8 @@ pub unsafe fn handle_get_command_flag_cat(
     save_states::save_states(module_accessor);
 
     let mut flag = original!()(module_accessor, category);
+
+    combo::get_command_flag_cat(module_accessor, category);
 
     // bool replace;
     // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);

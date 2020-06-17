@@ -9,7 +9,7 @@ use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
 // How many hits to hold shield until picking an Out Of Shield option
-static mut MULTI_HIT_OFFSET: i32 = MENU.oos_offset;
+static mut MULTI_HIT_OFFSET: i32 = unsafe { MENU.oos_offset };
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
@@ -191,20 +191,20 @@ unsafe fn handle_escape_option(fighter: &mut L2CFighterCommon) {
     match MENU.mash_state {
         Mash::Spotdodge => {
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Mash::RollForward => {
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_F as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Mash::RollBack => {
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ESCAPE_B as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(),
+                LUA_TRUE,
             );
         }
         _ => (),
@@ -220,17 +220,17 @@ unsafe fn handle_attack_option(
             if !WorkModule::is_enable_transition_term(
                 module_accessor,
                 *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
-            ) || !WorkModule::get_int(
+            ) || WorkModule::get_int(
                 module_accessor,
                 *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
-            ) == 0
+            ) != 0
             {
                 return;
             }
 
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_CATCH as u64),
-                L2CValue::new_bool(true),
+                FIGHTER_STATUS_KIND_CATCH.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Attack::UpB => {
@@ -241,8 +241,8 @@ unsafe fn handle_attack_option(
                 return;
             }
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_SPECIAL_HI as u64),
-                L2CValue::new_bool(false),
+                FIGHTER_STATUS_KIND_SPECIAL_HI.as_lua_int(),
+                LUA_TRUE,
             );
         }
         Attack::UpSmash => {
@@ -253,8 +253,8 @@ unsafe fn handle_attack_option(
                 return;
             }
             fighter.fighter_base.change_status(
-                L2CValue::new_int(*FIGHTER_STATUS_KIND_ATTACK_HI4_START as u64),
-                L2CValue::new_bool(false),
+                FIGHTER_STATUS_KIND_ATTACK_HI4_START.as_lua_int(),
+                LUA_TRUE,
             );
         }
         _ => (),

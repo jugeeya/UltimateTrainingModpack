@@ -321,5 +321,5 @@ pub struct TrainingModpackMenu {
     pub shield_state: Shield,
     pub defensive_state: Defensive,
     pub oos_offset: i32,
-    pub mash_in_neutral: MashInNeutral,
+    pub mash_in_neutral: MashInNeutral
 }
