@@ -9,6 +9,7 @@ pub mod shield;
 pub mod tech;
 
 pub mod combo;
+mod fast_fall;
 mod frame_counter;
 mod ledge;
 mod left_stick;
@@ -67,6 +68,7 @@ pub unsafe fn handle_get_command_flag_cat(
     ledge::get_command_flag_cat(module_accessor, category, &mut flag);
     tech::get_command_flag_cat(module_accessor, category, &mut flag);
     hitbox_visualizer::get_command_flag_cat(module_accessor, category);
+    fast_fall::get_command_flag_cat(module_accessor, category);
 
     flag
 }

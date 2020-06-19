@@ -255,6 +255,13 @@ pub enum MashInNeutral {
     On = 1,
 }
 
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FastFall {
+    Off = 0,
+    On = 1,
+}
+
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
@@ -268,6 +275,7 @@ pub struct TrainingModpackMenu {
     pub defensive_state: Defensive,
     pub oos_offset: i32,
     pub mash_in_neutral: MashInNeutral,
+    pub fast_fall: FastFall,
 }
 
 // Fighter Ids
