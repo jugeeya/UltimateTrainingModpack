@@ -50,7 +50,6 @@ impl From<i32> for Direction {
     }
 }
 
-
 //pub static FIGHTER_FACING_LEFT: f32 = 1.0;
 pub static FIGHTER_FACING_RIGHT: f32 = -1.0;
 pub static ANGLE_NONE: f64 = -69.0;
@@ -256,6 +255,13 @@ pub enum MashInNeutral {
     On = 1,
 }
 
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FastFall {
+    Off = 0,
+    On = 1,
+}
+
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
@@ -268,5 +274,6 @@ pub struct TrainingModpackMenu {
     pub shield_state: Shield,
     pub defensive_state: Defensive,
     pub oos_offset: i32,
-    pub mash_in_neutral: MashInNeutral
+    pub mash_in_neutral: MashInNeutral,
+    pub fast_fall: FastFall,
 }
