@@ -17,15 +17,15 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
+    if MENU.fast_fall != FastFall::On {
+        return;
+    }
+
     if !is_operation_cpu(module_accessor) {
         return;
     }
 
     if !is_airborne(module_accessor) {
-        return;
-    }
-
-    if MENU.fast_fall != FastFall::On {
         return;
     }
 
