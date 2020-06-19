@@ -152,8 +152,8 @@ unsafe fn calculate_frame_advantage(cpu_frame: u32, player_frame: u32) {
     let mut diff = (cpu_frame as i32) - (player_frame as i32);
 
     // Fix diff for on whiff options
-    if cpu_frame <= 1{
-        diff +=2;
+    if cpu_frame <= 1 {
+        diff += 2;
     }
 
     /*
