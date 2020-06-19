@@ -10,6 +10,13 @@ static mut PLAYER_ACTIVE_FRAME: u32 = 0;
 static mut CPU_ACTIVE_FRAME: u32 = 0;
 static mut FRAME_ADVANTAGE_CHECK: bool = false;
 static mut SAVED_FRAME: u32 = 0;
+static mut FRAME_COUNTER_INDEX: usize = 0;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER_INDEX = frame_counter::register_counter();
+    }
+}
 
 unsafe fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
     let entry_id_int = fighter_id as i32;
@@ -76,7 +83,7 @@ pub unsafe fn get_command_flag_cat(
 
     // The frame the player becomes actionable again
     if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
-        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count();
+        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
         PLAYER_ACTIONABLE = true;
         println!("Player FAF {}", PLAYER_ACTIVE_FRAME);
     }
@@ -106,12 +113,12 @@ unsafe fn check_start_counter(
 
     // Some strings lock the CPU while the player can move, so we need to save the advantage
     if PLAYER_ACTIVE_FRAME > 0 {
-        SAVED_FRAME = frame_counter::get_frame_count();
+        SAVED_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
         println!("Saving Frame {}", SAVED_FRAME);
     }
 
-    frame_counter::reset_frame_count();
-    frame_counter::start_counting();
+    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+    frame_counter::start_counting(FRAME_COUNTER_INDEX);
     PLAYER_ACTIONABLE = false;
     FRAME_ADVANTAGE_CHECK = true;
 
@@ -129,7 +136,7 @@ unsafe fn check_cpu_frames() {
         }
 
         // Save The CPU Frame
-        CPU_ACTIVE_FRAME = frame_counter::get_frame_count();
+        CPU_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
         CPU_ACTIONABLE = true;
         println!("CPU FAF {}", CPU_ACTIVE_FRAME);
 
@@ -165,7 +172,7 @@ unsafe fn calculate_frame_advantage(cpu_frame: u32, player_frame: u32) {
 }
 
 unsafe fn reset() {
-    frame_counter::stop_counting();
+    frame_counter::stop_counting(FRAME_COUNTER_INDEX);
     CPU_ACTIVE_FRAME = 0;
     PLAYER_ACTIVE_FRAME = 0;
     SAVED_FRAME = 0;
