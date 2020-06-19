@@ -25,6 +25,16 @@ pub unsafe fn handle_get_param_float(
         .unwrap_or_else(|| original!()(module_accessor, param_type, param_hash))
 }
 
+#[skyline::hook(replace = WorkModule::get_param_int)]
+pub unsafe fn handle_get_param_int(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    param_type: u64,
+    param_hash: u64,
+) -> i32 {
+    save_states::get_param_int(module_accessor, param_type, param_hash)
+        .unwrap_or_else(|| original!()(module_accessor, param_type, param_hash))
+}
+
 #[skyline::hook(replace = ControlModule::get_attack_air_kind)]
 pub unsafe fn handle_get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -41,7 +51,7 @@ pub unsafe fn handle_get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32,
 ) -> i32 {
-    save_states::save_states(module_accessor);
+    save_states::save_states(module_accessor, category);
 
     let mut flag = original!()(module_accessor, category);
 
@@ -201,6 +211,8 @@ pub fn training_mods() {
         handle_check_button_on,
         handle_check_button_off,
         handle_get_param_float,
+        // Save states
+        handle_get_param_int,
         // Mash attack
         handle_get_attack_air_kind,
         // Tech options

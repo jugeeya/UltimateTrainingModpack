@@ -2,6 +2,7 @@ use crate::common::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+use smash::hash40;
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -28,8 +29,42 @@ static mut SAVE_STATE_PERCENT_CPU: f32 = 0.0;
 static mut SAVE_STATE_LR_CPU: f32 = 1.0;
 static mut SAVE_STATE_SITUATION_KIND_CPU: i32 = 0 as i32;
 
-pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn get_param_int(
+    _module_accessor: &mut app::BattleObjectModuleAccessor,
+    param_type: u64,
+    param_hash: u64,
+) -> Option<i32> {
     if !is_training_mode() {
+        return None;
+    }
+
+    if param_type == hash40("common") {
+        if param_hash == hash40("dead_rebirth_wait_frame") {
+            return Some(1);
+        }
+        if param_hash == hash40("rebirth_move_frame") {
+            return Some(0);
+        }
+        if param_hash == hash40("rebirth_wait_frame") {
+            return Some(0);
+        }
+        if param_hash == hash40("rebirth_invincible_frame") {
+            return Some(0);
+        }
+        if param_hash == hash40("rebirth_invincible_add_frame") {
+            return Some(0);
+        }
+    }
+
+    None
+}
+
+pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor, category: i32) {
+    if !is_training_mode() {
+        return;
+    }
+
+    if category != 0 {
         return;
     }
 
@@ -69,9 +104,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to camera bounds
     if *save_state == CameraMove {
-        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-        FighterManager::reset_fighter(mgr, false);
-
         *save_state = PosMove;
 
         let left_right = (PostureModule::pos_x(module_accessor) > 0.0) as i32 as f32
@@ -85,20 +117,19 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         };
         PostureModule::set_pos(module_accessor, &pos);
 
-        // force aerial, because from aerial state we can move anywhere
-        if StatusModule::situation_kind(module_accessor) == SITUATION_KIND_GROUND {
-            StatusModule::change_status_request(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_JUMP_SQUAT,
-                false,
-            );
-        }
+        StatusModule::change_status_request(
+            module_accessor,
+            *FIGHTER_STATUS_KIND_DEAD,
+            false,
+        );
         return;
     }
 
     // move to correct pos
     if *save_state == PosMove {
-        if StatusModule::situation_kind(module_accessor) == SITUATION_KIND_GROUND {
+        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+        FighterManager::reset_fighter(mgr, false);
+        if StatusModule::prev_status_kind(module_accessor, 0) != FIGHTER_STATUS_KIND_REBIRTH {
             return;
         }
 
