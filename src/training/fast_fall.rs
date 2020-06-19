@@ -53,7 +53,7 @@ pub unsafe fn get_command_flag_cat(
         *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_DIVE,
     );
 
-    // add_spark_effect(module_accessor);
+    add_spark_effect(module_accessor);
 }
 
 unsafe fn add_spark_effect(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -64,20 +64,23 @@ unsafe fn add_spark_effect(module_accessor: &mut app::BattleObjectModuleAccessor
         z: 0.0,
     };
 
-    let zeros = Vector3f {
+    let rotation = Vector3f {
         x: 0.0,
         y: 0.0,
         z: 0.0,
     };
+
+    let size = 2.0;
+
     EffectModule::req(
         module_accessor,
-        Hash40::new("sys_dragoon_flash"),
+        Hash40::new("sys_smash_flash_s"),
         &pos,
-        &zeros,
-        1.0,
+        &rotation,
+        size,
         0,
         0,
         true,
-        0,
+        *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS,
     );
 }
