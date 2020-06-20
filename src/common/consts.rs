@@ -277,3 +277,11 @@ pub struct TrainingModpackMenu {
     pub mash_in_neutral: MashInNeutral,
     pub fast_fall: FastFall,
 }
+
+// Fighter Ids
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FighterId {
+    Player = 0,
+    CPU = 1,
+}
