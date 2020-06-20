@@ -224,6 +224,8 @@ pub fn training_mods() {
         get_stick_y,
     );
 
+    combo::init();
+
     // // Input recorder
     // SaltySD_function_replace_sym(
     //     "_ZN3app8lua_bind31ControlModule__get_stick_x_implEPNS_26BattleObjectModuleAccessorE",

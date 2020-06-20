@@ -3,12 +3,19 @@ use crate::common::*;
 use crate::training::*;
 
 pub static mut FRAME_ADVANTAGE: i32 = 0;
-static mut FRAME_COUNTER: u64 = 0;
 static mut PLAYER_ACTIONABLE: bool = false;
 static mut CPU_ACTIONABLE: bool = false;
-static mut PLAYER_ACTIVE_FRAME: u64 = 0;
-static mut CPU_ACTIVE_FRAME: u64 = 0;
+static mut PLAYER_ACTIVE_FRAME: u32 = 0;
+static mut CPU_ACTIVE_FRAME: u32 = 0;
 static mut FRAME_ADVANTAGE_CHECK: bool = false;
+
+static mut FRAME_COUNTER_INDEX: usize = 0;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER_INDEX = frame_counter::register_counter();
+    }
+}
 
 unsafe fn was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
@@ -73,11 +80,11 @@ pub unsafe fn get_command_flag_cat(
 
         // the frame the fighter *becomes* actionable
         if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) {
-            CPU_ACTIVE_FRAME = FRAME_COUNTER;
+            CPU_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
         }
 
         if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
-            PLAYER_ACTIVE_FRAME = FRAME_COUNTER;
+            PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
         }
 
         CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
@@ -85,6 +92,10 @@ pub unsafe fn get_command_flag_cat(
 
         // if neither are active
         if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
+            if !FRAME_ADVANTAGE_CHECK {
+                frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+                frame_counter::start_counting(FRAME_COUNTER_INDEX);
+            }
             FRAME_ADVANTAGE_CHECK = true;
         }
 
@@ -103,9 +114,9 @@ pub unsafe fn get_command_flag_cat(
                 }
 
                 FRAME_ADVANTAGE_CHECK = false;
+
+                frame_counter::stop_counting(FRAME_COUNTER_INDEX);
             }
         }
-
-        FRAME_COUNTER += 1;
     }
 }
