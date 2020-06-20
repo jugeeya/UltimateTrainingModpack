@@ -107,10 +107,10 @@ pub unsafe fn get_command_flag_cat(
         if FRAME_ADVANTAGE_CHECK {
             if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
                 FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
-                FRAME_ADVANTAGE_CHECK = false;
-
-                frame_counter::stop_counting(FRAME_COUNTER_INDEX);
             }
+
+            frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+            FRAME_ADVANTAGE_CHECK = false;
         }
     }
 }
