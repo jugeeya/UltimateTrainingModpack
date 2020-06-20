@@ -106,14 +106,7 @@ pub unsafe fn get_command_flag_cat(
     if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
         if FRAME_ADVANTAGE_CHECK {
             if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
-                let frame_advantage: i64;
-                if PLAYER_ACTIVE_FRAME > CPU_ACTIVE_FRAME {
-                    frame_advantage = (PLAYER_ACTIVE_FRAME - CPU_ACTIVE_FRAME) as i64 * -1;
-                } else {
-                    frame_advantage = (CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME) as i64;
-                }
-
-                FRAME_ADVANTAGE = frame_advantage as i32;
+                FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
                 FRAME_ADVANTAGE_CHECK = false;
 
                 frame_counter::stop_counting(FRAME_COUNTER_INDEX);
