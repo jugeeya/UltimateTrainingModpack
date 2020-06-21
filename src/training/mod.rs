@@ -152,11 +152,9 @@ pub unsafe fn handle_check_button_on(
     button: i32,
 ) -> bool {
     shield::check_button_on(module_accessor, button).unwrap_or_else(|| {
-        mash::check_button_on(module_accessor, button).unwrap_or_else(|| {
-            tech::check_button_on(module_accessor, button).unwrap_or_else(|| {
-                ledge::check_button_on(module_accessor, button)
-                    .unwrap_or_else(|| original!()(module_accessor, button))
-            })
+        tech::check_button_on(module_accessor, button).unwrap_or_else(|| {
+            ledge::check_button_on(module_accessor, button)
+                .unwrap_or_else(|| original!()(module_accessor, button))
         })
     })
 }

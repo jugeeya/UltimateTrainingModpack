@@ -292,38 +292,3 @@ unsafe fn get_random_command_list(
 
     return vec![];
 }
-
-pub unsafe fn perform_defensive_option(
-    _module_accessor: &mut app::BattleObjectModuleAccessor,
-    _flag: &mut i32,
-) {
-    match MENU.defensive_state {
-        Defensive::Random => {
-            let random_cmds = vec![
-                Mash::Spotdodge,
-                Mash::RollForward,
-                Mash::RollBack,
-                Mash::Attack,
-            ];
-
-            let random_cmd_index =
-                app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
-
-            buffer_action(random_cmds[random_cmd_index]);
-            set_attack(Attack::Jab);
-        }
-        Defensive::Roll => {
-            if app::sv_math::rand(hash40("fighter"), 2) == 0 {
-                buffer_action(Mash::RollForward);
-            } else {
-                buffer_action(Mash::RollBack);
-            }
-        }
-        Defensive::Spotdodge => buffer_action(Mash::Spotdodge),
-        Defensive::Jab => {
-            buffer_action(Mash::Attack);
-            set_attack(Attack::Jab);
-        }
-        _ => (),
-    }
-}
