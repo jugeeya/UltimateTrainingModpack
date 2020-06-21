@@ -64,21 +64,54 @@ pub unsafe fn get_command_flag_cat(
 
     match MENU.mash_state {
         Mash::Airdodge => {
-            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
+            update_flag(
+                module_accessor,
+                flag,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+            );
         }
         Mash::Jump => {
-            if !is_in_landing(module_accessor) {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+            let check_flag: i32;
+
+            if is_grounded(module_accessor) {
+                check_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON;
+            } else if is_airborne(module_accessor) {
+                check_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_AERIAL_BUTTON;
+            } else {
+                check_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_JUMP_BUTTON;
             }
+
+            update_flag(
+                module_accessor,
+                flag,
+                check_flag,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
+            );
         }
         Mash::Spotdodge => {
-            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE;
+            update_flag(
+                module_accessor,
+                flag,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+            );
         }
         Mash::RollForward => {
-            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
+            update_flag(
+                module_accessor,
+                flag,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_F,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+            );
         }
         Mash::RollBack => {
-            *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
+            update_flag(
+                module_accessor,
+                flag,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_B,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+            );
         }
         Mash::Attack => {
             use Attack::*;
@@ -116,6 +149,23 @@ pub unsafe fn get_command_flag_cat(
         }
         _ => (),
     }
+}
+
+/**
+ * Updates the flag if the transition is valid
+ *
+ */
+unsafe fn update_flag(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    flag: &mut i32,
+    transition_flag: i32,
+    action_flag: i32,
+) {
+    if !WorkModule::is_enable_transition_term(module_accessor, transition_flag) {
+        return;
+    }
+
+    *flag |= action_flag;
 }
 
 unsafe fn get_random_command_list(
