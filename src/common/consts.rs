@@ -76,6 +76,10 @@ pub enum Attack {
     DownB = 8,
     UpSmash = 9,
     Grab = 10,
+    Jab = 11,
+    Ftilt = 12,
+    Utilt = 13,
+    Dtilt = 14,
 }
 
 impl From<i32> for Attack {
