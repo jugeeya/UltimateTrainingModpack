@@ -26,6 +26,11 @@ pub fn get_current_buffer() -> Mash {
 
 pub fn set_attack(attack: Attack) {
     unsafe {
+        if BUFFERED_ATTACK == attack {
+            return;
+        }
+    }
+    unsafe {
         BUFFERED_ATTACK = attack;
     }
     println!("Attack {}", attack as i32);
@@ -34,9 +39,9 @@ pub fn get_current_attack() -> Attack {
     unsafe { BUFFERED_ATTACK }
 }
 
-pub fn reset(){
-    unsafe{
-        BUFFERED_ACTION  =Mash::None;
+pub fn reset() {
+    unsafe {
+        BUFFERED_ACTION = Mash::None;
     }
 }
 
@@ -57,24 +62,23 @@ pub unsafe fn get_attack_air_kind(
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32,
-    flag: &mut i32,
-) {
+) -> i32 {
     // Only do once per frame
     if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
+        return 0;
     }
 
     if !is_training_mode() {
-        return;
+        return 0;
     }
 
     if !is_operation_cpu(module_accessor) {
-        return;
+        return 0;
     }
 
     check_buffer(module_accessor);
 
-    *flag |= perform_action(module_accessor);
+    perform_action(module_accessor)
 }
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -176,7 +180,8 @@ unsafe fn get_attack_flag(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
         UpSmash => {
             action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4;
-            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_HI4;
+            // transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_HI4;
+            transition_flag = 0;
         }
         Grab => {
             action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
@@ -248,7 +253,9 @@ unsafe fn get_flag(
     transition_flag: i32,
     action_flag: i32,
 ) -> i32 {
-    if !WorkModule::is_enable_transition_term(module_accessor, transition_flag) {
+    if transition_flag > 0
+        && !WorkModule::is_enable_transition_term(module_accessor, transition_flag)
+    {
         return 0;
     }
 

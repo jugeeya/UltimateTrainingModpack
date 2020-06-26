@@ -64,7 +64,7 @@ pub unsafe fn handle_get_command_flag_cat(
     // if (replace) return ret;
 
     shield::get_command_flag_cat(module_accessor);
-    mash::get_command_flag_cat(module_accessor, category, &mut flag);
+    flag |= mash::get_command_flag_cat(module_accessor, category);
     ledge::get_command_flag_cat(module_accessor, category, &mut flag);
     tech::get_command_flag_cat(module_accessor, category, &mut flag);
     hitbox_visualizer::get_command_flag_cat(module_accessor, category);
