@@ -1,7 +1,8 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::mash;
 use crate::hitbox_visualizer;
+use crate::training::frame_counter;
+use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::sv_system;
@@ -14,6 +15,17 @@ use smash::lua2cpp::L2CFighterCommon;
 static mut MULTI_HIT_OFFSET: i32 = unsafe { MENU.oos_offset };
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
+
+static mut FRAME_COUNTER_INDEX: usize = 0;
+
+// For how many frames should the shield hold be overwritten
+static mut SHIELD_SUSPEND_FRAMES: u32 = 0;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER_INDEX = frame_counter::register_counter();
+    }
+}
 
 // Toggle for shield decay
 static mut SHIELD_DECAY: bool = false;
@@ -180,12 +192,43 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
+    if !hitbox_visualizer::is_shielding(module_accessor) {
+        return;
+    }
+
     mash::buffer_action(MENU.mash_state);
     mash::set_attack(MENU.mash_attack_state);
+
+    if needs_oos_handling_drop_shield() {
+        return;
+    }
+
+    set_shield_suspension();
+}
+
+// Needed for Specials OOS
+unsafe fn set_shield_suspension() {
+    // Set shield suspension frames
+    match MENU.mash_state {
+        Mash::Attack => match MENU.mash_attack_state {
+            Attack::UpSmash => {}
+            Attack::Grab => {}
+            _ => {
+                SHIELD_SUSPEND_FRAMES = 15;
+            }
+        },
+
+        _ => {}
+    }
+
+    if SHIELD_SUSPEND_FRAMES > 0 {
+        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    }
 }
 
 /**
- * THis is needed to have the CPU put up shield
+ * This is needed to have the CPU put up shield
  */
 pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -204,7 +247,9 @@ pub unsafe fn check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if should_return_none_in_check_button(module_accessor, button) || needs_oos_handling() {
+    if should_return_none_in_check_button(module_accessor, button)
+        || needs_oos_handling_drop_shield()
+    {
         return None;
     }
     Some(false)
@@ -213,7 +258,7 @@ pub unsafe fn check_button_off(
 /**
  * Needed to allow these attacks to work OOS
  */
-fn needs_oos_handling() -> bool {
+fn needs_oos_handling_drop_shield() -> bool {
     match mash::get_current_buffer() {
         Mash::Jump => return true,
         Mash::Attack => {
@@ -244,6 +289,30 @@ fn is_aerial(attack: Attack) -> bool {
 }
 
 /**
+ * Needed for these options to work OOS
+ */
+unsafe fn suspend_shield() -> bool {
+    // Normal behavior when not mashing
+    if SHIELD_SUSPEND_FRAMES == 0 {
+        return false;
+    }
+
+    let resume_normal_behavior =
+        frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > SHIELD_SUSPEND_FRAMES;
+
+    if resume_normal_behavior {
+        SHIELD_SUSPEND_FRAMES = 0;
+        frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+
+        return false;
+    }
+
+    println!("Suspending Shield {} / {}",frame_counter::get_frame_count(FRAME_COUNTER_INDEX),SHIELD_SUSPEND_FRAMES);
+
+    true
+}
+
+/**
  * AKA should the cpu hold the shield button
  */
 unsafe fn should_return_none_in_check_button(
@@ -263,6 +332,10 @@ unsafe fn should_return_none_in_check_button(
     }
 
     if !should_hold_shield(module_accessor) {
+        return true;
+    }
+
+    if suspend_shield() {
         return true;
     }
 
