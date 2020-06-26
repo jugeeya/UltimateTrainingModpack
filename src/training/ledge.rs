@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -72,7 +73,7 @@ pub unsafe fn defensive_option(
         return;
     }
 
-    perform_defensive_option(module_accessor, flag);
+    mash::perform_defensive_option(module_accessor, flag);
 }
 
 pub unsafe fn check_button_on(

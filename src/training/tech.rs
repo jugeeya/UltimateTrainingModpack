@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::mash;
 use smash::app::sv_system;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -168,7 +169,7 @@ pub unsafe fn get_command_flag_cat(
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
 
     if should_perform_defensive_option(module_accessor, prev_status, status) {
-        perform_defensive_option(module_accessor, flag);
+        mash::perform_defensive_option(module_accessor, flag);
     }
 }
 

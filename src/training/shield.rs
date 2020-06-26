@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::sv_system;
@@ -123,32 +124,31 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         return false;
     }
 
-    // If we are not mashing attack then we will always hold shield
-    if MENU.mash_state != Mash::Attack {
-        return true;
-    }
-
     // Hold shield while OOS is not allowed
     if !allow_oos() {
         return true;
     }
 
-    if !is_in_shieldstun(module_accessor) {
+    if !was_in_shieldstun(module_accessor) {
         return true;
     }
 
-    // We will only drop shield if we are in shieldstun and our attack can be performed OOS
-    if MENU.mash_state == Mash::Attack {
-        if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
-            return false;
-        }
-
-        if MENU.mash_attack_state == Attack::Grab {
-            return true;
-        }
+    match mash::get_current_buffer() {
+        Mash::Attack => {} // Handle attack below
+        _ => return true,
     }
 
-    false
+    // We will hold shield if we are in shieldstun and our attack can be performed OOS
+    match mash::get_current_attack() {
+        Attack::UpSmash => return true,
+        Attack::Grab => return true,
+        Attack::UpB => return true,
+        Attack::Nair => return true,
+        Attack::Fair => return true,
+        Attack::UpAir => return true,
+        Attack::Bair => return true,
+        _ => return false,
+    }
 }
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
@@ -159,10 +159,11 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 
 unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-    if !is_training_mode()
-        || !is_operation_cpu(module_accessor)
-        || StatusModule::prev_status_kind(module_accessor, 0) != FIGHTER_STATUS_KIND_GUARD_DAMAGE
-    {
+    if !is_training_mode() || !is_operation_cpu(module_accessor) {
+        return;
+    }
+
+    if !was_in_shieldstun(module_accessor) {
         return;
     }
 
@@ -174,91 +175,9 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if MENU.mash_state == Mash::Attack {
-        handle_attack_option(fighter, module_accessor);
-        return;
-    }
+    mash::buffer_action(MENU.mash_state);
+    mash::set_attack(MENU.mash_attack_state);
 
-    if WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-    ) {
-        handle_escape_option(fighter);
-    }
-}
-
-unsafe fn handle_escape_option(fighter: &mut L2CFighterCommon) {
-    match MENU.mash_state {
-        Mash::Spotdodge => {
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Mash::RollForward => {
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Mash::RollBack => {
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        _ => (),
-    }
-}
-
-unsafe fn handle_attack_option(
-    fighter: &mut L2CFighterCommon,
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) {
-    match MENU.mash_attack_state {
-        Attack::Grab => {
-            if !WorkModule::is_enable_transition_term(
-                module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
-            ) || WorkModule::get_int(
-                module_accessor,
-                *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
-            ) != 0
-            {
-                return;
-            }
-
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_CATCH.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Attack::UpB => {
-            if !WorkModule::is_enable_transition_term(
-                module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-            ) {
-                return;
-            }
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_SPECIAL_HI.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Attack::UpSmash => {
-            if !WorkModule::is_enable_transition_term(
-                module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-            ) {
-                return;
-            }
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ATTACK_HI4_START.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        _ => (),
-    }
 }
 
 pub unsafe fn check_button_on(
@@ -302,4 +221,10 @@ unsafe fn should_return_none_in_check_button(
     }
 
     false
+}
+
+fn was_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    unsafe {
+        StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+    }
 }

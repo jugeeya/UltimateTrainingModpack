@@ -9,6 +9,12 @@ static mut BUFFERED_ATTACK: Attack = Attack::Nair;
 
 pub fn buffer_action(action: Mash) {
     unsafe {
+        if BUFFERED_ACTION != Mash::None {
+            return;
+        }
+    }
+
+    unsafe {
         BUFFERED_ACTION = action;
     }
     println!("Buffering {}", action as i32);
@@ -26,6 +32,12 @@ pub fn set_attack(attack: Attack) {
 }
 pub fn get_current_attack() -> Attack {
     unsafe { BUFFERED_ATTACK }
+}
+
+pub fn reset(){
+    unsafe{
+        BUFFERED_ACTION  =Mash::None;
+    }
 }
 
 pub unsafe fn get_attack_air_kind(
@@ -247,48 +259,32 @@ unsafe fn get_flag(
     return action_flag;
 }
 
-unsafe fn get_random_command_list(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> Vec<i32> {
-    let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+pub unsafe fn perform_defensive_option(
+    _module_accessor: &mut app::BattleObjectModuleAccessor,
+    flag: &mut i32,
+) {
+    match MENU.defensive_state {
+        Defensive::Random => {
+            let random_cmds = vec![
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+            ];
 
-    if situation_kind == SITUATION_KIND_AIR {
-        return vec![
-            *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-            // one for each aerial
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-        ];
+            let random_cmd_index =
+                app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
+            *flag |= random_cmds[random_cmd_index];
+        }
+        Defensive::Roll => {
+            if app::sv_math::rand(hash40("fighter"), 2) == 0 {
+                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
+            } else {
+                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
+            }
+        }
+        Defensive::Spotdodge => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+        Defensive::Jab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+        _ => (),
     }
-
-    if situation_kind == SITUATION_KIND_GROUND {
-        return vec![
-            *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
-            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
-        ];
-    }
-
-    return vec![];
 }
