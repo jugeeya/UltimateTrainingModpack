@@ -177,9 +177,11 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
 
     mash::buffer_action(MENU.mash_state);
     mash::set_attack(MENU.mash_attack_state);
-
 }
 
+/**
+ * THis is needed to have the CPU put up shield
+ */
 pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
@@ -190,16 +192,55 @@ pub unsafe fn check_button_on(
     Some(true)
 }
 
+/**
+ * This is needed to prevent dropping shield immediately
+ */
 pub unsafe fn check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if should_return_none_in_check_button(module_accessor, button) {
+    if should_return_none_in_check_button(module_accessor, button) || needs_oos_handling() {
         return None;
     }
     Some(false)
 }
 
+/**
+ * Needed to allow these attacks to work OOS
+ */
+fn needs_oos_handling() -> bool {
+    match mash::get_current_buffer() {
+        Mash::Jump => return true,
+        Mash::Attack => {
+            let attack = mash::get_current_attack();
+            if is_aerial(attack) {
+                return true;
+            }
+
+            if attack == Attack::UpB {
+                return true;
+            }
+
+            return false;
+        }
+        _ => return false,
+    }
+}
+
+fn is_aerial(attack: Attack) -> bool {
+    match attack {
+        Attack::Nair => return true,
+        Attack::Fair => return true,
+        Attack::Bair => return true,
+        Attack::UpAir => return true,
+        Attack::Dair => return true,
+        _ => return false,
+    }
+}
+
+/**
+ * AKA should the cpu hold the shield button
+ */
 unsafe fn should_return_none_in_check_button(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
