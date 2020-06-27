@@ -1,6 +1,7 @@
 use crate::common::consts::*;
 use crate::common::*;
 use crate::training::mash;
+use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -40,6 +41,9 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         status = new_status;
     }
 
+    // Suspend shield hold to allow for other defensive options
+    shield::suspend_shield(60);
+
     StatusModule::change_status_request_from_script(module_accessor, status, true);
 }
 
@@ -74,35 +78,6 @@ pub unsafe fn defensive_option(
     }
 
     mash::perform_defensive_option(module_accessor, flag);
-}
-
-pub unsafe fn check_button_on(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    button: i32,
-) -> Option<bool> {
-    if !is_training_mode() {
-        return None;
-    }
-
-    if !is_operation_cpu(module_accessor) {
-        return None;
-    }
-
-    if ![*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
-        return None;
-    }
-
-    if MENU.defensive_state != Defensive::Shield {
-        return None;
-    }
-
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
-    let status = StatusModule::status_kind(module_accessor) as i32;
-    if !should_perform_defensive_option(module_accessor, prev_status, status) {
-        return None;
-    }
-
-    Some(true)
 }
 
 pub unsafe fn get_command_flag_cat(

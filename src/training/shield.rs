@@ -207,25 +207,28 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    set_shield_suspension();
-}
-
-// Needed for Specials OOS
-unsafe fn set_shield_suspension() {
     // Set shield suspension frames
     match MENU.mash_state {
         Mash::Attack => match MENU.mash_attack_state {
             Attack::UpSmash => {}
             Attack::Grab => {}
             _ => {
-                SHIELD_SUSPEND_FRAMES = 15;
+                suspend_shield(15);
             }
         },
 
         _ => {}
     }
+}
 
-    if SHIELD_SUSPEND_FRAMES > 0 {
+// Needed for Specials OOS
+pub fn suspend_shield(frames: u32) {
+    if frames <= 0 {
+        return;
+    }
+
+    unsafe {
+        SHIELD_SUSPEND_FRAMES = frames;
         frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
         frame_counter::start_counting(FRAME_COUNTER_INDEX);
     }
@@ -333,7 +336,7 @@ fn is_aerial(attack: Attack) -> bool {
 /**
  * Needed for these options to work OOS
  */
-unsafe fn suspend_shield() -> bool {
+unsafe fn shield_is_suspended() -> bool {
     // Normal behavior when not mashing
     if SHIELD_SUSPEND_FRAMES == 0 {
         return false;
@@ -375,7 +378,7 @@ unsafe fn should_return_none_in_check_button(
         return true;
     }
 
-    if suspend_shield() {
+    if shield_is_suspended() {
         return true;
     }
 

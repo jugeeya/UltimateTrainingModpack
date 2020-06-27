@@ -151,12 +151,8 @@ pub unsafe fn handle_check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_on(module_accessor, button).unwrap_or_else(|| {
-        tech::check_button_on(module_accessor, button).unwrap_or_else(|| {
-            ledge::check_button_on(module_accessor, button)
-                .unwrap_or_else(|| original!()(module_accessor, button))
-        })
-    })
+    shield::check_button_on(module_accessor, button).unwrap_or_else(
+        || original!()(module_accessor, button))
 }
 
 #[skyline::hook(replace = ControlModule::check_button_off)]

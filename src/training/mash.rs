@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -298,6 +299,8 @@ pub unsafe fn perform_defensive_option(
         }
         Defensive::Spotdodge => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
         Defensive::Jab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+
+        Defensive::Shield => *flag |= *FIGHTER_PAD_CMD_CAT1_AIR_ESCAPE,
         _ => (),
     }
 }
