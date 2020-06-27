@@ -349,12 +349,6 @@ unsafe fn suspend_shield() -> bool {
         return false;
     }
 
-    println!(
-        "Suspending Shield {} / {}",
-        frame_counter::get_frame_count(FRAME_COUNTER_INDEX),
-        SHIELD_SUSPEND_FRAMES
-    );
-
     true
 }
 

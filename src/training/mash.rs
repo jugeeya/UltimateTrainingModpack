@@ -17,7 +17,6 @@ pub fn buffer_action(action: Mash) {
     unsafe {
         BUFFERED_ACTION = action;
     }
-    println!("Buffering {}", action as i32);
 }
 
 pub fn get_current_buffer() -> Mash {
@@ -33,7 +32,6 @@ pub fn set_attack(attack: Attack) {
     unsafe {
         BUFFERED_ATTACK = attack;
     }
-    println!("Attack {}", attack as i32);
 }
 pub fn get_current_attack() -> Attack {
     unsafe { BUFFERED_ATTACK }
@@ -269,7 +267,6 @@ unsafe fn get_flag(
     }
 
     // Reset Buffer
-    println!("Consuming Buffer Action: {}", action_flag);
     reset();
 
     return action_flag;
