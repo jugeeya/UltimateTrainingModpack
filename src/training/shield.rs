@@ -142,17 +142,17 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         return true;
     }
 
-    if !was_in_shieldstun(module_accessor) {
+    if !is_in_shieldstun(module_accessor) {
         return true;
     }
 
     match mash::get_current_buffer() {
         Mash::Attack => {} // Handle attack below
-        Mash::None => {return true}
         // Mash::Spotdodge => {return true}
         // Mash::RollForward => {return true}
         // Mash::RollBack => {return true}
-        _ => return false,
+        // If we are not mashing attack then we will always hold shield
+        _ => return true,
     }
 
     // We will hold shield if we are in shieldstun and our attack can be performed OOS
@@ -184,10 +184,6 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if !hitbox_visualizer::is_shielding(module_accessor) {
-        return;
-    }
-
     // Enable shield decay
     set_shield_decay(true);
 
@@ -197,6 +193,10 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     if !hitbox_visualizer::is_shielding(module_accessor) {
+        return;
+    }
+
+    if handle_escape_option(fighter, module_accessor) {
         return;
     }
 
@@ -260,11 +260,49 @@ pub unsafe fn check_button_off(
 }
 
 /**
+ * Roll/Dodge doesn't work oos the normal way
+ */
+unsafe fn handle_escape_option(
+    fighter: &mut L2CFighterCommon,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> bool {
+    if !WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+    ) {
+        return false;
+    }
+
+    match MENU.mash_state {
+        Mash::Spotdodge => {
+            fighter
+                .fighter_base
+                .change_status(FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(), LUA_TRUE);
+            return true;
+        }
+        Mash::RollForward => {
+            fighter
+                .fighter_base
+                .change_status(FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(), LUA_TRUE);
+            return true;
+        }
+        Mash::RollBack => {
+            fighter
+                .fighter_base
+                .change_status(FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(), LUA_TRUE);
+            return true;
+        }
+        _ => return false,
+    }
+}
+
+/**
  * Needed to allow these attacks to work OOS
  */
 fn needs_oos_handling_drop_shield() -> bool {
     match mash::get_current_buffer() {
         Mash::Jump => return true,
+        // Mash::RollBack => return true,
         Mash::Attack => {
             let attack = mash::get_current_attack();
             if is_aerial(attack) {
@@ -311,7 +349,11 @@ unsafe fn suspend_shield() -> bool {
         return false;
     }
 
-    println!("Suspending Shield {} / {}",frame_counter::get_frame_count(FRAME_COUNTER_INDEX),SHIELD_SUSPEND_FRAMES);
+    println!(
+        "Suspending Shield {} / {}",
+        frame_counter::get_frame_count(FRAME_COUNTER_INDEX),
+        SHIELD_SUSPEND_FRAMES
+    );
 
     true
 }
