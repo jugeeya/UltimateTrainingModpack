@@ -148,18 +148,22 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
 
     match mash::get_current_buffer() {
         Mash::Attack => {} // Handle attack below
-        _ => return true,
+        Mash::None => {return true}
+        // Mash::Spotdodge => {return true}
+        // Mash::RollForward => {return true}
+        // Mash::RollBack => {return true}
+        _ => return false,
     }
 
     // We will hold shield if we are in shieldstun and our attack can be performed OOS
     match mash::get_current_attack() {
-        Attack::UpSmash => return true,
+        // Attack::UpSmash => return true,
         Attack::Grab => return true,
-        Attack::UpB => return true,
-        Attack::Nair => return true,
-        Attack::Fair => return true,
-        Attack::UpAir => return true,
-        Attack::Bair => return true,
+        // Attack::UpB => return true,
+        // Attack::Nair => return true,
+        // Attack::Fair => return true,
+        // Attack::UpAir => return true,
+        // Attack::Bair => return true,
         _ => return false,
     }
 }
