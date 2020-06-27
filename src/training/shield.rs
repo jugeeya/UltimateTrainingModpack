@@ -142,7 +142,7 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         return true;
     }
 
-    if !is_in_shieldstun(module_accessor) {
+    if !was_in_shieldstun(module_accessor) {
         return true;
     }
 
