@@ -203,17 +203,25 @@ unsafe fn get_aerial_flag(
     attack: Attack,
 ) -> i32 {
     let mut flag: i32 = 0;
+
+    let transition_flag: i32;
     // If we are grounded we also need to jump
     if is_grounded(module_accessor) {
         flag += update_jump_flag(module_accessor);
-        // Keep buffer until jump squat is over
-        BUFFERED_ACTION = Mash::Attack;
+
+        if flag == 0 {
+            // Can't jump, return
+            return 0;
+        }
+
+        transition_flag = 0;
+    }
+    else {
+        transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR;
     }
 
     let action_flag: i32;
-    let transition_flag: i32;
 
-    transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR;
 
     match attack {
         Attack::Nair => {
@@ -262,7 +270,7 @@ unsafe fn get_flag(
 
     // Reset Buffer
     println!("Consuming Buffer Action: {}", action_flag);
-    BUFFERED_ACTION = Mash::None;
+    reset();
 
     return action_flag;
 }
