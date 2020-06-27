@@ -180,8 +180,9 @@ unsafe fn get_attack_flag(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
         UpSmash => {
             action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4;
+            // ATTACK_HI4 transition returns false while in shield
             // transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_HI4;
-            transition_flag = 0;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON;
         }
         Grab => {
             action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
