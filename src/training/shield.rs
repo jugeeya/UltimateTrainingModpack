@@ -1,6 +1,5 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::hitbox_visualizer;
 use crate::training::frame_counter;
 use crate::training::mash;
 use smash::app;
@@ -188,7 +187,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if !hitbox_visualizer::is_shielding(module_accessor) {
+    if !is_shielding(module_accessor) {
         return;
     }
 
