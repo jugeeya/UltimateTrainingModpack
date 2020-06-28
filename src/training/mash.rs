@@ -86,7 +86,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    if !is_in_hitstun(module_accessor) && MENU.mash_in_neutral != MashInNeutral::On {
+    if !is_in_hitstun(module_accessor) && MENU.mash_in_neutral != OnOff::On {
         return;
     }
 

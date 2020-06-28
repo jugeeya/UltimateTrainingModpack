@@ -1,4 +1,4 @@
-use crate::common::consts::FastFall;
+use crate::common::consts::OnOff;
 use crate::common::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
@@ -17,7 +17,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if MENU.fast_fall != FastFall::On {
+    if MENU.fast_fall != OnOff::On {
         return;
     }
 
@@ -29,14 +29,12 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    let y_speed =
-        KineticModule::get_sum_speed_y(module_accessor, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
     // Need to be falling
-    if y_speed >= 0.0 {
+    if !is_falling(module_accessor) {
         return;
     }
 
-    // Can't fastfall in hitstun
+    // Can't fastfall in hitstun // tumble // meteor
     if is_in_hitstun(module_accessor) {
         return;
     }
@@ -54,6 +52,14 @@ pub unsafe fn get_command_flag_cat(
     );
 
     add_spark_effect(module_accessor);
+}
+
+pub fn is_falling(module_accessor: &mut app::BattleObjectModuleAccessor)->bool {
+    unsafe {
+        let y_speed =
+            KineticModule::get_sum_speed_y(module_accessor, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
+        y_speed < 0.0
+    }
 }
 
 unsafe fn add_spark_effect(module_accessor: &mut app::BattleObjectModuleAccessor) {

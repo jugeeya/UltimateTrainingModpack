@@ -257,17 +257,9 @@ impl From<i32> for Defensive {
     }
 }
 
-/// Mash in neutral
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum MashInNeutral {
-    Off = 0,
-    On = 1,
-}
-
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum FastFall {
+pub enum OnOff {
     Off = 0,
     On = 1,
 }
@@ -284,8 +276,8 @@ pub struct TrainingModpackMenu {
     pub shield_state: Shield,
     pub defensive_state: Defensive,
     pub oos_offset: i32,
-    pub mash_in_neutral: MashInNeutral,
-    pub fast_fall: FastFall,
+    pub mash_in_neutral: OnOff,
+    pub fast_fall: OnOff,
 }
 
 // Fighter Ids

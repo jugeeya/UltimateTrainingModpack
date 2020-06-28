@@ -15,8 +15,8 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     shield_state: Shield::None,
     defensive_state: Defensive::Random,
     oos_offset: 0,
-    mash_in_neutral: MashInNeutral::Off,
-    fast_fall: FastFall::Off,
+    mash_in_neutral: OnOff::Off,
+    fast_fall: OnOff::Off,
 };
 
 pub static mut MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
