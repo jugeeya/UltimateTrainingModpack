@@ -77,9 +77,10 @@ pub enum Attack {
     UpSmash = 9,
     Grab = 10,
     Jab = 11,
-    Ftilt = 12, // @TODO implement
-    Utilt = 13, // @TODO implement
-    Dtilt = 14, // @TODO implement
+    Ftilt = 12,
+    Utilt = 13,
+    Dtilt = 14,
+    Nothing = 9999,
 }
 
 impl From<i32> for Attack {
@@ -98,7 +99,11 @@ impl From<i32> for Attack {
             8 => DownB,
             9 => UpSmash,
             10 => Grab,
-            _ => panic!("Invalid mash attack state {}", x),
+            11 => Jab,
+            12 => Ftilt,
+            13 => Utilt,
+            14 => Dtilt,
+            _ => Nothing,
         }
     }
 }

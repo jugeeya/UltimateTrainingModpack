@@ -74,6 +74,13 @@ pub unsafe fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccesso
     (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 
+pub fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+    unsafe{
+        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
+    }
+}
+
 pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
@@ -82,4 +89,3 @@ pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAcce
         || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
             && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF)
 }
-

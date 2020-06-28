@@ -93,16 +93,13 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let mut action = MENU.mash_state;
 
     if action == Mash::Random {
-        let mut random_cmds = vec![
-            Mash::Jump,
-            Mash::Attack,
-        ];
+        let mut random_cmds = vec![Mash::Jump, Mash::Attack];
 
-        if is_airborne(module_accessor){
+        if is_airborne(module_accessor) {
             random_cmds.push(Mash::Airdodge);
         }
 
-        if is_grounded(module_accessor){
+        if is_grounded(module_accessor) {
             random_cmds.push(Mash::RollBack);
             random_cmds.push(Mash::RollForward);
             random_cmds.push(Mash::Spotdodge);
@@ -159,11 +156,16 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
             Shield hold is performed trough shield::should_hold_shield
             */
-            return get_flag(
-                module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
-            );
+            // return get_flag(
+            //     module_accessor,
+            //     *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
+            //     *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+            // );
+            if is_shielding(module_accessor) {
+                reset();
+            }
+
+            return 0;
         }
         _ => return 0,
     }
@@ -226,6 +228,18 @@ unsafe fn get_attack_flag(module_accessor: &mut app::BattleObjectModuleAccessor)
         Jab => {
             action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
             transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK;
+        }
+        Ftilt => {
+            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_S3;
+        }
+        Utilt => {
+            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_HI3;
+        }
+        Dtilt => {
+            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_LW3;
         }
         _ => return 0,
     }

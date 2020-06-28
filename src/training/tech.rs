@@ -126,8 +126,8 @@ pub unsafe fn get_command_flag_cat(
     .contains(&status)
     {
         let random_statuses = vec![
-            *FIGHTER_STATUS_KIND_DOWN_STAND, // Normal Getup
-            *FIGHTER_STATUS_KIND_DOWN_STAND_FB, // Getup Roll
+            *FIGHTER_STATUS_KIND_DOWN_STAND,        // Normal Getup
+            *FIGHTER_STATUS_KIND_DOWN_STAND_FB,     // Getup Roll
             *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK, // Getup Attack
         ];
 
@@ -141,7 +141,6 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 }
-
 
 pub unsafe fn change_motion(
     module_accessor: &mut app::BattleObjectModuleAccessor,

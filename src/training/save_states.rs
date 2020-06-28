@@ -1,9 +1,9 @@
 use crate::common::*;
 use crate::training::mash;
 use smash::app::{self, lua_bind::*};
+use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use smash::hash40;
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -119,11 +119,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
         };
         PostureModule::set_pos(module_accessor, &pos);
 
-        StatusModule::change_status_request(
-            module_accessor,
-            *FIGHTER_STATUS_KIND_DEAD,
-            false,
-        );
+        StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         return;
     }
 

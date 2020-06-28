@@ -1,6 +1,5 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::hitbox_visualizer;
 use crate::training::frame_counter;
 use crate::training::mash;
 use smash::app;
@@ -153,21 +152,13 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
 
     match mash::get_current_buffer() {
         Mash::Attack => {} // Handle attack below
-        // Mash::RollForward => {return true}
-        // Mash::RollBack => {return true}
         // If we are not mashing attack then we will always hold shield
         _ => return true,
     }
 
     // We will hold shield if we are in shieldstun and our attack can be performed OOS
     match mash::get_current_attack() {
-        // Attack::UpSmash => return true,
-        Attack::Grab => return true,
-        // Attack::UpB => return true,
-        // Attack::Nair => return true,
-        // Attack::Fair => return true,
-        // Attack::UpAir => return true,
-        // Attack::Bair => return true,
+        Attack::Grab => return true, // Grab has 4 extra shield frames
         _ => return false,
     }
 }
@@ -196,7 +187,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if !hitbox_visualizer::is_shielding(module_accessor) {
+    if !is_shielding(module_accessor) {
         return;
     }
 
@@ -320,7 +311,7 @@ fn needs_oos_handling_drop_shield() -> bool {
                 return true;
             }
         }
-        _ => {},
+        _ => {}
     }
 
     false

@@ -321,11 +321,6 @@ unsafe fn mod_handle_catch(lua_state: u64) {
     );
 }
 
-pub unsafe fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
-}
-
 #[skyline::hook(replace = GrabModule::set_rebound)]
 pub unsafe fn handle_set_rebound(
     module_accessor: *mut app::BattleObjectModuleAccessor,
@@ -335,7 +330,10 @@ pub unsafe fn handle_set_rebound(
     original!()(module_accessor, rebound);
 }
 
-unsafe fn mod_handle_handle_set_rebound(module_accessor: *mut app::BattleObjectModuleAccessor, rebound: bool) {
+unsafe fn mod_handle_handle_set_rebound(
+    module_accessor: *mut app::BattleObjectModuleAccessor,
+    rebound: bool,
+) {
     if !is_training_mode() {
         return;
     }
