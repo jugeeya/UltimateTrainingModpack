@@ -11,6 +11,7 @@ pub mod tech;
 pub mod combo;
 mod fast_fall;
 mod frame_counter;
+mod full_hop;
 mod ledge;
 mod left_stick;
 mod mash;
@@ -151,8 +152,10 @@ pub unsafe fn handle_check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_on(module_accessor, button)
-        .unwrap_or_else(|| original!()(module_accessor, button))
+    shield::check_button_on(module_accessor, button).unwrap_or_else(|| {
+        full_hop::check_button_on(module_accessor, button)
+            .unwrap_or_else(|| original!()(module_accessor, button))
+    })
 }
 
 #[skyline::hook(replace = ControlModule::check_button_off)]
@@ -160,8 +163,10 @@ pub unsafe fn handle_check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_off(module_accessor, button)
-        .unwrap_or_else(|| original!()(module_accessor, button))
+    shield::check_button_off(module_accessor, button).unwrap_or_else(|| {
+        full_hop::check_button_off(module_accessor, button)
+            .unwrap_or_else(|| original!()(module_accessor, button))
+    })
 }
 
 #[skyline::hook(replace = MotionModule::change_motion)]
