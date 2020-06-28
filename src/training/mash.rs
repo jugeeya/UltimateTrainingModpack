@@ -34,6 +34,7 @@ pub fn set_attack(attack: Attack) {
         BUFFERED_ATTACK = attack;
     }
 }
+
 pub fn get_current_attack() -> Attack {
     unsafe { BUFFERED_ATTACK }
 }
@@ -130,10 +131,10 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             return get_attack_flag(module_accessor);
         }
         Mash::Shield => {
-             /*
-             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
-             Shield hold is performed trough shield::should_hold_shield
-             */
+            /*
+            Doesn't actually cause the shield, but will clear the buffer once shield is possible.
+            Shield hold is performed trough shield::should_hold_shield
+            */
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
