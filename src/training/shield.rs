@@ -217,6 +217,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
             Attack::UpSmash => {}
             Attack::Grab => {}
             _ => {
+                // Force shield drop
                 suspend_shield(15);
             }
         },
@@ -225,7 +226,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 }
 
-// Needed for Specials OOS
+// Needed for shield drop options
 pub fn suspend_shield(frames: u32) {
     if frames <= 0 {
         return;
@@ -309,7 +310,6 @@ unsafe fn handle_escape_option(
 fn needs_oos_handling_drop_shield() -> bool {
     match mash::get_current_buffer() {
         Mash::Jump => return true,
-        // Mash::RollBack => return true,
         Mash::Attack => {
             let attack = mash::get_current_attack();
             if is_aerial(attack) {
@@ -319,11 +319,11 @@ fn needs_oos_handling_drop_shield() -> bool {
             if attack == Attack::UpB {
                 return true;
             }
-
-            return false;
         }
-        _ => return false,
+        _ => {},
     }
+
+    false
 }
 
 fn is_aerial(attack: Attack) -> bool {
