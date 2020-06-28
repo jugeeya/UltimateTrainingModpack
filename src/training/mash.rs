@@ -90,7 +90,31 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    buffer_action(MENU.mash_state);
+    let mut action = MENU.mash_state;
+
+    if action == Mash::Random {
+        let mut random_cmds = vec![
+            Mash::Jump,
+            Mash::Attack,
+        ];
+
+        if is_airborne(module_accessor){
+            random_cmds.push(Mash::Airdodge);
+        }
+
+        if is_grounded(module_accessor){
+            random_cmds.push(Mash::RollBack);
+            random_cmds.push(Mash::RollForward);
+            random_cmds.push(Mash::Spotdodge);
+        }
+
+        let random_cmd_index =
+            app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
+
+        action = random_cmds[random_cmd_index];
+    }
+
+    buffer_action(action);
     set_attack(MENU.mash_attack_state);
 }
 
