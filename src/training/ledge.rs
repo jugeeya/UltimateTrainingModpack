@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -39,75 +40,14 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         status = new_status;
     }
 
+    mash::perform_defensive_option();
+
     StatusModule::change_status_request_from_script(module_accessor, status, true);
-}
-
-pub unsafe fn should_perform_defensive_option(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    prev_status: i32,
-    status: i32,
-) -> bool {
-    ([
-        *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
-        *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
-        *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
-    ]
-    .iter()
-    .any(|i| i == &status || i == &prev_status))
-        && (WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-        ) || CancelModule::is_enable_cancel(module_accessor))
-}
-
-pub unsafe fn defensive_option(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    _category: i32,
-    flag: &mut i32,
-) {
-    let status = StatusModule::status_kind(module_accessor) as i32;
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
-
-    if !should_perform_defensive_option(module_accessor, prev_status, status) {
-        return;
-    }
-
-    perform_defensive_option(module_accessor, flag);
-}
-
-pub unsafe fn check_button_on(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    button: i32,
-) -> Option<bool> {
-    if !is_training_mode() {
-        return None;
-    }
-
-    if !is_operation_cpu(module_accessor) {
-        return None;
-    }
-
-    if ![*CONTROL_PAD_BUTTON_GUARD_HOLD, *CONTROL_PAD_BUTTON_GUARD].contains(&button) {
-        return None;
-    }
-
-    if MENU.defensive_state != Defensive::Shield {
-        return None;
-    }
-
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
-    let status = StatusModule::status_kind(module_accessor) as i32;
-    if !should_perform_defensive_option(module_accessor, prev_status, status) {
-        return None;
-    }
-
-    Some(true)
 }
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
-    flag: &mut i32,
+    _category: i32,
 ) {
     if !is_training_mode() {
         return;
@@ -122,5 +62,4 @@ pub unsafe fn get_command_flag_cat(
     }
 
     force_option(module_accessor);
-    defensive_option(module_accessor, category, flag);
 }

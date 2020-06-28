@@ -64,9 +64,9 @@ pub unsafe fn handle_get_command_flag_cat(
     // if (replace) return ret;
 
     shield::get_command_flag_cat(module_accessor);
-    mash::get_command_flag_cat(module_accessor, category, &mut flag);
-    ledge::get_command_flag_cat(module_accessor, category, &mut flag);
-    tech::get_command_flag_cat(module_accessor, category, &mut flag);
+    flag |= mash::get_command_flag_cat(module_accessor, category);
+    ledge::get_command_flag_cat(module_accessor, category);
+    tech::get_command_flag_cat(module_accessor, category);
     hitbox_visualizer::get_command_flag_cat(module_accessor, category);
     fast_fall::get_command_flag_cat(module_accessor, category);
 
@@ -151,14 +151,8 @@ pub unsafe fn handle_check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_on(module_accessor, button).unwrap_or_else(|| {
-        mash::check_button_on(module_accessor, button).unwrap_or_else(|| {
-            tech::check_button_on(module_accessor, button).unwrap_or_else(|| {
-                ledge::check_button_on(module_accessor, button)
-                    .unwrap_or_else(|| original!()(module_accessor, button))
-            })
-        })
-    })
+    shield::check_button_on(module_accessor, button).unwrap_or_else(
+        || original!()(module_accessor, button))
 }
 
 #[skyline::hook(replace = ControlModule::check_button_off)]
@@ -225,6 +219,7 @@ pub fn training_mods() {
     );
 
     combo::init();
+    shield::init();
 
     // // Input recorder
     // SaltySD_function_replace_sym(

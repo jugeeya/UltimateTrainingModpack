@@ -1,5 +1,8 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::hitbox_visualizer;
+use crate::training::frame_counter;
+use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::sv_system;
@@ -12,6 +15,17 @@ use smash::lua2cpp::L2CFighterCommon;
 static mut MULTI_HIT_OFFSET: i32 = unsafe { MENU.oos_offset };
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
+
+static mut FRAME_COUNTER_INDEX: usize = 0;
+
+// For how many frames should the shield hold be overwritten
+static mut SHIELD_SUSPEND_FRAMES: u32 = 0;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER_INDEX = frame_counter::register_counter();
+    }
+}
 
 // Toggle for shield decay
 static mut SHIELD_DECAY: bool = false;
@@ -118,14 +132,14 @@ pub unsafe fn get_param_float(
 }
 
 pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    // Mash shield
+    if mash::get_current_buffer() == Mash::Shield {
+        return true;
+    }
+
     // We should hold shield if the state requires it
     if ![Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
         return false;
-    }
-
-    // If we are not mashing attack then we will always hold shield
-    if MENU.mash_state != Mash::Attack {
-        return true;
     }
 
     // Hold shield while OOS is not allowed
@@ -133,22 +147,29 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         return true;
     }
 
-    if !is_in_shieldstun(module_accessor) {
+    if !was_in_shieldstun(module_accessor) {
         return true;
     }
 
-    // We will only drop shield if we are in shieldstun and our attack can be performed OOS
-    if MENU.mash_state == Mash::Attack {
-        if [Attack::NeutralB, Attack::SideB, Attack::DownB].contains(&MENU.mash_attack_state) {
-            return false;
-        }
-
-        if MENU.mash_attack_state == Attack::Grab {
-            return true;
-        }
+    match mash::get_current_buffer() {
+        Mash::Attack => {} // Handle attack below
+        // Mash::RollForward => {return true}
+        // Mash::RollBack => {return true}
+        // If we are not mashing attack then we will always hold shield
+        _ => return true,
     }
 
-    false
+    // We will hold shield if we are in shieldstun and our attack can be performed OOS
+    match mash::get_current_attack() {
+        // Attack::UpSmash => return true,
+        Attack::Grab => return true,
+        // Attack::UpB => return true,
+        // Attack::Nair => return true,
+        // Attack::Fair => return true,
+        // Attack::UpAir => return true,
+        // Attack::Bair => return true,
+        _ => return false,
+    }
 }
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
@@ -159,10 +180,11 @@ pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue 
 
 unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-    if !is_training_mode()
-        || !is_operation_cpu(module_accessor)
-        || StatusModule::prev_status_kind(module_accessor, 0) != FIGHTER_STATUS_KIND_GUARD_DAMAGE
-    {
+    if !is_training_mode() || !is_operation_cpu(module_accessor) {
+        return;
+    }
+
+    if !was_in_shieldstun(module_accessor) {
         return;
     }
 
@@ -174,93 +196,52 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if MENU.mash_state == Mash::Attack {
-        handle_attack_option(fighter, module_accessor);
+    if !hitbox_visualizer::is_shielding(module_accessor) {
         return;
     }
 
-    if WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-    ) {
-        handle_escape_option(fighter);
+    if handle_escape_option(fighter, module_accessor) {
+        return;
     }
-}
 
-unsafe fn handle_escape_option(fighter: &mut L2CFighterCommon) {
+    mash::buffer_action(MENU.mash_state);
+    mash::set_attack(MENU.mash_attack_state);
+
+    if needs_oos_handling_drop_shield() {
+        return;
+    }
+
+    // Set shield suspension frames
     match MENU.mash_state {
-        Mash::Spotdodge => {
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Mash::RollForward => {
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Mash::RollBack => {
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        _ => (),
+        Mash::Attack => match MENU.mash_attack_state {
+            Attack::UpSmash => {}
+            Attack::Grab => {}
+            _ => {
+                // Force shield drop
+                suspend_shield(15);
+            }
+        },
+
+        _ => {}
     }
 }
 
-unsafe fn handle_attack_option(
-    fighter: &mut L2CFighterCommon,
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) {
-    match MENU.mash_attack_state {
-        Attack::Grab => {
-            if !WorkModule::is_enable_transition_term(
-                module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
-            ) || WorkModule::get_int(
-                module_accessor,
-                *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
-            ) != 0
-            {
-                return;
-            }
+// Needed for shield drop options
+pub fn suspend_shield(frames: u32) {
+    if frames <= 0 {
+        return;
+    }
 
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_CATCH.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Attack::UpB => {
-            if !WorkModule::is_enable_transition_term(
-                module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-            ) {
-                return;
-            }
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_SPECIAL_HI.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        Attack::UpSmash => {
-            if !WorkModule::is_enable_transition_term(
-                module_accessor,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT_BUTTON,
-            ) {
-                return;
-            }
-            fighter.fighter_base.change_status(
-                FIGHTER_STATUS_KIND_ATTACK_HI4_START.as_lua_int(),
-                LUA_TRUE,
-            );
-        }
-        _ => (),
+    unsafe {
+        SHIELD_SUSPEND_FRAMES = frames;
+        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(FRAME_COUNTER_INDEX);
     }
 }
 
+/**
+ * This is needed to have the CPU put up shield
+ */
 pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
@@ -271,16 +252,116 @@ pub unsafe fn check_button_on(
     Some(true)
 }
 
+/**
+ * This is needed to prevent dropping shield immediately
+ */
 pub unsafe fn check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> Option<bool> {
-    if should_return_none_in_check_button(module_accessor, button) {
+    if should_return_none_in_check_button(module_accessor, button)
+        || needs_oos_handling_drop_shield()
+    {
         return None;
     }
     Some(false)
 }
 
+/**
+ * Roll/Dodge doesn't work oos the normal way
+ */
+unsafe fn handle_escape_option(
+    fighter: &mut L2CFighterCommon,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> bool {
+    if !WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+    ) {
+        return false;
+    }
+
+    match MENU.mash_state {
+        Mash::Spotdodge => {
+            fighter
+                .fighter_base
+                .change_status(FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(), LUA_TRUE);
+            return true;
+        }
+        Mash::RollForward => {
+            fighter
+                .fighter_base
+                .change_status(FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(), LUA_TRUE);
+            return true;
+        }
+        Mash::RollBack => {
+            fighter
+                .fighter_base
+                .change_status(FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(), LUA_TRUE);
+            return true;
+        }
+        _ => return false,
+    }
+}
+
+/**
+ * Needed to allow these attacks to work OOS
+ */
+fn needs_oos_handling_drop_shield() -> bool {
+    match mash::get_current_buffer() {
+        Mash::Jump => return true,
+        Mash::Attack => {
+            let attack = mash::get_current_attack();
+            if is_aerial(attack) {
+                return true;
+            }
+
+            if attack == Attack::UpB {
+                return true;
+            }
+        }
+        _ => {},
+    }
+
+    false
+}
+
+fn is_aerial(attack: Attack) -> bool {
+    match attack {
+        Attack::Nair => return true,
+        Attack::Fair => return true,
+        Attack::Bair => return true,
+        Attack::UpAir => return true,
+        Attack::Dair => return true,
+        _ => return false,
+    }
+}
+
+/**
+ * Needed for these options to work OOS
+ */
+unsafe fn shield_is_suspended() -> bool {
+    // Normal behavior when not mashing
+    if SHIELD_SUSPEND_FRAMES == 0 {
+        return false;
+    }
+
+    let resume_normal_behavior =
+        frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > SHIELD_SUSPEND_FRAMES;
+
+    if resume_normal_behavior {
+        SHIELD_SUSPEND_FRAMES = 0;
+        frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+
+        return false;
+    }
+
+    true
+}
+
+/**
+ * AKA should the cpu hold the shield button
+ */
 unsafe fn should_return_none_in_check_button(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
@@ -301,5 +382,15 @@ unsafe fn should_return_none_in_check_button(
         return true;
     }
 
+    if shield_is_suspended() {
+        return true;
+    }
+
     false
+}
+
+fn was_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    unsafe {
+        StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+    }
 }

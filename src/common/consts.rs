@@ -76,6 +76,10 @@ pub enum Attack {
     DownB = 8,
     UpSmash = 9,
     Grab = 10,
+    Jab = 11,
+    Ftilt = 12, // @TODO implement
+    Utilt = 13, // @TODO implement
+    Dtilt = 14, // @TODO implement
 }
 
 impl From<i32> for Attack {
@@ -192,6 +196,7 @@ pub enum Mash {
     RollForward = 5,
     RollBack = 6,
     Random = 7,
+    Shield = 99,
 }
 
 impl From<i32> for Mash {

@@ -2,7 +2,6 @@ pub mod consts;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
-use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
@@ -17,7 +16,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     defensive_state: Defensive::Random,
     oos_offset: 0,
     mash_in_neutral: MashInNeutral::Off,
-    fast_fall: FastFall::On,
+    fast_fall: FastFall::Off,
 };
 
 pub static mut MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
@@ -55,12 +54,12 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
     FighterInformation::is_operation_cpu(fighter_information)
 }
 
-pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
     situation_kind == SITUATION_KIND_GROUND
 }
 
-pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) ->bool{
+pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
     situation_kind == SITUATION_KIND_AIR
 }
@@ -84,43 +83,3 @@ pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAcce
             && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF)
 }
 
-pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor);
-    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT)
-        .contains(&status_kind)
-}
-
-pub unsafe fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor);
-    (*FIGHTER_STATUS_KIND_TREAD_DAMAGE..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind)
-}
-
-pub unsafe fn perform_defensive_option(
-    _module_accessor: &mut app::BattleObjectModuleAccessor,
-    flag: &mut i32,
-) {
-    match MENU.defensive_state {
-        Defensive::Random => {
-            let random_cmds = vec![
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-            ];
-
-            let random_cmd_index =
-                app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
-            *flag |= random_cmds[random_cmd_index];
-        }
-        Defensive::Roll => {
-            if app::sv_math::rand(hash40("fighter"), 2) == 0 {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
-            } else {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
-            }
-        }
-        Defensive::Spotdodge => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-        Defensive::Jab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-        _ => (),
-    }
-}

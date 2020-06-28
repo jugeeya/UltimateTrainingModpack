@@ -1,4 +1,5 @@
 use crate::common::*;
+use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
@@ -99,6 +100,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
             SAVE_STATE_PLAYER_STATE = CameraMove;
             SAVE_STATE_CPU_STATE = CameraMove;
         }
+        mash::reset();
         return;
     }
 
