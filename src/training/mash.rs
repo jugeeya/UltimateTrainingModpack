@@ -224,6 +224,18 @@ unsafe fn get_attack_flag(module_accessor: &mut app::BattleObjectModuleAccessor)
             action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
             transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK;
         }
+        Ftilt => {
+            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_S3;
+        }
+        Utilt => {
+            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_HI3;
+        }
+        Dtilt => {
+            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_LW3;
+        }
         _ => return 0,
     }
 
