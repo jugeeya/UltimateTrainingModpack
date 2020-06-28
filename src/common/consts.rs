@@ -279,6 +279,7 @@ pub struct TrainingModpackMenu {
     pub mash_in_neutral: OnOff,
     pub fast_fall: OnOff,
     pub falling_aerials: OnOff,
+    pub full_hop: OnOff,
 }
 
 // Fighter Ids
