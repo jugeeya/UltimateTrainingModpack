@@ -44,14 +44,17 @@ unsafe fn should_return_none_in_check_button(
         return true;
     }
 
+    // We only care about the jump button
     if ![*CONTROL_PAD_BUTTON_JUMP, *CONTROL_PAD_BUTTON_FLICK_JUMP].contains(&button) {
         return true;
     }
 
+    // Nothing to do if not toggled
     if MENU.full_hop != OnOff::On{
         return true;
     }
 
+    // Only need to hold during jump squat
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
     if status_kind != FIGHTER_STATUS_KIND_JUMP_SQUAT {
         return true;
