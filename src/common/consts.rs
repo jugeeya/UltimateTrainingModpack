@@ -278,6 +278,7 @@ pub struct TrainingModpackMenu {
     pub oos_offset: i32,
     pub mash_in_neutral: OnOff,
     pub fast_fall: OnOff,
+    pub falling_aerials: OnOff,
 }
 
 // Fighter Ids

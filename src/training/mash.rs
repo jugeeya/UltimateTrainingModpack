@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::fast_fall;
 use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -266,6 +267,12 @@ unsafe fn get_aerial_flag(
         transition_flag = 0;
     } else {
         transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR;
+    }
+
+    if MENU.falling_aerials == OnOff::On && !fast_fall::is_falling(module_accessor) {
+        // Keep Buffering until we are falling
+        buffer_action(Mash::Attack);
+        return flag;
     }
 
     let action_flag: i32;
