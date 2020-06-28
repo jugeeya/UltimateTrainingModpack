@@ -330,7 +330,10 @@ pub unsafe fn handle_set_rebound(
     original!()(module_accessor, rebound);
 }
 
-unsafe fn mod_handle_handle_set_rebound(module_accessor: *mut app::BattleObjectModuleAccessor, rebound: bool) {
+unsafe fn mod_handle_handle_set_rebound(
+    module_accessor: *mut app::BattleObjectModuleAccessor,
+    rebound: bool,
+) {
     if !is_training_mode() {
         return;
     }
