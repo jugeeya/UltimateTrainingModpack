@@ -129,6 +129,17 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
         Mash::Attack => {
             return get_attack_flag(module_accessor);
         }
+        Mash::Shield => {
+             /*
+             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
+             Shield hold is performed trough shield::should_hold_shield
+             */
+            return get_flag(
+                module_accessor,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+            );
+        }
         _ => return 0,
     }
 }
@@ -214,13 +225,11 @@ unsafe fn get_aerial_flag(
         }
 
         transition_flag = 0;
-    }
-    else {
+    } else {
         transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR;
     }
 
     let action_flag: i32;
-
 
     match attack {
         Attack::Nair => {
@@ -273,34 +282,45 @@ unsafe fn get_flag(
     return action_flag;
 }
 
-pub unsafe fn perform_defensive_option(
-    _module_accessor: &mut app::BattleObjectModuleAccessor,
-    flag: &mut i32,
-) {
+pub unsafe fn perform_defensive_option() {
+    reset();
+
+    let mut shield_suspension_frames = 60;
+
     match MENU.defensive_state {
         Defensive::Random => {
             let random_cmds = vec![
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+                Mash::Spotdodge,
+                Mash::RollBack,
+                Mash::RollForward,
+                Mash::Attack,
             ];
 
             let random_cmd_index =
                 app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
-            *flag |= random_cmds[random_cmd_index];
+
+            buffer_action(random_cmds[random_cmd_index]);
+            set_attack(Attack::Jab);
         }
         Defensive::Roll => {
             if app::sv_math::rand(hash40("fighter"), 2) == 0 {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F;
+                buffer_action(Mash::RollForward);
             } else {
-                *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B;
+                buffer_action(Mash::RollBack);
             }
         }
-        Defensive::Spotdodge => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-        Defensive::Jab => *flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-
-        Defensive::Shield => *flag |= *FIGHTER_PAD_CMD_CAT1_AIR_ESCAPE,
-        _ => (),
+        Defensive::Spotdodge => buffer_action(Mash::Spotdodge),
+        Defensive::Jab => {
+            buffer_action(Mash::Attack);
+            set_attack(Attack::Jab);
+        }
+        Defensive::Shield => {
+            shield_suspension_frames = 0;
+            buffer_action(Mash::Shield);
+        }
+        _ => (shield_suspension_frames = 0),
     }
+
+    // Suspend shield hold to allow for other defensive options
+    shield::suspend_shield(shield_suspension_frames);
 }

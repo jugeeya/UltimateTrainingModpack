@@ -1,7 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
 use crate::training::mash;
-use crate::training::shield;
 use smash::app::sv_system;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -78,8 +77,7 @@ unsafe fn mod_handle_change_status(
             _ => (),
         }
 
-        // Suspend shield hold to allow for other defensive options
-        shield::suspend_shield(60);
+        mash::perform_defensive_option();
 
         return;
     }
@@ -103,36 +101,9 @@ unsafe fn mod_handle_change_status(
     }
 }
 
-pub unsafe fn should_perform_defensive_option(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    prev_status: i32,
-    status: i32,
-) -> bool {
-    ([
-        *FIGHTER_STATUS_KIND_PASSIVE,
-        *FIGHTER_STATUS_KIND_PASSIVE_FB,
-        *FIGHTER_STATUS_KIND_DOWN_STAND,
-        *FIGHTER_STATUS_KIND_DOWN_STAND_FB,
-        *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
-    ]
-    .contains(&prev_status)
-        || [
-            *FIGHTER_STATUS_KIND_DOWN_STAND,
-            *FIGHTER_STATUS_KIND_DOWN_STAND_FB,
-            *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
-        ]
-        .contains(&status))
-        && (WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
-        ) || MotionModule::is_end(module_accessor)
-            || CancelModule::is_enable_cancel(module_accessor))
-}
-
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     _category: i32,
-    flag: &mut i32,
 ) {
     if !is_training_mode() {
         return;
@@ -155,9 +126,9 @@ pub unsafe fn get_command_flag_cat(
     .contains(&status)
     {
         let random_statuses = vec![
-            *FIGHTER_STATUS_KIND_DOWN_STAND,
-            *FIGHTER_STATUS_KIND_DOWN_STAND_FB,
-            *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
+            *FIGHTER_STATUS_KIND_DOWN_STAND, // Normal Getup
+            *FIGHTER_STATUS_KIND_DOWN_STAND_FB, // Getup Roll
+            *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK, // Getup Attack
         ];
 
         let random_status_index =
@@ -168,12 +139,6 @@ pub unsafe fn get_command_flag_cat(
             false,
         );
         return;
-    }
-
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0) as i32;
-
-    if should_perform_defensive_option(module_accessor, prev_status, status) {
-        mash::perform_defensive_option(module_accessor, flag);
     }
 }
 

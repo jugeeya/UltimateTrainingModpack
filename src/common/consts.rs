@@ -196,6 +196,7 @@ pub enum Mash {
     RollForward = 5,
     RollBack = 6,
     Random = 7,
+    Shield = 99,
 }
 
 impl From<i32> for Mash {

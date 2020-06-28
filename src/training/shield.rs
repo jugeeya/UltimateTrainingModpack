@@ -132,6 +132,11 @@ pub unsafe fn get_param_float(
 }
 
 pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    // Mash shield
+    if mash::get_current_buffer() == Mash::Shield {
+        return true;
+    }
+
     // We should hold shield if the state requires it
     if ![Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
         return false;
@@ -148,7 +153,6 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
 
     match mash::get_current_buffer() {
         Mash::Attack => {} // Handle attack below
-        // Mash::Spotdodge => {return true}
         // Mash::RollForward => {return true}
         // Mash::RollBack => {return true}
         // If we are not mashing attack then we will always hold shield
