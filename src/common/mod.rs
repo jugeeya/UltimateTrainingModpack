@@ -82,4 +82,3 @@ pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAcce
         || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
             && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF)
 }
-

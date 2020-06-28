@@ -13,25 +13,25 @@ pub unsafe fn register_counter() -> usize {
     index
 }
 
-pub unsafe fn start_counting(index:usize) {
+pub unsafe fn start_counting(index: usize) {
     SHOULD_COUNT[index] = true;
 }
 
-pub unsafe fn stop_counting(index:usize) {
-    SHOULD_COUNT[index] =  false;
+pub unsafe fn stop_counting(index: usize) {
+    SHOULD_COUNT[index] = false;
 }
 
-pub unsafe fn reset_frame_count(index:usize) {
+pub unsafe fn reset_frame_count(index: usize) {
     COUNTERS[index] = 0;
 }
 
-pub unsafe fn get_frame_count(index:usize) -> u32 {
+pub unsafe fn get_frame_count(index: usize) -> u32 {
     COUNTERS[index]
 }
 
 pub unsafe fn tick() {
     for (index, _frame) in COUNTERS.iter().enumerate() {
-        if !SHOULD_COUNT[index]{
+        if !SHOULD_COUNT[index] {
             continue;
         }
         COUNTERS[index] += 1;

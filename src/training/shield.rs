@@ -320,7 +320,7 @@ fn needs_oos_handling_drop_shield() -> bool {
                 return true;
             }
         }
-        _ => {},
+        _ => {}
     }
 
     false

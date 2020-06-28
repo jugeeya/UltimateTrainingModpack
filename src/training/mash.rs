@@ -93,16 +93,13 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let mut action = MENU.mash_state;
 
     if action == Mash::Random {
-        let mut random_cmds = vec![
-            Mash::Jump,
-            Mash::Attack,
-        ];
+        let mut random_cmds = vec![Mash::Jump, Mash::Attack];
 
-        if is_airborne(module_accessor){
+        if is_airborne(module_accessor) {
             random_cmds.push(Mash::Airdodge);
         }
 
-        if is_grounded(module_accessor){
+        if is_grounded(module_accessor) {
             random_cmds.push(Mash::RollBack);
             random_cmds.push(Mash::RollForward);
             random_cmds.push(Mash::Spotdodge);
