@@ -13,7 +13,7 @@ jobs:
     - name: Sync submodules
       run: git submodule sync --recursive && git submodule update --init --recursive
     - name: Download DEVKITPRO
-      run: wget https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb
+      run: wget https://github.com/devkitPro/pacman/releases/download/v1.0.1/devkitpro-pacman.deb
     - name: Install DEVKITPRO
       run: sudo dpkg -i devkitpro-pacman.deb
     - name: Install dkp-pacman
