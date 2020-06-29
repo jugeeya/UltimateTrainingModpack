@@ -270,6 +270,12 @@ unsafe fn get_aerial_flag(
             return 0;
         }
 
+        // Delay attack until we are airborne to get a full hop
+        if MENU.full_hop == OnOff::On {
+            buffer_action(Mash::Attack);
+            return flag;
+        }
+
         transition_flag = 0;
     } else {
         transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR;
