@@ -40,6 +40,7 @@ pub unsafe fn get_command_flag_cat(
 
     // Need to be falling
     if !is_falling(module_accessor) {
+        reset_frame_counter();
         return;
     }
 
@@ -81,11 +82,18 @@ fn should_delay() -> bool {
         }
 
         if current_frame >= MENU.fast_fall_delay {
-            frame_counter::reset_frame_count(FRAME_COUNTER);
+            reset_frame_counter();
             return false;
         }
 
         return true;
+    }
+}
+
+fn reset_frame_counter() {
+    unsafe {
+        frame_counter::reset_frame_count(FRAME_COUNTER);
+        frame_counter::stop_counting(FRAME_COUNTER);
     }
 }
 
