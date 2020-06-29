@@ -4,29 +4,64 @@ use crate::training::*;
 static mut SHOULD_COUNT: Vec<bool> = vec![];
 static mut COUNTERS: Vec<u32> = vec![];
 
-pub unsafe fn register_counter() -> usize {
-    let index = COUNTERS.len();
+pub fn register_counter() -> usize {
+    unsafe {
+        let index = COUNTERS.len();
 
-    COUNTERS.push(0);
-    SHOULD_COUNT.push(false);
+        COUNTERS.push(0);
+        SHOULD_COUNT.push(false);
 
-    index
+        index
+    }
 }
 
-pub unsafe fn start_counting(index: usize) {
-    SHOULD_COUNT[index] = true;
+pub fn start_counting(index: usize) {
+    unsafe {
+        SHOULD_COUNT[index] = true;
+    }
 }
 
-pub unsafe fn stop_counting(index: usize) {
-    SHOULD_COUNT[index] = false;
+pub fn stop_counting(index: usize) {
+    unsafe {
+        SHOULD_COUNT[index] = false;
+    }
 }
 
-pub unsafe fn reset_frame_count(index: usize) {
-    COUNTERS[index] = 0;
+pub fn reset_frame_count(index: usize) {
+    unsafe {
+        COUNTERS[index] = 0;
+    }
 }
 
-pub unsafe fn get_frame_count(index: usize) -> u32 {
-    COUNTERS[index]
+pub fn full_reset(index: usize) {
+    frame_counter::reset_frame_count(index);
+    frame_counter::stop_counting(index);
+}
+
+/**
+ * Returns true until a certain number of frames have passed
+ */
+pub fn should_delay(delay: u32, index: usize) -> bool {
+    if delay == 0 {
+        return false;
+    }
+
+    let current_frame = frame_counter::get_frame_count(index);
+
+    if current_frame == 0 {
+        frame_counter::start_counting(index);
+    }
+
+    if current_frame >= delay {
+        full_reset(index);
+        return false;
+    }
+
+    return true;
+}
+
+pub fn get_frame_count(index: usize) -> u32 {
+    unsafe { COUNTERS[index] }
 }
 
 pub unsafe fn tick() {

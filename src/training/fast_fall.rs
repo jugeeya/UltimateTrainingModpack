@@ -40,7 +40,7 @@ pub unsafe fn get_command_flag_cat(
 
     // Need to be falling
     if !is_falling(module_accessor) {
-        reset_frame_counter();
+        frame_counter::full_reset(FRAME_COUNTER);
         return;
     }
 
@@ -55,7 +55,7 @@ pub unsafe fn get_command_flag_cat(
     }
 
     // Check delay
-    if should_delay() {
+    if frame_counter::should_delay(MENU.fast_fall_delay,FRAME_COUNTER) {
         return;
     }
 
@@ -67,34 +67,6 @@ pub unsafe fn get_command_flag_cat(
     );
 
     add_spark_effect(module_accessor);
-}
-
-fn should_delay() -> bool {
-    unsafe {
-        if MENU.fast_fall_delay == 0 {
-            return false;
-        }
-
-        let current_frame = frame_counter::get_frame_count(FRAME_COUNTER);
-
-        if current_frame == 0 {
-            frame_counter::start_counting(FRAME_COUNTER);
-        }
-
-        if current_frame >= MENU.fast_fall_delay {
-            reset_frame_counter();
-            return false;
-        }
-
-        return true;
-    }
-}
-
-fn reset_frame_counter() {
-    unsafe {
-        frame_counter::reset_frame_count(FRAME_COUNTER);
-        frame_counter::stop_counting(FRAME_COUNTER);
-    }
 }
 
 pub fn is_falling(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
