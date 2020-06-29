@@ -17,6 +17,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     oos_offset: 0,
     mash_in_neutral: OnOff::Off,
     fast_fall: OnOff::Off,
+    fast_fall_delay: 0,
     falling_aerials: OnOff::Off,
     full_hop: OnOff::Off,
 };
@@ -77,7 +78,7 @@ pub unsafe fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccesso
 }
 
 pub fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe{
+    unsafe {
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
         (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
     }

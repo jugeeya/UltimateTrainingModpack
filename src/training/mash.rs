@@ -271,7 +271,7 @@ unsafe fn get_aerial_flag(
         }
 
         // Delay attack until we are airborne to get a full hop
-        if MENU.full_hop== OnOff::On{
+        if MENU.full_hop == OnOff::On {
             buffer_action(Mash::Attack);
             return flag;
         }

@@ -279,9 +279,10 @@ pub struct TrainingModpackMenu {
     pub mash_state: Mash,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
-    pub oos_offset: i32,
+    pub oos_offset: u32,
     pub mash_in_neutral: OnOff,
     pub fast_fall: OnOff,
+    pub fast_fall_delay: u32,
     pub falling_aerials: OnOff,
     pub full_hop: OnOff,
 }

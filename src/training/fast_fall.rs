@@ -1,8 +1,17 @@
 use crate::common::consts::OnOff;
 use crate::common::*;
+use crate::training::frame_counter;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+
+static mut FRAME_COUNTER: usize = 0;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER = frame_counter::register_counter();
+    }
+}
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -44,6 +53,11 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
+    // Check delay
+    if should_delay() {
+        return;
+    }
+
     // Set Fast Fall Flag
     WorkModule::set_flag(
         module_accessor,
@@ -54,7 +68,28 @@ pub unsafe fn get_command_flag_cat(
     add_spark_effect(module_accessor);
 }
 
-pub fn is_falling(module_accessor: &mut app::BattleObjectModuleAccessor)->bool {
+fn should_delay() -> bool {
+    unsafe {
+        if MENU.fast_fall_delay == 0 {
+            return false;
+        }
+
+        let current_frame = frame_counter::get_frame_count(FRAME_COUNTER);
+
+        if current_frame == 0 {
+            frame_counter::start_counting(FRAME_COUNTER);
+        }
+
+        if current_frame >= MENU.fast_fall_delay {
+            frame_counter::reset_frame_count(FRAME_COUNTER);
+            return false;
+        }
+
+        return true;
+    }
+}
+
+pub fn is_falling(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     unsafe {
         let y_speed =
             KineticModule::get_sum_speed_y(module_accessor, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
