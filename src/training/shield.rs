@@ -16,6 +16,7 @@ static mut MULTI_HIT_OFFSET: u32 = unsafe { MENU.oos_offset };
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
+static mut REACTION_INDEX: usize = 0;
 
 // For how many frames should the shield hold be overwritten
 static mut SHIELD_SUSPEND_FRAMES: u32 = 0;
@@ -23,6 +24,7 @@ static mut SHIELD_SUSPEND_FRAMES: u32 = 0;
 pub fn init() {
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
+        REACTION_INDEX = frame_counter::register_counter();
     }
 }
 
@@ -188,6 +190,11 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     if !is_shielding(module_accessor) {
+        frame_counter::full_reset(REACTION_INDEX);
+        return;
+    }
+
+    if frame_counter::should_delay(MENU.reaction_time, REACTION_INDEX){
         return;
     }
 
