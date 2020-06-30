@@ -108,7 +108,7 @@ pub unsafe fn generate_hitbox_effects(
             z: 0.0,
         };
 
-        if is_fighter(module_accessor) {
+        if false { // is_fighter(module_accessor) {
             EffectModule::req_on_joint(
                 module_accessor,
                 Hash40::new("sys_shield"),
