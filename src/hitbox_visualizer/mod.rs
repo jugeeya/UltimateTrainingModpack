@@ -49,6 +49,20 @@ pub const ID_COLORS: &[Vector3f] = &[
 ];
 const MAX_EFFECTS_PER_HITBOX: i32 = 16; // max # of circles drawn for an extended hitbox
 
+pub static mut EFFECT_MANAGER_ADDR: usize = 0;
+
+pub unsafe fn EffectModule_get_scale_w(handle: u32) {
+    let mgr = *(*(EFFECT_MANAGER_ADDR as *mut *mut u64));
+    let handle_index = (handle >> 0x18) as u64;
+    let effect = (mgr + (0x300 * handle_index));
+    let effect_handle = *((effect + 4) as *mut u32);
+    let is_exist_effect = (effect != 0) && effect_handle == handle;
+    if is_exist_effect {
+        let scale = *((effect + 0x100) as *mut Vector3f);
+        println!("Effect Scale: {:?}", scale);
+    }
+}
+
 pub unsafe fn generate_hitbox_effects(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     bone: u64,
@@ -108,7 +122,7 @@ pub unsafe fn generate_hitbox_effects(
             z: 0.0,
         };
 
-        if is_fighter(module_accessor) {
+        {
             EffectModule::req_on_joint(
                 module_accessor,
                 Hash40::new("sys_shield"),
@@ -119,13 +133,23 @@ pub unsafe fn generate_hitbox_effects(
                 &zeros,
                 &zeros,
                 true,
-                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
-                    | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
-                    | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+                // *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
+                //     | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
+                //     | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+                0,
                 0,
                 0,
             );
-        } else {
+
+            let handle = EffectModule::get_last_handle(module_accessor) as u32;
+
+            EffectModule_get_scale_w(handle);
+
+            // set to hitbox ID color
+            EffectModule::set_rgb_partial_last(module_accessor, 1.0, 0.0, 0.0);
+        } 
+        
+        {
             EffectModule::req_follow(
                 module_accessor,
                 Hash40::new("sys_shield"),
@@ -134,9 +158,10 @@ pub unsafe fn generate_hitbox_effects(
                 &zeros,
                 size * size_mult,
                 true,
-                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
-                    | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
-                    | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32,
+                // 0
+                //     | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
+                //     | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
                 0,
                 0,
                 0,
@@ -144,10 +169,17 @@ pub unsafe fn generate_hitbox_effects(
                 true,
                 true,
             );
+
+            let handle = EffectModule::get_last_handle(module_accessor) as u32;
+
+            EffectModule_get_scale_w(handle);
+
+            // set to hitbox ID color
+            EffectModule::set_rgb_partial_last(module_accessor, 0.0, 0.0, 1.0);
         }
 
         // set to hitbox ID color
-        EffectModule::set_rgb_partial_last(module_accessor, color.x, color.y, color.z);
+        // EffectModule::set_rgb_partial_last(module_accessor, color.x, color.y, color.z);
 
         // speed up animation by rate to remove pulsing effect
         EffectModule::set_rate_last(module_accessor, 8.0);
@@ -355,5 +387,18 @@ unsafe fn mod_handle_handle_set_rebound(module_accessor: *mut app::BattleObjectM
 
 pub fn hitbox_visualization() {
     println!("[Training Modpack] Applying hitbox visualization mods.");
-    skyline::install_hooks!(handle_attack, handle_catch, handle_set_rebound);
+
+    unsafe {
+        skyline::nn::ro::LookupSymbol(
+            &mut EFFECT_MANAGER_ADDR,
+            "_ZN3lib9SingletonINS_13EffectManagerEE9instance_E\u{0}"
+                .as_bytes()
+                .as_ptr(),
+        );
+    }
+
+    skyline::install_hooks!(
+        // handle_attack, 
+        handle_catch, 
+        handle_set_rebound);
 }
