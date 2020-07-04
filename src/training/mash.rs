@@ -9,6 +9,8 @@ use smash::lib::lua_const::*;
 static mut BUFFERED_ACTION: Mash = Mash::None;
 static mut BUFFERED_ATTACK: Attack = Attack::Nair;
 
+static mut CURRENT_FOLLOW_UP: Action = Action::None;
+
 pub fn buffer_action(action: Mash) {
     unsafe {
         if BUFFERED_ACTION != Mash::None {
@@ -18,6 +20,21 @@ pub fn buffer_action(action: Mash) {
 
     unsafe {
         BUFFERED_ACTION = action;
+    }
+}
+
+pub fn buffer_follow_up(action: Mash) {
+    unsafe {
+        if BUFFERED_ACTION != Mash::None {
+            return;
+        }
+    }
+
+    unsafe {
+        BUFFERED_ACTION = action;
+        CURRENT_FOLLOW_UP = Action::None;
+
+        println!("buffering followup");
     }
 }
 
@@ -33,6 +50,7 @@ pub fn set_attack(attack: Attack) {
     }
     unsafe {
         BUFFERED_ATTACK = attack;
+        println!("Setting Attack {}", attack as i32);
     }
 }
 
@@ -274,16 +292,10 @@ unsafe fn get_aerial_flag(
 
     // If we are grounded we also need to jump
     if is_grounded(module_accessor) {
-        flag += update_jump_flag(module_accessor);
-
-        if flag == 0 {
-            // Can't jump, return
-            return 0;
-        }
+        flag += *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
         // Delay attack until we are airborne to get a full hop
         if MENU.full_hop == OnOff::On {
-            buffer_action(Mash::Attack);
             return flag;
         }
     }
@@ -291,8 +303,6 @@ unsafe fn get_aerial_flag(
     let status = *FIGHTER_STATUS_KIND_ATTACK_AIR;
 
     if MENU.falling_aerials == OnOff::On && !fast_fall::is_falling(module_accessor) {
-        // Keep Buffering until we are falling
-        buffer_action(Mash::Attack);
         return flag;
     }
 
@@ -339,9 +349,53 @@ unsafe fn get_flag(
     if StatusModule::status_kind(module_accessor) == status {
         // Reset Buffer
         reset();
+        handle_follow_up();
     }
 
     return action_flag;
+}
+
+fn handle_follow_up() {
+    let action;
+
+    unsafe {
+        action = CURRENT_FOLLOW_UP;
+    }
+
+    match action {
+        Action::None => return,
+        Action::Airdodge => buffer_follow_up(Mash::Airdodge),
+        Action::Jump => buffer_follow_up(Mash::Jump),
+        Action::Spotdodge => buffer_follow_up(Mash::Spotdodge),
+        Action::RollForward => buffer_follow_up(Mash::RollForward),
+        Action::RollBack => buffer_follow_up(Mash::RollBack),
+        _ => handle_attack_follow_up(action),
+    }
+}
+
+fn handle_attack_follow_up(action: Action) {
+    buffer_follow_up(Mash::Attack);
+
+    match action {
+        Action::Nair => set_attack(Attack::Nair),
+        Action::Fair => set_attack(Attack::Fair),
+        Action::Bair => set_attack(Attack::Bair),
+        Action::UpAir => set_attack(Attack::UpAir),
+        Action::Dair => set_attack(Attack::Dair),
+        Action::NeutralB => set_attack(Attack::NeutralB),
+        Action::SideB => set_attack(Attack::SideB),
+        Action::UpB => set_attack(Attack::UpB),
+        Action::DownB => set_attack(Attack::DownB),
+        Action::UpSmash => set_attack(Attack::UpSmash),
+        Action::FSmash => set_attack(Attack::FSmash),
+        Action::DSmash => set_attack(Attack::DSmash),
+        Action::Grab => set_attack(Attack::Grab),
+        Action::Jab => set_attack(Attack::Jab),
+        Action::Ftilt => set_attack(Attack::Ftilt),
+        Action::Utilt => set_attack(Attack::Utilt),
+        Action::Dtilt => set_attack(Attack::Dtilt),
+        _ => {}
+    }
 }
 
 pub unsafe fn perform_defensive_option() {

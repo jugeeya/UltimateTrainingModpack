@@ -268,12 +268,75 @@ pub enum OnOff {
     On = 1,
 }
 
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Action {
+    None = 0,
+    Airdodge = 1,
+    Jump = 2,
+    Spotdodge = 3,
+    RollForward = 4,
+    RollBack = 5,
+    Nair = 6,
+    Fair = 7,
+    Bair = 8,
+    UpAir = 9,
+    Dair = 10,
+    NeutralB = 11,
+    SideB = 12,
+    UpB = 13,
+    DownB = 14,
+    UpSmash = 15,
+    FSmash = 16,
+    DSmash = 17,
+    Grab = 18,
+    Jab = 19,
+    Ftilt = 20,
+    Utilt = 21,
+    Dtilt = 22,
+}
+
+// To satisfy the unused warning
+impl From<i32> for Action {
+    fn from(x: i32) -> Self {
+        use Action::*;
+
+        match x {
+            0 => None,
+            1 => Airdodge,
+            2 => Jump,
+            3 => Spotdodge,
+            4 => RollForward,
+            5 => RollBack,
+            6 => Nair,
+            7 => Fair,
+            8 => Bair,
+            9 => UpAir,
+            10 => Dair,
+            11 => NeutralB,
+            12 => SideB,
+            13 => UpB,
+            14 => DownB,
+            15 => UpSmash,
+            16 => FSmash,
+            17 => DSmash,
+            18 => Grab,
+            19 => Jab,
+            20 => Ftilt,
+            21 => Utilt,
+            22 => Dtilt,
+            _ => None,
+        }
+    }
+}
+
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
     pub di_state: Direction,
     pub left_stick: Direction, // Currently only used for air dodge direction
     pub mash_attack_state: Attack,
+    pub follow_up: Action,
     pub ledge_state: LedgeOption,
     pub tech_state: TechOption,
     pub mash_state: Mash,
