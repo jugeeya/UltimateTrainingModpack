@@ -132,7 +132,7 @@ pub unsafe fn get_param_float(
     None
 }
 
-pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub unsafe fn should_hold_shield() -> bool {
     // Mash shield
     if mash::get_current_buffer() == Mash::Shield {
         return true;
@@ -143,26 +143,7 @@ pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAc
         return false;
     }
 
-    // Hold shield while OOS is not allowed
-    if !allow_oos() {
-        return true;
-    }
-
-    if !was_in_shieldstun(module_accessor) {
-        return true;
-    }
-
-    match mash::get_current_buffer() {
-        Mash::Attack => {} // Handle attack below
-        // If we are not mashing attack then we will always hold shield
-        _ => return true,
-    }
-
-    // We will hold shield if we are in shieldstun and our attack can be performed OOS
-    match mash::get_current_attack() {
-        Attack::Grab => return true, // Grab has 4 extra shield frames
-        _ => return false,
-    }
+    true
 }
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
@@ -376,7 +357,7 @@ unsafe fn should_return_none_in_check_button(
         return true;
     }
 
-    if !should_hold_shield(module_accessor) {
+    if !should_hold_shield() {
         return true;
     }
 
