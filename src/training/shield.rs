@@ -182,13 +182,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    let action;
-    if MENU.mash_state == Mash::Random {
-        action = mash::get_random_action(module_accessor);
-    } else {
-        action = mash::mash_to_action(MENU.mash_state);
-    }
-    mash::buffer_action(action);
+    let action = mash::buffer_menu_mash(module_accessor);
 
     if handle_escape_option(fighter, module_accessor) {
         return;

@@ -40,7 +40,12 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         status = new_status;
     }
 
-    mash::perform_defensive_option();
+    match ledge_case {
+        LedgeOption::Jump => {
+            mash::buffer_menu_mash(module_accessor);
+        }
+        _ => mash::perform_defensive_option(),
+    }
 
     StatusModule::change_status_request_from_script(module_accessor, status, true);
 }

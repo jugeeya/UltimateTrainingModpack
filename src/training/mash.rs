@@ -108,17 +108,24 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    if MENU.mash_state == Mash::Random {
-        let action = get_random_action(module_accessor);
-        buffer_action(action);
-        return;
-    }
-
-    let action = mash_to_action(MENU.mash_state);
-    buffer_action(action);
+    buffer_menu_mash(module_accessor);
 }
 
 // Temp Translation
+pub fn buffer_menu_mash(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
+    unsafe {
+        let action;
+        if MENU.mash_state == Mash::Random {
+            action = get_random_action(module_accessor);
+        } else {
+            action = mash_to_action(MENU.mash_state);
+        }
+        buffer_action(action);
+
+        action
+    }
+}
+
 pub fn mash_to_action(mash: Mash) -> Action {
     use Action::*;
     match mash {
@@ -133,7 +140,7 @@ pub fn mash_to_action(mash: Mash) -> Action {
     }
 }
 
-pub fn get_random_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
+fn get_random_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
     let mut random_cmds = vec![Mash::Jump, Mash::Attack];
     unsafe {
         if is_airborne(module_accessor) {
