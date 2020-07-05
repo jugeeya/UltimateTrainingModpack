@@ -352,28 +352,11 @@ unsafe fn get_aerial_flag(
     use Action::*;
 
     /*
-     * For some reason the game doesn't trigger the aerials through the flags correctly.
-     * So we always trigger nair and change it later into the correct aerial
+     * We always trigger attack and change it later into the correct aerial
      * @see get_attack_air_kind()
      */
     match action {
-        Nair => {
-            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
-        }
-        Fair => {
-            // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_F;
-            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
-        }
-        Bair => {
-            // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_B;
-            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
-        }
-        UpAir => {
-            // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI;
-            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
-        }
-        Dair => {
-            // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW;
+        Nair | Fair | Bair | UpAir | Dair => {
             action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
         }
         _ => {
