@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     container: devkitpro/devkita64:latest
     steps:
-    - uses: actions/checkout@master
-    - name: Sync submodules
-      run: git submodule sync --recursive && git submodule update --init --recursive
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - name: make
       run: make
     - name: Upload build artifact
