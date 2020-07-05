@@ -107,28 +107,13 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    let mut mash = MENU.mash_state;
-
-    if mash == Mash::Random {
-        let mut random_cmds = vec![Mash::Jump, Mash::Attack];
-
-        if is_airborne(module_accessor) {
-            random_cmds.push(Mash::Airdodge);
-        }
-
-        if is_grounded(module_accessor) {
-            random_cmds.push(Mash::RollBack);
-            random_cmds.push(Mash::RollForward);
-            random_cmds.push(Mash::Spotdodge);
-        }
-
-        let random_cmd_index =
-            app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
-
-        mash = random_cmds[random_cmd_index];
+    if MENU.mash_state == Mash::Random {
+        let action = get_random_action(module_accessor);
+        buffer_action(action);
+        return;
     }
 
-    let action = mash_to_action(mash);
+    let action = mash_to_action(MENU.mash_state);
     buffer_action(action);
 }
 
@@ -144,6 +129,26 @@ pub fn mash_to_action(mash: Mash) -> Action {
         Mash::Shield => Shield,
         Mash::Attack => unsafe { attack_to_action(MENU.mash_attack_state) },
         _ => Nothing,
+    }
+}
+
+pub fn get_random_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
+    let mut random_cmds = vec![Mash::Jump, Mash::Attack];
+    unsafe {
+        if is_airborne(module_accessor) {
+            random_cmds.push(Mash::Airdodge);
+        }
+
+        if is_grounded(module_accessor) {
+            random_cmds.push(Mash::RollBack);
+            random_cmds.push(Mash::RollForward);
+            random_cmds.push(Mash::Spotdodge);
+        }
+
+        let random_cmd_index =
+            app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
+
+        mash_to_action(random_cmds[random_cmd_index])
     }
 }
 

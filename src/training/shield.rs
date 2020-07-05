@@ -179,12 +179,18 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
+    let action ;
+    if MENU.mash_state == Mash::Random {
+        action = mash::get_random_action(module_accessor);
+    }
+    else{
+        action = mash::mash_to_action(MENU.mash_state);
+    }
+    mash::buffer_action(action);
+
     if handle_escape_option(fighter, module_accessor) {
         return;
     }
-
-    let action = mash::mash_to_action(MENU.mash_state);
-    mash::buffer_action(action);
 
     if needs_oos_handling_drop_shield() {
         return;
@@ -256,20 +262,20 @@ unsafe fn handle_escape_option(
         return false;
     }
 
-    match MENU.mash_state {
-        Mash::Spotdodge => {
+    match mash::get_current_buffer() {
+        Action::Spotdodge => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(), LUA_TRUE);
             return true;
         }
-        Mash::RollForward => {
+        Action::RollForward => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(), LUA_TRUE);
             return true;
         }
-        Mash::RollBack => {
+        Action::RollBack => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(), LUA_TRUE);
@@ -285,7 +291,7 @@ unsafe fn handle_escape_option(
 fn needs_oos_handling_drop_shield() -> bool {
     let action = mash::get_current_buffer();
 
-    if action ==Action::Jump {
+    if action == Action::Jump {
         return true;
     }
 
