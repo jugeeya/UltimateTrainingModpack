@@ -41,7 +41,7 @@ jobs:
         mkdir -p atmosphere/contents/01006A800016E000/romfs/skyline/plugins/ 
         cp ./target/aarch64-skyline-switch/release/libtraining_modpack.nro atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro
         mkdir -p switch/.overlays/
-        cp overlay/TrainingModpackOverlay/ovlTrainingModpack.ovl switch/.overlays/ovlTrainingModpack.ovl
+        cp overlay/ovlTrainingModpack.ovl switch/.overlays/ovlTrainingModpack.ovl
         zip -r training_modpack_beta.zip atmosphere switch 
     - name: Update Release
       uses: meeDamian/github-release@2.0
