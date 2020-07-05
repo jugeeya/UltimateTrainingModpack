@@ -13,11 +13,11 @@ jobs:
     - name: Sync submodules
       run: git submodule sync --recursive && git submodule update --init --recursive
     - name: Download DEVKITPRO
-      run: wget https://github.com/devkitPro/pacman/releases/download/v1.0.2/devkitpro-pacman.amd64.deb
+      run: wget https://github.com/devkitPro/pacman/releases/download/v1.0.2/devkitpro-pacman.arm64.deb
     - name: Install gdebi-core
       run: sudo apt-get install gdebi-core
     - name: Install DEVKITPRO
-      run: sudo gdebi --non-interactive devkitpro-pacman.amd64.deb
+      run: sudo gdebi --non-interactive devkitpro-pacman.arm64.deb
     - name: Install packages
       run: printf "\nY" | sudo dkp-pacman -Sy switch-dev
     - name: Make Tesla overlay
