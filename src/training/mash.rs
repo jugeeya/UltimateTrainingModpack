@@ -357,7 +357,7 @@ unsafe fn get_aerial_flag(
      */
     match action {
         Nair | Fair | Bair | UpAir | Dair => {
-            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
+            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
         }
         _ => {
             action_flag = 0;
