@@ -18,11 +18,6 @@ pub fn buffer_action(action: Action) {
 
     unsafe {
         QUEUE.insert(0, action);
-
-        if shield::is_aerial(action) {
-            set_aerial(action);
-        }
-
         buffer_follow_up();
     }
 }
@@ -339,7 +334,7 @@ unsafe fn get_aerial_flag(
 
     // If we are grounded we also need to jump
     if is_grounded(module_accessor) {
-        flag += *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+        flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
         // Delay attack until we are airborne to get a full hop
         if MENU.full_hop == OnOff::On {
@@ -356,30 +351,37 @@ unsafe fn get_aerial_flag(
     let action_flag: i32;
     use Action::*;
 
+    /*
+     * For some reason the game doesn't trigger the aerials through the flags correctly.
+     * So we always trigger nair and change it later into the correct aerial
+     * @see get_attack_air_kind()
+     */
     match action {
         Nair => {
             action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
         }
         Fair => {
-            // For some reason the game doesn't trigger the fair correctly
             // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_F;
             action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
         }
         Bair => {
-            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_B;
+            // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_B;
+            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
         }
         UpAir => {
-            // For some reason the game doesn't trigger the uair correctly
             // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI;
             action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
         }
         Dair => {
-            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW;
+            // action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW;
+            action_flag = *FIGHTER_COMMAND_ATTACK_AIR_KIND_N;
         }
         _ => {
             action_flag = 0;
         }
     }
+
+    set_aerial(action);
 
     flag |= get_flag(module_accessor, status, action_flag);
 
