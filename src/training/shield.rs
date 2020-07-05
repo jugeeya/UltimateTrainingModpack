@@ -15,15 +15,13 @@ static mut MULTI_HIT_OFFSET: u32 = unsafe { MENU.oos_offset };
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
-static mut FRAME_COUNTER_INDEX: usize = 0;
 static mut REACTION_INDEX: usize = 0;
 
 // For how many frames should the shield hold be overwritten
-static mut SHIELD_SUSPEND_FRAMES: u32 = 0;
+static mut SUSPEND_SHIELD: bool = false;
 
 pub fn init() {
     unsafe {
-        FRAME_COUNTER_INDEX = frame_counter::register_counter();
         REACTION_INDEX = frame_counter::register_counter();
     }
 }
@@ -132,37 +130,23 @@ pub unsafe fn get_param_float(
     None
 }
 
-pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub fn should_hold_shield() -> bool {
     // Mash shield
-    if mash::get_current_buffer() == Mash::Shield {
+    if mash::get_current_buffer() == Action::Shield {
         return true;
+    }
+
+    let shield_state;
+    unsafe {
+        shield_state = &MENU.shield_state;
     }
 
     // We should hold shield if the state requires it
-    if ![Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
+    if ![Shield::Hold, Shield::Infinite].contains(shield_state) {
         return false;
     }
 
-    // Hold shield while OOS is not allowed
-    if !allow_oos() {
-        return true;
-    }
-
-    if !was_in_shieldstun(module_accessor) {
-        return true;
-    }
-
-    match mash::get_current_buffer() {
-        Mash::Attack => {} // Handle attack below
-        // If we are not mashing attack then we will always hold shield
-        _ => return true,
-    }
-
-    // We will hold shield if we are in shieldstun and our attack can be performed OOS
-    match mash::get_current_attack() {
-        Attack::Grab => return true, // Grab has 4 extra shield frames
-        _ => return false,
-    }
+    true
 }
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
@@ -194,47 +178,22 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if frame_counter::should_delay(MENU.reaction_time, REACTION_INDEX){
+    if frame_counter::should_delay(MENU.reaction_time, REACTION_INDEX) {
         return;
     }
+
+    let action = mash::buffer_menu_mash(module_accessor);
 
     if handle_escape_option(fighter, module_accessor) {
         return;
     }
 
-    mash::buffer_action(MENU.mash_state);
-    mash::set_attack(MENU.mash_attack_state);
-
     if needs_oos_handling_drop_shield() {
         return;
     }
 
-    // Set shield suspension frames
-    match MENU.mash_state {
-        Mash::Attack => match MENU.mash_attack_state {
-            Attack::UpSmash => {}
-            Attack::Grab => {}
-            _ => {
-                // Force shield drop
-                suspend_shield(15);
-            }
-        },
-
-        _ => {}
-    }
-}
-
-// Needed for shield drop options
-pub fn suspend_shield(frames: u32) {
-    if frames <= 0 {
-        return;
-    }
-
-    unsafe {
-        SHIELD_SUSPEND_FRAMES = frames;
-        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-        frame_counter::start_counting(FRAME_COUNTER_INDEX);
-    }
+    // Set shield suspension
+    suspend_shield(action);
 }
 
 /**
@@ -279,20 +238,20 @@ unsafe fn handle_escape_option(
         return false;
     }
 
-    match MENU.mash_state {
-        Mash::Spotdodge => {
+    match mash::get_current_buffer() {
+        Action::Spotdodge => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(), LUA_TRUE);
             return true;
         }
-        Mash::RollForward => {
+        Action::RollForward => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(), LUA_TRUE);
             return true;
         }
-        Mash::RollBack => {
+        Action::RollBack => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(), LUA_TRUE);
@@ -306,55 +265,59 @@ unsafe fn handle_escape_option(
  * Needed to allow these attacks to work OOS
  */
 fn needs_oos_handling_drop_shield() -> bool {
-    match mash::get_current_buffer() {
-        Mash::Jump => return true,
-        Mash::Attack => {
-            let attack = mash::get_current_attack();
-            if is_aerial(attack) {
-                return true;
-            }
+    let action = mash::get_current_buffer();
 
-            if attack == Attack::UpB {
-                return true;
-            }
-        }
-        _ => {}
+    if action == Action::Jump {
+        return true;
+    }
+
+    if is_aerial(action) {
+        return true;
+    }
+
+    if action == Action::UpB {
+        return true;
     }
 
     false
 }
 
-fn is_aerial(attack: Attack) -> bool {
-    match attack {
-        Attack::Nair => return true,
-        Attack::Fair => return true,
-        Attack::Bair => return true,
-        Attack::UpAir => return true,
-        Attack::Dair => return true,
+pub fn is_aerial(action: Action) -> bool {
+    match action {
+        Action::Nair => return true,
+        Action::Fair => return true,
+        Action::Bair => return true,
+        Action::UpAir => return true,
+        Action::Dair => return true,
         _ => return false,
+    }
+}
+
+// Needed for shield drop options
+pub fn suspend_shield(action: Action) {
+    unsafe {
+        SUSPEND_SHIELD = need_suspend_shield(action);
+    }
+}
+
+fn need_suspend_shield(action: Action) -> bool {
+    match action {
+        Action::UpSmash => false,
+        Action::Grab => false,
+        Action::Shield => false,
+        Action::Nothing => false,
+        _ => {
+            // Force shield drop
+            true
+        }
     }
 }
 
 /**
  * Needed for these options to work OOS
  */
-unsafe fn shield_is_suspended() -> bool {
-    // Normal behavior when not mashing
-    if SHIELD_SUSPEND_FRAMES == 0 {
-        return false;
-    }
-
-    let resume_normal_behavior =
-        frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > SHIELD_SUSPEND_FRAMES;
-
-    if resume_normal_behavior {
-        SHIELD_SUSPEND_FRAMES = 0;
-        frame_counter::stop_counting(FRAME_COUNTER_INDEX);
-
-        return false;
-    }
-
-    true
+fn shield_is_suspended() -> bool {
+    unsafe { SUSPEND_SHIELD }
 }
 
 /**
@@ -376,7 +339,7 @@ unsafe fn should_return_none_in_check_button(
         return true;
     }
 
-    if !should_hold_shield(module_accessor) {
+    if !should_hold_shield() {
         return true;
     }
 
