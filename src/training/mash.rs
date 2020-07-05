@@ -231,11 +231,6 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
             Shield hold is performed trough shield::should_hold_shield
             */
-            // return get_flag(
-            //     module_accessor,
-            //     *FIGHTER_STATUS_KIND_GUARD_ON,
-            //     *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
-            // );
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_GUARD_ON,
