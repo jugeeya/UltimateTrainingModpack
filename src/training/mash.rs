@@ -65,7 +65,6 @@ pub fn set_aerial(attack: Action) {
 
     unsafe {
         CURRENT_AERIAL = attack;
-        println!("Setting Attack {}", attack as i32);
     }
 }
 
@@ -411,7 +410,6 @@ unsafe fn get_flag(
 pub unsafe fn perform_defensive_option() {
     reset();
 
-    let mut suspend_shield = true;
     let action;
 
     match MENU.defensive_state {
