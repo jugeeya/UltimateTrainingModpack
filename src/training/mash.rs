@@ -7,47 +7,52 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 
 static mut CURRENT_AERIAL: Action = Action::Nair;
-static mut BUFFERED_ACTION: Action = Action::Nothing;
-static mut CURRENT_FOLLOW_UP: Action = Action::Nothing;
+static mut QUEUE: Vec<Action> = vec![];
 
 pub fn buffer_action(action: Action) {
     unsafe {
-        if BUFFERED_ACTION != Action::Nothing {
+        if QUEUE.len() > 0 {
             return;
         }
     }
 
     unsafe {
-        BUFFERED_ACTION = action;
+        QUEUE.insert(0, action);
 
         if shield::is_aerial(action) {
             set_aerial(action);
         }
+
+        buffer_follow_up();
     }
 }
 
-pub fn buffer_follow_up(action: Action) {
+pub fn buffer_follow_up() {
+    let action;
+
     unsafe {
-        if BUFFERED_ACTION != Action::Nothing {
-            return;
-        }
+        action = MENU.follow_up;
+    }
+
+    if action == Action::Nothing {
+        return;
     }
 
     unsafe {
-        BUFFERED_ACTION = action;
-        CURRENT_FOLLOW_UP = Action::Nothing;
-
-        println!("buffering followup");
+        QUEUE.insert(0, action);
     }
 }
 
 pub fn get_current_buffer() -> Action {
-    unsafe { BUFFERED_ACTION }
+    unsafe {
+        let current = QUEUE.last().unwrap_or(&Action::Nothing);
+        *current
+    }
 }
 
 pub fn reset() {
     unsafe {
-        BUFFERED_ACTION = Action::Nothing;
+        QUEUE.pop();
     }
 }
 
@@ -99,7 +104,7 @@ pub unsafe fn get_command_flag_cat(
 }
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if BUFFERED_ACTION != Action::Nothing {
+    if QUEUE.len() > 0 {
         return;
     }
 
@@ -179,7 +184,9 @@ fn attack_to_action(attack: Attack) -> Action {
 unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
     use Action::*;
 
-    match BUFFERED_ACTION {
+    let action = get_current_buffer();
+
+    match action {
         Airdodge => {
             // Shield if grounded instead
             if is_grounded(module_accessor) {
@@ -234,7 +241,7 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
                 *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
             );
         }
-        _ => return get_attack_flag(module_accessor, BUFFERED_ACTION),
+        _ => return get_attack_flag(module_accessor, action),
     }
 }
 
@@ -394,25 +401,9 @@ unsafe fn get_flag(
     if StatusModule::status_kind(module_accessor) == status {
         // Reset Buffer
         reset();
-        handle_follow_up();
     }
 
     return action_flag;
-}
-
-fn handle_follow_up() {
-    let action;
-
-    unsafe {
-        action = CURRENT_FOLLOW_UP;
-    }
-
-    use Action::*;
-
-    match action {
-        Nothing => return,
-        _ => buffer_follow_up(action),
-    }
 }
 
 pub unsafe fn perform_defensive_option() {
