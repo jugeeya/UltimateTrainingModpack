@@ -24,9 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: overlay
     steps:
-    - uses: actions/download-artifact@v1
-      with:
-        name: overlay
     - uses: actions/checkout@v2
     - name: Install cargo-skyline
       run: cargo install --git https://github.com/jam1garner/cargo-skyline
@@ -36,6 +33,9 @@ jobs:
       run: cargo install xargo
     - name: Attempt to build
       run: XARGO_RUST_SRC=$(realpath ../rust-std-skyline-squashed/src) PATH=$PATH:/usr/share/rust/.rustup/toolchains/nightly-2020-04-10-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin cargo skyline build --release
+    - uses: actions/download-artifact@v1
+      with:
+        name: overlay
     - name: Prepare zip
       run: | 
         mkdir -p atmosphere/contents/01006A800016E000/romfs/skyline/plugins/ 
