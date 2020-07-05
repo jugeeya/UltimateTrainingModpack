@@ -14,6 +14,7 @@ jobs:
         submodules: recursive
     - name: make
       run: make
+      working-directory: TrainingModpackOverlay
     - name: Upload build artifact
       uses: actions/upload-artifact@v1
       with:
