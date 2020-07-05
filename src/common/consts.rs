@@ -112,21 +112,6 @@ impl From<i32> for Attack {
     }
 }
 
-impl Attack {
-    pub fn into_attack_air_kind(&self) -> Option<i32> {
-        use Attack::*;
-
-        Some(match self {
-            Nair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
-            Fair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
-            Bair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
-            Dair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
-            UpAir => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
-            _ => return None,
-        })
-    }
-}
-
 // Ledge Option
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -271,7 +256,7 @@ pub enum OnOff {
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Action {
-    None = 0,
+    Nothing = 0,
     Airdodge = 1,
     Jump = 2,
     Spotdodge = 3,
@@ -294,6 +279,22 @@ pub enum Action {
     Ftilt = 20,
     Utilt = 21,
     Dtilt = 22,
+    Shield = 99,
+}
+
+impl Action {
+    pub fn into_attack_air_kind(&self) -> Option<i32> {
+        use Action::*;
+
+        Some(match self {
+            Nair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
+            Fair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
+            Bair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
+            Dair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
+            UpAir => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
+            _ => return None,
+        })
+    }
 }
 
 // To satisfy the unused warning
@@ -302,7 +303,7 @@ impl From<i32> for Action {
         use Action::*;
 
         match x {
-            0 => None,
+            0 => Nothing,
             1 => Airdodge,
             2 => Jump,
             3 => Spotdodge,
@@ -325,7 +326,8 @@ impl From<i32> for Action {
             20 => Ftilt,
             21 => Utilt,
             22 => Dtilt,
-            _ => None,
+            99 => Action::Shield,
+            _ => Nothing,
         }
     }
 }

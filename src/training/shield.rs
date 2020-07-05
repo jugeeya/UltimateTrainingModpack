@@ -134,7 +134,7 @@ pub unsafe fn get_param_float(
 
 pub unsafe fn should_hold_shield() -> bool {
     // Mash shield
-    if mash::get_current_buffer() == Mash::Shield {
+    if mash::get_current_buffer() == Action::Shield {
         return true;
     }
 
@@ -175,7 +175,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if frame_counter::should_delay(MENU.reaction_time, REACTION_INDEX){
+    if frame_counter::should_delay(MENU.reaction_time, REACTION_INDEX) {
         return;
     }
 
@@ -183,25 +183,21 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    mash::buffer_action(MENU.mash_state);
-    mash::set_attack(MENU.mash_attack_state);
+    let action = mash::mash_to_action(MENU.mash_state);
+    mash::buffer_action(action);
 
     if needs_oos_handling_drop_shield() {
         return;
     }
 
     // Set shield suspension frames
-    match MENU.mash_state {
-        Mash::Attack => match MENU.mash_attack_state {
-            Attack::UpSmash => {}
-            Attack::Grab => {}
-            _ => {
-                // Force shield drop
-                suspend_shield(15);
-            }
-        },
-
-        _ => {}
+    match action {
+        Action::UpSmash => {}
+        Action::Grab => {}
+        _ => {
+            // Force shield drop
+            suspend_shield(15);
+        }
     }
 }
 
@@ -287,31 +283,30 @@ unsafe fn handle_escape_option(
  * Needed to allow these attacks to work OOS
  */
 fn needs_oos_handling_drop_shield() -> bool {
-    match mash::get_current_buffer() {
-        Mash::Jump => return true,
-        Mash::Attack => {
-            let attack = mash::get_current_attack();
-            if is_aerial(attack) {
-                return true;
-            }
+    let action = mash::get_current_buffer();
 
-            if attack == Attack::UpB {
-                return true;
-            }
-        }
-        _ => {}
+    if action ==Action::Jump {
+        return true;
+    }
+
+    if is_aerial(action) {
+        return true;
+    }
+
+    if action == Action::UpB {
+        return true;
     }
 
     false
 }
 
-fn is_aerial(attack: Attack) -> bool {
-    match attack {
-        Attack::Nair => return true,
-        Attack::Fair => return true,
-        Attack::Bair => return true,
-        Attack::UpAir => return true,
-        Attack::Dair => return true,
+pub fn is_aerial(action: Action) -> bool {
+    match action {
+        Action::Nair => return true,
+        Action::Fair => return true,
+        Action::Bair => return true,
+        Action::UpAir => return true,
+        Action::Dair => return true,
         _ => return false,
     }
 }
