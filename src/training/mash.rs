@@ -54,6 +54,8 @@ pub fn reset() {
     unsafe {
         QUEUE.pop();
     }
+
+    shield::suspend_shield(get_current_buffer());
 }
 
 pub fn set_aerial(attack: Action) {
@@ -409,7 +411,8 @@ unsafe fn get_flag(
 pub unsafe fn perform_defensive_option() {
     reset();
 
-    let mut shield_suspension_frames = 60;
+    let mut suspend_shield = true;
+    let action;
 
     match MENU.defensive_state {
         Defensive::Random => {
@@ -423,27 +426,27 @@ pub unsafe fn perform_defensive_option() {
             let random_cmd_index =
                 app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
 
-            let action = mash_to_action(random_cmds[random_cmd_index]);
-            buffer_action(action);
+            action = mash_to_action(random_cmds[random_cmd_index]);
         }
         Defensive::Roll => {
             if app::sv_math::rand(hash40("fighter"), 2) == 0 {
-                buffer_action(Action::RollForward);
+                action = Action::RollForward;
             } else {
-                buffer_action(Action::RollBack);
+                action = Action::RollBack;
             }
         }
-        Defensive::Spotdodge => buffer_action(Action::Spotdodge),
+        Defensive::Spotdodge => action = Action::Spotdodge,
         Defensive::Jab => {
-            buffer_action(Action::Jab);
+            action = Action::Jab;
         }
         Defensive::Shield => {
-            shield_suspension_frames = 0;
-            buffer_action(Action::Shield);
+            action = Action::Shield;
         }
-        _ => (shield_suspension_frames = 0),
+        _ => return,
     }
 
+    buffer_action(action);
+
     // Suspend shield hold to allow for other defensive options
-    shield::suspend_shield(shield_suspension_frames);
+    shield::suspend_shield(action);
 }

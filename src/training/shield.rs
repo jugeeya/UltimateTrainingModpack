@@ -15,15 +15,13 @@ static mut MULTI_HIT_OFFSET: u32 = unsafe { MENU.oos_offset };
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
-static mut FRAME_COUNTER_INDEX: usize = 0;
 static mut REACTION_INDEX: usize = 0;
 
 // For how many frames should the shield hold be overwritten
-static mut SHIELD_SUSPEND_FRAMES: u32 = 0;
+static mut SUSPEND_SHIELD: bool = false;
 
 pub fn init() {
     unsafe {
-        FRAME_COUNTER_INDEX = frame_counter::register_counter();
         REACTION_INDEX = frame_counter::register_counter();
     }
 }
@@ -132,14 +130,19 @@ pub unsafe fn get_param_float(
     None
 }
 
-pub unsafe fn should_hold_shield() -> bool {
+pub fn should_hold_shield() -> bool {
     // Mash shield
     if mash::get_current_buffer() == Action::Shield {
         return true;
     }
 
+    let shield_state;
+    unsafe {
+        shield_state = &MENU.shield_state;
+    }
+
     // We should hold shield if the state requires it
-    if ![Shield::Hold, Shield::Infinite].contains(&MENU.shield_state) {
+    if ![Shield::Hold, Shield::Infinite].contains(shield_state) {
         return false;
     }
 
@@ -179,11 +182,10 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    let action ;
+    let action;
     if MENU.mash_state == Mash::Random {
         action = mash::get_random_action(module_accessor);
-    }
-    else{
+    } else {
         action = mash::mash_to_action(MENU.mash_state);
     }
     mash::buffer_action(action);
@@ -196,28 +198,8 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    // Set shield suspension frames
-    match action {
-        Action::UpSmash => {}
-        Action::Grab => {}
-        _ => {
-            // Force shield drop
-            suspend_shield(15);
-        }
-    }
-}
-
-// Needed for shield drop options
-pub fn suspend_shield(frames: u32) {
-    if frames <= 0 {
-        return;
-    }
-
-    unsafe {
-        SHIELD_SUSPEND_FRAMES = frames;
-        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-        frame_counter::start_counting(FRAME_COUNTER_INDEX);
-    }
+    // Set shield suspension
+    suspend_shield(action);
 }
 
 /**
@@ -317,26 +299,31 @@ pub fn is_aerial(action: Action) -> bool {
     }
 }
 
+// Needed for shield drop options
+pub fn suspend_shield(action: Action) {
+    unsafe {
+        SUSPEND_SHIELD = need_suspend_shield(action);
+    }
+}
+
+fn need_suspend_shield(action: Action) -> bool {
+    match action {
+        Action::UpSmash => false,
+        Action::Grab => false,
+        Action::Shield => false,
+        Action::Nothing => false,
+        _ => {
+            // Force shield drop
+            true
+        }
+    }
+}
+
 /**
  * Needed for these options to work OOS
  */
-unsafe fn shield_is_suspended() -> bool {
-    // Normal behavior when not mashing
-    if SHIELD_SUSPEND_FRAMES == 0 {
-        return false;
-    }
-
-    let resume_normal_behavior =
-        frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > SHIELD_SUSPEND_FRAMES;
-
-    if resume_normal_behavior {
-        SHIELD_SUSPEND_FRAMES = 0;
-        frame_counter::stop_counting(FRAME_COUNTER_INDEX);
-
-        return false;
-    }
-
-    true
+fn shield_is_suspended() -> bool {
+    unsafe { SUSPEND_SHIELD }
 }
 
 /**
