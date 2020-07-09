@@ -386,7 +386,14 @@ unsafe fn get_flag(
     status: i32,
     action_flag: i32,
 ) -> i32 {
-    if StatusModule::status_kind(module_accessor) == status {
+    let current_status = StatusModule::status_kind(module_accessor);
+    if current_status == status {
+        // Reset Buffer
+        reset();
+    }
+
+    // Workaround for Bowser upB
+    if status == FIGHTER_STATUS_KIND_SPECIAL_HI && current_status == 0x1c9 {
         // Reset Buffer
         reset();
     }
