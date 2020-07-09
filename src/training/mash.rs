@@ -393,12 +393,23 @@ unsafe fn get_flag(
     }
 
     // Workaround for Bowser upB
-    if status == FIGHTER_STATUS_KIND_SPECIAL_HI && current_status == 0x1c9 {
-        // Reset Buffer
-        reset();
-    }
+    check_bowser_up_b(current_status);
 
     return action_flag;
+}
+
+fn check_bowser_up_b(current_status: i32) {
+    // Grounded up B
+    if current_status == *FIGHTER_KOOPA_STATUS_KIND_SPECIAL_HI_G {
+        reset();
+        return;
+    }
+
+    // Aerial up B
+    if current_status == *FIGHTER_KOOPA_STATUS_KIND_SPECIAL_HI_A {
+        reset();
+        return;
+    }
 }
 
 pub unsafe fn perform_defensive_option() {
