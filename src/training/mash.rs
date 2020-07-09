@@ -18,7 +18,7 @@ pub fn buffer_action(action: Action) {
 
     unsafe {
         QUEUE.insert(0, action);
-        buffer_follow_up();
+        //buffer_follow_up();
     }
 }
 
