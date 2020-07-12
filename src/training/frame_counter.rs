@@ -82,7 +82,7 @@ pub unsafe fn get_command_flag_cat(
     }
 
     // Only do once per frame
-    if category != 0 {
+    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
 

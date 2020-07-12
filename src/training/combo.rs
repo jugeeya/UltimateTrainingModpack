@@ -61,7 +61,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if category != 0 {
+    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
 

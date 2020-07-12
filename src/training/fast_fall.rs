@@ -22,7 +22,7 @@ pub unsafe fn get_command_flag_cat(
     }
 
     // Once per frame
-    if category != 0 {
+    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
 
@@ -73,7 +73,7 @@ pub fn is_falling(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool
     unsafe {
         let y_speed =
             KineticModule::get_sum_speed_y(module_accessor, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
-        y_speed < 0.0
+        y_speed < 0.0 && StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_FALL
     }
 }
 
