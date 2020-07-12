@@ -1,4 +1,4 @@
-use crate::common::FIGHTER_MANAGER_ADDR;
+use crate::common::{FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
@@ -200,6 +200,13 @@ pub fn training_mods() {
         LookupSymbol(
             &mut FIGHTER_MANAGER_ADDR,
             "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E\u{0}"
+                .as_bytes()
+                .as_ptr(),
+        );
+
+        LookupSymbol(
+            &mut STAGE_MANAGER_ADDR,
+            "_ZN3lib9SingletonIN3app12StageManagerEE9instance_E\u{0}"
                 .as_bytes()
                 .as_ptr(),
         );

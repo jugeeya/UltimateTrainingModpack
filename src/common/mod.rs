@@ -27,6 +27,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
 pub static mut MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
 
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
+pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app9smashball16is_training_modeEv"]
