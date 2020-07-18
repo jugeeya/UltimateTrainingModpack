@@ -6,6 +6,10 @@ pub fn check_up_b(
     current_status: i32,
     expected_status: i32,
 ) -> bool {
+    if !is_bowser(module_accessor){
+        return false;
+    }
+
     if expected_status != *FIGHTER_STATUS_KIND_SPECIAL_HI {
         return false;
     }
