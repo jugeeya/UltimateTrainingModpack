@@ -2,6 +2,7 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::fast_fall;
 use crate::training::shield;
+use crate::training::character_specific;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -383,33 +384,22 @@ unsafe fn get_aerial_flag(
  */
 unsafe fn get_flag(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    status: i32,
+    expected_status: i32,
     action_flag: i32,
 ) -> i32 {
+    // let current_status = StatusModule::prev_status_kind(module_accessor,0);
     let current_status = StatusModule::status_kind(module_accessor);
-    if current_status == status {
+    if current_status == expected_status {
         // Reset Buffer
         reset();
     }
 
-    // Workaround for Bowser upB
-    check_bowser_up_b(current_status);
+    // Workaround for Character specific status
+    if character_specific::check_status(current_status, expected_status) {
+        reset();
+    }
 
     return action_flag;
-}
-
-fn check_bowser_up_b(current_status: i32) {
-    // Grounded up B
-    if current_status == *FIGHTER_KOOPA_STATUS_KIND_SPECIAL_HI_G {
-        reset();
-        return;
-    }
-
-    // Aerial up B
-    if current_status == *FIGHTER_KOOPA_STATUS_KIND_SPECIAL_HI_A {
-        reset();
-        return;
-    }
 }
 
 pub unsafe fn perform_defensive_option() {

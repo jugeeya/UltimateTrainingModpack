@@ -16,6 +16,7 @@ mod ledge;
 mod left_stick;
 mod mash;
 mod save_states;
+mod character_specific;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
