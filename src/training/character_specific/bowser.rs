@@ -1,6 +1,11 @@
+use smash::app::{self};
 use smash::lib::lua_const::*;
 
-pub fn check_up_b(current_status: i32, expected_status: i32) -> bool {
+pub fn check_up_b(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    current_status: i32,
+    expected_status: i32,
+) -> bool {
     if expected_status != *FIGHTER_STATUS_KIND_SPECIAL_HI {
         return false;
     }
@@ -16,4 +21,13 @@ pub fn check_up_b(current_status: i32, expected_status: i32) -> bool {
     }
 
     false
+}
+
+fn is_bowser(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let fighter_id;
+    unsafe {
+        fighter_id = app::utility::get_kind(module_accessor);
+    }
+
+    fighter_id == *FIGHTER_KIND_KOOPA
 }

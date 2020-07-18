@@ -395,7 +395,7 @@ unsafe fn get_flag(
     }
 
     // Workaround for Character specific status
-    if character_specific::check_status(current_status, expected_status) {
+    if character_specific::check_status(module_accessor, current_status, expected_status) {
         reset();
     }
 
