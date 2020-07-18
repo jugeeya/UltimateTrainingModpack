@@ -1,6 +1,6 @@
 use smash::lib::lua_const::*;
 
-pub fn check_up_b(current_status: i32,expected_status: i32) -> bool {
+pub fn check_up_b(current_status: i32, expected_status: i32) -> bool {
     if expected_status != *FIGHTER_STATUS_KIND_SPECIAL_HI {
         return false;
     }

@@ -1,8 +1,8 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::shield;
-use crate::training::character_specific;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
