@@ -44,8 +44,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    // Can't fastfall in hitstun // tumble // meteor
-    if is_in_hitstun(module_accessor) {
+    if !is_correct_status(module_accessor) {
         return;
     }
 
@@ -55,7 +54,7 @@ pub unsafe fn get_command_flag_cat(
     }
 
     // Check delay
-    if frame_counter::should_delay(MENU.fast_fall_delay,FRAME_COUNTER) {
+    if frame_counter::should_delay(MENU.fast_fall_delay, FRAME_COUNTER) {
         return;
     }
 
@@ -69,12 +68,40 @@ pub unsafe fn get_command_flag_cat(
     add_spark_effect(module_accessor);
 }
 
-pub fn is_falling(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+/**
+ * Returns true for viable fast fall status
+ */
+fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status;
+
     unsafe {
-        let y_speed =
-            KineticModule::get_sum_speed_y(module_accessor, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
-        y_speed < 0.0 && StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_FALL
+        status = StatusModule::status_kind(module_accessor);
     }
+
+    // Allow fast fall when falling
+    if status == FIGHTER_STATUS_KIND_FALL {
+        return true;
+    }
+
+    // Allow fast fall during aerials
+    if status == FIGHTER_STATUS_KIND_ATTACK_AIR {
+        return true;
+    }
+
+    false
+}
+
+/**
+ * Returns true if the character is moving downwards
+ */
+pub fn is_falling(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let y_speed;
+    unsafe {
+        y_speed =
+            KineticModule::get_sum_speed_y(module_accessor, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
+    }
+
+    y_speed < 0.0
 }
 
 unsafe fn add_spark_effect(module_accessor: &mut app::BattleObjectModuleAccessor) {
