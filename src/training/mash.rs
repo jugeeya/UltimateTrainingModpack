@@ -202,7 +202,7 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_AIR,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
             );
         }
         Jump => {
@@ -212,21 +212,21 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
             );
         }
         RollForward => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_F,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_F,
             );
         }
         RollBack => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_B,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_B,
             );
         }
         Shield => {
@@ -237,7 +237,7 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_GUARD_ON,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
             );
         }
         _ => return get_attack_flag(module_accessor, action),
@@ -246,20 +246,20 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
 unsafe fn update_jump_flag(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
     let check_flag: i32;
+    let transition_flag: i32;
 
     if is_grounded(module_accessor) {
         check_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
+        transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT;
     } else if is_airborne(module_accessor) {
         check_flag = *FIGHTER_STATUS_KIND_JUMP_AERIAL;
+        transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_AERIAL;
     } else {
         check_flag = *FIGHTER_STATUS_KIND_JUMP;
+        transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_AERIAL;
     }
 
-    return get_flag(
-        module_accessor,
-        check_flag,
-        *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON,
-    );
+    return get_flag(module_accessor, check_flag, transition_flag);
 }
 
 unsafe fn get_attack_flag(
@@ -268,7 +268,7 @@ unsafe fn get_attack_flag(
 ) -> i32 {
     use Action::*;
 
-    let action_flag: i32;
+    let transition_flag: i32;
     let status: i32;
 
     match action {
@@ -276,35 +276,43 @@ unsafe fn get_attack_flag(
             return get_aerial_flag(module_accessor, action);
         }
         NeutralB => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_N;
             status = *FIGHTER_STATUS_KIND_SPECIAL_N;
         }
         SideB => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_S;
             status = *FIGHTER_STATUS_KIND_SPECIAL_S;
         }
         UpB => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_HI;
             status = *FIGHTER_STATUS_KIND_SPECIAL_HI;
         }
         DownB => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_LW;
             status = *FIGHTER_STATUS_KIND_SPECIAL_LW;
         }
         UpSmash => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_HI4_START;
             status = *FIGHTER_STATUS_KIND_ATTACK_HI4_START;
         }
         FSmash => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_S4_START;
             status = *FIGHTER_STATUS_KIND_ATTACK_S4_START;
         }
         DSmash => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_LW4_START;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW4_START;
         }
         Grab => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
+            let cannot_grab = WorkModule::get_int(
+                module_accessor,
+                *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
+            ) != 0;
+            if cannot_grab {
+                return 0;
+            }
+
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH;
             status = *FIGHTER_STATUS_KIND_CATCH;
         }
         Jab => {
@@ -313,25 +321,25 @@ unsafe fn get_attack_flag(
                 return 0;
             }
 
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK;
             status = *FIGHTER_STATUS_KIND_ATTACK;
         }
         Ftilt => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_S3;
             status = *FIGHTER_STATUS_KIND_ATTACK_S3;
         }
         Utilt => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_HI3;
             status = *FIGHTER_STATUS_KIND_ATTACK_HI3;
         }
         Dtilt => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
         }
         _ => return 0,
     }
 
-    return get_flag(module_accessor, status, action_flag);
+    return get_flag(module_accessor, status, transition_flag);
 }
 
 unsafe fn get_aerial_flag(
@@ -342,7 +350,13 @@ unsafe fn get_aerial_flag(
 
     // If we are grounded we also need to jump
     if is_grounded(module_accessor) {
-        flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+        let jump_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
+        let transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT;
+        let allow_transition =
+            WorkModule::is_enable_transition_term(module_accessor, transition_flag);
+        if allow_transition {
+            StatusModule::change_status_request_from_script(module_accessor, jump_flag, true);
+        }
 
         // Delay attack until we are airborne to get a full hop
         if MENU.full_hop == OnOff::On {
@@ -356,7 +370,7 @@ unsafe fn get_aerial_flag(
         return flag;
     }
 
-    let action_flag: i32;
+    let transition_flag: i32;
     use Action::*;
 
     /*
@@ -365,16 +379,16 @@ unsafe fn get_aerial_flag(
      */
     match action {
         Nair | Fair | Bair | UpAir | Dair => {
-            action_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR;
         }
         _ => {
-            action_flag = 0;
+            transition_flag = 0;
         }
     }
 
     set_aerial(action);
 
-    flag |= get_flag(module_accessor, status, action_flag);
+    flag |= get_flag(module_accessor, status, transition_flag);
 
     flag
 }
@@ -385,7 +399,7 @@ unsafe fn get_aerial_flag(
 unsafe fn get_flag(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     expected_status: i32,
-    action_flag: i32,
+    transition_flag: i32,
 ) -> i32 {
     // let current_status = StatusModule::prev_status_kind(module_accessor,0);
     let current_status = StatusModule::status_kind(module_accessor);
@@ -399,7 +413,12 @@ unsafe fn get_flag(
         reset();
     }
 
-    return action_flag;
+    let allow_transition = WorkModule::is_enable_transition_term(module_accessor, transition_flag);
+    if allow_transition {
+        StatusModule::change_status_request_from_script(module_accessor, expected_status, true);
+    }
+
+    return 0;
 }
 
 pub unsafe fn perform_defensive_option() {
