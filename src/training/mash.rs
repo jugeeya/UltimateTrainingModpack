@@ -100,8 +100,8 @@ pub unsafe fn get_command_flag_cat(
     return 0;
 }
 
-pub fn handle_mash(module_accessor: &mut app::BattleObjectModuleAccessor){
-    unsafe{
+pub fn handle_mash(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    unsafe {
         if !is_operation_cpu(module_accessor) {
             return;
         }
@@ -199,6 +199,7 @@ fn attack_to_action(attack: Attack) -> Action {
         Attack::Ftilt => Ftilt,
         Attack::Utilt => Utilt,
         Attack::Dtilt => Dtilt,
+        Attack::DashAttack => DashAttack,
         Attack::Nothing => Nothing,
     }
 }
@@ -354,6 +355,23 @@ unsafe fn get_attack_flag(
             transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
         }
+        DashAttack => {
+            let current_status = StatusModule::status_kind(module_accessor);
+            let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
+
+            // Start Dash First
+            if !is_dashing {
+                let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
+                let dash_status = *FIGHTER_STATUS_KIND_DASH;
+
+                try_change_status(module_accessor, dash_status, dash_transition);
+            }
+
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_DASH;
+            status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
+
+            return get_flag(module_accessor, status, transition_flag);
+        }
         _ => return 0,
     }
 
@@ -370,11 +388,7 @@ unsafe fn get_aerial_flag(
     if is_grounded(module_accessor) {
         let jump_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
         let transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT;
-        let allow_transition =
-            WorkModule::is_enable_transition_term(module_accessor, transition_flag);
-        if allow_transition {
-            StatusModule::change_status_request_from_script(module_accessor, jump_flag, true);
-        }
+        try_change_status(module_accessor, jump_flag, transition_flag);
 
         // Delay attack until we are airborne to get a full hop
         if MENU.full_hop == OnOff::On {
@@ -431,12 +445,30 @@ unsafe fn get_flag(
         reset();
     }
 
-    let allow_transition = WorkModule::is_enable_transition_term(module_accessor, transition_flag);
-    if allow_transition {
+    try_change_status(module_accessor, expected_status, transition_flag);
+
+    return 0;
+}
+
+fn try_change_status(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    expected_status: i32,
+    transition_flag: i32,
+) -> bool {
+    let allow_transition;
+    unsafe {
+        allow_transition = WorkModule::is_enable_transition_term(module_accessor, transition_flag);
+    }
+
+    if !allow_transition {
+        return false;
+    }
+
+    unsafe {
         StatusModule::change_status_request_from_script(module_accessor, expected_status, true);
     }
 
-    return 0;
+    return true;
 }
 
 pub unsafe fn perform_defensive_option() {

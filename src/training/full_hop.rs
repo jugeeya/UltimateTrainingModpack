@@ -50,7 +50,7 @@ unsafe fn should_return_none_in_check_button(
     }
 
     // Nothing to do if not toggled
-    if MENU.full_hop != OnOff::On{
+    if MENU.full_hop != OnOff::On {
         return true;
     }
 

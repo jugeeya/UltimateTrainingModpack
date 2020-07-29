@@ -8,6 +8,7 @@ pub mod directional_influence;
 pub mod shield;
 pub mod tech;
 
+mod character_specific;
 pub mod combo;
 mod fast_fall;
 mod frame_counter;
@@ -16,7 +17,6 @@ mod ledge;
 mod left_stick;
 mod mash;
 mod save_states;
-mod character_specific;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
