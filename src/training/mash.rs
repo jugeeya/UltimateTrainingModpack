@@ -97,7 +97,17 @@ pub unsafe fn get_command_flag_cat(
 
     check_buffer(module_accessor);
 
-    perform_action(module_accessor)
+    return 0;
+}
+
+pub fn handle_mash(module_accessor: &mut app::BattleObjectModuleAccessor){
+    unsafe{
+        if !is_operation_cpu(module_accessor) {
+            return;
+        }
+
+        perform_action(module_accessor);
+    }
 }
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
