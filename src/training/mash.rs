@@ -102,6 +102,14 @@ pub unsafe fn get_command_flag_cat(
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if QUEUE.len() > 0 {
+        /*
+         Reset when CPU is idle to prevent deadlocks
+         and to reset when using the training mode reset
+        */
+        if is_idle(module_accessor) {
+            reset();
+        }
+
         return;
     }
 
