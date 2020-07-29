@@ -82,6 +82,7 @@ pub enum Attack {
     Ftilt = 14,
     Utilt = 15,
     Dtilt = 16,
+    DashAttack = 17,
     Nothing = 9999,
 }
 
@@ -107,6 +108,7 @@ impl From<i32> for Attack {
             14 => Ftilt,
             15 => Utilt,
             16 => Dtilt,
+            17 => DashAttack,
             _ => Nothing,
         }
     }
@@ -279,6 +281,7 @@ pub enum Action {
     Ftilt = 20,
     Utilt = 21,
     Dtilt = 22,
+    DashAttack = 23,
     Shield = 99,
 }
 
@@ -326,7 +329,8 @@ impl From<i32> for Action {
             20 => Ftilt,
             21 => Utilt,
             22 => Dtilt,
-            99 => Action::Shield,
+            23 => DashAttack,
+            99 => Shield,
             _ => Nothing,
         }
     }

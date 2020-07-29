@@ -199,6 +199,7 @@ fn attack_to_action(attack: Attack) -> Action {
         Attack::Ftilt => Ftilt,
         Attack::Utilt => Utilt,
         Attack::Dtilt => Dtilt,
+        Attack::DashAttack => DashAttack,
         Attack::Nothing => Nothing,
     }
 }
@@ -353,6 +354,27 @@ unsafe fn get_attack_flag(
         Dtilt => {
             transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
+        }
+        DashAttack => {
+            let current_status = StatusModule::status_kind(module_accessor);
+            let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
+
+            // Start Dash First
+            if !is_dashing {
+                let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
+                let dash_status = *FIGHTER_STATUS_KIND_DASH;
+                let allow_transition =
+                    WorkModule::is_enable_transition_term(module_accessor, dash_transition);
+                if allow_transition {
+                    StatusModule::change_status_request_from_script(module_accessor, dash_status, true);
+                }
+            }
+
+            transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_DASH;
+            status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
+
+
+            return get_flag(module_accessor, status, transition_flag);
         }
         _ => return 0,
     }
