@@ -101,6 +101,7 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_x)]
 pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    mash::handle_mash(module_accessor);
     left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 
