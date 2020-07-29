@@ -40,7 +40,7 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f6
     }
 
     // Currently used for air dodge//Drift only
-    if !(is_airborne(module_accessor) && is_in_hitstun(module_accessor)) {
+    if !is_correct_status(module_accessor) {
         return ANGLE_NONE;
     }
 
@@ -57,6 +57,18 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f6
     }
 
     angle
+}
+
+fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let air_dodge_condition;
+    unsafe {
+        air_dodge_condition = is_airborne(module_accessor) && is_in_hitstun(module_accessor);
+    }
+    if air_dodge_condition {
+        return true;
+    }
+
+    return false;
 }
 
 unsafe fn pick_angle(direction: Direction) -> f64 {

@@ -192,18 +192,18 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
     match action {
         Airdodge => {
+            let expected_status;
+            let transition_flag;
             // Shield if grounded instead
             if is_grounded(module_accessor) {
-                reset();
-                buffer_action(Shield);
-                return 0;
+                expected_status = *FIGHTER_STATUS_KIND_GUARD_ON;
+                transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE;
+            } else {
+                expected_status = *FIGHTER_STATUS_KIND_ESCAPE_AIR;
+                transition_flag = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR;
             }
 
-            return get_flag(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_ESCAPE_AIR,
-                *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
-            );
+            return get_flag(module_accessor, expected_status, transition_flag);
         }
         Jump => {
             return update_jump_flag(module_accessor);
