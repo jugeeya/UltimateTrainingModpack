@@ -116,7 +116,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
          Reset when CPU is idle to prevent deadlocks
          and to reset when using the training mode reset
         */
-        if is_idle(module_accessor) {
+        if should_reset(module_accessor) {
             reset();
         }
 
@@ -128,6 +128,33 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     }
 
     buffer_menu_mash(module_accessor);
+}
+
+fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if !is_idle(module_accessor) {
+        return false;
+    }
+
+    let prev_status;
+
+    unsafe {
+        prev_status = StatusModule::prev_status_kind(module_accessor, 0);
+    }
+
+    // Don't reset after teching
+    if prev_status == *FIGHTER_STATUS_KIND_DOWN {
+        return false;
+    }
+
+    if prev_status == *FIGHTER_STATUS_KIND_PASSIVE {
+        return false;
+    }
+
+    if prev_status == *FIGHTER_STATUS_KIND_PASSIVE_FB {
+        return false;
+    }
+
+    return true;
 }
 
 // Temp Translation
