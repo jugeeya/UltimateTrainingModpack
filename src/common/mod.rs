@@ -70,14 +70,27 @@ pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor)
     situation_kind == SITUATION_KIND_AIR
 }
 
-pub unsafe fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor);
+pub fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind;
+    unsafe {
+        status_kind = StatusModule::status_kind(module_accessor);
+    }
     status_kind == FIGHTER_STATUS_KIND_WAIT
 }
 
-pub unsafe fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor);
+pub fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind;
+    unsafe {
+        status_kind = StatusModule::status_kind(module_accessor);
+    }
     (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
+}
+pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind;
+    unsafe {
+        status_kind = StatusModule::status_kind(module_accessor);
+    }
+    (*FIGHTER_STATUS_KIND_TREAD_DAMAGE..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind)
 }
 
 pub fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
