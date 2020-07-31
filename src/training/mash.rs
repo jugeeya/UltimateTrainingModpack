@@ -123,7 +123,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    if !is_in_hitstun(module_accessor) && MENU.mash_in_neutral != OnOff::On {
+    if !should_buffer(module_accessor) {
         return;
     }
 
@@ -155,6 +155,24 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     }
 
     return true;
+}
+
+fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    unsafe{
+        if MENU.mash_in_neutral == OnOff::On {
+            return true;
+        }
+    }
+
+    if is_in_hitstun(module_accessor) {
+        return true;
+    }
+
+    if is_in_footstool(module_accessor) {
+        return true;
+    }
+
+    return false;
 }
 
 // Temp Translation
