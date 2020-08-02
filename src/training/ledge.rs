@@ -17,10 +17,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
-    let random_frame = app::sv_math::rand(
-        hash40("fighter"),
-        MotionModule::end_frame(module_accessor) as i32,
-    ) as f32;
+    let random_frame = get_random_int(MotionModule::end_frame(module_accessor) as i32) as f32;
 
     let frame = MotionModule::frame(module_accessor) as f32;
     if !(frame == random_frame || frame > 30.0) {
@@ -32,9 +29,15 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
     let ledge_options = MENU.ledge_state.to_vec();
     match ledge_options.len() {
-        0 => { ledge_case = LedgeOption::empty(); },
-        1 => { ledge_case = ledge_options[0]; },
-        _ => { ledge_case = *random_option(&ledge_options); }
+        0 => {
+            ledge_case = LedgeOption::empty();
+        }
+        1 => {
+            ledge_case = ledge_options[0];
+        }
+        _ => {
+            ledge_case = *random_option(&ledge_options);
+        }
     }
 
     if let Some(new_status) = ledge_case.into_status() {

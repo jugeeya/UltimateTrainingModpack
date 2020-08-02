@@ -44,10 +44,14 @@ unsafe fn mod_handle_change_status(
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D
     {
         let states = MENU.tech_state.to_vec();
-        let mut state = if states.is_empty() { TechFlags::empty() } else { states[0] };
+        let mut state = if states.is_empty() {
+            TechFlags::empty()
+        } else {
+            states[0]
+        };
 
         if states.len() > 1 {
-            let idx = app::sv_math::rand(hash40("fighter"), states.len() as i32) as usize;
+            let idx = get_random_int(states.len() as i32) as usize;
             state = states[idx];
         }
 
@@ -117,8 +121,7 @@ pub unsafe fn get_command_flag_cat(
             *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK, // Getup Attack
         ];
 
-        let random_status_index =
-            app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
+        let random_status_index = get_random_int(random_statuses.len() as i32) as usize;
         StatusModule::change_status_request_from_script(
             module_accessor,
             random_statuses[random_status_index],
@@ -144,7 +147,7 @@ pub unsafe fn change_motion(
         return None;
     }
 
-    let random_roll = app::sv_math::rand(hash40("fighter"), 2);
+    let random_roll = get_random_int(2);
 
     if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
         if random_roll != 0 {

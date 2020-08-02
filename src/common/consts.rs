@@ -1,9 +1,8 @@
-
+use crate::common::get_random_int;
 use core::f64::consts::PI;
-use smash::lib::lua_const::*;
-use smash::hash40;
 use smash::app;
-
+use smash::hash40;
+use smash::lib::lua_const::*;
 
 /// Hitbox Visualization
 #[repr(i32)]
@@ -134,7 +133,7 @@ macro_rules! to_vec_impl {
 
 // Ledge Option
 bitflags! {
-    pub struct LedgeOption : u32 
+    pub struct LedgeOption : u32
     {
         const NEUTRAL = 0b1;
         const ROLL = 0b10;
@@ -143,8 +142,8 @@ bitflags! {
     }
 }
 
-pub unsafe fn random_option<T>(arg : &Vec<T>) -> &T {
-    return &arg[app::sv_math::rand(hash40("fighter"), arg.len() as i32) as usize];
+pub unsafe fn random_option<T>(arg: &Vec<T>) -> &T {
+    return &arg[get_random_int(arg.len() as i32) as usize];
 }
 
 impl LedgeOption {
@@ -157,7 +156,7 @@ impl LedgeOption {
             _ => return None,
         })
     }
-    to_vec_impl!{LedgeOption}
+    to_vec_impl! {LedgeOption}
 }
 
 // Tech options
@@ -170,7 +169,7 @@ bitflags! {
 }
 
 impl TechFlags {
-    to_vec_impl!{TechFlags}
+    to_vec_impl! {TechFlags}
 }
 
 /// Mash States

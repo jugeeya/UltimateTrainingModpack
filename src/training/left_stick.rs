@@ -2,8 +2,8 @@ use crate::common::consts::*;
 use crate::common::*;
 use core::f64::consts::PI;
 use smash::app::{self, lua_bind::*};
-use smash::lib::lua_const::*;
 use smash::hash40;
+use smash::lib::lua_const::*;
 
 static mut STICK_DIRECTION: Direction = Direction::None;
 
@@ -54,11 +54,10 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f6
 
     // TODO: if left_stick is used for something other than
     // directional airdodge, this may not make sense.
-    let launch_speed_x = KineticEnergy::get_speed_x(
-        KineticModule::get_energy(
-            module_accessor, 
-            *FIGHTER_KINETIC_ENERGY_ID_DAMAGE
-        ) as *mut smash::app::KineticEnergy);
+    let launch_speed_x = KineticEnergy::get_speed_x(KineticModule::get_energy(
+        module_accessor,
+        *FIGHTER_KINETIC_ENERGY_ID_DAMAGE,
+    ) as *mut smash::app::KineticEnergy);
 
     // If we're launched left, reverse stick X
     if launch_speed_x < 0.0 {
@@ -90,6 +89,6 @@ unsafe fn pick_angle(direction: Direction) -> f64 {
 }
 
 unsafe fn get_random_direction() -> Direction {
-    let rand = app::sv_math::rand(hash40("fighter"), 8);
+    let rand = get_random_int(8);
     Direction::from(rand)
 }
