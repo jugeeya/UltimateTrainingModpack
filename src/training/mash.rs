@@ -157,7 +157,7 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
 }
 
 fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe{
+    unsafe {
         if MENU.mash_in_neutral == OnOff::On {
             return true;
         }
@@ -528,7 +528,7 @@ pub unsafe fn perform_defensive_option() {
                 Mash::Attack,
             ];
 
-            let random_cmd_index =get_random_int(random_cmds.len() as i32) as usize;
+            let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
 
             action = mash_to_action(random_cmds[random_cmd_index]);
         }

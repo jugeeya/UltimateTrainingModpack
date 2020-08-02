@@ -1,7 +1,5 @@
 use crate::common::get_random_int;
 use core::f64::consts::PI;
-use smash::app;
-use smash::hash40;
 use smash::lib::lua_const::*;
 
 /// Hitbox Visualization
@@ -162,9 +160,10 @@ impl LedgeOption {
 // Tech options
 bitflags! {
     pub struct TechFlags : u32 {
-        const NO_TECH = 0b1;
-        const ROLL = 0b10;
-        const IN_PLACE = 0b100;
+        const NO_TECH = 0x1;
+        const ROLL_F = 0x2;
+        const ROLL_B = 0x4;
+        const IN_PLACE = 0x8;
     }
 }
 

@@ -2,7 +2,6 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::mash;
 use smash::app::{self, lua_bind::*};
-use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
