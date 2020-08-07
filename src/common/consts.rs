@@ -1,5 +1,7 @@
+
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
+
 
 /// Hitbox Visualization
 #[repr(i32)]
@@ -163,6 +165,27 @@ pub enum TechOption {
     InPlace = 2,
     Roll = 3,
     Miss = 4,
+}
+
+bitflags! {
+    pub struct TechFlags : u32 {
+        const NO_TECH = 0b1;
+        const ROLL = 0b10;
+        const IN_PLACE = 0b100;
+    }
+}
+
+impl TechFlags {
+    pub fn to_vec(&mut self) -> Vec::<TechFlags> {
+        let mut vec = Vec::<TechFlags>::new();
+        let mut field = TechFlags::from_bits_truncate(self.bits);
+        while !field.is_empty() {
+            let flag = TechFlags::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
+            field -= flag;
+            vec.push(flag);
+        }
+        return vec;
+    }
 }
 
 impl From<i32> for TechOption {
@@ -344,7 +367,7 @@ pub struct TrainingModpackMenu {
     pub mash_attack_state: Attack,
     pub follow_up: Action,
     pub ledge_state: LedgeOption,
-    pub tech_state: TechOption,
+    pub tech_state: TechFlags,
     pub mash_state: Mash,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
