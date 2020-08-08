@@ -37,20 +37,62 @@ unsafe fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectMo
     app::sv_battle_object::module_accessor(current_fighter_id as u32)
 }
 
+macro_rules! actionable_statuses {
+    () => {
+            vec![
+                FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
+                FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
+                FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
+                FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE
+            ];
+    };
+}
+
 unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
-    WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
-    ) || WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
-    ) || WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
-    ) || WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-    ) || CancelModule::is_enable_cancel(module_accessor)
+    actionable_statuses!().iter().any(
+        |actionable_transition| 
+        WorkModule::is_enable_transition_term(module_accessor, **actionable_transition))
+    || CancelModule::is_enable_cancel(module_accessor)
+}
+
+pub unsafe fn is_enable_transition_term(
+    module_accessor: *mut app::BattleObjectModuleAccessor,
+    transition_term: i32,
+    is: bool
+) {
+    let entry_id_int =
+        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+
+    if entry_id_int != (FighterId::Player as i32) {
+        return;
+    }
+
+    // Extra check later in the frame.
+    // This is in the case that the transition term becomes enabled after our initial check
+    // and the user buffers that action on that frame.
+
+    if !PLAYER_ACTIONABLE && 
+        (
+            (is && actionable_statuses!().iter().any(|actionable_transition| *actionable_transition == transition_term))
+            ||
+            (CancelModule::is_enable_cancel(module_accessor))
+        ) {
+        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
+        PLAYER_ACTIONABLE = true;
+    
+        // if both are now active
+        if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
+            if FRAME_ADVANTAGE_CHECK {
+                let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+                if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
+                    FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
+                }
+
+                frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+                FRAME_ADVANTAGE_CHECK = false;
+            }
+        }
+    }
 }
 
 pub unsafe fn get_command_flag_cat(

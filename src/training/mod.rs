@@ -196,6 +196,18 @@ pub unsafe fn handle_change_motion(
     )
 }
 
+#[skyline::hook(replace = WorkModule::is_enable_transition_term)]
+pub unsafe  fn handle_is_enable_transition_term(
+    module_accessor: *mut app::BattleObjectModuleAccessor, 
+    transition_term: i32
+) -> bool {
+    let is = original!()(module_accessor, transition_term);
+
+    combo::is_enable_transition_term(module_accessor, transition_term, is);
+
+    is
+}
+
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
     unsafe {
@@ -230,6 +242,8 @@ pub fn training_mods() {
         // Directional AirDodge,
         get_stick_x,
         get_stick_y,
+        // Combo
+        handle_is_enable_transition_term,
     );
 
     combo::init();
