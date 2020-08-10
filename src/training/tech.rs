@@ -99,7 +99,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if MENU.tech_state == TechFlags::empty() || MENU.tech_state == TechFlags::NO_TECH {
+    if MENU.tech_state == TechFlags::empty() {
         return;
     }
 

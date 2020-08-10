@@ -1,6 +1,8 @@
 
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
+use smash::hash40;
+use smash::app;
 
 
 /// Hitbox Visualization
@@ -116,57 +118,51 @@ impl From<i32> for Attack {
     }
 }
 
-// Ledge Option
-#[repr(i32)]
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum LedgeOption {
-    None = 0,
-    Random = 1,
-    Neutral = 2,
-    Roll = 3,
-    Jump = 4,
-    Attack = 5,
-}
-
-impl From<i32> for LedgeOption {
-    fn from(x: i32) -> Self {
-        use LedgeOption::*;
-
-        match x {
-            0 => None,
-            1 => Random,
-            2 => Neutral,
-            3 => Roll,
-            4 => Jump,
-            5 => Attack,
-            _ => panic!("Invalid ledge option {}", x),
+// bitflag helper function macro
+macro_rules! to_vec_impl {
+    ($e:ty) => {
+        pub fn to_vec(&self) -> Vec::<$e> {
+            let mut vec = Vec::<$e>::new();
+            let mut field = <$e>::from_bits_truncate(self.bits);
+            while !field.is_empty() {
+                let flag = <$e>::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
+                field -= flag;
+                vec.push(flag);
+            }
+            return vec;
         }
     }
 }
 
-impl LedgeOption {
-    pub fn into_status(&self) -> Option<i32> {
-        Some(match self {
-            LedgeOption::Neutral => *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
-            LedgeOption::Roll => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
-            LedgeOption::Jump => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
-            LedgeOption::Attack => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
-            _ => return None,
-        })
+// Ledge Option
+bitflags! {
+    pub struct LedgeOption : u32 
+    {
+        const NEUTRAL = 0b1;
+        const ROLL = 0b10;
+        const JUMP = 0b100;
+        const ATTACK = 0b1000;
     }
 }
 
-// Tech Option
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum TechOption {
-    None = 0,
-    Random = 1,
-    InPlace = 2,
-    Roll = 3,
-    Miss = 4,
+pub unsafe fn random_option<T>(arg : &Vec<T>) -> &T {
+    return &arg[app::sv_math::rand(hash40("fighter"), arg.len() as i32) as usize];
 }
 
+impl LedgeOption {
+    pub fn into_status(&self) -> Option<i32> {
+        Some(match *self {
+            LedgeOption::NEUTRAL => *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
+            LedgeOption::ROLL => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
+            LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
+            LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+            _ => return None,
+        })
+    }
+    to_vec_impl!{LedgeOption}
+}
+
+// Tech options
 bitflags! {
     pub struct TechFlags : u32 {
         const NO_TECH = 0b1;
@@ -176,31 +172,7 @@ bitflags! {
 }
 
 impl TechFlags {
-    pub fn to_vec(&mut self) -> Vec::<TechFlags> {
-        let mut vec = Vec::<TechFlags>::new();
-        let mut field = TechFlags::from_bits_truncate(self.bits);
-        while !field.is_empty() {
-            let flag = TechFlags::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
-            field -= flag;
-            vec.push(flag);
-        }
-        return vec;
-    }
-}
-
-impl From<i32> for TechOption {
-    fn from(x: i32) -> Self {
-        use TechOption::*;
-
-        match x {
-            0 => None,
-            1 => Random,
-            2 => InPlace,
-            3 => Roll,
-            4 => Miss,
-            _ => panic!("Invalid tech option {}", x),
-        }
-    }
+    to_vec_impl!{TechFlags}
 }
 
 /// Mash States
