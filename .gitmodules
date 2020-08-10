@@ -1,3 +1,3 @@
-[submodule "TrainingModpackOverlay"]
-	path = TrainingModpackOverlay
-	url = https://github.com/jugeeya/TrainingModpackOverlay
+[submodule "TrainingModpack/libs/libtesla"]
+	path = TrainingModpack/libs/libtesla
+	url = https://github.com/WerWolv/libtesla
