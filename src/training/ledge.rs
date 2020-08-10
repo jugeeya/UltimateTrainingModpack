@@ -30,10 +30,11 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let mut status = 0;
     let ledge_case: LedgeOption;
 
-    if MENU.ledge_state == LedgeOption::Random {
-        ledge_case = (app::sv_math::rand(hash40("fighter"), 4) + 2).into();
-    } else {
-        ledge_case = MENU.ledge_state;
+    let ledge_options = MENU.ledge_state.to_vec();
+    match ledge_options.len() {
+        0 => { ledge_case = LedgeOption::empty(); },
+        1 => { ledge_case = ledge_options[0]; },
+        _ => { ledge_case = *random_option(&ledge_options); }
     }
 
     if let Some(new_status) = ledge_case.into_status() {
@@ -41,7 +42,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     }
 
     match ledge_case {
-        LedgeOption::Jump => {
+        LedgeOption::JUMP => {
             mash::buffer_menu_mash(module_accessor);
         }
         _ => mash::perform_defensive_option(),
@@ -62,7 +63,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if MENU.ledge_state == LedgeOption::None {
+    if MENU.ledge_state == LedgeOption::empty() {
         return;
     }
 

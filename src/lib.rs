@@ -6,6 +6,9 @@ mod common;
 mod hitbox_visualizer;
 mod training;
 
+#[macro_use]
+extern crate bitflags;
+
 use crate::common::*;
 use training::combo::FRAME_ADVANTAGE;
 

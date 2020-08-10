@@ -35,14 +35,6 @@ unsafe fn mod_handle_change_status(
         return;
     }
 
-    if MENU.tech_state == TechOption::None {
-        return;
-    }
-
-    if MENU.tech_state == TechOption::Miss {
-        return;
-    }
-
     let status_kind_int = status_kind
         .try_get_int()
         .unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
@@ -51,26 +43,20 @@ unsafe fn mod_handle_change_status(
     if status_kind_int == FIGHTER_STATUS_KIND_DOWN
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D
     {
-        match MENU.tech_state {
-            TechOption::Random => {
-                let random_statuses = vec![
-                    *FIGHTER_STATUS_KIND_DOWN,
-                    *FIGHTER_STATUS_KIND_PASSIVE,
-                    *FIGHTER_STATUS_KIND_PASSIVE_FB,
-                ];
+        let states = MENU.tech_state.to_vec();
+        let mut state = if states.is_empty() { TechFlags::empty() } else { states[0] };
 
-                let random_status_index =
-                    app::sv_math::rand(hash40("fighter"), random_statuses.len() as i32) as usize;
-                if random_statuses[random_status_index] != FIGHTER_STATUS_KIND_DOWN {
-                    *status_kind = L2CValue::new_int(random_statuses[random_status_index] as u64);
-                    *unk = LUA_TRUE
-                }
-            }
-            TechOption::InPlace => {
+        if states.len() > 1 {
+            let idx = app::sv_math::rand(hash40("fighter"), states.len() as i32) as usize;
+            state = states[idx];
+        }
+
+        match state {
+            TechFlags::IN_PLACE => {
                 *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
                 *unk = LUA_TRUE;
             }
-            TechOption::Roll => {
+            TechFlags::ROLL => {
                 *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
                 *unk = LUA_TRUE;
             }
@@ -113,7 +99,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if MENU.tech_state == TechOption::None {
+    if MENU.tech_state == TechFlags::empty() {
         return;
     }
 
@@ -154,7 +140,7 @@ pub unsafe fn change_motion(
         return None;
     }
 
-    if MENU.tech_state == TechOption::None {
+    if MENU.tech_state == TechFlags::empty() || MENU.tech_state == TechFlags::NO_TECH {
         return None;
     }
 
