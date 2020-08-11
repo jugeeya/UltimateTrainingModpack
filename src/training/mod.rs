@@ -101,7 +101,6 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_x)]
 pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    mash::handle_mash(module_accessor);
     left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 
@@ -198,7 +197,7 @@ pub unsafe fn handle_change_motion(
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
 pub unsafe  fn handle_is_enable_transition_term(
-    module_accessor: *mut app::BattleObjectModuleAccessor, 
+    module_accessor: *mut app::BattleObjectModuleAccessor,
     transition_term: i32
 ) -> bool {
     let is = original!()(module_accessor, transition_term);
