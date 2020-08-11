@@ -279,6 +279,10 @@ fn needs_oos_handling_drop_shield() -> bool {
         return true;
     }
 
+    if action == Action::UpSmash {
+        return true;
+    }
+
     false
 }
 
