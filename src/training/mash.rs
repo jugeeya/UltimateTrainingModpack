@@ -266,21 +266,21 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE,
-                *FIGHTER_PAD_CMD_CAT1_ESCAPE,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
             );
         }
         RollForward => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_F,
-                *FIGHTER_PAD_CMD_CAT1_ESCAPE_F,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
             );
         }
         RollBack => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_B,
-                *FIGHTER_PAD_CMD_CAT1_ESCAPE_B,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
             );
         }
         Shield => {
