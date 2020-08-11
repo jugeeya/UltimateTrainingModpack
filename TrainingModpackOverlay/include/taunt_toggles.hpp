@@ -108,7 +108,8 @@ option after getting up.
 // clang-format off
 #define ENUM_CLASS_TechFlag(type,x) \
 	x(type,Miss,"Miss Tech") \
-	x(type,Roll,"Roll") \
+	x(type,RollF,"RollF") \
+	x(type,RollB,"RollB") \
 	x(type,InPlace,"In Place")
 
 // clang-format on
