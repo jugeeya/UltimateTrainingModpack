@@ -4,7 +4,6 @@ use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::shield;
 use smash::app::{self, lua_bind::*};
-use smash::hash40;
 use smash::lib::lua_const::*;
 
 static mut CURRENT_AERIAL: Action = Action::Nair;
@@ -148,7 +147,7 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
 }
 
 fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe{
+    unsafe {
         if MENU.mash_in_neutral == OnOff::On {
             return true;
         }
@@ -207,8 +206,7 @@ fn get_random_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> A
             random_cmds.push(Mash::Spotdodge);
         }
 
-        let random_cmd_index =
-            app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
+        let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
 
         mash_to_action(random_cmds[random_cmd_index])
     }
@@ -519,13 +517,12 @@ pub unsafe fn perform_defensive_option() {
                 Mash::Attack,
             ];
 
-            let random_cmd_index =
-                app::sv_math::rand(hash40("fighter"), random_cmds.len() as i32) as usize;
+            let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
 
             action = mash_to_action(random_cmds[random_cmd_index]);
         }
         Defensive::Roll => {
-            if app::sv_math::rand(hash40("fighter"), 2) == 0 {
+            if get_random_int(2) == 0 {
                 action = Action::RollForward;
             } else {
                 action = Action::RollBack;
