@@ -148,7 +148,7 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
 }
 
 fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe{
+    unsafe {
         if MENU.mash_in_neutral == OnOff::On {
             return true;
         }
@@ -422,9 +422,10 @@ unsafe fn get_aerial_flag(
 
     // If we are grounded we also need to jump
     if is_grounded(module_accessor) {
-        let jump_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
-        let jump_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT;
-        try_change_status(module_accessor, jump_flag, jump_transition);
+        // let jump_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
+        // let jump_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT;
+        // try_change_status(module_accessor, jump_flag, jump_transition);
+        flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
         // Delay attack until we are airborne to get a full hop
         if MENU.full_hop == OnOff::On {
@@ -458,7 +459,7 @@ unsafe fn get_aerial_flag(
 
     flag |= get_flag(module_accessor, status, command_flag);
 
-    flag
+    return flag;
 }
 
 /**
