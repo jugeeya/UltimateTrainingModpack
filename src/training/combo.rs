@@ -1,5 +1,4 @@
 use crate::common::consts::FighterId;
-use crate::common::FIGHTER_MANAGER_ADDR;
 use crate::common::*;
 use crate::training::*;
 
@@ -26,15 +25,6 @@ unsafe fn was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) 
 unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-}
-
-unsafe fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
-    let entry_id_int = fighter_id as i32;
-    let entry_id = app::FighterEntryID(entry_id_int);
-    let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-    let fighter_entry = FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
-    let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
-    app::sv_battle_object::module_accessor(current_fighter_id as u32)
 }
 
 macro_rules! actionable_statuses {

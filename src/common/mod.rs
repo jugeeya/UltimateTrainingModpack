@@ -41,6 +41,15 @@ pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i3
     return (module_accessor.info >> 28) as u8 as i32;
 }
 
+pub unsafe fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
+    let entry_id_int = fighter_id as i32;
+    let entry_id = app::FighterEntryID(entry_id_int);
+    let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+    let fighter_entry = FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
+    let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
+    app::sv_battle_object::module_accessor(current_fighter_id as u32)
+}
+
 pub unsafe fn is_fighter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     get_category(module_accessor) == BATTLE_OBJECT_CATEGORY_FIGHTER
 }

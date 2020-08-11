@@ -54,8 +54,6 @@ impl From<i32> for Direction {
     }
 }
 
-//pub static FIGHTER_FACING_LEFT: f32 = 1.0;
-pub static FIGHTER_FACING_RIGHT: f32 = -1.0;
 pub static ANGLE_NONE: f64 = -69.0;
 pub fn direction_to_angle(direction: Direction) -> f64 {
     match direction {

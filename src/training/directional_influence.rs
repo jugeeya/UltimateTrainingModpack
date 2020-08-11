@@ -7,8 +7,6 @@ use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
-pub static mut DI_ANGLE: f64 = 0.0;
-
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_FighterStatusDamage__correctDamageVectorCommon)]
 pub unsafe fn handle_correct_damage_vector_common(
     fighter: &mut L2CFighterCommon,
@@ -33,25 +31,31 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     }
 
     // Either left, right, or none
-    DI_ANGLE = get_angle(MENU.di_state);
-    // Nothig to do on no DI
-    if DI_ANGLE == ANGLE_NONE {
+    let mut angle = get_angle(MENU.di_state);
+    // Nothing to do on no DI
+    if angle == ANGLE_NONE {
         return;
     }
 
-    // If facing left, reverse angle
-    if PostureModule::lr(module_accessor) != FIGHTER_FACING_RIGHT {
-        DI_ANGLE -= PI;
+    let launch_speed_x = KineticEnergy::get_speed_x(
+        KineticModule::get_energy(
+            module_accessor, 
+            *FIGHTER_KINETIC_ENERGY_ID_DAMAGE
+        ) as *mut smash::app::KineticEnergy);
+
+    // If we're launched left, reverse stick X
+    if launch_speed_x < 0.0 {
+        angle = PI - angle;
     }
 
     WorkModule::set_float(
         module_accessor,
-        DI_ANGLE.cos() as f32,
+        angle.cos() as f32,
         *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X,
     );
     WorkModule::set_float(
         module_accessor,
-        DI_ANGLE.sin() as f32,
+        angle.sin() as f32,
         *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y,
     );
 }
