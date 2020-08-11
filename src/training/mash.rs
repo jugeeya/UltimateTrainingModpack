@@ -264,21 +264,21 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE,
-                *FIGHTER_PAD_CMD_CAT1_ESCAPE,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
             );
         }
         RollForward => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_F,
-                *FIGHTER_PAD_CMD_CAT1_ESCAPE_F,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
             );
         }
         RollBack => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_B,
-                *FIGHTER_PAD_CMD_CAT1_ESCAPE_B,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
             );
         }
         Shield => {
@@ -420,9 +420,10 @@ unsafe fn get_aerial_flag(
 
     // If we are grounded we also need to jump
     if is_grounded(module_accessor) {
-        let jump_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
-        let jump_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT;
-        try_change_status(module_accessor, jump_flag, jump_transition);
+        // let jump_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
+        // let jump_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT;
+        // try_change_status(module_accessor, jump_flag, jump_transition);
+        flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
         // Delay attack until we are airborne to get a full hop
         if MENU.full_hop == OnOff::On {
@@ -456,7 +457,7 @@ unsafe fn get_aerial_flag(
 
     flag |= get_flag(module_accessor, status, command_flag);
 
-    flag
+    return flag;
 }
 
 /**
