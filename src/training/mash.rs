@@ -249,10 +249,10 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             // Shield if grounded instead
             if is_grounded(module_accessor) {
                 expected_status = *FIGHTER_STATUS_KIND_GUARD_ON;
-                command_flag = *FIGHTER_PAD_CMD_CAT1_AIR_ESCAPE;
+                command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
             } else {
                 expected_status = *FIGHTER_STATUS_KIND_ESCAPE_AIR;
-                command_flag = *FIGHTER_PAD_CMD_CAT1_AIR_ESCAPE;
+                command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
             }
 
             return get_flag(module_accessor, expected_status, command_flag);
@@ -284,12 +284,12 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
         Shield => {
             /*
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
-            Shield hold is performed trough shield::should_hold_shield
+            Shield hold is performed through shield::should_hold_shield
             */
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_GUARD_ON,
-                *FIGHTER_PAD_CMD_CAT1_AIR_ESCAPE,
+                *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
             );
         }
         _ => return get_attack_flag(module_accessor, action),
@@ -297,19 +297,14 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 }
 
 unsafe fn update_jump_flag(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
-    let check_flag: i32;
-    let command_flag: i32;
-
-    if is_grounded(module_accessor) {
-        check_flag = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
-        command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+    let check_flag = if is_grounded(module_accessor) {
+        *FIGHTER_STATUS_KIND_JUMP_SQUAT
     } else if is_airborne(module_accessor) {
-        check_flag = *FIGHTER_STATUS_KIND_JUMP_AERIAL;
-        command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
+        *FIGHTER_STATUS_KIND_JUMP_AERIAL
     } else {
-        check_flag = *FIGHTER_STATUS_KIND_JUMP;
-        command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
-    }
+        *FIGHTER_STATUS_KIND_JUMP
+    };
+    let command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
     return get_flag(module_accessor, check_flag, command_flag);
 }
@@ -336,7 +331,7 @@ unsafe fn get_attack_flag(
             status = *FIGHTER_STATUS_KIND_SPECIAL_S;
         }
         UpB => {
-            command_flag = *FIGHTER_STATUS_KIND_SPECIAL_HI;
+            command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI;
             status = *FIGHTER_STATUS_KIND_SPECIAL_HI;
         }
         DownB => {
@@ -437,21 +432,16 @@ unsafe fn get_aerial_flag(
         return flag;
     }
 
-    let command_flag: i32;
     use Action::*;
 
     /*
      * We always trigger attack and change it later into the correct aerial
      * @see get_attack_air_kind()
      */
-    match action {
-        Nair | Fair | Bair | UpAir | Dair => {
-            command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
-        }
-        _ => {
-            command_flag = 0;
-        }
-    }
+     let command_flag: i32 = match action {
+        Nair | Fair | Bair | UpAir | Dair => *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+        _ => 0
+    };
 
     set_aerial(action);
 
