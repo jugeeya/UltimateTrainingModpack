@@ -37,8 +37,7 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     }
 
     let player_module_accessor = get_module_accessor(FighterId::Player);
-
-    if PostureModule::lr(player_module_accessor) == -1.0 {
+    if PostureModule::pos_x(player_module_accessor) > PostureModule::pos_x(module_accessor) {
         angle = PI - angle;
     }
 
