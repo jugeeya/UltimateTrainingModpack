@@ -42,41 +42,52 @@ pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i3
     return (module_accessor.info >> 28) as u8 as i32;
 }
 
-pub unsafe fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
+pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
     let entry_id_int = fighter_id as i32;
     let entry_id = app::FighterEntryID(entry_id_int);
-    let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-    let fighter_entry = FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
-    let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
-    app::sv_battle_object::module_accessor(current_fighter_id as u32)
+    unsafe {
+        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+        let fighter_entry =
+            FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
+        let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
+        app::sv_battle_object::module_accessor(current_fighter_id as u32)
+    }
 }
 
-pub unsafe fn is_fighter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub fn is_fighter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     get_category(module_accessor) == BATTLE_OBJECT_CATEGORY_FIGHTER
 }
 
-pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if !is_fighter(module_accessor) {
-        return false;
+pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    unsafe {
+        if !is_fighter(module_accessor) {
+            return false;
+        }
+
+        let entry_id_int =
+            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+        let entry_id = app::FighterEntryID(entry_id_int);
+        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+        let fighter_information =
+            FighterManager::get_fighter_information(mgr, entry_id) as *mut app::FighterInformation;
+
+        FighterInformation::is_operation_cpu(fighter_information)
     }
-
-    let entry_id_int =
-        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
-    let entry_id = app::FighterEntryID(entry_id_int);
-    let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-    let fighter_information =
-        FighterManager::get_fighter_information(mgr, entry_id) as *mut app::FighterInformation;
-
-    FighterInformation::is_operation_cpu(fighter_information)
 }
 
-pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+pub fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let situation_kind;
+    unsafe {
+        situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+    }
     situation_kind == SITUATION_KIND_GROUND
 }
 
-pub unsafe fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+pub fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let situation_kind;
+    unsafe {
+        situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+    }
     situation_kind == SITUATION_KIND_AIR
 }
 
@@ -110,9 +121,15 @@ pub fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bo
     }
 }
 
-pub unsafe fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor);
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
+pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind;
+    let prev_status;
+
+    unsafe {
+        status_kind = StatusModule::status_kind(module_accessor);
+        prev_status = StatusModule::prev_status_kind(module_accessor, 0);
+    }
+
     // If we are taking shield damage or we are droping shield from taking shield damage we are in hitstun
     status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE
         || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE

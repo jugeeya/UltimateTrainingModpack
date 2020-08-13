@@ -195,21 +195,19 @@ pub fn mash_to_action(mash: Mash) -> Action {
 
 fn get_random_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
     let mut random_cmds = vec![Mash::Jump, Mash::Attack];
-    unsafe {
-        if is_airborne(module_accessor) {
-            random_cmds.push(Mash::Airdodge);
-        }
-
-        if is_grounded(module_accessor) {
-            random_cmds.push(Mash::RollBack);
-            random_cmds.push(Mash::RollForward);
-            random_cmds.push(Mash::Spotdodge);
-        }
-
-        let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
-
-        mash_to_action(random_cmds[random_cmd_index])
+    if is_airborne(module_accessor) {
+        random_cmds.push(Mash::Airdodge);
     }
+
+    if is_grounded(module_accessor) {
+        random_cmds.push(Mash::RollBack);
+        random_cmds.push(Mash::RollForward);
+        random_cmds.push(Mash::Spotdodge);
+    }
+
+    let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
+
+    mash_to_action(random_cmds[random_cmd_index])
 }
 
 fn attack_to_action(attack: Attack) -> Action {
@@ -248,6 +246,10 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             let command_flag;
             // Shield if grounded instead
             if is_grounded(module_accessor) {
+                /*
+                Doesn't actually cause the shield, but will clear the buffer once shield is possible.
+                Shield hold is performed through shield::should_hold_shield and request_shield
+                */
                 expected_status = *FIGHTER_STATUS_KIND_GUARD_ON;
                 command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
             } else {
@@ -284,7 +286,7 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
         Shield => {
             /*
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
-            Shield hold is performed through shield::should_hold_shield
+            Shield hold is performed through shield::should_hold_shield and request_shield
             */
             return get_flag(
                 module_accessor,
@@ -294,6 +296,16 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
         }
         _ => return get_attack_flag(module_accessor, action),
     }
+}
+
+pub fn request_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    match get_current_buffer() {
+        Action::Shield => return true,
+        Action::Airdodge => return is_grounded(module_accessor),
+        _ => {}
+    }
+
+    return false;
 }
 
 unsafe fn update_jump_flag(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
@@ -438,9 +450,9 @@ unsafe fn get_aerial_flag(
      * We always trigger attack and change it later into the correct aerial
      * @see get_attack_air_kind()
      */
-     let command_flag: i32 = match action {
+    let command_flag: i32 = match action {
         Nair | Fair | Bair | UpAir | Dair => *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
-        _ => 0
+        _ => 0,
     };
 
     set_aerial(action);
