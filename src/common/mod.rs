@@ -70,8 +70,11 @@ pub unsafe fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAcce
     FighterInformation::is_operation_cpu(fighter_information)
 }
 
-pub unsafe fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+pub fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let situation_kind;
+    unsafe {
+        situation_kind = StatusModule::situation_kind(module_accessor) as i32;
+    }
     situation_kind == SITUATION_KIND_GROUND
 }
 

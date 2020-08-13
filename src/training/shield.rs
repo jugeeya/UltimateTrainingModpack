@@ -130,9 +130,9 @@ pub unsafe fn get_param_float(
     None
 }
 
-pub fn should_hold_shield() -> bool {
+pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     // Mash shield
-    if mash::get_current_buffer() == Action::Shield {
+    if mash::request_shield(module_accessor) {
         return true;
     }
 
@@ -343,7 +343,7 @@ unsafe fn should_return_none_in_check_button(
         return true;
     }
 
-    if !should_hold_shield() {
+    if !should_hold_shield(module_accessor) {
         return true;
     }
 

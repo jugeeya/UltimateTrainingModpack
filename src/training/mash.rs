@@ -248,6 +248,10 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             let command_flag;
             // Shield if grounded instead
             if is_grounded(module_accessor) {
+                /*
+                Doesn't actually cause the shield, but will clear the buffer once shield is possible.
+                Shield hold is performed through shield::should_hold_shield and request_shield
+                */
                 expected_status = *FIGHTER_STATUS_KIND_GUARD_ON;
                 command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
             } else {
@@ -284,7 +288,7 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
         Shield => {
             /*
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
-            Shield hold is performed through shield::should_hold_shield
+            Shield hold is performed through shield::should_hold_shield and request_shield
             */
             return get_flag(
                 module_accessor,
@@ -294,6 +298,16 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
         }
         _ => return get_attack_flag(module_accessor, action),
     }
+}
+
+pub fn request_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    match get_current_buffer() {
+        Action::Shield => return true,
+        Action::Airdodge => return is_grounded(module_accessor),
+        _ => {}
+    }
+
+    return false;
 }
 
 unsafe fn update_jump_flag(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
