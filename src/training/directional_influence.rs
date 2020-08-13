@@ -36,14 +36,9 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         return;
     }
 
-    let launch_speed_x = KineticEnergy::get_speed_x(
-        KineticModule::get_energy(
-            module_accessor, 
-            *FIGHTER_KINETIC_ENERGY_ID_DAMAGE
-        ) as *mut smash::app::KineticEnergy);
+    let player_module_accessor = get_module_accessor(FighterId::Player);
 
-    // If we're launched left, reverse stick X
-    if launch_speed_x < 0.0 {
+    if PostureModule::lr(player_module_accessor) == -1.0 {
         angle = PI - angle;
     }
 
