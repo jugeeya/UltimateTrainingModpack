@@ -15,7 +15,7 @@ jobs:
     - name: make
       run: make
       working-directory: TrainingModpackOverlay
-    - name: Upload build artifact
+    - name: Upload overlay artifact
       uses: actions/upload-artifact@v1
       with:
         name: overlay
@@ -62,3 +62,8 @@ jobs:
           - `switch/.overlays/ovlTrainingModpack.ovl` is the Tesla submenu
         files: >
           training_modpack_beta.zip
+    - name: Upload zip as artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: full_build
+        path: training_modpack_beta.zip
