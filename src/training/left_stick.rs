@@ -67,10 +67,8 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f6
 }
 
 fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let air_dodge_condition;
-    unsafe {
-        air_dodge_condition = is_airborne(module_accessor) && is_in_hitstun(module_accessor);
-    }
+    let air_dodge_condition= is_airborne(module_accessor) && is_in_hitstun(module_accessor);
+
     if air_dodge_condition {
         return true;
     }
@@ -78,7 +76,7 @@ fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
     return false;
 }
 
-unsafe fn pick_angle(direction: Direction) -> f64 {
+fn pick_angle(direction: Direction) -> f64 {
     if direction == Direction::Random {
         let rand_direction = get_random_direction();
         return direction_to_angle(rand_direction);
@@ -87,7 +85,7 @@ unsafe fn pick_angle(direction: Direction) -> f64 {
     direction_to_angle(direction)
 }
 
-unsafe fn get_random_direction() -> Direction {
+fn get_random_direction() -> Direction {
     let rand = get_random_int(8);
     Direction::from(rand)
 }
