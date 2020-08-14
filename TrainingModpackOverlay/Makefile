@@ -38,7 +38,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
 APP_TITLE	:=	Training Modpack
-APP_VERSION	:=	2.05
+APP_VERSION	:=	2.1 Beta
 
 TARGET		:=	ovlTrainingModpack
 BUILD		:=	build
@@ -189,7 +189,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 all	:	 $(OUTPUT).ovl
 
-$(OUTPUT).ovl		:	$(OUTPUT).elf $(OUTPUT).nacp 
+$(OUTPUT).ovl		:	$(OUTPUT).elf $(OUTPUT).nacp
 	@elf2nro $< $@ $(NROFLAGS)
 	@echo "built ... $(notdir $(OUTPUT).ovl)"
 
