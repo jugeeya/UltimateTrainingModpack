@@ -7,23 +7,23 @@
 
 static struct TrainingModpackMenu
 {
-	int        HITBOX_VIS      = true;
-	int        DI_STATE        = NONE;
-	int        LEFT_STICK      = NONE;
-	int        ATTACK_STATE    = MASH_NAIR;
-	int        FOLLOW_UP       = 0;
-	LedgeFlags LEDGE_STATE     = LedgeFlags::All;
-	TechFlags  TECH_STATE      = TechFlags::All;
-	int        MASH_STATE      = NONE;
-	int        SHIELD_STATE    = NONE;
-	int        DEFENSIVE_STATE = RANDOM_DEFENSIVE;
-	int        OOS_OFFSET      = 0;
-	int        REACTION_TIME   = 0;
-	int        MASH_IN_NEUTRAL = false;
-	int        FAST_FALL       = false;
-	int        FAST_FALL_DELAY = 0;
-	int        FALLING_AERIALS = false;
-	int        FULL_HOP        = false;
+	int            HITBOX_VIS      = true;
+	int            DI_STATE        = NONE;
+	int            LEFT_STICK      = NONE;
+	int            ATTACK_STATE    = MASH_NAIR;
+	int            FOLLOW_UP       = 0;
+	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
+	TechFlags      TECH_STATE      = TechFlags::All;
+	int            MASH_STATE      = NONE;
+	int            SHIELD_STATE    = NONE;
+	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
+	int            OOS_OFFSET      = 0;
+	int            REACTION_TIME   = 0;
+	int            MASH_IN_NEUTRAL = false;
+	int            FAST_FALL       = false;
+	int            FAST_FALL_DELAY = 0;
+	int            FALLING_AERIALS = false;
+	int            FULL_HOP        = false;
 } menu;
 
 static int FRAME_ADVANTAGE = 0;
@@ -410,12 +410,10 @@ tsl::elm::Element* GuiMain::createUI()
 			valueListItems.push_back(mashNeutralItem);
 
 			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help));
+
 			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help));
 
-			ValueListItem* defensiveItem =
-			    new ValueListItem("Defensive Options", defensive_items, &menu.DEFENSIVE_STATE, "defensive", defensive_help);
-			list->addItem(defensiveItem);
-			valueListItems.push_back(defensiveItem);
+			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
 
 			ValueListItem* diItem = new ValueListItem("Set DI", di_items, &menu.DI_STATE, "di", di_help);
 			list->addItem(diItem);

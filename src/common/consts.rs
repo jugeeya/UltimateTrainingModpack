@@ -152,10 +152,10 @@ macro_rules! get_random_impl {
 bitflags! {
     pub struct LedgeOption : u32
     {
-        const NEUTRAL = 0b1;
-        const ROLL = 0b10;
-        const JUMP = 0b100;
-        const ATTACK = 0b1000;
+        const NEUTRAL = 0x1;
+        const ROLL = 0x2;
+        const JUMP = 0x4;
+        const ATTACK = 0x8;
     }
 }
 
@@ -233,31 +233,19 @@ pub enum Shield {
 }
 
 // Defensive States
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Defensive {
-    None = 0,
-    Random = 1,
-    Spotdodge = 2,
-    Roll = 3,
-    Jab = 4,
-    Shield = 5,
+bitflags! {
+    pub struct Defensive : u32 {
+        const SPOT_DODGE = 0x1;
+        const ROLL_F = 0x2;
+        const ROLL_B = 0x4;
+        const JAB = 0x8;
+        const SHIELD = 0x10;
+    }
 }
 
-impl From<i32> for Defensive {
-    fn from(x: i32) -> Self {
-        use Defensive::*;
-
-        match x {
-            0 => None,
-            1 => Random,
-            2 => Spotdodge,
-            3 => Roll,
-            4 => Jab,
-            5 => Shield,
-            _ => panic!("Invalid mash state {}", x),
-        }
-    }
+impl Defensive {
+    to_vec_impl! {Defensive}
+    get_random_impl! {Defensive}
 }
 
 #[repr(i32)]

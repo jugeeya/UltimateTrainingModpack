@@ -125,6 +125,28 @@ Specific tech options can be chosen and include:
 CPUs will also perform a defensive
 option after getting up.)"""";
 
+// Defensive States
+
+// clang-format off
+#define ENUM_CLASS_DefensiveFlag(type,x) \
+	x(type,SpotDodge,"Spotdodge") \
+	x(type,RollF,"RollF") \
+	x(type,RollB,"RollB") \
+	x(type,Jab,"Jab")\
+	x(type,Shield,"Shield")
+
+// clang-format on
+DEFINE_ENUM_CLASS(DefensiveFlag);
+
+const std::string defensive_help = R""""(
+Choose the defensive option a CPU
+will perform after teching or
+getting up from the ledge.
+
+Specific options include:
+    Flash shield, spotdodge, and jab
+)"""";
+
 // Mash States
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
@@ -185,22 +207,6 @@ by damage.
 
 Hold
 CPUs will hold a normal shield.)"""";
-
-// Defensive States
-#define RANDOM_DEFENSIVE 1
-#define DEFENSIVE_SPOTDODGE 2
-#define DEFENSIVE_ROLL 3
-#define DEFENSIVE_JAB 4
-#define DEFENSIVE_SHIELD 5
-const std::vector<std::string> defensive_items{"None", "Random", "Spotdodge", "Roll", "Jab", "Flash Shield"};
-const std::string              defensive_help = R""""(
-Choose the defensive option a CPU
-will perform after teching or
-getting up from the ledge.
-
-Specific options include:
-    Flash shield, spotdodge, and jab
-)"""";
 
 // Hitbox visualization
 const std::string hitbox_help = R""""(

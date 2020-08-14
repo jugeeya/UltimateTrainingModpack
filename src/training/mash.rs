@@ -509,37 +509,14 @@ fn try_change_status(
 pub unsafe fn perform_defensive_option() {
     reset();
 
-    let action;
-
-    match MENU.defensive_state {
-        Defensive::Random => {
-            let random_cmds = vec![
-                Mash::Spotdodge,
-                Mash::RollBack,
-                Mash::RollForward,
-                Mash::Attack,
-            ];
-
-            let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
-
-            action = mash_to_action(random_cmds[random_cmd_index]);
-        }
-        Defensive::Roll => {
-            if get_random_int(2) == 0 {
-                action = Action::RollForward;
-            } else {
-                action = Action::RollBack;
-            }
-        }
-        Defensive::Spotdodge => action = Action::Spotdodge,
-        Defensive::Jab => {
-            action = Action::Jab;
-        }
-        Defensive::Shield => {
-            action = Action::Shield;
-        }
-        _ => return,
-    }
+    let action = match MENU.defensive_state.get_random() {
+        Defensive::ROLL_F => Action::RollForward,
+        Defensive::ROLL_B => Action::RollBack,
+        Defensive::SPOT_DODGE =>  Action::Spotdodge,
+        Defensive::JAB => Action::Jab,
+        Defensive::SHIELD => Action::Shield,
+        _ => Action::Nothing,
+    };
 
     buffer_action(action);
 
