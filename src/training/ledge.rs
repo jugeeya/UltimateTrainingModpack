@@ -24,20 +24,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     }
 
     let mut status = 0;
-    let ledge_case: LedgeOption;
-
-    let ledge_options = MENU.ledge_state.to_vec();
-    match ledge_options.len() {
-        0 => {
-            ledge_case = LedgeOption::empty();
-        }
-        1 => {
-            ledge_case = ledge_options[0];
-        }
-        _ => {
-            ledge_case = *random_option(&ledge_options);
-        }
-    }
+    let ledge_case: LedgeOption = MENU.ledge_state.get_random();
 
     if let Some(new_status) = ledge_case.into_status() {
         status = new_status;
