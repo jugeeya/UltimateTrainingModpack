@@ -182,7 +182,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    let action = mash::buffer_menu_mash(module_accessor);
+    let action = mash::buffer_menu_mash();
 
     if handle_escape_option(fighter, module_accessor) {
         return;
@@ -239,19 +239,19 @@ unsafe fn handle_escape_option(
     }
 
     match mash::get_current_buffer() {
-        Action::Spotdodge => {
+        Action::SPOT_DODGE => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(), LUA_TRUE);
             return true;
         }
-        Action::RollForward => {
+        Action::ROLL_F => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(), LUA_TRUE);
             return true;
         }
-        Action::RollBack => {
+        Action::ROLL_B => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(), LUA_TRUE);
@@ -267,7 +267,7 @@ unsafe fn handle_escape_option(
 fn needs_oos_handling_drop_shield() -> bool {
     let action = mash::get_current_buffer();
 
-    if action == Action::Jump {
+    if action == Action::JUMP {
         return true;
     }
 
@@ -275,11 +275,11 @@ fn needs_oos_handling_drop_shield() -> bool {
         return true;
     }
 
-    if action == Action::UpB {
+    if action == Action::UP_B {
         return true;
     }
 
-    if action == Action::UpSmash {
+    if action == Action::U_SMASH {
         return true;
     }
 
@@ -288,11 +288,11 @@ fn needs_oos_handling_drop_shield() -> bool {
 
 pub fn is_aerial(action: Action) -> bool {
     match action {
-        Action::Nair => return true,
-        Action::Fair => return true,
-        Action::Bair => return true,
-        Action::UpAir => return true,
-        Action::Dair => return true,
+        Action::NAIR => return true,
+        Action::FAIR => return true,
+        Action::BAIR => return true,
+        Action::UAIR => return true,
+        Action::DAIR => return true,
         _ => return false,
     }
 }
@@ -305,11 +305,14 @@ pub fn suspend_shield(action: Action) {
 }
 
 fn need_suspend_shield(action: Action) -> bool {
+    if action == Action::empty(){
+        return false;
+    }
+
     match action {
-        Action::UpSmash => false,
-        Action::Grab => false,
-        Action::Shield => false,
-        Action::Nothing => false,
+        Action::U_SMASH => false,
+        Action::GRAB => false,
+        Action::SHIELD => false,
         _ => {
             // Force shield drop
             true

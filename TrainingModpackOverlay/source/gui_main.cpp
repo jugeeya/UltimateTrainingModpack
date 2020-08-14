@@ -7,23 +7,22 @@
 
 static struct TrainingModpackMenu
 {
-	int        HITBOX_VIS      = true;
-	int        DI_STATE        = NONE;
-	int        LEFT_STICK      = NONE;
-	int        ATTACK_STATE    = MASH_NAIR;
-	int        FOLLOW_UP       = 0;
-	LedgeFlags LEDGE_STATE     = LedgeFlags::All;
-	TechFlags  TECH_STATE      = TechFlags::All;
-	int        MASH_STATE      = NONE;
-	int        SHIELD_STATE    = NONE;
-	int        DEFENSIVE_STATE = RANDOM_DEFENSIVE;
-	int        OOS_OFFSET      = 0;
-	int        REACTION_TIME   = 0;
-	int        MASH_IN_NEUTRAL = false;
-	int        FAST_FALL       = false;
-	int        FAST_FALL_DELAY = 0;
-	int        FALLING_AERIALS = false;
-	int        FULL_HOP        = false;
+	int            HITBOX_VIS      = true;
+	int            DI_STATE        = NONE;
+	int            LEFT_STICK      = NONE;
+	ActionFlags    MASH_STATE      = ActionFlags::None;
+	ActionFlags    FOLLOW_UP       = ActionFlags::None;
+	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
+	TechFlags      TECH_STATE      = TechFlags::All;
+	int            SHIELD_STATE    = NONE;
+	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
+	int            OOS_OFFSET      = 0;
+	int            REACTION_TIME   = 0;
+	int            MASH_IN_NEUTRAL = false;
+	int            FAST_FALL       = false;
+	int            FAST_FALL_DELAY = 0;
+	int            FALLING_AERIALS = false;
+	int            FULL_HOP        = false;
 } menu;
 
 static int FRAME_ADVANTAGE = 0;
@@ -390,19 +389,9 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(shieldItem);
 			valueListItems.push_back(shieldItem);
 
-			ValueListItem* mashItem = new ValueListItem("Mash Toggles", mash_items, &menu.MASH_STATE, "mash", mash_help);
-			list->addItem(mashItem);
-			valueListItems.push_back(mashItem);
+			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help));
 
-			ValueListItem* attackItem =
-			    new ValueListItem("Attack Toggles", attack_items, &menu.ATTACK_STATE, "attack", attack_help);
-			list->addItem(attackItem);
-			valueListItems.push_back(attackItem);
-
-			ValueListItem* followUp =
-			    new ValueListItem("Followup Toggles", action_items, &menu.FOLLOW_UP, "followUp", follow_up_help);
-			list->addItem(followUp);
-			valueListItems.push_back(followUp);
+			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help));
 
 			ValueListItem* mashNeutralItem =
 			    new ValueListItem("Mash In Neutral", on_off, &menu.MASH_IN_NEUTRAL, "mash_neutral", mash_neutral_help);
@@ -410,12 +399,10 @@ tsl::elm::Element* GuiMain::createUI()
 			valueListItems.push_back(mashNeutralItem);
 
 			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help));
+
 			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help));
 
-			ValueListItem* defensiveItem =
-			    new ValueListItem("Defensive Options", defensive_items, &menu.DEFENSIVE_STATE, "defensive", defensive_help);
-			list->addItem(defensiveItem);
-			valueListItems.push_back(defensiveItem);
+			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
 
 			ValueListItem* diItem = new ValueListItem("Set DI", di_items, &menu.DI_STATE, "di", di_help);
 			list->addItem(diItem);

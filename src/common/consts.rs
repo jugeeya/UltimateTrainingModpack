@@ -60,59 +60,6 @@ pub fn direction_to_angle(direction: Direction) -> f64 {
     }
 }
 
-/// Mash Attack States
-#[repr(i32)]
-#[derive(PartialEq, Debug, Copy, Clone)]
-pub enum Attack {
-    Nair = 0,
-    Fair = 1,
-    Bair = 2,
-    UpAir = 3,
-    Dair = 4,
-    NeutralB = 5,
-    SideB = 6,
-    UpB = 7,
-    DownB = 8,
-    UpSmash = 9,
-    FSmash = 10,
-    DSmash = 11,
-    Grab = 12,
-    Jab = 13,
-    Ftilt = 14,
-    Utilt = 15,
-    Dtilt = 16,
-    DashAttack = 17,
-    Nothing = 9999,
-}
-
-impl From<i32> for Attack {
-    fn from(x: i32) -> Self {
-        use Attack::*;
-
-        match x {
-            0 => Nair,
-            1 => Fair,
-            2 => Bair,
-            3 => UpAir,
-            4 => Dair,
-            5 => NeutralB,
-            6 => SideB,
-            7 => UpB,
-            8 => DownB,
-            9 => UpSmash,
-            10 => FSmash,
-            11 => DSmash,
-            12 => Grab,
-            13 => Jab,
-            14 => Ftilt,
-            15 => Utilt,
-            16 => Dtilt,
-            17 => DashAttack,
-            _ => Nothing,
-        }
-    }
-}
-
 // bitflag helper function macro
 macro_rules! to_vec_impl {
     ($e:ty) => {
@@ -152,10 +99,10 @@ macro_rules! get_random_impl {
 bitflags! {
     pub struct LedgeOption : u32
     {
-        const NEUTRAL = 0b1;
-        const ROLL = 0b10;
-        const JUMP = 0b100;
-        const ATTACK = 0b1000;
+        const NEUTRAL = 0x1;
+        const ROLL = 0x2;
+        const JUMP = 0x4;
+        const ATTACK = 0x8;
     }
 }
 
@@ -192,37 +139,6 @@ impl TechFlags {
     get_random_impl! {TechFlags}
 }
 
-/// Mash States
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Mash {
-    None = 0,
-    Airdodge = 1,
-    Jump = 2,
-    Attack = 3,
-    Spotdodge = 4,
-    RollForward = 5,
-    RollBack = 6,
-    Random = 7,
-    Shield = 99,
-}
-
-impl From<i32> for Mash {
-    fn from(x: i32) -> Self {
-        match x {
-            0 => Mash::None,
-            1 => Mash::Airdodge,
-            2 => Mash::Jump,
-            3 => Mash::Attack,
-            4 => Mash::Spotdodge,
-            5 => Mash::RollForward,
-            6 => Mash::RollBack,
-            7 => Mash::Random,
-            _ => panic!("Invalid mash state {}", x),
-        }
-    }
-}
-
 /// Shield States
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -233,31 +149,19 @@ pub enum Shield {
 }
 
 // Defensive States
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Defensive {
-    None = 0,
-    Random = 1,
-    Spotdodge = 2,
-    Roll = 3,
-    Jab = 4,
-    Shield = 5,
+bitflags! {
+    pub struct Defensive : u32 {
+        const SPOT_DODGE = 0x1;
+        const ROLL_F = 0x2;
+        const ROLL_B = 0x4;
+        const JAB = 0x8;
+        const SHIELD = 0x10;
+    }
 }
 
-impl From<i32> for Defensive {
-    fn from(x: i32) -> Self {
-        use Defensive::*;
-
-        match x {
-            0 => None,
-            1 => Random,
-            2 => Spotdodge,
-            3 => Roll,
-            4 => Jab,
-            5 => Shield,
-            _ => panic!("Invalid mash state {}", x),
-        }
-    }
+impl Defensive {
+    to_vec_impl! {Defensive}
+    get_random_impl! {Defensive}
 }
 
 #[repr(i32)]
@@ -267,85 +171,48 @@ pub enum OnOff {
     On = 1,
 }
 
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Action {
-    Nothing = 0,
-    Airdodge = 1,
-    Jump = 2,
-    Spotdodge = 3,
-    RollForward = 4,
-    RollBack = 5,
-    Nair = 6,
-    Fair = 7,
-    Bair = 8,
-    UpAir = 9,
-    Dair = 10,
-    NeutralB = 11,
-    SideB = 12,
-    UpB = 13,
-    DownB = 14,
-    UpSmash = 15,
-    FSmash = 16,
-    DSmash = 17,
-    Grab = 18,
-    Jab = 19,
-    Ftilt = 20,
-    Utilt = 21,
-    Dtilt = 22,
-    DashAttack = 23,
-    Shield = 99,
+bitflags! {
+    pub struct Action : u32 {
+        const AIR_DODGE = 0x1;
+        const JUMP = 0x2;
+        const SHIELD = 0x4;
+        const SPOT_DODGE = 0x8;
+        const ROLL_F = 0x10;
+        const ROLL_B = 0x20;
+        const NAIR = 0x40;
+        const FAIR = 0x80;
+        const BAIR = 0x100;
+        const UAIR = 0x200;
+        const DAIR = 0x400;
+        const NEUTRAL_B = 0x800;
+        const SIDE_B = 0x1000;
+        const UP_B = 0x2000;
+        const DOWN_B = 0x4000;
+        const F_SMASH = 0x8000;
+        const U_SMASH = 0x10000;
+        const D_SMASH = 0x20000;
+        const JAB = 0x40000;
+        const F_TILT = 0x80000;
+        const U_TILT  = 0x100000;
+        const D_TILT  = 0x200000;
+        const DASH_ATTACK = 0x400000;
+        const GRAB = 0x800000;
+    }
 }
 
 impl Action {
     pub fn into_attack_air_kind(&self) -> Option<i32> {
-        use Action::*;
-
-        Some(match self {
-            Nair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
-            Fair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
-            Bair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
-            Dair => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
-            UpAir => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
+        Some(match *self {
+            Action::NAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
+            Action::FAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
+            Action::BAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
+            Action::DAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_LW,
+            Action::UAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_HI,
             _ => return None,
         })
     }
-}
-
-// To satisfy the unused warning
-impl From<i32> for Action {
-    fn from(x: i32) -> Self {
-        use Action::*;
-
-        match x {
-            0 => Nothing,
-            1 => Airdodge,
-            2 => Jump,
-            3 => Spotdodge,
-            4 => RollForward,
-            5 => RollBack,
-            6 => Nair,
-            7 => Fair,
-            8 => Bair,
-            9 => UpAir,
-            10 => Dair,
-            11 => NeutralB,
-            12 => SideB,
-            13 => UpB,
-            14 => DownB,
-            15 => UpSmash,
-            16 => FSmash,
-            17 => DSmash,
-            18 => Grab,
-            19 => Jab,
-            20 => Ftilt,
-            21 => Utilt,
-            22 => Dtilt,
-            23 => DashAttack,
-            99 => Shield,
-            _ => Nothing,
-        }
-    }
+    to_vec_impl! {Action}
+    get_random_impl! {Action}
 }
 
 #[repr(C)]
@@ -353,11 +220,10 @@ pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
     pub di_state: Direction,
     pub left_stick: Direction, // Currently only used for air dodge direction
-    pub mash_attack_state: Attack,
+    pub mash_state: Action,
     pub follow_up: Action,
     pub ledge_state: LedgeOption,
     pub tech_state: TechFlags,
-    pub mash_state: Mash,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
     pub oos_offset: u32,

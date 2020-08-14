@@ -6,7 +6,7 @@ use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-static mut CURRENT_AERIAL: Action = Action::Nair;
+static mut CURRENT_AERIAL: Action = Action::NAIR;
 static mut QUEUE: Vec<Action> = vec![];
 
 pub fn buffer_action(action: Action) {
@@ -29,7 +29,7 @@ pub fn buffer_follow_up() {
         action = MENU.follow_up;
     }
 
-    if action == Action::Nothing {
+    if action == Action::empty() {
         return;
     }
 
@@ -40,8 +40,11 @@ pub fn buffer_follow_up() {
 
 pub fn get_current_buffer() -> Action {
     unsafe {
-        let current = QUEUE.last().unwrap_or(&Action::Nothing);
-        *current
+        if QUEUE.len() == 0 {
+            return Action::empty();
+        }
+
+        return *QUEUE.last().unwrap();
     }
 }
 
@@ -116,7 +119,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    buffer_menu_mash(module_accessor);
+    buffer_menu_mash();
 }
 
 fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -165,83 +168,20 @@ fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool 
 }
 
 // Temp Translation
-pub fn buffer_menu_mash(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
+pub fn buffer_menu_mash() -> Action {
     unsafe {
-        let action;
-        if MENU.mash_state == Mash::Random {
-            action = get_random_action(module_accessor);
-        } else {
-            action = mash_to_action(MENU.mash_state);
-        }
+        let action = MENU.mash_state.get_random();
         buffer_action(action);
 
         action
     }
 }
 
-pub fn mash_to_action(mash: Mash) -> Action {
-    use Action::*;
-    match mash {
-        Mash::Airdodge => Airdodge,
-        Mash::Jump => Jump,
-        Mash::Spotdodge => Spotdodge,
-        Mash::RollForward => RollForward,
-        Mash::RollBack => RollBack,
-        Mash::Shield => Shield,
-        Mash::Attack => unsafe { attack_to_action(MENU.mash_attack_state) },
-        _ => Nothing,
-    }
-}
-
-fn get_random_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
-    let mut random_cmds = vec![Mash::Jump, Mash::Attack];
-    if is_airborne(module_accessor) {
-        random_cmds.push(Mash::Airdodge);
-    }
-
-    if is_grounded(module_accessor) {
-        random_cmds.push(Mash::RollBack);
-        random_cmds.push(Mash::RollForward);
-        random_cmds.push(Mash::Spotdodge);
-    }
-
-    let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
-
-    mash_to_action(random_cmds[random_cmd_index])
-}
-
-fn attack_to_action(attack: Attack) -> Action {
-    use Action::*;
-    match attack {
-        Attack::Nair => Nair,
-        Attack::Fair => Fair,
-        Attack::Bair => Bair,
-        Attack::UpAir => UpAir,
-        Attack::Dair => Dair,
-        Attack::NeutralB => NeutralB,
-        Attack::SideB => SideB,
-        Attack::UpB => UpB,
-        Attack::DownB => DownB,
-        Attack::UpSmash => UpSmash,
-        Attack::FSmash => FSmash,
-        Attack::DSmash => DSmash,
-        Attack::Grab => Grab,
-        Attack::Jab => Jab,
-        Attack::Ftilt => Ftilt,
-        Attack::Utilt => Utilt,
-        Attack::Dtilt => Dtilt,
-        Attack::DashAttack => DashAttack,
-        Attack::Nothing => Nothing,
-    }
-}
-
 unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
-    use Action::*;
-
     let action = get_current_buffer();
 
     match action {
-        Airdodge => {
+        Action::AIR_DODGE => {
             let expected_status;
             let command_flag;
             // Shield if grounded instead
@@ -259,31 +199,31 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
             return get_flag(module_accessor, expected_status, command_flag);
         }
-        Jump => {
+        Action::JUMP => {
             return update_jump_flag(module_accessor);
         }
-        Spotdodge => {
+        Action::SPOT_DODGE => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
             );
         }
-        RollForward => {
+        Action::ROLL_F => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_F,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
             );
         }
-        RollBack => {
+        Action::ROLL_B => {
             return get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_B,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
             );
         }
-        Shield => {
+        Action::SHIELD => {
             /*
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
             Shield hold is performed through shield::should_hold_shield and request_shield
@@ -300,8 +240,8 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
 pub fn request_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     match get_current_buffer() {
-        Action::Shield => return true,
-        Action::Airdodge => return is_grounded(module_accessor),
+        Action::SHIELD => return true,
+        Action::AIR_DODGE => return is_grounded(module_accessor),
         _ => {}
     }
 
@@ -325,44 +265,42 @@ unsafe fn get_attack_flag(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     action: Action,
 ) -> i32 {
-    use Action::*;
-
     let command_flag: i32;
     let status: i32;
 
     match action {
-        Nair | Fair | Bair | UpAir | Dair => {
+        Action::NAIR | Action::FAIR | Action::BAIR | Action::UAIR | Action::DAIR => {
             return get_aerial_flag(module_accessor, action);
         }
-        NeutralB => {
+        Action::NEUTRAL_B => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_N;
             status = *FIGHTER_STATUS_KIND_SPECIAL_N;
         }
-        SideB => {
+        Action::SIDE_B => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_S;
             status = *FIGHTER_STATUS_KIND_SPECIAL_S;
         }
-        UpB => {
+        Action::UP_B => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_HI;
             status = *FIGHTER_STATUS_KIND_SPECIAL_HI;
         }
-        DownB => {
+        Action::DOWN_B => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_SPECIAL_LW;
             status = *FIGHTER_STATUS_KIND_SPECIAL_LW;
         }
-        UpSmash => {
+        Action::U_SMASH => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI4;
             status = *FIGHTER_STATUS_KIND_ATTACK_HI4_START;
         }
-        FSmash => {
+        Action::F_SMASH => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S4;
             status = *FIGHTER_STATUS_KIND_ATTACK_S4_START;
         }
-        DSmash => {
+        Action::D_SMASH => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW4;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW4_START;
         }
-        Grab => {
+        Action::GRAB => {
             let cannot_grab = WorkModule::get_int(
                 module_accessor,
                 *FIGHTER_INSTANCE_WORK_ID_INT_INVALID_CATCH_FRAME,
@@ -374,7 +312,7 @@ unsafe fn get_attack_flag(
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_CATCH;
             status = *FIGHTER_STATUS_KIND_CATCH;
         }
-        Jab => {
+        Action::JAB => {
             // Prevent nair when airborne
             if !is_grounded(module_accessor) {
                 return 0;
@@ -383,19 +321,19 @@ unsafe fn get_attack_flag(
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
             status = *FIGHTER_STATUS_KIND_ATTACK;
         }
-        Ftilt => {
+        Action::F_TILT => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_S3;
             status = *FIGHTER_STATUS_KIND_ATTACK_S3;
         }
-        Utilt => {
+        Action::U_TILT => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_HI3;
             status = *FIGHTER_STATUS_KIND_ATTACK_HI3;
         }
-        Dtilt => {
+        Action::D_TILT => {
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
         }
-        DashAttack => {
+        Action::DASH_ATTACK => {
             let current_status = StatusModule::status_kind(module_accessor);
             let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
 
@@ -444,14 +382,14 @@ unsafe fn get_aerial_flag(
         return flag;
     }
 
-    use Action::*;
-
     /*
      * We always trigger attack and change it later into the correct aerial
      * @see get_attack_air_kind()
      */
     let command_flag: i32 = match action {
-        Nair | Fair | Bair | UpAir | Dair => *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N,
+        Action::NAIR | Action::FAIR | Action::BAIR | Action::UAIR | Action::DAIR => {
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N
+        }
         _ => 0,
     };
 
@@ -509,37 +447,14 @@ fn try_change_status(
 pub unsafe fn perform_defensive_option() {
     reset();
 
-    let action;
-
-    match MENU.defensive_state {
-        Defensive::Random => {
-            let random_cmds = vec![
-                Mash::Spotdodge,
-                Mash::RollBack,
-                Mash::RollForward,
-                Mash::Attack,
-            ];
-
-            let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
-
-            action = mash_to_action(random_cmds[random_cmd_index]);
-        }
-        Defensive::Roll => {
-            if get_random_int(2) == 0 {
-                action = Action::RollForward;
-            } else {
-                action = Action::RollBack;
-            }
-        }
-        Defensive::Spotdodge => action = Action::Spotdodge,
-        Defensive::Jab => {
-            action = Action::Jab;
-        }
-        Defensive::Shield => {
-            action = Action::Shield;
-        }
-        _ => return,
-    }
+    let action = match MENU.defensive_state.get_random() {
+        Defensive::ROLL_F => Action::ROLL_F,
+        Defensive::ROLL_B => Action::ROLL_B,
+        Defensive::SPOT_DODGE => Action::SPOT_DODGE,
+        Defensive::JAB => Action::JAB,
+        Defensive::SHIELD => Action::SHIELD,
+        _ => Action::empty(),
+    };
 
     buffer_action(action);
 

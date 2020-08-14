@@ -56,7 +56,7 @@ Currently only used for
 #define MASH_SIDE_B 6
 #define MASH_UP_B 7
 #define MASH_DOWN_B 8
-#define MASH_UP_SMASH 9
+#define MASH_U_SMASH 9
 #define MASH_GRAB 10
 const std::vector<std::string> attack_items{"Neutral Air",
                                             "Forward Air",
@@ -125,6 +125,28 @@ Specific tech options can be chosen and include:
 CPUs will also perform a defensive
 option after getting up.)"""";
 
+// Defensive States
+
+// clang-format off
+#define ENUM_CLASS_DefensiveFlag(type,x) \
+	x(type,SpotDodge,"Spotdodge") \
+	x(type,RollF,"RollF") \
+	x(type,RollB,"RollB") \
+	x(type,Jab,"Jab")\
+	x(type,Shield,"Shield")
+
+// clang-format on
+DEFINE_ENUM_CLASS(DefensiveFlag);
+
+const std::string defensive_help = R""""(
+Choose the defensive option a CPU
+will perform after teching or
+getting up from the ledge.
+
+Specific options include:
+    Flash shield, spotdodge, and jab
+)"""";
+
 // Mash States
 #define MASH_AIRDODGE 1
 #define MASH_JUMP 2
@@ -160,10 +182,19 @@ Random
 - Hitstun, shieldstun, landing.)"""";
 
 // Action items (Follow Up only atm)
-const std::vector<std::string> action_items{"None",        "Airdodge",    "Jump",     "Spotdodge", "Roll F",   "Roll B",
-                                            "Neutral Air", "Forward Air", "Back Air", "Up Air",    "Down Air", "Neutral B",
-                                            "Side B",      "Up B",        "Down B",   "Up Smash",  "F Smash",  "D Smash",
-                                            "Grab",        "Jab",         "Filt",     "Utilt",     "Dtilt",    "Dash Attack"};
+
+// clang-format off
+#define ENUM_CLASS_ActionFlag(type,x) \
+	x(type,Airdodge,"Airdodge") x(type,Jump,"Jump") x(type,Shield,"Shield") x(type,Spotdodge,"Spotdodge") x(type,RollF,"Roll F") x(type,RollB,"Roll B")  \
+    x(type,Nair,"Neutral Air") x(type,Fair,"Forward Air") x(type,Bair,"Back Air") x(type,Uair,"Up Air") x(type,Dair,"Down Air")  \
+    x(type,NeutralB,"Neutral B") x(type,SideB,"Side B") x(type,UpB,"Up B") x(type,DownB,"Down B") \
+    x(type,FSmash,"Forward Smash") x(type,USmash,"Up Smash") x(type,DSmash,"Down Smash") \
+    x(type,Jab,"Jab") x(type,FTilt,"Filt") x(type,UTilt,"Utilt") x(type,Dtilt,"Dtilt")  \
+    x(type,DashAttack,"Dash Attack") x(type,Grab,"Grab")
+
+// clang-format on
+DEFINE_ENUM_CLASS(ActionFlag);
+
 const std::string              follow_up_help = R""""(
 Action to buffer
 after the first mash option
@@ -185,22 +216,6 @@ by damage.
 
 Hold
 CPUs will hold a normal shield.)"""";
-
-// Defensive States
-#define RANDOM_DEFENSIVE 1
-#define DEFENSIVE_SPOTDODGE 2
-#define DEFENSIVE_ROLL 3
-#define DEFENSIVE_JAB 4
-#define DEFENSIVE_SHIELD 5
-const std::vector<std::string> defensive_items{"None", "Random", "Spotdodge", "Roll", "Jab", "Flash Shield"};
-const std::string              defensive_help = R""""(
-Choose the defensive option a CPU
-will perform after teching or
-getting up from the ledge.
-
-Specific options include:
-    Flash shield, spotdodge, and jab
-)"""";
 
 // Hitbox visualization
 const std::string hitbox_help = R""""(
