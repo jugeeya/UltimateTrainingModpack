@@ -129,6 +129,25 @@ macro_rules! to_vec_impl {
     }
 }
 
+macro_rules! get_random_impl {
+    ($e:ty) => {
+        pub fn get_random(&self) -> $e {
+            let options = self.to_vec();
+            match options.len() {
+                0 => {
+                    return <$e>::empty();
+                }
+                1 => {
+                    return options[0];
+                }
+                _ => {
+                    return *random_option(&options);
+                }
+            }
+        }
+    }
+}
+
 // Ledge Option
 bitflags! {
     pub struct LedgeOption : u32
@@ -140,7 +159,7 @@ bitflags! {
     }
 }
 
-pub unsafe fn random_option<T>(arg: &Vec<T>) -> &T {
+pub fn random_option<T>(arg: &Vec<T>) -> &T {
     return &arg[get_random_int(arg.len() as i32) as usize];
 }
 
@@ -155,6 +174,7 @@ impl LedgeOption {
         })
     }
     to_vec_impl! {LedgeOption}
+    get_random_impl! {LedgeOption}
 }
 
 // Tech options
@@ -169,6 +189,7 @@ bitflags! {
 
 impl TechFlags {
     to_vec_impl! {TechFlags}
+    get_random_impl! {TechFlags}
 }
 
 /// Mash States

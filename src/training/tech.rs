@@ -45,17 +45,7 @@ unsafe fn mod_handle_change_status(
     if status_kind_int == FIGHTER_STATUS_KIND_DOWN
         || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D
     {
-        let states = MENU.tech_state.to_vec();
-        let mut state = if states.is_empty() {
-            TechFlags::empty()
-        } else {
-            states[0]
-        };
-
-        if states.len() > 1 {
-            let idx = get_random_int(states.len() as i32) as usize;
-            state = states[idx];
-        }
+        let state: TechFlags = MENU.tech_state.get_random();
 
         match state {
             TechFlags::IN_PLACE => {
