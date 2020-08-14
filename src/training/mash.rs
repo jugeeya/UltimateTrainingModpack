@@ -119,7 +119,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    buffer_menu_mash(module_accessor);
+    buffer_menu_mash();
 }
 
 fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -168,71 +168,12 @@ fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool 
 }
 
 // Temp Translation
-pub fn buffer_menu_mash(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
+pub fn buffer_menu_mash() -> Action {
     unsafe {
-        let action;
-        if MENU.mash_state == Mash::Random {
-            action = get_random_action(module_accessor);
-        } else {
-            action = mash_to_action(MENU.mash_state);
-        }
+        let action = MENU.mash_state.get_random();
         buffer_action(action);
 
         action
-    }
-}
-
-pub fn mash_to_action(mash: Mash) -> Action {
-    match mash {
-        Mash::Airdodge => Action::AIR_DODGE,
-        Mash::Jump => Action::JUMP,
-        Mash::Spotdodge => Action::SPOT_DODGE,
-        Mash::RollForward => Action::ROLL_F,
-        Mash::RollBack => Action::ROLL_B,
-        Mash::Shield => Action::SHIELD,
-        Mash::Attack => unsafe { attack_to_action(MENU.mash_attack_state) },
-        _ => Action::empty(),
-    }
-}
-
-fn get_random_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Action {
-    let mut random_cmds = vec![Mash::Jump, Mash::Attack];
-    if is_airborne(module_accessor) {
-        random_cmds.push(Mash::Airdodge);
-    }
-
-    if is_grounded(module_accessor) {
-        random_cmds.push(Mash::RollBack);
-        random_cmds.push(Mash::RollForward);
-        random_cmds.push(Mash::Spotdodge);
-    }
-
-    let random_cmd_index = get_random_int(random_cmds.len() as i32) as usize;
-
-    mash_to_action(random_cmds[random_cmd_index])
-}
-
-fn attack_to_action(attack: Attack) -> Action {
-    match attack {
-        Attack::Nair => Action::NAIR,
-        Attack::Fair => Action::FAIR,
-        Attack::Bair => Action::BAIR,
-        Attack::UpAir => Action::UAIR,
-        Attack::Dair => Action::DAIR,
-        Attack::NeutralB => Action::NEUTRAL_B,
-        Attack::SideB => Action::SIDE_B,
-        Attack::UpB => Action::UP_B,
-        Attack::DownB => Action::DOWN_B,
-        Attack::UpSmash => Action::U_SMASH,
-        Attack::FSmash => Action::F_SMASH,
-        Attack::DSmash => Action::D_SMASH,
-        Attack::Grab => Action::GRAB,
-        Attack::Jab => Action::JAB,
-        Attack::Ftilt => Action::F_TILT,
-        Attack::Utilt => Action::U_TILT,
-        Attack::Dtilt => Action::D_TILT,
-        Attack::DashAttack => Action::DASH_ATTACK,
-        Attack::Nothing => Action::empty(),
     }
 }
 

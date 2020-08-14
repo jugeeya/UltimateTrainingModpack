@@ -60,59 +60,6 @@ pub fn direction_to_angle(direction: Direction) -> f64 {
     }
 }
 
-/// Mash Attack States
-#[repr(i32)]
-#[derive(PartialEq, Debug, Copy, Clone)]
-pub enum Attack {
-    Nair = 0,
-    Fair = 1,
-    Bair = 2,
-    UpAir = 3,
-    Dair = 4,
-    NeutralB = 5,
-    SideB = 6,
-    UpB = 7,
-    DownB = 8,
-    UpSmash = 9,
-    FSmash = 10,
-    DSmash = 11,
-    Grab = 12,
-    Jab = 13,
-    Ftilt = 14,
-    Utilt = 15,
-    Dtilt = 16,
-    DashAttack = 17,
-    Nothing = 9999,
-}
-
-impl From<i32> for Attack {
-    fn from(x: i32) -> Self {
-        use Attack::*;
-
-        match x {
-            0 => Nair,
-            1 => Fair,
-            2 => Bair,
-            3 => UpAir,
-            4 => Dair,
-            5 => NeutralB,
-            6 => SideB,
-            7 => UpB,
-            8 => DownB,
-            9 => UpSmash,
-            10 => FSmash,
-            11 => DSmash,
-            12 => Grab,
-            13 => Jab,
-            14 => Ftilt,
-            15 => Utilt,
-            16 => Dtilt,
-            17 => DashAttack,
-            _ => Nothing,
-        }
-    }
-}
-
 // bitflag helper function macro
 macro_rules! to_vec_impl {
     ($e:ty) => {
@@ -190,37 +137,6 @@ bitflags! {
 impl TechFlags {
     to_vec_impl! {TechFlags}
     get_random_impl! {TechFlags}
-}
-
-/// Mash States
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Mash {
-    None = 0,
-    Airdodge = 1,
-    Jump = 2,
-    Attack = 3,
-    Spotdodge = 4,
-    RollForward = 5,
-    RollBack = 6,
-    Random = 7,
-    Shield = 99,
-}
-
-impl From<i32> for Mash {
-    fn from(x: i32) -> Self {
-        match x {
-            0 => Mash::None,
-            1 => Mash::Airdodge,
-            2 => Mash::Jump,
-            3 => Mash::Attack,
-            4 => Mash::Spotdodge,
-            5 => Mash::RollForward,
-            6 => Mash::RollBack,
-            7 => Mash::Random,
-            _ => panic!("Invalid mash state {}", x),
-        }
-    }
 }
 
 /// Shield States
@@ -304,11 +220,10 @@ pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
     pub di_state: Direction,
     pub left_stick: Direction, // Currently only used for air dodge direction
-    pub mash_attack_state: Attack,
+    pub mash_state: Action,
     pub follow_up: Action,
     pub ledge_state: LedgeOption,
     pub tech_state: TechFlags,
-    pub mash_state: Mash,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
     pub oos_offset: u32,

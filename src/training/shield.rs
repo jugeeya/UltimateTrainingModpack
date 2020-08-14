@@ -182,7 +182,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    let action = mash::buffer_menu_mash(module_accessor);
+    let action = mash::buffer_menu_mash();
 
     if handle_escape_option(fighter, module_accessor) {
         return;
@@ -305,6 +305,10 @@ pub fn suspend_shield(action: Action) {
 }
 
 fn need_suspend_shield(action: Action) -> bool {
+    if action == Action::empty(){
+        return false;
+    }
+
     match action {
         Action::U_SMASH => false,
         Action::GRAB => false,

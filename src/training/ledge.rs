@@ -32,7 +32,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
     match ledge_case {
         LedgeOption::JUMP => {
-            mash::buffer_menu_mash(module_accessor);
+            mash::buffer_menu_mash();
         }
         _ => mash::perform_defensive_option(),
     }

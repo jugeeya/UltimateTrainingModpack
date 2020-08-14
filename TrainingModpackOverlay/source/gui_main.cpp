@@ -10,11 +10,10 @@ static struct TrainingModpackMenu
 	int            HITBOX_VIS      = true;
 	int            DI_STATE        = NONE;
 	int            LEFT_STICK      = NONE;
-	int            ATTACK_STATE    = MASH_NAIR;
+	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
 	TechFlags      TECH_STATE      = TechFlags::All;
-	int            MASH_STATE      = NONE;
 	int            SHIELD_STATE    = NONE;
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
 	int            OOS_OFFSET      = 0;
@@ -390,14 +389,7 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(shieldItem);
 			valueListItems.push_back(shieldItem);
 
-			ValueListItem* mashItem = new ValueListItem("Mash Toggles", mash_items, &menu.MASH_STATE, "mash", mash_help);
-			list->addItem(mashItem);
-			valueListItems.push_back(mashItem);
-
-			ValueListItem* attackItem =
-			    new ValueListItem("Attack Toggles", attack_items, &menu.ATTACK_STATE, "attack", attack_help);
-			list->addItem(attackItem);
-			valueListItems.push_back(attackItem);
+			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help));
 
 			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help));
 
