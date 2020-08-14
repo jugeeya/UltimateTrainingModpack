@@ -56,7 +56,7 @@ Currently only used for
 #define MASH_SIDE_B 6
 #define MASH_UP_B 7
 #define MASH_DOWN_B 8
-#define MASH_UP_SMASH 9
+#define MASH_U_SMASH 9
 #define MASH_GRAB 10
 const std::vector<std::string> attack_items{"Neutral Air",
                                             "Forward Air",
@@ -182,10 +182,19 @@ Random
 - Hitstun, shieldstun, landing.)"""";
 
 // Action items (Follow Up only atm)
-const std::vector<std::string> action_items{"None",        "Airdodge",    "Jump",     "Spotdodge", "Roll F",   "Roll B",
-                                            "Neutral Air", "Forward Air", "Back Air", "Up Air",    "Down Air", "Neutral B",
-                                            "Side B",      "Up B",        "Down B",   "Up Smash",  "F Smash",  "D Smash",
-                                            "Grab",        "Jab",         "Filt",     "Utilt",     "Dtilt",    "Dash Attack"};
+
+// clang-format off
+#define ENUM_CLASS_ActionFlag(type,x) \
+	x(type,Airdodge,"Airdodge") x(type,Jump,"Jump") x(type,Shield,"Shield") x(type,Spotdodge,"Spotdodge") x(type,RollF,"Roll F") x(type,RollB,"Roll B")  \
+    x(type,Nair,"Neutral Air") x(type,Fair,"Forward Air") x(type,Bair,"Back Air") x(type,Uair,"Up Air") x(type,Dair,"Down Air")  \
+    x(type,NeutralB,"Neutral B") x(type,SideB,"Side B") x(type,UpB,"Up B") x(type,DownB,"Down B") \
+    x(type,FSmash,"Forward Smash") x(type,USmash,"Up Smash") x(type,DSmash,"Down Smash") \
+    x(type,Jab,"Jab") x(type,FTilt,"Filt") x(type,UTilt,"Utilt") x(type,Dtilt,"Dtilt")  \
+    x(type,DashAttack,"Dash Attack") x(type,Grab,"Grab")
+
+// clang-format on
+DEFINE_ENUM_CLASS(ActionFlag);
+
 const std::string              follow_up_help = R""""(
 Action to buffer
 after the first mash option

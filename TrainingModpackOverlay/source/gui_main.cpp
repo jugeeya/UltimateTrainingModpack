@@ -11,7 +11,7 @@ static struct TrainingModpackMenu
 	int            DI_STATE        = NONE;
 	int            LEFT_STICK      = NONE;
 	int            ATTACK_STATE    = MASH_NAIR;
-	int            FOLLOW_UP       = 0;
+	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
 	TechFlags      TECH_STATE      = TechFlags::All;
 	int            MASH_STATE      = NONE;
@@ -399,10 +399,7 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(attackItem);
 			valueListItems.push_back(attackItem);
 
-			ValueListItem* followUp =
-			    new ValueListItem("Followup Toggles", action_items, &menu.FOLLOW_UP, "followUp", follow_up_help);
-			list->addItem(followUp);
-			valueListItems.push_back(followUp);
+			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help));
 
 			ValueListItem* mashNeutralItem =
 			    new ValueListItem("Mash In Neutral", on_off, &menu.MASH_IN_NEUTRAL, "mash_neutral", mash_neutral_help);
