@@ -46,41 +46,6 @@ Currently only used for
 
 )"""";
 
-// Attack Option
-#define MASH_NAIR 0
-#define MASH_FAIR 1
-#define MASH_BAIR 2
-#define MASH_UPAIR 3
-#define MASH_DAIR 4
-#define MASH_NEUTRAL_B 5
-#define MASH_SIDE_B 6
-#define MASH_UP_B 7
-#define MASH_DOWN_B 8
-#define MASH_U_SMASH 9
-#define MASH_GRAB 10
-const std::vector<std::string> attack_items{"Neutral Air",
-                                            "Forward Air",
-                                            "Back Air",
-                                            "Up Air",
-                                            "Down Air",
-                                            "Neutral B",
-                                            "Side B",
-                                            "Up B",
-                                            "Down B",
-                                            "Up Smash",
-                                            "F Smash",
-                                            "D Smash",
-                                            "Grab",
-                                            "Jab",
-                                            "Ftilt",
-                                            "Utilt",
-                                            "Dtilt",
-                                            "Dash Attack"};
-const std::string              attack_help = R""""(
-Only active when Mash Toggle is
-set to Attack.
-)"""";
-
 // Ledge Option
 // clang-format off
 #define ENUM_CLASS_LedgeFlag(type,x) \
@@ -148,14 +113,6 @@ Specific options include:
 )"""";
 
 // Mash States
-#define MASH_AIRDODGE 1
-#define MASH_JUMP 2
-#define MASH_ATTACK 3
-#define MASH_SPOTDODGE 4
-#define MASH_ROLL_F 5
-#define MASH_ROLL_B 6
-#define MASH_RANDOM 7
-const std::vector<std::string> mash_items{"None", "Airdodge", "Jump", "Attack", "Spotdodge", "Roll F", "Roll B", "Random"};
 const std::string              mash_help = R""""(
 Use this toggle along with the Shield
 Options toggle to practice moves on
@@ -169,17 +126,7 @@ Airdodge
 CPUs will also shield quickly if they
 are hit and remain grounded.
 
-Jump
-- Hitstun, shieldstun
-
-Attack
-- Hitstun, shieldstun, landing.
-
-Spotdodge
-- Hitstun, shieldstun, landing.
-
-Random
-- Hitstun, shieldstun, landing.)"""";
+)"""";
 
 // Action items (Follow Up only atm)
 
