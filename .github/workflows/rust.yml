@@ -25,23 +25,15 @@ jobs:
     container: jugeeya/cargo-skyline:latest
     
     steps:
-    - name: clone
+    - name: Clone master
       run: git clone https://github.com/jugeeya/UltimateTrainingModpack
       working-directory: /volume/
-    - name: WHERE
-      run: env
-      working-directory: /volume/UltimateTrainingModpack
-    - name: AM
-      run: ls && pwd
-      working-directory: /volume/UltimateTrainingModpack
-    - name: I
-      run: ls ..
-      working-directory: /volume/UltimateTrainingModpack
     - name: Build release NRO
       run: cargo skyline build --release
       working-directory: /volume/UltimateTrainingModpack
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v1
+      working-directory: /volume/UltimateTrainingModpack
       with:
         name: plugin
         path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
