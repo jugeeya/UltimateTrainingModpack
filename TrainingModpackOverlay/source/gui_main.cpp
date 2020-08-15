@@ -8,8 +8,8 @@
 static struct TrainingModpackMenu
 {
 	int            HITBOX_VIS      = true;
-	int            DI_STATE        = NONE;
-	int            LEFT_STICK      = NONE;
+	Directions     DI_STATE        = Directions::None;
+	Directions     LEFT_STICK      = Directions::None;
 	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
@@ -404,14 +404,9 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
 
-			ValueListItem* diItem = new ValueListItem("Set DI", di_items, &menu.DI_STATE, "di", di_help);
-			list->addItem(diItem);
-			valueListItems.push_back(diItem);
+			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help));
 
-			ValueListItem* leftStickItem =
-			    new ValueListItem("Left Stick", di_items, &menu.LEFT_STICK, "leftStick", left_stick_help);
-			list->addItem(leftStickItem);
-			valueListItems.push_back(leftStickItem);
+			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Left Stick", left_stick_help));
 
 			ValueListItem* oosOffsetItem = new ValueListItem("OOS Offset", number_list, &menu.OOS_OFFSET, "oos", oos_help);
 			list->addItem(oosOffsetItem);

@@ -8,7 +8,7 @@ use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
 
-static mut ROLL_DIRECTION: Direction = Direction::None;
+static mut ROLL_DIRECTION: Direction = Direction::empty();
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterBase_change_status)]
 pub unsafe fn handle_change_status(
@@ -55,12 +55,12 @@ unsafe fn mod_handle_change_status(
             TechFlags::ROLL_F => {
                 *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
                 *unk = LUA_TRUE;
-                ROLL_DIRECTION = Direction::Left; // = In
+                ROLL_DIRECTION = Direction::IN; // = In
             }
             TechFlags::ROLL_B => {
                 *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
                 *unk = LUA_TRUE;
-                ROLL_DIRECTION = Direction::Right; // = Away
+                ROLL_DIRECTION = Direction::OUT; // = Away
             }
             _ => (),
         }
@@ -148,7 +148,7 @@ pub unsafe fn change_motion(
     let random_roll = get_random_int(2);
 
     if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
-        if ROLL_DIRECTION == Direction::Left {
+        if ROLL_DIRECTION == Direction::IN {
             return Some(hash40("passive_stand_f"));
         } else {
             return Some(hash40("passive_stand_b"));

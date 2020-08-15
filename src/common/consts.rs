@@ -10,56 +10,6 @@ pub enum HitboxVisualization {
     On = 1,
 }
 
-// DI
-/*
- 0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
- 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
-*/
-
-/// DI
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Direction {
-    None = 0,
-    Right = 1,
-    UpRight = 2,
-    Up = 3,
-    UpLeft = 4,
-    Left = 5,
-    DownLeft = 6,
-    Down = 7,
-    DownRight = 8,
-    // lol what goes here jug smh my head
-    Random = 9,
-}
-
-impl From<i32> for Direction {
-    fn from(x: i32) -> Self {
-        match x {
-            0 => Direction::None,
-            1 => Direction::Right,
-            2 => Direction::UpRight,
-            3 => Direction::Up,
-            4 => Direction::UpLeft,
-            5 => Direction::Left,
-            6 => Direction::DownLeft,
-            7 => Direction::Down,
-            8 => Direction::DownRight,
-            9 => Direction::Random,
-            _ => panic!("Invalid direction {}", x),
-        }
-    }
-}
-
-pub static ANGLE_NONE: f64 = -69.0;
-pub fn direction_to_angle(direction: Direction) -> f64 {
-    match direction {
-        Direction::None => ANGLE_NONE,
-        Direction::Random => ANGLE_NONE, // Random Direction should be handled by the calling context
-        _ => (direction as i32 - 1) as f64 * PI / 4.0,
-    }
-}
-
 // bitflag helper function macro
 macro_rules! to_vec_impl {
     ($e:ty) => {
@@ -74,6 +24,10 @@ macro_rules! to_vec_impl {
             return vec;
         }
     }
+}
+
+pub fn random_option<T>(arg: &Vec<T>) -> &T {
+    return &arg[get_random_int(arg.len() as i32) as usize];
 }
 
 macro_rules! get_random_impl {
@@ -92,8 +46,59 @@ macro_rules! get_random_impl {
                 }
             }
         }
+    };
+}
+
+// DI
+/*
+ 0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
+ 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
+*/
+
+// DI / Left stick
+bitflags! {
+    pub struct Direction : u32
+    {
+        const OUT = 0x1;
+        const UP_OUT = 0x2;
+        const UP = 0x4;
+        const UP_IN = 0x8;
+        const IN = 0x10;
+        const DOWN_IN = 0x20;
+        const DOWN = 0x40;
+        const DOWN_OUT = 0x80;
+        const NEUTRAL = 0x100;
     }
 }
+
+impl Direction {
+    pub fn into_angle(&self) -> f64 {
+        let index = self.into_index();
+
+        if index == 0 {
+            return ANGLE_NONE;
+        }
+
+        (index as i32 - 1) as f64 * PI / 4.0
+    }
+    fn into_index(&self) -> i32 {
+        return match *self {
+            Direction::OUT => 1,
+            Direction::UP_OUT => 2,
+            Direction::UP => 3,
+            Direction::UP_IN => 4,
+            Direction::IN => 5,
+            Direction::DOWN_IN => 6,
+            Direction::DOWN => 7,
+            Direction::DOWN_OUT => 8,
+            __ => 0,
+        };
+    }
+    to_vec_impl! {Direction}
+    get_random_impl! {Direction}
+}
+
+pub static ANGLE_NONE: f64 = -69.0;
 
 // Ledge Option
 bitflags! {
@@ -104,10 +109,6 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
     }
-}
-
-pub fn random_option<T>(arg: &Vec<T>) -> &T {
-    return &arg[get_random_int(arg.len() as i32) as usize];
 }
 
 impl LedgeOption {

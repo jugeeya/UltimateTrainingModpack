@@ -22,16 +22,25 @@ TODO)"""";
 */
 
 /* DI */
-#define DI_RANDOM_IN_AWAY 9
-const std::vector<std::string> di_items{"None", "Out", "Up Out", "Up", "Up In", "In", "Down In", "Down", "Down Out", "Random"};
+// clang-format off
+#define ENUM_CLASS_Direction(type,x) \
+    x(type,Out,"Out") \
+    x(type,UpOut,"Up Out") \
+    x(type,Up,"Up") \
+    x(type,UpIn,"Up In") \
+    x(type,In,"In") \
+    x(type,DownIn,"Down In") \
+    x(type,Down,"Down") \
+    x(type,DownOut,"Down Out")\
+    x(type,Nothing,"Neutral")
+
+DEFINE_ENUM_CLASS(Direction);
 const std::string              di_help = R""""(
 Specified Direction
 CPUs DI in the direction specified
 (relative to the player's facing
 position).
-
-Random Direction
-CPUs DI randomly in or away.)"""";
+)"""";
 
 // Left Stick
 const std::string left_stick_help = R""""(
