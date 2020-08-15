@@ -25,9 +25,9 @@ jobs:
     container: jugeeya/cargo-skyline:latest
     
     steps:
-    - uses: actions/checkout@v2
-      with:
-        path: '../volume'
+    - name: clone
+      run: git clone https://github.com/jugeeya/UltimateTrainingModpack
+      working-directory: /volume/UltimateTrainingModpack
     - name: WHERE
       run: env
       working-directory: /volume/UltimateTrainingModpack
