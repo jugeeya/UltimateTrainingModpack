@@ -26,6 +26,18 @@ macro_rules! to_vec_impl {
     }
 }
 
+macro_rules! to_index_impl {
+    ($e:ty) => {
+        pub fn to_index(&self) -> u32 {
+            if self.bits == 0 {
+                return 0;
+            }
+
+            return self.bits.trailing_zeros();
+        }
+    }
+}
+
 pub fn random_option<T>(arg: &Vec<T>) -> &T {
     return &arg[get_random_int(arg.len() as i32) as usize];
 }
@@ -216,6 +228,40 @@ impl Action {
     get_random_impl! {Action}
 }
 
+bitflags! {
+    pub struct Delay : u32 {
+        const D0 = 0x1;
+        const D1 = 0x2;
+        const D2 = 0x4;
+        const D3 = 0x8;
+        const D4 = 0x10;
+        const D5 = 0x20;
+        const D6 = 0x40;
+        const D7 = 0x80;
+        const D8 = 0x100;
+        const D9 = 0x200;
+        const D10 = 0x400;
+        const D11 = 0x800;
+        const D12 = 0x1000;
+        const D13 = 0x2000;
+        const D14 = 0x4000;
+        const D15 = 0x8000;
+        const D16 = 0x10000;
+        const D17 = 0x20000;
+        const D18 = 0x40000;
+        const D19 = 0x80000;
+        const D20  = 0x100000;
+    }
+}
+
+// https://stackoverflow.com/a/757266
+
+impl Delay {
+    to_vec_impl! {Delay}
+    get_random_impl! {Delay}
+    to_index_impl! {Delay}
+}
+
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
@@ -227,11 +273,11 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
-    pub oos_offset: u32,
-    pub reaction_time: u32,
+    pub oos_offset: Delay,
+    pub reaction_time: Delay,
     pub mash_in_neutral: OnOff,
     pub fast_fall: OnOff,
-    pub fast_fall_delay: u32,
+    pub fast_fall_delay: Delay,
     pub falling_aerials: OnOff,
     pub full_hop: OnOff,
 }

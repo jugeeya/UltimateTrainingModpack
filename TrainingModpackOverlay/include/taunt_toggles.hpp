@@ -202,18 +202,6 @@ are saved:
 - Facing direction)"""";
 
 // OOS
-const std::vector<std::string> number_list{
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-};
 const std::string oos_help = R""""(
 Option to delay oos options
 until a certain number of hits
@@ -236,7 +224,12 @@ Force mash options to
 always occur, not just
 out of specific states.)"""";
 
-const std::vector<std::string> number_list_big{
-    "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",  "10", "11", "12", "13", "14",
-    "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-};
+#define ENUM_CLASS_DelayFlag(type,x) \
+	x(type,D0,"0") \
+	x(type,D1,"1") x(type,D2,"2") x(type,D3,"3") x(type,D4,"4") x(type,D5,"5") \
+	x(type,D6,"6") x(type,D7,"7") x(type,D8,"8") x(type,D9,"9") x(type,D10,"10") \
+	x(type,D11,"11") x(type,D12,"12") x(type,D13,"13") x(type,D14,"14") x(type,D15,"15") \
+	x(type,D16,"16") x(type,D17,"17") x(type,D18,"18") x(type,D19,"19") x(type,D20,"20")
+
+// clang-format on
+DEFINE_ENUM_CLASS(DelayFlag);
