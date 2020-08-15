@@ -23,16 +23,23 @@ jobs:
   plugin:
     runs-on: ubuntu-latest
     container: jugeeya/cargo-skyline:latest
+    
     steps:
     - uses: actions/checkout@v2
+      with:
+        path: '../volume'
     - name: WHERE
       run: env
+      working-directory: /volume/UltimateTrainingModpack
     - name: AM
       run: ls && pwd
+      working-directory: /volume/UltimateTrainingModpack
     - name: I
       run: ls ..
+      working-directory: /volume/UltimateTrainingModpack
     - name: Build release NRO
       run: cargo skyline build --release
+      working-directory: /volume/UltimateTrainingModpack
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v1
       with:
