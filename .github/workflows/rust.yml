@@ -25,6 +25,12 @@ jobs:
     container: jugeeya/cargo-skyline:latest
     steps:
     - uses: actions/checkout@v2
+    - name: WHERE
+      run: env
+    - name: AM
+      run: ls && pwd
+    - name: I
+      run: ls ..
     - name: Build release NRO
       run: cargo skyline build --release
     - name: Upload plugin artifact
