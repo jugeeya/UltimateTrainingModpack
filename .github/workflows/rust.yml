@@ -27,7 +27,7 @@ jobs:
     steps:
     - name: clone
       run: git clone https://github.com/jugeeya/UltimateTrainingModpack
-      working-directory: /volume/UltimateTrainingModpack
+      working-directory: /volume/
     - name: WHERE
       run: env
       working-directory: /volume/UltimateTrainingModpack
