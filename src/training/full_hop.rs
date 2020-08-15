@@ -1,10 +1,23 @@
-use crate::common::consts::*;
 use crate::common::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
+// the current full hop status
+static mut FULL_HOP: bool = false;
+
+pub fn should_full_hop() -> bool {
+    unsafe{
+        return FULL_HOP;
+    }
+}
+
+pub fn roll_full_hop() {
+    unsafe {
+        FULL_HOP = MENU.full_hop.get_random().into_bool();
+    }
+}
+
 /**
- * This is needed to have the CPU put up shield
  */
 pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -17,7 +30,6 @@ pub unsafe fn check_button_on(
 }
 
 /**
- * This is needed to prevent dropping shield immediately
  */
 pub unsafe fn check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -50,7 +62,7 @@ unsafe fn should_return_none_in_check_button(
     }
 
     // Nothing to do if not toggled
-    if MENU.full_hop != OnOff::On {
+    if !should_full_hop() {
         return true;
     }
 

@@ -2,12 +2,15 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::character_specific;
 use crate::training::fast_fall;
+use crate::training::full_hop;
 use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
 static mut CURRENT_AERIAL: Action = Action::NAIR;
 static mut QUEUE: Vec<Action> = vec![];
+
+static mut FALLING_AERIAL: bool = false;
 
 pub fn buffer_action(action: Action) {
     unsafe {
@@ -172,6 +175,10 @@ pub fn buffer_menu_mash() -> Action {
     unsafe {
         let action = MENU.mash_state.get_random();
         buffer_action(action);
+
+        full_hop::roll_full_hop();
+        fast_fall::roll_fast_fall();
+        FALLING_AERIAL = MENU.falling_aerials.get_random().into_bool();
 
         action
     }
@@ -371,14 +378,14 @@ unsafe fn get_aerial_flag(
         flag |= *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
         // Delay attack until we are airborne to get a full hop
-        if MENU.full_hop == OnOff::On {
+        if full_hop::should_full_hop() {
             return flag;
         }
     }
 
     let status = *FIGHTER_STATUS_KIND_ATTACK_AIR;
 
-    if MENU.falling_aerials == OnOff::On && !fast_fall::is_falling(module_accessor) {
+    if FALLING_AERIAL && !fast_fall::is_falling(module_accessor) {
         return flag;
     }
 

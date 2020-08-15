@@ -19,10 +19,10 @@ static struct TrainingModpackMenu
 	DelayFlags     OOS_OFFSET      = DelayFlags::None;
 	DelayFlags     REACTION_TIME   = DelayFlags::None;
 	int            MASH_IN_NEUTRAL = false;
-	int            FAST_FALL       = false;
+	BoolFlags      FAST_FALL       = BoolFlags::None;
 	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
-	int            FALLING_AERIALS = false;
-	int            FULL_HOP        = false;
+	BoolFlags      FALLING_AERIALS = BoolFlags::None;
+	BoolFlags      FULL_HOP        = BoolFlags::None;
 } menu;
 
 static int FRAME_ADVANTAGE = 0;
@@ -412,20 +412,13 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.REACTION_TIME, "Reaction Time", reaction_time_help));
 
-			ValueListItem* fastFallItem = new ValueListItem("Fast Fall", on_off, &menu.FAST_FALL, "fast_fall", "");
-			list->addItem(fastFallItem);
-			valueListItems.push_back(fastFallItem);
+			list->addItem(createBitFlagOption(&menu.FAST_FALL, "Fast Fall", ""));
 
 			list->addItem(createBitFlagOption(&menu.FAST_FALL_DELAY, "Fast Fall Delay", "In Frames"));
 
-			ValueListItem* fallingAerialsItem =
-			    new ValueListItem("Falling Aerials", on_off, &menu.FALLING_AERIALS, "falling_aerials", "");
-			list->addItem(fallingAerialsItem);
-			valueListItems.push_back(fallingAerialsItem);
+			list->addItem(createBitFlagOption(&menu.FALLING_AERIALS, "Falling Aerials", ""));
 
-			ValueListItem* fullHopItem = new ValueListItem("Full Hop", on_off, &menu.FULL_HOP, "full_hop", "");
-			list->addItem(fullHopItem);
-			valueListItems.push_back(fullHopItem);
+			list->addItem(createBitFlagOption(&menu.FULL_HOP, "Full Hop", ""));
 
 			ClickableListItem* saveStateItem = new ClickableListItem(
 			    "Save States", save_state_items, nullptr, "saveStates", 0, "Save States", save_states_help);
