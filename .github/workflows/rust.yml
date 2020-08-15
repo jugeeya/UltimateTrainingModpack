@@ -16,7 +16,7 @@ jobs:
       run: make
       working-directory: TrainingModpackOverlay
     - name: Upload overlay artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: overlay
         path: TrainingModpackOverlay/ovlTrainingModpack.ovl
@@ -29,10 +29,10 @@ jobs:
       run: git clone https://github.com/jugeeya/UltimateTrainingModpack
       working-directory: /volume/
     - name: Build release NRO
-      run: cargo skyline build --release && ls /volume/UltimateTrainingModpack/ && ls /volume/UltimateTrainingModpack/target && ls /volume/UltimateTrainingModpack/target/aarch64-skyline-switch && ls /volume/UltimateTrainingModpack/target/aarch64-skyline-switch/release 
+      run: cargo skyline build --release
       working-directory: /volume/UltimateTrainingModpack
     - name: Upload plugin artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: plugin
         path: /volume/UltimateTrainingModpack/target/aarch64-skyline-switch/release/libtraining_modpack.nro
