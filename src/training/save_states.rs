@@ -159,7 +159,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
         {
             StatusModule::change_status_request(
                 module_accessor,
-                *FIGHTER_STATUS_KIND_CLIFF_WAIT,
+                *FIGHTER_STATUS_KIND_WAIT,
                 false,
             );
         } else if *save_state_situation_kind == SITUATION_KIND_AIR
