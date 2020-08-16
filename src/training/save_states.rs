@@ -9,49 +9,36 @@ use smash::phx::{Hash40, Vector3f};
 enum SaveState {
     Save,
     NoAction,
-    CameraMove,
+    KillPlayer,
     PosMove,
 }
 
-// struct SavedState {
-//     x: f32,
-//     y: f32,
-//     percent: f32,
-//     lr: f32,
-//     situation_kind: i32
-// }
+struct SavedState {
+    x: f32,
+    y: f32,
+    percent: f32,
+    lr: f32,
+    situation_kind: i32,
+    state: SaveState
+}
 
-// impl Default for SavedState {
-//     fn default() -> Self {
-//         return SavedState {
-//             x: 0.0,
-//             y: 0.0,
-//             percent: 0.0,
-//             lr: 1.0,
-//             situation_kind: 0
-//         }
-//     }
-// }
+macro_rules! default_save_state {
+    () => {
+        SavedState {
+            x: 0.0,
+            y: 0.0,
+            percent: 0.0,
+            lr: 1.0,
+            situation_kind: 0,
+            state: NoAction
+        }
+    }
+}
 
 use SaveState::*;
 
-static mut SAVE_STATE_PLAYER_STATE: SaveState = NoAction;
-static mut SAVE_STATE_CPU_STATE: SaveState = NoAction;
-
-// static mut SAVE_STATE_PLAYER: SavedState = SavedState::default();
-// static mut SAVE_STATE_CPU: SavedState = SavedState::default();
-
-static mut SAVE_STATE_X_PLAYER: f32 = 0.0;
-static mut SAVE_STATE_Y_PLAYER: f32 = 0.0;
-static mut SAVE_STATE_PERCENT_PLAYER: f32 = 0.0;
-static mut SAVE_STATE_LR_PLAYER: f32 = -1.0;
-static mut SAVE_STATE_SITUATION_KIND_PLAYER: i32 = 0 as i32;
-
-static mut SAVE_STATE_X_CPU: f32 = 0.0;
-static mut SAVE_STATE_Y_CPU: f32 = 0.0;
-static mut SAVE_STATE_PERCENT_CPU: f32 = 0.0;
-static mut SAVE_STATE_LR_CPU: f32 = 1.0;
-static mut SAVE_STATE_SITUATION_KIND_CPU: i32 = 0 as i32;
+static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
+static mut SAVE_STATE_CPU: SavedState = default_save_state!();
 
 pub unsafe fn get_param_int(
     _module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -93,46 +80,38 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
     }
 
     let status = StatusModule::status_kind(module_accessor) as i32;
-    let save_state_x: *mut f32;
-    let save_state_y: *mut f32;
-    let save_state_percent: *mut f32;
-    let save_state_lr: *mut f32;
-    let save_state_situation_kind: *mut i32;
-    let save_state: *mut SaveState;
+    let save_state: &mut SavedState;
     if is_operation_cpu(module_accessor) {
-        save_state_x = &mut SAVE_STATE_X_CPU;
-        save_state_y = &mut SAVE_STATE_Y_CPU;
-        save_state_percent = &mut SAVE_STATE_PERCENT_CPU;
-        save_state_lr = &mut SAVE_STATE_LR_CPU;
-        save_state_situation_kind = &mut SAVE_STATE_SITUATION_KIND_CPU;
-        save_state = &mut SAVE_STATE_CPU_STATE;
+        save_state = &mut SAVE_STATE_CPU;
     } else {
-        save_state_x = &mut SAVE_STATE_X_PLAYER;
-        save_state_y = &mut SAVE_STATE_Y_PLAYER;
-        save_state_percent = &mut SAVE_STATE_PERCENT_PLAYER;
-        save_state_lr = &mut SAVE_STATE_LR_PLAYER;
-        save_state_situation_kind = &mut SAVE_STATE_SITUATION_KIND_PLAYER;
-        save_state = &mut SAVE_STATE_PLAYER_STATE;
+        save_state = &mut SAVE_STATE_PLAYER;
     }
 
     // Grab + Dpad up: reset state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
         && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
     {
-        if *save_state == NoAction {
-            SAVE_STATE_PLAYER_STATE = CameraMove;
-            SAVE_STATE_CPU_STATE = CameraMove;
+        if save_state.state == NoAction {
+            SAVE_STATE_PLAYER.state = KillPlayer;
+            SAVE_STATE_CPU.state = KillPlayer;
         }
         mash::reset();
         return;
     }
 
     // move to camera bounds
-    if *save_state == CameraMove {
+    if save_state.state == KillPlayer {
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            *save_state = PosMove;
+            save_state.state = PosMove;
         } else {
             if status != FIGHTER_STATUS_KIND_DEAD && status != FIGHTER_STATUS_KIND_STANDBY {
+                // Try moving off-screen so we don't see effects.
+                let pos = Vector3f {
+                    x: -100.0,
+                    y: -60.0,
+                    z: 0.0,
+                };
+                PostureModule::set_pos(module_accessor, &pos);
                 StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
             }
         }
@@ -141,24 +120,18 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
     }
 
     // move to correct pos
-    if *save_state == PosMove {
+    if save_state.state == PosMove {
         KineticModule::clear_speed_all(module_accessor);
 
         let pos = Vector3f {
-            x: *save_state_x,
-            y: *save_state_y,
+            x: save_state.x,
+            y: save_state.y,
             z: 0.0,
         };
         PostureModule::set_pos(module_accessor, &pos);
-        PostureModule::set_lr(module_accessor, *save_state_lr);
-        DamageModule::heal(
-            module_accessor,
-            -1.0 * DamageModule::damage(module_accessor, 0),
-            0,
-        );
-        DamageModule::add_damage(module_accessor, *save_state_percent, 0);
+        PostureModule::set_lr(module_accessor, save_state.lr);
 
-        if *save_state_situation_kind == SITUATION_KIND_GROUND {
+        if save_state.situation_kind == SITUATION_KIND_GROUND {
             if status != FIGHTER_STATUS_KIND_WAIT {
                 StatusModule::change_status_request(
                     module_accessor,
@@ -166,15 +139,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
                     false,
                 );
             } else {
-                *save_state = NoAction;
+                save_state.state = NoAction;
             }
-        } else if *save_state_situation_kind == SITUATION_KIND_AIR {
+        } else if save_state.situation_kind == SITUATION_KIND_AIR {
             if status != FIGHTER_STATUS_KIND_FALL {
                 StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_FALL, false);
             } else {
-                *save_state = NoAction;
+                save_state.state = NoAction;
             }
-        } else if *save_state_situation_kind == SITUATION_KIND_CLIFF {
+        } else if save_state.situation_kind == SITUATION_KIND_CLIFF {
             if status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE && status != FIGHTER_STATUS_KIND_CLIFF_CATCH {
                 StatusModule::change_status_request(
                     module_accessor,
@@ -182,10 +155,20 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
                     false,
                 );
             } else {
-                *save_state = NoAction;
+                save_state.state = NoAction;
             }
         } else {
-            *save_state = NoAction;
+            save_state.state = NoAction;
+        }
+
+        // if we're done moving, reset percent
+        if save_state.state == NoAction {
+            DamageModule::heal(
+                module_accessor,
+                -1.0 * DamageModule::damage(module_accessor, 0),
+                0,
+            );
+            DamageModule::add_damage(module_accessor, save_state.percent, 0);
         }
 
         return;
@@ -195,18 +178,18 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
         && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
     {
-        SAVE_STATE_PLAYER_STATE = Save;
-        SAVE_STATE_CPU_STATE = Save;
+        SAVE_STATE_PLAYER.state = Save;
+        SAVE_STATE_CPU.state = Save;
     }
 
-    if *save_state == Save {
-        *save_state = NoAction;
+    if save_state.state == Save {
+        save_state.state = NoAction;
 
-        *save_state_x = PostureModule::pos_x(module_accessor);
-        *save_state_y = PostureModule::pos_y(module_accessor);
-        *save_state_lr = PostureModule::lr(module_accessor);
-        *save_state_percent = DamageModule::damage(module_accessor, 0);
-        *save_state_situation_kind = StatusModule::situation_kind(module_accessor);
+        save_state.x = PostureModule::pos_x(module_accessor);
+        save_state.y = PostureModule::pos_y(module_accessor);
+        save_state.lr = PostureModule::lr(module_accessor);
+        save_state.percent = DamageModule::damage(module_accessor, 0);
+        save_state.situation_kind = StatusModule::situation_kind(module_accessor);
 
         let zeros = Vector3f {
             x: 0.0,
