@@ -11,7 +11,11 @@ use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
 // How many hits to hold shield until picking an Out Of Shield option
-static mut MULTI_HIT_OFFSET: u32 = unsafe { MENU.oos_offset };
+static mut MULTI_HIT_OFFSET: u32 = 0;
+
+// The current set delay
+static mut SHIELD_DELAY: u32 = 0;
+
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
@@ -37,12 +41,14 @@ unsafe fn should_pause_shield_decay() -> bool {
     !SHIELD_DECAY
 }
 
-unsafe fn reset_oos_offset() {
-    /*
-     * Need to offset by 1, since we decrease as soon as shield gets hit
-     * but only check later if we can OOS
-     */
-    MULTI_HIT_OFFSET = MENU.oos_offset + 1;
+fn reset_oos_offset() {
+    unsafe {
+        /*
+         * Need to offset by 1, since we decrease as soon as shield gets hit
+         * but only check later if we can OOS
+         */
+        MULTI_HIT_OFFSET = MENU.oos_offset.get_random().to_index() + 1;
+    }
 }
 
 unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -57,6 +63,9 @@ unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccesso
     if WAS_IN_SHIELDSTUN {
         return;
     }
+
+    // Roll shield delay
+    SHIELD_DELAY = MENU.reaction_time.get_random().to_index();
 
     // Decrease offset once if needed
     if MULTI_HIT_OFFSET > 0 {
@@ -178,7 +187,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if frame_counter::should_delay(MENU.reaction_time, REACTION_INDEX) {
+    if frame_counter::should_delay(SHIELD_DELAY, REACTION_INDEX) {
         return;
     }
 
@@ -305,7 +314,7 @@ pub fn suspend_shield(action: Action) {
 }
 
 fn need_suspend_shield(action: Action) -> bool {
-    if action == Action::empty(){
+    if action == Action::empty() {
         return false;
     }
 

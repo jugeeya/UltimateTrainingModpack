@@ -8,21 +8,21 @@
 static struct TrainingModpackMenu
 {
 	int            HITBOX_VIS      = true;
-	int            DI_STATE        = NONE;
-	int            LEFT_STICK      = NONE;
+	Directions     DI_STATE        = Directions::None;
+	Directions     LEFT_STICK      = Directions::None;
 	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
 	TechFlags      TECH_STATE      = TechFlags::All;
 	int            SHIELD_STATE    = NONE;
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
-	int            OOS_OFFSET      = 0;
-	int            REACTION_TIME   = 0;
+	DelayFlags     OOS_OFFSET      = DelayFlags::None;
+	DelayFlags     REACTION_TIME   = DelayFlags::None;
 	int            MASH_IN_NEUTRAL = false;
-	int            FAST_FALL       = false;
-	int            FAST_FALL_DELAY = 0;
-	int            FALLING_AERIALS = false;
-	int            FULL_HOP        = false;
+	BoolFlags      FAST_FALL       = BoolFlags::None;
+	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
+	BoolFlags      FALLING_AERIALS = BoolFlags::None;
+	BoolFlags      FULL_HOP        = BoolFlags::None;
 } menu;
 
 static int FRAME_ADVANTAGE = 0;
@@ -404,41 +404,21 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
 
-			ValueListItem* diItem = new ValueListItem("Set DI", di_items, &menu.DI_STATE, "di", di_help);
-			list->addItem(diItem);
-			valueListItems.push_back(diItem);
+			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help));
 
-			ValueListItem* leftStickItem =
-			    new ValueListItem("Left Stick", di_items, &menu.LEFT_STICK, "leftStick", left_stick_help);
-			list->addItem(leftStickItem);
-			valueListItems.push_back(leftStickItem);
+			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Left Stick", left_stick_help));
 
-			ValueListItem* oosOffsetItem = new ValueListItem("OOS Offset", number_list, &menu.OOS_OFFSET, "oos", oos_help);
-			list->addItem(oosOffsetItem);
-			valueListItems.push_back(oosOffsetItem);
+			list->addItem(createBitFlagOption(&menu.OOS_OFFSET, "OOS Offset", oos_help));
 
-			ValueListItem* reactionTime =
-			    new ValueListItem("Reaction Time", number_list_big, &menu.REACTION_TIME, "reaction_time", reaction_time_help);
-			list->addItem(reactionTime);
-			valueListItems.push_back(reactionTime);
+			list->addItem(createBitFlagOption(&menu.REACTION_TIME, "Reaction Time", reaction_time_help));
 
-			ValueListItem* fastFallItem = new ValueListItem("Fast Fall", on_off, &menu.FAST_FALL, "fast_fall", "");
-			list->addItem(fastFallItem);
-			valueListItems.push_back(fastFallItem);
+			list->addItem(createBitFlagOption(&menu.FAST_FALL, "Fast Fall", ""));
 
-			ValueListItem* fastFallDelay =
-			    new ValueListItem("Fast Fall Delay", number_list_big, &menu.FAST_FALL_DELAY, "fast_fall", "In Frames");
-			list->addItem(fastFallDelay);
-			valueListItems.push_back(fastFallDelay);
+			list->addItem(createBitFlagOption(&menu.FAST_FALL_DELAY, "Fast Fall Delay", "In Frames"));
 
-			ValueListItem* fallingAerialsItem =
-			    new ValueListItem("Falling Aerials", on_off, &menu.FALLING_AERIALS, "falling_aerials", "");
-			list->addItem(fallingAerialsItem);
-			valueListItems.push_back(fallingAerialsItem);
+			list->addItem(createBitFlagOption(&menu.FALLING_AERIALS, "Falling Aerials", ""));
 
-			ValueListItem* fullHopItem = new ValueListItem("Full Hop", on_off, &menu.FULL_HOP, "full_hop", "");
-			list->addItem(fullHopItem);
-			valueListItems.push_back(fullHopItem);
+			list->addItem(createBitFlagOption(&menu.FULL_HOP, "Full Hop", ""));
 
 			ClickableListItem* saveStateItem = new ClickableListItem(
 			    "Save States", save_state_items, nullptr, "saveStates", 0, "Save States", save_states_help);

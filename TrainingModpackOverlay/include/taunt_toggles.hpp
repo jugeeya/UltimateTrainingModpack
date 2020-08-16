@@ -22,16 +22,25 @@ TODO)"""";
 */
 
 /* DI */
-#define DI_RANDOM_IN_AWAY 9
-const std::vector<std::string> di_items{"None", "Out", "Up Out", "Up", "Up In", "In", "Down In", "Down", "Down Out", "Random"};
+// clang-format off
+#define ENUM_CLASS_Direction(type,x) \
+    x(type,Out,"Out") \
+    x(type,UpOut,"Up Out") \
+    x(type,Up,"Up") \
+    x(type,UpIn,"Up In") \
+    x(type,In,"In") \
+    x(type,DownIn,"Down In") \
+    x(type,Down,"Down") \
+    x(type,DownOut,"Down Out")\
+    x(type,Nothing,"Neutral")
+
+DEFINE_ENUM_CLASS(Direction);
 const std::string              di_help = R""""(
 Specified Direction
 CPUs DI in the direction specified
 (relative to the player's facing
 position).
-
-Random Direction
-CPUs DI randomly in or away.)"""";
+)"""";
 
 // Left Stick
 const std::string left_stick_help = R""""(
@@ -44,41 +53,6 @@ position).
 Currently only used for
 - air dodge
 
-)"""";
-
-// Attack Option
-#define MASH_NAIR 0
-#define MASH_FAIR 1
-#define MASH_BAIR 2
-#define MASH_UPAIR 3
-#define MASH_DAIR 4
-#define MASH_NEUTRAL_B 5
-#define MASH_SIDE_B 6
-#define MASH_UP_B 7
-#define MASH_DOWN_B 8
-#define MASH_U_SMASH 9
-#define MASH_GRAB 10
-const std::vector<std::string> attack_items{"Neutral Air",
-                                            "Forward Air",
-                                            "Back Air",
-                                            "Up Air",
-                                            "Down Air",
-                                            "Neutral B",
-                                            "Side B",
-                                            "Up B",
-                                            "Down B",
-                                            "Up Smash",
-                                            "F Smash",
-                                            "D Smash",
-                                            "Grab",
-                                            "Jab",
-                                            "Ftilt",
-                                            "Utilt",
-                                            "Dtilt",
-                                            "Dash Attack"};
-const std::string              attack_help = R""""(
-Only active when Mash Toggle is
-set to Attack.
 )"""";
 
 // Ledge Option
@@ -148,15 +122,7 @@ Specific options include:
 )"""";
 
 // Mash States
-#define MASH_AIRDODGE 1
-#define MASH_JUMP 2
-#define MASH_ATTACK 3
-#define MASH_SPOTDODGE 4
-#define MASH_ROLL_F 5
-#define MASH_ROLL_B 6
-#define MASH_RANDOM 7
-const std::vector<std::string> mash_items{"None", "Airdodge", "Jump", "Attack", "Spotdodge", "Roll F", "Roll B", "Random"};
-const std::string              mash_help = R""""(
+const std::string mash_help = R""""(
 Use this toggle along with the Shield
 Options toggle to practice moves on
 shield.
@@ -169,17 +135,7 @@ Airdodge
 CPUs will also shield quickly if they
 are hit and remain grounded.
 
-Jump
-- Hitstun, shieldstun
-
-Attack
-- Hitstun, shieldstun, landing.
-
-Spotdodge
-- Hitstun, shieldstun, landing.
-
-Random
-- Hitstun, shieldstun, landing.)"""";
+)"""";
 
 // Action items (Follow Up only atm)
 
@@ -195,7 +151,7 @@ Random
 // clang-format on
 DEFINE_ENUM_CLASS(ActionFlag);
 
-const std::string              follow_up_help = R""""(
+const std::string follow_up_help = R""""(
 Action to buffer
 after the first mash option
 )"""";
@@ -246,18 +202,6 @@ are saved:
 - Facing direction)"""";
 
 // OOS
-const std::vector<std::string> number_list{
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-};
 const std::string oos_help = R""""(
 Option to delay oos options
 until a certain number of hits
@@ -280,7 +224,18 @@ Force mash options to
 always occur, not just
 out of specific states.)"""";
 
-const std::vector<std::string> number_list_big{
-    "0",  "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9",  "10", "11", "12", "13", "14",
-    "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-};
+// clang-format off
+#define ENUM_CLASS_DelayFlag(type,x) \
+	x(type,D0,"0") \
+	x(type,D1,"1") x(type,D2,"2") x(type,D3,"3") x(type,D4,"4") x(type,D5,"5") \
+	x(type,D6,"6") x(type,D7,"7") x(type,D8,"8") x(type,D9,"9") x(type,D10,"10") \
+	x(type,D11,"11") x(type,D12,"12") x(type,D13,"13") x(type,D14,"14") x(type,D15,"15") \
+	x(type,D16,"16") x(type,D17,"17") x(type,D18,"18") x(type,D19,"19") x(type,D20,"20")
+// clang-format on
+
+DEFINE_ENUM_CLASS(DelayFlag);
+
+#define ENUM_CLASS_BoolFlag(type,x) \
+	x(type,True,"True") x(type,False,"False")
+
+DEFINE_ENUM_CLASS(BoolFlag);

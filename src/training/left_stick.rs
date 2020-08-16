@@ -4,7 +4,7 @@ use core::f64::consts::PI;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-static mut STICK_DIRECTION: Direction = Direction::None;
+static mut STICK_DIRECTION: Direction = Direction::empty();
 
 pub unsafe fn mod_get_stick_x(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -44,8 +44,8 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f6
         return ANGLE_NONE;
     }
 
-    STICK_DIRECTION = MENU.left_stick;
-    let mut angle: f64 = pick_angle(STICK_DIRECTION);
+    STICK_DIRECTION = MENU.left_stick.get_random();
+    let mut angle: f64 = STICK_DIRECTION.into_angle();
 
     if angle == ANGLE_NONE {
         return ANGLE_NONE;
@@ -74,18 +74,4 @@ fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
     }
 
     return false;
-}
-
-fn pick_angle(direction: Direction) -> f64 {
-    if direction == Direction::Random {
-        let rand_direction = get_random_direction();
-        return direction_to_angle(rand_direction);
-    }
-
-    direction_to_angle(direction)
-}
-
-fn get_random_direction() -> Direction {
-    let rand = get_random_int(8);
-    Direction::from(rand)
 }

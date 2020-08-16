@@ -1,7 +1,7 @@
 use crate::common::consts::*;
 use crate::common::*;
 use core::f64::consts::PI;
-use smash::app::{lua_bind::*, sv_system};
+use smash::app::{self, lua_bind::*, sv_system};
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
@@ -20,7 +20,7 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         return;
     }
 
-    if MENU.di_state == Direction::None {
+    if MENU.di_state == Direction::empty() {
         return;
     }
 
@@ -30,9 +30,10 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     }
 
     // Either left, right, or none
-    let mut angle = get_angle(MENU.di_state);
+    let mut angle = MENU.di_state.get_random().into_angle();
     // Nothing to do on no DI
     if angle == ANGLE_NONE {
+        set_x_y(module_accessor, 0.0, 0.0);
         return;
     }
 
@@ -41,35 +42,20 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         angle = PI - angle;
     }
 
-    WorkModule::set_float(
-        module_accessor,
-        angle.cos() as f32,
-        *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X,
-    );
-    WorkModule::set_float(
-        module_accessor,
-        angle.sin() as f32,
-        *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y,
-    );
+    set_x_y(module_accessor, angle.cos() as f32, angle.sin() as f32);
 }
 
-unsafe fn get_angle(direction: Direction) -> f64 {
-    if direction == Direction::Random {
-        let rand_direction = get_random_direction();
-        return direction_to_angle(rand_direction);
-    }
-
-    direction_to_angle(direction)
-}
-
-unsafe fn get_random_direction() -> Direction {
-    // Choose Left/Right/None
-    let rand = get_random_int(3);
-    if rand == 0 {
-        Direction::Left
-    } else if rand == 1 {
-        Direction::Right
-    } else {
-        Direction::None
+fn set_x_y(module_accessor: &mut app::BattleObjectModuleAccessor, x: f32, y: f32) {
+    unsafe {
+        WorkModule::set_float(
+            module_accessor,
+            x,
+            *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X,
+        );
+        WorkModule::set_float(
+            module_accessor,
+            y,
+            *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y,
+        );
     }
 }

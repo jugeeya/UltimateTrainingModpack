@@ -10,56 +10,6 @@ pub enum HitboxVisualization {
     On = 1,
 }
 
-// DI
-/*
- 0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
- 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
-*/
-
-/// DI
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Direction {
-    None = 0,
-    Right = 1,
-    UpRight = 2,
-    Up = 3,
-    UpLeft = 4,
-    Left = 5,
-    DownLeft = 6,
-    Down = 7,
-    DownRight = 8,
-    // lol what goes here jug smh my head
-    Random = 9,
-}
-
-impl From<i32> for Direction {
-    fn from(x: i32) -> Self {
-        match x {
-            0 => Direction::None,
-            1 => Direction::Right,
-            2 => Direction::UpRight,
-            3 => Direction::Up,
-            4 => Direction::UpLeft,
-            5 => Direction::Left,
-            6 => Direction::DownLeft,
-            7 => Direction::Down,
-            8 => Direction::DownRight,
-            9 => Direction::Random,
-            _ => panic!("Invalid direction {}", x),
-        }
-    }
-}
-
-pub static ANGLE_NONE: f64 = -69.0;
-pub fn direction_to_angle(direction: Direction) -> f64 {
-    match direction {
-        Direction::None => ANGLE_NONE,
-        Direction::Random => ANGLE_NONE, // Random Direction should be handled by the calling context
-        _ => (direction as i32 - 1) as f64 * PI / 4.0,
-    }
-}
-
 // bitflag helper function macro
 macro_rules! to_vec_impl {
     ($e:ty) => {
@@ -74,6 +24,22 @@ macro_rules! to_vec_impl {
             return vec;
         }
     }
+}
+
+macro_rules! to_index_impl {
+    ($e:ty) => {
+        pub fn to_index(&self) -> u32 {
+            if self.bits == 0 {
+                return 0;
+            }
+
+            return self.bits.trailing_zeros();
+        }
+    }
+}
+
+pub fn random_option<T>(arg: &Vec<T>) -> &T {
+    return &arg[get_random_int(arg.len() as i32) as usize];
 }
 
 macro_rules! get_random_impl {
@@ -92,8 +58,59 @@ macro_rules! get_random_impl {
                 }
             }
         }
+    };
+}
+
+// DI
+/*
+ 0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
+ 0, pi/4,     pi/2,     3pi/4,    pi,       5pi/4,      3pi/2,     7pi/4
+*/
+
+// DI / Left stick
+bitflags! {
+    pub struct Direction : u32
+    {
+        const OUT = 0x1;
+        const UP_OUT = 0x2;
+        const UP = 0x4;
+        const UP_IN = 0x8;
+        const IN = 0x10;
+        const DOWN_IN = 0x20;
+        const DOWN = 0x40;
+        const DOWN_OUT = 0x80;
+        const NEUTRAL = 0x100;
     }
 }
+
+impl Direction {
+    pub fn into_angle(&self) -> f64 {
+        let index = self.into_index();
+
+        if index == 0 {
+            return ANGLE_NONE;
+        }
+
+        (index as i32 - 1) as f64 * PI / 4.0
+    }
+    fn into_index(&self) -> i32 {
+        return match *self {
+            Direction::OUT => 1,
+            Direction::UP_OUT => 2,
+            Direction::UP => 3,
+            Direction::UP_IN => 4,
+            Direction::IN => 5,
+            Direction::DOWN_IN => 6,
+            Direction::DOWN => 7,
+            Direction::DOWN_OUT => 8,
+            __ => 0,
+        };
+    }
+    to_vec_impl! {Direction}
+    get_random_impl! {Direction}
+}
+
+pub static ANGLE_NONE: f64 = -69.0;
 
 // Ledge Option
 bitflags! {
@@ -104,10 +121,6 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
     }
-}
-
-pub fn random_option<T>(arg: &Vec<T>) -> &T {
-    return &arg[get_random_int(arg.len() as i32) as usize];
 }
 
 impl LedgeOption {
@@ -215,6 +228,57 @@ impl Action {
     get_random_impl! {Action}
 }
 
+bitflags! {
+    pub struct Delay : u32 {
+        const D0 = 0x1;
+        const D1 = 0x2;
+        const D2 = 0x4;
+        const D3 = 0x8;
+        const D4 = 0x10;
+        const D5 = 0x20;
+        const D6 = 0x40;
+        const D7 = 0x80;
+        const D8 = 0x100;
+        const D9 = 0x200;
+        const D10 = 0x400;
+        const D11 = 0x800;
+        const D12 = 0x1000;
+        const D13 = 0x2000;
+        const D14 = 0x4000;
+        const D15 = 0x8000;
+        const D16 = 0x10000;
+        const D17 = 0x20000;
+        const D18 = 0x40000;
+        const D19 = 0x80000;
+        const D20  = 0x100000;
+    }
+}
+
+impl Delay {
+    to_vec_impl! {Delay}
+    get_random_impl! {Delay}
+    to_index_impl! {Delay}
+}
+
+bitflags! {
+    pub struct BoolFlag : u32 {
+        const TRUE = 0x1;
+        const FALSE = 0x2;
+    }
+}
+
+impl BoolFlag {
+    to_vec_impl! {BoolFlag}
+    get_random_impl! {BoolFlag}
+
+    pub fn into_bool(&self) -> bool {
+        return match *self {
+            BoolFlag::TRUE => true,
+            _ => false,
+        }
+    }
+}
+
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
@@ -226,13 +290,13 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
-    pub oos_offset: u32,
-    pub reaction_time: u32,
+    pub oos_offset: Delay,
+    pub reaction_time: Delay,
     pub mash_in_neutral: OnOff,
-    pub fast_fall: OnOff,
-    pub fast_fall_delay: u32,
-    pub falling_aerials: OnOff,
-    pub full_hop: OnOff,
+    pub fast_fall: BoolFlag,
+    pub fast_fall_delay: Delay,
+    pub falling_aerials: BoolFlag,
+    pub full_hop: BoolFlag,
 }
 
 // Fighter Ids
