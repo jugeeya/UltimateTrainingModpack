@@ -1,4 +1,3 @@
-use crate::common::consts::OnOff;
 use crate::common::*;
 use crate::training::frame_counter;
 use smash::app::{self, lua_bind::*};
@@ -9,6 +8,20 @@ static mut FRAME_COUNTER: usize = 0;
 
 // The current fastfall delay
 static mut DELAY: u32 = 0;
+
+static mut FAST_FALL: bool = false;
+
+fn should_fast_fall() -> bool {
+    unsafe{
+        return FAST_FALL;
+    }
+}
+
+pub fn roll_fast_fall() {
+    unsafe {
+        FAST_FALL = MENU.fast_fall.get_random().into_bool();
+    }
+}
 
 pub fn init() {
     unsafe {
@@ -29,7 +42,7 @@ pub unsafe fn get_command_flag_cat(
         return;
     }
 
-    if MENU.fast_fall != OnOff::On {
+    if !should_fast_fall() {
         return;
     }
 

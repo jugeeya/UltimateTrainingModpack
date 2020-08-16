@@ -18,10 +18,10 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     oos_offset: Delay::empty(),
     reaction_time: Delay::empty(),
     mash_in_neutral: OnOff::Off,
-    fast_fall: OnOff::Off,
+    fast_fall: BoolFlag::empty(),
     fast_fall_delay: Delay::empty(),
-    falling_aerials: OnOff::Off,
-    full_hop: OnOff::Off,
+    falling_aerials: BoolFlag::empty(),
+    full_hop: BoolFlag::empty(),
 };
 
 pub static mut MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };

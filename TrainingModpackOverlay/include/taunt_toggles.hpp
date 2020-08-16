@@ -122,7 +122,7 @@ Specific options include:
 )"""";
 
 // Mash States
-const std::string              mash_help = R""""(
+const std::string mash_help = R""""(
 Use this toggle along with the Shield
 Options toggle to practice moves on
 shield.
@@ -151,7 +151,7 @@ are hit and remain grounded.
 // clang-format on
 DEFINE_ENUM_CLASS(ActionFlag);
 
-const std::string              follow_up_help = R""""(
+const std::string follow_up_help = R""""(
 Action to buffer
 after the first mash option
 )"""";
@@ -224,12 +224,18 @@ Force mash options to
 always occur, not just
 out of specific states.)"""";
 
+// clang-format off
 #define ENUM_CLASS_DelayFlag(type,x) \
 	x(type,D0,"0") \
 	x(type,D1,"1") x(type,D2,"2") x(type,D3,"3") x(type,D4,"4") x(type,D5,"5") \
 	x(type,D6,"6") x(type,D7,"7") x(type,D8,"8") x(type,D9,"9") x(type,D10,"10") \
 	x(type,D11,"11") x(type,D12,"12") x(type,D13,"13") x(type,D14,"14") x(type,D15,"15") \
 	x(type,D16,"16") x(type,D17,"17") x(type,D18,"18") x(type,D19,"19") x(type,D20,"20")
-
 // clang-format on
+
 DEFINE_ENUM_CLASS(DelayFlag);
+
+#define ENUM_CLASS_BoolFlag(type,x) \
+	x(type,True,"True") x(type,False,"False")
+
+DEFINE_ENUM_CLASS(BoolFlag);

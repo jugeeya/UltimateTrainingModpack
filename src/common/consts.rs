@@ -254,12 +254,29 @@ bitflags! {
     }
 }
 
-// https://stackoverflow.com/a/757266
-
 impl Delay {
     to_vec_impl! {Delay}
     get_random_impl! {Delay}
     to_index_impl! {Delay}
+}
+
+bitflags! {
+    pub struct BoolFlag : u32 {
+        const TRUE = 0x1;
+        const FALSE = 0x2;
+    }
+}
+
+impl BoolFlag {
+    to_vec_impl! {BoolFlag}
+    get_random_impl! {BoolFlag}
+
+    pub fn into_bool(&self) -> bool {
+        return match *self {
+            BoolFlag::TRUE => true,
+            _ => false,
+        }
+    }
 }
 
 #[repr(C)]
@@ -276,10 +293,10 @@ pub struct TrainingModpackMenu {
     pub oos_offset: Delay,
     pub reaction_time: Delay,
     pub mash_in_neutral: OnOff,
-    pub fast_fall: OnOff,
+    pub fast_fall: BoolFlag,
     pub fast_fall_delay: Delay,
-    pub falling_aerials: OnOff,
-    pub full_hop: OnOff,
+    pub falling_aerials: BoolFlag,
+    pub full_hop: BoolFlag,
 }
 
 // Fighter Ids
