@@ -13,10 +13,33 @@ enum SaveState {
     PosMove,
 }
 
+// struct SavedState {
+//     x: f32,
+//     y: f32,
+//     percent: f32,
+//     lr: f32,
+//     situation_kind: i32
+// }
+
+// impl Default for SavedState {
+//     fn default() -> Self {
+//         return SavedState {
+//             x: 0.0,
+//             y: 0.0,
+//             percent: 0.0,
+//             lr: 1.0,
+//             situation_kind: 0
+//         }
+//     }
+// }
+
 use SaveState::*;
 
 static mut SAVE_STATE_PLAYER_STATE: SaveState = NoAction;
 static mut SAVE_STATE_CPU_STATE: SaveState = NoAction;
+
+// static mut SAVE_STATE_PLAYER: SavedState = SavedState::default();
+// static mut SAVE_STATE_CPU: SavedState = SavedState::default();
 
 static mut SAVE_STATE_X_PLAYER: f32 = 0.0;
 static mut SAVE_STATE_Y_PLAYER: f32 = 0.0;
@@ -106,31 +129,19 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
 
     // move to camera bounds
     if *save_state == CameraMove {
-        *save_state = PosMove;
+        if status == FIGHTER_STATUS_KIND_REBIRTH {
+            *save_state = PosMove;
+        } else {
+            if status != FIGHTER_STATUS_KIND_DEAD && status != FIGHTER_STATUS_KIND_STANDBY {
+                StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
+            }
+        }
 
-        let left_right = (PostureModule::pos_x(module_accessor) > 0.0) as i32 as f32
-            - (PostureModule::pos_x(module_accessor) < 0.0) as i32 as f32;
-        let y_pos = 20.0;
-
-        let pos = Vector3f {
-            x: left_right * 50.0,
-            y: y_pos,
-            z: 0.0,
-        };
-        PostureModule::set_pos(module_accessor, &pos);
-
-        StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         return;
     }
 
     // move to correct pos
     if *save_state == PosMove {
-        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-        FighterManager::reset_fighter(mgr, false);
-        if StatusModule::prev_status_kind(module_accessor, 0) != FIGHTER_STATUS_KIND_REBIRTH {
-            return;
-        }
-
         KineticModule::clear_speed_all(module_accessor);
 
         let pos = Vector3f {
@@ -147,36 +158,36 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
         );
         DamageModule::add_damage(module_accessor, *save_state_percent, 0);
 
-        StatusModule::set_situation_kind(
-            module_accessor,
-            app::SituationKind {
-                situation_kind: *save_state_situation_kind,
-            },
-            false,
-        );
-
-        if *save_state_situation_kind == SITUATION_KIND_GROUND && status != FIGHTER_STATUS_KIND_WAIT
-        {
-            StatusModule::change_status_request(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_CLIFF_WAIT,
-                false,
-            );
-        } else if *save_state_situation_kind == SITUATION_KIND_AIR
-            && status != FIGHTER_STATUS_KIND_FALL
-        {
-            StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_FALL, false);
-        } else if *save_state_situation_kind == SITUATION_KIND_CLIFF
-            && status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
-            && status != FIGHTER_STATUS_KIND_CLIFF_CATCH
-        {
-            StatusModule::change_status_request(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE,
-                false,
-            );
+        if *save_state_situation_kind == SITUATION_KIND_GROUND {
+            if status != FIGHTER_STATUS_KIND_WAIT {
+                StatusModule::change_status_request(
+                    module_accessor,
+                    *FIGHTER_STATUS_KIND_WAIT,
+                    false,
+                );
+            } else {
+                *save_state = NoAction;
+            }
+        } else if *save_state_situation_kind == SITUATION_KIND_AIR {
+            if status != FIGHTER_STATUS_KIND_FALL {
+                StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_FALL, false);
+            } else {
+                *save_state = NoAction;
+            }
+        } else if *save_state_situation_kind == SITUATION_KIND_CLIFF {
+            if status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE && status != FIGHTER_STATUS_KIND_CLIFF_CATCH {
+                StatusModule::change_status_request(
+                    module_accessor,
+                    *FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE,
+                    false,
+                );
+            } else {
+                *save_state = NoAction;
+            }
+        } else {
+            *save_state = NoAction;
         }
-        *save_state = NoAction;
+
         return;
     }
 
