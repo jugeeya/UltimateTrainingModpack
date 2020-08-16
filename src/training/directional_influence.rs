@@ -1,7 +1,7 @@
 use crate::common::consts::*;
 use crate::common::*;
 use core::f64::consts::PI;
-use smash::app::{lua_bind::*, sv_system};
+use smash::app::{self, lua_bind::*, sv_system};
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
@@ -33,6 +33,7 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     let mut angle = MENU.di_state.get_random().into_angle();
     // Nothing to do on no DI
     if angle == ANGLE_NONE {
+        set_x_y(module_accessor, 0.0, 0.0);
         return;
     }
 
@@ -41,15 +42,20 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         angle = PI - angle;
     }
 
-    WorkModule::set_float(
-        module_accessor,
-        angle.cos() as f32,
-        *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X,
-    );
-    WorkModule::set_float(
-        module_accessor,
-        angle.sin() as f32,
-        *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y,
-    );
+    set_x_y(module_accessor, angle.cos() as f32, angle.sin() as f32);
 }
 
+fn set_x_y(module_accessor: &mut app::BattleObjectModuleAccessor, x: f32, y: f32) {
+    unsafe {
+        WorkModule::set_float(
+            module_accessor,
+            x,
+            *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_X,
+        );
+        WorkModule::set_float(
+            module_accessor,
+            y,
+            *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y,
+        );
+    }
+}
