@@ -283,6 +283,7 @@ impl BoolFlag {
 pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
     pub di_state: Direction,
+    pub sdi_state: Direction,
     pub left_stick: Direction, // Currently only used for air dodge direction
     pub mash_state: Action,
     pub follow_up: Action,

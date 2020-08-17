@@ -9,6 +9,7 @@ static struct TrainingModpackMenu
 {
 	int            HITBOX_VIS      = true;
 	Directions     DI_STATE        = Directions::None;
+	Directions     SDI_STATE       = Directions::None;
 	Directions     LEFT_STICK      = Directions::None;
 	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
@@ -405,6 +406,8 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
 
 			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help));
+
+			list->addItem(createBitFlagOption(&menu.SDI_STATE, "Set SDI", ""));
 
 			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Left Stick", left_stick_help));
 
