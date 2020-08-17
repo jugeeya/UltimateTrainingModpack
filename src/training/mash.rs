@@ -3,8 +3,8 @@ use crate::common::*;
 use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::full_hop;
-use crate::training::shield;
 use crate::training::sdi;
+use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
@@ -52,12 +52,20 @@ pub fn get_current_buffer() -> Action {
     }
 }
 
-pub fn reset() {
+fn reset() {
     unsafe {
         QUEUE.pop();
     }
 
     shield::suspend_shield(get_current_buffer());
+}
+
+pub fn full_reset(){
+    unsafe{
+        while QUEUE.len() > 0 {
+            reset();
+        }
+    }
 }
 
 pub fn set_aerial(attack: Action) {
@@ -113,7 +121,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
          and to reset when using the training mode reset
         */
         if should_reset(module_accessor) {
-            reset();
+            full_reset();
         }
 
         return;
@@ -137,16 +145,8 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
         prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     }
 
-    // Don't reset after teching
-    if prev_status == *FIGHTER_STATUS_KIND_DOWN {
-        return false;
-    }
-
-    if prev_status == *FIGHTER_STATUS_KIND_PASSIVE {
-        return false;
-    }
-
-    if prev_status == *FIGHTER_STATUS_KIND_PASSIVE_FB {
+    // Only reset on training mode reset
+    if prev_status != *FIGHTER_STATUS_KIND_NONE {
         return false;
     }
 
@@ -233,6 +233,9 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             );
         }
         Action::SHIELD => {
+            if !is_grounded(module_accessor) {
+                return 0;
+            }
             /*
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
             Shield hold is performed through shield::should_hold_shield and request_shield
@@ -454,7 +457,7 @@ fn try_change_status(
 }
 
 pub unsafe fn perform_defensive_option() {
-    reset();
+    full_reset();
 
     let action = match MENU.defensive_state.get_random() {
         Defensive::ROLL_F => Action::ROLL_F,

@@ -95,7 +95,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
         }
-        mash::reset();
+        mash::full_reset();
         return;
     }
 
