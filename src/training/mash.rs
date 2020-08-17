@@ -4,6 +4,7 @@ use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::full_hop;
 use crate::training::shield;
+use crate::training::sdi;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
@@ -179,6 +180,7 @@ pub fn buffer_menu_mash() -> Action {
         full_hop::roll_full_hop();
         fast_fall::roll_fast_fall();
         FALLING_AERIAL = MENU.falling_aerials.get_random().into_bool();
+        sdi::roll_direction();
 
         action
     }

@@ -5,6 +5,7 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
 pub mod directional_influence;
+pub mod sdi;
 pub mod shield;
 pub mod tech;
 

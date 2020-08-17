@@ -37,12 +37,20 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         return;
     }
 
-    let player_module_accessor = get_module_accessor(FighterId::Player);
-    if PostureModule::pos_x(player_module_accessor) > PostureModule::pos_x(module_accessor) {
+    if should_reverse_angle() {
         angle = PI - angle;
     }
 
     set_x_y(module_accessor, angle.cos() as f32, angle.sin() as f32);
+}
+
+pub fn should_reverse_angle() -> bool {
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let player_module_accessor = get_module_accessor(FighterId::Player);
+    unsafe {
+        return PostureModule::pos_x(player_module_accessor)
+            > PostureModule::pos_x(cpu_module_accessor);
+    }
 }
 
 fn set_x_y(module_accessor: &mut app::BattleObjectModuleAccessor, x: f32, y: f32) {
