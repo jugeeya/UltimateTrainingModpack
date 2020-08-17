@@ -13,8 +13,6 @@ static mut QUEUE: Vec<Action> = vec![];
 
 static mut FALLING_AERIAL: bool = false;
 
-const STATUS_FRESH: i32 = -1;
-
 pub fn buffer_action(action: Action) {
     unsafe {
         if QUEUE.len() > 0 {
@@ -148,7 +146,7 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     }
 
     // Only reset on training mode reset
-    if prev_status != STATUS_FRESH {
+    if prev_status != *FIGHTER_STATUS_KIND_NONE {
         return false;
     }
 
