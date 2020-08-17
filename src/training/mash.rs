@@ -233,6 +233,9 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             );
         }
         Action::SHIELD => {
+            if !is_grounded(module_accessor) {
+                return 0;
+            }
             /*
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
             Shield hold is performed through shield::should_hold_shield and request_shield
