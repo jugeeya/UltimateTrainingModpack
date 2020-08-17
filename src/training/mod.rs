@@ -207,6 +207,22 @@ pub unsafe  fn handle_is_enable_transition_term(
     is
 }
 
+extern "C" {
+    #[link_name = "\u{1}_ZN3app15sv_fighter_util15set_dead_rumbleEP9lua_State"]
+    pub fn set_dead_rumble(lua_state: u64) -> u64;
+}
+
+#[skyline::hook(replace = set_dead_rumble)]
+pub unsafe fn handle_set_dead_rumble(
+    lua_state: u64) -> u64 {
+
+    if crate::common::is_training_mode() {
+        return 0;
+    }
+
+    original!()(lua_state)
+}
+
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
     unsafe {
@@ -234,6 +250,7 @@ pub fn training_mods() {
         handle_get_param_float,
         // Save states
         handle_get_param_int,
+        handle_set_dead_rumble,
         // Mash attack
         handle_get_attack_air_kind,
         // Tech options

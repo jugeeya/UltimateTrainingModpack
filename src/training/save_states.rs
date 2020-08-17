@@ -101,17 +101,24 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
 
     // move to camera bounds
     if save_state.state == KillPlayer {
+        SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
             save_state.state = PosMove;
         } else {
             if status != FIGHTER_STATUS_KIND_DEAD && status != FIGHTER_STATUS_KIND_STANDBY {
                 // Try moving off-screen so we don't see effects.
                 let pos = Vector3f {
-                    x: -100.0,
-                    y: -60.0,
+                    x: -300.0,
+                    y: -100.0,
                     z: 0.0,
                 };
                 PostureModule::set_pos(module_accessor, &pos);
+
+                MotionAnimcmdModule::set_sleep(module_accessor, true);
+                SoundModule::pause_se_all(module_accessor, true);
+                ControlModule::stop_rumble(module_accessor, true);
+                SoundModule::stop_all_sound(module_accessor);
+
                 StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
             }
         }
@@ -121,6 +128,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
 
     // move to correct pos
     if save_state.state == PosMove {
+        SoundModule::stop_all_sound(module_accessor);
+        MotionAnimcmdModule::set_sleep(module_accessor, false);
+        SoundModule::pause_se_all(module_accessor, false);
+        ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
 
         let pos = Vector3f {
