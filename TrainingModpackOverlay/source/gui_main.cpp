@@ -363,32 +363,7 @@ tsl::elm::Element* GuiMain::createUI()
 		{
 			svcCloseHandle(debug);
 
-			ClickableListItem* frameAdvantageItem = new ClickableListItem("Frame Advantage",
-			                                                              frame_advantage_items,
-			                                                              nullptr,
-			                                                              "frameAdvantage",
-			                                                              0,
-			                                                              "Frame Advantage",
-			                                                              frame_advantage_help);
-			frameAdvantageItem->setClickListener([](std::vector<std::string> values,
-			                                        int*                     curValue,
-			                                        std::string              extdata,
-			                                        int                      index,
-			                                        std::string              title,
-			                                        std::string              help) { tsl::changeTo<GuiFrameAdvantage>(); });
-			frameAdvantageItem->setHelpListener(
-			    [](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
-			list->addItem(frameAdvantageItem);
-
-			ValueListItem* hitboxItem =
-			    new ValueListItem("Hitbox Visualization", on_off, &menu.HITBOX_VIS, "hitbox", hitbox_help);
-			list->addItem(hitboxItem);
-			valueListItems.push_back(hitboxItem);
-
-			ValueListItem* shieldItem =
-			    new ValueListItem("Shield Options", shield_items, &menu.SHIELD_STATE, "shield", shield_help);
-			list->addItem(shieldItem);
-			valueListItems.push_back(shieldItem);
+			list->addItem(new tsl::elm::CategoryHeader("Mash", true));
 
 			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help));
 
@@ -399,29 +374,58 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(mashNeutralItem);
 			valueListItems.push_back(mashNeutralItem);
 
-			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help));
-
-			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help));
-
-			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
+			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 
 			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help));
-
 			list->addItem(createBitFlagOption(&menu.SDI_STATE, "Set SDI", ""));
+			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Airdodge Direction", left_stick_help));
 
-			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Left Stick", left_stick_help));
+			list->addItem(new tsl::elm::CategoryHeader("Shield", true));
+
+			ValueListItem* shieldItem =
+			    new ValueListItem("Shield Options", shield_items, &menu.SHIELD_STATE, "shield", shield_help);
+			list->addItem(shieldItem);
+			valueListItems.push_back(shieldItem);
+
+			ClickableListItem* frameAdvantageItem = new ClickableListItem("Frame Advantage",
+													frame_advantage_items,
+													nullptr,
+													"frameAdvantage",
+													0,
+													"Frame Advantage",
+													frame_advantage_help);
+			frameAdvantageItem->setClickListener([](std::vector<std::string> values,
+			                                        int*                     curValue,
+			                                        std::string              extdata,
+			                                        int                      index,
+			                                        std::string              title,
+			                                        std::string              help) { tsl::changeTo<GuiFrameAdvantage>(); });
+			frameAdvantageItem->setHelpListener(
+			    [](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
+			list->addItem(frameAdvantageItem);
 
 			list->addItem(createBitFlagOption(&menu.OOS_OFFSET, "OOS Offset", oos_help));
-
 			list->addItem(createBitFlagOption(&menu.REACTION_TIME, "Reaction Time", reaction_time_help));
 
+			list->addItem(new tsl::elm::CategoryHeader("Chase", true));
+
+			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help));
+			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help));
+			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
+
+			list->addItem(new tsl::elm::CategoryHeader("Aerials", true));
+
 			list->addItem(createBitFlagOption(&menu.FAST_FALL, "Fast Fall", ""));
-
 			list->addItem(createBitFlagOption(&menu.FAST_FALL_DELAY, "Fast Fall Delay", "In Frames"));
-
 			list->addItem(createBitFlagOption(&menu.FALLING_AERIALS, "Falling Aerials", ""));
-
 			list->addItem(createBitFlagOption(&menu.FULL_HOP, "Full Hop", ""));
+
+			list->addItem(new tsl::elm::CategoryHeader("Miscellaneous", true));
+
+			ValueListItem* hitboxItem =
+			    new ValueListItem("Hitbox Visualization", on_off, &menu.HITBOX_VIS, "hitbox", hitbox_help);
+			list->addItem(hitboxItem);
+			valueListItems.push_back(hitboxItem);
 
 			ClickableListItem* saveStateItem = new ClickableListItem(
 			    "Save States", save_state_items, nullptr, "saveStates", 0, "Save States", save_states_help);
