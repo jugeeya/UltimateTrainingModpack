@@ -12,7 +12,7 @@ extern crate bitflags;
 use crate::common::*;
 use training::combo::FRAME_ADVANTAGE;
 
-use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir, remove};
+use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
 use skyline::nro::{self, NroInfo};
 
 fn nro_main(nro: &NroInfo<'_>) {
@@ -51,8 +51,9 @@ pub fn main() {
         );
         mkdir(c_str!("sd:/TrainingModpack/"), 0777);
 
-        println!("[Training Modpack] Removing training_modpack_menu.conf...");
-        remove(c_str!("sd:/TrainingModpack/training_modpack_menu.conf"));
+        // Only necessary upon version upgrade.
+        // println!("[Training Modpack] Removing training_modpack_menu.conf...");
+        // remove(c_str!("sd:/TrainingModpack/training_modpack_menu.conf"));
 
         let mut f = fopen(
             c_str!("sd:/TrainingModpack/training_modpack.log"),
