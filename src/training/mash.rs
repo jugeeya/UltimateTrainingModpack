@@ -8,6 +8,7 @@ use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
+static mut CURRENT_AERIAL: Action = Action::NAIR;
 static mut QUEUE: Vec<Action> = vec![];
 
 static mut FALLING_AERIAL: bool = false;
@@ -71,6 +72,10 @@ pub fn set_aerial(attack: Action) {
     if !shield::is_aerial(attack) {
         return;
     }
+
+    unsafe {
+        CURRENT_AERIAL = attack;
+    }
 }
 
 pub unsafe fn get_attack_air_kind(
@@ -84,7 +89,7 @@ pub unsafe fn get_attack_air_kind(
         return None;
     }
 
-    get_current_buffer().into_attack_air_kind()
+    CURRENT_AERIAL.into_attack_air_kind()
 }
 
 pub unsafe fn get_command_flag_cat(
