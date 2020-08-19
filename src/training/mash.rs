@@ -69,10 +69,6 @@ pub fn full_reset(){
 }
 
 pub fn set_aerial(attack: Action) {
-    if !shield::is_aerial(attack) {
-        return;
-    }
-
     unsafe {
         CURRENT_AERIAL = attack;
     }
