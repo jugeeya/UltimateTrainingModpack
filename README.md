@@ -20,72 +20,77 @@ The features in this modpack are configured through the Tesla menu, which can be
 [<img src="https://i.imgur.com/eSrtDyj.png">](https://i.imgur.com/eSrtDyj.png)
 [<img src="https://i.imgur.com/7Cd6utU.jpg">](https://i.imgur.com/7Cd6utU.jpg)
 
+#### Frame Advantage. 
+*Currently only works on shield*. Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield.
+
 #### Save States
 At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. Use this instead of the built-in training mode reset!
 
 #### Hitbox Visualization
 Currently, hitboxes and grabboxes are supported. When visualization is active, other move effects are temporarily turned off for easier visualization.
 
+#### Selecting Multiple Options
+Any submenu that allows you to toggle multiple options will randomize between only those options. This is the vast majority of items in the menu detailed below, and it's a huge change that allows for really deep practice.
 
-##### Mash Toggles
+
+##### Mash Section
+###### Mash Toggles
 *Note:* Combine this with the shield toggles to force the CPU to perform options OoS when their shield is damaged!
 
-###### Airdodge
-CPUs will mash airdodge on the first frame out of hitstun.
+CPUs will mash an option on the first frame possible out of hitstun.
 
-CPUs will also shield quickly if they are hit and remain grounded.
+Airdodge has specific logic that the CPU will also flash shield when landing.
 
-###### Jump
-CPUs will mash jump on the first frame out of hitstun.
+###### Followup Toggles
+Set a mash option to perform directly after the one specified with Mash Toggles.
 
-###### Attack
-CPUs will mash an attack on the first frame out of hitstun and when landing. 
-Attacks that can be chosen include:
-- All aerials, followed by all specials
+###### Mash in Neutral
+Set a CPU to mash specified option in neutral/idle state.
 
-###### Random
-CPUs will mash an aerial or grounded option on the first frame out of hitstun and when landing. 
-The aerial options include:
-- Airdodge, jump, all aerials, all specials
-
-The grounded options include:
-- Jump, jab, all tilts, all smashes, all specials, grab, spotdodge, and rolls
-
-##### Ledge Option
-CPUs will perform a random ledge option. 
-Specific ledge options that can be chosen include:
-- Normal, roll, jump, and attack
-
-CPUs will also perform a defensive option after getting up.
-
-##### Tech Option
-CPUs will perform a random tech option. 
-Specific tech options that can be chosen include:
-- In place, roll, and miss tech
-
-CPUs will also perform a defensive option after getting up.
-
-##### Defensive Option
-Choose the defensive option a CPU will perform after teching or getting up from the ledge. 
-Specific options include:
-    Flash shield, spotdodge, and jab
-
-##### Shield
-
-###### Infinite
-CPUs will hold a shield that does not deteriorate over time or by damage.
-
-###### Hold
-CPUs will hold a shield that does not deteriorate over time until hit for the first time.
-
-#### Force CPU DI
-##### All DI Toggles
-
-##### Specified Direction
+##### Left Stick Section
+###### DI
 CPUs DI in the direction specified, relative to the player's facing position.
 
-##### Random Direction
-CPUs DI randomly in or away.
+###### SDI
+Works the same way as the DI toggle, but choose a direction for the CPU to SDI every 4 frames of hitlag. 
+
+###### Airdodge Direction
+When a CPU is set to mash airdodge, it will use this direction as its airdodge direction.
+
+##### Chase Section
+###### Ledge Option
+CPUs will perform a random ledge option among the selected options.
+
+CPUs will also perform a defensive option after getting up.
+
+###### Tech Option
+CPUs will perform a random tech option among the selected options.
+
+CPUs will also perform a defensive option after getting up.
+
+###### Defensive Option
+CPUs will perform the defensive option a CPU will perform after teching or getting up from the ledge, among the selected options.
+
+##### Shield Section
+
+###### Shield Options
+- Infinite: CPUs will hold a shield that does not deteriorate over time or by damage.
+- Hold: CPUs will hold a shield that does not deteriorate over time until hit for the first time.
+
+###### OOS Offset
+The CPU will delay until the specified number of hits to perform an OoS option.
+
+###### OOS Reaction Time
+The CPU will delay a specified number of frames before performing an OoS option.
+
+#### Aerials Section
+Edit how the CPU performs aerials.
+
+##### Fast Fall
+##### Full Hops 
+##### Falling Aerials
+##### Fast Fall Delay 
+Specified in frames (from apex of CPU's jump).
 
 <a name="build"/>
 
