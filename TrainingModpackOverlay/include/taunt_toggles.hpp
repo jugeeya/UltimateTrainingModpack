@@ -11,7 +11,16 @@ const std::vector<std::string> on_off{"Off", "On"};
 // Frame Advantage
 const std::vector<std::string> frame_advantage_items{""};
 const std::string              frame_advantage_help = R""""(
-TODO)"""";
+Show frame advantage when
+hitting a CPU's shield.
+
+This is comparing true frames
+of actionability between the
+CPU and player.
+
+Use this to practice optimal
+aerial heights and specific
+safe hitboxes.)"""";
 
 // Side Taunt
 
@@ -42,6 +51,14 @@ CPUs DI in the direction specified
 position).
 )"""";
 
+const std::string              sdi_help = R""""(
+Specified Direction
+CPUs SDI in the direction specified
+(relative to the player's facing
+position) every four frames
+during hitlag.
+)"""";
+
 // Left Stick
 const std::string left_stick_help = R""""(
 Specified Direction
@@ -51,7 +68,7 @@ in the direction specified
 position).
 
 Currently only used for
-- air dodge
+- Airdodge
 
 )"""";
 
@@ -67,11 +84,8 @@ Currently only used for
 
 DEFINE_ENUM_CLASS(LedgeFlag);
 const std::string ledge_help = R""""(
-CPUs will perform a ledge option.
-
-Specific ledge options can be
-chosen and include:
-    Normal, roll, jump, and attack
+CPUs will perform a ledge option
+among the selected options.
 
 CPUs will also perform a defensive
 option after getting up.
@@ -91,10 +105,8 @@ DEFINE_ENUM_CLASS(TechFlag);
 
 constexpr const char* const tech_help = R""""(
 CPUs will perform a random
-tech option.
-
-Specific tech options can be chosen and include:
-    In place, roll, and miss tech
+tech option among the selected
+options.
 
 CPUs will also perform a defensive
 option after getting up.)"""";
@@ -117,8 +129,8 @@ Choose the defensive option a CPU
 will perform after teching or
 getting up from the ledge.
 
-Specific options include:
-    Flash shield, spotdodge, and jab
+The option will be random
+among the selected options.
 )"""";
 
 // Mash States
@@ -127,14 +139,11 @@ Use this toggle along with the Shield
 Options toggle to practice moves on
 shield.
 
+The option will be random
+among the selected options.
+
 CPUs will mash on the first frame out
-of hitstun, out of specific states.
-
-Airdodge
-- Hitstun
-CPUs will also shield quickly if they
-are hit and remain grounded.
-
+of hitstun or out of specific states.
 )"""";
 
 // Action items (Follow Up only atm)
@@ -152,8 +161,12 @@ are hit and remain grounded.
 DEFINE_ENUM_CLASS(ActionFlag);
 
 const std::string follow_up_help = R""""(
-Action to buffer
-after the first mash option
+The selected action will be
+buffered after the specified
+mash option.
+
+The option will be random
+among the selected options.
 )"""";
 
 // Shield States
@@ -171,7 +184,9 @@ not deteriorate over time or
 by damage.
 
 Hold
-CPUs will hold a normal shield.)"""";
+CPUs will hold a normal shield.
+This shield will not deteriorate
+until hit once.)"""";
 
 // Hitbox visualization
 const std::string hitbox_help = R""""(
@@ -214,7 +229,7 @@ as a single hit.)"""";
 
 const std::string reaction_time_help = R""""(
 Additional reaction time
-in frames
+in frames.
 
 Used to delay OOS Options.)"""";
 
@@ -239,3 +254,22 @@ DEFINE_ENUM_CLASS(DelayFlag);
 	x(type,True,"True") x(type,False,"False")
 
 DEFINE_ENUM_CLASS(BoolFlag);
+
+const std::string fast_fall_help = R""""(
+CPUs will fast fall
+out of jumps and aerial
+attacks as soon as possible.)"""";
+
+const std::string fast_fall_delay_help = R""""(
+Frames to delay CPU
+fast fall.)"""";
+
+const std::string falling_aerials_help = R""""(
+CPUs will only begin
+aerials at the apex of
+their jump.)"""";
+
+const std::string full_hop_help = R""""(
+CPUs will full hop
+rather than short hop
+aerials.)"""";
