@@ -75,7 +75,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
         return;
     }
 
-    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
+    if category != *FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
 
