@@ -199,7 +199,7 @@ and specials when hitbox
 visualization is active.)"""";
 
 // Save states
-const std::vector<std::string> save_state_items{""};
+const std::vector<std::string> empty_items{""};
 const std::string              save_states_help = R""""(
 Press Grab + Down Taunt at any
 time to save the state of the
@@ -215,6 +215,13 @@ are saved:
 - Percent
 - Position
 - Facing direction)"""";
+
+const std::string              reset_menu_help = R""""(
+Reset menu to default
+configuration. Please also
+use on the first boot after
+upgrading Training Modpack
+versions.)"""";
 
 // OOS
 const std::string oos_help = R""""(

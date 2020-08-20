@@ -26,6 +26,8 @@ static struct TrainingModpackMenu
 	BoolFlags      FULL_HOP        = BoolFlags::None;
 } menu;
 
+static struct TrainingModpackMenu defaultMenu = menu;
+
 static int FRAME_ADVANTAGE = 0;
 
 u64                pidSmash                   = 0;
@@ -430,7 +432,7 @@ tsl::elm::Element* GuiMain::createUI()
 			valueListItems.push_back(hitboxItem);
 
 			ClickableListItem* saveStateItem = new ClickableListItem(
-			    "Save States", save_state_items, nullptr, "saveStates", 0, "Save States", save_states_help);
+			    "Save States", empty_items, nullptr, "saveStates", 0, "Save States", save_states_help);
 			saveStateItem->setClickListener([](std::vector<std::string> values,
 			                                   int*                     curValue,
 			                                   std::string              extdata,
@@ -439,6 +441,23 @@ tsl::elm::Element* GuiMain::createUI()
 			                                   std::string              help) { tsl::changeTo<GuiHelp>(title, help); });
 			saveStateItem->setHelpListener([](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(saveStateItem);
+
+			ClickableListItem* resetMenuItem = new ClickableListItem("Reset Menu",
+													empty_items,
+													nullptr,
+													"resetMenu",
+													0,
+													"Reset Menu",
+													reset_menu_help);
+			resetMenuItem->setClickListener([](std::vector<std::string> values,
+			                                        int*                     curValue,
+			                                        std::string              extdata,
+			                                        int                      index,
+			                                        std::string              title,
+			                                        std::string              help) { menu = defaultMenu; });
+			resetMenuItem->setHelpListener(
+			    [](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
+			list->addItem(resetMenuItem);
 
 			rootFrame->setContent(list);
 		}
