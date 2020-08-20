@@ -54,6 +54,9 @@ jobs:
         mkdir -p ${{env.TESLA_OVERLAY_DIR}}
         cp overlay/ovlTrainingModpack.ovl ${{env.TESLA_OVERLAY_DIR}}/ovlTrainingModpack.ovl
         zip -r training_modpack_beta.zip atmosphere switch
+    - name: Get short commit SHA
+      id: commit-sha
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
     - name: Update Release
       uses: meeDamian/github-release@2.0
       with:
@@ -61,7 +64,7 @@ jobs:
         prerelease: true
         allow_override: true
         gzip: false
-        tag: beta
+        tag: beta-${{ steps.commit-sha.outputs.sha_short }}
         name: beta
         body: >
           Beta built off of the latest code in the repository. 
