@@ -7,6 +7,13 @@
 #include "cpp_utils.hpp"
 
 const std::vector<std::string> on_off{"Off", "On"};
+// clang-format off
+#define ENUM_CLASS_OnOffFlag(type,x) \
+    x(type,On,"On") \
+    x(type,Off,"Off")
+
+// clang-format on
+DEFINE_ENUM_CLASS(OnOffFlag);
 
 // Frame Advantage
 const std::vector<std::string> frame_advantage_items{""};

@@ -7,7 +7,7 @@
 
 static struct TrainingModpackMenu
 {
-	int            HITBOX_VIS      = true;
+	OnOffFlags     HITBOX_VIS      = OnOffFlag::On;
 	Directions     DI_STATE        = Directions::None;
 	Directions     SDI_STATE       = Directions::None;
 	Directions     LEFT_STICK      = Directions::None;
@@ -19,7 +19,7 @@ static struct TrainingModpackMenu
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
 	DelayFlags     OOS_OFFSET      = DelayFlags::None;
 	DelayFlags     REACTION_TIME   = DelayFlags::None;
-	int            MASH_IN_NEUTRAL = false;
+	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlags::None;
 	BoolFlags      FAST_FALL       = BoolFlags::None;
 	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
 	BoolFlags      FALLING_AERIALS = BoolFlags::None;
@@ -372,11 +372,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help, this));
 			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help, this));
-
-			ValueListItem* mashNeutralItem =
-			    new ValueListItem("Mash In Neutral", on_off, &menu.MASH_IN_NEUTRAL, "mash_neutral", mash_neutral_help);
-			list->addItem(mashNeutralItem);
-			valueListItems.push_back(mashNeutralItem);
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL));
 
 			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 
@@ -426,10 +422,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(new tsl::elm::CategoryHeader("Miscellaneous", true));
 
-			ValueListItem* hitboxItem =
-			    new ValueListItem("Hitbox Visualization", on_off, &menu.HITBOX_VIS, "hitbox", hitbox_help);
-			list->addItem(hitboxItem);
-			valueListItems.push_back(hitboxItem);
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Hitbox Visualization", OnOffFlag::On, &menu.HITBOX_VIS));
 
 			ClickableListItem* saveStateItem = new ClickableListItem(
 			    "Save States", empty_items, nullptr, "saveStates", 0, "Save States", save_states_help);

@@ -98,7 +98,7 @@ private:
 
 public:
 	BitFlagToggleListItem(const std::string& text, T mask, FlagType* value)
-	    : tsl::elm::ToggleListItem(text, (mask & *value) != 0), m_mask(mask), m_value(value)
+	    : tsl::elm::ToggleListItem(text, (mask & *value) != 0, "\uE14B", "\uE14C"), m_mask(mask), m_value(value)
 	{
 		setStateChangedListener([this](bool v) {
 			if(v)
