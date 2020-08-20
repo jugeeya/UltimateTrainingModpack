@@ -345,24 +345,25 @@ unsafe fn get_attack_flag(
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
         }
-        Action::DASH_ATTACK => {
-            let current_status = StatusModule::status_kind(module_accessor);
-            let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
+        // TODO: Make work
+        // Action::DASH_ATTACK => {
+        //     let current_status = StatusModule::status_kind(module_accessor);
+        //     let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
 
-            // Start Dash First
-            if !is_dashing {
-                let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
-                let dash_status = *FIGHTER_STATUS_KIND_DASH;
+        //     // Start Dash First
+        //     if !is_dashing {
+        //         let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
+        //         let dash_status = *FIGHTER_STATUS_KIND_DASH;
 
-                try_change_status(module_accessor, dash_status, dash_transition);
-                return 0;
-            }
+        //         try_change_status(module_accessor, dash_status, dash_transition);
+        //         return 0;
+        //     }
 
-            command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
-            status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
+        //     command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
+        //     status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
 
-            return get_flag(module_accessor, status, command_flag);
-        }
+        //     return get_flag(module_accessor, status, command_flag);
+        // }
         _ => return 0,
     }
 

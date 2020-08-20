@@ -208,8 +208,9 @@ bitflags! {
         const F_TILT = 0x80000;
         const U_TILT  = 0x100000;
         const D_TILT  = 0x200000;
-        const DASH_ATTACK = 0x400000;
-        const GRAB = 0x800000;
+        const GRAB = 0x400000;
+        // TODO: Make work
+        // const DASH_ATTACK = 0x400000;
     }
 }
 

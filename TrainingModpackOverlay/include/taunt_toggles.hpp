@@ -154,8 +154,8 @@ of hitstun or out of specific states.
     x(type,Nair,"Neutral Air") x(type,Fair,"Forward Air") x(type,Bair,"Back Air") x(type,Uair,"Up Air") x(type,Dair,"Down Air")  \
     x(type,NeutralB,"Neutral B") x(type,SideB,"Side B") x(type,UpB,"Up B") x(type,DownB,"Down B") \
     x(type,FSmash,"Forward Smash") x(type,USmash,"Up Smash") x(type,DSmash,"Down Smash") \
-    x(type,Jab,"Jab") x(type,FTilt,"Filt") x(type,UTilt,"Utilt") x(type,Dtilt,"Dtilt")  \
-    x(type,DashAttack,"Dash Attack") x(type,Grab,"Grab")
+    x(type,Jab,"Jab") x(type,FTilt,"Ftilt") x(type,UTilt,"Utilt") x(type,Dtilt,"Dtilt")  \
+    x(type,Grab,"Grab") //x(type,DashAttack,"Dash Attack")
 
 // clang-format on
 DEFINE_ENUM_CLASS(ActionFlag);
