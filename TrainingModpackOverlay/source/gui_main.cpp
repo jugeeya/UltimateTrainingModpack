@@ -19,7 +19,7 @@ static struct TrainingModpackMenu
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
 	DelayFlags     OOS_OFFSET      = DelayFlags::None;
 	DelayFlags     REACTION_TIME   = DelayFlags::None;
-	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlags::None;
+	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlag::Off;
 	BoolFlags      FAST_FALL       = BoolFlags::None;
 	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
 	BoolFlags      FALLING_AERIALS = BoolFlags::None;
@@ -271,6 +271,29 @@ public:
 	FsFileSystem                m_fs;
 };
 
+class OverlayFrameWithHelp : public tsl::elm::OverlayFrame
+{
+public:
+	OverlayFrameWithHelp(const std::string& title, const std::string& subtitle) : tsl::elm::OverlayFrame(title, subtitle)
+	{}
+
+	virtual void draw(tsl::gfx::Renderer* renderer) override
+	{
+		renderer->fillScreen(a(tsl::style::color::ColorFrameBackground));
+		renderer->drawRect(tsl::cfg::FramebufferWidth - 1, 0, 1, tsl::cfg::FramebufferHeight, a(0xF222));
+
+		renderer->drawString(this->m_title.c_str(), false, 20, 50, 30, a(tsl::style::color::ColorText));
+		renderer->drawString(this->m_subtitle.c_str(), false, 20, 70, 15, a(tsl::style::color::ColorDescription));
+
+		renderer->drawRect(15, tsl::cfg::FramebufferHeight - 73, tsl::cfg::FramebufferWidth - 30, 1, a(tsl::style::color::ColorText));
+
+		renderer->drawString("\uE0E1  Back     \uE0E0  OK     \uE0E3  Help", false, 30, 693, 23, a(tsl::style::color::ColorText));
+
+		if (this->m_contentElement != nullptr)
+			this->m_contentElement->frame(renderer);
+	}
+};
+
 namespace
 {
 template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const std::string& name, const std::string& help, GuiMain* guiMain)
@@ -281,16 +304,16 @@ template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const st
 	item->setClickListener([name, help, option, guiMain](u64 keys) -> bool {
 		if(keys & KEY_A)
 		{
-			tsl::changeTo<GuiLambda>([option, name]() -> tsl::elm::Element* {
+			tsl::changeTo<GuiLambda>([option, name, help]() -> tsl::elm::Element* {
 				auto                                   toggleList = new tsl::elm::List();
 				std::vector<tsl::elm::ToggleListItem*> items;
 				for(auto& [flag, str] : detail::EnumArray<FlagType>::values)
 				{
-					items.emplace_back(new BitFlagToggleListItem<FlagType>(str, flag, option));
+					items.emplace_back(new BitFlagToggleListItem<FlagType>(str, flag, option, name, help));
 				}
 
-				auto allOff = new SetToggleListItem({}, items, "None");
-				auto allOn  = new SetToggleListItem(items, {}, "All");
+				auto allOff = new SetToggleListItem({}, items, "None", name, help);
+				auto allOn  = new SetToggleListItem(items, {}, "All", name, help);
 
 				toggleList->addItem(allOn);
 				toggleList->addItem(allOff);
@@ -300,7 +323,7 @@ template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const st
 					toggleList->addItem(it);
 				}
 
-				auto frame = new tsl::elm::OverlayFrame(name, "");
+				auto frame = new OverlayFrameWithHelp(name, "Press \uE0E3 for help with these options.");
 				frame->setContent(toggleList);
 				return frame;
 			}, guiMain);
@@ -320,7 +343,7 @@ tsl::elm::Element* GuiMain::createUI()
 {
 	char buffer[256];
 	snprintf(buffer, 256, "Version %s", VERSION);
-	tsl::elm::OverlayFrame* rootFrame = new tsl::elm::OverlayFrame("Training Modpack", buffer);
+	OverlayFrameWithHelp* rootFrame = new OverlayFrameWithHelp("Training Modpack", buffer);
 
 	auto list = new tsl::elm::List();
 
@@ -372,7 +395,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help, this));
 			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help, this));
-			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL));
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL, "Mash In Neutral", mash_neutral_help));
 
 			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 
@@ -422,7 +445,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(new tsl::elm::CategoryHeader("Miscellaneous", true));
 
-			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Hitbox Visualization", OnOffFlag::On, &menu.HITBOX_VIS));
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Hitbox Visualization", OnOffFlag::On, &menu.HITBOX_VIS, "Hitbox Visualization", hitbox_help));
 
 			ClickableListItem* saveStateItem = new ClickableListItem(
 			    "Save States", empty_items, nullptr, "saveStates", 0, "Save States", save_states_help);

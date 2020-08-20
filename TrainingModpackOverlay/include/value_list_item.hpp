@@ -3,6 +3,7 @@
 #include <list>
 #include <cstdint>
 #include <tesla.hpp>
+#include "gui_help.hpp"
 #include "gui_sublist.hpp"
 #include "cpp_utils.hpp"
 
@@ -93,12 +94,14 @@ public:
 	using FlagType = detail::FlagTypeT<T>;
 
 private:
-	T         m_mask;
-	FlagType* m_value;
+	T           m_mask;
+	FlagType*   m_value;
+	std::string m_name;
+	std::string m_help;
 
 public:
-	BitFlagToggleListItem(const std::string& text, T mask, FlagType* value)
-	    : tsl::elm::ToggleListItem(text, (mask & *value) != 0, "\uE14B", "\uE14C"), m_mask(mask), m_value(value)
+	BitFlagToggleListItem(const std::string& text, T mask, FlagType* value, std::string name = "", std::string help = "")
+	    : tsl::elm::ToggleListItem(text, (mask & *value) != 0, "\uE14B", "\uE14C"), m_mask(mask), m_value(value), m_name(name), m_help(help)
 	{
 		setStateChangedListener([this](bool v) {
 			if(v)
@@ -120,7 +123,11 @@ public:
 			return ListItem::onClick(keys);
 		}
 		else if(keys & KEY_Y)
-		{}
+		{
+			if (m_help != "") {
+				tsl::changeTo<GuiHelp>(m_name, m_help);
+			}
+		}
 		return false;
 	}
 	virtual void setState(bool state) override
@@ -140,13 +147,17 @@ class SetToggleListItem : public tsl::elm::ListItem
 {
 	std::vector<tsl::elm::ToggleListItem*> m_itemsOn;
 	std::vector<tsl::elm::ToggleListItem*> m_itemsOff;
+	std::string                            m_name;
+	std::string                            m_help;
 
 public:
 	SetToggleListItem(std::vector<tsl::elm::ToggleListItem*> itemsOn,
 	                  std::vector<tsl::elm::ToggleListItem*> itemsOff,
 	                  const std::string&                     text,
-	                  const std::string&                     value = "")
-	    : tsl::elm::ListItem(text, value), m_itemsOn(std::move(itemsOn)), m_itemsOff(std::move(itemsOff))
+	                  const std::string                      name = "",
+					  const std::string                      help = "",
+					  const std::string&                     value = "")
+	    : tsl::elm::ListItem(text, value), m_itemsOn(std::move(itemsOn)), m_itemsOff(std::move(itemsOff)), m_name(name), m_help(help)
 	{
 		setClickListener([this](u64 keys) -> bool {
 			if(keys & KEY_A)
@@ -160,6 +171,12 @@ public:
 					it->setState(false);
 				}
 				return true;
+			}
+			else if(keys & KEY_Y)
+			{
+				if (m_help != "") {
+					tsl::changeTo<GuiHelp>(m_name, m_help);
+				}
 			}
 			return false;
 		});
