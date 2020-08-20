@@ -27,6 +27,7 @@ public:
 class GuiLambda : public tsl::Gui
 {
 	std::function<tsl::elm::Element*()> m_createUI;
+	tsl::Gui*                            m_guiMain;
 
 public:
 	virtual tsl::elm::Element* createUI() override
@@ -34,5 +35,9 @@ public:
 		if(m_createUI) return m_createUI();
 		return nullptr;
 	}
-	GuiLambda(std::function<tsl::elm::Element*()> createUIFunc) : m_createUI(std::move(createUIFunc)) {}
+	virtual void update() override
+	{
+		m_guiMain->update();
+	}
+	GuiLambda(std::function<tsl::elm::Element*()> createUIFunc, tsl::Gui* guiMain) : m_createUI(std::move(createUIFunc)), m_guiMain(guiMain) {}
 };

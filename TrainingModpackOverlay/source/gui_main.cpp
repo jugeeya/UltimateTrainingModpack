@@ -120,6 +120,9 @@ GuiMain::GuiMain()
 
 GuiMain::~GuiMain()
 {
+	// apply changes on exit
+	applyChanges();
+
 	smInitialize();
 	pminfoExit();
 	pmbmExit();
@@ -268,12 +271,12 @@ public:
 
 namespace
 {
-template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const std::string& name, const std::string& help)
+template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const std::string& name, const std::string& help, GuiMain* guiMain)
 {
 	using FlagType = typename T::Type;
 
 	auto item = new tsl::elm::ListItem(name);
-	item->setClickListener([name, help, option](u64 keys) -> bool {
+	item->setClickListener([name, help, option, guiMain](u64 keys) -> bool {
 		if(keys & KEY_A)
 		{
 			tsl::changeTo<GuiLambda>([option, name]() -> tsl::elm::Element* {
@@ -298,7 +301,7 @@ template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const st
 				auto frame = new tsl::elm::OverlayFrame(name, "");
 				frame->setContent(toggleList);
 				return frame;
-			});
+			}, guiMain);
 			return true;
 		}
 		if(keys & KEY_Y)
@@ -365,8 +368,8 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(new tsl::elm::CategoryHeader("Mash", true));
 
-			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help));
-			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help));
+			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help, this));
+			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help, this));
 
 			ValueListItem* mashNeutralItem =
 			    new ValueListItem("Mash In Neutral", on_off, &menu.MASH_IN_NEUTRAL, "mash_neutral", mash_neutral_help);
@@ -375,9 +378,9 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 
-			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help));
-			list->addItem(createBitFlagOption(&menu.SDI_STATE, "Set SDI", sdi_help));
-			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Airdodge Direction", left_stick_help));
+			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help, this));
+			list->addItem(createBitFlagOption(&menu.SDI_STATE, "Set SDI", sdi_help, this));
+			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Airdodge Direction", left_stick_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Shield", true));
 
@@ -403,21 +406,21 @@ tsl::elm::Element* GuiMain::createUI()
 			    [](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(frameAdvantageItem);
 
-			list->addItem(createBitFlagOption(&menu.OOS_OFFSET, "OOS Offset", oos_help));
-			list->addItem(createBitFlagOption(&menu.REACTION_TIME, "Reaction Time", reaction_time_help));
+			list->addItem(createBitFlagOption(&menu.OOS_OFFSET, "OOS Offset", oos_help, this));
+			list->addItem(createBitFlagOption(&menu.REACTION_TIME, "Reaction Time", reaction_time_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Chase", true));
 
-			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help));
-			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help));
-			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help));
+			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help, this));
+			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help, this));
+			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Aerials", true));
 
-			list->addItem(createBitFlagOption(&menu.FAST_FALL, "Fast Fall", fast_fall_help));
-			list->addItem(createBitFlagOption(&menu.FAST_FALL_DELAY, "Fast Fall Delay", fast_fall_delay_help));
-			list->addItem(createBitFlagOption(&menu.FALLING_AERIALS, "Falling Aerials", falling_aerials_help));
-			list->addItem(createBitFlagOption(&menu.FULL_HOP, "Full Hop", full_hop_help));
+			list->addItem(createBitFlagOption(&menu.FAST_FALL, "Fast Fall", fast_fall_help, this));
+			list->addItem(createBitFlagOption(&menu.FAST_FALL_DELAY, "Fast Fall Delay", fast_fall_delay_help, this));
+			list->addItem(createBitFlagOption(&menu.FALLING_AERIALS, "Falling Aerials", falling_aerials_help, this));
+			list->addItem(createBitFlagOption(&menu.FULL_HOP, "Full Hop", full_hop_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Miscellaneous", true));
 
