@@ -61,7 +61,7 @@ jobs:
         prerelease: true
         allow_override: true
         gzip: false
-        tag: beta-${{ github.sha }}
+        tag: beta
         name: beta
         body: >
           Beta built off of the latest code in the repository. 
