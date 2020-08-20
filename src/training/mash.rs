@@ -20,6 +20,10 @@ pub fn buffer_action(action: Action) {
         }
     }
 
+    if action == Action::empty() {
+        return;
+    }
+
     unsafe {
         QUEUE.insert(0, action);
         buffer_follow_up();
