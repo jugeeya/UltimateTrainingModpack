@@ -19,7 +19,7 @@ static struct TrainingModpackMenu
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
 	DelayFlags     OOS_OFFSET      = DelayFlags::None;
 	DelayFlags     REACTION_TIME   = DelayFlags::None;
-	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlag::Off;
+	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlags::None;
 	BoolFlags      FAST_FALL       = BoolFlags::None;
 	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
 	BoolFlags      FALLING_AERIALS = BoolFlags::None;
@@ -470,7 +470,18 @@ tsl::elm::Element* GuiMain::createUI()
 			                                        std::string              extdata,
 			                                        int                      index,
 			                                        std::string              title,
-			                                        std::string              help) { menu = defaultMenu; });
+			                                        std::string              help) { 
+				menu = defaultMenu; 
+
+				/* Open Sd card filesystem. */
+				FsFileSystem fsSdmc;
+				if(R_FAILED(fsOpenSdCardFileSystem(&fsSdmc))) return;
+				tsl::hlp::ScopeGuard fsGuard([&] { fsFsClose(&fsSdmc); });
+
+				fsFsDeleteFile(&fsSdmc, TRAINING_MOD_CONF);
+
+				tsl::goBack();
+			});
 			resetMenuItem->setHelpListener(
 			    [](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(resetMenuItem);

@@ -9,8 +9,7 @@
 const std::vector<std::string> on_off{"Off", "On"};
 // clang-format off
 #define ENUM_CLASS_OnOffFlag(type,x) \
-    x(type,On,"On") \
-    x(type,Off,"Off")
+    x(type,On,"On")
 
 // clang-format on
 DEFINE_ENUM_CLASS(OnOffFlag);
