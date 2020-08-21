@@ -42,8 +42,8 @@ unsafe fn mod_handle_change_status(
         .unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
 
     // Ground Tech
-    if status_kind_int == FIGHTER_STATUS_KIND_DOWN
-        || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D
+    if status_kind_int == *FIGHTER_STATUS_KIND_DOWN
+        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D
     {
         let state: TechFlags = MENU.tech_state.get_random();
 
@@ -71,8 +71,8 @@ unsafe fn mod_handle_change_status(
     }
 
     // Wall Tech
-    if status_kind_int == FIGHTER_STATUS_KIND_STOP_WALL
-        || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
+    if status_kind_int == *FIGHTER_STATUS_KIND_STOP_WALL
+        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
     {
         *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL.as_lua_int();
         *unk = LUA_TRUE;
@@ -80,8 +80,8 @@ unsafe fn mod_handle_change_status(
     }
 
     // Ceiling Tech
-    if status_kind_int == FIGHTER_STATUS_KIND_STOP_CEIL
-        || status_kind_int == FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
+    if status_kind_int == *FIGHTER_STATUS_KIND_STOP_CEIL
+        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
     {
         *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
         *unk = LUA_TRUE;
