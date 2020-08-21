@@ -1,4 +1,6 @@
 #include "gui_sublist.hpp"
+#include "overflow_list.hpp"
+#include "overlay_frame_with_help.hpp"
 #include "gui_help.hpp"
 #include "clickable_list_item.hpp"
 #include "taunt_toggles.hpp"
@@ -16,9 +18,9 @@ GuiSublist::~GuiSublist() {}
 
 tsl::elm::Element* GuiSublist::createUI()
 {
-	tsl::elm::OverlayFrame* rootFrame = new tsl::elm::OverlayFrame(title, "Press \uE0E3 for help with these options.");
+	tsl::elm::OverlayFrame* rootFrame = new OverlayFrameWithHelp(title, "Press \uE0E3 for help with these options.");
 
-	auto list = new tsl::elm::List();
+	auto list = new OverflowList();
 
 	for(size_t i = 0; i < menuItems.size(); i++)
 	{
