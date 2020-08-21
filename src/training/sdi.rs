@@ -13,6 +13,7 @@ static mut DIRECTION: Direction = Direction::NEUTRAL;
 
 pub fn roll_direction() {
     unsafe {
+        COUNTER = 0;
         DIRECTION = MENU.sdi_state.get_random();
     }
 }
