@@ -81,7 +81,7 @@ fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<Vector2f> {
 #[skyline::hook(replace = FighterControlModuleImpl::check_hit_stop_delay_command)]
 pub unsafe fn check_hit_stop_delay_command(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    arg1: Vector2f,
+    arg1: *mut Vector2f,
 ) -> u64 {
     let ori = original!()(module_accessor, arg1);
     let res = mod_check_hit_stop_delay_command(module_accessor, arg1).unwrap_or_else(|| ori);
@@ -94,7 +94,7 @@ pub unsafe fn check_hit_stop_delay_command(
  */
 fn mod_check_hit_stop_delay_command(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    _arg1: Vector2f,
+    _arg1: *mut Vector2f,
 ) -> Option<u64> {
     unsafe {
         if !is_training_mode() {
