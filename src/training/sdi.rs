@@ -112,7 +112,7 @@ fn mod_check_hit_stop_delay_command(
     }
 
     unsafe {
-        COUNTER = (COUNTER + 1) % 4;
+        COUNTER = (COUNTER + 1) % 8;
     }
 
     unsafe {
