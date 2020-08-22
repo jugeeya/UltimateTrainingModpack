@@ -261,6 +261,8 @@ pub fn training_mods() {
         get_stick_y,
         // Combo
         handle_is_enable_transition_term,
+        // SDI
+        crate::training::sdi::check_hit_stop_delay_command,
     );
 
     combo::init();

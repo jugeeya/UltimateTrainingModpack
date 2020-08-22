@@ -22,7 +22,6 @@ fn nro_main(nro: &NroInfo<'_>) {
                 training::shield::handle_sub_guard_cont,
                 training::directional_influence::handle_correct_damage_vector_common,
                 training::sdi::process_hit_stop_delay,
-                training::sdi::check_hit_stop_delay_command,
                 training::tech::handle_change_status
             );
         }
