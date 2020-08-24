@@ -34,7 +34,7 @@ pub fn buffer_follow_up() {
     let action;
 
     unsafe {
-        action = MENU.follow_up;
+        action = MENU.follow_up.get_random();
     }
 
     if action == Action::empty() {
