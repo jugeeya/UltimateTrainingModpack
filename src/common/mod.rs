@@ -13,6 +13,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     mash_state: Action::empty(),
     follow_up: Action::empty(),
     ledge_state: LedgeOption::all(),
+    ledge_delay: Delay::empty(),
     tech_state: TechFlags::all(),
     shield_state: Shield::None,
     defensive_state: Defensive::all(),
@@ -22,6 +23,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     fast_fall: BoolFlag::empty(),
     fast_fall_delay: Delay::empty(),
     falling_aerials: BoolFlag::empty(),
+    aerial_delay: Delay::empty(),
     full_hop: BoolFlag::empty(),
 };
 

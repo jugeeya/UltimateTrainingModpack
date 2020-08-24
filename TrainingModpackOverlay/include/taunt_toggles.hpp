@@ -97,6 +97,9 @@ CPUs will also perform a defensive
 option after getting up.
 )"""";
 
+const std::string ledge_delay_help = R""""(
+Frames to delay ledge option.)"""";
+
 // Tech Option
 
 // clang-format off
@@ -161,7 +164,7 @@ of hitstun or out of specific states.
     x(type,NeutralB,"Neutral B") x(type,SideB,"Side B") x(type,UpB,"Up B") x(type,DownB,"Down B") \
     x(type,FSmash,"Forward Smash") x(type,USmash,"Up Smash") x(type,DSmash,"Down Smash") \
     x(type,Jab,"Jab") x(type,FTilt,"Ftilt") x(type,UTilt,"Utilt") x(type,Dtilt,"Dtilt")  \
-    x(type,Grab,"Grab") //x(type,DashAttack,"Dash Attack")
+    x(type,Grab,"Grab") x(type,Dash,"Dash") //x(type,DashAttack,"Dash Attack")
 
 // clang-format on
 DEFINE_ENUM_CLASS(ActionFlag);
@@ -258,7 +261,9 @@ out of specific states.)"""";
 	x(type,D1,"1") x(type,D2,"2") x(type,D3,"3") x(type,D4,"4") x(type,D5,"5") \
 	x(type,D6,"6") x(type,D7,"7") x(type,D8,"8") x(type,D9,"9") x(type,D10,"10") \
 	x(type,D11,"11") x(type,D12,"12") x(type,D13,"13") x(type,D14,"14") x(type,D15,"15") \
-	x(type,D16,"16") x(type,D17,"17") x(type,D18,"18") x(type,D19,"19") x(type,D20,"20")
+	x(type,D16,"16") x(type,D17,"17") x(type,D18,"18") x(type,D19,"19") x(type,D20,"20") \
+	x(type,D21,"21") x(type,D22,"22") x(type,D23,"23") x(type,D24,"24") x(type,D25,"25") \
+	x(type,D26,"26") x(type,D27,"27") x(type,D28,"28") x(type,D29,"29") x(type,D30,"30") \
 // clang-format on
 
 DEFINE_ENUM_CLASS(DelayFlag);
@@ -281,6 +286,9 @@ const std::string falling_aerials_help = R""""(
 CPUs will only begin
 aerials at the apex of
 their jump.)"""";
+
+const std::string aerial_delay_help = R""""(
+Frames to delay CPU Aerial.)"""";
 
 const std::string full_hop_help = R""""(
 CPUs will full hop

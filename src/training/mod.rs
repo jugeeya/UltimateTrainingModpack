@@ -268,6 +268,8 @@ pub fn training_mods() {
     combo::init();
     shield::init();
     fast_fall::init();
+    mash::init();
+    ledge::init();
 
     // // Input recorder
     // SaltySD_function_replace_sym(

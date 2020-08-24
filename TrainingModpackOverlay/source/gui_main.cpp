@@ -16,6 +16,7 @@ static struct TrainingModpackMenu
 	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
+	DelayFlags     LEDGE_DELAY     = DelayFlags::All;
 	TechFlags      TECH_STATE      = TechFlags::All;
 	int            SHIELD_STATE    = NONE;
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
@@ -25,6 +26,7 @@ static struct TrainingModpackMenu
 	BoolFlags      FAST_FALL       = BoolFlags::None;
 	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
 	BoolFlags      FALLING_AERIALS = BoolFlags::None;
+	DelayFlags     AERIAL_DELAY    = DelayFlags::None;
 	BoolFlags      FULL_HOP        = BoolFlags::None;
 } menu;
 
@@ -275,7 +277,8 @@ public:
 
 namespace
 {
-template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const std::string& name, const std::string& help, GuiMain* guiMain)
+template<typename T>
+tsl::elm::ListItem* createBitFlagOption(T* option, const std::string& name, const std::string& help, GuiMain* guiMain)
 {
 	using FlagType = typename T::Type;
 
@@ -283,29 +286,31 @@ template<typename T> tsl::elm::ListItem* createBitFlagOption(T* option, const st
 	item->setClickListener([name, help, option, guiMain](u64 keys) -> bool {
 		if(keys & KEY_A)
 		{
-			tsl::changeTo<GuiLambda>([option, name, help]() -> tsl::elm::Element* {
-				auto                                   toggleList = new OverflowList();
-				std::vector<tsl::elm::ToggleListItem*> items;
-				for(auto& [flag, str] : detail::EnumArray<FlagType>::values)
-				{
-					items.emplace_back(new BitFlagToggleListItem<FlagType>(str, flag, option, name, help));
-				}
+			tsl::changeTo<GuiLambda>(
+			    [option, name, help]() -> tsl::elm::Element* {
+				    auto                                   toggleList = new OverflowList();
+				    std::vector<tsl::elm::ToggleListItem*> items;
+				    for(auto& [flag, str] : detail::EnumArray<FlagType>::values)
+				    {
+					    items.emplace_back(new BitFlagToggleListItem<FlagType>(str, flag, option, name, help));
+				    }
 
-				auto allOff = new SetToggleListItem({}, items, "None", name, help);
-				auto allOn  = new SetToggleListItem(items, {}, "All", name, help);
+				    auto allOff = new SetToggleListItem({}, items, "None", name, help);
+				    auto allOn  = new SetToggleListItem(items, {}, "All", name, help);
 
-				toggleList->addItem(allOn);
-				toggleList->addItem(allOff);
+				    toggleList->addItem(allOn);
+				    toggleList->addItem(allOff);
 
-				for(auto it : items)
-				{
-					toggleList->addItem(it);
-				}
+				    for(auto it : items)
+				    {
+					    toggleList->addItem(it);
+				    }
 
-				auto frame = new OverlayFrameWithHelp(name, "Press \uE0E3 for help with these options.");
-				frame->setContent(toggleList);
-				return frame;
-			}, guiMain);
+				    auto frame = new OverlayFrameWithHelp(name, "Press \uE0E3 for help with these options.");
+				    frame->setContent(toggleList);
+				    return frame;
+			    },
+			    guiMain);
 			return true;
 		}
 		if(keys & KEY_Y)
@@ -376,7 +381,8 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.MASH_STATE, "Mash Toggles", mash_help, this));
 			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help, this));
-			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL, "Mash In Neutral", mash_neutral_help));
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
+			    "Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL, "Mash In Neutral", mash_neutral_help));
 
 			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 
@@ -392,12 +398,12 @@ tsl::elm::Element* GuiMain::createUI()
 			valueListItems.push_back(shieldItem);
 
 			ClickableListItem* frameAdvantageItem = new ClickableListItem("Frame Advantage",
-													frame_advantage_items,
-													nullptr,
-													"frameAdvantage",
-													0,
-													"Frame Advantage",
-													frame_advantage_help);
+			                                                              frame_advantage_items,
+			                                                              nullptr,
+			                                                              "frameAdvantage",
+			                                                              0,
+			                                                              "Frame Advantage",
+			                                                              frame_advantage_help);
 			frameAdvantageItem->setClickListener([](std::vector<std::string> values,
 			                                        int*                     curValue,
 			                                        std::string              extdata,
@@ -414,6 +420,7 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(new tsl::elm::CategoryHeader("Chase", true));
 
 			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help, this));
+			list->addItem(createBitFlagOption(&menu.LEDGE_DELAY, "Ledge Delay", ledge_delay_help, this));
 			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help, this));
 			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help, this));
 
@@ -422,14 +429,16 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(createBitFlagOption(&menu.FAST_FALL, "Fast Fall", fast_fall_help, this));
 			list->addItem(createBitFlagOption(&menu.FAST_FALL_DELAY, "Fast Fall Delay", fast_fall_delay_help, this));
 			list->addItem(createBitFlagOption(&menu.FALLING_AERIALS, "Falling Aerials", falling_aerials_help, this));
+			list->addItem(createBitFlagOption(&menu.AERIAL_DELAY, "Aerial Delay", aerial_delay_help, this));
 			list->addItem(createBitFlagOption(&menu.FULL_HOP, "Full Hop", full_hop_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Miscellaneous", true));
 
-			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>("Hitbox Visualization", OnOffFlag::On, &menu.HITBOX_VIS, "Hitbox Visualization", hitbox_help));
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
+			    "Hitbox Visualization", OnOffFlag::On, &menu.HITBOX_VIS, "Hitbox Visualization", hitbox_help));
 
-			ClickableListItem* saveStateItem = new ClickableListItem(
-			    "Save States", empty_items, nullptr, "saveStates", 0, "Save States", save_states_help);
+			ClickableListItem* saveStateItem =
+			    new ClickableListItem("Save States", empty_items, nullptr, "saveStates", 0, "Save States", save_states_help);
 			saveStateItem->setClickListener([](std::vector<std::string> values,
 			                                   int*                     curValue,
 			                                   std::string              extdata,
@@ -439,20 +448,15 @@ tsl::elm::Element* GuiMain::createUI()
 			saveStateItem->setHelpListener([](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(saveStateItem);
 
-			ClickableListItem* resetMenuItem = new ClickableListItem("Reset Menu",
-													empty_items,
-													nullptr,
-													"resetMenu",
-													0,
-													"Reset Menu",
-													reset_menu_help);
+			ClickableListItem* resetMenuItem =
+			    new ClickableListItem("Reset Menu", empty_items, nullptr, "resetMenu", 0, "Reset Menu", reset_menu_help);
 			resetMenuItem->setClickListener([](std::vector<std::string> values,
-			                                        int*                     curValue,
-			                                        std::string              extdata,
-			                                        int                      index,
-			                                        std::string              title,
-			                                        std::string              help) { 
-				menu = defaultMenu; 
+			                                   int*                     curValue,
+			                                   std::string              extdata,
+			                                   int                      index,
+			                                   std::string              title,
+			                                   std::string              help) {
+				menu = defaultMenu;
 
 				/* Open Sd card filesystem. */
 				FsFileSystem fsSdmc;
@@ -463,8 +467,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 				tsl::goBack();
 			});
-			resetMenuItem->setHelpListener(
-			    [](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
+			resetMenuItem->setHelpListener([](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(resetMenuItem);
 
 			rootFrame->setContent(list);
