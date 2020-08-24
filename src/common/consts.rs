@@ -211,6 +211,7 @@ bitflags! {
         const GRAB = 0x400000;
         // TODO: Make work
         // const DASH_ATTACK = 0x400000;
+        const DASH = 0x800000;
     }
 }
 

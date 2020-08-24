@@ -259,6 +259,18 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
                 *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
             );
         }
+        Action::DASH => {
+            let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
+            let dash_status = *FIGHTER_STATUS_KIND_DASH;
+
+            try_change_status(module_accessor, dash_status, dash_transition);
+
+            return get_flag(
+                module_accessor,
+                *FIGHTER_STATUS_KIND_DASH,
+                0,
+            );
+        }
         _ => return get_attack_flag(module_accessor, action),
     }
 }
@@ -445,7 +457,7 @@ fn roll_aerial_delay(action: Action) {
     }
 }
 
-fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor,) -> bool {
+fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     unsafe {
         if AERIAL_DELAY == 0 {
             return false;
@@ -455,7 +467,10 @@ fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor,) -
             return false;
         }
 
-        if !WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR) {
+        if !WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
+        ) {
             return true;
         }
 
