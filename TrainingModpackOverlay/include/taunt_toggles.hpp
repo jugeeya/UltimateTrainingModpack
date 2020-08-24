@@ -97,6 +97,9 @@ CPUs will also perform a defensive
 option after getting up.
 )"""";
 
+const std::string ledge_delay_help = R""""(
+Frames to delay ledge option.)"""";
+
 // Tech Option
 
 // clang-format off

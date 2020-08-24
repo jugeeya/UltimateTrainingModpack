@@ -1,13 +1,42 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::frame_counter;
 use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+
+const NOT_SET :u32 = 9001;
+static mut LEDGE_DELAY: u32 = NOT_SET;
+static mut LEDGE_DELAY_COUNTER: usize = 0;
+
+pub fn init() {
+    unsafe {
+        LEDGE_DELAY_COUNTER = frame_counter::register_counter();
+    }
+}
+
+pub fn reset_ledge_delay(){
+    unsafe{
+        LEDGE_DELAY = NOT_SET;
+    }
+}
+
+fn roll_ledge_delay(){
+    unsafe{
+        if LEDGE_DELAY !=  NOT_SET {
+            return;
+        }
+
+        LEDGE_DELAY = MENU.ledge_delay.get_random().to_index();
+    }
+}
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT {
         return;
     }
+
+    roll_ledge_delay();
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
@@ -16,19 +45,14 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
-    let random_frame = get_random_int(MotionModule::end_frame(module_accessor) as i32) as f32;
-
-    let frame = MotionModule::frame(module_accessor) as f32;
-    if !(frame == random_frame || frame > 30.0) {
+    if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
         return;
     }
 
-    let mut status = 0;
-    let ledge_case: LedgeOption = MENU.ledge_state.get_random();
+    reset_ledge_delay();
 
-    if let Some(new_status) = ledge_case.into_status() {
-        status = new_status;
-    }
+    let ledge_case: LedgeOption = MENU.ledge_state.get_random();
+    let status = ledge_case.into_status().unwrap_or(0);
 
     match ledge_case {
         LedgeOption::JUMP => {
@@ -42,8 +66,13 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    _category: i32,
+    category: i32,
 ) {
+    // Only do once per frame
+    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
+        return;
+    }
+
     if !is_training_mode() {
         return;
     }

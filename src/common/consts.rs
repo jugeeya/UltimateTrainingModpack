@@ -289,6 +289,7 @@ pub struct TrainingModpackMenu {
     pub mash_state: Action,
     pub follow_up: Action,
     pub ledge_state: LedgeOption,
+    pub ledge_delay: Delay,
     pub tech_state: TechFlags,
     pub shield_state: Shield,
     pub defensive_state: Defensive,

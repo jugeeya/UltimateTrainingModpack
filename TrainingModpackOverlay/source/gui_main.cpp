@@ -16,6 +16,7 @@ static struct TrainingModpackMenu
 	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
+	DelayFlags     LEDGE_DELAY     = DelayFlags::All;
 	TechFlags      TECH_STATE      = TechFlags::All;
 	int            SHIELD_STATE    = NONE;
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
@@ -419,6 +420,7 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(new tsl::elm::CategoryHeader("Chase", true));
 
 			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help, this));
+			list->addItem(createBitFlagOption(&menu.LEDGE_DELAY, "Ledge Delay", ledge_delay_help, this));
 			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help, this));
 			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help, this));
 
