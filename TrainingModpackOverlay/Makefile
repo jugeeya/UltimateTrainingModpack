@@ -38,7 +38,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
 APP_TITLE	:=	Training Modpack
-APP_VERSION	:=	2.5
+APP_VERSION	:=	2.5.1Beta
 
 TARGET		:=	ovlTrainingModpack
 BUILD		:=	build
