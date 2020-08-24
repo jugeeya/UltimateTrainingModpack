@@ -251,7 +251,17 @@ bitflags! {
         const D17 = 0x20000;
         const D18 = 0x40000;
         const D19 = 0x80000;
-        const D20  = 0x100000;
+        const D20 = 0x100000;
+        const D21 = 0x200000;
+        const D22 = 0x400000;
+        const D23 = 0x800000;
+        const D24 = 0x1000000;
+        const D25 = 0x2000000;
+        const D26 = 0x4000000;
+        const D27 = 0x8000000;
+        const D28 = 0x10000000;
+        const D29 = 0x20000000;
+        const D30 = 0x40000000;
     }
 }
 

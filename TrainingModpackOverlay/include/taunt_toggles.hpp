@@ -262,14 +262,8 @@ out of specific states.)"""";
 	x(type,D6,"6") x(type,D7,"7") x(type,D8,"8") x(type,D9,"9") x(type,D10,"10") \
 	x(type,D11,"11") x(type,D12,"12") x(type,D13,"13") x(type,D14,"14") x(type,D15,"15") \
 	x(type,D16,"16") x(type,D17,"17") x(type,D18,"18") x(type,D19,"19") x(type,D20,"20") \
-	x(type,D11,"21") x(type,D12,"22") x(type,D13,"23") x(type,D14,"24") x(type,D15,"25") \
-	x(type,D16,"26") x(type,D17,"27") x(type,D18,"28") x(type,D19,"29") x(type,D20,"30") \
-	x(type,D11,"31") x(type,D12,"32") x(type,D13,"33") x(type,D14,"34") x(type,D15,"35") \
-	x(type,D16,"36") x(type,D17,"37") x(type,D18,"38") x(type,D19,"39") x(type,D20,"40") \
-	x(type,D11,"41") x(type,D12,"42") x(type,D13,"43") x(type,D14,"44") x(type,D15,"45") \
-	x(type,D16,"46") x(type,D17,"47") x(type,D18,"48") x(type,D19,"49") x(type,D20,"50") \
-	x(type,D11,"51") x(type,D12,"52") x(type,D13,"53") x(type,D14,"54") x(type,D15,"55") \
-	x(type,D16,"56") x(type,D17,"57") x(type,D18,"58") x(type,D19,"59") x(type,D20,"60")
+	x(type,D21,"21") x(type,D22,"22") x(type,D23,"23") x(type,D24,"24") x(type,D25,"25") \
+	x(type,D26,"26") x(type,D27,"27") x(type,D28,"28") x(type,D29,"29") x(type,D30,"30") \
 // clang-format on
 
 DEFINE_ENUM_CLASS(DelayFlag);
