@@ -22,6 +22,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     fast_fall: BoolFlag::empty(),
     fast_fall_delay: Delay::empty(),
     falling_aerials: BoolFlag::empty(),
+    aerial_delay: Delay::empty(),
     full_hop: BoolFlag::empty(),
 };
 

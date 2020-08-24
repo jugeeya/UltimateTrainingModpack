@@ -298,6 +298,7 @@ pub struct TrainingModpackMenu {
     pub fast_fall: BoolFlag,
     pub fast_fall_delay: Delay,
     pub falling_aerials: BoolFlag,
+    pub aerial_delay: Delay,
     pub full_hop: BoolFlag,
 }
 

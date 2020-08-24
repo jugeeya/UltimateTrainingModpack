@@ -2,6 +2,7 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::character_specific;
 use crate::training::fast_fall;
+use crate::training::frame_counter;
 use crate::training::full_hop;
 use crate::training::sdi;
 use crate::training::shield;
@@ -13,6 +14,9 @@ static mut QUEUE: Vec<Action> = vec![];
 
 static mut FALLING_AERIAL: bool = false;
 
+static mut AERIAL_DELAY_COUNTER: usize = 0;
+static mut AERIAL_DELAY: u32 = 0;
+
 pub fn buffer_action(action: Action) {
     unsafe {
         if QUEUE.len() > 0 {
@@ -23,6 +27,8 @@ pub fn buffer_action(action: Action) {
     if action == Action::empty() {
         return;
     }
+
+    roll_aerial_delay(action);
 
     unsafe {
         QUEUE.insert(0, action);
@@ -40,6 +46,8 @@ pub fn buffer_follow_up() {
     if action == Action::empty() {
         return;
     }
+
+    roll_aerial_delay(action);
 
     unsafe {
         QUEUE.insert(0, action);
@@ -62,10 +70,15 @@ fn reset() {
     }
 
     shield::suspend_shield(get_current_buffer());
+
+    unsafe {
+        frame_counter::full_reset(AERIAL_DELAY_COUNTER);
+        AERIAL_DELAY = 0;
+    }
 }
 
-pub fn full_reset(){
-    unsafe{
+pub fn full_reset() {
+    unsafe {
         while QUEUE.len() > 0 {
             reset();
         }
@@ -395,6 +408,10 @@ unsafe fn get_aerial_flag(
         return flag;
     }
 
+    if should_delay_aerial(module_accessor) {
+        return flag;
+    }
+
     /*
      * We always trigger attack and change it later into the correct aerial
      * @see get_attack_air_kind()
@@ -411,6 +428,39 @@ unsafe fn get_aerial_flag(
     flag |= get_flag(module_accessor, status, command_flag);
 
     return flag;
+}
+
+pub fn init() {
+    unsafe {
+        AERIAL_DELAY_COUNTER = frame_counter::register_counter();
+    }
+}
+
+fn roll_aerial_delay(action: Action) {
+    if !shield::is_aerial(action) {
+        return;
+    }
+    unsafe {
+        AERIAL_DELAY = MENU.aerial_delay.get_random().to_index();
+    }
+}
+
+fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor,) -> bool {
+    unsafe {
+        if AERIAL_DELAY == 0 {
+            return false;
+        }
+
+        if StatusModule::status_kind(module_accessor) == *FIGHTER_STATUS_KIND_ATTACK_AIR {
+            return false;
+        }
+
+        if !WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR) {
+            return true;
+        }
+
+        return frame_counter::should_delay(AERIAL_DELAY, AERIAL_DELAY_COUNTER);
+    }
 }
 
 /**

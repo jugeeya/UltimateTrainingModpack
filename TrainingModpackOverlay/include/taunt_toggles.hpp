@@ -282,6 +282,9 @@ CPUs will only begin
 aerials at the apex of
 their jump.)"""";
 
+const std::string aerial_delay_help = R""""(
+Frames to delay CPU Aerial.)"""";
+
 const std::string full_hop_help = R""""(
 CPUs will full hop
 rather than short hop
