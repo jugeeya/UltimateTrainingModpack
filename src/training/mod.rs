@@ -17,6 +17,7 @@ mod frame_counter;
 mod full_hop;
 mod ledge;
 mod mash;
+mod reset;
 mod save_states;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
@@ -105,6 +106,8 @@ fn once_per_frame_per_fighter(
     frame_counter::get_command_flag_cat(module_accessor);
     ledge::get_command_flag_cat(module_accessor);
     shield::get_command_flag_cat(module_accessor);
+
+    reset::check_reset(module_accessor);
 }
 
 /**

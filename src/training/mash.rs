@@ -4,7 +4,6 @@ use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::frame_counter;
 use crate::training::full_hop;
-use crate::training::sdi;
 use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
@@ -121,14 +120,6 @@ pub unsafe fn get_command_flag_cat(
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if QUEUE.len() > 0 {
-        /*
-         Reset when CPU is idle to prevent deadlocks
-         and to reset when using the training mode reset
-        */
-        if should_reset(module_accessor) {
-            full_reset();
-        }
-
         return;
     }
 
@@ -137,25 +128,6 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     }
 
     buffer_menu_mash();
-}
-
-fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if !is_idle(module_accessor) {
-        return false;
-    }
-
-    let prev_status;
-
-    unsafe {
-        prev_status = StatusModule::prev_status_kind(module_accessor, 0);
-    }
-
-    // Only reset on training mode reset
-    if prev_status != *FIGHTER_STATUS_KIND_NONE {
-        return false;
-    }
-
-    return true;
 }
 
 fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -185,7 +157,6 @@ pub fn buffer_menu_mash() -> Action {
         full_hop::roll_full_hop();
         fast_fall::roll_fast_fall();
         FALLING_AERIAL = MENU.falling_aerials.get_random().into_bool();
-        sdi::roll_direction();
 
         action
     }

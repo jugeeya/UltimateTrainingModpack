@@ -1,5 +1,5 @@
 use crate::common::*;
-use crate::training::mash;
+use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -83,7 +83,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
         }
-        mash::full_reset();
+        reset::on_reset();
         return;
     }
 
