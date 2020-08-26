@@ -4,6 +4,7 @@ use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
+pub mod combo;
 pub mod directional_influence;
 pub mod sdi;
 pub mod shield;
@@ -11,7 +12,6 @@ pub mod tech;
 
 mod air_dodge_direction;
 mod character_specific;
-pub mod combo;
 mod fast_fall;
 mod frame_counter;
 mod full_hop;
@@ -19,6 +19,7 @@ mod ledge;
 mod mash;
 mod reset;
 mod save_states;
+mod shield_tilt;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -122,8 +123,9 @@ pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModule
         return ori;
     }
 
-    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
+    shield_tilt::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
+
 /**
  * This is called to get the stick position when
  * shielding (shield tilt)
@@ -136,7 +138,7 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
         return ori;
     }
 
-    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
+    shield_tilt::mod_get_stick_y(module_accessor).unwrap_or(ori)
 }
 
 /**
@@ -326,6 +328,9 @@ pub fn training_mods() {
         // Directional AirDodge,
         get_stick_x,
         get_stick_y,
+        // Shield Tilt
+        get_stick_x_no_clamp,
+        get_stick_y_no_clamp,
         // Combo
         handle_is_enable_transition_term,
         // SDI

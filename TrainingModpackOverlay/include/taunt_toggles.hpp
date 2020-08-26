@@ -172,25 +172,6 @@ The option will be random
 among the selected options.
 )"""";
 
-// Shield States
-#define SHIELD_INFINITE 1
-#define SHIELD_HOLD 2
-const std::vector<std::string> shield_items{"None", "Infinite", "Hold"};
-const std::string              shield_help = R""""(
-Use these toggles in conjunction
-with Mash toggles to practice
-moves on shield.
-
-Infinite
-CPUs will hold a shield that does
-not deteriorate over time or
-by damage.
-
-Hold
-CPUs will hold a normal shield.
-This shield will not deteriorate
-until hit once.)"""";
-
 // Hitbox visualization
 const std::string hitbox_help = R""""(
 Currently, hitboxes and
@@ -226,6 +207,25 @@ use on the first boot after
 upgrading Training Modpack
 versions.)"""";
 
+// Shield States
+#define SHIELD_INFINITE 1
+#define SHIELD_HOLD 2
+const std::vector<std::string> shield_items{"None", "Infinite", "Hold"};
+const std::string              shield_help = R""""(
+Use these toggles in conjunction
+with Mash toggles to practice
+moves on shield.
+
+Infinite
+CPUs will hold a shield that does
+not deteriorate over time or
+by damage.
+
+Hold
+CPUs will hold a normal shield.
+This shield will not deteriorate
+until hit once.)"""";
+
 // OOS
 const std::string oos_help = R""""(
 Option to delay oos options
@@ -242,6 +242,10 @@ Additional reaction time
 in frames.
 
 Used to delay OOS Options.)"""";
+
+const std::string shield_tilt_help  = R""""(
+Shield Tilt Direction
+)"""";
 
 // Mash in neutral
 const std::string mash_neutral_help = R""""(

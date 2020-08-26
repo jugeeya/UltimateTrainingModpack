@@ -18,6 +18,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     shield_state: Shield::None,
     defensive_state: Defensive::all(),
     oos_offset: Delay::empty(),
+    shield_tilt: Direction::empty(),
     reaction_time: Delay::empty(),
     mash_in_neutral: OnOff::Off,
     fast_fall: BoolFlag::empty(),
