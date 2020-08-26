@@ -12,7 +12,7 @@ static mut DELAY: u32 = 0;
 static mut FAST_FALL: bool = false;
 
 fn should_fast_fall() -> bool {
-    unsafe{
+    unsafe {
         return FAST_FALL;
     }
 }
@@ -29,19 +29,7 @@ pub fn init() {
     }
 }
 
-pub unsafe fn get_command_flag_cat(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
-) {
-    if !is_training_mode() {
-        return;
-    }
-
-    // Once per frame
-    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
-    }
-
+pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !should_fast_fall() {
         return;
     }
@@ -55,35 +43,37 @@ pub unsafe fn get_command_flag_cat(
     }
 
     // Need to be falling
-    if !is_falling(module_accessor) {
-        // Roll FF delay
-        DELAY = MENU.fast_fall_delay.get_random().to_index();
-        frame_counter::full_reset(FRAME_COUNTER);
-        return;
+    unsafe {
+        if !is_falling(module_accessor) {
+            // Roll FF delay
+            DELAY = MENU.fast_fall_delay.get_random().to_index();
+            frame_counter::full_reset(FRAME_COUNTER);
+            return;
+        }
+
+        if !is_correct_status(module_accessor) {
+            return;
+        }
+
+        // Already in fast fall, nothing to do
+        if WorkModule::is_flag(module_accessor, *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_DIVE) {
+            return;
+        }
+
+        // Check delay
+        if frame_counter::should_delay(DELAY, FRAME_COUNTER) {
+            return;
+        }
+
+        // Set Fast Fall Flag
+        WorkModule::set_flag(
+            module_accessor,
+            true,
+            *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_DIVE,
+        );
+
+        add_spark_effect(module_accessor);
     }
-
-    if !is_correct_status(module_accessor) {
-        return;
-    }
-
-    // Already in fast fall, nothing to do
-    if WorkModule::is_flag(module_accessor, *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_DIVE) {
-        return;
-    }
-
-    // Check delay
-    if frame_counter::should_delay(DELAY, FRAME_COUNTER) {
-        return;
-    }
-
-    // Set Fast Fall Flag
-    WorkModule::set_flag(
-        module_accessor,
-        true,
-        *FIGHTER_STATUS_WORK_ID_FLAG_RESERVE_DIVE,
-    );
-
-    add_spark_effect(module_accessor);
 }
 
 /**

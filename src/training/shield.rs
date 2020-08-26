@@ -81,11 +81,7 @@ pub unsafe fn allow_oos() -> bool {
     MULTI_HIT_OFFSET == 0
 }
 
-pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if !is_training_mode() {
-        return;
-    }
-
+pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }
@@ -96,9 +92,11 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     }
 
     // Reset when not shielding
-    let status_kind = StatusModule::status_kind(module_accessor);
-    if !(status_kind == FIGHTER_STATUS_KIND_GUARD) {
-        set_shield_decay(false);
+    unsafe {
+        let status_kind = StatusModule::status_kind(module_accessor);
+        if !(status_kind == FIGHTER_STATUS_KIND_GUARD) {
+            set_shield_decay(false);
+        }
     }
 }
 

@@ -64,32 +64,23 @@ pub fn get_frame_count(index: usize) -> u32 {
     unsafe { COUNTERS[index] }
 }
 
-pub unsafe fn tick() {
-    for (index, _frame) in COUNTERS.iter().enumerate() {
-        if !SHOULD_COUNT[index] {
-            continue;
+fn tick() {
+    unsafe {
+        for (index, _frame) in COUNTERS.iter().enumerate() {
+            if !SHOULD_COUNT[index] {
+                continue;
+            }
+            COUNTERS[index] += 1;
         }
-        COUNTERS[index] += 1;
     }
 }
 
-pub unsafe fn get_command_flag_cat(
+pub fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
 ) {
-    if !is_training_mode() {
-        return;
-    }
-
-    // Only do once per frame
-    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return;
     }
-    //~
 
     tick();
 }

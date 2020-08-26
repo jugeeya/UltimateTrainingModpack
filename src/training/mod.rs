@@ -1,4 +1,4 @@
-use crate::common::{FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
+use crate::common::{is_training_mode, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
@@ -9,13 +9,13 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 
+mod air_dodge_direction;
 mod character_specific;
 pub mod combo;
 mod fast_fall;
 mod frame_counter;
 mod full_hop;
 mod ledge;
-mod air_dodge_direction;
 mod mash;
 mod save_states;
 
@@ -55,25 +55,44 @@ pub unsafe fn handle_get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32,
 ) -> i32 {
-    save_states::save_states(module_accessor, category);
-
     let mut flag = original!()(module_accessor, category);
 
-    frame_counter::get_command_flag_cat(module_accessor, category);
-    combo::get_command_flag_cat(module_accessor, category);
+    unsafe {
+        if !crate::common::is_training_mode() {
+            return flag;
+        }
+    }
 
     // bool replace;
     // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
     // if (replace) return ret;
 
-    shield::get_command_flag_cat(module_accessor);
     flag |= mash::get_command_flag_cat(module_accessor, category);
-    ledge::get_command_flag_cat(module_accessor, category);
-    tech::get_command_flag_cat(module_accessor, category);
-    hitbox_visualizer::get_command_flag_cat(module_accessor, category);
-    fast_fall::get_command_flag_cat(module_accessor, category);
+
+    once_per_cpu_frame(module_accessor, category);
 
     flag
+}
+
+fn once_per_frame_per_fighter(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    category: i32,
+) {
+    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
+        return;
+    }
+
+    unsafe {
+        combo::get_command_flag_cat(module_accessor);
+        hitbox_visualizer::get_command_flag_cat(module_accessor);
+        save_states::save_states(module_accessor);
+        tech::get_command_flag_cat(module_accessor);
+    }
+
+    fast_fall::get_command_flag_cat(module_accessor);
+    frame_counter::get_command_flag_cat(module_accessor);
+    ledge::get_command_flag_cat(module_accessor);
+    shield::get_command_flag_cat(module_accessor);
 }
 
 /**
@@ -83,7 +102,8 @@ pub unsafe fn handle_get_command_flag_cat(
  */
 #[skyline::hook(replace = ControlModule::get_stick_x_no_clamp)]
 pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_x(module_accessor)
+        .unwrap_or_else(|| original!()(module_accessor))
 }
 /**
  * This is called to get the stick position when
@@ -92,7 +112,8 @@ pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_y_no_clamp)]
 pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_y(module_accessor)
+        .unwrap_or_else(|| original!()(module_accessor))
 }
 
 /**
@@ -102,7 +123,8 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_x)]
 pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_x(module_accessor)
+        .unwrap_or_else(|| original!()(module_accessor))
 }
 
 /**
@@ -110,7 +132,8 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
 pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_y(module_accessor)
+        .unwrap_or_else(|| original!()(module_accessor))
 }
 
 // int get_pad_flag(u64 module_accessor) {
@@ -197,9 +220,9 @@ pub unsafe fn handle_change_motion(
 }
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
-pub unsafe  fn handle_is_enable_transition_term(
+pub unsafe fn handle_is_enable_transition_term(
     module_accessor: *mut app::BattleObjectModuleAccessor,
-    transition_term: i32
+    transition_term: i32,
 ) -> bool {
     let is = original!()(module_accessor, transition_term);
 
@@ -214,9 +237,7 @@ extern "C" {
 }
 
 #[skyline::hook(replace = set_dead_rumble)]
-pub unsafe fn handle_set_dead_rumble(
-    lua_state: u64) -> u64 {
-
+pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
     if crate::common::is_training_mode() {
         return 0;
     }

@@ -40,7 +40,7 @@ macro_rules! actionable_statuses {
 
 unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     actionable_statuses!().iter().any(
-        |actionable_transition| 
+        |actionable_transition|
         WorkModule::is_enable_transition_term(module_accessor, **actionable_transition))
     || CancelModule::is_enable_cancel(module_accessor)
 }
@@ -61,7 +61,7 @@ pub unsafe fn is_enable_transition_term(
     // This is in the case that the transition term becomes enabled after our initial check
     // and the user buffers that action on that frame.
 
-    if !PLAYER_ACTIONABLE && 
+    if !PLAYER_ACTIONABLE &&
         (
             (is && actionable_statuses!().iter().any(|actionable_transition| *actionable_transition == transition_term))
             ||
@@ -69,7 +69,7 @@ pub unsafe fn is_enable_transition_term(
         ) {
         PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
         PLAYER_ACTIONABLE = true;
-    
+
         // if both are now active
         if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
             if FRAME_ADVANTAGE_CHECK {
@@ -87,16 +87,7 @@ pub unsafe fn is_enable_transition_term(
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
 ) {
-    if !is_training_mode() {
-        return;
-    }
-
-    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
-    }
-
     let entry_id_int =
         WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
     // do only once.

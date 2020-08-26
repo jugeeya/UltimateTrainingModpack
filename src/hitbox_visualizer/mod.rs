@@ -156,17 +156,7 @@ pub unsafe fn generate_hitbox_effects(
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
 ) {
-    if !is_training_mode() {
-        return;
-    }
-
-    // apply only once per frame
-    if category != 0 {
-        return;
-    }
-
     // Resume Effect AnimCMD incase we don't display hitboxes
     MotionAnimcmdModule::set_sleep_effect(module_accessor, false);
 

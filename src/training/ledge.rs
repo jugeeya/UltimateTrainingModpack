@@ -5,7 +5,7 @@ use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-const NOT_SET :u32 = 9001;
+const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
 static mut LEDGE_DELAY_COUNTER: usize = 0;
 
@@ -15,15 +15,15 @@ pub fn init() {
     }
 }
 
-pub fn reset_ledge_delay(){
-    unsafe{
+pub fn reset_ledge_delay() {
+    unsafe {
         LEDGE_DELAY = NOT_SET;
     }
 }
 
-fn roll_ledge_delay(){
-    unsafe{
-        if LEDGE_DELAY !=  NOT_SET {
+fn roll_ledge_delay() {
+    unsafe {
+        if LEDGE_DELAY != NOT_SET {
             return;
         }
 
@@ -64,26 +64,16 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     StatusModule::change_status_request_from_script(module_accessor, status, true);
 }
 
-pub unsafe fn get_command_flag_cat(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
-) {
-    // Only do once per frame
-    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
-    }
-
-    if !is_training_mode() {
-        return;
-    }
-
+pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }
 
-    if MENU.ledge_state == LedgeOption::empty() {
-        return;
-    }
+    unsafe {
+        if MENU.ledge_state == LedgeOption::empty() {
+            return;
+        }
 
-    force_option(module_accessor);
+        force_option(module_accessor);
+    }
 }

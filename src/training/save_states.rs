@@ -70,15 +70,7 @@ pub unsafe fn get_param_int(
     None
 }
 
-pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor, category: i32) {
-    if !is_training_mode() {
-        return;
-    }
-
-    if category != *FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
-    }
-
+pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let status = StatusModule::status_kind(module_accessor) as i32;
     let save_state: &mut SavedState;
     if is_operation_cpu(module_accessor) {

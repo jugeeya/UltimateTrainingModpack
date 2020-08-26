@@ -91,12 +91,7 @@ unsafe fn mod_handle_change_status(
 
 pub unsafe fn get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    _category: i32,
 ) {
-    if !is_training_mode() {
-        return;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return;
     }
