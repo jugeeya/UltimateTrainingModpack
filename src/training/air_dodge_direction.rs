@@ -31,10 +31,6 @@ pub unsafe fn mod_get_stick_y(
 }
 
 unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f64 {
-    if !is_training_mode() {
-        return ANGLE_NONE;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return ANGLE_NONE;
     }

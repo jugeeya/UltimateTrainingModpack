@@ -16,9 +16,11 @@ pub unsafe fn handle_change_status(
     status_kind: L2CValue,
     unk: L2CValue,
 ) -> L2CValue {
-    let mut status_kind = status_kind;
-    let mut unk = unk;
-    mod_handle_change_status(fighter, &mut status_kind, &mut unk);
+    if is_training_mode() {
+        let mut status_kind = status_kind;
+        let mut unk = unk;
+        mod_handle_change_status(fighter, &mut status_kind, &mut unk);
+    }
 
     original!()(fighter, status_kind, unk)
 }
@@ -28,10 +30,6 @@ unsafe fn mod_handle_change_status(
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
 ) {
-    if !is_training_mode() {
-        return;
-    }
-
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     if !is_operation_cpu(module_accessor) {
         return;
@@ -128,10 +126,6 @@ pub unsafe fn change_motion(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     motion_kind: u64,
 ) -> Option<u64> {
-    if !is_training_mode() {
-        return None;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return None;
     }

@@ -45,10 +45,6 @@ pub unsafe fn get_param_int(
     param_type: u64,
     param_hash: u64,
 ) -> Option<i32> {
-    if !is_training_mode() {
-        return None;
-    }
-
     if param_type == hash40("common") {
         if param_hash == hash40("dead_rebirth_wait_frame") {
             return Some(1);

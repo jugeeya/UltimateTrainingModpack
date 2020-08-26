@@ -25,8 +25,12 @@ pub unsafe fn handle_get_param_float(
     param_type: u64,
     param_hash: u64,
 ) -> f32 {
-    shield::get_param_float(module_accessor, param_type, param_hash)
-        .unwrap_or_else(|| original!()(module_accessor, param_type, param_hash))
+    let ori = original!()(module_accessor, param_type, param_hash);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield::get_param_float(module_accessor, param_type, param_hash).unwrap_or(ori)
 }
 
 #[skyline::hook(replace = WorkModule::get_param_int)]
@@ -35,19 +39,29 @@ pub unsafe fn handle_get_param_int(
     param_type: u64,
     param_hash: u64,
 ) -> i32 {
-    save_states::get_param_int(module_accessor, param_type, param_hash)
-        .unwrap_or_else(|| original!()(module_accessor, param_type, param_hash))
+    let ori = original!()(module_accessor, param_type, param_hash);
+
+    if !is_training_mode() {
+        return ori;
+    }
+
+    save_states::get_param_int(module_accessor, param_type, param_hash).unwrap_or(ori)
 }
 
 #[skyline::hook(replace = ControlModule::get_attack_air_kind)]
 pub unsafe fn handle_get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> i32 {
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
     // bool replace;
     // int kind = InputRecorder::get_attack_air_kind(module_accessor, replace);
     // if (replace) return kind;
 
-    mash::get_attack_air_kind(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    mash::get_attack_air_kind(module_accessor).unwrap_or(ori)
 }
 
 #[skyline::hook(replace = ControlModule::get_command_flag_cat)]
@@ -57,10 +71,8 @@ pub unsafe fn handle_get_command_flag_cat(
 ) -> i32 {
     let mut flag = original!()(module_accessor, category);
 
-    unsafe {
-        if !crate::common::is_training_mode() {
-            return flag;
-        }
+    if !is_training_mode() {
+        return flag;
     }
 
     // bool replace;
@@ -69,7 +81,7 @@ pub unsafe fn handle_get_command_flag_cat(
 
     flag |= mash::get_command_flag_cat(module_accessor, category);
 
-    once_per_cpu_frame(module_accessor, category);
+    once_per_frame_per_fighter(module_accessor, category);
 
     flag
 }
@@ -102,8 +114,12 @@ fn once_per_frame_per_fighter(
  */
 #[skyline::hook(replace = ControlModule::get_stick_x_no_clamp)]
 pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_x(module_accessor)
-        .unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 /**
  * This is called to get the stick position when
@@ -112,8 +128,12 @@ pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_y_no_clamp)]
 pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_y(module_accessor)
-        .unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
 }
 
 /**
@@ -123,8 +143,12 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_x)]
 pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_x(module_accessor)
-        .unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 
 /**
@@ -132,8 +156,12 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
 pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    air_dodge_direction::mod_get_stick_y(module_accessor)
-        .unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
 }
 
 // int get_pad_flag(u64 module_accessor) {
@@ -177,10 +205,13 @@ pub unsafe fn handle_check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_on(module_accessor, button).unwrap_or_else(|| {
-        full_hop::check_button_on(module_accessor, button)
-            .unwrap_or_else(|| original!()(module_accessor, button))
-    })
+    let ori = original!()(module_accessor, button);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield::check_button_on(module_accessor, button)
+        .unwrap_or_else(|| full_hop::check_button_on(module_accessor, button).unwrap_or(ori))
 }
 
 #[skyline::hook(replace = ControlModule::check_button_off)]
@@ -188,10 +219,13 @@ pub unsafe fn handle_check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_off(module_accessor, button).unwrap_or_else(|| {
-        full_hop::check_button_off(module_accessor, button)
-            .unwrap_or_else(|| original!()(module_accessor, button))
-    })
+    let ori = original!()(module_accessor, button);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield::check_button_off(module_accessor, button)
+        .unwrap_or_else(|| full_hop::check_button_off(module_accessor, button).unwrap_or(ori))
 }
 
 #[skyline::hook(replace = MotionModule::change_motion)]
@@ -205,11 +239,15 @@ pub unsafe fn handle_change_motion(
     unk5: bool,
     unk6: bool,
 ) -> u64 {
-    let motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
+    let mut mod_motion_kind = motion_kind;
+
+    if is_training_mode() {
+        mod_motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
+    }
 
     original!()(
         module_accessor,
-        motion_kind,
+        mod_motion_kind,
         unk1,
         unk2,
         unk3,
@@ -224,11 +262,15 @@ pub unsafe fn handle_is_enable_transition_term(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     transition_term: i32,
 ) -> bool {
-    let is = original!()(module_accessor, transition_term);
+    let ori = original!()(module_accessor, transition_term);
 
-    combo::is_enable_transition_term(module_accessor, transition_term, is);
+    if !is_training_mode() {
+        return ori;
+    }
 
-    is
+    combo::is_enable_transition_term(module_accessor, transition_term, ori);
+
+    ori
 }
 
 extern "C" {
@@ -238,11 +280,12 @@ extern "C" {
 
 #[skyline::hook(replace = set_dead_rumble)]
 pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
-    if crate::common::is_training_mode() {
-        return 0;
+    let ori = original!()(lua_state);
+    if !is_training_mode() {
+        return ori;
     }
 
-    original!()(lua_state)
+    return 0;
 }
 
 pub fn training_mods() {

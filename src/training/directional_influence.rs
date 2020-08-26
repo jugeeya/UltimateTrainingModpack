@@ -11,15 +11,14 @@ pub unsafe fn handle_correct_damage_vector_common(
     fighter: &mut L2CFighterCommon,
     arg1: L2CValue,
 ) -> L2CValue {
-    mod_handle_di(fighter, arg1);
+    if is_training_mode() {
+        mod_handle_di(fighter, arg1);
+    }
+
     original!()(fighter, arg1)
 }
 
 unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
-    if !is_training_mode() {
-        return;
-    }
-
     if MENU.di_state == Direction::empty() {
         return;
     }

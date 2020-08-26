@@ -94,10 +94,6 @@ pub fn set_aerial(attack: Action) {
 pub unsafe fn get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> Option<i32> {
-    if !is_training_mode() {
-        return None;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return None;
     }
@@ -111,10 +107,6 @@ pub unsafe fn get_command_flag_cat(
 ) -> i32 {
     // Only do once per frame
     if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return 0;
-    }
-
-    if !is_training_mode() {
         return 0;
     }
 

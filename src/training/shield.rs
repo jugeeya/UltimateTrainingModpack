@@ -105,10 +105,6 @@ pub unsafe fn get_param_float(
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
-    if !is_training_mode() {
-        return None;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return None;
     }
@@ -158,13 +154,19 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]
 pub unsafe fn handle_sub_guard_cont(fighter: &mut L2CFighterCommon) -> L2CValue {
+    let ori = original!()(fighter);
+
+    if !is_training_mode() {
+        return ori;
+    }
+
     mod_handle_sub_guard_cont(fighter);
-    original!()(fighter)
+    ori
 }
 
 unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-    if !is_training_mode() || !is_operation_cpu(module_accessor) {
+    if !is_operation_cpu(module_accessor) {
         return;
     }
 
@@ -341,10 +343,6 @@ unsafe fn should_return_none_in_check_button(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    if !is_training_mode() {
-        return true;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return true;
     }

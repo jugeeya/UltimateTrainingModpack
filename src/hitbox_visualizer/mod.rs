@@ -108,7 +108,8 @@ pub unsafe fn generate_hitbox_effects(
             z: 0.0,
         };
 
-        if false { // is_fighter(module_accessor) {
+        if false {
+            // is_fighter(module_accessor) {
             EffectModule::req_on_joint(
                 module_accessor,
                 Hash40::new("sys_shield"),
@@ -154,9 +155,7 @@ pub unsafe fn generate_hitbox_effects(
     }
 }
 
-pub unsafe fn get_command_flag_cat(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) {
+pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     // Resume Effect AnimCMD incase we don't display hitboxes
     MotionAnimcmdModule::set_sleep_effect(module_accessor, false);
 
@@ -212,15 +211,14 @@ pub unsafe fn get_command_flag_cat(
 // Necessary to ensure we visualize on the first frame of the hitbox
 #[skyline::hook(replace = sv_animcmd::ATTACK)]
 unsafe fn handle_attack(lua_state: u64) {
-    mod_handle_attack(lua_state);
+    if is_training_mode() {
+        mod_handle_attack(lua_state);
+    }
+
     original!()(lua_state);
 }
 
 unsafe fn mod_handle_attack(lua_state: u64) {
-    if !is_training_mode() {
-        return;
-    }
-
     let mut l2c_agent = L2CAgent::new(lua_state);
 
     // hacky way of forcing no shield damage on all hitboxes
@@ -273,15 +271,14 @@ unsafe fn mod_handle_attack(lua_state: u64) {
 
 #[skyline::hook(replace = sv_animcmd::CATCH)]
 unsafe fn handle_catch(lua_state: u64) {
-    mod_handle_catch(lua_state);
+    if is_training_mode() {
+        mod_handle_catch(lua_state);
+    }
+
     original!()(lua_state);
 }
 
 unsafe fn mod_handle_catch(lua_state: u64) {
-    if !is_training_mode() {
-        return;
-    }
-
     if MENU.hitbox_vis == HitboxVisualization::Off {
         return;
     }
@@ -317,7 +314,10 @@ pub unsafe fn handle_set_rebound(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     rebound: bool,
 ) {
-    mod_handle_handle_set_rebound(module_accessor, rebound);
+    if is_training_mode() {
+        mod_handle_handle_set_rebound(module_accessor, rebound);
+    }
+
     original!()(module_accessor, rebound);
 }
 
@@ -325,10 +325,6 @@ unsafe fn mod_handle_handle_set_rebound(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     rebound: bool,
 ) {
-    if !is_training_mode() {
-        return;
-    }
-
     if rebound != false {
         return;
     }

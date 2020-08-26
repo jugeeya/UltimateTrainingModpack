@@ -26,33 +26,25 @@ pub unsafe fn process_hit_stop_delay(
     x: L2CValue,
     y: L2CValue,
 ) -> L2CValue {
+    let mut new_x: L2CValue = x;
+    let mut new_y: L2CValue = y;
 
-    let res;
+    if is_training_mode() {
+        let option = mod_sdi_direction(fighter);
 
-    let new_x: L2CValue;
-    let new_y: L2CValue;
-    let vector = mod_sdi_direction(fighter);
-    if vector.is_some() {
-        new_x = vector.unwrap().x.into();
-        new_y = vector.unwrap().y.into();
-    }
-    else {
-        new_x = x;
-        new_y = y;
+        if option.is_some() {
+            let angle = option.unwrap();
+            new_x = (angle.cos() as f32).into();
+            new_y = (angle.sin() as f32).into();
+        }
     }
 
-    res = original!()(fighter, arg1, hit_stop_delay_flick_mul, new_x, new_y);
-
-    res
+    original!()(fighter, arg1, hit_stop_delay_flick_mul, new_x, new_y)
 }
 
-fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<Vector2f> {
+fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<f64> {
     unsafe {
         let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-
-        if !is_training_mode() {
-            return None;
-        }
 
         if !is_operation_cpu(module_accessor) {
             return None;
@@ -72,10 +64,7 @@ fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<Vector2f> {
         angle = PI - angle;
     }
 
-    return Some(Vector2f {
-        x: angle.cos() as f32,
-        y: angle.sin() as f32,
-    });
+    return Some(angle);
 }
 
 #[skyline::hook(replace = FighterControlModuleImpl::check_hit_stop_delay_command)]
@@ -84,9 +73,12 @@ pub unsafe fn check_hit_stop_delay_command(
     arg1: *mut Vector2f,
 ) -> u64 {
     let ori = original!()(module_accessor, arg1);
-    let res = mod_check_hit_stop_delay_command(module_accessor, arg1).unwrap_or_else(|| ori);
 
-    res
+    if !is_training_mode() {
+        return ori;
+    }
+
+    mod_check_hit_stop_delay_command(module_accessor, arg1).unwrap_or(ori)
 }
 
 /**
@@ -96,12 +88,6 @@ fn mod_check_hit_stop_delay_command(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     _arg1: *mut Vector2f,
 ) -> Option<u64> {
-    unsafe {
-        if !is_training_mode() {
-            return None;
-        }
-    }
-
     if !is_operation_cpu(module_accessor) {
         return None;
     }
