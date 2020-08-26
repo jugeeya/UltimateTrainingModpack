@@ -9,7 +9,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     hitbox_vis: HitboxVisualization::On,
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),
-    left_stick: Direction::empty(),
+    air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
     ledge_state: LedgeOption::all(),

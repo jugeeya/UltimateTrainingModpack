@@ -44,15 +44,13 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> f6
         return ANGLE_NONE;
     }
 
-    STICK_DIRECTION = MENU.left_stick.get_random();
+    STICK_DIRECTION = MENU.air_dodge_dir.get_random();
     let mut angle: f64 = STICK_DIRECTION.into_angle();
 
     if angle == ANGLE_NONE {
         return ANGLE_NONE;
     }
 
-    // TODO: if left_stick is used for something other than
-    // directional airdodge, this may not make sense.
     let launch_speed_x = KineticEnergy::get_speed_x(KineticModule::get_energy(
         module_accessor,
         *FIGHTER_KINETIC_ENERGY_ID_DAMAGE,

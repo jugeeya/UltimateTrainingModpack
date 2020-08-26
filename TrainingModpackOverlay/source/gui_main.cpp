@@ -12,7 +12,7 @@ static struct TrainingModpackMenu
 	OnOffFlags     HITBOX_VIS      = OnOffFlag::On;
 	Directions     DI_STATE        = Directions::None;
 	Directions     SDI_STATE       = Directions::None;
-	Directions     LEFT_STICK      = Directions::None;
+	Directions     AIR_DODGE_DIR     = Directions::None;
 	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
@@ -388,7 +388,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help, this));
 			list->addItem(createBitFlagOption(&menu.SDI_STATE, "Set SDI", sdi_help, this));
-			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Airdodge Direction", left_stick_help, this));
+			list->addItem(createBitFlagOption(&menu.AIR_DODGE_DIR, "Airdodge Direction", air_dodge_direction_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Shield", true));
 

@@ -66,16 +66,10 @@ during hitlag.
 )"""";
 
 // Left Stick
-const std::string left_stick_help = R""""(
-Specified Direction
-CPUs left stick will be
-in the direction specified
+const std::string air_dodge_direction_help = R""""(
+Air Dodge Direction
 (relative to the player's facing
 position).
-
-Currently only used for
-- Airdodge
-
 )"""";
 
 // Ledge Option

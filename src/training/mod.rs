@@ -15,7 +15,7 @@ mod fast_fall;
 mod frame_counter;
 mod full_hop;
 mod ledge;
-mod left_stick;
+mod air_dodge_direction;
 mod mash;
 mod save_states;
 
@@ -83,7 +83,7 @@ pub unsafe fn handle_get_command_flag_cat(
  */
 #[skyline::hook(replace = ControlModule::get_stick_x_no_clamp)]
 pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 /**
  * This is called to get the stick position when
@@ -92,7 +92,7 @@ pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_y_no_clamp)]
 pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 
 /**
@@ -102,7 +102,7 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_x)]
 pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 
 /**
@@ -110,7 +110,7 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
 pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
 }
 
 // int get_pad_flag(u64 module_accessor) {
