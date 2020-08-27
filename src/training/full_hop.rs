@@ -48,10 +48,6 @@ unsafe fn should_return_none_in_check_button(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    if !is_training_mode() {
-        return true;
-    }
-
     if !is_operation_cpu(module_accessor) {
         return true;
     }

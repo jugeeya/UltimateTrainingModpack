@@ -12,7 +12,7 @@ static struct TrainingModpackMenu
 	OnOffFlags     HITBOX_VIS      = OnOffFlag::On;
 	Directions     DI_STATE        = Directions::None;
 	Directions     SDI_STATE       = Directions::None;
-	Directions     LEFT_STICK      = Directions::None;
+	Directions     AIR_DODGE_DIR   = Directions::None;
 	ActionFlags    MASH_STATE      = ActionFlags::None;
 	ActionFlags    FOLLOW_UP       = ActionFlags::None;
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
@@ -22,6 +22,7 @@ static struct TrainingModpackMenu
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
 	DelayFlags     OOS_OFFSET      = DelayFlags::None;
 	DelayFlags     REACTION_TIME   = DelayFlags::None;
+	Directions     SHIELD_TILT     = Directions::None;
 	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlags::None;
 	BoolFlags      FAST_FALL       = BoolFlags::None;
 	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
@@ -388,7 +389,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help, this));
 			list->addItem(createBitFlagOption(&menu.SDI_STATE, "Set SDI", sdi_help, this));
-			list->addItem(createBitFlagOption(&menu.LEFT_STICK, "Airdodge Direction", left_stick_help, this));
+			list->addItem(createBitFlagOption(&menu.AIR_DODGE_DIR, "Airdodge Direction", air_dodge_direction_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Shield", true));
 
@@ -416,6 +417,7 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(createBitFlagOption(&menu.OOS_OFFSET, "OOS Offset", oos_help, this));
 			list->addItem(createBitFlagOption(&menu.REACTION_TIME, "Reaction Time", reaction_time_help, this));
+			list->addItem(createBitFlagOption(&menu.SHIELD_TILT, "Shield Tilt", shield_tilt_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Chase", true));
 

@@ -296,7 +296,7 @@ pub struct TrainingModpackMenu {
     pub hitbox_vis: HitboxVisualization,
     pub di_state: Direction,
     pub sdi_state: Direction,
-    pub left_stick: Direction, // Currently only used for air dodge direction
+    pub air_dodge_dir: Direction,
     pub mash_state: Action,
     pub follow_up: Action,
     pub ledge_state: LedgeOption,
@@ -306,6 +306,7 @@ pub struct TrainingModpackMenu {
     pub defensive_state: Defensive,
     pub oos_offset: Delay,
     pub reaction_time: Delay,
+    pub shield_tilt: Direction,
     pub mash_in_neutral: OnOff,
     pub fast_fall: BoolFlag,
     pub fast_fall_delay: Delay,

@@ -1,23 +1,25 @@
-use crate::common::{FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
+use crate::common::{is_training_mode, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
+pub mod combo;
 pub mod directional_influence;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
 
+mod air_dodge_direction;
 mod character_specific;
-pub mod combo;
 mod fast_fall;
 mod frame_counter;
 mod full_hop;
 mod ledge;
-mod left_stick;
 mod mash;
+mod reset;
 mod save_states;
+mod shield_tilt;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -25,8 +27,12 @@ pub unsafe fn handle_get_param_float(
     param_type: u64,
     param_hash: u64,
 ) -> f32 {
-    shield::get_param_float(module_accessor, param_type, param_hash)
-        .unwrap_or_else(|| original!()(module_accessor, param_type, param_hash))
+    let ori = original!()(module_accessor, param_type, param_hash);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield::get_param_float(module_accessor, param_type, param_hash).unwrap_or(ori)
 }
 
 #[skyline::hook(replace = WorkModule::get_param_int)]
@@ -35,19 +41,29 @@ pub unsafe fn handle_get_param_int(
     param_type: u64,
     param_hash: u64,
 ) -> i32 {
-    save_states::get_param_int(module_accessor, param_type, param_hash)
-        .unwrap_or_else(|| original!()(module_accessor, param_type, param_hash))
+    let ori = original!()(module_accessor, param_type, param_hash);
+
+    if !is_training_mode() {
+        return ori;
+    }
+
+    save_states::get_param_int(module_accessor, param_type, param_hash).unwrap_or(ori)
 }
 
 #[skyline::hook(replace = ControlModule::get_attack_air_kind)]
 pub unsafe fn handle_get_attack_air_kind(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> i32 {
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
     // bool replace;
     // int kind = InputRecorder::get_attack_air_kind(module_accessor, replace);
     // if (replace) return kind;
 
-    mash::get_attack_air_kind(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    mash::get_attack_air_kind(module_accessor).unwrap_or(ori)
 }
 
 #[skyline::hook(replace = ControlModule::get_command_flag_cat)]
@@ -55,25 +71,44 @@ pub unsafe fn handle_get_command_flag_cat(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32,
 ) -> i32 {
-    save_states::save_states(module_accessor, category);
-
     let mut flag = original!()(module_accessor, category);
 
-    frame_counter::get_command_flag_cat(module_accessor, category);
-    combo::get_command_flag_cat(module_accessor, category);
+    if !is_training_mode() {
+        return flag;
+    }
 
     // bool replace;
     // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
     // if (replace) return ret;
 
-    shield::get_command_flag_cat(module_accessor);
     flag |= mash::get_command_flag_cat(module_accessor, category);
-    ledge::get_command_flag_cat(module_accessor, category);
-    tech::get_command_flag_cat(module_accessor, category);
-    hitbox_visualizer::get_command_flag_cat(module_accessor, category);
-    fast_fall::get_command_flag_cat(module_accessor, category);
+
+    once_per_frame_per_fighter(module_accessor, category);
 
     flag
+}
+
+fn once_per_frame_per_fighter(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    category: i32,
+) {
+    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
+        return;
+    }
+
+    unsafe {
+        combo::get_command_flag_cat(module_accessor);
+        hitbox_visualizer::get_command_flag_cat(module_accessor);
+        save_states::save_states(module_accessor);
+        tech::get_command_flag_cat(module_accessor);
+    }
+
+    fast_fall::get_command_flag_cat(module_accessor);
+    frame_counter::get_command_flag_cat(module_accessor);
+    ledge::get_command_flag_cat(module_accessor);
+    shield::get_command_flag_cat(module_accessor);
+
+    reset::check_reset(module_accessor);
 }
 
 /**
@@ -83,8 +118,14 @@ pub unsafe fn handle_get_command_flag_cat(
  */
 #[skyline::hook(replace = ControlModule::get_stick_x_no_clamp)]
 pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield_tilt::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
+
 /**
  * This is called to get the stick position when
  * shielding (shield tilt)
@@ -92,7 +133,12 @@ pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_y_no_clamp)]
 pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield_tilt::mod_get_stick_y(module_accessor).unwrap_or(ori)
 }
 
 /**
@@ -102,7 +148,12 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
  */
 #[skyline::hook(replace = ControlModule::get_stick_x)]
 pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_x(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 
 /**
@@ -110,7 +161,12 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
 pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-    left_stick::mod_get_stick_y(module_accessor).unwrap_or_else(|| original!()(module_accessor))
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
 }
 
 // int get_pad_flag(u64 module_accessor) {
@@ -154,10 +210,13 @@ pub unsafe fn handle_check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_on(module_accessor, button).unwrap_or_else(|| {
-        full_hop::check_button_on(module_accessor, button)
-            .unwrap_or_else(|| original!()(module_accessor, button))
-    })
+    let ori = original!()(module_accessor, button);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield::check_button_on(module_accessor, button)
+        .unwrap_or_else(|| full_hop::check_button_on(module_accessor, button).unwrap_or(ori))
 }
 
 #[skyline::hook(replace = ControlModule::check_button_off)]
@@ -165,10 +224,13 @@ pub unsafe fn handle_check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
-    shield::check_button_off(module_accessor, button).unwrap_or_else(|| {
-        full_hop::check_button_off(module_accessor, button)
-            .unwrap_or_else(|| original!()(module_accessor, button))
-    })
+    let ori = original!()(module_accessor, button);
+    if !is_training_mode() {
+        return ori;
+    }
+
+    shield::check_button_off(module_accessor, button)
+        .unwrap_or_else(|| full_hop::check_button_off(module_accessor, button).unwrap_or(ori))
 }
 
 #[skyline::hook(replace = MotionModule::change_motion)]
@@ -182,11 +244,15 @@ pub unsafe fn handle_change_motion(
     unk5: bool,
     unk6: bool,
 ) -> u64 {
-    let motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
+    let mut mod_motion_kind = motion_kind;
+
+    if is_training_mode() {
+        mod_motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
+    }
 
     original!()(
         module_accessor,
-        motion_kind,
+        mod_motion_kind,
         unk1,
         unk2,
         unk3,
@@ -197,15 +263,19 @@ pub unsafe fn handle_change_motion(
 }
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
-pub unsafe  fn handle_is_enable_transition_term(
+pub unsafe fn handle_is_enable_transition_term(
     module_accessor: *mut app::BattleObjectModuleAccessor,
-    transition_term: i32
+    transition_term: i32,
 ) -> bool {
-    let is = original!()(module_accessor, transition_term);
+    let ori = original!()(module_accessor, transition_term);
 
-    combo::is_enable_transition_term(module_accessor, transition_term, is);
+    if !is_training_mode() {
+        return ori;
+    }
 
-    is
+    combo::is_enable_transition_term(module_accessor, transition_term, ori);
+
+    ori
 }
 
 extern "C" {
@@ -214,10 +284,8 @@ extern "C" {
 }
 
 #[skyline::hook(replace = set_dead_rumble)]
-pub unsafe fn handle_set_dead_rumble(
-    lua_state: u64) -> u64 {
-
-    if crate::common::is_training_mode() {
+pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
+    if is_training_mode() {
         return 0;
     }
 
@@ -259,6 +327,9 @@ pub fn training_mods() {
         // Directional AirDodge,
         get_stick_x,
         get_stick_y,
+        // Shield Tilt
+        get_stick_x_no_clamp,
+        get_stick_y_no_clamp,
         // Combo
         handle_is_enable_transition_term,
         // SDI

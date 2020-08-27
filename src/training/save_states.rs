@@ -1,5 +1,5 @@
 use crate::common::*;
-use crate::training::mash;
+use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -45,10 +45,6 @@ pub unsafe fn get_param_int(
     param_type: u64,
     param_hash: u64,
 ) -> Option<i32> {
-    if !is_training_mode() {
-        return None;
-    }
-
     if param_type == hash40("common") {
         if param_hash == hash40("dead_rebirth_wait_frame") {
             return Some(1);
@@ -70,15 +66,7 @@ pub unsafe fn get_param_int(
     None
 }
 
-pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor, category: i32) {
-    if !is_training_mode() {
-        return;
-    }
-
-    if category != *FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
-    }
-
+pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let status = StatusModule::status_kind(module_accessor) as i32;
     let save_state: &mut SavedState;
     if is_operation_cpu(module_accessor) {
@@ -95,7 +83,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor,
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
         }
-        mash::full_reset();
+        reset::on_reset();
         return;
     }
 
