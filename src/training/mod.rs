@@ -285,12 +285,11 @@ extern "C" {
 
 #[skyline::hook(replace = set_dead_rumble)]
 pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
-    let ori = original!()(lua_state);
-    if !is_training_mode() {
-        return ori;
+    if is_training_mode() {
+        return 0;
     }
 
-    return 0;
+    original!()(lua_state)
 }
 
 pub fn training_mods() {
