@@ -8,15 +8,12 @@ pub fn roll_direction() {
     unsafe {
         STICK_DIRECTION = MENU.shield_tilt.get_random();
     }
-
 }
 
 pub unsafe fn mod_get_stick_x(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> Option<f32> {
     let angle: f64 = get_angle(module_accessor);
-
-    println!("Angle {}",angle);
 
     if angle == ANGLE_NONE {
         return None;
