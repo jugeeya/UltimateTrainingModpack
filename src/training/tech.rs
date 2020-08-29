@@ -8,7 +8,8 @@ use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
 
-static mut ROLL_DIRECTION: Direction = Direction::empty();
+static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
+static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterBase_change_status)]
 pub unsafe fn handle_change_status(
@@ -45,32 +46,42 @@ unsafe fn mod_handle_change_status(
     {
         let state: TechFlags = MENU.tech_state.get_random();
 
-        match state {
-            TechFlags::IN_PLACE => {
-                *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
-                *unk = LUA_TRUE;
+        if WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
+        ) {
+            match state {
+                TechFlags::IN_PLACE => {
+                    *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
+                    *unk = LUA_TRUE;
+                    mash::perform_defensive_option();
+                }
+                TechFlags::ROLL_F => {
+                    *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
+                    *unk = LUA_TRUE;
+                    TECH_ROLL_DIRECTION = Direction::IN; // = In
+                    mash::perform_defensive_option();
+                }
+                TechFlags::ROLL_B => {
+                    *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
+                    *unk = LUA_TRUE;
+                    TECH_ROLL_DIRECTION = Direction::OUT; // = Away
+                    mash::perform_defensive_option();
+                }
+                _ => (),
             }
-            TechFlags::ROLL_F => {
-                *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
-                *unk = LUA_TRUE;
-                ROLL_DIRECTION = Direction::IN; // = In
-            }
-            TechFlags::ROLL_B => {
-                *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
-                *unk = LUA_TRUE;
-                ROLL_DIRECTION = Direction::OUT; // = Away
-            }
-            _ => (),
         }
-
-        mash::perform_defensive_option();
 
         return;
     }
 
     // Wall Tech
-    if status_kind_int == *FIGHTER_STATUS_KIND_STOP_WALL
-        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
+    if (status_kind_int == *FIGHTER_STATUS_KIND_STOP_WALL
+        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR)
+        && WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
+        )
     {
         *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL.as_lua_int();
         *unk = LUA_TRUE;
@@ -78,8 +89,12 @@ unsafe fn mod_handle_change_status(
     }
 
     // Ceiling Tech
-    if status_kind_int == *FIGHTER_STATUS_KIND_STOP_CEIL
-        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
+    if (status_kind_int == *FIGHTER_STATUS_KIND_STOP_CEIL
+        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U)
+        && WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
+        )
     {
         *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
         *unk = LUA_TRUE;
@@ -87,9 +102,7 @@ unsafe fn mod_handle_change_status(
     }
 }
 
-pub unsafe fn get_command_flag_cat(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) {
+pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }
@@ -106,18 +119,23 @@ pub unsafe fn get_command_flag_cat(
     ]
     .contains(&status)
     {
-        let random_statuses = vec![
-            *FIGHTER_STATUS_KIND_DOWN_STAND,        // Normal Getup
-            *FIGHTER_STATUS_KIND_DOWN_STAND_FB,     // Getup Roll
-            *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK, // Getup Attack
-        ];
+        let status = match MENU.miss_tech_state.get_random() {
+            MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
+            MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
+            MissTechFlags::ROLL_F => {
+                MISS_TECH_ROLL_DIRECTION = Direction::IN; // = In
+                *FIGHTER_STATUS_KIND_DOWN_STAND_FB
+            }
+            MissTechFlags::ROLL_B => {
+                MISS_TECH_ROLL_DIRECTION = Direction::OUT; // = Away
+                *FIGHTER_STATUS_KIND_DOWN_STAND_FB
+            }
+            _ => *FIGHTER_STATUS_KIND_DOWN_STAND,
+        };
 
-        let random_status_index = get_random_int(random_statuses.len() as i32) as usize;
-        StatusModule::change_status_request_from_script(
-            module_accessor,
-            random_statuses[random_status_index],
-            false,
-        );
+        StatusModule::change_status_request_from_script(module_accessor, status, false);
+
+        mash::perform_defensive_option();
         return;
     }
 }
@@ -134,22 +152,20 @@ pub unsafe fn change_motion(
         return None;
     }
 
-    let random_roll = get_random_int(2);
-
     if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
-        if ROLL_DIRECTION == Direction::IN {
+        if TECH_ROLL_DIRECTION == Direction::IN {
             return Some(hash40("passive_stand_f"));
         } else {
             return Some(hash40("passive_stand_b"));
         }
     } else if [hash40("down_forward_u"), hash40("down_back_u")].contains(&motion_kind) {
-        if random_roll != 0 {
+        if MISS_TECH_ROLL_DIRECTION == Direction::IN {
             return Some(hash40("down_forward_u"));
         } else {
             return Some(hash40("down_back_u"));
         }
     } else if [hash40("down_forward_d"), hash40("down_back_d")].contains(&motion_kind) {
-        if random_roll != 0 {
+        if MISS_TECH_ROLL_DIRECTION == Direction::IN {
             return Some(hash40("down_forward_d"));
         } else {
             return Some(hash40("down_back_d"));

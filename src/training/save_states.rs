@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::common::consts::FighterId;
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -19,7 +19,7 @@ struct SavedState {
     percent: f32,
     lr: f32,
     situation_kind: i32,
-    state: SaveState
+    state: SaveState,
 }
 
 macro_rules! default_save_state {
@@ -30,9 +30,9 @@ macro_rules! default_save_state {
             percent: 0.0,
             lr: 1.0,
             situation_kind: 0,
-            state: NoAction
+            state: NoAction,
         }
-    }
+    };
 }
 
 use SaveState::*;
@@ -69,7 +69,9 @@ pub unsafe fn get_param_int(
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let status = StatusModule::status_kind(module_accessor) as i32;
     let save_state: &mut SavedState;
-    if is_operation_cpu(module_accessor) {
+    if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
+        == FighterId::CPU as i32
+    {
         save_state = &mut SAVE_STATE_CPU;
     } else {
         save_state = &mut SAVE_STATE_PLAYER;
@@ -107,7 +109,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 ControlModule::stop_rumble(module_accessor, true);
                 SoundModule::stop_all_sound(module_accessor);
 
-                StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
+                StatusModule::change_status_request(
+                    module_accessor,
+                    *FIGHTER_STATUS_KIND_DEAD,
+                    false,
+                );
             }
         }
 
@@ -142,12 +148,18 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
         } else if save_state.situation_kind == SITUATION_KIND_AIR {
             if status != FIGHTER_STATUS_KIND_FALL {
-                StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_FALL, false);
+                StatusModule::change_status_request(
+                    module_accessor,
+                    *FIGHTER_STATUS_KIND_FALL,
+                    false,
+                );
             } else {
                 save_state.state = NoAction;
             }
         } else if save_state.situation_kind == SITUATION_KIND_CLIFF {
-            if status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE && status != FIGHTER_STATUS_KIND_CLIFF_CATCH {
+            if status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
+                && status != FIGHTER_STATUS_KIND_CLIFF_CATCH
+            {
                 StatusModule::change_status_request(
                     module_accessor,
                     *FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE,

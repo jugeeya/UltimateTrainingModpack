@@ -15,6 +15,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     ledge_state: LedgeOption::all(),
     ledge_delay: Delay::empty(),
     tech_state: TechFlags::all(),
+    miss_tech_state: MissTechFlags::all(),
     shield_state: Shield::None,
     defensive_state: Defensive::all(),
     oos_offset: Delay::empty(),

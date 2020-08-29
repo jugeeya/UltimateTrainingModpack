@@ -5,6 +5,7 @@
 #include "overlay_frame_with_help.hpp"
 #include "value_list_item.hpp"
 #include "clickable_list_item.hpp"
+#include "ini_settings.hpp"
 #include "taunt_toggles.hpp"
 
 static struct TrainingModpackMenu
@@ -18,6 +19,7 @@ static struct TrainingModpackMenu
 	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
 	DelayFlags     LEDGE_DELAY     = DelayFlags::All;
 	TechFlags      TECH_STATE      = TechFlags::All;
+	MissTechFlags  MISS_TECH_STATE = MissTechFlags::All;
 	int            SHIELD_STATE    = NONE;
 	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
 	DelayFlags     OOS_OFFSET      = DelayFlags::None;
@@ -36,68 +38,9 @@ static struct TrainingModpackMenu defaultMenu = menu;
 static int FRAME_ADVANTAGE = 0;
 
 u64                pidSmash                   = 0;
-static const char* SYSTEM_SETTINGS_FILE       = "/atmosphere/config/system_settings.ini";
 static const char* TRAINING_MOD_LOG           = "/TrainingModpack/training_modpack.log";
 static const char* TRAINING_MOD_FRAME_ADV_LOG = "/TrainingModpack/training_modpack_frame_adv.log";
 static const char* TRAINING_MOD_CONF          = "/TrainingModpack/training_modpack_menu.conf";
-
-static tsl::hlp::ini::IniData readSettings()
-{
-	/* Open Sd card filesystem. */
-	FsFileSystem fsSdmc;
-	if(R_FAILED(fsOpenSdCardFileSystem(&fsSdmc))) return {};
-	tsl::hlp::ScopeGuard fsGuard([&] { fsFsClose(&fsSdmc); });
-
-	/* Open config file. */
-	FsFile fileConfig;
-	if(R_FAILED(fsFsOpenFile(&fsSdmc, SYSTEM_SETTINGS_FILE, FsOpenMode_Read, &fileConfig))) return {};
-	tsl::hlp::ScopeGuard fileGuard([&] { fsFileClose(&fileConfig); });
-
-	/* Get config file size. */
-	s64 configFileSize;
-	if(R_FAILED(fsFileGetSize(&fileConfig, &configFileSize))) return {};
-
-	/* Read and parse config file. */
-	std::string configFileData(configFileSize, '\0');
-	u64         readSize;
-	Result      rc = fsFileRead(&fileConfig, 0, configFileData.data(), configFileSize, FsReadOption_None, &readSize);
-	if(R_FAILED(rc) || readSize != static_cast<u64>(configFileSize)) return {};
-
-	return tsl::hlp::ini::parseIni(configFileData);
-}
-
-static void writeSettings(tsl::hlp::ini::IniData const& iniData)
-{
-	/* Open Sd card filesystem. */
-	FsFileSystem fsSdmc;
-	if(R_FAILED(fsOpenSdCardFileSystem(&fsSdmc))) return;
-	tsl::hlp::ScopeGuard fsGuard([&] { fsFsClose(&fsSdmc); });
-
-	std::string iniString = tsl::hlp::ini::unparseIni(iniData);
-
-	fsFsDeleteFile(&fsSdmc, SYSTEM_SETTINGS_FILE);
-	fsFsCreateFile(&fsSdmc, SYSTEM_SETTINGS_FILE, iniString.length(), 0);
-
-	/* Open config file. */
-	FsFile fileConfig;
-	if(R_FAILED(fsFsOpenFile(&fsSdmc, SYSTEM_SETTINGS_FILE, FsOpenMode_Write, &fileConfig))) return;
-	tsl::hlp::ScopeGuard fileGuard([&] { fsFileClose(&fileConfig); });
-
-	fsFileWrite(&fileConfig, 0, iniString.c_str(), iniString.length(), FsWriteOption_Flush);
-}
-
-static void updateSettings(tsl::hlp::ini::IniData const& changes)
-{
-	tsl::hlp::ini::IniData iniData = readSettings();
-	for(auto& section : changes)
-	{
-		for(auto& keyValue : section.second)
-		{
-			iniData[section.first][keyValue.first] = keyValue.second;
-		}
-	}
-	writeSettings(iniData);
-}
 
 GuiMain::GuiMain()
 {
@@ -424,6 +367,7 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(createBitFlagOption(&menu.LEDGE_STATE, "Ledge Options", ledge_help, this));
 			list->addItem(createBitFlagOption(&menu.LEDGE_DELAY, "Ledge Delay", ledge_delay_help, this));
 			list->addItem(createBitFlagOption(&menu.TECH_STATE, "Tech Options", tech_help, this));
+			list->addItem(createBitFlagOption(&menu.MISS_TECH_STATE, "Missed Tech Options", miss_tech_help, this));
 			list->addItem(createBitFlagOption(&menu.DEFENSIVE_STATE, "Defensive Options", defensive_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Aerials", true));

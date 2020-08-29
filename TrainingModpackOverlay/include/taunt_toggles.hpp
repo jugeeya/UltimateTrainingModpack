@@ -114,6 +114,26 @@ options.
 CPUs will also perform a defensive
 option after getting up.)"""";
 
+// Missed Tech Option
+
+// clang-format off
+#define ENUM_CLASS_MissTechFlag(type,x) \
+	x(type,Getup,"Normal Getup") \
+    x(type,Attack,"Getup Attack") \
+	x(type,RollF,"RollF") \
+	x(type,RollB,"RollB")
+
+// clang-format on
+DEFINE_ENUM_CLASS(MissTechFlag);
+
+constexpr const char* const miss_tech_help = R""""(
+CPUs will perform a random
+option after missing a tech
+among the selected options.
+
+CPUs will also perform a defensive
+option after getting up.)"""";
+
 // Defensive States
 
 // clang-format off
@@ -200,7 +220,7 @@ are saved:
 - Position
 - Facing direction)"""";
 
-const std::string              reset_menu_help = R""""(
+const std::string reset_menu_help = R""""(
 Reset menu to default
 configuration. Please also
 use on the first boot after
@@ -243,7 +263,7 @@ in frames.
 
 Used to delay OOS Options.)"""";
 
-const std::string shield_tilt_help  = R""""(
+const std::string shield_tilt_help = R""""(
 Shield Tilt Direction
 )"""";
 

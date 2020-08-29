@@ -35,7 +35,7 @@ macro_rules! to_index_impl {
 
             return self.bits.trailing_zeros();
         }
-    }
+    };
 }
 
 pub fn random_option<T>(arg: &Vec<T>) -> &T {
@@ -150,6 +150,21 @@ bitflags! {
 impl TechFlags {
     to_vec_impl! {TechFlags}
     get_random_impl! {TechFlags}
+}
+
+// Missed Tech Options
+bitflags! {
+    pub struct MissTechFlags : u32 {
+        const GETUP = 0x1;
+        const ATTACK = 0x2;
+        const ROLL_F = 0x4;
+        const ROLL_B = 0x8;
+    }
+}
+
+impl MissTechFlags {
+    to_vec_impl! {MissTechFlags}
+    get_random_impl! {MissTechFlags}
 }
 
 /// Shield States
@@ -287,7 +302,7 @@ impl BoolFlag {
         return match *self {
             BoolFlag::TRUE => true,
             _ => false,
-        }
+        };
     }
 }
 
@@ -302,6 +317,7 @@ pub struct TrainingModpackMenu {
     pub ledge_state: LedgeOption,
     pub ledge_delay: Delay,
     pub tech_state: TechFlags,
+    pub miss_tech_state: MissTechFlags,
     pub shield_state: Shield,
     pub defensive_state: Defensive,
     pub oos_offset: Delay,
@@ -317,7 +333,7 @@ pub struct TrainingModpackMenu {
 
 // Fighter Ids
 #[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FighterId {
     Player = 0,
     CPU = 1,
