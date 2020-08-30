@@ -46,10 +46,6 @@ unsafe fn mod_handle_change_status(
     {
         let state: TechFlags = MENU.tech_state.get_random();
 
-        if WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
-        ) {
             match state {
                 TechFlags::IN_PLACE => {
                     *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
@@ -70,7 +66,6 @@ unsafe fn mod_handle_change_status(
                 }
                 _ => (),
             }
-        }
 
         return;
     }
