@@ -11,6 +11,7 @@
 static struct TrainingModpackMenu
 {
 	OnOffFlags     HITBOX_VIS      = OnOffFlag::On;
+	OnOffFlags	   STAGE_HAZARDS   = OnOffFlag::On;
 	Directions     DI_STATE        = Directions::None;
 	Directions     SDI_STATE       = Directions::None;
 	Directions     AIR_DODGE_DIR   = Directions::None;
@@ -382,6 +383,9 @@ tsl::elm::Element* GuiMain::createUI()
 
 			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
 			    "Hitbox Visualization", OnOffFlag::On, &menu.HITBOX_VIS, "Hitbox Visualization", hitbox_help));
+
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
+				"Stage Hazards", OnOffFlag::On, &menu.STAGE_HAZARDS, "Stage Hazards", hazards_help));
 
 			ClickableListItem* saveStateItem =
 			    new ClickableListItem("Save States", empty_items, nullptr, "saveStates", 0, "Save States", save_states_help);

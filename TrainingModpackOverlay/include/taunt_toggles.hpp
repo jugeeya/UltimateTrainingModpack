@@ -202,6 +202,20 @@ paused during normal attacks
 and specials when hitbox
 visualization is active.)"""";
 
+// Stage Hazards
+const std::string hazards_help = R""""(
+Toggle state hazards on/off for
+Training Mode.
+
+Only works outside of a match.
+Make sure to turn them on/off
+before leaving the Character
+Select Screen.
+
+If you change this while in training, 
+make sure to restart training mode.
+)"""";
+
 // Save states
 const std::vector<std::string> empty_items{""};
 const std::string              save_states_help = R""""(

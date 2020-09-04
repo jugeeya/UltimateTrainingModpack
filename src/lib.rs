@@ -4,6 +4,7 @@
 
 mod common;
 mod hitbox_visualizer;
+mod hazard_manager;
 mod training;
 
 #[macro_use]
@@ -39,6 +40,7 @@ macro_rules! c_str {
 pub fn main() {
     println!("[Training Modpack] Initialized.");
     hitbox_visualizer::hitbox_visualization();
+    hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
 
