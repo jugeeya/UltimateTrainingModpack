@@ -17,9 +17,10 @@ pub unsafe fn handle_change_status(
     status_kind: L2CValue,
     unk: L2CValue,
 ) -> L2CValue {
+    let mut status_kind = status_kind;
+    let mut unk = unk;
+
     if is_training_mode() {
-        let mut status_kind = status_kind;
-        let mut unk = unk;
         mod_handle_change_status(fighter, &mut status_kind, &mut unk);
     }
 
@@ -46,6 +47,10 @@ unsafe fn mod_handle_change_status(
     {
         let state: TechFlags = MENU.tech_state.get_random();
 
+        if WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
+        ) {
             match state {
                 TechFlags::IN_PLACE => {
                     *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
@@ -66,6 +71,7 @@ unsafe fn mod_handle_change_status(
                 }
                 _ => (),
             }
+        }
 
         return;
     }
