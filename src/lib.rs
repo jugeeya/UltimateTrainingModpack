@@ -3,8 +3,8 @@
 #![feature(const_mut_refs)]
 
 mod common;
-mod hitbox_visualizer;
 mod hazard_manager;
+mod hitbox_visualizer;
 mod training;
 
 #[macro_use]
@@ -31,9 +31,9 @@ fn nro_main(nro: &NroInfo<'_>) {
 }
 
 macro_rules! c_str {
-    ($l:tt) => { [$l.as_bytes(), "\u{0}".as_bytes()]
-                .concat()
-                .as_ptr(); }
+    ($l:tt) => {
+        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr();
+    };
 }
 
 #[skyline::main(name = "training_modpack")]

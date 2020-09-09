@@ -1,6 +1,6 @@
 use crate::common::{consts::*, *};
 use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
-use smash::lib::{lua_const::*, L2CAgent, L2CValue};
+use smash::lib::{lua_const::*, L2CAgent};
 use smash::phx::{Hash40, Vector3f};
 
 pub const ID_COLORS: &[Vector3f] = &[
@@ -220,21 +220,6 @@ unsafe fn handle_attack(lua_state: u64) {
 
 unsafe fn mod_handle_attack(lua_state: u64) {
     let mut l2c_agent = L2CAgent::new(lua_state);
-
-    // hacky way of forcing no shield damage on all hitboxes
-    if MENU.shield_state == Shield::Infinite {
-        let hitbox_params: Vec<L2CValue> =
-            (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
-        l2c_agent.clear_lua_stack();
-        for i in 0..36 {
-            let mut x = hitbox_params[i];
-            if i == 20 {
-                l2c_agent.push_lua_stack(&mut L2CValue::new_num(-999.0));
-            } else {
-                l2c_agent.push_lua_stack(&mut x);
-            }
-        }
-    }
 
     // Hitbox Visualization
     if MENU.hitbox_vis == HitboxVisualization::On {

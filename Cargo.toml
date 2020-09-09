@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
 skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
-bitflags = "1.0"
+bitflags = "1.2.1"
 # skyline = { path = "../../../../src/skyline-rs" }
 # skyline_smash = { path = "../../../../src/skyline-smash" }
 
