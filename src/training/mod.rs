@@ -3,6 +3,7 @@ use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+use smash::params::*;
 
 pub mod combo;
 pub mod directional_influence;
@@ -294,7 +295,8 @@ pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
     original!()(lua_state)
 }
 
-pub static mut COMMON_OBJ: u64 = 0;
+pub static mut COMMON_PARAMS: *mut CommonParams = 0 as *mut _;
+
 // 8.1.0 Offset
 static mut LOAD_PRC_FILE_OFFSET: usize = 0x34369d0;
 
@@ -311,7 +313,7 @@ unsafe fn load_once_common_params(common_obj: u64, table1_idx: u32) {
     let hash = loaded_tables.get_hash_from_t1_index(table1_idx).as_u64();
 
     if hash == smash::phx::Hash40::new("fighter/common/param/common.prc").hash {
-        COMMON_OBJ = common_obj;
+        COMMON_PARAMS = CommonParams::from_u64_mut(common_obj).unwrap() as *mut _;
     }
     original!()(common_obj, table1_idx)
 }

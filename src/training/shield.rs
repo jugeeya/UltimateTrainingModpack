@@ -130,15 +130,14 @@ pub unsafe fn get_param_float(
 }
 
 pub unsafe fn param_installer() {
-    if crate::training::COMMON_OBJ != 0 {
+    if crate::training::COMMON_PARAMS as usize != 0 {
+        let common_params = &mut *crate::training::COMMON_PARAMS;
         if is_training_mode()
             && (MENU.shield_state == Shield::Infinite || should_pause_shield_decay())
         {
-            // Set "shield_damage_mul" to 0.0f
-            *((crate::training::COMMON_OBJ + 0x16c) as *mut f32) = 0x0 as f32;
+            common_params.shield_damage_mul = 0.0;
         } else {
-            // Set "shield_damage_mul" to 1.19f
-            *((crate::training::COMMON_OBJ + 0x16c) as *mut f32) = 1.19 as f32;
+            common_params.shield_damage_mul = 1.19;
         }
     }
 }
