@@ -25,5 +25,6 @@ lto = true
 titleid = "01006A800016E000"
 plugin-dependencies = [
     { name = "libnro_hook.nro", url = "https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.1.1/libnro_hook.nro" },
+    { name = "libparam_hook.nro", url = "https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1/libparam_hook.nro" },
 ]
 

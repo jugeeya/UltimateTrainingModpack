@@ -120,7 +120,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     ]
     .contains(&status)
     {
-        let status = match MENU.miss_tech_state.get_random() {
+        let status: i32 = match MENU.miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
             MissTechFlags::ROLL_F => {
@@ -131,7 +131,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
                 MISS_TECH_ROLL_DIRECTION = Direction::OUT; // = Away
                 *FIGHTER_STATUS_KIND_DOWN_STAND_FB
             }
-            _ => *FIGHTER_STATUS_KIND_DOWN_STAND,
+            _ => return,
         };
 
         StatusModule::change_status_request_from_script(module_accessor, status, false);
