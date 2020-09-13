@@ -28,6 +28,15 @@ Use this to practice optimal
 aerial heights and specific
 safe hitboxes.)"""";
 
+// Input delay
+const std::vector<std::string> input_delay_items{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+const std::string              input_delay_help = R""""(
+In frames.
+
+Emulate input delay 
+to practice in a online
+environment.)"""";
+
 // Side Taunt
 
 // DI / Left Stick

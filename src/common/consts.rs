@@ -337,6 +337,7 @@ pub struct TrainingModpackMenu {
     pub falling_aerials: BoolFlag,
     pub aerial_delay: Delay,
     pub full_hop: BoolFlag,
+    pub input_delay: i32,
 }
 
 // Fighter Ids

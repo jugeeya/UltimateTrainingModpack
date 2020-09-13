@@ -16,6 +16,7 @@ mod character_specific;
 mod fast_fall;
 mod frame_counter;
 mod full_hop;
+mod input_delay;
 mod ledge;
 mod mash;
 mod reset;
@@ -102,6 +103,24 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
+        let entry_id_int =
+            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+
+        if entry_id_int == 0 {
+            // if INPUT_RECORD == 1 || INPUT_RECORD == 2 {
+            //     if INPUT_RECORD_FRAME >= P1_NPAD_STATES.len() - 1 {
+            //         if INPUT_RECORD == 1 {
+            //             INPUT_RECORD = 2;
+            //         }
+            //         INPUT_RECORD_FRAME = 0;
+            //     } else {
+            //         INPUT_RECORD_FRAME += 1;
+            //     }
+            // }
+        }
+    }
+
+    unsafe {
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
@@ -173,42 +192,6 @@ pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
 }
-
-// int get_pad_flag(u64 module_accessor) {
-//     u64 control_module = load_module(module_accessor, 0x48);
-//     int (*get_pad_flag)(u64) = (int (*)(u64)) load_module_impl(control_module, 0x348);
-//     int pad_flag = get_pad_flag(control_module);
-
-//     bool replace;
-//     int ret = InputRecorder::get_pad_flag(module_accessor, replace);
-//     if (replace) return ret;
-
-//     return pad_flag;
-// }
-
-// float get_stick_x_replace(u64 module_accessor) {
-//     u64 control_module = load_module(module_accessor, 0x48);
-//     float (*get_stick_x)(u64) = (float (*)(u64)) load_module_impl(control_module, 0x178);
-//     float stick_x = get_stick_x(control_module);
-
-//     bool replace;
-//     float ret = InputRecorder::get_stick_x(module_accessor, replace);
-//     if (replace) return ret;
-
-//     return stick_x;
-// }
-
-// float get_attack_air_stick_x_replace(u64 module_accessor) {
-//     u64 control_module = load_module(module_accessor, 0x48);
-//     float (*get_attack_air_stick_x)(u64) = (float (*)(u64)) load_module_impl(control_module, 0x188);
-//     float stick_y = get_attack_air_stick_x(control_module);
-
-//     bool replace;
-//     float ret = InputRecorder::get_attack_air_stick_x(module_accessor, replace);
-//     if (replace) return ret;
-
-//     return stick_y;
-// }
 
 #[skyline::hook(replace = ControlModule::check_button_on)]
 pub unsafe fn handle_check_button_on(
@@ -299,16 +282,61 @@ pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
 
 pub static mut COMMON_PARAMS: *mut CommonParams = 0 as *mut _;
 
-fn params_main(params_info: &smash::params::ParamsInfo<'_>) {
-    if let Ok(common) = params_info.get::<StaticCommonParams>() {
+fn params_main(params_info: &ParamsInfo<'_>) {
+    if let Ok(common) = params_info.get::<CommonParams>() {
         unsafe {
             COMMON_PARAMS = common as *mut _;
         }
     }
 }
 
+extern "C" {
+    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_17NpadHandheldStateERKj"]
+    pub fn GetNpadHandheldState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
+
+    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_16NpadFullKeyStateERKj"]
+    pub fn GetNpadFullKeyState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
+}
+
+pub static mut P1_NPAD_STATES: &mut [skyline::nn::hid::NpadHandheldState; 90] = &mut [{
+    skyline::nn::hid::NpadHandheldState {
+        updateCount: 0,
+        Buttons: 0,
+        LStickX: 0,
+        LStickY: 0,
+        RStickX: 0,
+        RStickY: 0,
+        Flags: 0,
+    }
+}; 90];
+
+pub static mut INPUT_RECORD: u32 = 0;
+pub static mut INPUT_RECORD_FRAME: usize = 0;
+
+#[skyline::hook(replace = GetNpadHandheldState)]
+pub unsafe fn handle_GetNpadHandheldState(
+    state: *mut skyline::nn::hid::NpadHandheldState,
+    controller_id: *const u32,
+) {
+    original!()(state, controller_id);
+    input_delay::handle_get_npad_state(state, controller_id);
+}
+
+#[skyline::hook(replace = GetNpadFullKeyState)]
+pub unsafe fn handle_GetNpadFullKeyState(
+    state: *mut skyline::nn::hid::NpadHandheldState,
+    controller_id: *const u32,
+) {
+    original!()(state, controller_id);
+    input_delay::handle_get_npad_state(state, controller_id);
+}
+
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
+
+    // Input Recording/Delay
+    skyline::install_hooks!(handle_GetNpadHandheldState, handle_GetNpadFullKeyState);
+
     unsafe {
         LookupSymbol(
             &mut FIGHTER_MANAGER_ADDR,
@@ -351,7 +379,6 @@ pub fn training_mods() {
         handle_is_enable_transition_term,
         // SDI
         crate::training::sdi::check_hit_stop_delay_command,
-        // Generic params
     );
 
     combo::init();
@@ -359,12 +386,4 @@ pub fn training_mods() {
     fast_fall::init();
     mash::init();
     ledge::init();
-
-    // // Input recorder
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind31ControlModule__get_stick_x_implEPNS_26BattleObjectModuleAccessorE",
-    //     (u64)&ControlModule::get_stick_x_replace);
-    // SaltySD_function_replace_sym(
-    //     "_ZN3app8lua_bind31ControlModule__get_attack_air_stick_x_implEPNS_26BattleObjectModuleAccessorE",
-    //     (u64)&ControlModule::get_attack_air_stick_x_replace);
 }

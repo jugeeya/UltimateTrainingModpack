@@ -8,11 +8,13 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
-skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
+# skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
+# skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
 bitflags = "1.2.1"
-# skyline = { path = "../../../../src/skyline-rs" }
-# skyline_smash = { path = "../../../../src/skyline-smash" }
+parking_lot = { version = "0.11.0", features = ["nightly"] }
+lazy_static = "1.4.0"
+skyline = { path = "../../../../src/skyline-rs" }
+skyline_smash = { path = "../../../../src/skyline-smash" }
 
 [profile.dev]
 panic = "abort"

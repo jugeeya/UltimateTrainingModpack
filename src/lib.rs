@@ -17,6 +17,10 @@ use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
 use skyline::nro::{self, NroInfo};
 
 fn nro_main(nro: &NroInfo<'_>) {
+    if nro.module.isLoaded {
+        return;
+    }
+
     match nro.name {
         "common" => {
             skyline::install_hooks!(
