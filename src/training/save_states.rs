@@ -85,6 +85,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
         }
+
+        super::INPUT_RECORD = 2;
+        super::INPUT_RECORD_FRAME = 0;
+
         reset::on_reset();
         return;
     }
@@ -191,6 +195,20 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     {
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;
+
+        super::INPUT_RECORD = 1;
+        super::P1_NPAD_STATES.iter_mut().for_each(|state| {
+            *state = skyline::nn::hid::NpadHandheldState {
+                updateCount: 0,
+                Buttons: 0,
+                LStickX: 0,
+                LStickY: 0,
+                RStickX: 0,
+                RStickY: 0,
+                Flags: 0,
+            }
+        });
+        super::INPUT_RECORD_FRAME = 0;
     }
 
     if save_state.state == Save {

@@ -32,6 +32,7 @@ static struct TrainingModpackMenu
 	BoolFlags      FALLING_AERIALS = BoolFlags::None;
 	DelayFlags     AERIAL_DELAY    = DelayFlags::None;
 	BoolFlags      FULL_HOP        = BoolFlags::None;
+	int            INPUT_DELAY     = 0;
 } menu;
 
 static struct TrainingModpackMenu defaultMenu = menu;
@@ -397,6 +398,11 @@ tsl::elm::Element* GuiMain::createUI()
 			                                   std::string              help) { tsl::changeTo<GuiHelp>(title, help); });
 			saveStateItem->setHelpListener([](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(saveStateItem);
+
+			ValueListItem* inputDelayItem =
+			    new ValueListItem("Input Delay", input_delay_items, &menu.INPUT_DELAY, "inputDelay", input_delay_help);
+			list->addItem(inputDelayItem);
+			valueListItems.push_back(inputDelayItem);
 
 			ClickableListItem* resetMenuItem =
 			    new ClickableListItem("Reset Menu", empty_items, nullptr, "resetMenu", 0, "Reset Menu", reset_menu_help);
