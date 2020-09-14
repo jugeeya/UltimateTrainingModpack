@@ -228,11 +228,7 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
             try_change_status(module_accessor, dash_status, dash_transition);
 
-            return get_flag(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_DASH,
-                0,
-            );
+            return get_flag(module_accessor, *FIGHTER_STATUS_KIND_DASH, 0);
         }
         _ => return get_attack_flag(module_accessor, action),
     }
@@ -333,25 +329,29 @@ unsafe fn get_attack_flag(
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
         }
-        // TODO: Make work
-        // Action::DASH_ATTACK => {
-        //     let current_status = StatusModule::status_kind(module_accessor);
-        //     let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
+        // TODO: Make it work, without being 1 frame late
+        Action::DASH_ATTACK => {
+            let current_status = StatusModule::status_kind(module_accessor);
+            let dash_status = *FIGHTER_STATUS_KIND_DASH;
+            let is_dashing = current_status == dash_status;
 
-        //     // Start Dash First
-        //     if !is_dashing {
-        //         let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
-        //         let dash_status = *FIGHTER_STATUS_KIND_DASH;
+            // Start Dash First
+            if !is_dashing {
+                let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
 
-        //         try_change_status(module_accessor, dash_status, dash_transition);
-        //         return 0;
-        //     }
+                try_change_status(module_accessor, dash_status, dash_transition);
+                return 0;
+            }
 
-        //     command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_N;
-        //     status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
+            status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
 
-        //     return get_flag(module_accessor, status, command_flag);
-        // }
+            let transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_DASH;
+            try_change_status(module_accessor, status, transition);
+
+            //@TODO find out how to properly reset, since the status just returns FIGHTER_STATUS_KIND_DASH
+
+            return 0;
+        }
         _ => return 0,
     }
 
