@@ -232,8 +232,8 @@ bitflags! {
         const D_TILT  = 0x200000;
         const GRAB = 0x400000;
         // TODO: Make work
-        // const DASH_ATTACK = 0x400000;
         const DASH = 0x800000;
+        const DASH_ATTACK = 0x1000000;
     }
 }
 
