@@ -51,6 +51,8 @@ jobs:
       run: | 
         mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
         cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
+        wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1/libparam_hook.nro
+        cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
         mkdir -p ${{env.TESLA_OVERLAY_DIR}}
         cp overlay/ovlTrainingModpack.ovl ${{env.TESLA_OVERLAY_DIR}}/ovlTrainingModpack.ovl
         zip -r training_modpack_beta.zip atmosphere switch
