@@ -133,7 +133,7 @@ pub unsafe fn param_installer() {
     if crate::training::COMMON_PARAMS as usize != 0 {
         let common_params = &mut *crate::training::COMMON_PARAMS;
         if is_training_mode()
-            && (MENU.shield_state == Shield::Infinite || should_pause_shield_decay())
+            && (MENU.shield_state == Shield::Infinite)
         {
             common_params.shield_damage_mul = 0.0;
         } else {
