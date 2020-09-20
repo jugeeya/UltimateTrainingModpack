@@ -23,13 +23,15 @@ jobs:
   plugin:
     runs-on: ubuntu-latest
     container: jugeeya/cargo-skyline:latest
+    env:
+      GITHUB_WORKSPACE: /
     
     steps:
     - uses: actions/checkout@v2
       with:
         path: '/volume'
       env:
-        GITHUB_WORKSPACE: '/'
+        GITHUB_WORKSPACE: /
     - name: Build release NRO
       run: cargo skyline build --release
       working-directory: /volume/UltimateTrainingModpack
