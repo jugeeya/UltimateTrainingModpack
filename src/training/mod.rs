@@ -1,6 +1,7 @@
 use crate::common::{is_training_mode, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
+use skyline::nn::hid::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
@@ -265,26 +266,6 @@ fn params_main(params_info: &ParamsInfo<'_>) {
             COMMON_PARAMS = common as *mut _;
         }
     }
-}
-
-extern "C" {
-    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_17NpadHandheldStateERKj"]
-    pub fn GetNpadHandheldState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
-
-    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_16NpadFullKeyStateERKj"]
-    pub fn GetNpadFullKeyState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
-
-    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_11NpadGcStateERKj"]
-    pub fn GetNpadGcState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
-
-    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyDualStateERKj"]
-    pub fn GetNpadJoyDualState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
-
-    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyLeftStateERKj"]
-    pub fn GetNpadJoyLeftState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
-
-    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_17NpadJoyRightStateERKj"]
-    pub fn GetNpadJoyRightState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
 }
 
 create_nn_hid_hooks!(
