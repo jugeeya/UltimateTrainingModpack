@@ -1,5 +1,5 @@
 use skyline::nn::hid::NpadHandheldState;
-use smash::app::{BattleObjectModuleAccessor, lua_bind::WorkModule};
+use smash::app::{BattleObjectModuleAccessor, lua_bind::*};
 use smash::lib::lua_const::*;
 use crate::training::input_delay::p1_controller_id;
 
@@ -32,6 +32,20 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
 
     if entry_id_int == 0 {
+        // Attack + Dpad Right: Playback
+        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R) {
+            playback();
+        }
+        // Attack + Dpad Left: Record
+        else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
+        {
+           record();
+        }
+
+
+
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
             if INPUT_RECORD_FRAME >= P1_NPAD_STATES.len() - 1 {
                 if INPUT_RECORD == Record {

@@ -17,7 +17,6 @@ mod character_specific;
 mod fast_fall;
 mod frame_counter;
 mod full_hop;
-#[macro_use]
 mod input_delay;
 mod input_record;
 mod ledge;
@@ -266,6 +265,27 @@ fn params_main(params_info: &ParamsInfo<'_>) {
             COMMON_PARAMS = common as *mut _;
         }
     }
+}
+
+macro_rules! create_nn_hid_hooks {
+    (
+        $(
+            ($func:ident, $hook:ident)
+        ),*
+    ) => {
+        $(
+            #[allow(non_snake_case)]
+            #[skyline::hook(replace = $func)]
+            pub unsafe fn $hook(
+                state: *mut skyline::nn::hid::NpadHandheldState,
+                controller_id: *const u32,
+            ) {
+                original!()(state, controller_id);
+                input_delay::handle_get_npad_state(state, controller_id);
+                input_record::handle_get_npad_state(state, controller_id);
+            }
+        )*
+    };
 }
 
 create_nn_hid_hooks!(

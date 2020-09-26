@@ -86,8 +86,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_CPU.state = KillPlayer;
         }
 
-        // crate::training::input_record::playback();
-
         reset::on_reset();
         return;
     }

@@ -51,25 +51,3 @@ pub unsafe fn handle_get_npad_state(
         delayed_states.truncate(MENU.input_delay as usize);
     }
 }
-
-#[macro_export]
-macro_rules! create_nn_hid_hooks {
-    (
-        $(
-            ($func:ident, $hook:ident)
-        ),*
-    ) => {
-        $(
-            #[allow(non_snake_case)]
-            #[skyline::hook(replace = $func)]
-            pub unsafe fn $hook(
-                state: *mut skyline::nn::hid::NpadHandheldState,
-                controller_id: *const u32,
-            ) {
-                original!()(state, controller_id);
-                input_delay::handle_get_npad_state(state, controller_id);
-                // input_record::handle_get_npad_state(state, controller_id);
-            }
-        )*
-    };
-}
