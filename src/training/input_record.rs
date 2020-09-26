@@ -38,7 +38,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             playback();
         }
         // Attack + Dpad Left: Record
-        else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+        else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
         {
            record();
