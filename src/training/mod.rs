@@ -16,7 +16,9 @@ mod character_specific;
 mod fast_fall;
 mod frame_counter;
 mod full_hop;
+#[macro_use]
 mod input_delay;
+mod input_record;
 mod ledge;
 mod mash;
 mod reset;
@@ -61,10 +63,6 @@ pub unsafe fn handle_get_attack_air_kind(
         return ori;
     }
 
-    // bool replace;
-    // int kind = InputRecorder::get_attack_air_kind(module_accessor, replace);
-    // if (replace) return kind;
-
     mash::get_attack_air_kind(module_accessor).unwrap_or(ori)
 }
 
@@ -83,10 +81,6 @@ pub unsafe fn handle_get_command_flag_cat(
         return flag;
     }
 
-    // bool replace;
-    // int ret = InputRecorder::get_command_flag_cat(module_accessor, category, flag, replace);
-    // if (replace) return ret;
-
     flag |= mash::get_command_flag_cat(module_accessor, category);
 
     once_per_frame_per_fighter(module_accessor, category);
@@ -103,24 +97,7 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
-        let entry_id_int =
-            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
-
-        if entry_id_int == 0 {
-            // if INPUT_RECORD == 1 || INPUT_RECORD == 2 {
-            //     if INPUT_RECORD_FRAME >= P1_NPAD_STATES.len() - 1 {
-            //         if INPUT_RECORD == 1 {
-            //             INPUT_RECORD = 2;
-            //         }
-            //         INPUT_RECORD_FRAME = 0;
-            //     } else {
-            //         INPUT_RECORD_FRAME += 1;
-            //     }
-            // }
-        }
-    }
-
-    unsafe {
+        input_record::get_command_flag_cat(module_accessor);
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
@@ -296,46 +273,39 @@ extern "C" {
 
     #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_16NpadFullKeyStateERKj"]
     pub fn GetNpadFullKeyState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
+
+    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_11NpadGcStateERKj"]
+    pub fn GetNpadGcState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
+
+    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyDualStateERKj"]
+    pub fn GetNpadJoyDualState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
+
+    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyLeftStateERKj"]
+    pub fn GetNpadJoyLeftState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
+
+    #[link_name = "\u{1}_ZN2nn3hid12GetNpadStateEPNS0_17NpadJoyRightStateERKj"]
+    pub fn GetNpadJoyRightState(arg1: *mut skyline::nn::hid::NpadHandheldState, arg2: *const u32);
 }
 
-pub static mut P1_NPAD_STATES: &mut [skyline::nn::hid::NpadHandheldState; 90] = &mut [{
-    skyline::nn::hid::NpadHandheldState {
-        updateCount: 0,
-        Buttons: 0,
-        LStickX: 0,
-        LStickY: 0,
-        RStickX: 0,
-        RStickY: 0,
-        Flags: 0,
-    }
-}; 90];
-
-pub static mut INPUT_RECORD: u32 = 0;
-pub static mut INPUT_RECORD_FRAME: usize = 0;
-
-#[skyline::hook(replace = GetNpadHandheldState)]
-pub unsafe fn handle_GetNpadHandheldState(
-    state: *mut skyline::nn::hid::NpadHandheldState,
-    controller_id: *const u32,
-) {
-    original!()(state, controller_id);
-    input_delay::handle_get_npad_state(state, controller_id);
-}
-
-#[skyline::hook(replace = GetNpadFullKeyState)]
-pub unsafe fn handle_GetNpadFullKeyState(
-    state: *mut skyline::nn::hid::NpadHandheldState,
-    controller_id: *const u32,
-) {
-    original!()(state, controller_id);
-    input_delay::handle_get_npad_state(state, controller_id);
-}
+create_nn_hid_hooks!(
+    (GetNpadHandheldState, handle_get_npad_handheld_state),
+    (GetNpadFullKeyState, handle_get_npad_full_key_state),
+    (GetNpadGcState, handle_get_npad_gc_state),
+    (GetNpadJoyDualState, handle_get_joy_dual_state),
+    (GetNpadJoyLeftState, handle_get_joy_left_state),
+    (GetNpadJoyRightState, handle_get_joy_right_state));
 
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
 
     // Input Recording/Delay
-    skyline::install_hooks!(handle_GetNpadHandheldState, handle_GetNpadFullKeyState);
+    skyline::install_hooks!(
+        handle_get_npad_handheld_state,
+        handle_get_npad_full_key_state,
+        handle_get_npad_gc_state,
+        handle_get_joy_dual_state, 
+        handle_get_joy_left_state,
+        handle_get_joy_right_state);
 
     unsafe {
         LookupSymbol(

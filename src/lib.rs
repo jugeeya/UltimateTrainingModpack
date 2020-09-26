@@ -16,6 +16,8 @@ use training::combo::FRAME_ADVANTAGE;
 use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
 use skyline::nro::{self, NroInfo};
 
+use owo_colors::OwoColorize;
+
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
         return;
@@ -42,7 +44,14 @@ macro_rules! c_str {
 
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
-    println!("[Training Modpack] Initialized.");
+    macro_rules! log {
+        ($($arg:tt)*) => {
+            print!("{}", "[Training Modpack] ".green());
+            println!($($arg)*);
+        };
+    }
+
+    log!("Initialized.");
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
@@ -50,14 +59,14 @@ pub fn main() {
 
     unsafe {
         let mut buffer = format!("{:x}", MENU as *const _ as u64);
-        println!(
-            "[Training Modpack] Writing training_modpack.log with {}...",
+        log!(
+            "Writing training_modpack.log with {}...",
             buffer
         );
         mkdir(c_str!("sd:/TrainingModpack/"), 0777);
 
         // Only necessary upon version upgrade.
-        // println!("[Training Modpack] Removing training_modpack_menu.conf...");
+        // log!("[Training Modpack] Removing training_modpack_menu.conf...");
         // remove(c_str!("sd:/TrainingModpack/training_modpack_menu.conf"));
 
         let mut f = fopen(
@@ -71,8 +80,8 @@ pub fn main() {
         }
 
         buffer = format!("{:x}", &FRAME_ADVANTAGE as *const _ as u64);
-        println!(
-            "[Training Modpack] Writing training_modpack_frame_adv.log with {}...",
+        log!(
+            "Writing training_modpack_frame_adv.log with {}...",
             buffer
         );
 
