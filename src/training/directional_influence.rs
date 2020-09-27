@@ -29,18 +29,20 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
     }
 
     // Either left, right, or none
-    let mut angle = MENU.di_state.get_random().into_angle();
-    // Nothing to do on no DI
-    if angle == ANGLE_NONE {
-        set_x_y(module_accessor, 0.0, 0.0);
-        return;
-    }
+    let angle_tuple = MENU.di_state
+        .get_random()
+        .into_angle()
+        .map_or((0.0, 0.0), |angle| {
+        let a = if should_reverse_angle() {
+            PI - angle
+        } else {
+            angle
+        };
 
-    if should_reverse_angle() {
-        angle = PI - angle;
-    }
+        (a.cos(), a.sin())
+    });
 
-    set_x_y(module_accessor, angle.cos() as f32, angle.sin() as f32);
+    set_x_y(module_accessor, angle_tuple.0 as f32, angle_tuple.1 as f32);
 }
 
 pub fn should_reverse_angle() -> bool {

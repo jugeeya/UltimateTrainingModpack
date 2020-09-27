@@ -48,22 +48,15 @@ fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<f64> {
         if !is_operation_cpu(module_accessor) {
             return None;
         }
-    }
-    let mut angle: f64;
 
-    unsafe {
-        angle = DIRECTION.into_angle();
+        DIRECTION.into_angle().map(|angle| {
+            if directional_influence::should_reverse_angle() {
+                PI - angle
+            } else {
+                angle 
+            }
+        })
     }
-
-    if angle == ANGLE_NONE {
-        return None;
-    }
-
-    if directional_influence::should_reverse_angle() {
-        angle = PI - angle;
-    }
-
-    Some(angle)
 }
 
 #[skyline::hook(replace = FighterControlModuleImpl::check_hit_stop_delay_command)]

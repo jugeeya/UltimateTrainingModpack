@@ -91,14 +91,14 @@ bitflags! {
 }
 
 impl Direction {
-    pub fn into_angle(self) -> f64 {
+    pub fn into_angle(self) -> Option<f64> {
         let index = self.into_index();
 
         if index == 0 {
-            return ANGLE_NONE;
+            return None;
         }
 
-        (index as i32 - 1) as f64 * PI / 4.0
+        Some((index as i32 - 1) as f64 * PI / 4.0)
     }
     fn into_index(self) -> i32 {
         match self {
@@ -116,8 +116,6 @@ impl Direction {
     to_vec_impl! {Direction}
     get_random_impl! {Direction}
 }
-
-pub static ANGLE_NONE: f64 = -69.0;
 
 // Ledge Option
 bitflags! {
