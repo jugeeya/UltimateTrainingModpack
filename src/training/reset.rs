@@ -35,7 +35,7 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 pub fn on_reset() {

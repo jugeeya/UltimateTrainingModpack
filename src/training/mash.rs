@@ -18,7 +18,7 @@ static mut AERIAL_DELAY: u32 = 0;
 
 pub fn buffer_action(action: Action) {
     unsafe {
-        if QUEUE.len() > 0 {
+        if !QUEUE.is_empty() {
             return;
         }
     }
@@ -55,11 +55,11 @@ pub fn buffer_follow_up() {
 
 pub fn get_current_buffer() -> Action {
     unsafe {
-        if QUEUE.len() == 0 {
+        if !QUEUE.is_empty() {
             return Action::empty();
         }
 
-        return *QUEUE.last().unwrap();
+        *QUEUE.last().unwrap()
     }
 }
 
@@ -78,7 +78,7 @@ fn reset() {
 
 pub fn full_reset() {
     unsafe {
-        while QUEUE.len() > 0 {
+        while !QUEUE.is_empty() {
             reset();
         }
     }
@@ -115,11 +115,11 @@ pub unsafe fn get_command_flag_cat(
 
     check_buffer(module_accessor);
 
-    return perform_action(module_accessor);
+    perform_action(module_accessor)
 }
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if QUEUE.len() > 0 {
+    if !QUEUE.is_empty() {
         return;
     }
 
@@ -145,7 +145,7 @@ fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool 
         return true;
     }
 
-    return false;
+    false
 }
 
 // Temp Translation
@@ -167,46 +167,42 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
     match action {
         Action::AIR_DODGE => {
-            let expected_status;
-            let command_flag;
-            // Shield if grounded instead
-            if is_grounded(module_accessor) {
+            let (expected_status, command_flag) = if is_grounded(module_accessor) {
+                // Shield if grounded instead
                 /*
                 Doesn't actually cause the shield, but will clear the buffer once shield is possible.
                 Shield hold is performed through shield::should_hold_shield and request_shield
                 */
-                expected_status = *FIGHTER_STATUS_KIND_GUARD_ON;
-                command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
+                (*FIGHTER_STATUS_KIND_GUARD_ON, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE)
             } else {
-                expected_status = *FIGHTER_STATUS_KIND_ESCAPE_AIR;
-                command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE;
-            }
+                (*FIGHTER_STATUS_KIND_ESCAPE_AIR, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE)
+            };
 
-            return get_flag(module_accessor, expected_status, command_flag);
+            get_flag(module_accessor, expected_status, command_flag)
         }
         Action::JUMP => {
-            return update_jump_flag(module_accessor);
+            update_jump_flag(module_accessor)
         }
         Action::SPOT_DODGE => {
-            return get_flag(
+            get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-            );
+            )
         }
         Action::ROLL_F => {
-            return get_flag(
+            get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_F,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
-            );
+            )
         }
         Action::ROLL_B => {
-            return get_flag(
+            get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_ESCAPE_B,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
-            );
+            )
         }
         Action::SHIELD => {
             if !is_grounded(module_accessor) {
@@ -216,11 +212,11 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             Doesn't actually cause the shield, but will clear the buffer once shield is possible.
             Shield hold is performed through shield::should_hold_shield and request_shield
             */
-            return get_flag(
+            get_flag(
                 module_accessor,
                 *FIGHTER_STATUS_KIND_GUARD_ON,
                 *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
-            );
+            )
         }
         Action::DASH => {
             let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
@@ -228,20 +224,18 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
             try_change_status(module_accessor, dash_status, dash_transition);
 
-            return get_flag(module_accessor, *FIGHTER_STATUS_KIND_DASH, 0);
+            get_flag(module_accessor, *FIGHTER_STATUS_KIND_DASH, 0)
         }
-        _ => return get_attack_flag(module_accessor, action),
+        _ => get_attack_flag(module_accessor, action),
     }
 }
 
 pub fn request_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     match get_current_buffer() {
-        Action::SHIELD => return true,
-        Action::AIR_DODGE => return is_grounded(module_accessor),
-        _ => {}
+        Action::SHIELD => true,
+        Action::AIR_DODGE => is_grounded(module_accessor),
+        _ => false
     }
-
-    return false;
 }
 
 unsafe fn update_jump_flag(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
@@ -254,7 +248,7 @@ unsafe fn update_jump_flag(module_accessor: &mut app::BattleObjectModuleAccessor
     };
     let command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_JUMP_BUTTON;
 
-    return get_flag(module_accessor, check_flag, command_flag);
+    get_flag(module_accessor, check_flag, command_flag)
 }
 
 unsafe fn get_attack_flag(
@@ -355,7 +349,7 @@ unsafe fn get_attack_flag(
         _ => return 0,
     }
 
-    return get_flag(module_accessor, status, command_flag);
+    get_flag(module_accessor, status, command_flag)
 }
 
 unsafe fn get_aerial_flag(
@@ -402,7 +396,7 @@ unsafe fn get_aerial_flag(
 
     flag |= get_flag(module_accessor, status, command_flag);
 
-    return flag;
+    flag
 }
 
 pub fn init() {
@@ -437,7 +431,7 @@ fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) ->
             return true;
         }
 
-        return frame_counter::should_delay(AERIAL_DELAY, AERIAL_DELAY_COUNTER);
+        frame_counter::should_delay(AERIAL_DELAY, AERIAL_DELAY_COUNTER)
     }
 }
 
@@ -461,7 +455,7 @@ unsafe fn get_flag(
         reset();
     }
 
-    return command_flag;
+    command_flag
 }
 
 fn try_change_status(
@@ -482,7 +476,7 @@ fn try_change_status(
         StatusModule::change_status_request_from_script(module_accessor, expected_status, true);
     }
 
-    return true;
+    true
 }
 
 pub unsafe fn perform_defensive_option() {

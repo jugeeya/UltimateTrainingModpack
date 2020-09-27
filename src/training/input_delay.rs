@@ -32,19 +32,13 @@ pub unsafe fn handle_get_npad_state(
         let actual_state = *state;
 
         if delayed_states.len() < MENU.input_delay as usize {
-            (*state).Buttons = 0;
-            (*state).LStickX = 0;
-            (*state).LStickY = 0;
-            (*state).RStickX = 0;
-            (*state).RStickY = 0;
-            (*state).Flags = 0;
+            let update_count = (*state).updateCount;
+            *state = NpadHandheldState::default();
+            (*state).updateCount = update_count;
         } else if let Some(delayed_state) = delayed_states.back() {
-            (*state).Buttons = delayed_state.Buttons;
-            (*state).LStickX = delayed_state.LStickX;
-            (*state).LStickY = delayed_state.LStickY;
-            (*state).RStickX = delayed_state.RStickX;
-            (*state).RStickY = delayed_state.RStickY;
-            (*state).Flags = delayed_state.Flags;
+            let update_count = (*state).updateCount;
+            *state = *delayed_state;
+            (*state).updateCount = update_count;
         }
 
         delayed_states.push_front(actual_state);

@@ -23,16 +23,13 @@ fn nro_main(nro: &NroInfo<'_>) {
         return;
     }
 
-    match nro.name {
-        "common" => {
-            skyline::install_hooks!(
-                training::shield::handle_sub_guard_cont,
-                training::directional_influence::handle_correct_damage_vector_common,
-                training::sdi::process_hit_stop_delay,
-                training::tech::handle_change_status
-            );
-        }
-        _ => (),
+    if nro.name == "common" {
+        skyline::install_hooks!(
+            training::shield::handle_sub_guard_cont,
+            training::directional_influence::handle_correct_damage_vector_common,
+            training::sdi::process_hit_stop_delay,
+            training::tech::handle_change_status
+        );
     }
 }
 
@@ -63,7 +60,7 @@ pub fn main() {
             "Writing training_modpack.log with {}...",
             buffer
         );
-        mkdir(c_str!("sd:/TrainingModpack/"), 0777);
+        mkdir(c_str!("sd:/TrainingModpack/"), 777);
 
         // Only necessary upon version upgrade.
         // log!("[Training Modpack] Removing training_modpack_menu.conf...");

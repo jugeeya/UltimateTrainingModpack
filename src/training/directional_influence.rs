@@ -47,8 +47,8 @@ pub fn should_reverse_angle() -> bool {
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     let player_module_accessor = get_module_accessor(FighterId::Player);
     unsafe {
-        return PostureModule::pos_x(player_module_accessor)
-            > PostureModule::pos_x(cpu_module_accessor);
+        PostureModule::pos_x(player_module_accessor)
+            > PostureModule::pos_x(cpu_module_accessor)
     }
 }
 

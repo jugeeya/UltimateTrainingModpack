@@ -68,14 +68,12 @@ pub unsafe fn get_param_int(
 
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let status = StatusModule::status_kind(module_accessor) as i32;
-    let save_state: &mut SavedState;
-    if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
-        == FighterId::CPU as i32
-    {
-        save_state = &mut SAVE_STATE_CPU;
+    let save_state = if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) 
+        == FighterId::CPU as i32 {
+        &mut SAVE_STATE_CPU
     } else {
-        save_state = &mut SAVE_STATE_PLAYER;
-    }
+        &mut SAVE_STATE_PLAYER
+    };
 
     // Grab + Dpad up: reset state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
@@ -95,27 +93,25 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
             save_state.state = PosMove;
-        } else {
-            if status != FIGHTER_STATUS_KIND_DEAD && status != FIGHTER_STATUS_KIND_STANDBY {
-                // Try moving off-screen so we don't see effects.
-                let pos = Vector3f {
-                    x: -300.0,
-                    y: -100.0,
-                    z: 0.0,
-                };
-                PostureModule::set_pos(module_accessor, &pos);
+        } else if status != FIGHTER_STATUS_KIND_DEAD && status != FIGHTER_STATUS_KIND_STANDBY {
+            // Try moving off-screen so we don't see effects.
+            let pos = Vector3f {
+                x: -300.0,
+                y: -100.0,
+                z: 0.0,
+            };
+            PostureModule::set_pos(module_accessor, &pos);
 
-                MotionAnimcmdModule::set_sleep(module_accessor, true);
-                SoundModule::pause_se_all(module_accessor, true);
-                ControlModule::stop_rumble(module_accessor, true);
-                SoundModule::stop_all_sound(module_accessor);
+            MotionAnimcmdModule::set_sleep(module_accessor, true);
+            SoundModule::pause_se_all(module_accessor, true);
+            ControlModule::stop_rumble(module_accessor, true);
+            SoundModule::stop_all_sound(module_accessor);
 
-                StatusModule::change_status_request(
-                    module_accessor,
-                    *FIGHTER_STATUS_KIND_DEAD,
-                    false,
-                );
-            }
+            StatusModule::change_status_request(
+                module_accessor,
+                *FIGHTER_STATUS_KIND_DEAD,
+                false,
+            );
         }
 
         return;
@@ -192,8 +188,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     {
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;
-
-        // crate::training::input_record::record();
     }
 
     if save_state.state == Save {

@@ -1,7 +1,8 @@
 {
     "rust-analyzer.checkOnSave.overrideCommand": [
+        // "RUST_TARGET_PATH=`pwd`",
         "xargo",
-        "check",
+        "clippy",
         "--workspace",
         "--message-format=json",
         "--all-features"

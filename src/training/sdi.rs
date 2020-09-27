@@ -32,8 +32,7 @@ pub unsafe fn process_hit_stop_delay(
     if is_training_mode() {
         let option = mod_sdi_direction(fighter);
 
-        if option.is_some() {
-            let angle = option.unwrap();
+        if let Some(angle) = option {
             new_x = (angle.cos() as f32).into();
             new_y = (angle.sin() as f32).into();
         }
@@ -64,7 +63,7 @@ fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<f64> {
         angle = PI - angle;
     }
 
-    return Some(angle);
+    Some(angle)
 }
 
 #[skyline::hook(replace = FighterControlModuleImpl::check_hit_stop_delay_command)]
@@ -107,5 +106,5 @@ fn mod_check_hit_stop_delay_command(
         }
     }
 
-    return Some(1);
+    Some(1)
 }

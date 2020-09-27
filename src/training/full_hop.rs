@@ -7,7 +7,7 @@ static mut FULL_HOP: bool = false;
 
 pub fn should_full_hop() -> bool {
     unsafe{
-        return FULL_HOP;
+        FULL_HOP
     }
 }
 

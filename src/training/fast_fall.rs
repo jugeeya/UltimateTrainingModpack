@@ -13,7 +13,7 @@ static mut FAST_FALL: bool = false;
 
 fn should_fast_fall() -> bool {
     unsafe {
-        return FAST_FALL;
+        FAST_FALL
     }
 }
 

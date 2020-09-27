@@ -89,10 +89,11 @@ pub unsafe fn generate_hitbox_effects(
     }
 
     for i in 0..n_effects {
-        let mut t = 0.0;
-        if n_effects > 1 {
-            t = (i as f32) / ((n_effects - 1) as f32);
-        }
+        let t = if n_effects > 1 {
+            (i as f32) / ((n_effects - 1) as f32)
+        } else {
+            0.0
+        };
         let x_curr = x + x_dist * t;
         let y_curr = y + y_dist * t;
         let z_curr = z + z_dist * t;
@@ -185,14 +186,11 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
 
         let attack_data = *AttackModule::attack_data(module_accessor, i, false);
         let is_capsule = attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
-        let mut x2 = None;
-        let mut y2 = None;
-        let mut z2 = None;
-        if is_capsule {
-            x2 = Some(attack_data.x2);
-            y2 = Some(attack_data.y2);
-            z2 = Some(attack_data.z2);
-        }
+        let (x2, y2, z2) = if is_capsule {
+            (Some(attack_data.x2), Some(attack_data.y2), Some(attack_data.z2))
+        } else {
+            (None, None, None)
+        };
         generate_hitbox_effects(
             module_accessor,
             attack_data.node, // joint
@@ -310,7 +308,7 @@ unsafe fn mod_handle_handle_set_rebound(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     rebound: bool,
 ) {
-    if rebound != false {
+    if rebound {
         return;
     }
 

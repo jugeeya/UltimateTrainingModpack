@@ -71,16 +71,14 @@ pub unsafe fn is_enable_transition_term(
         PLAYER_ACTIONABLE = true;
 
         // if both are now active
-        if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
-            if FRAME_ADVANTAGE_CHECK {
-                let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-                if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
-                    FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
-                }
-
-                frame_counter::stop_counting(FRAME_COUNTER_INDEX);
-                FRAME_ADVANTAGE_CHECK = false;
+        if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
+            let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+            if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
+                FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
             }
+
+            frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+            FRAME_ADVANTAGE_CHECK = false;
         }
     }
 }
@@ -126,14 +124,12 @@ pub unsafe fn get_command_flag_cat(
     }
 
     // if both are now active
-    if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
-        if FRAME_ADVANTAGE_CHECK {
-            if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
-                FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
-            }
-
-            frame_counter::stop_counting(FRAME_COUNTER_INDEX);
-            FRAME_ADVANTAGE_CHECK = false;
+    if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
+        if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
+            FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
         }
+
+        frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+        FRAME_ADVANTAGE_CHECK = false;
     }
 }

@@ -94,7 +94,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     // Reset when not shielding
     unsafe {
         let status_kind = StatusModule::status_kind(module_accessor);
-        if !(status_kind == FIGHTER_STATUS_KIND_GUARD) {
+        if status_kind != FIGHTER_STATUS_KIND_GUARD {
             set_shield_decay(false);
         }
     }
@@ -261,21 +261,21 @@ unsafe fn handle_escape_option(
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE.as_lua_int(), LUA_TRUE);
-            return true;
+            true
         }
         Action::ROLL_F => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_F.as_lua_int(), LUA_TRUE);
-            return true;
+            true
         }
         Action::ROLL_B => {
             fighter
                 .fighter_base
                 .change_status(FIGHTER_STATUS_KIND_ESCAPE_B.as_lua_int(), LUA_TRUE);
-            return true;
+            true
         }
-        _ => return false,
+        _ => false,
     }
 }
 
@@ -306,12 +306,8 @@ fn needs_oos_handling_drop_shield() -> bool {
 
 pub fn is_aerial(action: Action) -> bool {
     match action {
-        Action::NAIR => return true,
-        Action::FAIR => return true,
-        Action::BAIR => return true,
-        Action::UAIR => return true,
-        Action::DAIR => return true,
-        _ => return false,
+        Action::NAIR | Action::FAIR | Action::BAIR | Action::UAIR | Action::DAIR => true,
+        _ => false,
     }
 }
 

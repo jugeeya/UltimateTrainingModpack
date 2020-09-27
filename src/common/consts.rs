@@ -45,8 +45,8 @@ macro_rules! to_index_impl {
     };
 }
 
-pub fn random_option<T>(arg: &Vec<T>) -> &T {
-    return &arg[get_random_int(arg.len() as i32) as usize];
+pub fn random_option<T>(arg: &[T]) -> &T {
+    &arg[get_random_int(arg.len() as i32) as usize]
 }
 
 macro_rules! get_random_impl {
@@ -91,7 +91,7 @@ bitflags! {
 }
 
 impl Direction {
-    pub fn into_angle(&self) -> f64 {
+    pub fn into_angle(self) -> f64 {
         let index = self.into_index();
 
         if index == 0 {
@@ -100,8 +100,8 @@ impl Direction {
 
         (index as i32 - 1) as f64 * PI / 4.0
     }
-    fn into_index(&self) -> i32 {
-        return match *self {
+    fn into_index(self) -> i32 {
+        match self {
             Direction::OUT => 1,
             Direction::UP_OUT => 2,
             Direction::UP => 3,
@@ -110,8 +110,8 @@ impl Direction {
             Direction::DOWN_IN => 6,
             Direction::DOWN => 7,
             Direction::DOWN_OUT => 8,
-            __ => 0,
-        };
+            _ => 0,
+        }
     }
     to_vec_impl! {Direction}
     get_random_impl! {Direction}
@@ -131,8 +131,8 @@ bitflags! {
 }
 
 impl LedgeOption {
-    pub fn into_status(&self) -> Option<i32> {
-        Some(match *self {
+    pub fn into_status(self) -> Option<i32> {
+        Some(match self {
             LedgeOption::NEUTRAL => *FIGHTER_STATUS_KIND_CLIFF_CLIMB,
             LedgeOption::ROLL => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
             LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
@@ -228,18 +228,18 @@ bitflags! {
         const D_SMASH = 0x20000;
         const JAB = 0x40000;
         const F_TILT = 0x80000;
-        const U_TILT  = 0x100000;
-        const D_TILT  = 0x200000;
-        const GRAB = 0x400000;
+        const U_TILT  = 0x0010_0000;
+        const D_TILT  = 0x0020_0000;
+        const GRAB = 0x0040_0000;
         // TODO: Make work
-        const DASH = 0x800000;
-        const DASH_ATTACK = 0x1000000;
+        const DASH = 0x0080_0000;
+        const DASH_ATTACK = 0x0100_0000;
     }
 }
 
 impl Action {
-    pub fn into_attack_air_kind(&self) -> Option<i32> {
-        Some(match *self {
+    pub fn into_attack_air_kind(self) -> Option<i32> {
+        Some(match self {
             Action::NAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_N,
             Action::FAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_F,
             Action::BAIR => *FIGHTER_COMMAND_ATTACK_AIR_KIND_B,
@@ -274,17 +274,17 @@ bitflags! {
         const D17 = 0x20000;
         const D18 = 0x40000;
         const D19 = 0x80000;
-        const D20 = 0x100000;
-        const D21 = 0x200000;
-        const D22 = 0x400000;
-        const D23 = 0x800000;
-        const D24 = 0x1000000;
-        const D25 = 0x2000000;
-        const D26 = 0x4000000;
-        const D27 = 0x8000000;
-        const D28 = 0x10000000;
-        const D29 = 0x20000000;
-        const D30 = 0x40000000;
+        const D20 = 0x0010_0000;
+        const D21 = 0x0020_0000;
+        const D22 = 0x0040_0000;
+        const D23 = 0x0080_0000;
+        const D24 = 0x0100_0000;
+        const D25 = 0x0200_0000;
+        const D26 = 0x0400_0000;
+        const D27 = 0x0800_0000;
+        const D28 = 0x1000_0000;
+        const D29 = 0x2000_0000;
+        const D30 = 0x4000_0000;
     }
 }
 
@@ -305,11 +305,11 @@ impl BoolFlag {
     to_vec_impl! {BoolFlag}
     get_random_impl! {BoolFlag}
 
-    pub fn into_bool(&self) -> bool {
-        return match *self {
+    pub fn into_bool(self) -> bool {
+        match self {
             BoolFlag::TRUE => true,
             _ => false,
-        };
+        }
     }
 }
 

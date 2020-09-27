@@ -67,5 +67,5 @@ fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         return true;
     }
 
-    return false;
+    false
 }

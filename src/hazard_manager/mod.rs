@@ -54,10 +54,10 @@ fn get_hazard_flag_address() -> usize {
     let program_counter = flag_pos & !0xFFF; // Need program counter to mimic ADRP
     let adrp = unsafe { adrp_get_imm(*(flag_pos as *mut u32)) as usize };
     let add = unsafe { add_get_imm(*((flag_pos + 4) as *mut u32)) as usize };
-    return program_counter + adrp + add + 0x9;
+    program_counter + adrp + add + 0x9
 }
 
-fn get_hazard_hook_address() -> usize {
+fn get_hazard_hook_address() -> isize {
     let mut state = HookState::Begin;
     let mut flag_pos = 0;
     for (pos, instr) in TextIter::new() {
@@ -74,12 +74,13 @@ fn get_hazard_hook_address() -> usize {
             }
         }
     }
-    return flag_pos;
+
+    flag_pos as isize
 }
 
 // 8.1.0 Defaults
-static mut HAZARD_FLAG_ADDRESS: *mut u8 = 0x4ebbf95 as *mut u8;
-static mut LOAD_ADDRESS: usize = 0x214bde8;
+static mut HAZARD_FLAG_ADDRESS: *mut u8 = 0x04eb_bf95 as *mut u8;
+static mut LOAD_ADDRESS: isize = 0x0214_bde8;
 
 #[hook(offset = LOAD_ADDRESS, inline)]
 fn hazard_intercept(ctx: &skyline::hooks::InlineCtx) {
@@ -103,7 +104,7 @@ unsafe fn validate_hazards_addrs() -> std::result::Result<(), ()> {
     let mut error_string: String = String::new();
     let mut error_id = 0;
 
-    if HAZARD_FLAG_ADDRESS == 0 as *mut u8 {
+    if HAZARD_FLAG_ADDRESS.is_null() {
         error_string += &String::from("The Ultimate Training Modpack was unable to locate stage loading code in your version of the game.\n\n");
         error_id += 1000;
     }

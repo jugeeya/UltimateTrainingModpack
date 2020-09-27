@@ -209,11 +209,11 @@ pub unsafe fn handle_change_motion(
     unk5: bool,
     unk6: bool,
 ) -> u64 {
-    let mut mod_motion_kind = motion_kind;
-
-    if is_training_mode() {
-        mod_motion_kind = tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind);
-    }
+    let mod_motion_kind = if is_training_mode() {
+        tech::change_motion(module_accessor, motion_kind).unwrap_or(motion_kind)
+    } else {
+        motion_kind
+    };
 
     original!()(
         module_accessor,

@@ -31,7 +31,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     input_delay: 0,
 };
 
-pub static mut MENU: &'static mut consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
+pub static mut MENU: &consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
 
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
@@ -45,7 +45,7 @@ extern "C" {
 }
 
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
-    return (module_accessor.info >> 28) as u8 as i32;
+    (module_accessor.info >> 28) as u8 as i32
 }
 
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {

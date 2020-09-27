@@ -57,7 +57,7 @@ pub fn should_delay(delay: u32, index: usize) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 pub fn get_frame_count(index: usize) -> u32 {
