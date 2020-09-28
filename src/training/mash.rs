@@ -55,7 +55,7 @@ pub fn buffer_follow_up() {
 
 pub fn get_current_buffer() -> Action {
     unsafe {
-        if !QUEUE.is_empty() {
+        if QUEUE.is_empty() {
             return Action::empty();
         }
 
@@ -119,7 +119,7 @@ pub unsafe fn get_command_flag_cat(
 }
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if !QUEUE.is_empty() {
+    if QUEUE.is_empty() {
         return;
     }
 
