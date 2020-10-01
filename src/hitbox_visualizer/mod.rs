@@ -53,31 +53,23 @@ pub unsafe fn generate_hitbox_effects(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     bone: u64,
     size: f32,
-    x: f32,
-    y: f32,
-    z: f32,
-    x2: Option<f32>,
-    y2: Option<f32>,
-    z2: Option<f32>,
+    center: Vector3f,
+    capsule_center: Option<Vector3f>,
     color: Vector3f,
 ) {
     let size_mult = 19.0 / 200.0;
+
+    let (x,y,z) = (center.x, center.y, center.z);
 
     let x_dist: f32;
     let y_dist: f32;
     let z_dist: f32;
     let mut n_effects: i32;
-    if x2 == None && y2 == None && z2 == None {
-        // && let lib::L2CValueType::Void = y2.val_type && let lib::L2CValueType::Void = z2.val_type {  // extended hitbox
-        x_dist = 0.0;
-        y_dist = 0.0;
-        z_dist = 0.0;
-        n_effects = 1;
-    } else {
-        // non-extended hitbox
-        x_dist = x2.unwrap_or(0.0) - x;
-        y_dist = y2.unwrap_or(0.0) - y;
-        z_dist = z2.unwrap_or(0.0) - z;
+    if let Some(capsule_center) = capsule_center {
+        let (x2,y2,z2) = (capsule_center.x, capsule_center.y, capsule_center.z);
+        x_dist = x2 - x;
+        y_dist = y2 - y;
+        z_dist = z2 - z;
         let dist_sq: f32 = x_dist * x_dist + y_dist * y_dist + z_dist * z_dist;
         let dist = dist_sq.sqrt();
         n_effects = ((dist / (size * 1.75)) + 1.0).ceil() as i32; // just enough effects to form a continuous line
@@ -86,6 +78,11 @@ pub unsafe fn generate_hitbox_effects(
         } else if n_effects > MAX_EFFECTS_PER_HITBOX {
             n_effects = MAX_EFFECTS_PER_HITBOX;
         }
+    } else {
+        x_dist = 0.0;
+        y_dist = 0.0;
+        z_dist = 0.0;
+        n_effects = 1;
     }
 
     for i in 0..n_effects {
@@ -185,22 +182,19 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         }
 
         let attack_data = *AttackModule::attack_data(module_accessor, i, false);
+        let center = Vector3f{x: attack_data.x, y: attack_data.y, z: attack_data.z};
         let is_capsule = attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
-        let (x2, y2, z2) = if is_capsule {
-            (Some(attack_data.x2), Some(attack_data.y2), Some(attack_data.z2))
+        let capsule_center = if is_capsule {
+            Some(Vector3f{x: attack_data.x2, y: attack_data.y2, z: attack_data.z2})
         } else {
-            (None, None, None)
+            None
         };
         generate_hitbox_effects(
             module_accessor,
             attack_data.node, // joint
             attack_data.size,
-            attack_data.x,
-            attack_data.y,
-            attack_data.z,
-            x2,
-            y2,
-            z2,
+            center,
+            capsule_center,
             ID_COLORS[(i % 8) as usize],
         );
     }
@@ -237,16 +231,20 @@ unsafe fn mod_handle_attack(lua_state: u64) {
         let y2 = l2c_agent.pop_lua_stack(14); // float or void
         let z2 = l2c_agent.pop_lua_stack(15); // float or void
 
+        let center = Vector3f{x: x.get_num(), y: y.get_num(), z: z.get_num()};
+        let capsule_center = 
+        if let (Some(x2), Some(y2), Some(z2)) = (x2.try_get_num(), y2.try_get_num(), z2.try_get_num()) {
+            Some(Vector3f{x: x2, y: y2, z: z2})
+        } else {
+            None
+        };
+
         generate_hitbox_effects(
             sv_system::battle_object_module_accessor(lua_state),
             joint.get_int(),
             size.get_num(),
-            x.get_num(),
-            y.get_num(),
-            z.get_num(),
-            x2.try_get_num(),
-            y2.try_get_num(),
-            z2.try_get_num(),
+            center,
+            capsule_center,
             ID_COLORS[(id.get_int() % 8) as usize],
         );
     }
@@ -278,16 +276,20 @@ unsafe fn mod_handle_catch(lua_state: u64) {
     let y2 = l2c_agent.pop_lua_stack(8); // float or void
     let z2 = l2c_agent.pop_lua_stack(9); // float or void
 
+    let center = Vector3f{x: x.get_num(), y: y.get_num(), z: z.get_num()};
+    let capsule_center = 
+    if let (Some(x2), Some(y2), Some(z2)) = (x2.try_get_num(), y2.try_get_num(), z2.try_get_num()) {
+        Some(Vector3f{x: x2, y: y2, z: z2})
+    } else {
+        None
+    };
+
     generate_hitbox_effects(
         sv_system::battle_object_module_accessor(lua_state),
         joint.get_int(),
         size.get_num(),
-        x.get_num(),
-        y.get_num(),
-        z.get_num(),
-        x2.try_get_num(),
-        y2.try_get_num(),
-        z2.try_get_num(),
+        center,
+        capsule_center,
         ID_COLORS[(id.get_int() + 3 % 8) as usize],
     );
 }

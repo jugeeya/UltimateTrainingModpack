@@ -281,8 +281,14 @@ macro_rules! create_nn_hid_hooks {
                 controller_id: *const u32,
             ) {
                 original!()(state, controller_id);
-                input_delay::handle_get_npad_state(state, controller_id);
-                input_record::handle_get_npad_state(state, controller_id);
+                if is_training_mode() {
+                    input_delay::handle_get_npad_state(state, controller_id);
+                    /* TODO: 
+                    1) make number of frames configurable
+                    2) make possible without a second controller plugged in
+                    **/
+                    // input_record::handle_get_npad_state(state, controller_id);
+                }
             }
         )*
     };
