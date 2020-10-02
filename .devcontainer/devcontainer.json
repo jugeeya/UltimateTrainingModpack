@@ -1,0 +1,38 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/docker-from-docker
+{
+	"name": "Cargo Skyline",
+	"dockerFile": "Dockerfile",
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+	],
+	// Use this environment variable if you need to bind mount your local source code into a new container.
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+	// Set *default* container specific settings.json values on container create.
+	"settings": {
+		"terminal.integrated.shell.linux": "/bin/bash"
+	},
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-azuretools.vscode-docker",
+		"matklad.rust-analyzer",
+		"bungcip.better-toml",
+		"serayuzgur.crates",
+		"statiolake.vscode-rustfmt"
+	],
+	"build": {
+		"args": {
+			"INSTALL_ZSH": "false",
+			"ENABLE_NONROOT_DOCKER": "false"
+		}
+	}
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "docker --version",
+	// Uncomment the next two lines to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
+	// "overrideCommand": false,
+	// "remoteUser": "vscode"
+}
