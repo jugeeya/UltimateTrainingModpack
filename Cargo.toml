@@ -10,10 +10,12 @@ crate-type = ["cdylib"]
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
 skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
+skyline-web = { path = "../skyline-web" }
 bitflags = "1.2.1"
 parking_lot = { version = "0.11.0", features = ["nightly"] }
 lazy_static = "1.4.0"
 owo-colors = "1.1.3"
+ramhorns = "0.10.1"
 
 [profile.dev]
 panic = "abort"
@@ -26,6 +28,6 @@ lto = true
 titleid = "01006A800016E000"
 plugin-dependencies = [
     { name = "libnro_hook.nro", url = "https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.1.1/libnro_hook.nro" },
-    { name = "libparam_hook.nro", url = "https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1/libparam_hook.nro" },
+    { name = "libparam_hook.nro", url = "https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro" },
 ]
 

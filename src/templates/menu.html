@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <link rel="stylesheet" href="./help/css/common.css" />
+    <!-- <link rel="stylesheet" href="./help/css/qa.css" /> -->
+    <link rel="stylesheet" href="./help/css/abstract.css">
+    <link rel="stylesheet" href="./help/css/thema/collection.css">
+    <link id="font-stylesheet" rel="stylesheet" href="./help/css/font.css">
+    <link rel="stylesheet" href="./help/css/keyword.css">
+    <style>
+        @-moz-document url-prefix() {
+            @font-face {
+                font-family: '-webkit-standard';
+                src: url('nintendo_udsg-r_std_003.ttf');
+            }
+        }
+
+        body {
+            background: none;
+        }
+
+        #checkboxes label {
+            float: left;
+            color: #00ffc7;
+        }
+
+        #checkboxes ul {
+            margin: 0;
+            list-style: none;
+            float: left;
+            text-align: left;
+        }
+
+        .l-main-content {
+            padding: 0px 0px 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="./help/js/jquery-3.3.1.min.js"></script>
+    <script src="./help/common/js/wsnd.min.js"></script>
+    <script src="./help/common/js/keyhelp.js"></script>
+    <script src="./help/js/common.js"></script>
+    <script src="./help/js/qa.js"></script>
+    <script src="./help/js/two-column-switch.js"></script>
+    <script src="./help/js/keyword.js"></script>
+
+    <div id="bg" class="l-bg bg-abstract"></div>
+    <div class="l-header">
+        <div class="l-header-title">
+            <div class="header-title f-u-bold"><span data-msgcom="true" data-msgid="textbox_id-10020">Ultimate Training
+                    Modpack Menu</span></div>
+        </div>
+        <div class="header">
+            <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBack()" nx-se-disabled="">
+                <div class="ret-icon-wrapper">
+                    <img class="ret-icon-shadow is-appear" ref="./help/img/icon/m_retnormal.svg"
+                        src="./help/img/icon/m_retnormal.svg">
+                    <img class="ret-icon is-appear" ref="./help/img/icon/m_retnormal.svg"
+                        src="./help/img/icon/m_retnormal.svg">
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="l-sidebar">
+        <div class="l-sidebar-content">
+            <a id="btn-collection-log" tabindex="0" class="flex-button abstract-button" onfocus="focusMenu(this)"
+                nx-se-disabled="">
+                <div class="abstract-icon-back-decoration"></div>
+                <div class="abstract-button-border">
+                    <div class="abstract-button-inner">
+                        <div class="abstract-icon-wrapper">
+                            <img class="abstract-icon" ref="./help/img/icon/tatakainokiroku.svg" />
+                        </div>
+                        <div class="abstract-button-text f-u-bold"><span data-msgid="textbox_id-4-3">Shield
+                                Toggles</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="l-main">
+        <div id="about-collection-log" class="l-main-content">
+            <div id="about-collection-log" class="l-main-content is-hidden">
+                <div class="l-to-detail">
+                    <a id="link-collection-replay" tabindex="-1" class="to-detail-button" href="javascript:void(0)"
+                        ref="./detail_replay.html" onclick="goToDetail(this)" nx-se-disabled="" data-counter-id="13">
+                        <div class="to-detail-button-shadow">
+                            <div class="to-detail-button-outer">
+                                <div class="to-detail-button-icon-wrapper">
+                                    <div class="f-u-bold to-detail-button-icon"></div>
+                                </div>
+                                <div class="to-detail-button-text-wrapper">
+                                    <div class="to-detail-button-text f-u-bold"><span data-msgcom="true"
+                                            data-msgid="textbox_id-10003">Details</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <ul class="l-grid">
+                <li class="l-item">
+                    <div class="keyword-button-outer"> <a tabindex="1" class="flex-button keyword-button scuffle-thema"
+                            href="javascript:void(0)" ref="./qa.html#senjyouka"
+                            onclick="selectKeyword(this);switchPage(this);" onfocus="focusKeyword(this)"
+                            onblur="defocusKeyword(this)" nx-se-disabled="" data-counter-id="34">
+                            <div class="button-icon-wrapper"> <img class="button-icon is-appear"
+                                    ref="./help/img/icon/senjyouka.svg" src="./help/img/icon/senjyouka.svg"> </div>
+                            <div class="button-msg-wrapper">
+                                <div class="keyword-message f-u-bold"><span data-msgid="textbox_id-3">Infinite
+                                    </span></div>
+                            </div>
+                        </a> </div>
+                </li>
+                <li class="l-item">
+                    <div class="keyword-button-outer"> <a tabindex="2" class="flex-button keyword-button scuffle-thema"
+                            href="javascript:void(0)" ref="./qa.html#shutenka"
+                            onclick="selectKeyword(this);switchPage(this);" onfocus="focusKeyword(this)"
+                            onblur="defocusKeyword(this)" nx-se-disabled="" data-counter-id="35">
+                            <div class="button-icon-wrapper"> <img class="button-icon is-appear"
+                                    ref="./help/img/icon/shutenka.svg" src="./help/img/icon/shutenka.svg"> </div>
+                            <div class="button-msg-wrapper">
+                                <div class="keyword-message f-u-bold"><span data-msgid="textbox_id-2">Hold</span>
+                                </div>
+                            </div>
+                        </a> </div>
+                </li>
+                <li class="l-item">
+                    <div class="keyword-button-outer"> <a tabindex="3" class="flex-button keyword-button scuffle-thema"
+                            href="javascript:void(0)" ref="./detail_dantaisen.html"
+                            onclick="selectKeyword(this);switchPage(this);" onfocus="focusKeyword(this)"
+                            onblur="defocusKeyword(this)" nx-se-disabled="" data-counter-id="36">
+                            <div class="button-icon-wrapper"> <img class="button-icon is-appear"
+                                    ref="./help/img/icon/dantaisen.svg" src="./help/img/icon/dantaisen.svg"> </div>
+                            <div class="button-msg-wrapper">
+                                <div class="keyword-message f-u-bold"><span data-msgcom="true"
+                                        data-msgid="textbox_id-10021">None</span></div>
+                            </div>
+                        </a> </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- <div class="l-qa">
+        <a id="qa-waza" class="qa" tabindex="0" href="javascript:void(0);" onfocus="focusQA(this)"
+            onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="" data-counter-id="17">
+            <div class="question-outer">
+                <div class="question-border">
+                    <div id="question-waza" class="question scuffle-thema">
+                        <img class="question-icon" ref="./help/img/icon/juji.svg" />
+                        <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">Shield Toggles</span></p>
+                    </div>
+                </div>
+            </div>
+            <div id="answer-border-waza" class="answer-border-outer is-hidden">
+                <div class="answer-border-inner">
+                    <div id="answer-waza" class="answer scuffle-thema">
+                        <div class="answer-set">
+                            <div class="answer-message-wrapper">
+                                <p class="answer-message f-b-bold">
+                                <div id="checkboxes">
+                                    <label>Select one option below.</label>
+                                    <br>
+                                    <ul>
+                                        <li>
+                                            <input name="shield" type="checkbox" value="Infinite" /> Infinite
+                                        </li>
+                                        <li>
+                                            <input name="shield" type="checkbox" value="Hold" /> Hold
+                                        </li>
+                                        <li>
+                                            <input name="shield" type="checkbox" value="None" /> None
+                                        </li>
+                                    </ul>
+                                </div>
+                                </p>
+                            </div>
+                            <div class="answer-image-wrapper">
+                                <div class="screen-shot-wrapper">
+                                    <img class="screen-shot" ref="./frame_adv.webp" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <script type="text/javascript">
+        document.getElementById("checkboxes").addEventListener("click", function () {
+            var url = 'http://localhost/';
+
+            var x = document.getElementsByName("shield");
+            var i;
+            for (i = 0; i < x.length; i++) {
+                if (x[i].type == "checkbox") {
+                    if (x[i].checked == true) {
+                        url += x[i].value;
+                    }
+                }
+            }
+
+            /* $('input[type=checkbox]').each(function () {
+                           alert(this.checked); }); */
+
+            alert(url);
+            location.href = url;
+        });
+    </script> -->
+</body>
+
+</html>

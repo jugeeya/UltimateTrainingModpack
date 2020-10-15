@@ -11,6 +11,7 @@ mod training;
 extern crate bitflags;
 
 use crate::common::*;
+use crate::common::consts::*;
 use training::combo::FRAME_ADVANTAGE;
 
 use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
@@ -38,6 +39,23 @@ macro_rules! c_str {
         [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr();
     };
 }
+
+use skyline_web::{Background, BootDisplay, Webpage};
+use ramhorns::{Template, Content};
+
+#[derive(Content)]
+pub struct Dialog {
+    #[md]
+    text: String,
+    left_button: String,
+    right_button: String,
+}
+
+use std::thread;
+use std::time::Duration;
+
+use smash::app::{self, lua_bind::*};
+use smash::lib::lua_const::*;
 
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
@@ -92,4 +110,50 @@ pub fn main() {
             fclose(f);
         }
     }
+
+    thread::spawn(||{
+        loop {
+            unsafe {
+                thread::sleep(Duration::from_secs(5));
+
+                // Grab + Dpad up: reset state
+                let mut state = skyline::nn::hid::NpadHandheldState::default();
+                let id = 0x20;
+
+                skyline::nn::hid::GetNpadHandheldState(&mut state, &id);
+
+                println!("{:#?}", state.Buttons);
+
+                if true {
+                    let tpl = Template::new(include_str!("templates/menu.html")).unwrap();
+
+                    let dialog = Dialog {
+                        text: "".into(),
+                        left_button: "".into(),
+                        right_button: "".into()
+                    };
+
+                    let response = Webpage::new()
+                        .background(Background::BlurredScreenshot)
+                        .file("index.html", include_str!("templates/menu.html"))
+                        .htdocs_dir("contents")
+                        .boot_display(BootDisplay::BlurredScreenshot)
+                        .open()
+                        .unwrap();
+
+                    let last_url = response.get_last_url().unwrap();
+                    println!("Response last url: {:#?}", last_url);
+
+                    if last_url.contains("Infinite") {
+                        MENU_STRUCT.shield_state = Shield::Infinite;
+                    } else if last_url.contains("Hold") {
+                        MENU_STRUCT.shield_state = Shield::Hold;
+                    } else {
+                        MENU_STRUCT.shield_state = Shield::None;
+                    }
+                }
+            }
+            thread::sleep(Duration::from_secs(5));
+        }
+    });
 }
