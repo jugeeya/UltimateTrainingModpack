@@ -43,14 +43,6 @@ macro_rules! c_str {
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
 
-#[derive(Content)]
-pub struct Dialog {
-    #[md]
-    text: String,
-    left_button: String,
-    right_button: String,
-}
-
 use std::thread;
 use std::time::Duration;
 
@@ -114,30 +106,25 @@ pub fn main() {
     thread::spawn(||{
         loop {
             unsafe {
-                thread::sleep(Duration::from_secs(5));
+                // thread::sleep(Duration::from_secs(5));
 
-                // Grab + Dpad up: reset state
-                let mut state = skyline::nn::hid::NpadHandheldState::default();
-                let id = 0x20;
+                // // Grab + Dpad up: reset state
+                // let mut state = skyline::nn::hid::NpadHandheldState::default();
+                // let id = 0x20;
 
-                skyline::nn::hid::GetNpadHandheldState(&mut state, &id);
+                // skyline::nn::hid::GetNpadHandheldState(&mut state, &id);
 
-                println!("{:#?}", state.Buttons);
+                // println!("{:#?}", state.Buttons);
 
                 if true {
                     let tpl = Template::new(include_str!("templates/menu.html")).unwrap();
-
-                    let dialog = Dialog {
-                        text: "".into(),
-                        left_button: "".into(),
-                        right_button: "".into()
-                    };
 
                     let response = Webpage::new()
                         .background(Background::BlurredScreenshot)
                         .file("index.html", include_str!("templates/menu.html"))
                         .htdocs_dir("contents")
                         .boot_display(BootDisplay::BlurredScreenshot)
+                        .boot_icon(true)
                         .open()
                         .unwrap();
 
@@ -152,8 +139,8 @@ pub fn main() {
                         MENU_STRUCT.shield_state = Shield::None;
                     }
                 }
+
             }
-            thread::sleep(Duration::from_secs(5));
         }
     });
 }
