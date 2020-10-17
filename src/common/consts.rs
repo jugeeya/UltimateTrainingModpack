@@ -2,6 +2,8 @@ use crate::common::get_random_int;
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
 
+extern crate num;
+
 /// Hitbox Visualization
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -178,7 +180,7 @@ extra_bitflag_impls! {MissTechFlags}
 
 /// Shield States
 #[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive)]
 pub enum Shield {
     None = 0,
     Infinite = 1,
@@ -332,6 +334,49 @@ pub struct TrainingModpackMenu {
     pub aerial_delay: Delay,
     pub full_hop: BoolFlag,
     pub input_delay: i32,
+}
+
+macro_rules! set_by_str {
+    ($obj:ident, $s:ident, $(($field:ident = $rhs:expr))*) => {
+        $(
+            if $s == stringify!($field) {
+                $obj.$field = $rhs.unwrap();
+            }
+        )*
+    }
+}
+
+impl TrainingModpackMenu {
+    pub fn set(&mut self, s: &str, val: u32) {
+        set_by_str!(self, s,
+            (di_state = Direction::from_bits(val))
+            (sdi_state = Direction::from_bits(val))
+            (air_dodge_dir = Direction::from_bits(val))
+
+            (mash_state = Action::from_bits(val))
+            (follow_up = Action::from_bits(val))
+
+            (ledge_state = LedgeOption::from_bits(val))
+            (ledge_delay = Delay::from_bits(val))
+            (tech_state = TechFlags::from_bits(val))
+            (miss_tech_state = MissTechFlags::from_bits(val))
+            
+            (shield_state = num::FromPrimitive::from_u32(val))
+            (defensive_state = Defensive::from_bits(val))
+            (oos_offset = Delay::from_bits(val))
+            (reaction_time = Delay::from_bits(val))
+
+            (fast_fall = BoolFlag::from_bits(val))
+            (fast_fall_delay = Delay::from_bits(val))
+            (falling_aerials = BoolFlag::from_bits(val))
+            (aerial_delay = Delay::from_bits(val))
+            (full_hop = BoolFlag::from_bits(val))
+        );
+
+        // TODO
+        // pub hitbox_vis: HitboxVisualization,
+        // pub stage_hazards: StageHazards,
+    }
 }
 
 // Fighter Ids

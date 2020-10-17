@@ -282,6 +282,8 @@ macro_rules! create_nn_hid_hooks {
             ) {
                 original!()(state, controller_id);
                 if is_training_mode() {
+                    crate::common::menu::handle_get_npad_state(state, controller_id);
+
                     input_delay::handle_get_npad_state(state, controller_id);
                     /* TODO: 
                     1) make number of frames configurable
