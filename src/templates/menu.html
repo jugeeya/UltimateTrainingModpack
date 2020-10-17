@@ -83,129 +83,40 @@
 
     Remember to set make max keyword size greater than 23!
     -->
+    {{#sub_menus}}
     <div class="l-qa">
-        <a id="qa-waza" class="qa" tabindex="0" href="javascript:void(0);" onfocus="focusQA(this)"
+        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)"
             onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
             <div class="question-outer">
                 <div class="question-border">
-                    <div id="question-waza" class="question scuffle-thema">
+                    <div id="question-{{id}}" class="question scuffle-thema">
                         <img class="question-icon" ref="./help/img/icon/juji.svg" />
-                        <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">Shield Toggles</span></p>
+                        <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">{{title}}</span></p>
                     </div>
                 </div>
             </div>
-            <div id="answer-border-waza" class="answer-border-outer is-hidden">
+            <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
                 <div class="l-main">
-                    <ul class="l-grid" id="ShieldToggles">
-                        <li class="l-item">
-                            <div class="keyword-button-outer"> <a tabindex="1"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                    ref="./qa.html#senjyouka" onclick="clickToggle(this);" onfocus="focusKeyword(this)"
-                                    onblur="defocusKeyword(this)" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon is-appear"
-                                            ref="./help/img/icon/senjyouka.svg" src="./help/img/icon/senjyouka.svg">
+                    <ul class="l-grid" id="{{id}}">
+                        {{#toggles}}
+                        <li class="l-item" val="{{value}}">
+                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                            ref="./check.svg" src="./check.svg">
                                     </div>
                                     <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold">Infinite</div>
+                                        <div class="keyword-message f-u-bold">{{title}}</div>
                                     </div>
                                 </a> </div>
                         </li>
-                        <li class="l-item">
-                            <div class="keyword-button-outer"> <a tabindex="2"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                    ref="./qa.html#shutenka" onclick="selectKeyword(this);switchPage(this);"
-                                    onfocus="focusKeyword(this)" onblur="defocusKeyword(this)" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon is-appear"
-                                            ref="./help/img/icon/shutenka.svg" src="./help/img/icon/shutenka.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold"><span
-                                                data-msgid="textbox_id-2">Hold</span>
-                                        </div>
-                                    </div>
-                                </a> </div>
-                        </li>
-                        <li class="l-item">
-                            <div class="keyword-button-outer"> <a tabindex="3"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                    ref="./detail_dantaisen.html" onclick="selectKeyword(this);switchPage(this);"
-                                    onfocus="focusKeyword(this)" onblur="defocusKeyword(this)" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon is-appear"
-                                            ref="./help/img/icon/dantaisen.svg" src="./help/img/icon/dantaisen.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold"><span data-msgcom="true"
-                                                data-msgid="textbox_id-10021">None</span></div>
-                                    </div>
-                                </a> </div>
-                        </li>
+                        {{/toggles}}
                     </ul>
                 </div>
-                </p>
             </div>
+        </a>
     </div>
-    <div class="l-qa">
-        <a id="qa-waza2" class="qa" tabindex="4" href="javascript:void(0);" onfocus="focusQA(this)"
-            onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
-            <div class="question-outer">
-                <div class="question-border">
-                    <div id="question-waza2" class="question scuffle-thema">
-                        <img class="question-icon" ref="./help/img/icon/juji.svg" />
-                        <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">Shield Toggles 2</span></p>
-                    </div>
-                </div>
-            </div>
-            <div id="answer-border-waza2" class="answer-border-outer is-hidden">
-                <div class="l-main">
-                    <ul class="l-grid" id="ShieldToggles2">
-                        <li class="l-item">
-                            <div class="keyword-button-outer"> <a tabindex="5"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                    ref="./qa.html#senjyouka" onclick="selectKeyword(this);switchPage(this);"
-                                    onfocus="focusKeyword(this)" onblur="defocusKeyword(this)" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon is-appear"
-                                            ref="./help/img/icon/senjyouka.svg" src="./help/img/icon/senjyouka.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold"><span data-msgid="textbox_id-3">Infinite
-                                            </span></div>
-                                    </div>
-                                </a> </div>
-                        </li>
-                        <li class="l-item">
-                            <div class="keyword-button-outer"> <a tabindex="6"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                    ref="./qa.html#shutenka" onclick="selectKeyword(this);switchPage(this);"
-                                    onfocus="focusKeyword(this)" onblur="defocusKeyword(this)" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon is-appear"
-                                            ref="./help/img/icon/shutenka.svg" src="./help/img/icon/shutenka.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold"><span
-                                                data-msgid="textbox_id-2">Hold</span>
-                                        </div>
-                                    </div>
-                                </a> </div>
-                        </li>
-                        <li class="l-item">
-                            <div class="keyword-button-outer"> <a tabindex="7"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                    ref="./detail_dantaisen.html" onclick="selectKeyword(this);switchPage(this);"
-                                    onfocus="focusKeyword(this)" onblur="defocusKeyword(this)" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon is-appear"
-                                            ref="./help/img/icon/dantaisen.svg" src="./help/img/icon/dantaisen.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold"><span data-msgcom="true"
-                                                data-msgid="textbox_id-10021">None</span></div>
-                                    </div>
-                                </a> </div>
-                        </li>
-                    </ul>
-                </div>
-                </p>
-            </div>
-    </div>
+    {{/sub_menus}}
     <script>
         if (isNx) {
             window.nx.footer.setAssign('B', '', goBackHook, {
@@ -226,7 +137,26 @@
                 window.history.back()
             })
 
-            location.href = "http://localhost/test";
+
+            var url = "http://localhost/"
+
+            $(".l-grid").each(function() {
+                var section = this.id;
+
+                url += section + "?"
+
+                var children = this.children;
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    if (child.innerHTML.includes("is-appear")) {
+                        url += child.getAttribute("val") + ",";
+                    }
+                }
+
+                url += "&"
+            });
+
+            location.href = url;
         }
 
         function clickToggle(e) {

@@ -18,54 +18,64 @@ pub enum StageHazards {
 }
 
 // bitflag helper function macro
-macro_rules! to_vec_impl {
+macro_rules! extra_bitflag_impls {
     ($e:ty) => {
-        pub fn to_vec(&self) -> Vec::<$e> {
-            let mut vec = Vec::<$e>::new();
-            let mut field = <$e>::from_bits_truncate(self.bits);
-            while !field.is_empty() {
-                let flag = <$e>::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
-                field -= flag;
-                vec.push(flag);
+        impl core::fmt::Display for $e {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+                core::fmt::Debug::fmt(self, f)
             }
-            return vec;
+        }
+
+        impl $e {
+            pub fn to_vec(&self) -> Vec::<$e> {
+                let mut vec = Vec::<$e>::new();
+                let mut field = <$e>::from_bits_truncate(self.bits);
+                while !field.is_empty() {
+                    let flag = <$e>::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
+                    field -= flag;
+                    vec.push(flag);
+                }
+                return vec;
+            }
+
+            pub fn to_index(&self) -> u32 {
+                if self.bits == 0 {
+                    return 0;
+                }
+    
+                return self.bits.trailing_zeros();
+            }
+
+            pub fn get_random(&self) -> $e {
+                let options = self.to_vec();
+                match options.len() {
+                    0 => {
+                        return <$e>::empty();
+                    }
+                    1 => {
+                        return options[0];
+                    }
+                    _ => {
+                        return *random_option(&options);
+                    }
+                }
+            }
+
+            pub fn to_toggle_strs() -> Vec<String> {
+                let all_options = <$e>::all().to_vec();
+                all_options.iter().map(|i| i.to_string()).collect()
+            }
+
+            pub fn to_toggle_vals() -> Vec<usize> {
+                let all_options = <$e>::all().to_vec();
+                all_options.iter().map(|i| i.bits() as usize).collect()
+            }
         }
     }
 }
 
-macro_rules! to_index_impl {
-    ($e:ty) => {
-        pub fn to_index(&self) -> u32 {
-            if self.bits == 0 {
-                return 0;
-            }
-
-            return self.bits.trailing_zeros();
-        }
-    };
-}
-
 pub fn random_option<T>(arg: &[T]) -> &T {
     &arg[get_random_int(arg.len() as i32) as usize]
-}
-
-macro_rules! get_random_impl {
-    ($e:ty) => {
-        pub fn get_random(&self) -> $e {
-            let options = self.to_vec();
-            match options.len() {
-                0 => {
-                    return <$e>::empty();
-                }
-                1 => {
-                    return options[0];
-                }
-                _ => {
-                    return *random_option(&options);
-                }
-            }
-        }
-    };
 }
 
 // DI
@@ -113,9 +123,9 @@ impl Direction {
             _ => 0,
         }
     }
-    to_vec_impl! {Direction}
-    get_random_impl! {Direction}
 }
+
+extra_bitflag_impls! {Direction}
 
 // Ledge Option
 bitflags! {
@@ -138,9 +148,9 @@ impl LedgeOption {
             _ => return None,
         })
     }
-    to_vec_impl! {LedgeOption}
-    get_random_impl! {LedgeOption}
 }
+
+extra_bitflag_impls! {LedgeOption}
 
 // Tech options
 bitflags! {
@@ -152,10 +162,7 @@ bitflags! {
     }
 }
 
-impl TechFlags {
-    to_vec_impl! {TechFlags}
-    get_random_impl! {TechFlags}
-}
+extra_bitflag_impls! {TechFlags}
 
 // Missed Tech Options
 bitflags! {
@@ -167,10 +174,7 @@ bitflags! {
     }
 }
 
-impl MissTechFlags {
-    to_vec_impl! {MissTechFlags}
-    get_random_impl! {MissTechFlags}
-}
+extra_bitflag_impls! {MissTechFlags}
 
 /// Shield States
 #[repr(i32)]
@@ -192,10 +196,7 @@ bitflags! {
     }
 }
 
-impl Defensive {
-    to_vec_impl! {Defensive}
-    get_random_impl! {Defensive}
-}
+extra_bitflag_impls! {Defensive}
 
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -246,9 +247,9 @@ impl Action {
             _ => return None,
         })
     }
-    to_vec_impl! {Action}
-    get_random_impl! {Action}
 }
+
+extra_bitflag_impls! {Action}
 
 bitflags! {
     pub struct Delay : u32 {
@@ -286,11 +287,7 @@ bitflags! {
     }
 }
 
-impl Delay {
-    to_vec_impl! {Delay}
-    get_random_impl! {Delay}
-    to_index_impl! {Delay}
-}
+extra_bitflag_impls! {Delay}
 
 bitflags! {
     pub struct BoolFlag : u32 {
@@ -299,10 +296,9 @@ bitflags! {
     }
 }
 
-impl BoolFlag {
-    to_vec_impl! {BoolFlag}
-    get_random_impl! {BoolFlag}
+extra_bitflag_impls! {BoolFlag}
 
+impl BoolFlag {
     pub fn into_bool(self) -> bool {
         match self {
             BoolFlag::TRUE => true,
