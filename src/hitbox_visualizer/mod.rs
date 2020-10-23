@@ -1,6 +1,6 @@
 use crate::common::{consts::*, *};
 use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
-use smash::lib::{lua_const::*, L2CAgent};
+use smash::lib::{lua_const::*, L2CAgent, L2CValue};
 use smash::phx::{Hash40, Vector3f};
 
 pub const ID_COLORS: &[Vector3f] = &[
