@@ -20,6 +20,12 @@ The features in this modpack are configured through the Tesla menu, which can be
 [<img src="https://i.imgur.com/eSrtDyj.png">](https://i.imgur.com/eSrtDyj.png)
 [<img src="https://i.imgur.com/7Cd6utU.jpg">](https://i.imgur.com/7Cd6utU.jpg)
 
+#### Stage Hazards Toggle
+Set stage hazards on or off in Training Mode! Use this to practice on tournament legal stages with hazards.
+
+#### Input Delay
+Practice with emulated extra input delay, in frames. This should help a lot by allowing practice with online's default delay.
+
 #### Frame Advantage. 
 *Currently only works on shield*. Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield.
 
@@ -63,10 +69,16 @@ CPUs will perform a random ledge option among the selected options.
 
 CPUs will also perform a defensive option after getting up.
 
+###### Ledge Delay
+CPUs will delay their getup option by a random number of frames among the selected options.
+
 ###### Tech Option
 CPUs will perform a random tech option among the selected options.
 
 CPUs will also perform a defensive option after getting up.
+
+###### Missed Tech Option
+CPUs will perform a random getup option among the selected options after missing a tech.
 
 ###### Defensive Option
 CPUs will perform the defensive option a CPU will perform after teching or getting up from the ledge, among the selected options.
@@ -83,6 +95,9 @@ The CPU will delay until the specified number of hits to perform an OoS option.
 ###### OOS Reaction Time
 The CPU will delay a specified number of frames before performing an OoS option.
 
+###### Shield Tilt
+Set the CPU to tilt their shield in a direction while set to Hold or Infinite shield. 
+
 #### Aerials Section
 Edit how the CPU performs aerials.
 
@@ -91,6 +106,9 @@ Edit how the CPU performs aerials.
 ##### Falling Aerials
 ##### Fast Fall Delay 
 Specified in frames (from apex of CPU's jump).
+
+###### Aerial Delay
+CPUs will delay their aerial attack input by a random number of frames among the selected options.
 
 <a name="build"/>
 
