@@ -10,29 +10,30 @@
 
 static struct TrainingModpackMenu
 {
-	OnOffFlags     HITBOX_VIS      = OnOffFlag::On;
-	OnOffFlags     STAGE_HAZARDS   = OnOffFlags::None;
-	Directions     DI_STATE        = Directions::None;
-	Directions     SDI_STATE       = Directions::None;
-	Directions     AIR_DODGE_DIR   = Directions::None;
-	ActionFlags    MASH_STATE      = ActionFlags::None;
-	ActionFlags    FOLLOW_UP       = ActionFlags::None;
-	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
-	DelayFlags     LEDGE_DELAY     = DelayFlags::All;
-	TechFlags      TECH_STATE      = TechFlags::All;
-	MissTechFlags  MISS_TECH_STATE = MissTechFlags::All;
-	int            SHIELD_STATE    = NONE;
-	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
-	DelayFlags     OOS_OFFSET      = DelayFlags::None;
-	DelayFlags     REACTION_TIME   = DelayFlags::None;
-	Directions     SHIELD_TILT     = Directions::None;
-	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlags::None;
-	BoolFlags      FAST_FALL       = BoolFlags::None;
-	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
-	BoolFlags      FALLING_AERIALS = BoolFlags::None;
-	DelayFlags     AERIAL_DELAY    = DelayFlags::None;
-	BoolFlags      FULL_HOP        = BoolFlags::None;
-	int            INPUT_DELAY     = 0;
+	OnOffFlags       HITBOX_VIS      = OnOffFlag::On;
+	OnOffFlags       STAGE_HAZARDS   = OnOffFlags::None;
+	Directions       DI_STATE        = Directions::None;
+	Directions       SDI_STATE       = Directions::None;
+	Directions       AIR_DODGE_DIR   = Directions::None;
+	ActionFlags      MASH_STATE      = ActionFlags::None;
+	ActionFlags      FOLLOW_UP       = ActionFlags::None;
+	AttackAngleFlags ATTACK_ANGLE    = AttackAngleFlags::None;
+	LedgeFlags       LEDGE_STATE     = LedgeFlags::All;
+	DelayFlags       LEDGE_DELAY     = DelayFlags::All;
+	TechFlags        TECH_STATE      = TechFlags::All;
+	MissTechFlags    MISS_TECH_STATE = MissTechFlags::All;
+	int              SHIELD_STATE    = NONE;
+	DefensiveFlags   DEFENSIVE_STATE = DefensiveFlags::All;
+	DelayFlags       OOS_OFFSET      = DelayFlags::None;
+	DelayFlags       REACTION_TIME   = DelayFlags::None;
+	Directions       SHIELD_TILT     = Directions::None;
+	OnOffFlags       MASH_IN_NEUTRAL = OnOffFlags::None;
+	BoolFlags        FAST_FALL       = BoolFlags::None;
+	DelayFlags       FAST_FALL_DELAY = DelayFlags::None;
+	BoolFlags        FALLING_AERIALS = BoolFlags::None;
+	DelayFlags       AERIAL_DELAY    = DelayFlags::None;
+	BoolFlags        FULL_HOP        = BoolFlags::None;
+	int              INPUT_DELAY     = 0;
 } menu;
 
 static struct TrainingModpackMenu defaultMenu = menu;
@@ -329,6 +330,7 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help, this));
 			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
 			    "Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL, "Mash In Neutral", mash_neutral_help));
+			list->addItem(createBitFlagOption(&menu.ATTACK_ANGLE, "Attack Angle", "", this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 

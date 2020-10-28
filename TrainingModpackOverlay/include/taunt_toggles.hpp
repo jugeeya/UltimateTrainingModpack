@@ -335,3 +335,7 @@ const std::string full_hop_help = R""""(
 CPUs will full hop
 rather than short hop
 aerials.)"""";
+
+#define ENUM_CLASS_AttackAngleFlag(type,x) \
+	x(type,Neutral,"Neutral") x(type,Up,"Up") x(type,Down,"Down")
+DEFINE_ENUM_CLASS(AttackAngleFlag);

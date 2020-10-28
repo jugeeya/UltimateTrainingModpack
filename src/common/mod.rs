@@ -13,6 +13,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
+    attack_angle: AttackAngle::empty(),
     ledge_state: LedgeOption::all(),
     ledge_delay: Delay::empty(),
     tech_state: TechFlags::all(),

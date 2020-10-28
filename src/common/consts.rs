@@ -251,6 +251,20 @@ impl Action {
 }
 
 bitflags! {
+    pub struct AttackAngle : u32 {
+        const NEUTRAL = 0x1;
+        const UP = 0x2;
+        const DOWN = 0x4;
+    }
+}
+
+impl AttackAngle {
+    to_vec_impl! {AttackAngle}
+    get_random_impl! {AttackAngle}
+}
+
+
+bitflags! {
     pub struct Delay : u32 {
         const D0 = 0x1;
         const D1 = 0x2;
@@ -320,6 +334,7 @@ pub struct TrainingModpackMenu {
     pub air_dodge_dir: Direction,
     pub mash_state: Action,
     pub follow_up: Action,
+    pub attack_angle: AttackAngle,
     pub ledge_state: LedgeOption,
     pub ledge_delay: Delay,
     pub tech_state: TechFlags,
