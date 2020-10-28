@@ -125,16 +125,21 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
         menu_state = MENU.shield_state;
     }
 
-    if menu_state != Shield::Infinite && !should_pause_shield_decay() {
+    if menu_state != Shield::Infinite
+        && menu_state != Shield::Constant
+        && !should_pause_shield_decay()
+    {
         return None;
     }
 
     if param_type != hash40("common") {
         return None;
     }
+
     if param_hash == hash40("shield_dec1") {
         return Some(0.0);
     }
+
     if param_hash == hash40("shield_recovery1") {
         return Some(999.0);
     }

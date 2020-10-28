@@ -179,6 +179,7 @@ pub enum Shield {
     None = 0,
     Infinite = 1,
     Hold = 2,
+    Constant = 3,
 }
 
 // Defensive States
