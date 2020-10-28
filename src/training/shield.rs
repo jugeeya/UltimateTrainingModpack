@@ -170,7 +170,7 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // We should hold shield if the state requires it
-    if ![Shield::Hold, Shield::Infinite].contains(shield_state) {
+    if ![Shield::Hold, Shield::Infinite,Shield::Constant].contains(shield_state) {
         return false;
     }
 
