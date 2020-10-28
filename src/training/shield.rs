@@ -170,7 +170,7 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // We should hold shield if the state requires it
-    if ![Shield::Hold, Shield::Infinite,Shield::Constant].contains(shield_state) {
+    if ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
         return false;
     }
 
@@ -200,7 +200,9 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     // Enable shield decay
-    set_shield_decay(true);
+    if MENU.shield_state == Shield::Hold {
+        set_shield_decay(true);
+    }
 
     // Check for OOS delay
     if !allow_oos() {
