@@ -33,12 +33,14 @@ pub fn init() {
 // Toggle for shield decay
 static mut SHIELD_DECAY: bool = false;
 
-unsafe fn set_shield_decay(value: bool) {
-    SHIELD_DECAY = value;
+fn set_shield_decay(value: bool) {
+    unsafe {
+        SHIELD_DECAY = value;
+    }
 }
 
-unsafe fn should_pause_shield_decay() -> bool {
-    !SHIELD_DECAY
+fn should_pause_shield_decay() -> bool {
+    unsafe { !SHIELD_DECAY }
 }
 
 fn reset_oos_offset() {
@@ -113,28 +115,42 @@ pub unsafe fn get_param_float(
         handle_oos_offset(module_accessor);
     }
 
-    // Shield Decay//Recovery
-    if MENU.shield_state == Shield::Infinite || should_pause_shield_decay() {
-        if param_type != hash40("common") {
-            return None;
-        }
-        if param_hash == hash40("shield_dec1") {
-            return Some(0.0);
-        }
-        if param_hash == hash40("shield_recovery1") {
-            return Some(999.0);
-        }
+    return handle_shield_decay(param_type, param_hash);
+}
+
+// Shield Decay//Recovery
+fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
+    let menu_state;
+    unsafe {
+        menu_state = MENU.shield_state;
     }
 
-    None
+    if menu_state != Shield::Infinite
+        && menu_state != Shield::Constant
+        && !should_pause_shield_decay()
+    {
+        return None;
+    }
+
+    if param_type != hash40("common") {
+        return None;
+    }
+
+    if param_hash == hash40("shield_dec1") {
+        return Some(0.0);
+    }
+
+    if param_hash == hash40("shield_recovery1") {
+        return Some(999.0);
+    }
+
+    return None;
 }
 
 pub unsafe fn param_installer() {
     if crate::training::COMMON_PARAMS as usize != 0 {
         let common_params = &mut *crate::training::COMMON_PARAMS;
-        if is_training_mode()
-            && (MENU.shield_state == Shield::Infinite)
-        {
+        if is_training_mode() && (MENU.shield_state == Shield::Infinite) {
             common_params.shield_damage_mul = 0.0;
         } else {
             common_params.shield_damage_mul = 1.19;
@@ -154,7 +170,7 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // We should hold shield if the state requires it
-    if ![Shield::Hold, Shield::Infinite].contains(shield_state) {
+    if ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
         return false;
     }
 
@@ -184,7 +200,9 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     // Enable shield decay
-    set_shield_decay(true);
+    if MENU.shield_state == Shield::Hold {
+        set_shield_decay(true);
+    }
 
     // Check for OOS delay
     if !allow_oos() {

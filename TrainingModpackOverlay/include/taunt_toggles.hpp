@@ -253,7 +253,7 @@ versions.)"""";
 // Shield States
 #define SHIELD_INFINITE 1
 #define SHIELD_HOLD 2
-const std::vector<std::string> shield_items{"None", "Infinite", "Hold"};
+const std::vector<std::string> shield_items{"None", "Infinite", "Hold", "Constant"};
 const std::string              shield_help = R""""(
 Use these toggles in conjunction
 with Mash toggles to practice
@@ -267,7 +267,12 @@ by damage.
 Hold
 CPUs will hold a normal shield.
 This shield will not deteriorate
-until hit once.)"""";
+until hit once.)
+
+Constant
+Shield will take damage but not deteriorate
+
+)"""";
 
 // OOS
 const std::string oos_help = R""""(
