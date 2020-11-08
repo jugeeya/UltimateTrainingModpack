@@ -33,7 +33,7 @@ const std::vector<std::string> input_delay_items{"0", "1", "2", "3", "4", "5", "
 const std::string              input_delay_help = R""""(
 In frames.
 
-Emulate input delay 
+Emulate input delay
 to practice in a online
 environment.)"""";
 
@@ -339,3 +339,6 @@ aerials.)"""";
 #define ENUM_CLASS_AttackAngleFlag(type,x) \
 	x(type,Neutral,"Neutral") x(type,Up,"Up") x(type,Down,"Down")
 DEFINE_ENUM_CLASS(AttackAngleFlag);
+
+const std::string attack_angle_help = R""""(
+Set angleable tilt and smash attacks.)"""";
