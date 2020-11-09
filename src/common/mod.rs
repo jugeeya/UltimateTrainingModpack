@@ -6,8 +6,8 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
-    hitbox_vis: HitboxVisualization::On,
-    stage_hazards: StageHazards::Off,
+    hitbox_vis: OnOff::On,
+    stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),
     air_dodge_dir: Direction::empty(),

@@ -2,21 +2,6 @@ use crate::common::get_random_int;
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
 
-/// Hitbox Visualization
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum HitboxVisualization {
-    Off = 0,
-    On = 1,
-}
-
-#[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum StageHazards {
-    Off = 0,
-    On = 1,
-}
-
 // bitflag helper function macro
 macro_rules! to_vec_impl {
     ($e:ty) => {
@@ -314,8 +299,8 @@ impl BoolFlag {
 
 #[repr(C)]
 pub struct TrainingModpackMenu {
-    pub hitbox_vis: HitboxVisualization,
-    pub stage_hazards: StageHazards,
+    pub hitbox_vis: OnOff,
+    pub stage_hazards: OnOff,
     pub di_state: Direction,
     pub sdi_state: Direction,
     pub air_dodge_dir: Direction,
