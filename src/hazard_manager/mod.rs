@@ -93,7 +93,7 @@ fn hazard_intercept(ctx: &skyline::hooks::InlineCtx) {
 
 fn mod_handle_hazards() {
     unsafe {
-        *HAZARD_FLAG_ADDRESS = (MENU.stage_hazards == StageHazards::On) as u8;
+        *HAZARD_FLAG_ADDRESS = (MENU.stage_hazards == OnOff::On) as u8;
     }
 }
 
