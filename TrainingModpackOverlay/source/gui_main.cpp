@@ -330,7 +330,7 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help, this));
 			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
 			    "Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL, "Mash In Neutral", mash_neutral_help));
-			list->addItem(createBitFlagOption(&menu.ATTACK_ANGLE, "Attack Angle", "", this));
+			list->addItem(createBitFlagOption(&menu.ATTACK_ANGLE, "Attack Angle", attack_angle_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 
