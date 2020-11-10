@@ -13,6 +13,7 @@ pub mod shield;
 pub mod tech;
 
 mod air_dodge_direction;
+mod attack_angle;
 mod character_specific;
 mod fast_fall;
 mod frame_counter;
@@ -157,6 +158,21 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
     air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 
+
+/**
+ * Called when:
+ * angled ftilt/fsmash
+ */
+ #[skyline::hook(replace = ControlModule::get_stick_dir)]
+ pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+     let ori = original!()(module_accessor);
+     if !is_training_mode() {
+         return ori;
+     }
+
+     attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
+ }
+
 /**
  *
  */
@@ -283,7 +299,7 @@ macro_rules! create_nn_hid_hooks {
                 original!()(state, controller_id);
                 if is_training_mode() {
                     input_delay::handle_get_npad_state(state, controller_id);
-                    /* TODO: 
+                    /* TODO:
                     1) make number of frames configurable
                     2) make possible without a second controller plugged in
                     **/
@@ -310,7 +326,7 @@ pub fn training_mods() {
         handle_get_npad_handheld_state,
         handle_get_npad_full_key_state,
         handle_get_npad_gc_state,
-        handle_get_joy_dual_state, 
+        handle_get_joy_dual_state,
         handle_get_joy_left_state,
         handle_get_joy_right_state);
 
@@ -344,6 +360,8 @@ pub fn training_mods() {
         handle_set_dead_rumble,
         // Mash attack
         handle_get_attack_air_kind,
+        // Attack angle
+        get_stick_dir,
         // Tech options
         handle_change_motion,
         // Directional AirDodge,
