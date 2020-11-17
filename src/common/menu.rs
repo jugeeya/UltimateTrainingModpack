@@ -2,6 +2,7 @@
 
 use crate::common::*;
 use skyline::nn::hid::NpadHandheldState;
+use smash::lib::lua_const::*;
 
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
@@ -145,90 +146,66 @@ pub fn set_menu_from_url(s: &str) {
     }
 }
 
-use std::sync::atomic::{AtomicBool, Ordering};
-pub static mut TRIGGER_MENU: AtomicBool = AtomicBool::new(false);
-
-pub unsafe fn handle_get_npad_state(
-    state: *mut NpadHandheldState,
-    controller_id: *const u32,
-) {
-    let state = *state;
-
-    // X+DRIGHT
-    if (state.Buttons & (1 << 2)) != 0 &&
-    (state.Buttons & (1 << 14)) != 0
-    {
-        *TRIGGER_MENU.get_mut() = true;
-    }
+pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
+    ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_GUARD) &&
+    ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
 }
 
-pub unsafe fn loop_input() {
-    std::thread::spawn(|| {
-        loop {
-            std::thread::sleep(std::time::Duration::from_secs(1));
+pub unsafe fn spawn_menu() {
+    let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
 
-            let trigg = TRIGGER_MENU.get_mut();
-            if !*trigg {
-                continue;
-            }
+    let mut overall_menu = Menu {
+        sub_menus: Vec::new()
+    };
 
-            let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
+    add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action);
+    add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action);
 
-            let mut overall_menu = Menu {
-                sub_menus: Vec::new()
-            };
+    add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption);
+    add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, Delay);
+    add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags);
+    add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags);
+    add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive);
 
-            add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action);
-            add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action);
+    add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay);
+    add_bitflag_submenu!(overall_menu, "Reaction Time", reaction_time, Delay);
 
-            add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption);
-            add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, Delay);
-            add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags);
-            add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags);
-            add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive);
+    add_bitflag_submenu!(overall_menu, "Fast Fall", fast_fall, BoolFlag);
+    add_bitflag_submenu!(overall_menu, "Fast Fall Delay", fast_fall_delay, Delay);
+    add_bitflag_submenu!(overall_menu, "Falling Aerials", falling_aerials, BoolFlag);
+    add_bitflag_submenu!(overall_menu, "Full Hop", full_hop, BoolFlag);
 
-            add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay);
-            add_bitflag_submenu!(overall_menu, "Reaction Time", reaction_time, Delay);
+    add_bitflag_submenu!(overall_menu, "Shield Tilt", shield_tilt, Direction);
 
-            add_bitflag_submenu!(overall_menu, "Fast Fall", fast_fall, BoolFlag);
-            add_bitflag_submenu!(overall_menu, "Fast Fall Delay", fast_fall_delay, Delay);
-            add_bitflag_submenu!(overall_menu, "Falling Aerials", falling_aerials, BoolFlag);
-            add_bitflag_submenu!(overall_menu, "Full Hop", full_hop, BoolFlag);
+    add_bitflag_submenu!(overall_menu, "DI", di_state, Direction);
+    add_bitflag_submenu!(overall_menu, "SDI", sdi_state, Direction);
+    add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction);
 
-            add_bitflag_submenu!(overall_menu, "Shield Tilt", shield_tilt, Direction);
+    overall_menu.add_sub_menu(
+        "Shield Toggles", 
+        "shield_state", 
+        MENU_STRUCT.shield_state as usize,
+        [
+            ("None", Shield::None as usize),
+            ("Hold", Shield::Hold as usize),
+            ("Infinite", Shield::Infinite as usize),
+        ].to_vec()
+    );
 
-            add_bitflag_submenu!(overall_menu, "DI", di_state, Direction);
-            add_bitflag_submenu!(overall_menu, "SDI", sdi_state, Direction);
-            add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction);
+    // add_bitflag_submenu!(overall_menu, "Input Delay", input_delay, Delay);
 
-            overall_menu.add_sub_menu(
-                "Shield Toggles", 
-                "shield_state", 
-                MENU_STRUCT.shield_state as usize,
-                [
-                    ("None", Shield::None as usize),
-                    ("Hold", Shield::Hold as usize),
-                    ("Infinite", Shield::Infinite as usize),
-                ].to_vec()
-            );
+    let data = &tpl.render(&overall_menu);
 
-            // add_bitflag_submenu!(overall_menu, "Input Delay", input_delay, Delay);
+    let response = Webpage::new()
+        .background(Background::BlurredScreenshot)
+        .file("index.html", data)
+        .htdocs_dir("contents")
+        .boot_display(BootDisplay::BlurredScreenshot)
+        .boot_icon(true)
+        .open()
+        .unwrap();
 
-            let data = &tpl.render(&overall_menu);
+    let last_url = response.get_last_url().unwrap();
 
-            let response = Webpage::new()
-                .background(Background::BlurredScreenshot)
-                .file("index.html", data)
-                .htdocs_dir("contents")
-                .boot_display(BootDisplay::BlurredScreenshot)
-                .boot_icon(true)
-                .open()
-                .unwrap();
-
-            let last_url = response.get_last_url().unwrap();
-
-            set_menu_from_url(last_url);
-            *trigg = false;
-        }
-    });
+    set_menu_from_url(last_url);
 }

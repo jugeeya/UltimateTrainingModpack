@@ -94,7 +94,5 @@ pub fn main() {
             fwrite(c_str!(buffer) as *const c_void, 1, buffer.len(), f);
             fclose(f);
         }
-
-        menu::loop_input();
     }
 }

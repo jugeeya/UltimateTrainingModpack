@@ -97,6 +97,10 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
+        if crate::common::menu::menu_condition(module_accessor) {
+            crate::common::menu::spawn_menu();
+        }
+
         input_record::get_command_flag_cat(module_accessor);
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);
@@ -282,8 +286,6 @@ macro_rules! create_nn_hid_hooks {
             ) {
                 original!()(state, controller_id);
                 if is_training_mode() {
-                    crate::common::menu::handle_get_npad_state(state, controller_id);
-
                     input_delay::handle_get_npad_state(state, controller_id);
                     /* TODO: 
                     1) make number of frames configurable
