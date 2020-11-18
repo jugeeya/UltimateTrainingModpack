@@ -347,3 +347,6 @@ DEFINE_ENUM_CLASS(AttackAngleFlag);
 
 const std::string attack_angle_help = R""""(
 Set angleable tilt and smash attacks.)"""";
+
+const std::string save_damage_help = R""""(
+Set if save states should apply to damage.)"""";

@@ -34,6 +34,7 @@ static struct TrainingModpackMenu
 	DelayFlags       AERIAL_DELAY    = DelayFlags::None;
 	BoolFlags        FULL_HOP        = BoolFlags::None;
 	int              INPUT_DELAY     = 0;
+	OnOffFlags       SAVE_DAMAGE     = OnOffFlag::On;
 } menu;
 
 static struct TrainingModpackMenu defaultMenu = menu;
@@ -400,6 +401,9 @@ tsl::elm::Element* GuiMain::createUI()
 			                                   std::string              help) { tsl::changeTo<GuiHelp>(title, help); });
 			saveStateItem->setHelpListener([](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(saveStateItem);
+
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
+			    "Save Damage", OnOffFlag::On, &menu.SAVE_DAMAGE, "Save Damage", save_damage_help));
 
 			ValueListItem* inputDelayItem =
 			    new ValueListItem("Input Delay", input_delay_items, &menu.INPUT_DELAY, "inputDelay", input_delay_help);
