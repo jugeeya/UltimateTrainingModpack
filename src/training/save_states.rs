@@ -1,4 +1,6 @@
 use crate::common::consts::FighterId;
+use crate::common::consts::OnOff;
+use crate::common::MENU;
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -66,10 +68,32 @@ pub unsafe fn get_param_int(
     None
 }
 
+fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor,  damage : f32) {
+    let overwrite_damage;
+
+    unsafe {
+        overwrite_damage = MENU.save_damage == OnOff::On;
+    }
+
+    if !overwrite_damage {
+        return;
+    }
+
+    unsafe {
+        DamageModule::heal(
+            module_accessor,
+            -1.0 * DamageModule::damage(module_accessor, 0),
+            0,
+        );
+        DamageModule::add_damage(module_accessor, damage, 0);
+    }
+}
+
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let status = StatusModule::status_kind(module_accessor) as i32;
-    let save_state = if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) 
-        == FighterId::CPU as i32 {
+    let save_state = if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
+        == FighterId::CPU as i32
+    {
         &mut SAVE_STATE_CPU
     } else {
         &mut SAVE_STATE_PLAYER
@@ -107,11 +131,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             ControlModule::stop_rumble(module_accessor, true);
             SoundModule::stop_all_sound(module_accessor);
 
-            StatusModule::change_status_request(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_DEAD,
-                false,
-            );
+            StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         }
 
         return;
@@ -171,12 +191,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
         // if we're done moving, reset percent
         if save_state.state == NoAction {
-            DamageModule::heal(
-                module_accessor,
-                -1.0 * DamageModule::damage(module_accessor, 0),
-                0,
-            );
-            DamageModule::add_damage(module_accessor, save_state.percent, 0);
+            set_damage(module_accessor, save_state.percent);
         }
 
         return;

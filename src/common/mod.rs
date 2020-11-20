@@ -30,6 +30,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     aerial_delay: Delay::empty(),
     full_hop: BoolFlag::empty(),
     input_delay: 0,
+    save_damage: OnOff::On,
 };
 
 pub static mut MENU: &consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
