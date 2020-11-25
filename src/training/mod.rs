@@ -74,12 +74,12 @@ pub unsafe fn handle_get_command_flag_cat(
 ) -> i32 {
     let mut flag = original!()(module_accessor, category);
 
-    if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-        shield::param_installer();
-    }
-
     if !is_training_mode() {
         return flag;
+    }
+
+    if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
+        shield::param_installer();
     }
 
     flag |= mash::get_command_flag_cat(module_accessor, category);
