@@ -19,6 +19,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     tech_state: TechFlags::all(),
     miss_tech_state: MissTechFlags::all(),
     shield_state: Shield::None,
+    player_shield: Shield::None,
     defensive_state: Defensive::all(),
     oos_offset: Delay::empty(),
     shield_tilt: Direction::empty(),

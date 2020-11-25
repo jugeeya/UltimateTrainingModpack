@@ -276,6 +276,17 @@ Shield will take damage but not deteriorate
 
 )"""";
 
+const std::string              shield_help_player = R""""(
+Shield options for the player
+
+Infinite
+No shield damage, no decay
+
+Hold and Constant
+no decay
+
+)"""";
+
 // OOS
 const std::string oos_help = R""""(
 Option to delay oos options

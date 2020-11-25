@@ -328,6 +328,7 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub miss_tech_state: MissTechFlags,
     pub shield_state: Shield,
+    pub player_shield: Shield,
     pub defensive_state: Defensive,
     pub oos_offset: Delay,
     pub reaction_time: Delay,

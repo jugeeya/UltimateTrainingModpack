@@ -1,7 +1,7 @@
 use crate::common::{is_training_mode, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
-use skyline::nn::ro::LookupSymbol;
 use skyline::nn::hid::*;
+use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
@@ -37,7 +37,9 @@ pub unsafe fn handle_get_param_float(
         return ori;
     }
 
-    shield::get_param_float(module_accessor, param_type, param_hash).unwrap_or(ori)
+    shield::get_param_float(module_accessor, param_type, param_hash).unwrap_or_else(|| {
+        shield::get_param_float_player(module_accessor, param_type, param_hash).unwrap_or(ori)
+    })
 }
 
 #[skyline::hook(replace = WorkModule::get_param_int)]
@@ -158,20 +160,19 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
     air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 
-
 /**
  * Called when:
  * angled ftilt/fsmash
  */
- #[skyline::hook(replace = ControlModule::get_stick_dir)]
- pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-     let ori = original!()(module_accessor);
-     if !is_training_mode() {
-         return ori;
-     }
+#[skyline::hook(replace = ControlModule::get_stick_dir)]
+pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
 
-     attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
- }
+    attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
+}
 
 /**
  *
@@ -318,7 +319,8 @@ create_nn_hid_hooks!(
     (GetNpadGcState, handle_get_npad_gc_state),
     (GetNpadJoyDualState, handle_get_joy_dual_state),
     (GetNpadJoyLeftState, handle_get_joy_left_state),
-    (GetNpadJoyRightState, handle_get_joy_right_state));
+    (GetNpadJoyRightState, handle_get_joy_right_state)
+);
 
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
@@ -330,7 +332,8 @@ pub fn training_mods() {
         handle_get_npad_gc_state,
         handle_get_joy_dual_state,
         handle_get_joy_left_state,
-        handle_get_joy_right_state);
+        handle_get_joy_right_state
+    );
 
     unsafe {
         LookupSymbol(

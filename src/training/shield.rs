@@ -118,6 +118,27 @@ pub unsafe fn get_param_float(
     return handle_shield_decay(param_type, param_hash);
 }
 
+pub fn get_param_float_player(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    param_type: u64,
+    param_hash: u64,
+) -> Option<f32> {
+    if is_operation_cpu(module_accessor) {
+        return None;
+    }
+
+    let menu_state;
+    unsafe {
+        menu_state = MENU.player_shield;
+    }
+
+    if menu_state == Shield::None {
+        return None;
+    }
+
+    return get_param_value(param_type, param_hash);
+}
+
 // Shield Decay//Recovery
 fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
     let menu_state;
@@ -132,6 +153,10 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
         return None;
     }
 
+    return get_param_value(param_type, param_hash);
+}
+
+fn get_param_value(param_type: u64, param_hash: u64) -> Option<f32> {
     if param_type != hash40("common") {
         return None;
     }
@@ -146,7 +171,6 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
 
     return None;
 }
-
 pub unsafe fn param_installer() {
     if crate::training::COMMON_PARAMS as usize == 0 {
         return;
@@ -154,6 +178,11 @@ pub unsafe fn param_installer() {
 
     let common_params = &mut *crate::training::COMMON_PARAMS;
     if MENU.shield_state == Shield::Infinite {
+        common_params.shield_damage_mul = 0.0;
+        return;
+    }
+
+    if MENU.player_shield == Shield::Infinite {
         common_params.shield_damage_mul = 0.0;
         return;
     }
