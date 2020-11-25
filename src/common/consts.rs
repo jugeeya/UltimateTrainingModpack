@@ -191,6 +191,16 @@ pub enum OnOff {
     On = 1,
 }
 
+impl OnOff {
+    pub fn from_val(val: u32) -> Option<Self> {
+        match val {
+            1 => Some(OnOff::On),
+            0 => Some(OnOff::Off),
+            _ => None
+        }
+    }
+}
+
 bitflags! {
     pub struct Action : u32 {
         const AIR_DODGE = 0x1;
@@ -355,11 +365,12 @@ impl TrainingModpackMenu {
             (falling_aerials = BoolFlag::from_bits(val))
             (aerial_delay = Delay::from_bits(val))
             (full_hop = BoolFlag::from_bits(val))
-        );
 
-        // TODO
-        // pub hitbox_vis: HitboxVisualization,
-        // pub stage_hazards: StageHazards,
+            (hitbox_vis = OnOff::from_val(val))
+            (stage_hazards = OnOff::from_val(val))
+
+            (input_delay = Some(val as i32))
+        );
     }
 }
 

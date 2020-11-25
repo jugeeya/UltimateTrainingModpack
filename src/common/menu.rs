@@ -151,7 +151,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
     ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
 }
 
-pub unsafe fn spawn_menu() {
+pub unsafe fn render_menu() -> String {
     let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
 
     let mut overall_menu = Menu {
@@ -194,11 +194,46 @@ pub unsafe fn spawn_menu() {
 
     // add_bitflag_submenu!(overall_menu, "Input Delay", input_delay, Delay);
 
-    let data = &tpl.render(&overall_menu);
+    // TODO: OnOff flags... need a different sort of submenu.
+    overall_menu.add_sub_menu(
+        "Hitbox Visualization", 
+        "hitbox_vis", 
+        MENU_STRUCT.hitbox_vis as usize,
+        [
+            ("Off", OnOff::Off as usize),
+            ("On", OnOff::On as usize),
+        ].to_vec()
+    );
+    overall_menu.add_sub_menu(
+        "Stage Hazards", 
+        "stage_hazards", 
+        MENU_STRUCT.stage_hazards as usize,
+        [
+            ("Off", OnOff::Off as usize),
+            ("On", OnOff::On as usize),
+        ].to_vec()
+    );
+    overall_menu.add_sub_menu(
+        "Mash In Neutral", 
+        "mash_in_neutral", 
+        MENU_STRUCT.mash_in_neutral as usize,
+        [
+            ("Off", OnOff::Off as usize),
+            ("On", OnOff::On as usize),
+        ].to_vec()
+    );
+
+
+
+    tpl.render(&overall_menu)
+}
+
+pub unsafe fn spawn_menu() {
+    let data = render_menu();
 
     let response = Webpage::new()
         .background(Background::BlurredScreenshot)
-        .file("index.html", data)
+        .file("index.html", &data)
         .htdocs_dir("contents")
         .boot_display(BootDisplay::BlurredScreenshot)
         .boot_icon(true)
