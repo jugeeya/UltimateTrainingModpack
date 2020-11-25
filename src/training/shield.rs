@@ -148,14 +148,17 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
 }
 
 pub unsafe fn param_installer() {
-    if crate::training::COMMON_PARAMS as usize != 0 {
-        let common_params = &mut *crate::training::COMMON_PARAMS;
-        if is_training_mode() && (MENU.shield_state == Shield::Infinite) {
-            common_params.shield_damage_mul = 0.0;
-        } else {
-            common_params.shield_damage_mul = 1.19;
-        }
+    if crate::training::COMMON_PARAMS as usize == 0 {
+        return;
     }
+
+    let common_params = &mut *crate::training::COMMON_PARAMS;
+    if MENU.shield_state == Shield::Infinite {
+        common_params.shield_damage_mul = 0.0;
+        return;
+    }
+
+    common_params.shield_damage_mul = 1.19;
 }
 
 pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
