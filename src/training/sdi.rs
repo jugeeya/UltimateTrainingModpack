@@ -53,7 +53,7 @@ fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<f64> {
             if directional_influence::should_reverse_angle() {
                 PI - angle
             } else {
-                angle 
+                angle
             }
         })
     }
@@ -90,7 +90,7 @@ fn mod_check_hit_stop_delay_command(
     }
 
     unsafe {
-        COUNTER = (COUNTER + 1) % 8;
+        COUNTER = (COUNTER + 1) % MENU.sdi_strength.into_u32();
     }
 
     unsafe {
