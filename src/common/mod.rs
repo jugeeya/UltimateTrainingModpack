@@ -10,6 +10,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),
+    sdi_strength: SdiStrength::Normal,
     air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
