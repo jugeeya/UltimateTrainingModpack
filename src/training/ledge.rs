@@ -49,11 +49,15 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
+    let ledge_case: LedgeOption = MENU.ledge_state.get_random();
+
+    if ledge_case == LedgeOption::WAIT {
+        LEDGE_DELAY = 900000;
+        return;
+    }
     reset_ledge_delay();
 
-    let ledge_case: LedgeOption = MENU.ledge_state.get_random();
     let status = ledge_case.into_status().unwrap_or(0);
-
     match ledge_case {
         LedgeOption::JUMP => {
             mash::buffer_menu_mash();

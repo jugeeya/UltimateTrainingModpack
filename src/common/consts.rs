@@ -110,6 +110,7 @@ bitflags! {
         const ROLL = 0x2;
         const JUMP = 0x4;
         const ATTACK = 0x8;
+        const WAIT = 0x10;
     }
 }
 
@@ -120,6 +121,7 @@ impl LedgeOption {
             LedgeOption::ROLL => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
             LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
             LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+            LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
             _ => return None,
         })
     }
