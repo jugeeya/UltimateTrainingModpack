@@ -8,6 +8,7 @@ use smash::lib::lua_const::*;
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
 static mut LEDGE_DELAY_COUNTER: usize = 0;
+static mut LEDGE_CASE : LedgeOption = LedgeOption::empty();
 
 pub fn init() {
     unsafe {
@@ -21,6 +22,12 @@ pub fn reset_ledge_delay() {
     }
 }
 
+pub fn reset_ledge_case() {
+    unsafe {
+        LEDGE_CASE = LedgeOption::empty();
+    }
+}
+
 fn roll_ledge_delay() {
     unsafe {
         if LEDGE_DELAY != NOT_SET {
@@ -31,12 +38,31 @@ fn roll_ledge_delay() {
     }
 }
 
+fn roll_ledge_case() {
+    unsafe {
+        // Don't re-roll if there is already a ledge option selected
+        // This prevents choosing a different ledge option during LedgeOption::WAIT
+        if LEDGE_CASE != LedgeOption::empty() {
+            return;
+        }
+
+        LEDGE_CASE = MENU.ledge_state.get_random();
+    }
+}
+
+
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT {
+        reset_ledge_case(); // No longer on ledge, so re-roll the ledge case next time
+        /* TODO:
+            Are there any performance hits or other side-effects from calling this
+            function every frame that we aren't on ledge?
+        */
         return;
     }
 
     roll_ledge_delay();
+    roll_ledge_case();
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
@@ -45,20 +71,20 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
+    if LEDGE_CASE == LedgeOption::WAIT {
+        // Do nothing, but don't reset the ledge case.
+        return;
+    }
+
     if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
         return;
     }
 
-    let ledge_case: LedgeOption = MENU.ledge_state.get_random();
-
-    if ledge_case == LedgeOption::WAIT {
-        LEDGE_DELAY = 900000;
-        return;
-    }
     reset_ledge_delay();
 
-    let status = ledge_case.into_status().unwrap_or(0);
-    match ledge_case {
+
+    let status = LEDGE_CASE.into_status().unwrap_or(0);
+    match LEDGE_CASE {
         LedgeOption::JUMP => {
             mash::buffer_menu_mash();
         }
