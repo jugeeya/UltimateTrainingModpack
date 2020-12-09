@@ -11,6 +11,7 @@ pub mod directional_influence;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
+pub mod ledge;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -20,7 +21,6 @@ mod frame_counter;
 mod full_hop;
 mod input_delay;
 mod input_record;
-mod ledge;
 mod mash;
 mod reset;
 mod save_states;
