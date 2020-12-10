@@ -11,6 +11,7 @@ pub mod directional_influence;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
+pub mod ledge;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -20,7 +21,6 @@ mod frame_counter;
 mod full_hop;
 mod input_delay;
 mod input_record;
-mod ledge;
 mod mash;
 mod reset;
 mod save_states;
@@ -255,8 +255,10 @@ pub unsafe fn handle_is_enable_transition_term(
     }
 
     combo::is_enable_transition_term(module_accessor, transition_term, ori);
-
-    ori
+    match ledge::is_enable_transition_term(module_accessor, transition_term) {
+        Some(r) => r,
+        None => ori,
+    }
 }
 
 extern "C" {

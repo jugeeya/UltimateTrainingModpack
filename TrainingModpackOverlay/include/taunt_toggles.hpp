@@ -87,7 +87,9 @@ position).
     x(type,Neutral,"Neutral") \
     x(type,Roll,"Roll") \
     x(type,Jump,"Jump") \
-    x(type,Attack,"Attack")
+    x(type,Attack,"Attack") \
+    x(type,Wait,"Wait")
+
 
 // clang-format on
 
