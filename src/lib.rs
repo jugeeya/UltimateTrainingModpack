@@ -29,7 +29,6 @@ fn nro_main(nro: &NroInfo<'_>) {
             training::directional_influence::handle_correct_damage_vector_common,
             training::sdi::process_hit_stop_delay,
             training::tech::handle_change_status,
-            training::ledge::is_enable_transition_term_replace,
         );
     }
 }

@@ -91,18 +91,17 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     StatusModule::change_status_request_from_script(module_accessor, status, true);
 }
 
-#[skyline::hook(replace = smash::app::lua_bind::WorkModule::is_enable_transition_term)]
-pub unsafe fn is_enable_transition_term_replace(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+pub unsafe fn is_enable_transition_term(
+    module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
-) -> bool {
+) -> Option<bool> {
     // Disallow cliff-climb if waiting on ledge per the current menu selection
     if LEDGE_CASE == LedgeOption::WAIT {
         if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
-            return false;
+            return Some(false);
         }
     }
-    original!()(module_accessor, term)
+    return None
 }
 
 pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
