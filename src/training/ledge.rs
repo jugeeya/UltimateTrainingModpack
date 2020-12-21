@@ -96,12 +96,15 @@ pub unsafe fn is_enable_transition_term(
     term: i32,
 ) -> Option<bool> {
     // Disallow cliff-climb if waiting on ledge per the current menu selection
-    if LEDGE_CASE == LedgeOption::WAIT {
-        if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
-            return Some(false);
-        }
+    if LEDGE_CASE != LedgeOption::WAIT {
+        return None;
     }
-    return None
+
+    if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
+        return Some(false);
+    }
+
+    return None;
 }
 
 pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
