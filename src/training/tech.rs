@@ -91,7 +91,7 @@ fn handle_wall_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, un
     unsafe {
         let canTech = WorkModule::is_enable_transition_term(
             module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
         );
 
         if (!canTech) {
@@ -114,7 +114,7 @@ fn handle_ceil_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, un
     unsafe {
         let canTech = WorkModule::is_enable_transition_term(
             module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
         );
 
         if (!canTech) {
