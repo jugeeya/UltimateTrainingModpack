@@ -41,12 +41,12 @@ unsafe fn mod_handle_change_status(
         .try_get_int()
         .unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
 
+    let state: TechFlags = MENU.tech_state.get_random();
+
     // Ground Tech
     if status_kind_int == *FIGHTER_STATUS_KIND_DOWN
         || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_D
     {
-        let state: TechFlags = MENU.tech_state.get_random();
-
         if WorkModule::is_enable_transition_term(
             module_accessor,
             *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
@@ -76,15 +76,16 @@ unsafe fn mod_handle_change_status(
         return;
     }
 
-    handle_wall_tech(module_accessor, status_kind, unk, state);
+    handle_wall_tech(module_accessor, status_kind, unk, status_kind_int, state);
 
-    handle_ceil_tech(module_accessor, status_kind, unk, state);
+    handle_ceil_tech(module_accessor, status_kind, unk, status_kind_int, state);
 }
 
 fn handle_wall_tech(
-    fighter: &mut L2CFighterBase,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
+    status_kind_int: i32,
     state: TechFlags,
 ) {
     if status_kind_int != *FIGHTER_STATUS_KIND_STOP_WALL
@@ -98,12 +99,12 @@ fn handle_wall_tech(
     }
 
     unsafe {
-        let canTech = WorkModule::is_enable_transition_term(
+        let can_tech = WorkModule::is_enable_transition_term(
             module_accessor,
             *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
         );
 
-        if !canTech {
+        if !can_tech {
             return;
         }
     }
@@ -114,9 +115,10 @@ fn handle_wall_tech(
 }
 
 fn handle_ceil_tech(
-    fighter: &mut L2CFighterBase,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
+    status_kind_int: i32,
     state: TechFlags,
 ) {
     if status_kind_int != *FIGHTER_STATUS_KIND_STOP_CEIL
@@ -130,12 +132,12 @@ fn handle_ceil_tech(
     }
 
     unsafe {
-        let canTech = WorkModule::is_enable_transition_term(
+        let can_tech = WorkModule::is_enable_transition_term(
             module_accessor,
             *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
         );
 
-        if !canTech {
+        if !can_tech {
             return;
         }
     }
