@@ -123,7 +123,10 @@ tech option among the selected
 options.
 
 CPUs will also perform a defensive
-option after getting up.)"""";
+option after getting up.
+
+For wall tech jumps set it to RollF
+)"""";
 
 // Missed Tech Option
 

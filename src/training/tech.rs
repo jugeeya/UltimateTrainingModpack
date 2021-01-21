@@ -82,27 +82,31 @@ fn handle_grnd_tech(
         }
     }
 
-    unsafe {
-        match state {
-            TechFlags::IN_PLACE => {
-                *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
-                *unk = LUA_TRUE;
+    match state {
+        TechFlags::IN_PLACE => {
+            *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
+            *unk = LUA_TRUE;
+            unsafe {
                 mash::perform_defensive_option();
             }
-            TechFlags::ROLL_F => {
-                *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
-                *unk = LUA_TRUE;
+        }
+        TechFlags::ROLL_F => {
+            *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
+            *unk = LUA_TRUE;
+            unsafe {
                 TECH_ROLL_DIRECTION = Direction::IN; // = In
                 mash::perform_defensive_option();
             }
-            TechFlags::ROLL_B => {
-                *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
-                *unk = LUA_TRUE;
+        }
+        TechFlags::ROLL_B => {
+            *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
+            *unk = LUA_TRUE;
+            unsafe {
                 TECH_ROLL_DIRECTION = Direction::OUT; // = Away
                 mash::perform_defensive_option();
             }
-            _ => (),
         }
+        _ => (),
     }
 
     return true;
@@ -136,8 +140,18 @@ fn handle_wall_tech(
         }
     }
 
-    *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL.as_lua_int();
-    *unk = LUA_TRUE;
+    match state {
+        TechFlags::IN_PLACE => {
+            *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL.as_lua_int();
+            *unk = LUA_TRUE;
+        }
+        TechFlags::ROLL_F => {
+            *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL_JUMP.as_lua_int();
+            *unk = LUA_TRUE;
+        }
+        _ => (),
+    }
+
     return true;
 }
 
