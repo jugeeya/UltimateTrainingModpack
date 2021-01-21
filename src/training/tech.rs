@@ -76,21 +76,9 @@ unsafe fn mod_handle_change_status(
         return;
     }
 
-    // Wall Tech
     handle_wall_tech(module_accessor, status_kind, unk);
 
-    // Ceiling Tech
-    if (status_kind_int == *FIGHTER_STATUS_KIND_STOP_CEIL
-        || status_kind_int == *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U)
-        && WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
-        )
-    {
-        *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
-        *unk = LUA_TRUE;
-        return;
-    }
+    handle_ceil_tech(module_accessor, status_kind, unk);
 }
 
 fn handle_wall_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, unk: &mut L2CValue) {
@@ -112,6 +100,29 @@ fn handle_wall_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, un
     }
 
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL.as_lua_int();
+    *unk = LUA_TRUE;
+    return;
+}
+
+fn handle_ceil_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, unk: &mut L2CValue) {
+    if (status_kind_int != *FIGHTER_STATUS_KIND_STOP_CEIL
+        && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U)
+    {
+        return;
+    }
+
+    unsafe {
+        let canTech = WorkModule::is_enable_transition_term(
+            module_accessor,
+            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
+        );
+
+        if (!canTech) {
+            return;
+        }
+    }
+
+    *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
     return;
 }
