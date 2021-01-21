@@ -76,15 +76,24 @@ unsafe fn mod_handle_change_status(
         return;
     }
 
-    handle_wall_tech(module_accessor, status_kind, unk);
+    handle_wall_tech(module_accessor, status_kind, unk, state);
 
-    handle_ceil_tech(module_accessor, status_kind, unk);
+    handle_ceil_tech(module_accessor, status_kind, unk, state);
 }
 
-fn handle_wall_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, unk: &mut L2CValue) {
-    if (status_kind_int != *FIGHTER_STATUS_KIND_STOP_WALL
-        && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR)
+fn handle_wall_tech(
+    fighter: &mut L2CFighterBase,
+    status_kind: &mut L2CValue,
+    unk: &mut L2CValue,
+    state: TechFlags,
+) {
+    if status_kind_int != *FIGHTER_STATUS_KIND_STOP_WALL
+        && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
     {
+        return;
+    }
+
+    if state == TechFlags::NO_TECH {
         return;
     }
 
@@ -94,7 +103,7 @@ fn handle_wall_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, un
             *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
         );
 
-        if (!canTech) {
+        if !canTech {
             return;
         }
     }
@@ -104,10 +113,19 @@ fn handle_wall_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, un
     return;
 }
 
-fn handle_ceil_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, unk: &mut L2CValue) {
-    if (status_kind_int != *FIGHTER_STATUS_KIND_STOP_CEIL
-        && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U)
+fn handle_ceil_tech(
+    fighter: &mut L2CFighterBase,
+    status_kind: &mut L2CValue,
+    unk: &mut L2CValue,
+    state: TechFlags,
+) {
+    if status_kind_int != *FIGHTER_STATUS_KIND_STOP_CEIL
+        && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
     {
+        return;
+    }
+
+    if state == TechFlags::NO_TECH {
         return;
     }
 
@@ -117,7 +135,7 @@ fn handle_ceil_tech(fighter: &mut L2CFighterBase, status_kind: &mut L2CValue, un
             *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
         );
 
-        if (!canTech) {
+        if !canTech {
             return;
         }
     }
