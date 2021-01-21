@@ -76,9 +76,15 @@ unsafe fn mod_handle_change_status(
         return;
     }
 
-    handle_wall_tech(module_accessor, status_kind, unk, status_kind_int, state);
+    let wall_teched = handle_wall_tech(module_accessor, status_kind, unk, status_kind_int, state);
+    if wall_teched {
+        return
+    }
 
-    handle_ceil_tech(module_accessor, status_kind, unk, status_kind_int, state);
+    let ceil_teched = handle_ceil_tech(module_accessor, status_kind, unk, status_kind_int, state);
+    if ceil_teched {
+        return
+    }
 }
 
 fn handle_wall_tech(
@@ -87,15 +93,15 @@ fn handle_wall_tech(
     unk: &mut L2CValue,
     status_kind_int: i32,
     state: TechFlags,
-) {
+) -> bool {
     if status_kind_int != *FIGHTER_STATUS_KIND_STOP_WALL
         && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
     {
-        return;
+        return false;
     }
 
     if state == TechFlags::NO_TECH {
-        return;
+        return false;
     }
 
     unsafe {
@@ -105,13 +111,13 @@ fn handle_wall_tech(
         );
 
         if !can_tech {
-            return;
+            return false;
         }
     }
 
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL.as_lua_int();
     *unk = LUA_TRUE;
-    return;
+    return true;
 }
 
 fn handle_ceil_tech(
@@ -120,15 +126,15 @@ fn handle_ceil_tech(
     unk: &mut L2CValue,
     status_kind_int: i32,
     state: TechFlags,
-) {
+) -> bool {
     if status_kind_int != *FIGHTER_STATUS_KIND_STOP_CEIL
         && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
     {
-        return;
+        return false;
     }
 
     if state == TechFlags::NO_TECH {
-        return;
+        return false;
     }
 
     unsafe {
@@ -138,13 +144,13 @@ fn handle_ceil_tech(
         );
 
         if !can_tech {
-            return;
+            return false;
         }
     }
 
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
-    return;
+    return true;
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
