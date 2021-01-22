@@ -39,12 +39,15 @@ pub static mut MENU: &consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
+#[cfg(not(feature = "outside_training_mode"))]
 extern "C" {
     #[link_name = "\u{1}_ZN3app9smashball16is_training_modeEv"]
     pub fn is_training_mode() -> bool;
+}
 
-//#[link_name = "\u{1}_ZN3app7utility8get_kindEPKNS_26BattleObjectModuleAccessorE"]
-//pub fn get_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32;
+#[cfg(feature = "outside_training_mode")]
+pub fn is_training_mode() -> bool {
+    return true;
 }
 
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {

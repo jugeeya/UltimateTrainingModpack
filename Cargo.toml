@@ -29,3 +29,5 @@ plugin-dependencies = [
     { name = "libparam_hook.nro", url = "https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro" },
 ]
 
+[features]
+outside_training_mode = []
