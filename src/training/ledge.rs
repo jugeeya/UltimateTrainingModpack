@@ -92,7 +92,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 }
 
 pub unsafe fn is_enable_transition_term(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
+    _module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
 ) -> Option<bool> {
     // Disallow cliff-climb if waiting on ledge per the current menu selection
