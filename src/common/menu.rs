@@ -8,6 +8,14 @@ use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
 
 #[derive(Content)]
+struct Slider {
+    min: usize,
+    max: usize,
+    index: usize,
+    value: usize
+}
+
+#[derive(Content)]
 struct Toggle<'a> {
     title: &'a str,
     checked: &'a str,
@@ -31,6 +39,7 @@ struct SubMenu<'a> {
     title: &'a str,
     id: &'a str,
     toggles: Vec<Toggle<'a>>,
+    sliders: Vec<Slider>,
     index: usize,
     check_against: usize
 }
@@ -52,6 +61,15 @@ impl<'a> SubMenu<'a> {
             value
         });
     }
+
+    pub fn add_slider(&mut self, min: usize, max: usize, value: usize) {
+        self.sliders.push(Slider{
+            min,
+            max,
+            index: self.max_idx() + 1,
+            value
+        });
+    }
 }
 
 #[derive(Content)]
@@ -68,17 +86,22 @@ impl<'a> Menu<'a> {
             .unwrap_or(0)
     }
 
-    pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>) {
+    pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>, sliders: Vec<(usize,usize,usize)>) {
         let mut sub_menu = SubMenu {
             title: title,
             id: id,
             toggles: Vec::new(),
+            sliders: Vec::new(),
             index: self.max_idx() + 1,
             check_against: check_against
         };
 
         for toggle in toggles {
             sub_menu.add_toggle(toggle.0, (check_against & toggle.1) != 0, toggle.1)
+        }
+
+        for slider in sliders {
+            sub_menu.add_slider(slider.0, slider.1, slider.2);
         }
 
         self.sub_menus.push(sub_menu);
@@ -89,6 +112,7 @@ impl<'a> Menu<'a> {
             title: title,
             id: id,
             toggles: Vec::new(),
+            sliders: Vec::new(),
             index: self.max_idx() + 1,
             check_against: check_against
         };
@@ -96,6 +120,8 @@ impl<'a> Menu<'a> {
         for i in 0..strs.len() {
             sub_menu.add_toggle(strs[i], (check_against & vals[i]) != 0, vals[i])
         }
+
+        // TODO: add sliders?
 
         self.sub_menus.push(sub_menu);
     }
@@ -147,7 +173,7 @@ pub fn set_menu_from_url(s: &str) {
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
-    ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_GUARD) &&
+    ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL) &&
     ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
 }
 
@@ -158,6 +184,7 @@ pub unsafe fn render_menu() -> String {
         sub_menus: Vec::new()
     };
 
+    // Toggle/bitflag menus
     add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action);
     add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action);
 
@@ -189,10 +216,22 @@ pub unsafe fn render_menu() -> String {
             ("None", Shield::None as usize),
             ("Hold", Shield::Hold as usize),
             ("Infinite", Shield::Infinite as usize),
+        ].to_vec(),
+        [].to_vec()
+    );
+
+    // Slider menus
+    overall_menu.add_sub_menu(
+        "Input Delay", 
+        "input_delay", 
+        // unnecessary for slider?
+        MENU_STRUCT.input_delay as usize,
+        [].to_vec(),
+        [
+            (0, 10, MENU_STRUCT.input_delay as usize)
         ].to_vec()
     );
 
-    // add_bitflag_submenu!(overall_menu, "Input Delay", input_delay, Delay);
 
     // TODO: OnOff flags... need a different sort of submenu.
     overall_menu.add_sub_menu(
@@ -202,7 +241,8 @@ pub unsafe fn render_menu() -> String {
         [
             ("Off", OnOff::Off as usize),
             ("On", OnOff::On as usize),
-        ].to_vec()
+        ].to_vec(),
+        [].to_vec()
     );
     overall_menu.add_sub_menu(
         "Stage Hazards", 
@@ -211,7 +251,8 @@ pub unsafe fn render_menu() -> String {
         [
             ("Off", OnOff::Off as usize),
             ("On", OnOff::On as usize),
-        ].to_vec()
+        ].to_vec(),
+        [].to_vec()
     );
     overall_menu.add_sub_menu(
         "Mash In Neutral", 
@@ -220,7 +261,8 @@ pub unsafe fn render_menu() -> String {
         [
             ("Off", OnOff::Off as usize),
             ("On", OnOff::On as usize),
-        ].to_vec()
+        ].to_vec(),
+        [].to_vec()
     );
 
 

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="./help/css/qa.css" />
     <link id="font-stylesheet" rel="stylesheet" href="./help/css/font.css">
     <link rel="stylesheet" href="./help/css/keyword.css">
+    <link href="./nouislider.min.css" rel="stylesheet">
     <style>
         @-moz-document url-prefix() {
             @font-face {
@@ -47,6 +48,7 @@
     <script src="./help/common/js/keyhelp.js"></script>
     <script src="./help/js/common.js"></script>
     <script src="./help/js/qa.js"></script>
+    <script src="./nouislider.min.js"></script>
 
     <div class="l-header">
         <div class="l-header-title">
@@ -111,11 +113,57 @@
                                 </a> </div>
                         </li>
                         {{/toggles}}
+                        {{#sliders}}
+                        <li class="l-item" val="{{value}}">
+                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                            ref="./check.svg" src="./check.svg">
+                                    </div>
+                                    <div class="button-msg-wrapper">
+                                        <div class="keyword-message f-u-bold">
+                                            <div name='range_slider' oninput="this.nextElementSibling.value = this.value">
+                                            </div>
+                                            <output>{{value}}</output>
+                                        </div>
+                                    </div>
+                                </a> </div>
+                        </li>
+                        {{/sliders}}
+                        {{#range_sliders}}
+                        <li class="l-item" val="{{value}}">
+                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                            ref="./check.svg" src="./check.svg">
+                                    </div>
+                                    <div class="button-msg-wrapper">
+                                        <div class="keyword-message f-u-bold">
+                                            <div name="{{id}}">
+                                        </div>
+                                    </div>
+                                </a> </div>
+                        </li>
+                        {{/range_sliders}}
                     </ul>
                 </div>
             </div>
         </a>
     </div>
+    {{/sub_menus}}
+    {{#sub_menus}}
+        {{#sliders}}
+        <script>
+        // todo: loop through  
+        noUiSlider.create(document.getElementsByName('range_slider')[0], {
+            start: {{value}},
+            range: {
+                'min': {{min}},
+                'max': {{max}}
+            }
+        });
+        </script>
+        {{/sliders}}
     {{/sub_menus}}
     <script>
         if (isNx) {
