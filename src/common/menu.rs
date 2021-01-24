@@ -187,6 +187,7 @@ pub unsafe fn render_menu() -> String {
     // Toggle/bitflag menus
     add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action);
     add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action);
+    add_bitflag_submenu!(overall_menu, "Attack Angle", attack_angle, AttackAngle);
 
     add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption);
     add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, Delay);
@@ -231,6 +232,8 @@ pub unsafe fn render_menu() -> String {
             (0, 10, MENU_STRUCT.input_delay as usize)
         ].to_vec()
     );
+
+    // SDI strength
 
 
     // TODO: OnOff flags... need a different sort of submenu.

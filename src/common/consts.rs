@@ -257,10 +257,7 @@ bitflags! {
     }
 }
 
-impl AttackAngle {
-    to_vec_impl! {AttackAngle}
-    get_random_impl! {AttackAngle}
-}
+extra_bitflag_impls! {AttackAngle}
 
 
 bitflags! {
