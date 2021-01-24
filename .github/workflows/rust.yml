@@ -36,12 +36,12 @@ jobs:
         name: plugin
         path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
     - name: Build outside_training_mode NRO
-      run: xargo build --release --features outside_training_mode 
+      run: xargo build --features outside_training_mode 
     - name: Upload plugin (outside training mode) artifact
       uses: actions/upload-artifact@v2
       with:
         name: plugin_outside_training_mode
-        path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
+        path: target/aarch64-skyline-switch/dev/libtraining_modpack.nro
   upload:
     runs-on: ubuntu-latest
     needs:
