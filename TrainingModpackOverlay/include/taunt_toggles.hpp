@@ -33,7 +33,7 @@ const std::vector<std::string> input_delay_items{"0", "1", "2", "3", "4", "5", "
 const std::string              input_delay_help = R""""(
 In frames.
 
-Emulate input delay 
+Emulate input delay
 to practice in a online
 environment.)"""";
 
@@ -87,7 +87,9 @@ position).
     x(type,Neutral,"Neutral") \
     x(type,Roll,"Roll") \
     x(type,Jump,"Jump") \
-    x(type,Attack,"Attack")
+    x(type,Attack,"Attack") \
+    x(type,Wait,"Wait")
+
 
 // clang-format on
 
@@ -121,7 +123,10 @@ tech option among the selected
 options.
 
 CPUs will also perform a defensive
-option after getting up.)"""";
+option after getting up.
+
+For wall tech jumps set it to RollF
+)"""";
 
 // Missed Tech Option
 
@@ -340,3 +345,24 @@ const std::string full_hop_help = R""""(
 CPUs will full hop
 rather than short hop
 aerials.)"""";
+
+#define ENUM_CLASS_AttackAngleFlag(type,x) \
+	x(type,Neutral,"Neutral") x(type,Up,"Up") x(type,Down,"Down")
+DEFINE_ENUM_CLASS(AttackAngleFlag);
+
+const std::string attack_angle_help = R""""(
+Set angleable tilt and smash attacks.)"""";
+
+const std::string save_damage_help = R""""(
+Set if save states should apply to damage.)"""";
+
+#define NORMAL 0
+const std::vector<std::string> strength_items{ "Normal", "Medium", "High"};
+const std::string              sdi_strength_help = R""""(
+How many frames between each SDI input
+
+Normal 8
+Medium 6
+High 4
+
+)"""";

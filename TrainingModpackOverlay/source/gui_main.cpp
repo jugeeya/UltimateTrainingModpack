@@ -10,29 +10,32 @@
 
 static struct TrainingModpackMenu
 {
-	OnOffFlags     HITBOX_VIS      = OnOffFlag::On;
-	OnOffFlags     STAGE_HAZARDS   = OnOffFlags::None;
-	Directions     DI_STATE        = Directions::None;
-	Directions     SDI_STATE       = Directions::None;
-	Directions     AIR_DODGE_DIR   = Directions::None;
-	ActionFlags    MASH_STATE      = ActionFlags::None;
-	ActionFlags    FOLLOW_UP       = ActionFlags::None;
-	LedgeFlags     LEDGE_STATE     = LedgeFlags::All;
-	DelayFlags     LEDGE_DELAY     = DelayFlags::All;
-	TechFlags      TECH_STATE      = TechFlags::All;
-	MissTechFlags  MISS_TECH_STATE = MissTechFlags::All;
-	int            SHIELD_STATE    = NONE;
-	DefensiveFlags DEFENSIVE_STATE = DefensiveFlags::All;
-	DelayFlags     OOS_OFFSET      = DelayFlags::None;
-	DelayFlags     REACTION_TIME   = DelayFlags::None;
-	Directions     SHIELD_TILT     = Directions::None;
-	OnOffFlags     MASH_IN_NEUTRAL = OnOffFlags::None;
-	BoolFlags      FAST_FALL       = BoolFlags::None;
-	DelayFlags     FAST_FALL_DELAY = DelayFlags::None;
-	BoolFlags      FALLING_AERIALS = BoolFlags::None;
-	DelayFlags     AERIAL_DELAY    = DelayFlags::None;
-	BoolFlags      FULL_HOP        = BoolFlags::None;
-	int            INPUT_DELAY     = 0;
+	OnOffFlags       HITBOX_VIS          = OnOffFlag::On;
+	OnOffFlags       STAGE_HAZARDS       = OnOffFlags::None;
+	Directions       DI_STATE            = Directions::None;
+	Directions       SDI_STATE           = Directions::None;
+	int              SDI_STRENGTH        = NORMAL;
+	Directions       AIR_DODGE_DIR       = Directions::None;
+	ActionFlags      MASH_STATE          = ActionFlags::None;
+	ActionFlags      FOLLOW_UP           = ActionFlags::None;
+	AttackAngleFlags ATTACK_ANGLE        = AttackAngleFlags::None;
+	LedgeFlags       LEDGE_STATE         = LedgeFlags::All;
+	DelayFlags       LEDGE_DELAY         = DelayFlags::All;
+	TechFlags        TECH_STATE          = TechFlags::All;
+	MissTechFlags    MISS_TECH_STATE     = MissTechFlags::All;
+	int              SHIELD_STATE        = NONE;
+	DefensiveFlags   DEFENSIVE_STATE     = DefensiveFlags::All;
+	DelayFlags       OOS_OFFSET          = DelayFlags::None;
+	DelayFlags       REACTION_TIME       = DelayFlags::None;
+	Directions       SHIELD_TILT         = Directions::None;
+	OnOffFlags       MASH_IN_NEUTRAL     = OnOffFlags::None;
+	BoolFlags        FAST_FALL           = BoolFlags::None;
+	DelayFlags       FAST_FALL_DELAY     = DelayFlags::None;
+	BoolFlags        FALLING_AERIALS     = BoolFlags::None;
+	DelayFlags       AERIAL_DELAY        = DelayFlags::None;
+	BoolFlags        FULL_HOP            = BoolFlags::None;
+	int              INPUT_DELAY         = 0;
+	OnOffFlags       SAVE_DAMAGE         = OnOffFlag::On;
 } menu;
 
 static struct TrainingModpackMenu defaultMenu = menu;
@@ -329,11 +332,18 @@ tsl::elm::Element* GuiMain::createUI()
 			list->addItem(createBitFlagOption(&menu.FOLLOW_UP, "Followup Toggles", follow_up_help, this));
 			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
 			    "Mash In Neutral", OnOffFlag::On, &menu.MASH_IN_NEUTRAL, "Mash In Neutral", mash_neutral_help));
+			list->addItem(createBitFlagOption(&menu.ATTACK_ANGLE, "Attack Angle", attack_angle_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Left Stick", true));
 
 			list->addItem(createBitFlagOption(&menu.DI_STATE, "Set DI", di_help, this));
 			list->addItem(createBitFlagOption(&menu.SDI_STATE, "Set SDI", sdi_help, this));
+
+			ValueListItem* sdiItem =
+			    new ValueListItem("SDI Strength", strength_items, &menu.SDI_STRENGTH, "SDI Strength", sdi_strength_help);
+			list->addItem(sdiItem);
+			valueListItems.push_back(sdiItem);
+
 			list->addItem(createBitFlagOption(&menu.AIR_DODGE_DIR, "Airdodge Direction", air_dodge_direction_help, this));
 
 			list->addItem(new tsl::elm::CategoryHeader("Shield", true));
@@ -398,6 +408,9 @@ tsl::elm::Element* GuiMain::createUI()
 			                                   std::string              help) { tsl::changeTo<GuiHelp>(title, help); });
 			saveStateItem->setHelpListener([](std::string title, std::string help) { tsl::changeTo<GuiHelp>(title, help); });
 			list->addItem(saveStateItem);
+
+			list->addItem(new BitFlagToggleListItem<OnOffFlags::Type>(
+			    "Save Damage", OnOffFlag::On, &menu.SAVE_DAMAGE, "Save Damage", save_damage_help));
 
 			ValueListItem* inputDelayItem =
 			    new ValueListItem("Input Delay", input_delay_items, &menu.INPUT_DELAY, "inputDelay", input_delay_help);

@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::attack_angle;
 use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::frame_counter;
@@ -26,6 +27,8 @@ pub fn buffer_action(action: Action) {
     if action == Action::empty() {
         return;
     }
+
+    attack_angle::roll_direction();
 
     roll_aerial_delay(action);
 

@@ -11,15 +11,16 @@ pub mod directional_influence;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
+pub mod ledge;
 
 mod air_dodge_direction;
+mod attack_angle;
 mod character_specific;
 mod fast_fall;
 mod frame_counter;
 mod full_hop;
 mod input_delay;
 mod input_record;
-mod ledge;
 mod mash;
 mod reset;
 mod save_states;
@@ -161,6 +162,21 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
     air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 
+
+/**
+ * Called when:
+ * angled ftilt/fsmash
+ */
+ #[skyline::hook(replace = ControlModule::get_stick_dir)]
+ pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+     let ori = original!()(module_accessor);
+     if !is_training_mode() {
+         return ori;
+     }
+
+     attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
+ }
+
 /**
  *
  */
@@ -243,8 +259,10 @@ pub unsafe fn handle_is_enable_transition_term(
     }
 
     combo::is_enable_transition_term(module_accessor, transition_term, ori);
-
-    ori
+    match ledge::is_enable_transition_term(module_accessor, transition_term) {
+        Some(r) => r,
+        None => ori,
+    }
 }
 
 extern "C" {
@@ -287,7 +305,7 @@ macro_rules! create_nn_hid_hooks {
                 original!()(state, controller_id);
                 if is_training_mode() {
                     input_delay::handle_get_npad_state(state, controller_id);
-                    /* TODO: 
+                    /* TODO:
                     1) make number of frames configurable
                     2) make possible without a second controller plugged in
                     **/
@@ -314,7 +332,7 @@ pub fn training_mods() {
         handle_get_npad_handheld_state,
         handle_get_npad_full_key_state,
         handle_get_npad_gc_state,
-        handle_get_joy_dual_state, 
+        handle_get_joy_dual_state,
         handle_get_joy_left_state,
         handle_get_joy_right_state);
 
@@ -348,6 +366,8 @@ pub fn training_mods() {
         handle_set_dead_rumble,
         // Mash attack
         handle_get_attack_air_kind,
+        // Attack angle
+        get_stick_dir,
         // Tech options
         handle_change_motion,
         // Directional AirDodge,

@@ -120,6 +120,7 @@ bitflags! {
         const ROLL = 0x2;
         const JUMP = 0x4;
         const ATTACK = 0x8;
+        const WAIT = 0x10;
     }
 }
 
@@ -130,6 +131,7 @@ impl LedgeOption {
             LedgeOption::ROLL => *FIGHTER_STATUS_KIND_CLIFF_ESCAPE,
             LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
             LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
+            LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
             _ => return None,
         })
     }
@@ -248,6 +250,20 @@ impl Action {
 extra_bitflag_impls! {Action}
 
 bitflags! {
+    pub struct AttackAngle : u32 {
+        const NEUTRAL = 0x1;
+        const UP = 0x2;
+        const DOWN = 0x4;
+    }
+}
+
+impl AttackAngle {
+    to_vec_impl! {AttackAngle}
+    get_random_impl! {AttackAngle}
+}
+
+
+bitflags! {
     pub struct Delay : u32 {
         const D0 = 0x1;
         const D1 = 0x2;
@@ -309,9 +325,11 @@ pub struct TrainingModpackMenu {
     pub stage_hazards: OnOff,
     pub di_state: Direction,
     pub sdi_state: Direction,
+    pub sdi_strength: SdiStrength,
     pub air_dodge_dir: Direction,
     pub mash_state: Action,
     pub follow_up: Action,
+    pub attack_angle: AttackAngle,
     pub ledge_state: LedgeOption,
     pub ledge_delay: Delay,
     pub tech_state: TechFlags,
@@ -328,6 +346,7 @@ pub struct TrainingModpackMenu {
     pub aerial_delay: Delay,
     pub full_hop: BoolFlag,
     pub input_delay: i32,
+    pub save_damage: OnOff,
 }
 
 macro_rules! set_by_str {
@@ -380,4 +399,23 @@ impl TrainingModpackMenu {
 pub enum FighterId {
     Player = 0,
     CPU = 1,
+}
+
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
+pub enum SdiStrength {
+    Normal = 0,
+    Medium = 1,
+    High = 2,
+}
+
+impl SdiStrength {
+    pub fn into_u32(self) -> u32 {
+        match self {
+            SdiStrength::Normal => 8,
+            SdiStrength::Medium => 6,
+            SdiStrength::High => 4,
+        }
+    }
 }

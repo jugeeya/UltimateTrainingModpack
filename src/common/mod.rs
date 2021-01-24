@@ -11,9 +11,11 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),
+    sdi_strength: SdiStrength::Normal,
     air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
+    attack_angle: AttackAngle::empty(),
     ledge_state: LedgeOption::all(),
     ledge_delay: Delay::empty(),
     tech_state: TechFlags::all(),
@@ -30,6 +32,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     aerial_delay: Delay::empty(),
     full_hop: BoolFlag::empty(),
     input_delay: 0,
+    save_damage: OnOff::On,
 };
 
 pub static mut MENU: &consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
@@ -37,12 +40,15 @@ pub static mut MENU: &consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
+#[cfg(not(feature = "outside_training_mode"))]
 extern "C" {
     #[link_name = "\u{1}_ZN3app9smashball16is_training_modeEv"]
     pub fn is_training_mode() -> bool;
+}
 
-//#[link_name = "\u{1}_ZN3app7utility8get_kindEPKNS_26BattleObjectModuleAccessorE"]
-//pub fn get_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32;
+#[cfg(feature = "outside_training_mode")]
+pub fn is_training_mode() -> bool {
+    return true;
 }
 
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
