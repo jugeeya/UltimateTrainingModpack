@@ -36,7 +36,7 @@ jobs:
         name: plugin
         path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
     - name: Build outside_training_mode NRO
-      run: xargo build --features outside_training_mode 
+      run: RUST_TARGET_PATH=$(shell pwd) xargo build --features outside_training_mode --target=aarch64-skyline-switch
     - name: Upload plugin (outside training mode) artifact
       uses: actions/upload-artifact@v2
       with:
