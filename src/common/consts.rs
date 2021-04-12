@@ -48,7 +48,7 @@ macro_rules! extra_bitflag_impls {
 
             pub fn to_toggle_strs() -> Vec<String> {
                 let all_options = <$e>::all().to_vec();
-                all_options.iter().map(|i| i.to_string()).collect()
+                all_options.iter().map(|i| i.into_string()).collect()
             }
 
             pub fn to_toggle_vals() -> Vec<usize> {
@@ -108,6 +108,20 @@ impl Direction {
             _ => 0,
         }
     }
+
+    fn into_string(self) -> String {
+        match self {
+            Direction::OUT => "Away",
+            Direction::UP_OUT => "Up and Away",
+            Direction::UP => "Up",
+            Direction::UP_IN => "Up and In",
+            Direction::IN => "In",
+            Direction::DOWN_IN => "Down and In",
+            Direction::DOWN => "Down",
+            Direction::DOWN_OUT => "Down and Away",
+            _ => "",
+        }.to_string()
+    }
 }
 
 extra_bitflag_impls! {Direction}
@@ -135,6 +149,17 @@ impl LedgeOption {
             _ => return None,
         })
     }
+
+    fn into_string(self) -> String {
+        match self {
+            LedgeOption::NEUTRAL => "Neutral Getup",
+            LedgeOption::ROLL => "Roll",
+            LedgeOption::JUMP => "Jump",
+            LedgeOption::ATTACK => "Getup Attack",
+            LedgeOption::WAIT => "Wait",
+            _ => "",
+        }.to_string()
+    }
 }
 
 extra_bitflag_impls! {LedgeOption}
@@ -146,6 +171,18 @@ bitflags! {
         const ROLL_F = 0x2;
         const ROLL_B = 0x4;
         const IN_PLACE = 0x8;
+    }
+}
+
+impl TechFlags {
+    fn into_string(self) -> String {
+        match self {
+            TechFlags::NO_TECH => "No Tech",
+            TechFlags::ROLL_F => "Roll Forwards",
+            TechFlags::ROLL_B => "Roll Backwards",
+            TechFlags::IN_PLACE => "Tech In Place",
+            _ => "",
+        }.to_string()
     }
 }
 
@@ -161,6 +198,18 @@ bitflags! {
     }
 }
 
+impl MissTechFlags {
+    fn into_string(self) -> String {
+        match self {
+            MissTechFlags::GETUP => "Neutral Getup",
+            MissTechFlags::ATTACK => "Getup Attack",
+            MissTechFlags::ROLL_F => "Roll Forwards",
+            MissTechFlags::ROLL_B => "Roll Backwards",
+            _ => "",
+        }.to_string()
+    }
+}
+
 extra_bitflag_impls! {MissTechFlags}
 
 /// Shield States
@@ -173,6 +222,18 @@ pub enum Shield {
     Constant = 3,
 }
 
+impl Shield {
+    fn into_string(self) -> String {
+        match self {
+            Shield::None => "None",
+            Shield::Infinite => "Infinite",
+            Shield::Hold => "Hold",
+            Shield::Constant => "Constant",
+            _ => "",
+        }.to_string()
+    }
+}
+
 // Defensive States
 bitflags! {
     pub struct Defensive : u32 {
@@ -181,6 +242,19 @@ bitflags! {
         const ROLL_B = 0x4;
         const JAB = 0x8;
         const SHIELD = 0x10;
+    }
+}
+
+impl Defensive {
+    fn into_string(self) -> String {
+        match self {
+            Defensive::SPOT_DODGE => "Spotdodge",
+            Defensive::ROLL_F => "Roll Forwards",
+            Defensive::ROLL_B => "Roll Backwards",
+            Defensive::JAB => "Jab",
+            Defensive::SHIELD => "Shield",
+            _ => "",
+        }.to_string()
     }
 }
 
@@ -200,6 +274,14 @@ impl OnOff {
             0 => Some(OnOff::Off),
             _ => None
         }
+    }
+
+    pub fn into_string(self) -> String {
+        match self {
+            OnOff::Off => "Off",
+            OnOff::On => "On",
+            _ => ""
+        }.to_string()
     }
 }
 
@@ -245,6 +327,11 @@ impl Action {
             _ => return None,
         })
     }
+
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
+    }
 }
 
 extra_bitflag_impls! {Action}
@@ -254,6 +341,13 @@ bitflags! {
         const NEUTRAL = 0x1;
         const UP = 0x2;
         const DOWN = 0x4;
+    }
+}
+
+impl AttackAngle {
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
     }
 }
 
@@ -296,6 +390,13 @@ bitflags! {
     }
 }
 
+impl Delay {
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
+    }
+}
+
 extra_bitflag_impls! {Delay}
 
 bitflags! {
@@ -313,6 +414,11 @@ impl BoolFlag {
             BoolFlag::TRUE => true,
             _ => false,
         }
+    }
+
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
     }
 }
 
@@ -414,5 +520,10 @@ impl SdiStrength {
             SdiStrength::Medium => 6,
             SdiStrength::High => 4,
         }
+    }
+
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return "".to_string()
     }
 }
