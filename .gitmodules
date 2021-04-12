@@ -1,4 +1,1 @@
 
-[submodule "TrainingModpackOverlay/libs/libtesla"]
-	path = TrainingModpackOverlay/libs/libtesla
-	url = https://github.com/WerWolv/libtesla
