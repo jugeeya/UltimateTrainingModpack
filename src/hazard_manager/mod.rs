@@ -57,7 +57,7 @@ fn get_hazard_flag_address() -> usize {
     program_counter + adrp + add + 0x9
 }
 
-fn get_hazard_hook_address() -> isize {
+fn get_hazard_hook_address() -> usize {
     let mut state = HookState::Begin;
     let mut flag_pos = 0;
     for (pos, instr) in TextIter::new() {
@@ -75,12 +75,12 @@ fn get_hazard_hook_address() -> isize {
         }
     }
 
-    flag_pos as isize
+    flag_pos as usize
 }
 
 // 8.1.0 Defaults
 static mut HAZARD_FLAG_ADDRESS: *mut u8 = 0x04eb_bf95 as *mut u8;
-static mut LOAD_ADDRESS: isize = 0x0214_bde8;
+static mut LOAD_ADDRESS: usize = 0x0214_bde8;
 
 #[hook(offset = LOAD_ADDRESS, inline)]
 fn hazard_intercept(ctx: &skyline::hooks::InlineCtx) {
