@@ -3,54 +3,64 @@ use core::f64::consts::PI;
 use smash::lib::lua_const::*;
 
 // bitflag helper function macro
-macro_rules! to_vec_impl {
+macro_rules! extra_bitflag_impls {
     ($e:ty) => {
-        pub fn to_vec(&self) -> Vec::<$e> {
-            let mut vec = Vec::<$e>::new();
-            let mut field = <$e>::from_bits_truncate(self.bits);
-            while !field.is_empty() {
-                let flag = <$e>::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
-                field -= flag;
-                vec.push(flag);
+        impl core::fmt::Display for $e {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+                core::fmt::Debug::fmt(self, f)
             }
-            return vec;
+        }
+
+        impl $e {
+            pub fn to_vec(&self) -> Vec::<$e> {
+                let mut vec = Vec::<$e>::new();
+                let mut field = <$e>::from_bits_truncate(self.bits);
+                while !field.is_empty() {
+                    let flag = <$e>::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
+                    field -= flag;
+                    vec.push(flag);
+                }
+                return vec;
+            }
+
+            pub fn to_index(&self) -> u32 {
+                if self.bits == 0 {
+                    return 0;
+                }
+    
+                return self.bits.trailing_zeros();
+            }
+
+            pub fn get_random(&self) -> $e {
+                let options = self.to_vec();
+                match options.len() {
+                    0 => {
+                        return <$e>::empty();
+                    }
+                    1 => {
+                        return options[0];
+                    }
+                    _ => {
+                        return *random_option(&options);
+                    }
+                }
+            }
+
+            pub fn to_toggle_strs() -> Vec<String> {
+                let all_options = <$e>::all().to_vec();
+                all_options.iter().map(|i| i.into_string()).collect()
+            }
+
+            pub fn to_toggle_vals() -> Vec<usize> {
+                let all_options = <$e>::all().to_vec();
+                all_options.iter().map(|i| i.bits() as usize).collect()
+            }
         }
     }
 }
 
-macro_rules! to_index_impl {
-    ($e:ty) => {
-        pub fn to_index(&self) -> u32 {
-            if self.bits == 0 {
-                return 0;
-            }
-
-            return self.bits.trailing_zeros();
-        }
-    };
-}
-
 pub fn random_option<T>(arg: &[T]) -> &T {
     &arg[get_random_int(arg.len() as i32) as usize]
-}
-
-macro_rules! get_random_impl {
-    ($e:ty) => {
-        pub fn get_random(&self) -> $e {
-            let options = self.to_vec();
-            match options.len() {
-                0 => {
-                    return <$e>::empty();
-                }
-                1 => {
-                    return options[0];
-                }
-                _ => {
-                    return *random_option(&options);
-                }
-            }
-        }
-    };
 }
 
 // DI
@@ -98,9 +108,23 @@ impl Direction {
             _ => 0,
         }
     }
-    to_vec_impl! {Direction}
-    get_random_impl! {Direction}
+
+    fn into_string(self) -> String {
+        match self {
+            Direction::OUT => "Away",
+            Direction::UP_OUT => "Up and Away",
+            Direction::UP => "Up",
+            Direction::UP_IN => "Up and In",
+            Direction::IN => "In",
+            Direction::DOWN_IN => "Down and In",
+            Direction::DOWN => "Down",
+            Direction::DOWN_OUT => "Down and Away",
+            _ => "",
+        }.to_string()
+    }
 }
+
+extra_bitflag_impls! {Direction}
 
 // Ledge Option
 bitflags! {
@@ -125,9 +149,20 @@ impl LedgeOption {
             _ => return None,
         })
     }
-    to_vec_impl! {LedgeOption}
-    get_random_impl! {LedgeOption}
+
+    fn into_string(self) -> String {
+        match self {
+            LedgeOption::NEUTRAL => "Neutral Getup",
+            LedgeOption::ROLL => "Roll",
+            LedgeOption::JUMP => "Jump",
+            LedgeOption::ATTACK => "Getup Attack",
+            LedgeOption::WAIT => "Wait",
+            _ => "",
+        }.to_string()
+    }
 }
+
+extra_bitflag_impls! {LedgeOption}
 
 // Tech options
 bitflags! {
@@ -140,9 +175,18 @@ bitflags! {
 }
 
 impl TechFlags {
-    to_vec_impl! {TechFlags}
-    get_random_impl! {TechFlags}
+    fn into_string(self) -> String {
+        match self {
+            TechFlags::NO_TECH => "No Tech",
+            TechFlags::ROLL_F => "Roll Forwards",
+            TechFlags::ROLL_B => "Roll Backwards",
+            TechFlags::IN_PLACE => "Tech In Place",
+            _ => "",
+        }.to_string()
+    }
 }
+
+extra_bitflag_impls! {TechFlags}
 
 // Missed Tech Options
 bitflags! {
@@ -155,18 +199,39 @@ bitflags! {
 }
 
 impl MissTechFlags {
-    to_vec_impl! {MissTechFlags}
-    get_random_impl! {MissTechFlags}
+    fn into_string(self) -> String {
+        match self {
+            MissTechFlags::GETUP => "Neutral Getup",
+            MissTechFlags::ATTACK => "Getup Attack",
+            MissTechFlags::ROLL_F => "Roll Forwards",
+            MissTechFlags::ROLL_B => "Roll Backwards",
+            _ => "",
+        }.to_string()
+    }
 }
+
+extra_bitflag_impls! {MissTechFlags}
 
 /// Shield States
 #[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive)]
 pub enum Shield {
     None = 0,
     Infinite = 1,
     Hold = 2,
     Constant = 3,
+}
+
+impl Shield {
+    fn into_string(self) -> String {
+        match self {
+            Shield::None => "None",
+            Shield::Infinite => "Infinite",
+            Shield::Hold => "Hold",
+            Shield::Constant => "Constant",
+            _ => "",
+        }.to_string()
+    }
 }
 
 // Defensive States
@@ -181,15 +246,43 @@ bitflags! {
 }
 
 impl Defensive {
-    to_vec_impl! {Defensive}
-    get_random_impl! {Defensive}
+    fn into_string(self) -> String {
+        match self {
+            Defensive::SPOT_DODGE => "Spotdodge",
+            Defensive::ROLL_F => "Roll Forwards",
+            Defensive::ROLL_B => "Roll Backwards",
+            Defensive::JAB => "Jab",
+            Defensive::SHIELD => "Shield",
+            _ => "",
+        }.to_string()
+    }
 }
+
+extra_bitflag_impls! {Defensive}
 
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum OnOff {
     Off = 0,
     On = 1,
+}
+
+impl OnOff {
+    pub fn from_val(val: u32) -> Option<Self> {
+        match val {
+            1 => Some(OnOff::On),
+            0 => Some(OnOff::Off),
+            _ => None
+        }
+    }
+
+    pub fn into_string(self) -> String {
+        match self {
+            OnOff::Off => "Off",
+            OnOff::On => "On",
+            _ => ""
+        }.to_string()
+    }
 }
 
 bitflags! {
@@ -234,9 +327,14 @@ impl Action {
             _ => return None,
         })
     }
-    to_vec_impl! {Action}
-    get_random_impl! {Action}
+
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
+    }
 }
+
+extra_bitflag_impls! {Action}
 
 bitflags! {
     pub struct AttackAngle : u32 {
@@ -247,9 +345,13 @@ bitflags! {
 }
 
 impl AttackAngle {
-    to_vec_impl! {AttackAngle}
-    get_random_impl! {AttackAngle}
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
+    }
 }
+
+extra_bitflag_impls! {AttackAngle}
 
 
 bitflags! {
@@ -289,10 +391,13 @@ bitflags! {
 }
 
 impl Delay {
-    to_vec_impl! {Delay}
-    get_random_impl! {Delay}
-    to_index_impl! {Delay}
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
+    }
 }
+
+extra_bitflag_impls! {Delay}
 
 bitflags! {
     pub struct BoolFlag : u32 {
@@ -301,15 +406,19 @@ bitflags! {
     }
 }
 
-impl BoolFlag {
-    to_vec_impl! {BoolFlag}
-    get_random_impl! {BoolFlag}
+extra_bitflag_impls! {BoolFlag}
 
+impl BoolFlag {
     pub fn into_bool(self) -> bool {
         match self {
             BoolFlag::TRUE => true,
             _ => false,
         }
+    }
+
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return self.to_string()
     }
 }
 
@@ -343,6 +452,50 @@ pub struct TrainingModpackMenu {
     pub save_damage: OnOff,
 }
 
+macro_rules! set_by_str {
+    ($obj:ident, $s:ident, $(($field:ident = $rhs:expr))*) => {
+        $(
+            if $s == stringify!($field) {
+                $obj.$field = $rhs.unwrap();
+            }
+        )*
+    }
+}
+
+impl TrainingModpackMenu {
+    pub fn set(&mut self, s: &str, val: u32) {
+        set_by_str!(self, s,
+            (di_state = Direction::from_bits(val))
+            (sdi_state = Direction::from_bits(val))
+            (air_dodge_dir = Direction::from_bits(val))
+
+            (mash_state = Action::from_bits(val))
+            (follow_up = Action::from_bits(val))
+
+            (ledge_state = LedgeOption::from_bits(val))
+            (ledge_delay = Delay::from_bits(val))
+            (tech_state = TechFlags::from_bits(val))
+            (miss_tech_state = MissTechFlags::from_bits(val))
+            
+            (shield_state = num::FromPrimitive::from_u32(val))
+            (defensive_state = Defensive::from_bits(val))
+            (oos_offset = Delay::from_bits(val))
+            (reaction_time = Delay::from_bits(val))
+
+            (fast_fall = BoolFlag::from_bits(val))
+            (fast_fall_delay = Delay::from_bits(val))
+            (falling_aerials = BoolFlag::from_bits(val))
+            (aerial_delay = Delay::from_bits(val))
+            (full_hop = BoolFlag::from_bits(val))
+
+            (hitbox_vis = OnOff::from_val(val))
+            (stage_hazards = OnOff::from_val(val))
+
+            (input_delay = Some(val as i32))
+        );
+    }
+}
+
 // Fighter Ids
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -367,5 +520,10 @@ impl SdiStrength {
             SdiStrength::Medium => 6,
             SdiStrength::High => 4,
         }
+    }
+
+    pub fn into_string(self) -> String {
+        // TODO: add
+        return "".to_string()
     }
 }

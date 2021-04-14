@@ -98,6 +98,10 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
+        if crate::common::menu::menu_condition(module_accessor) {
+            crate::common::menu::spawn_menu();
+        }
+
         input_record::get_command_flag_cat(module_accessor);
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./help/css/common.css" />
+    <link rel="stylesheet" href="./help/css/qa.css" />
+    <link id="font-stylesheet" rel="stylesheet" href="./help/css/font.css">
+    <link rel="stylesheet" href="./help/css/keyword.css">
+    <link href="./nouislider.min.css" rel="stylesheet">
+    <style>
+        @-moz-document url-prefix() {
+            @font-face {
+                font-family: '-webkit-standard';
+                src: url('nintendo_udsg-r_std_003.ttf');
+            }
+        }
+
+        body {
+            background: none;
+        }
+
+        /* Overwrite padding from keyword stuff. */
+        .l-main-content {
+            padding: 0px 0px 0px;
+        }
+
+        /* Somehow isn't getting passed through from default css. */
+        .ret-icon-shadow {
+            position: absolute;
+            z-index: -1;
+            top: 3px;
+            left: 2px;
+            display: inline-block;
+            width: 58px;
+            height: 58px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="./help/js/jquery-3.3.1.min.js"></script>
+    <script src="./help/common/js/wsnd.min.js"></script>
+    <script src="./help/common/js/keyhelp.js"></script>
+    <script src="./help/js/common.js"></script>
+    <script src="./help/js/qa.js"></script>
+    <script src="./nouislider.min.js"></script>
+
+    <div class="l-header">
+        <div class="l-header-title">
+            <div class="header-title f-u-bold"><span data-msgcom="true" data-msgid="textbox_id-10020">Ultimate Training
+                    Modpack Menu</span></div>
+        </div>
+        <div class="header">
+            <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();"
+                nx-se-disabled="">
+                <div class="ret-icon-wrapper">
+                    <img class="ret-icon-shadow is-appear" ref="./help/img/icon/m_retnormal.svg"
+                        src="./help/img/icon/m_retnormal.svg">
+                    <img class="ret-icon is-appear" ref="./help/img/icon/m_retnormal.svg"
+                        src="./help/img/icon/m_retnormal.svg">
+                </div>
+            </a>
+        </div>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <!-- 
+    Script the part below via templating. Overall structure is perhaps
+    [
+        l-qa qa [id=qa-{{menuName}} tabindex="{{index}}"] {
+            // make question for {{menuName}}
+            // make answer with l-grid : l-item list for options
+        },
+        ...
+    ]
+
+
+    Remember to set make max keyword size greater than 23!
+    -->
+    {{#sub_menus}}
+    <div class="l-qa">
+        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)"
+            onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
+            <div class="question-outer">
+                <div class="question-border">
+                    <div id="question-{{id}}" class="question scuffle-thema">
+                        <img class="question-icon" ref="./{{id}}.svg" />
+                        <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">{{title}}</span></p>
+                    </div>
+                </div>
+            </div>
+            <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
+                <div class="l-main">
+                    <ul class="l-grid" id="{{id}}">
+                        {{#toggles}}
+                        <li class="l-item" val="{{value}}">
+                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                            ref="./check.svg" src="./check.svg">
+                                    </div>
+                                    <div class="button-msg-wrapper">
+                                        <div class="keyword-message f-u-bold">{{title}}</div>
+                                    </div>
+                                </a> </div>
+                        </li>
+                        {{/toggles}}
+                        {{#sliders}}
+                        <li class="l-item" val="{{value}}">
+                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                            ref="./check.svg" src="./check.svg">
+                                    </div>
+                                    <div class="button-msg-wrapper">
+                                        <div class="keyword-message f-u-bold">
+                                            <div name='range_slider' oninput="this.nextElementSibling.value = this.value">
+                                            </div>
+                                            <output>{{value}}</output>
+                                        </div>
+                                    </div>
+                                </a> </div>
+                        </li>
+                        {{/sliders}}
+                        {{#range_sliders}}
+                        <li class="l-item" val="{{value}}">
+                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                            ref="./check.svg" src="./check.svg">
+                                    </div>
+                                    <div class="button-msg-wrapper">
+                                        <div class="keyword-message f-u-bold">
+                                            <div name="{{id}}">
+                                        </div>
+                                    </div>
+                                </a> </div>
+                        </li>
+                        {{/range_sliders}}
+                    </ul>
+                </div>
+            </div>
+        </a>
+    </div>
+    {{/sub_menus}}
+    {{#sub_menus}}
+        {{#sliders}}
+        <script>
+        // todo: loop through  
+        noUiSlider.create(document.getElementsByName('range_slider')[0], {
+            start: {{value}},
+            range: {
+                'min': {{min}},
+                'max': {{max}}
+            }
+        });
+        </script>
+        {{/sliders}}
+    {{/sub_menus}}
+    <script>
+        if (isNx) {
+            window.nx.footer.setAssign('B', '', goBackHook, {
+                se: ''
+            })
+        }
+        function goBackHook() {
+            // Use this function to check menu settings on exit, return through localhost
+
+            $('.is-focused').addClass('is-pause-anim')
+            $('#ret-button').addClass('is-focus')
+
+            disabledOtherLink()
+
+            playSound('cancel')
+
+            fadeOutPage(function () {
+                window.history.back()
+            })
+
+
+            var url = "http://localhost/"
+
+            $(".l-grid").each(function() {
+                var section = this.id;
+
+                url += section + "?"
+
+                var children = this.children;
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    if (child.innerHTML.includes("is-appear")) {
+                        url += child.getAttribute("val") + ",";
+                    }
+                }
+
+                url += "&"
+            });
+
+            location.href = url;
+        }
+
+        function clickToggle(e) {
+            var toggleImage = e.children[0];
+            if (toggleImage.innerHTML.includes("is-appear")) {
+                toggleImage.innerHTML = toggleImage.innerHTML.replace("is-appear", "is-hidden");
+            } else {
+                toggleImage.innerHTML = toggleImage.innerHTML.replace("is-hidden", "is-appear");
+            }
+        }
+    </script>
+</body>
+
+</html>

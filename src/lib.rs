@@ -2,13 +2,19 @@
 #![feature(with_options)]
 #![feature(const_mut_refs)]
 
-mod common;
+pub mod common;
 mod hazard_manager;
 mod hitbox_visualizer;
 mod training;
 
+#[cfg(test)]
+mod test;
+
 #[macro_use]
 extern crate bitflags;
+
+#[macro_use]
+extern crate num_derive;
 
 use crate::common::*;
 use training::combo::FRAME_ADVANTAGE;
@@ -39,6 +45,7 @@ macro_rules! c_str {
     };
 }
 
+#[cfg(not(test))]
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
     macro_rules! log {
