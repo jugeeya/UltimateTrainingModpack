@@ -41,18 +41,18 @@ jobs:
       uses: actions/download-artifact@v2
     - name: Prepare zip
       env:
-        SKYLINE_DIR: atmosphere/contents/01006A800016E000/
+        SKYLINE_DIR: atmosphere/contents/01006A800016E000/exefs
         SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
-        SMASH_WEB_DIR: atmosphere/contents/01006A800016E000/manual_html/contents.htdocs
+        SMASH_WEB_DIR: atmosphere/contents/01006A800016E000/manual_html/html-document/contents.htdocs
       run: |
-        mkdir -p ${{env.SKYLINE_DIR}} 
-        mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
-        mkdir -p ${{env.SMASH_WEB_DIR}}
-
         wget https://github.com/skyline-dev/skyline/releases/download/beta/skyline.zip
         unzip skyline.zip
 
         mv exefs ${{env.SKYLINE_DIR}}
+        
+        mkdir -p ${{env.SKYLINE_DIR}} 
+        mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
+        mkdir -p ${{env.SMASH_WEB_DIR}}
 
         cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
         wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro
