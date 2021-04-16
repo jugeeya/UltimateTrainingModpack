@@ -39,6 +39,24 @@
             opacity: 0;
             transition: opacity 0.2s ease;
         }
+
+        /* Column size */
+        .l-qa {
+			flex-basis:33%;
+		}
+
+        /* Full width for opened lists */
+		.is-opened .question-outer {
+			width: 100vw;
+		}
+
+        /* Overwrite margin on the last child to avoid overlap*/
+		.l-qa:last-child .qa {
+			margin-bottom: 0px;
+		}
+		.l-qa:last-child .qa.is-opened {
+			margin-bottom: 0px;
+		}
     </style>
 </head>
 
@@ -72,7 +90,9 @@
     <br>
     <br>
 
-    <!-- 
+    <div class="l-grid">
+
+        <!--
     Script the part below via templating. Overall structure is perhaps
     [
         l-qa qa [id=qa-{{menuName}} tabindex="{{index}}"] {
@@ -85,85 +105,91 @@
 
     Remember to set make max keyword size greater than 23!
     -->
-    {{#sub_menus}}
-    <div class="l-qa">
-        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)"
-            onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
-            <div class="question-outer">
-                <div class="question-border">
-                    <div id="question-{{id}}" class="question scuffle-thema">
-                        <img class="question-icon" ref="./{{id}}.svg" />
-                        <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">{{title}}</span></p>
+        {{#sub_menus}}
+        <div class="l-qa">
+            <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)"
+                onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
+                <div class="question-outer">
+                    <div class="question-border">
+                        <div id="question-{{id}}" class="question scuffle-thema">
+                            <img class="question-icon" ref="./{{id}}.svg" />
+                            <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">{{title}}</span></p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
-                <div class="l-main">
-                    <ul class="l-grid" id="{{id}}">
-                        {{#toggles}}
-                        <li class="l-item" val="{{value}}">
-                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
-                                            ref="./check.svg" src="./check.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold">{{title}}</div>
-                                    </div>
-                                </a> </div>
-                        </li>
-                        {{/toggles}}
-                        {{#sliders}}
-                        <li class="l-item" val="{{value}}">
-                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
-                                            ref="./check.svg" src="./check.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold">
-                                            <div name='range_slider' oninput="this.nextElementSibling.value = this.value">
+                <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
+                    <div class="l-main">
+                        <ul class="l-grid" id="{{id}}">
+                            {{#toggles}}
+                            <li class="l-item" val="{{value}}">
+                                <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                        class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
+                                        onclick="clickToggle(this);" nx-se-disabled="">
+                                        <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                                ref="./check.svg" src="./check.svg">
+                                        </div>
+                                        <div class="button-msg-wrapper">
+                                            <div class="keyword-message f-u-bold">{{title}}</div>
+                                        </div>
+                                    </a> </div>
+                            </li>
+                            {{/toggles}}
+                            {{#sliders}}
+                            <li class="l-item" val="{{value}}">
+                                <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                        class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
+                                        onclick="clickToggle(this);" nx-se-disabled="">
+                                        <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                                ref="./check.svg" src="./check.svg">
+                                        </div>
+                                        <div class="button-msg-wrapper">
+                                            <div class="keyword-message f-u-bold">
+                                                <div name='range_slider'
+                                                    oninput="this.nextElementSibling.value = this.value">
+                                                </div>
+                                                <output>{{value}}</output>
                                             </div>
-                                            <output>{{value}}</output>
                                         </div>
-                                    </div>
-                                </a> </div>
-                        </li>
-                        {{/sliders}}
-                        {{#range_sliders}}
-                        <li class="l-item" val="{{value}}">
-                            <div class="keyword-button-outer"> <a tabindex="{{index}}"
-                                    class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
-                                    <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
-                                            ref="./check.svg" src="./check.svg">
-                                    </div>
-                                    <div class="button-msg-wrapper">
-                                        <div class="keyword-message f-u-bold">
-                                            <div name="{{id}}">
+                                    </a> </div>
+                            </li>
+                            {{/sliders}}
+                            {{#range_sliders}}
+                            <li class="l-item" val="{{value}}">
+                                <div class="keyword-button-outer"> <a tabindex="{{index}}"
+                                        class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
+                                        onclick="clickToggle(this);" nx-se-disabled="">
+                                        <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
+                                                ref="./check.svg" src="./check.svg">
                                         </div>
-                                    </div>
-                                </a> </div>
-                        </li>
-                        {{/range_sliders}}
-                    </ul>
+                                        <div class="button-msg-wrapper">
+                                            <div class="keyword-message f-u-bold">
+                                                <div name="{{id}}">
+                                                </div>
+                                            </div>
+                                    </a> </div>
+                            </li>
+                            {{/range_sliders}}
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </a>
+            </a>
+        </div>
+        {{/sub_menus}}
+
     </div>
-    {{/sub_menus}}
     {{#sub_menus}}
-        {{#sliders}}
-        <script>
-        // todo: loop through  
+    {{#sliders}}
+    <script>
+        // todo: loop through
         noUiSlider.create(document.getElementsByName('range_slider')[0], {
-            start: {{value}},
+            start: {{ value }},
             range: {
-                'min': {{min}},
-                'max': {{max}}
+            'min': {{ min }},
+            'max': {{ max }}
             }
         });
-        </script>
-        {{/sliders}}
+    </script>
+    {{/sliders}}
     {{/sub_menus}}
     <script>
         if (isNx) {
@@ -188,7 +214,7 @@
 
             var url = "http://localhost/"
 
-            $(".l-grid").each(function() {
+            $(".l-grid").each(function () {
                 var section = this.id;
 
                 url += section + "?"
