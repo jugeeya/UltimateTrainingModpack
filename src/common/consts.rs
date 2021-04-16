@@ -346,8 +346,12 @@ bitflags! {
 
 impl AttackAngle {
     pub fn into_string(self) -> String {
-        // TODO: add
-        return self.to_string()
+        match self {
+            AttackAngle::NEUTRAL => "Neutral",
+            AttackAngle::UP => "Up",
+            AttackAngle::DOWN => "Down",
+            _ => ""
+        }.to_string()
     }
 }
 
@@ -422,6 +426,35 @@ impl BoolFlag {
     }
 }
 
+
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
+pub enum SdiStrength {
+    Normal = 0,
+    Medium = 1,
+    High = 2,
+}
+
+impl SdiStrength {
+    pub fn into_u32(self) -> u32 {
+        match self {
+            SdiStrength::Normal => 8,
+            SdiStrength::Medium => 6,
+            SdiStrength::High => 4,
+        }
+    }
+
+    pub fn into_string(self) -> String {
+        match self {
+            SdiStrength::Normal => "Normal",
+            SdiStrength::Medium => "Medium",
+            SdiStrength::High => "High",
+            _ => ""
+        }.to_string()
+    }
+}
+
 #[repr(C)]
 pub struct TrainingModpackMenu {
     pub hitbox_vis: OnOff,
@@ -467,6 +500,7 @@ impl TrainingModpackMenu {
         set_by_str!(self, s,
             (di_state = Direction::from_bits(val))
             (sdi_state = Direction::from_bits(val))
+            (shield_tilt = Direction::from_bits(val))
             (air_dodge_dir = Direction::from_bits(val))
 
             (mash_state = Action::from_bits(val))
@@ -502,28 +536,4 @@ impl TrainingModpackMenu {
 pub enum FighterId {
     Player = 0,
     CPU = 1,
-}
-
-#[repr(u32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(dead_code)]
-pub enum SdiStrength {
-    Normal = 0,
-    Medium = 1,
-    High = 2,
-}
-
-impl SdiStrength {
-    pub fn into_u32(self) -> u32 {
-        match self {
-            SdiStrength::Normal => 8,
-            SdiStrength::Medium => 6,
-            SdiStrength::High => 4,
-        }
-    }
-
-    pub fn into_string(self) -> String {
-        // TODO: add
-        return "".to_string()
-    }
 }
