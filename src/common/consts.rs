@@ -82,6 +82,8 @@ bitflags! {
         const DOWN = 0x40;
         const DOWN_OUT = 0x80;
         const NEUTRAL = 0x100;
+        const LEFT = 0x200;
+        const RIGHT = 0x400;
     }
 }
 
@@ -105,6 +107,8 @@ impl Direction {
             Direction::DOWN_IN => 6,
             Direction::DOWN => 7,
             Direction::DOWN_OUT => 8,
+            Direction::LEFT => 5,
+            Direction::RIGHT => 1,
             _ => 0,
         }
     }
@@ -119,6 +123,8 @@ impl Direction {
             Direction::DOWN_IN => "Down and In",
             Direction::DOWN => "Down",
             Direction::DOWN_OUT => "Down and Away",
+            Direction::LEFT => "Left",
+            Direction::RIGHT => "Right",
             _ => "",
         }.to_string()
     }

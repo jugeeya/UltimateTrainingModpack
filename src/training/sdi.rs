@@ -50,7 +50,7 @@ fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<f64> {
         }
 
         DIRECTION.into_angle().map(|angle| {
-            if directional_influence::should_reverse_angle() {
+            if directional_influence::should_reverse_angle(&DIRECTION) {
                 PI - angle
             } else {
                 angle
