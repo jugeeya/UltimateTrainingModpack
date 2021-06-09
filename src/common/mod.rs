@@ -17,7 +17,7 @@ pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     follow_up: Action::empty(),
     attack_angle: AttackAngle::empty(),
     ledge_state: LedgeOption::all(),
-    ledge_delay: Delay::empty(),
+    ledge_delay: LongDelay::empty(),
     tech_state: TechFlags::all(),
     miss_tech_state: MissTechFlags::all(),
     shield_state: Shield::None,

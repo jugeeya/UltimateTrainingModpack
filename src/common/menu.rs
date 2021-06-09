@@ -190,7 +190,7 @@ pub unsafe fn render_menu() -> String {
     add_bitflag_submenu!(overall_menu, "Attack Angle", attack_angle, AttackAngle);
 
     add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption);
-    add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, Delay);
+    add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, LongDelay);
     add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags);
     add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags);
     add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive);

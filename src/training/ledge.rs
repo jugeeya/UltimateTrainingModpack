@@ -36,7 +36,7 @@ fn roll_ledge_delay() {
             return;
         }
 
-        LEDGE_DELAY = MENU.ledge_delay.get_random().to_index();
+        LEDGE_DELAY = 10 * MENU.ledge_delay.get_random().into_longdelay();
     }
 }
 

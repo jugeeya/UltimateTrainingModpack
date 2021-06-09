@@ -49,7 +49,7 @@ fn reset_oos_offset() {
          * Need to offset by 1, since we decrease as soon as shield gets hit
          * but only check later if we can OOS
          */
-        MULTI_HIT_OFFSET = MENU.oos_offset.get_random().to_index() + 1;
+        MULTI_HIT_OFFSET = MENU.oos_offset.get_random().into_delay() + 1;
     }
 }
 
@@ -67,7 +67,7 @@ unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccesso
     }
 
     // Roll shield delay
-    SHIELD_DELAY = MENU.reaction_time.get_random().to_index();
+    SHIELD_DELAY = MENU.reaction_time.get_random().into_delay();
 
     // Decrease offset once if needed
     if MULTI_HIT_OFFSET > 0 {
