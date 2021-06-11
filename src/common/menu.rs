@@ -221,6 +221,18 @@ pub unsafe fn render_menu() -> String {
         [].to_vec()
     );
 
+    overall_menu.add_sub_menu(
+        "Save State Mirroring",
+        "save_state_mirroring",
+        MENU_STRUCT.save_state_mirroring as usize,
+        [
+            ("None", SaveStateMirroring::None as usize),
+            ("Alternate", SaveStateMirroring::Alternate as usize),
+            ("Random", SaveStateMirroring::Random as usize),
+        ].to_vec(),
+        [].to_vec()
+    );
+
     // Slider menus
     overall_menu.add_sub_menu(
         "Input Delay", 

@@ -1,6 +1,8 @@
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
+use crate::common::consts::SaveStateMirroring;
 use crate::common::MENU;
+use crate::common::get_random_int;
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -41,6 +43,15 @@ use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
 static mut SAVE_STATE_CPU: SavedState = default_save_state!();
+static mut MIRROR_STATE: bool = false;
+
+pub unsafe fn should_mirror() -> bool {
+    match MENU.save_state_mirroring {
+        SaveStateMirroring::None => false,
+        SaveStateMirroring::Alternate => !MIRROR_STATE,
+        SaveStateMirroring::Random => {([true, false])[get_random_int(1) as usize]},
+    }
+}
 
 pub unsafe fn get_param_int(
     _module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -144,14 +155,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         SoundModule::pause_se_all(module_accessor, false);
         ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
+        MIRROR_STATE = should_mirror();
 
         let pos = Vector3f {
-            x: save_state.x,
+            x: if MIRROR_STATE {-1.0 * save_state.x} else {save_state.x},
             y: save_state.y,
             z: 0.0,
         };
+        let lr = if MIRROR_STATE {-1.0 * save_state.lr} else {save_state.lr};
         PostureModule::set_pos(module_accessor, &pos);
-        PostureModule::set_lr(module_accessor, save_state.lr);
+        PostureModule::set_lr(module_accessor, lr);
 
         if save_state.situation_kind == SITUATION_KIND_GROUND {
             if status != FIGHTER_STATUS_KIND_WAIT {

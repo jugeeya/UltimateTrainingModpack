@@ -33,6 +33,7 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     full_hop: BoolFlag::empty(),
     input_delay: 0,
     save_damage: OnOff::On,
+    save_state_mirroring: SaveStateMirroring::None,
 };
 
 pub static mut MENU: &consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
