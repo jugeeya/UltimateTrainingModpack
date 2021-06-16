@@ -1,5 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::directional_influence::should_reverse_angle;
 use core::f64::consts::PI;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
@@ -30,16 +31,20 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Op
 
     STICK_DIRECTION = MENU.air_dodge_dir.get_random();
     STICK_DIRECTION.into_angle().map(|angle| {
-        let launch_speed_x = KineticEnergy::get_speed_x(KineticModule::get_energy(
-            module_accessor,
-            *FIGHTER_KINETIC_ENERGY_ID_DAMAGE,
-        ) as *mut smash::app::KineticEnergy);
-    
-        // If we're launched left, reverse stick X
-        if launch_speed_x < 0.0 {
-            PI - angle
-        } else {
+        if !should_reverse_angle(&STICK_DIRECTION) {
+            // Direction is LEFT/RIGHT, so don't perform any adjustment
             angle
+        } else {
+            let launch_speed_x = KineticEnergy::get_speed_x(KineticModule::get_energy(
+                module_accessor,
+                *FIGHTER_KINETIC_ENERGY_ID_DAMAGE,
+            ) as *mut smash::app::KineticEnergy);
+            // If we're launched left, reverse stick X
+            if launch_speed_x < 0.0 {
+                PI - angle
+            } else {
+                angle
+            }
         }
     })
 }
