@@ -15,6 +15,7 @@ jobs:
     - name: Update cargo-skyline
       run: |
         cargo install cargo-skyline --force
+        cargo skyline update-std
         cargo skyline clean-project
     - name: Build release NRO
       run: |
