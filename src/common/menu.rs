@@ -136,7 +136,7 @@ macro_rules! add_bitflag_submenu {
             $menu.add_sub_menu_sep(
                 $title, 
                 stringify!($id), 
-                MENU_STRUCT.$id.bits() as usize,
+                MENU.$id.bits() as usize,
                 [<$id _strs>].iter().map(|i| i.as_str()).collect(),
                 [<$id _vals>]
             );
@@ -167,7 +167,7 @@ pub fn set_menu_from_url(s: &str) {
 
 
         unsafe {
-            MENU_STRUCT.set(toggle, bits);
+            MENU.set(toggle, bits);
         }
     }
 }
@@ -212,7 +212,7 @@ pub unsafe fn render_menu() -> String {
     overall_menu.add_sub_menu(
         "Shield Toggles", 
         "shield_state", 
-        MENU_STRUCT.shield_state as usize,
+        MENU.shield_state as usize,
         [
             ("None", Shield::None as usize),
             ("Hold", Shield::Hold as usize),
@@ -226,10 +226,10 @@ pub unsafe fn render_menu() -> String {
         "Input Delay", 
         "input_delay", 
         // unnecessary for slider?
-        MENU_STRUCT.input_delay as usize,
+        MENU.input_delay as usize,
         [].to_vec(),
         [
-            (0, 10, MENU_STRUCT.input_delay as usize)
+            (0, 10, MENU.input_delay as usize)
         ].to_vec()
     );
 
@@ -240,7 +240,7 @@ pub unsafe fn render_menu() -> String {
     overall_menu.add_sub_menu(
         "Hitbox Visualization", 
         "hitbox_vis", 
-        MENU_STRUCT.hitbox_vis as usize,
+        MENU.hitbox_vis as usize,
         [
             ("Off", OnOff::Off as usize),
             ("On", OnOff::On as usize),
@@ -250,7 +250,7 @@ pub unsafe fn render_menu() -> String {
     overall_menu.add_sub_menu(
         "Stage Hazards", 
         "stage_hazards", 
-        MENU_STRUCT.stage_hazards as usize,
+        MENU.stage_hazards as usize,
         [
             ("Off", OnOff::Off as usize),
             ("On", OnOff::On as usize),
@@ -260,7 +260,7 @@ pub unsafe fn render_menu() -> String {
     overall_menu.add_sub_menu(
         "Mash In Neutral", 
         "mash_in_neutral", 
-        MENU_STRUCT.mash_in_neutral as usize,
+        MENU.mash_in_neutral as usize,
         [
             ("Off", OnOff::Off as usize),
             ("On", OnOff::On as usize),
