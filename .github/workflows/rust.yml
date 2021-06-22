@@ -8,12 +8,12 @@ on:
 jobs:
   plugin:
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:latest
+    container: rust:1.53.0
     
     steps:
     - uses: actions/checkout@v2
-    - name: Link rust-std-skyline src
-      run: mkdir ../rust-std-skyline-squashed && ln -s $XARGO_RUST_SRC ../rust-std-skyline-squashed/src
+    - name: Install cargo-skyline
+      run: cargo install cargo-skyline
     - name: Build release NRO
       run: cargo skyline build --release
     - name: Upload plugin artifact
