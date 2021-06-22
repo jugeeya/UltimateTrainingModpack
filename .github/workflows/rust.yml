@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install cargo-skyline
       run: |
-        cargo install --git https://github.com/asimon-1/cargo-skyline.git
+        cargo install cargo-skyline
     - name: Update skyline-rs toolchain
       run: |
         cargo skyline update-std
