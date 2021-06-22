@@ -8,9 +8,13 @@ on:
 jobs:
   plugin:
     runs-on: ubuntu-latest
-    container: rust:1.53.0
     steps:
     - uses: actions/checkout@v2
+    - name: Install minimal stable rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
     - name: Install cargo-skyline
       run: |
         cargo install cargo-skyline
