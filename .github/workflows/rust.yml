@@ -8,8 +8,7 @@ on:
 jobs:
   plugin:
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:latest
-    
+    container: rust:1.53.0
     steps:
     - uses: actions/checkout@v2
     - name: Install cargo-skyline
