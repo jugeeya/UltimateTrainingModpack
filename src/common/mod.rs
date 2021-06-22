@@ -6,7 +6,7 @@ use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 
-pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
+pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     hitbox_vis: OnOff::On,
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
@@ -34,8 +34,6 @@ pub static mut MENU_STRUCT: consts::TrainingModpackMenu = consts::TrainingModpac
     input_delay: 0,
     save_damage: OnOff::On,
 };
-
-pub static mut MENU: &consts::TrainingModpackMenu = unsafe { &mut MENU_STRUCT };
 
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;

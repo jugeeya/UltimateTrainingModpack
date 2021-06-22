@@ -62,7 +62,7 @@ pub fn main() {
     nro::add_hook(nro_main).unwrap();
 
     unsafe {
-        let mut buffer = format!("{:x}", MENU as *const _ as u64);
+        let mut buffer = format!("{:x}", &MENU as *const _ as u64);
         log!(
             "Writing training_modpack.log with {}...",
             buffer
