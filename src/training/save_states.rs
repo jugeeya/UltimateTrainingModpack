@@ -51,7 +51,7 @@ pub unsafe fn should_mirror() -> f32 {
     match MENU.save_state_mirroring {
         SaveStateMirroring::None => 1.0,
         SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
-        SaveStateMirroring::Random => {([-1.0, 1.0])[get_random_int(1) as usize]},
+        SaveStateMirroring::Random => {([-1.0, 1.0])[get_random_int(2) as usize]},
     }
 }
 
@@ -120,7 +120,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
         }
-
+        MIRROR_STATE = should_mirror();
         reset::on_reset();
         return;
     }
@@ -157,7 +157,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         SoundModule::pause_se_all(module_accessor, false);
         ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
-        MIRROR_STATE = should_mirror();
 
         let pos = Vector3f {
             x: MIRROR_STATE * save_state.x,
