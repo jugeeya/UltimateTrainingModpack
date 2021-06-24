@@ -43,13 +43,15 @@ use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
 static mut SAVE_STATE_CPU: SavedState = default_save_state!();
-static mut MIRROR_STATE: bool = false;
+static mut MIRROR_STATE: f32 = 1.0;
+// MIRROR_STATE == 1 -> Do not mirror
+// MIRROR_STATE == -1 -> Do Mirror
 
-pub unsafe fn should_mirror() -> bool {
+pub unsafe fn should_mirror() -> f32 {
     match MENU.save_state_mirroring {
-        SaveStateMirroring::None => false,
-        SaveStateMirroring::Alternate => !MIRROR_STATE,
-        SaveStateMirroring::Random => {([true, false])[get_random_int(1) as usize]},
+        SaveStateMirroring::None => 1.0,
+        SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
+        SaveStateMirroring::Random => {([-1.0, 1.0])[get_random_int(1) as usize]},
     }
 }
 
@@ -158,11 +160,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         MIRROR_STATE = should_mirror();
 
         let pos = Vector3f {
-            x: if MIRROR_STATE {-1.0 * save_state.x} else {save_state.x},
+            x: MIRROR_STATE * save_state.x,
             y: save_state.y,
             z: 0.0,
         };
-        let lr = if MIRROR_STATE {-1.0 * save_state.lr} else {save_state.lr};
+        let lr = MIRROR_STATE * save_state.lr;
         PostureModule::set_pos(module_accessor, &pos);
         PostureModule::set_lr(module_accessor, lr);
 
