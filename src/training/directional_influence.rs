@@ -8,6 +8,28 @@ use smash::lua2cpp::L2CFighterCommon;
 
 static mut DI_CASE: Direction = Direction::empty();
 
+pub fn roll_di_case() {
+    unsafe {
+        if DI_CASE != Direction::empty() {
+            // DI direction already selected, don't pick a new one
+            return;
+        }
+
+        DI_CASE = MENU.di_state.get_random();
+    }
+}
+
+pub fn reset_di_case(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if is_in_hitstun(module_accessor) {
+        // Don't reset the DI direction during hitstun
+        return;
+    }
+    unsafe {
+        if DI_CASE != Direction::empty() {
+            DI_CASE = Direction::empty();
+        }
+    }
+}
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_FighterStatusDamage__correctDamageVectorCommon)]
 pub unsafe fn handle_correct_damage_vector_common(
@@ -31,10 +53,8 @@ unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
         return;
     }
 
-    // Either left, right, or none
-    if MotionModule::frame(module_accessor) == 0.0 {
-        DI_CASE = MENU.di_state.get_random();
-    }
+    roll_di_case();
+
     let angle_tuple = DI_CASE
         .into_angle()
         .map_or((0.0, 0.0), |angle| {
@@ -74,4 +94,12 @@ fn set_x_y(module_accessor: &mut app::BattleObjectModuleAccessor, x: f32, y: f32
             *FIGHTER_STATUS_DAMAGE_WORK_FLOAT_VECOR_CORRECT_STICK_Y,
         );
     }
+}
+
+pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if !is_operation_cpu(module_accessor) {
+        return;
+    }
+
+    reset_di_case(module_accessor);
 }
