@@ -58,6 +58,10 @@
         .l-qa:last-child .qa.is-opened {
             margin-bottom: 0px;
         }
+
+        img.question-icon {
+            opacity: 75%;
+        }
     </style>
 </head>
 
@@ -113,7 +117,7 @@
                 <div class="question-outer">
                     <div class="question-border">
                         <div id="question-{{id}}" class="question scuffle-thema">
-                            <img class="question-icon" ref="./{{id}}.svg" />
+                            <img class="question-icon" ref="./{{id}}.svg" src="./{{id}}.svg"/>
                             <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">{{title}}</span></p>
                         </div>
                     </div>
