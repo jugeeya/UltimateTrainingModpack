@@ -113,7 +113,7 @@ fn once_per_frame_per_fighter(
     frame_counter::get_command_flag_cat(module_accessor);
     ledge::get_command_flag_cat(module_accessor);
     shield::get_command_flag_cat(module_accessor);
-
+    directional_influence::get_command_flag_cat(module_accessor);
     reset::check_reset(module_accessor);
 }
 
