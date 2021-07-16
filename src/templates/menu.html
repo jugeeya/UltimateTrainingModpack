@@ -199,39 +199,45 @@
             })
         }
         function goBackHook() {
-            // Use this function to check menu settings on exit, return through localhost
+            // If any submenus are open, close them
+            // Otherwise if all submenus are closed, exit the menu and return to the game
+            if ($(".qa.is-opened").length == 0) {
+                // If all submenus are closed, exit and return through localhost
+                $('.is-focused').addClass('is-pause-anim')
+                $('#ret-button').addClass('is-focus')
 
-            $('.is-focused').addClass('is-pause-anim')
-            $('#ret-button').addClass('is-focus')
+                disabledOtherLink()
 
-            disabledOtherLink()
+                playSound('cancel')
 
-            playSound('cancel')
-
-            fadeOutPage(function () {
-                window.history.back()
-            })
+                fadeOutPage(function () {
+                    window.history.back()
+                })
 
 
-            var url = "http://localhost/"
+                var url = "http://localhost/"
 
-            $(".l-grid").each(function () {
-                var section = this.id;
+                $(".l-grid").each(function () {
+                    var section = this.id;
 
-                url += section + "?"
+                    url += section + "?"
 
-                var children = this.children;
-                for (var i = 0; i < children.length; i++) {
-                    var child = children[i];
-                    if (child.innerHTML.includes("is-appear")) {
-                        url += child.getAttribute("val") + ",";
+                    var children = this.children;
+                    for (var i = 0; i < children.length; i++) {
+                        var child = children[i];
+                        if (child.innerHTML.includes("is-appear")) {
+                            url += child.getAttribute("val") + ",";
+                        }
                     }
-                }
 
-                url += "&"
-            });
+                    url += "&"
+                });
 
-            location.href = url;
+                location.href = url;
+            } else {
+                // Close any open submenus
+                $(".qa.is-opened").each(function () {openAnswer(this);});
+            }
         }
 
         function clickToggle(e) {
