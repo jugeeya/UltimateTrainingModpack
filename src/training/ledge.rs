@@ -18,13 +18,17 @@ pub fn init() {
 
 pub fn reset_ledge_delay() {
     unsafe {
-        LEDGE_DELAY = NOT_SET;
+        if LEDGE_DELAY != NOT_SET {
+            LEDGE_DELAY = NOT_SET;
+            frame_counter::full_reset(LEDGE_DELAY_COUNTER);
+        }
     }
 }
 
 pub fn reset_ledge_case() {
     unsafe {
         if LEDGE_CASE != LedgeOption::empty() {
+            // Don't roll another ledge option if one is already selected
             LEDGE_CASE = LedgeOption::empty();
         }
     }
@@ -33,10 +37,11 @@ pub fn reset_ledge_case() {
 fn roll_ledge_delay() {
     unsafe {
         if LEDGE_DELAY != NOT_SET {
+            // Don't roll another ledge delay if one is already selected
             return;
         }
 
-        LEDGE_DELAY = 10 * MENU.ledge_delay.get_random().into_longdelay();
+        LEDGE_DELAY = MENU.ledge_delay.get_random().into_longdelay();
     }
 }
 
@@ -54,7 +59,9 @@ fn roll_ledge_case() {
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT {
-        reset_ledge_case(); // No longer on ledge, so re-roll the ledge case next time
+        // No longer on ledge, so re-roll the ledge case and reset the delay counter for next time
+        reset_ledge_case();
+        reset_ledge_delay();
         return;
     }
 
@@ -75,10 +82,9 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     }
 
     if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
+        // Not yet time to perform the ledge action
         return;
     }
-
-    reset_ledge_delay();
 
     let status = LEDGE_CASE.into_status().unwrap_or(0);
     match LEDGE_CASE {
@@ -95,8 +101,13 @@ pub unsafe fn is_enable_transition_term(
     _module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
 ) -> Option<bool> {
-    // Disallow cliff-climb if waiting on ledge per the current menu selection
-    if LEDGE_CASE == LedgeOption::WAIT {
+    // Only handle ledge scenarios from menu
+    if StatusModule::status_kind(_module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT || MENU.ledge_state == LedgeOption::empty() {
+        return None;
+    }
+    
+    // Disallow the default cliff-climb if we are waiting
+    if LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY {
         if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
             return Some(false);
         }
