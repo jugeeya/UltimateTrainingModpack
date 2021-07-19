@@ -335,8 +335,33 @@ impl Action {
     }
 
     pub fn into_string(self) -> String {
-        // TODO: add
-        return self.to_string()
+        match self {
+            Action::AIR_DODGE => "Airdodge",
+            Action::JUMP => "Jump",
+            Action::SHIELD => "Shield",
+            Action::SPOT_DODGE => "Spotdodge",
+            Action::ROLL_F => "Roll Forwards",
+            Action::ROLL_B => "Roll Backwards",
+            Action::NAIR => "Neutral Aerial",
+            Action::FAIR => "Forward Aerial",
+            Action::BAIR => "Backward Aerial",
+            Action::UAIR => "Up Aerial",
+            Action::DAIR => "Down Aerial",
+            Action::NEUTRAL_B => "Neutral Special",
+            Action::SIDE_B => "Side Special",
+            Action::UP_B => "Up Special",
+            Action::DOWN_B => "Down Special",
+            Action::F_SMASH => "Forward Smash",
+            Action::U_SMASH => "Up Smash",
+            Action::D_SMASH => "Down Smash",
+            Action::JAB => "Jab",
+            Action::F_TILT => "Forward Tilt",
+            Action::U_TILT => "Up Tilt",
+            Action::D_TILT => "Down Tilt",
+            Action::GRAB => "Grab",
+            Action::DASH => "Dash",
+            Action::DASH_ATTACK => "Dash Attack",
+        }.to_string()
     }
 }
 
@@ -402,8 +427,39 @@ bitflags! {
 
 impl Delay {
     pub fn into_string(self) -> String {
-        // TODO: add
-        return self.to_string()
+        match self {
+            Delay::D0  => "0",
+            Delay::D1  => "1",
+            Delay::D2  => "2",
+            Delay::D3  => "3",
+            Delay::D4  => "4",
+            Delay::D5  => "5",
+            Delay::D6  => "6",
+            Delay::D7  => "7",
+            Delay::D8  => "8",
+            Delay::D9  => "9",
+            Delay::D10 => "10",
+            Delay::D11 => "11",
+            Delay::D12 => "12",
+            Delay::D13 => "13",
+            Delay::D14 => "14",
+            Delay::D15 => "15",
+            Delay::D16 => "16",
+            Delay::D17 => "17",
+            Delay::D18 => "18",
+            Delay::D19 => "19",
+            Delay::D20 => "20",
+            Delay::D21 => "21",
+            Delay::D22 => "22",
+            Delay::D23 => "23",
+            Delay::D24 => "24",
+            Delay::D25 => "25",
+            Delay::D26 => "26",
+            Delay::D27 => "27",
+            Delay::D28 => "28",
+            Delay::D29 => "29",
+            Delay::D30 => "30",
+        }.to_string()
     }
 }
 
@@ -427,8 +483,10 @@ impl BoolFlag {
     }
 
     pub fn into_string(self) -> String {
-        // TODO: add
-        return self.to_string()
+        match self {
+            BoolFlag::TRUE => "True",
+            BoolFlag::FALSE => "False",
+        }.to_string()
     }
 }
 
