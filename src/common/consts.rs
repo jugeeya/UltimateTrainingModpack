@@ -107,6 +107,7 @@ impl Direction {
             Direction::DOWN_IN => 6,
             Direction::DOWN => 7,
             Direction::DOWN_OUT => 8,
+            Direction::NEUTRAL => 0,
             Direction::LEFT => 5,
             Direction::RIGHT => 1,
             _ => 0,
@@ -123,6 +124,7 @@ impl Direction {
             Direction::DOWN_IN => "Down and In",
             Direction::DOWN => "Down",
             Direction::DOWN_OUT => "Down and Away",
+            Direction::NEUTRAL => "Neutral",
             Direction::LEFT => "Left",
             Direction::RIGHT => "Right",
             _ => "",
@@ -235,7 +237,6 @@ impl Shield {
             Shield::Infinite => "Infinite",
             Shield::Hold => "Hold",
             Shield::Constant => "Constant",
-            _ => "",
         }.to_string()
     }
 }
@@ -286,7 +287,6 @@ impl OnOff {
         match self {
             OnOff::Off => "Off",
             OnOff::On => "On",
-            _ => ""
         }.to_string()
     }
 }
@@ -361,6 +361,7 @@ impl Action {
             Action::GRAB => "Grab",
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
+            _ => "",
         }.to_string()
     }
 }
@@ -459,6 +460,7 @@ impl Delay {
             Delay::D28 => "28",
             Delay::D29 => "29",
             Delay::D30 => "30",
+            _ => "",
         }.to_string()
     }
 }
@@ -485,7 +487,7 @@ impl BoolFlag {
     pub fn into_string(self) -> String {
         match self {
             BoolFlag::TRUE => "True",
-            BoolFlag::FALSE => "False",
+            _ => "False",
         }.to_string()
     }
 }
@@ -514,7 +516,6 @@ impl SdiStrength {
             SdiStrength::Normal => "Normal",
             SdiStrength::Medium => "Medium",
             SdiStrength::High => "High",
-            _ => ""
         }.to_string()
     }
 }
