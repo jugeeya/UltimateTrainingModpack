@@ -405,9 +405,62 @@ impl Delay {
         // TODO: add
         return self.to_string()
     }
+
+    pub fn into_delay(&self) -> u32 {
+        return self.to_index()
+    }
 }
 
 extra_bitflag_impls! {Delay}
+
+bitflags! {
+    pub struct LongDelay : u32 {
+        const D0 = 0x1;
+        const D10 = 0x2;
+        const D20 = 0x4;
+        const D30 = 0x8;
+        const D40 = 0x10;
+        const D50 = 0x20;
+        const D60 = 0x40;
+        const D70 = 0x80;
+        const D80 = 0x100;
+        const D90 = 0x200;
+        const D100 = 0x400;
+        const D110 = 0x800;
+        const D120 = 0x1000;
+        const D130 = 0x2000;
+        const D140 = 0x4000;
+        const D150 = 0x8000;
+        const D160 = 0x10000;
+        const D170 = 0x20000;
+        const D180 = 0x40000;
+        const D190 = 0x80000;
+        const D200 = 0x0010_0000;
+        const D210 = 0x0020_0000;
+        const D220 = 0x0040_0000;
+        const D230 = 0x0080_0000;
+        const D240 = 0x0100_0000;
+        const D250 = 0x0200_0000;
+        const D260 = 0x0400_0000;
+        const D270 = 0x0800_0000;
+        const D280 = 0x1000_0000;
+        const D290 = 0x2000_0000;
+        const D300 = 0x4000_0000;
+    }
+}
+
+impl LongDelay {
+    pub fn into_string(self) -> String {
+        // TODO: Is this used for the menu?
+        return self.to_string()
+    }
+
+    pub fn into_longdelay(&self) -> u32 {
+        return self.to_index() * 10
+    }
+}
+
+extra_bitflag_impls! {LongDelay}
 
 bitflags! {
     pub struct BoolFlag : u32 {
@@ -473,7 +526,7 @@ pub struct TrainingModpackMenu {
     pub follow_up: Action,
     pub attack_angle: AttackAngle,
     pub ledge_state: LedgeOption,
-    pub ledge_delay: Delay,
+    pub ledge_delay: LongDelay,
     pub tech_state: TechFlags,
     pub miss_tech_state: MissTechFlags,
     pub shield_state: Shield,
@@ -513,7 +566,7 @@ impl TrainingModpackMenu {
             (follow_up = Action::from_bits(val))
 
             (ledge_state = LedgeOption::from_bits(val))
-            (ledge_delay = Delay::from_bits(val))
+            (ledge_delay = LongDelay::from_bits(val))
             (tech_state = TechFlags::from_bits(val))
             (miss_tech_state = MissTechFlags::from_bits(val))
             

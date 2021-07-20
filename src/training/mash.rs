@@ -413,7 +413,7 @@ fn roll_aerial_delay(action: Action) {
         return;
     }
     unsafe {
-        AERIAL_DELAY = MENU.aerial_delay.get_random().to_index();
+        AERIAL_DELAY = MENU.aerial_delay.get_random().into_delay();
     }
 }
 

@@ -46,7 +46,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     unsafe {
         if !is_falling(module_accessor) {
             // Roll FF delay
-            DELAY = MENU.fast_fall_delay.get_random().to_index();
+            DELAY = MENU.fast_fall_delay.get_random().into_delay();
             frame_counter::full_reset(FRAME_COUNTER);
             return;
         }
