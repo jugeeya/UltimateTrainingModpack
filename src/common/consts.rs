@@ -509,8 +509,40 @@ bitflags! {
 
 impl LongDelay {
     pub fn into_string(self) -> String {
-        // TODO: Is this used for the menu?
-        return self.to_string()
+        match self {
+            LongDelay::D0  => "0",
+            LongDelay::D10  => "1",
+            LongDelay::D20  => "2",
+            LongDelay::D30  => "3",
+            LongDelay::D40  => "4",
+            LongDelay::D50  => "5",
+            LongDelay::D60  => "6",
+            LongDelay::D70  => "7",
+            LongDelay::D80  => "8",
+            LongDelay::D90  => "9",
+            LongDelay::D100 => "10",
+            LongDelay::D110 => "11",
+            LongDelay::D120 => "12",
+            LongDelay::D130 => "13",
+            LongDelay::D140 => "14",
+            LongDelay::D150 => "15",
+            LongDelay::D160 => "16",
+            LongDelay::D170 => "17",
+            LongDelay::D180 => "18",
+            LongDelay::D190 => "19",
+            LongDelay::D200 => "20",
+            LongDelay::D210 => "21",
+            LongDelay::D220 => "22",
+            LongDelay::D230 => "23",
+            LongDelay::D240 => "24",
+            LongDelay::D250 => "25",
+            LongDelay::D260 => "26",
+            LongDelay::D270 => "27",
+            LongDelay::D280 => "28",
+            LongDelay::D290 => "29",
+            LongDelay::D300 => "30",
+            _ => "",
+        }.to_string()
     }
 
     pub fn into_longdelay(&self) -> u32 {
