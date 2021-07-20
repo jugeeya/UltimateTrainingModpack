@@ -35,11 +35,27 @@ impl<'a> Toggle<'a> {
 }
 
 #[derive(Content)]
+struct OnOffSelector<'a> {
+    title: &'a str,
+    checked: &'a str
+}
+
+impl <'a>OnOffSelector<'a> {
+    pub fn new(title: &'a str, checked: bool) -> OnOffSelector<'a> {
+        OnOffSelector {
+            title: title,
+            checked: if checked { "is-appear "} else { "is-hidden" }
+        }
+    }
+}
+
+#[derive(Content)]
 struct SubMenu<'a> {
     title: &'a str,
     id: &'a str,
     toggles: Vec<Toggle<'a>>,
     sliders: Vec<Slider>,
+    onoffselector: Vec<OnOffSelector<'a>>,
     index: usize,
     check_against: usize
 }
@@ -70,6 +86,15 @@ impl<'a> SubMenu<'a> {
             value
         });
     }
+
+    pub fn add_onoffselector(&mut self, title: &'a str, checked: bool) {
+        // TODO: Is there a more elegant way to do this?
+        // The HTML only supports a single onoffselector but the SubMenu stores it as a Vec
+        self.onoffselector.push(OnOffSelector{
+            title: title,
+            checked: if checked { "is-appear "} else { "is-hidden" }
+        });
+    }
 }
 
 #[derive(Content)]
@@ -92,6 +117,7 @@ impl<'a> Menu<'a> {
             id: id,
             toggles: Vec::new(),
             sliders: Vec::new(),
+            onoffselector: Vec::new(),
             index: self.max_idx() + 1,
             check_against: check_against
         };
@@ -113,6 +139,7 @@ impl<'a> Menu<'a> {
             id: id,
             toggles: Vec::new(),
             sliders: Vec::new(),
+            onoffselector: Vec::new(),
             index: self.max_idx() + 1,
             check_against: check_against
         };
@@ -124,6 +151,20 @@ impl<'a> Menu<'a> {
         // TODO: add sliders?
 
         self.sub_menus.push(sub_menu);
+    }
+
+    pub fn add_sub_menu_onoff(&mut self, title: &'a str, id: &'a str, check_against: usize, checked: bool) {
+        let mut sub_menu = SubMenu {
+            title: title,
+            id: id,
+            toggles: Vec::new(),
+            sliders: Vec::new(),
+            onoffselector: Vec::new(),
+            index: self.max_idx() + 1,
+            check_against: check_against
+        };
+
+        sub_menu.add_onoffselector(title, checked);
     }
 }
 
@@ -236,39 +277,26 @@ pub unsafe fn render_menu() -> String {
     // SDI strength
 
 
-    // TODO: OnOff flags... need a different sort of submenu.
-    overall_menu.add_sub_menu(
-        "Hitbox Visualization", 
-        "hitbox_vis", 
+    // OnOff flags
+    overall_menu.add_sub_menu_onoff(
+        "Hitbox Visualization",
+        "hitbox_vis",
         MENU.hitbox_vis as usize,
-        [
-            ("Off", OnOff::Off as usize),
-            ("On", OnOff::On as usize),
-        ].to_vec(),
-        [].to_vec()
+        (MENU.hitbox_vis as usize & OnOff::On as usize) != 0
     );
-    overall_menu.add_sub_menu(
-        "Stage Hazards", 
-        "stage_hazards", 
+
+    overall_menu.add_sub_menu_onoff(
+        "Stage Hazards",
+        "stage_hazards",
         MENU.stage_hazards as usize,
-        [
-            ("Off", OnOff::Off as usize),
-            ("On", OnOff::On as usize),
-        ].to_vec(),
-        [].to_vec()
+        (MENU.stage_hazards as usize & OnOff::On as usize) != 0
     );
-    overall_menu.add_sub_menu(
-        "Mash In Neutral", 
-        "mash_in_neutral", 
+    overall_menu.add_sub_menu_onoff(
+        "Mash In Neutral",
+        "mash_in_neutral",
         MENU.mash_in_neutral as usize,
-        [
-            ("Off", OnOff::Off as usize),
-            ("On", OnOff::On as usize),
-        ].to_vec(),
-        [].to_vec()
+        (MENU.mash_in_neutral as usize & OnOff::On as usize) != 0
     );
-
-
 
     tpl.render(&overall_menu)
 }
