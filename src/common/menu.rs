@@ -165,6 +165,7 @@ impl<'a> Menu<'a> {
         };
 
         sub_menu.add_onoffselector(title, checked);
+        self.sub_menus.push(sub_menu);
     }
 }
 
