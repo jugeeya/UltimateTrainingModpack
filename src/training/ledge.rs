@@ -101,11 +101,14 @@ pub unsafe fn is_enable_transition_term(
     _module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
 ) -> Option<bool> {
+    if !is_operation_cpu(&mut*_module_accessor) {
+        return None;
+    }
     // Only handle ledge scenarios from menu
     if StatusModule::status_kind(_module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT || MENU.ledge_state == LedgeOption::empty() {
         return None;
     }
-    
+
     // Disallow the default cliff-climb if we are waiting
     if LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY {
         if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
