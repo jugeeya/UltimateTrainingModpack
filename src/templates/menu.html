@@ -241,33 +241,43 @@
 
                     var url = "http://localhost/"
 
+                    var settings = [];
+
+                    // Collect settings for toggles
                     $("ul.l-grid").each(function () {
                         var section = this.id;
-
-                        url += section + "?"
+                        var val = "";
 
                         var children = this.children;
                         for (var i = 0; i < children.length; i++) {
                             var child = children[i];
                             if (child.innerHTML.includes("is-appear")) {
-                                url += child.getAttribute("val") + ",";
+                                val += child.getAttribute("val") + ",";
                             }
                         }
 
-                        url += "&"
-                    });
-                    $("div.onoff").each(function () {
-                        var section = this.id;
-                        url += section + "?"
-                        if (this.innerHTML.includes("is-appear")) {
-                            url += "1,"
-                        } else {
-                            url += "0,"
-                        }
-                        url += "&"
+                        settings.push({
+                            name: section,
+                            value: val
+                        });
                     });
 
-                    location.href = url;
+                    // Collect settings for OnOffs
+                    $("div.onoff").each(function () {
+                        var section = this.id;
+                        var val = "";
+                        if (this.innerHTML.includes("is-appear")) {
+                            val = "1"
+                        } else {
+                            val += "0"
+                        }
+                        settings.push({
+                            name: section,
+                            value: val
+                        });
+                    });
+
+                    location.href = url + "?" + decodeURIComponent($.param(settings));
                 } else {
                     // Close any open submenus
                     $(".qa.is-opened").each(function () { openAnswer(this); });
