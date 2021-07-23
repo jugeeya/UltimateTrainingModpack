@@ -292,6 +292,57 @@
                     toggleImage.innerHTML = toggleImage.innerHTML.replace("is-hidden", "is-appear");
                 }
             }
+
+            function getParams(url) {
+                var regex = /[?&]([^=#]+)=([^&#]*)/g,
+                    params = {},
+                    match;
+                while(match = regex.exec(url)) {
+                    params[match[1]] = match[2];
+                }
+                return params;
+            }
+
+            function setSettings() {
+                // Get settings from the URL GET parameters
+                const settings = getParams(document.URL);
+
+                // Set Toggles
+                $("ul.l-grid").each(function () {
+                    var section = this.id;
+                    var section_setting = decodeURIComponent(settings[section]);
+
+                    var children = $(this).children("li");
+                    for (var i = 0; i < children.length; i++) {
+                        var child = children[i];
+                        var e = $(child).find("img")[0];
+                        if (section_setting.split(",").includes(child.getAttribute("val"))) {
+                            e.classList.add("is-appear");
+                            e.classList.remove("is-hidden");
+                        } else {
+                            e.classList.remove("is-appear");
+                            e.classList.add("is-hidden");
+                        };
+                    }
+                });
+
+                // Set OnOffs
+                $("div.onoff").each(function () {
+                    var section = this.id;
+                    var section_setting = decodeURIComponent(settings[section]);
+                    var e = $(this).find("img")[0];
+                    if (section_setting == "1") {
+                        e.classList.add("is-appear");
+                        e.classList.remove("is-hidden");
+                    } else {
+                        e.classList.remove("is-appear");
+                        e.classList.add("is-hidden");
+                    }
+                });
+            }
+        </script>
+        <script>
+            window.onload = setSettings;
         </script>
     </body>
 
