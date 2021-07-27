@@ -303,14 +303,17 @@ pub unsafe fn render_menu() -> String {
 }
 
 pub unsafe fn spawn_menu() {
-    let data = render_menu();
+    let fname = "index.html";
+    let params = MENU.to_url_params();
+    // TODO: write index.html if it doesn't exist
+    // Or maybe just write on smash startup?
 
     let response = Webpage::new()
         .background(Background::BlurredScreenshot)
-        .file("index.html", &data)
         .htdocs_dir("contents")
         .boot_display(BootDisplay::BlurredScreenshot)
         .boot_icon(true)
+        .start_page(&format!("{}{}", fname, params))
         .open()
         .unwrap();
 

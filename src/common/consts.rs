@@ -55,6 +55,21 @@ macro_rules! extra_bitflag_impls {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.bits() as usize).collect()
             }
+            pub fn to_url_param(&self) -> String {
+                let mut vec = self.to_vec();
+                let mut s = String::new();
+                let mut first = true;
+                while !vec.is_empty() {
+                    let field = vec.pop().unwrap().to_index();
+                    if !first {
+                        s.push_str(",");
+                    } else {
+                        first = false;
+                    }
+                    s.push_str(&field.to_string());
+                }
+                s
+            }
         }
     }
 }
@@ -239,6 +254,15 @@ impl Shield {
             Shield::Constant => "Constant",
         }.to_string()
     }
+
+    pub fn to_url_param(&self) -> String {
+        match self {
+            Shield::None => "0",
+            Shield::Infinite => "1",
+            Shield::Hold => "2",
+            Shield::Constant => "3",
+        }.to_string()
+    }
 }
 
 // Defensive States
@@ -287,6 +311,13 @@ impl OnOff {
         match self {
             OnOff::Off => "Off",
             OnOff::On => "On",
+        }.to_string()
+    }
+
+    pub fn to_url_param(&self) -> String {
+        match self {
+            OnOff::Off => "0",
+            OnOff::On => "1",
         }.to_string()
     }
 }
@@ -603,36 +634,83 @@ impl SdiStrength {
             SdiStrength::High => "High",
         }.to_string()
     }
+
+    pub fn to_url_param(&self) -> String {
+        match self {
+            SdiStrength::Normal => "0",
+            SdiStrength::Medium => "1",
+            SdiStrength::High => "2",
+        }.to_string()
+    }
+}
+
+// For input delay
+trait to_url_param {
+    fn to_url_param(&self) -> String;
+}
+
+impl to_url_param for i32 {
+    fn to_url_param(&self) -> String {
+        self.to_string()
+    }
+}
+
+// Macro to build the url parameter string
+macro_rules! url_params {
+    (
+        pub struct $e:ident {
+            $(pub $field_name:ident: $field_type:ty,)*
+        }
+    ) => {
+        pub struct $e {
+            $(pub $field_name: $field_type,)*
+        }
+        impl $e {
+            pub fn to_url_params(&self) -> String {
+                let mut s = "?".to_string();
+                $(
+                    s.push_str(stringify!($field_name));
+                    s.push_str(&"=");
+                    s.push_str(&self.$field_name.to_url_param());
+                    s.push_str(&"&");
+                )*
+                s.pop();
+                s
+            }
+        }
+    }
 }
 
 #[repr(C)]
-pub struct TrainingModpackMenu {
-    pub hitbox_vis: OnOff,
-    pub stage_hazards: OnOff,
-    pub di_state: Direction,
-    pub sdi_state: Direction,
-    pub sdi_strength: SdiStrength,
-    pub air_dodge_dir: Direction,
-    pub mash_state: Action,
-    pub follow_up: Action,
-    pub attack_angle: AttackAngle,
-    pub ledge_state: LedgeOption,
-    pub ledge_delay: LongDelay,
-    pub tech_state: TechFlags,
-    pub miss_tech_state: MissTechFlags,
-    pub shield_state: Shield,
-    pub defensive_state: Defensive,
-    pub oos_offset: Delay,
-    pub reaction_time: Delay,
-    pub shield_tilt: Direction,
-    pub mash_in_neutral: OnOff,
-    pub fast_fall: BoolFlag,
-    pub fast_fall_delay: Delay,
-    pub falling_aerials: BoolFlag,
-    pub aerial_delay: Delay,
-    pub full_hop: BoolFlag,
-    pub input_delay: i32,
-    pub save_damage: OnOff,
+url_params! {
+    pub struct TrainingModpackMenu {
+        pub hitbox_vis: OnOff,
+        pub stage_hazards: OnOff,
+        pub di_state: Direction,
+        pub sdi_state: Direction,
+        pub sdi_strength: SdiStrength,
+        pub air_dodge_dir: Direction,
+        pub mash_state: Action,
+        pub follow_up: Action,
+        pub attack_angle: AttackAngle,
+        pub ledge_state: LedgeOption,
+        pub ledge_delay: LongDelay,
+        pub tech_state: TechFlags,
+        pub miss_tech_state: MissTechFlags,
+        pub shield_state: Shield,
+        pub defensive_state: Defensive,
+        pub oos_offset: Delay,
+        pub reaction_time: Delay,
+        pub shield_tilt: Direction,
+        pub mash_in_neutral: OnOff,
+        pub fast_fall: BoolFlag,
+        pub fast_fall_delay: Delay,
+        pub falling_aerials: BoolFlag,
+        pub aerial_delay: Delay,
+        pub full_hop: BoolFlag,
+        pub input_delay: i32,
+        pub save_damage: OnOff,
+    }
 }
 
 macro_rules! set_by_str {
