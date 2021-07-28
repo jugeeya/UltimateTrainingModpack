@@ -60,7 +60,7 @@ macro_rules! extra_bitflag_impls {
                 let mut s = String::new();
                 let mut first = true;
                 while !vec.is_empty() {
-                    let field = vec.pop().unwrap().to_index();
+                    let field = vec.pop().unwrap().bits();
                     if !first {
                         s.push_str(",");
                     } else {
