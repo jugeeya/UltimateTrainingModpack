@@ -1,9 +1,10 @@
 
-
+use std::fs;
+use std::path::Path;
 use crate::common::*;
+use skyline::info::get_program_id;
 use skyline::nn::hid::NpadHandheldState;
 use smash::lib::lua_const::*;
-
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
 
@@ -187,13 +188,13 @@ macro_rules! add_bitflag_submenu {
 }
 
 pub fn set_menu_from_url(s: &str) {
-    let base_url_len = "http://localhost/".len();
+    let base_url_len = "http://localhost/?".len();
     let total_len = s.len();
 
     let ss: String = s.chars().skip(base_url_len).take(total_len - base_url_len).collect();
     
     for toggle_values in ss.split("&") {
-        let toggle_value_split = toggle_values.split("?").collect::<Vec<&str>>();
+        let toggle_value_split = toggle_values.split("=").collect::<Vec<&str>>();
         let toggle = toggle_value_split[0];
         if toggle == "" { continue; }
         
@@ -203,7 +204,7 @@ pub fn set_menu_from_url(s: &str) {
         for toggle_val in toggle_vals.split(",") {
             if toggle_val == "" { continue; }
         
-            let mut val = toggle_val.parse::<u32>().unwrap();
+            let val = toggle_val.parse::<u32>().unwrap();
             bits = bits | val;
         }
 
@@ -219,7 +220,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
     ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
 }
 
-pub unsafe fn render_menu() -> String {
+pub unsafe fn write_menu() {
     let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
 
     let mut overall_menu = Menu {
@@ -299,7 +300,17 @@ pub unsafe fn render_menu() -> String {
         (MENU.mash_in_neutral as usize & OnOff::On as usize) != 0
     );
 
-    tpl.render(&overall_menu)
+    let data = tpl.render(&overall_menu);
+
+    // Now that we have the html, write it to file
+    // From skyline-web
+    let program_id = get_program_id();
+    let htdocs_dir = "contents";
+    let path = Path::new("sd:/atmosphere/contents")
+        .join(&format!("{:016X}", program_id))
+        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
+        .join("index.html");
+    fs::write(path, data).unwrap();
 }
 
 pub unsafe fn spawn_menu() {
