@@ -1,4 +1,4 @@
-use crate::common::{is_training_mode, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
+use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use skyline::nn::hid::*;
@@ -387,4 +387,8 @@ pub fn training_mods() {
     fast_fall::init();
     mash::init();
     ledge::init();
+
+    println!("[Training Modpack] Writing menu file index.html");
+    unsafe { menu::write_menu(); }
+    println!("[Training Modpack] Wrote menu file.");
 }

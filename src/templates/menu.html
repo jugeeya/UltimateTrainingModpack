@@ -1,99 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="./help/css/common.css" />
-    <link rel="stylesheet" href="./help/css/qa.css" />
-    <link id="font-stylesheet" rel="stylesheet" href="./help/css/font.css">
-    <link rel="stylesheet" href="./help/css/keyword.css">
-    <link href="./nouislider.min.css" rel="stylesheet">
-    <style>
-        @-moz-document url-prefix() {
-            @font-face {
-                font-family: '-webkit-standard';
-                src: url('nintendo_udsg-r_std_003.ttf');
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="./help/css/common.css" />
+        <link rel="stylesheet" href="./help/css/qa.css" />
+        <link id="font-stylesheet" rel="stylesheet" href="./help/css/font.css">
+        <link rel="stylesheet" href="./help/css/keyword.css">
+        <link href="./nouislider.min.css" rel="stylesheet">
+        <style>
+            @-moz-document url-prefix() {
+                @font-face {
+                    font-family: '-webkit-standard';
+                    src: url('nintendo_udsg-r_std_003.ttf');
+                }
             }
-        }
 
-        body {
-            background: none;
-        }
+            body {
+                background: none;
+            }
 
-        /* Overwrite padding from keyword stuff. */
-        .l-main-content {
-            padding: 0px 0px 0px;
-        }
+            /* Overwrite padding from keyword stuff. */
+            .l-main-content {
+                padding: 0px 0px 0px;
+            }
 
-        /* Somehow isn't getting passed through from default css. */
-        .ret-icon-shadow {
-            position: absolute;
-            z-index: -1;
-            top: 3px;
-            left: 2px;
-            display: inline-block;
-            width: 58px;
-            height: 58px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
+            /* Somehow isn't getting passed through from default css. */
+            .ret-icon-shadow {
+                position: absolute;
+                z-index: -1;
+                top: 3px;
+                left: 2px;
+                display: inline-block;
+                width: 58px;
+                height: 58px;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
 
-        /* Column size */
-        .l-qa {
-            flex-basis: 33%;
-        }
+            /* Column size */
+            .l-qa {
+                flex-basis: 33%;
+            }
 
-        /* Full width for opened lists */
-        .is-opened .question-outer {
-            width: 100vw;
-        }
+            /* Full width for opened lists */
+            .is-opened .question-outer {
+                width: 100%;
+            }
 
-        /* Overwrite margin on the last child to avoid overlap*/
-        .l-qa:last-child .qa {
-            margin-bottom: 0px;
-        }
+            /* Overwrite margin on the last child to avoid overlap*/
+            .l-qa:last-child .qa {
+                margin-bottom: 0px;
+            }
 
-        .l-qa:last-child .qa.is-opened {
-            margin-bottom: 0px;
-        }
-    </style>
-</head>
+            .l-qa:last-child .qa.is-opened {
+                margin-bottom: 0px;
+            }
 
-<body>
-    <script src="./help/js/jquery-3.3.1.min.js"></script>
-    <script src="./help/common/js/wsnd.min.js"></script>
-    <script src="./help/common/js/keyhelp.js"></script>
-    <script src="./help/js/common.js"></script>
-    <script src="./help/js/qa.js"></script>
-    <script src="./nouislider.min.js"></script>
+            /* Fade icons slightly */
+            img.question-icon {
+                opacity: 75%;
+            }
 
-    <div class="l-header">
-        <div class="l-header-title">
-            <div class="header-title f-u-bold"><span data-msgcom="true" data-msgid="textbox_id-10020">Ultimate Training
-                    Modpack Menu</span></div>
+            /* Override excessive question width on focus */
+            .is-focused .question-message span:nth-child(1) {
+                width: auto;
+            }
+
+        </style>
+    </head>
+
+    <body>
+        <script src="./help/js/jquery-3.3.1.min.js"></script>
+        <script src="./help/common/js/wsnd.min.js"></script>
+        <script src="./help/common/js/keyhelp.js"></script>
+        <script src="./help/js/common.js"></script>
+        <script src="./help/js/qa.js"></script>
+        <script src="./nouislider.min.js"></script>
+
+        <div class="l-header">
+            <div class="l-header-title">
+                <div class="header-title f-u-bold"><span data-msgcom="true" data-msgid="textbox_id-10020">Ultimate
+                        Training
+                        Modpack Menu</span></div>
+            </div>
+            <div class="header">
+                <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();" nx-se-disabled="">
+                    <div class="ret-icon-wrapper">
+                        <img class="ret-icon-shadow is-appear" ref="./help/img/icon/m_retnormal.svg" src="./help/img/icon/m_retnormal.svg">
+                        <img class="ret-icon is-appear" ref="./help/img/icon/m_retnormal.svg" src="./help/img/icon/m_retnormal.svg">
+                    </div>
+                </a>
+            </div>
         </div>
-        <div class="header">
-            <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();"
-                nx-se-disabled="">
-                <div class="ret-icon-wrapper">
-                    <img class="ret-icon-shadow is-appear" ref="./help/img/icon/m_retnormal.svg"
-                        src="./help/img/icon/m_retnormal.svg">
-                    <img class="ret-icon is-appear" ref="./help/img/icon/m_retnormal.svg"
-                        src="./help/img/icon/m_retnormal.svg">
-                </div>
-            </a>
-        </div>
-    </div>
-    <br>
-    <br>
-    <br>
-    <br>
+        <br>
+        <br>
+        <br>
+        <br>
 
-    <div class="l-grid">
+        <div class="l-grid">
 
-        <!--
+            <!--
     Script the part below via templating. Overall structure is perhaps
     [
         l-qa qa [id=qa-{{menuName}} tabindex="{{index}}"] {
@@ -106,143 +115,242 @@
 
     Remember to set make max keyword size greater than 23!
     -->
-        {{#sub_menus}}
-        <div class="l-qa">
-            <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)"
-                onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
-                <div class="question-outer">
-                    <div class="question-border">
-                        <div id="question-{{id}}" class="question scuffle-thema">
-                            <img class="question-icon" ref="./{{id}}.svg" />
-                            <p class="question-message f-u-bold"><span data-msgid="textbox_id-7">{{title}}</span></p>
-                        </div>
-                    </div>
-                </div>
-                <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
-                    <div class="l-main">
-                        <ul class="l-grid" id="{{id}}">
-                            {{#toggles}}
-                            <li class="l-item" val="{{value}}">
-                                <div class="keyword-button-outer"> <a tabindex="{{index}}"
-                                        class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                        onclick="clickToggle(this);" nx-se-disabled="">
-                                        <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
-                                                ref="./check.svg" src="./check.svg">
-                                        </div>
-                                        <div class="button-msg-wrapper">
-                                            <div class="keyword-message f-u-bold">{{title}}</div>
-                                        </div>
-                                    </a> </div>
-                            </li>
-                            {{/toggles}}
-                            {{#sliders}}
-                            <li class="l-item" val="{{value}}">
-                                <div class="keyword-button-outer"> <a tabindex="{{index}}"
-                                        class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                        onclick="clickToggle(this);" nx-se-disabled="">
-                                        <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
-                                                ref="./check.svg" src="./check.svg">
-                                        </div>
-                                        <div class="button-msg-wrapper">
-                                            <div class="keyword-message f-u-bold">
-                                                <div name='range_slider'
-                                                    oninput="this.nextElementSibling.value = this.value">
+            {{#sub_menus}}
+                <div class="l-qa">
+                    {{^onoffselector}}
+                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)" onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
+                            <div class="question-outer">
+                                <div class="question-border">
+                                    <div id="question-{{id}}" class="question scuffle-thema">
+                                        <img class="question-icon" ref="./{{id}}.svg" src="./{{id}}.svg" />
+                                        <p class="question-message f-u-bold">
+                                            <span data-msgid="textbox_id-7">{{title}}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
+                                <div class="l-main">
+                                    <ul class="l-grid" id="{{id}}">
+                                        {{#toggles}}
+                                            <li class="l-item" val="{{value}}">
+                                                <div class="keyword-button-outer">
+                                                    <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                                        <div class="button-icon-wrapper">
+                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
+                                                        </div>
+                                                        <div class="button-msg-wrapper">
+                                                            <div class="keyword-message f-u-bold">
+                                                                {{title}}
+                                                            </div>
+                                                        </div>
+                                                    </a>
                                                 </div>
-                                                <output>{{value}}</output>
-                                            </div>
-                                        </div>
-                                    </a> </div>
-                            </li>
-                            {{/sliders}}
-                            {{#range_sliders}}
-                            <li class="l-item" val="{{value}}">
-                                <div class="keyword-button-outer"> <a tabindex="{{index}}"
-                                        class="flex-button keyword-button scuffle-thema" href="javascript:void(0)"
-                                        onclick="clickToggle(this);" nx-se-disabled="">
-                                        <div class="button-icon-wrapper"> <img class="button-icon {{checked}}"
-                                                ref="./check.svg" src="./check.svg">
-                                        </div>
-                                        <div class="button-msg-wrapper">
-                                            <div class="keyword-message f-u-bold">
-                                                <div name="{{id}}">
+                                            </li>
+                                        {{/toggles}}
+                                        {{#sliders}}
+                                            <li class="l-item" val="{{value}}">
+                                                <div class="keyword-button-outer">
+                                                    <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                                        <div class="button-icon-wrapper">
+                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
+                                                        </div>
+                                                        <div class="button-msg-wrapper">
+                                                            <div class="keyword-message f-u-bold">
+                                                                <div name='range_slider' oninput="this.nextElementSibling.value = this.value">
+                                                                </div>
+                                                                <output>{{value}}</output>
+                                                            </div>
+                                                        </div>
+                                                    </a>
                                                 </div>
-                                            </div>
-                                    </a> </div>
-                            </li>
-                            {{/range_sliders}}
-                        </ul>
-                    </div>
+                                            </li>
+                                        {{/sliders}}
+                                        {{#range_sliders}}
+                                            <li class="l-item" val="{{value}}">
+                                                <div class="keyword-button-outer">
+                                                    <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
+                                                        <div class="button-icon-wrapper">
+                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
+                                                        </div>
+                                                        <div class="button-msg-wrapper">
+                                                            <div class="keyword-message f-u-bold">
+                                                                <div name="{{id}}">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                        {{/range_sliders}}
+                                    </ul>
+                                </div>
+                            </div>
+                        </a>
+                    {{/onoffselector}}
+                    {{#onoffselector}}
+                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)" onblur="defocusQA(this)" onclick="clickToggle(this)" nx-se-disabled="">
+                            <div class="question-outer">
+                                <div class="question-border">
+                                    <div id="question-{{id}}" class="question scuffle-thema">
+                                        <div id="{{id}}" class="onoff">
+                                            <img class="question-icon" style="z-index: 1;" ref="./{{id}}.svg" src="./{{id}}.svg" />
+                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" ref="./check.svg" src="./check.svg" /></div>
+                                            <p class="keyword-message f-u-bold">
+                                                {{title}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    {{/onoffselector}}
                 </div>
-            </a>
-        </div>
-        {{/sub_menus}}
+            {{/sub_menus}}
 
-    </div>
-    {{#sub_menus}}
-    {{#sliders}}
-    <script>
-        // todo: loop through
-        noUiSlider.create(document.getElementsByName('range_slider')[0], {
-            start: {{ value }},
-            range: {
-            'min': {{ min }},
-            'max': {{ max }}
+        </div>
+        {{#sub_menus}}
+            {{#sliders}}
+                <script>
+                    // todo: loop through
+                    noUiSlider.create(document.getElementsByName('range_slider')[0], {
+                        start: {{ value }},
+                        range: {
+                        'min': {{ min }},
+                        'max': {{ max }}
             }
         });
-    </script>
-    {{/sliders}}
-    {{/sub_menus}}
-    <script>
-        if (isNx) {
-            window.nx.footer.setAssign('B', '', goBackHook, {
-                se: ''
-            })
-        }
-        function goBackHook() {
-            // Use this function to check menu settings on exit, return through localhost
-
-            $('.is-focused').addClass('is-pause-anim')
-            $('#ret-button').addClass('is-focus')
-
-            disabledOtherLink()
-
-            playSound('cancel')
-
-            fadeOutPage(function () {
-                window.history.back()
-            })
-
-
-            var url = "http://localhost/"
-
-            $(".l-grid").each(function () {
-                var section = this.id;
-
-                url += section + "?"
-
-                var children = this.children;
-                for (var i = 0; i < children.length; i++) {
-                    var child = children[i];
-                    if (child.innerHTML.includes("is-appear")) {
-                        url += child.getAttribute("val") + ",";
-                    }
-                }
-
-                url += "&"
-            });
-
-            location.href = url;
-        }
-
-        function clickToggle(e) {
-            var toggleImage = e.children[0];
-            if (toggleImage.innerHTML.includes("is-appear")) {
-                toggleImage.innerHTML = toggleImage.innerHTML.replace("is-appear", "is-hidden");
-            } else {
-                toggleImage.innerHTML = toggleImage.innerHTML.replace("is-hidden", "is-appear");
+                </script>
+            {{/sliders}}
+        {{/sub_menus}}
+        <script>
+            if (isNx) {
+                window.nx.footer.setAssign('B', '', goBackHook, {
+                    se: ''
+                })
             }
-        }
-    </script>
-</body>
+            function goBackHook() {
+                // If any submenus are open, close them
+                // Otherwise if all submenus are closed, exit the menu and return to the game
+                if ($(".qa.is-opened").length == 0) {
+                    // If all submenus are closed, exit and return through localhost
+                    $('.is-focused').addClass('is-pause-anim')
+                    $('#ret-button').addClass('is-focus')
+
+                    disabledOtherLink()
+
+                    playSound('cancel')
+
+                    fadeOutPage(function () {
+                        window.history.back()
+                    })
+
+
+                    var url = "http://localhost/"
+
+                    var settings = [];
+
+                    // Collect settings for toggles
+                    $("ul.l-grid").each(function () {
+                        var section = this.id;
+                        var val = "";
+
+                        var children = this.children;
+                        for (var i = 0; i < children.length; i++) {
+                            var child = children[i];
+                            if (child.innerHTML.includes("is-appear")) {
+                                val += child.getAttribute("val") + ",";
+                            }
+                        }
+
+                        settings.push({
+                            name: section,
+                            value: val
+                        });
+                    });
+
+                    // Collect settings for OnOffs
+                    $("div.onoff").each(function () {
+                        var section = this.id;
+                        var val = "";
+                        if (this.innerHTML.includes("is-appear")) {
+                            val = "1"
+                        } else {
+                            val = "0"
+                        }
+                        settings.push({
+                            name: section,
+                            value: val
+                        });
+                    });
+
+                    location.href = url + "?" + decodeURIComponent($.param(settings));
+                } else {
+                    // Close any open submenus
+                    $(".qa.is-opened").each(function () { openAnswer(this); });
+                }
+            }
+
+            function clickToggle(e) {
+                var toggleImage = e.children[0];
+                if (toggleImage.innerHTML.includes("is-appear")) {
+                    toggleImage.innerHTML = toggleImage.innerHTML.replace("is-appear", "is-hidden");
+                } else {
+                    toggleImage.innerHTML = toggleImage.innerHTML.replace("is-hidden", "is-appear");
+                }
+            }
+
+            function getParams(url) {
+                var regex = /[?&]([^=#]+)=([^&#]*)/g,
+                    params = {},
+                    match;
+                while(match = regex.exec(url)) {
+                    params[match[1]] = match[2];
+                }
+                return params;
+            }
+
+            function setSettings() {
+                // Get settings from the URL GET parameters
+                const settings = getParams(document.URL);
+
+                // Set Toggles
+                $("ul.l-grid").each(function () {
+                    var section = this.id;
+                    var section_setting = decodeURIComponent(settings[section]);
+
+                    var children = $(this).children("li");
+                    for (var i = 0; i < children.length; i++) {
+                        var child = children[i];
+                        var e = $(child).find("img.toggle")[0];
+                        if (section_setting.split(",").includes(child.getAttribute("val"))) {
+                            e.classList.add("is-appear");
+                            e.classList.remove("is-hidden");
+                        } else {
+                            e.classList.remove("is-appear");
+                            e.classList.add("is-hidden");
+                        };
+                    }
+                });
+
+                // Set OnOffs
+                $("div.onoff").each(function () {
+                    var section = this.id;
+                    var section_setting = decodeURIComponent(settings[section]);
+                    var e = $(this).find("img.toggle")[0];
+                    if (section_setting == "1") {
+                        e.classList.add("is-appear");
+                        e.classList.remove("is-hidden");
+                    } else {
+                        e.classList.remove("is-appear");
+                        e.classList.add("is-hidden");
+                    }
+                });
+            }
+        </script>
+        <script>
+            window.onload = setSettings;
+        </script>
+    </body>
 
 </html>
