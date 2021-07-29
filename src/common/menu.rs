@@ -316,8 +316,6 @@ pub unsafe fn write_menu() {
 pub unsafe fn spawn_menu() {
     let fname = "index.html";
     let params = MENU.to_url_params();
-    // TODO: write index.html if it doesn't exist
-    // Or maybe just write on smash startup?
 
     let response = Webpage::new()
         .background(Background::BlurredScreenshot)
