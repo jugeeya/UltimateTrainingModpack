@@ -59,8 +59,14 @@
                 margin-bottom: 0px;
             }
 
+            /* Fade icons slightly */
             img.question-icon {
                 opacity: 75%;
+            }
+
+            /* Override excessive question width on focus */
+            .is-focused .question-message span:nth-child(1) {
+                width: auto;
             }
 
         </style>
@@ -111,7 +117,7 @@
     -->
             {{#sub_menus}}
                 <div class="l-qa">
-                    {{^onoff}}
+                    {{^onoffselector}}
                         <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)" onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
                             <div class="question-outer">
                                 <div class="question-border">
@@ -131,7 +137,7 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon {{checked}}" ref="./check.svg" src="./check.svg">
+                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
                                                         </div>
                                                         <div class="button-msg-wrapper">
                                                             <div class="keyword-message f-u-bold">
@@ -147,7 +153,7 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon {{checked}}" ref="./check.svg" src="./check.svg">
+                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
                                                         </div>
                                                         <div class="button-msg-wrapper">
                                                             <div class="keyword-message f-u-bold">
@@ -165,7 +171,7 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon {{checked}}" ref="./check.svg" src="./check.svg">
+                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
                                                         </div>
                                                         <div class="button-msg-wrapper">
                                                             <div class="keyword-message f-u-bold">
@@ -181,14 +187,15 @@
                                 </div>
                             </div>
                         </a>
-                    {{/onoff}}
-                    {{#onoff}}
+                    {{/onoffselector}}
+                    {{#onoffselector}}
                         <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)" onblur="defocusQA(this)" onclick="clickToggle(this)" nx-se-disabled="">
                             <div class="question-outer">
                                 <div class="question-border">
                                     <div id="question-{{id}}" class="question scuffle-thema">
                                         <div id="{{id}}" class="onoff">
-                                            <img class="question-icon {{checked}}" ref="./{{id}}.svg" src="./{{id}}.svg" />
+                                            <img class="question-icon" style="z-index: 1;" ref="./{{id}}.svg" src="./{{id}}.svg" />
+                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" ref="./check.svg" src="./check.svg" /></div>
                                             <p class="keyword-message f-u-bold">
                                                 {{title}}
                                             </p>
@@ -197,7 +204,7 @@
                                 </div>
                             </div>
                         </a>
-                    {{/onoff}}
+                    {{/onoffselector}}
                 </div>
             {{/sub_menus}}
 
@@ -269,7 +276,7 @@
                         if (this.innerHTML.includes("is-appear")) {
                             val = "1"
                         } else {
-                            val += "0"
+                            val = "0"
                         }
                         settings.push({
                             name: section,
@@ -315,7 +322,7 @@
                     var children = $(this).children("li");
                     for (var i = 0; i < children.length; i++) {
                         var child = children[i];
-                        var e = $(child).find("img")[0];
+                        var e = $(child).find("img.toggle")[0];
                         if (section_setting.split(",").includes(child.getAttribute("val"))) {
                             e.classList.add("is-appear");
                             e.classList.remove("is-hidden");
@@ -330,7 +337,7 @@
                 $("div.onoff").each(function () {
                     var section = this.id;
                     var section_setting = decodeURIComponent(settings[section]);
-                    var e = $(this).find("img")[0];
+                    var e = $(this).find("img.toggle")[0];
                     if (section_setting == "1") {
                         e.classList.add("is-appear");
                         e.classList.remove("is-hidden");

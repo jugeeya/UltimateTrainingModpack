@@ -726,34 +726,30 @@ macro_rules! set_by_str {
 impl TrainingModpackMenu {
     pub fn set(&mut self, s: &str, val: u32) {
         set_by_str!(self, s,
-            (di_state = Direction::from_bits(val))
-            (sdi_state = Direction::from_bits(val))
-            (shield_tilt = Direction::from_bits(val))
+            (aerial_delay = Delay::from_bits(val))
             (air_dodge_dir = Direction::from_bits(val))
-
-            (mash_state = Action::from_bits(val))
-            (follow_up = Action::from_bits(val))
-
-            (ledge_state = LedgeOption::from_bits(val))
-            (ledge_delay = LongDelay::from_bits(val))
-            (tech_state = TechFlags::from_bits(val))
-            (miss_tech_state = MissTechFlags::from_bits(val))
-            
-            (shield_state = num::FromPrimitive::from_u32(val))
+            (attack_angle = AttackAngle::from_bits(val))
             (defensive_state = Defensive::from_bits(val))
+            (di_state = Direction::from_bits(val))
+            (falling_aerials = BoolFlag::from_bits(val))
+            (fast_fall_delay = Delay::from_bits(val))
+            (fast_fall = BoolFlag::from_bits(val))
+            (follow_up = Action::from_bits(val))
+            (full_hop = BoolFlag::from_bits(val))
+            (hitbox_vis = OnOff::from_val(val))
+            (input_delay = Some(val as i32))
+            (ledge_delay = LongDelay::from_bits(val))
+            (ledge_state = LedgeOption::from_bits(val))
+            (mash_in_neutral = OnOff::from_val(val))
+            (mash_state = Action::from_bits(val))
+            (miss_tech_state = MissTechFlags::from_bits(val))
             (oos_offset = Delay::from_bits(val))
             (reaction_time = Delay::from_bits(val))
-
-            (fast_fall = BoolFlag::from_bits(val))
-            (fast_fall_delay = Delay::from_bits(val))
-            (falling_aerials = BoolFlag::from_bits(val))
-            (aerial_delay = Delay::from_bits(val))
-            (full_hop = BoolFlag::from_bits(val))
-
-            (hitbox_vis = OnOff::from_val(val))
+            (sdi_state = Direction::from_bits(val))
+            (shield_state = num::FromPrimitive::from_u32(val))
+            (shield_tilt = Direction::from_bits(val))
             (stage_hazards = OnOff::from_val(val))
-
-            (input_delay = Some(val as i32))
+            (tech_state = TechFlags::from_bits(val))
         );
     }
 }
