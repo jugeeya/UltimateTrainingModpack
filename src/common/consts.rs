@@ -292,6 +292,26 @@ pub fn to_url_param(&self) -> String {
 }
 }
 
+// Save State Mirroring
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive)]
+pub enum SaveStateMirroring {
+    None = 0,
+    Alternate = 1,
+    Random = 2,
+}
+
+impl SaveStateMirroring {
+    fn into_string(self) -> String {
+        match self {
+            SaveStateMirroring::None => "None",
+            SaveStateMirroring::Alternate => "Alternate",
+            SaveStateMirroring::Random => "Random",
+            _ => "",
+        }.to_string()
+    }
+}
+
 // Defensive States
 bitflags! {
     pub struct Defensive : u32 {
