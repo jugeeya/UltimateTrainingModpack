@@ -610,7 +610,7 @@ impl BoolFlag {
 
 
 #[repr(u32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
 #[allow(dead_code)]
 pub enum SdiStrength {
     Normal = 0,
@@ -746,10 +746,12 @@ impl TrainingModpackMenu {
             (oos_offset = Delay::from_bits(val))
             (reaction_time = Delay::from_bits(val))
             (sdi_state = Direction::from_bits(val))
+            (sdi_strength = num::FromPrimitive::from_u32(val))
             (shield_state = num::FromPrimitive::from_u32(val))
             (shield_tilt = Direction::from_bits(val))
             (stage_hazards = OnOff::from_val(val))
             (tech_state = TechFlags::from_bits(val))
+            (save_damage = OnOff::from_val(val))
         );
     }
 }
