@@ -277,7 +277,7 @@ pub unsafe fn write_menu() {
     );
 
     overall_menu.add_sub_menu(
-        "Save State Mirroring",
+        "Mirroring",
         "save_state_mirroring",
         MENU.save_state_mirroring as usize,
         [

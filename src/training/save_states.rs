@@ -157,7 +157,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         SoundModule::pause_se_all(module_accessor, false);
         ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
-        MIRROR_STATE = should_mirror();
 
         let pos = Vector3f {
             x: MIRROR_STATE * save_state.x,
@@ -216,6 +215,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
         && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
     {
+        MIRROR_STATE = 1.0;
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;
     }
