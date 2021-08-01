@@ -276,6 +276,18 @@ pub unsafe fn write_menu() {
         [].to_vec()
     );
 
+    overall_menu.add_sub_menu(
+        "Mirroring",
+        "save_state_mirroring",
+        MENU.save_state_mirroring as usize,
+        [
+            ("None", SaveStateMirroring::None as usize),
+            ("Alternate", SaveStateMirroring::Alternate as usize),
+            ("Random", SaveStateMirroring::Random as usize),
+        ].to_vec(),
+        [].to_vec()
+    );
+
     // Slider menus
     overall_menu.add_sub_menu(
         "Input Delay", 

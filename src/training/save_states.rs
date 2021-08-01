@@ -1,6 +1,8 @@
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
+use crate::common::consts::SaveStateMirroring;
 use crate::common::MENU;
+use crate::common::get_random_int;
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -41,6 +43,17 @@ use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
 static mut SAVE_STATE_CPU: SavedState = default_save_state!();
+static mut MIRROR_STATE: f32 = 1.0;
+// MIRROR_STATE == 1 -> Do not mirror
+// MIRROR_STATE == -1 -> Do Mirror
+
+pub unsafe fn should_mirror() -> f32 {
+    match MENU.save_state_mirroring {
+        SaveStateMirroring::None => 1.0,
+        SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
+        SaveStateMirroring::Random => {([-1.0, 1.0])[get_random_int(2) as usize]},
+    }
+}
 
 pub unsafe fn get_param_int(
     _module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -107,7 +120,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
         }
-
+        MIRROR_STATE = should_mirror();
         reset::on_reset();
         return;
     }
@@ -146,12 +159,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         KineticModule::clear_speed_all(module_accessor);
 
         let pos = Vector3f {
-            x: save_state.x,
+            x: MIRROR_STATE * save_state.x,
             y: save_state.y,
             z: 0.0,
         };
+        let lr = MIRROR_STATE * save_state.lr;
         PostureModule::set_pos(module_accessor, &pos);
-        PostureModule::set_lr(module_accessor, save_state.lr);
+        PostureModule::set_lr(module_accessor, lr);
 
         if save_state.situation_kind == SITUATION_KIND_GROUND {
             if status != FIGHTER_STATUS_KIND_WAIT {
@@ -201,6 +215,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
         && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
     {
+        MIRROR_STATE = 1.0;
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;
     }

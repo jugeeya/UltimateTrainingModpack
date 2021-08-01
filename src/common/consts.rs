@@ -265,6 +265,33 @@ impl Shield {
     }
 }
 
+// Save State Mirroring
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive)]
+pub enum SaveStateMirroring {
+    None = 0,
+    Alternate = 1,
+    Random = 2,
+}
+
+impl SaveStateMirroring {
+    fn into_string(self) -> String {
+        match self {
+            SaveStateMirroring::None => "None",
+            SaveStateMirroring::Alternate => "Alternate",
+            SaveStateMirroring::Random => "Random",
+        }.to_string()
+    }
+
+    fn to_url_param(&self) -> String {
+        match self {
+            SaveStateMirroring::None => "0",
+            SaveStateMirroring::Alternate => "1",
+            SaveStateMirroring::Random => "2",
+        }.to_string()
+    }
+}
+
 // Defensive States
 bitflags! {
     pub struct Defensive : u32 {
@@ -710,6 +737,7 @@ url_params! {
         pub full_hop: BoolFlag,
         pub input_delay: i32,
         pub save_damage: OnOff,
+        pub save_state_mirroring: SaveStateMirroring,
     }
 }
 
@@ -752,6 +780,8 @@ impl TrainingModpackMenu {
             (stage_hazards = OnOff::from_val(val))
             (tech_state = TechFlags::from_bits(val))
             (save_damage = OnOff::from_val(val))
+
+            (save_state_mirroring = num::FromPrimitive::from_u32(val))
         );
     }
 }
