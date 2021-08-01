@@ -780,6 +780,7 @@ impl TrainingModpackMenu {
             (stage_hazards = OnOff::from_val(val))
             (tech_state = TechFlags::from_bits(val))
             (save_damage = OnOff::from_val(val))
+
             (save_state_mirroring = num::FromPrimitive::from_u32(val))
         );
     }
