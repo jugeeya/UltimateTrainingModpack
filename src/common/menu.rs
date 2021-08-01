@@ -238,6 +238,7 @@ pub unsafe fn write_menu() {
     add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags);
     add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive);
 
+    add_bitflag_submenu!(overall_menu, "Aerial Delay", aerial_delay, Delay);
     add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay);
     add_bitflag_submenu!(overall_menu, "Reaction Time", reaction_time, Delay);
 
@@ -247,14 +248,25 @@ pub unsafe fn write_menu() {
     add_bitflag_submenu!(overall_menu, "Full Hop", full_hop, BoolFlag);
 
     add_bitflag_submenu!(overall_menu, "Shield Tilt", shield_tilt, Direction);
-
-    add_bitflag_submenu!(overall_menu, "DI", di_state, Direction);
-    add_bitflag_submenu!(overall_menu, "SDI", sdi_state, Direction);
+    add_bitflag_submenu!(overall_menu, "DI Direction", di_state, Direction);
+    add_bitflag_submenu!(overall_menu, "SDI Direction", sdi_state, Direction);
     add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction);
 
     overall_menu.add_sub_menu(
-        "Shield Toggles", 
-        "shield_state", 
+        "SDI Strength",
+        "sdi_strength",
+        MENU.sdi_strength as usize,
+        [
+            ("Normal", SdiStrength::Normal as usize),
+            ("Medium", SdiStrength::Medium as usize),
+            ("High", SdiStrength::High as usize),
+        ].to_vec(),
+        [].to_vec()
+    );
+
+    overall_menu.add_sub_menu(
+        "Shield Toggles",
+        "shield_state",
         MENU.shield_state as usize,
         [
             ("None", Shield::None as usize),
@@ -276,10 +288,14 @@ pub unsafe fn write_menu() {
         ].to_vec()
     );
 
-    // SDI strength
-
 
     // OnOff flags
+    overall_menu.add_sub_menu_onoff(
+        "Save Damage",
+        "save_damage",
+        MENU.save_damage as usize,
+        (MENU.save_damage as usize & OnOff::On as usize) != 0
+    );
     overall_menu.add_sub_menu_onoff(
         "Hitbox Visualization",
         "hitbox_vis",
