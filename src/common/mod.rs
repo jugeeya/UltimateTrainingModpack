@@ -1,5 +1,6 @@
 pub mod consts;
 pub mod menu;
+pub mod release;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
