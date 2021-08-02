@@ -23,13 +23,14 @@ fn record_current_version(fpath: &str) {
 pub fn version_check() {
     // Display dialog box on launch if changing versions
     if !is_current_version(VERSION_FILE_PATH) {
-        let mut msg: String = String::new();
-        msg.push_str("Thank you for installing version ");
-        msg.push_str(CURRENT_VERSION);
-        msg.push_str(" of the Training Modpack.\n\n");
-        msg.push_str("This version includes a change to the menu button combination, which is now SPECIAL+UPTAUNT.\n");
-        msg.push_str("Please refer to the Github page and the Discord server for a full list of recent changes.");
-        DialogOk::ok(&msg);
+        DialogOk::ok(
+            format!(
+                "Thank you for installing version {} of the Training Modpack.\n\n\
+                This version includes a change to the menu button combination, which is now SPECIAL+UPTAUNT.\n\
+                Please refer to the Github page and the Discord server for a full list of recent changes.",
+                CURRENT_VERSION
+            )
+        );
         record_current_version(VERSION_FILE_PATH);
     }
 }
