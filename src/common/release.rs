@@ -1,8 +1,7 @@
 use std::fs;
 use std::io::Write;
 use skyline_web::DialogOk;
-
-const CURRENT_VERSION: &str = "3.0";
+const CURRENT_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const VERSION_FILE_PATH: &str = "sd:/TrainingModpack/version.txt";
 
 fn is_current_version(fpath: &str) -> bool {
