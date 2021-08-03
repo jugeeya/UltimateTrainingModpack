@@ -20,7 +20,7 @@ use crate::common::*;
 use training::combo::FRAME_ADVANTAGE;
 
 use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
-use std::fs::remove_file;
+use std::fs;
 use skyline::nro::{self, NroInfo};
 
 use owo_colors::OwoColorize;
@@ -101,8 +101,11 @@ pub fn main() {
         }
     }
 
-    log!("Removing ovlTrainingModpack.ovl...");
-    remove_file("sd:/switch/.overlays/ovlTrainingModpack.ovl").expect("Could not remove ovlTrainingModpack.ovl");
+    let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
+    if !fs::metadata(ovl_path).is_err() {
+        log!("Removing ovlTrainingModpack.ovl...");
+        fs::remove_file(ovl_path).unwrap();
+    }
 
     log!("Performing version check...");
     release::version_check();
