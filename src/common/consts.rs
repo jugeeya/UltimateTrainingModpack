@@ -685,10 +685,12 @@ impl to_url_param for i32 {
 // Macro to build the url parameter string
 macro_rules! url_params {
     (
+        #[derive($($trait_name:ident, )*)]
         pub struct $e:ident {
             $(pub $field_name:ident: $field_type:ty,)*
         }
     ) => {
+        #[derive($($trait_name, )*)]
         pub struct $e {
             $(pub $field_name: $field_type,)*
         }
@@ -710,6 +712,7 @@ macro_rules! url_params {
 
 #[repr(C)]
 url_params! {
+    #[derive(Clone, Copy, )]
     pub struct TrainingModpackMenu {
         pub hitbox_vis: OnOff,
         pub stage_hazards: OnOff,
