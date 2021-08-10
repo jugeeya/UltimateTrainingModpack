@@ -37,6 +37,7 @@ pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     input_delay: 0,
     save_damage: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
+    frame_advantage: OnOff::Off
 };
 
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;

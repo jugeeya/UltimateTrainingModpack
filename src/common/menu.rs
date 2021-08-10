@@ -322,6 +322,12 @@ pub unsafe fn write_menu() {
         (MENU.stage_hazards as usize & OnOff::On as usize) != 0
     );
     overall_menu.add_sub_menu_onoff(
+        "Frame Advantage",
+        "frame_advantage",
+        MENU.frame_advantage as usize,
+        (MENU.frame_advantage as usize & OnOff::On as usize) != 0
+    );
+    overall_menu.add_sub_menu_onoff(
         "Mash In Neutral",
         "mash_in_neutral",
         MENU.mash_in_neutral as usize,
