@@ -3,7 +3,7 @@
 
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
         <title>Document</title>
         <link rel="stylesheet" href="./help/css/common.css" />
         <link rel="stylesheet" href="./help/css/qa.css" />
@@ -137,7 +137,7 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
+                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg" default="{{default}}">
                                                         </div>
                                                         <div class="button-msg-wrapper">
                                                             <div class="keyword-message f-u-bold">
@@ -195,7 +195,7 @@
                                     <div id="question-{{id}}" class="question scuffle-thema">
                                         <div id="{{id}}" class="onoff">
                                             <img class="question-icon" style="z-index: 1;" ref="./{{id}}.svg" src="./{{id}}.svg" />
-                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" ref="./check.svg" src="./check.svg" /></div>
+                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" ref="./check.svg" src="./check.svg" default="{{default}}"/></div>
                                             <p class="keyword-message f-u-bold">
                                                 {{title}}
                                             </p>
@@ -226,6 +226,12 @@
         <script>
             if (isNx) {
                 window.nx.footer.setAssign('B', '', goBackHook, {
+                    se: ''
+                })
+                window.nx.footer.setAssign('X', '', resetSubmenu, {
+                    se: ''
+                })
+                window.nx.footer.setAssign('L', '', resetAllSubmenus, {
                     se: ''
                 })
             }
@@ -346,6 +352,41 @@
                         e.classList.add("is-hidden");
                     }
                 });
+            }
+
+            function resetSubmenu() {
+                $("[default*='is-appear']").each(function () {
+                    if (isSubmenuFocused(this)) {
+                        this.classList.add("is-appear");
+                        this.classList.remove("is-hidden");
+                    }
+                });
+                $("[default*='is-hidden']").each(function() {
+                    if (isSubmenuFocused(this)) {
+                        this.classList.remove("is-appear");
+                        this.classList.add("is-hidden");
+                    }
+                });
+            }
+
+            function isSubmenuFocused(elem) {
+                return (
+                    $(elem).closest(".l-qa").children(".is-opened, .is-focused").length
+                    || $(elem).closest(".is-focused").length
+                )
+            }
+
+            function resetAllSubmenus() {
+                if (confirm("Are you sure that you want to reset all menu settings to the default?")) {
+                    $("[default*='is-appear']").each(function () {
+                            this.classList.add("is-appear");
+                            this.classList.remove("is-hidden");
+                    });
+                    $("[default*='is-hidden']").each(function() {
+                            this.classList.remove("is-appear");
+                            this.classList.add("is-hidden");
+                    });
+                }
             }
         </script>
         <script>

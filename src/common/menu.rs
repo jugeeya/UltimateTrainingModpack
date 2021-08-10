@@ -29,10 +29,10 @@ impl<'a> Toggle<'a> {
     pub fn new(title: &'a str, checked: bool, value: usize) -> Toggle<'a> {
         Toggle{
             title: title,
-            checked: if checked { "is-appear "} else { "is-hidden" },
+            checked: if checked { "is-appear"} else { "is-hidden" },
             index: 0,
             value,
-            default: if checked { "is-appear "} else { "is-hidden" },
+            default: if checked { "is-appear"} else { "is-hidden" },
         }
     }
 }
@@ -48,8 +48,8 @@ impl <'a>OnOffSelector<'a> {
     pub fn new(title: &'a str, checked: bool) -> OnOffSelector<'a> {
         OnOffSelector {
             title: title,
-            checked: if checked { "is-appear "} else { "is-hidden" },
-            default: if checked { "is-appear "} else { "is-hidden" },
+            checked: if checked { "is-appear"} else { "is-hidden" },
+            default: if checked { "is-appear"} else { "is-hidden" },
         }
     }
 }
@@ -77,10 +77,10 @@ impl<'a> SubMenu<'a> {
     pub fn add_toggle(&mut self, title: &'a str, checked: bool, value: usize, default: bool) {
         self.toggles.push(Toggle{
             title: title,
-            checked: if checked { "is-appear "} else { "is-hidden" },
+            checked: if checked { "is-appear"} else { "is-hidden" },
             index: self.max_idx() + 1,
             value,
-            default: if default { "is-appear "} else { "is-hidden" },
+            default: if default { "is-appear"} else { "is-hidden" },
         });
     }
 
@@ -98,8 +98,8 @@ impl<'a> SubMenu<'a> {
         // The HTML only supports a single onoffselector but the SubMenu stores it as a Vec
         self.onoffselector.push(OnOffSelector{
             title: title,
-            checked: if checked { "is-appear "} else { "is-hidden" },
-            default: if default { "is-appear "} else { "is-hidden" },
+            checked: if checked { "is-appear"} else { "is-hidden" },
+            default: if default { "is-appear"} else { "is-hidden" },
         });
     }
 }
