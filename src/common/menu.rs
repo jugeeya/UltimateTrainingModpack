@@ -339,7 +339,8 @@ pub unsafe fn write_menu() {
         "Frame Advantage",
         "frame_advantage",
         MENU.frame_advantage as usize,
-        (MENU.frame_advantage as usize & OnOff::On as usize) != 0
+        (MENU.frame_advantage as usize & OnOff::On as usize) != 0,
+        DEFAULT_MENU.frame_advantage as usize,
     );
     overall_menu.add_sub_menu_onoff(
         "Mash In Neutral",
