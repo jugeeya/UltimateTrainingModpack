@@ -69,6 +69,14 @@
                 width: auto;
             }
 
+            /* */
+            .l-header {
+                display: flex;
+            }
+
+            .header-desc {
+                color: white;
+            }
         </style>
     </head>
 
@@ -86,13 +94,17 @@
                         Training
                         Modpack Menu</span></div>
             </div>
-            <div class="header">
+            <div class="header" style="flex-grow: 1;">
                 <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();" nx-se-disabled="">
                     <div class="ret-icon-wrapper">
                         <img class="ret-icon-shadow is-appear" ref="./help/img/icon/m_retnormal.svg" src="./help/img/icon/m_retnormal.svg">
                         <img class="ret-icon is-appear" ref="./help/img/icon/m_retnormal.svg" src="./help/img/icon/m_retnormal.svg">
                     </div>
                 </a>
+            </div>
+            <div class="header f-u-bold" style="flex-direction: column; justify-content: center;">
+                <p class="header-desc">Reset Current Menu: &#xE0A2;</p>
+                <p class="header-desc">Reset All Menus: &#xE0A4;</p>
             </div>
         </div>
         <br>
