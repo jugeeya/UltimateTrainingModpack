@@ -2,7 +2,7 @@ name: Rust
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, raygun-print ]
   workflow_dispatch:
 
 jobs:
@@ -71,21 +71,6 @@ jobs:
 
         cp svg/check.svg ${{env.SMASH_WEB_DIR}}/check.svg
         zip -r training_modpack_beta.zip atmosphere
-    - name: Update Release
-      uses: meeDamian/github-release@2.0
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        prerelease: true
-        allow_override: true
-        gzip: false
-        tag: beta
-        name: beta
-        body: >
-          Beta built off of the latest code in the repository. 
-          
-          Install the same way you would install a full release.
-        files: >
-          training_modpack_beta.zip
     - name: Upload zip as artifact
       uses: actions/upload-artifact@v1
       with:
