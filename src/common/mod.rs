@@ -1,11 +1,13 @@
 pub mod consts;
 pub mod menu;
 pub mod release;
+pub mod raygun_printer;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
+
 
 pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     hitbox_vis: OnOff::On,

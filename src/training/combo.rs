@@ -75,6 +75,7 @@ pub unsafe fn is_enable_transition_term(
             let cpu_module_accessor = get_module_accessor(FighterId::CPU);
             if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
                 FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
+                raygun_printer::print_string(&mut *module_accessor, &format!("{}", FRAME_ADVANTAGE));
             }
 
             frame_counter::stop_counting(FRAME_COUNTER_INDEX);
@@ -127,6 +128,7 @@ pub unsafe fn get_command_flag_cat(
     if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
         if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
             FRAME_ADVANTAGE = (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32;
+            raygun_printer::print_string(&mut *player_module_accessor, &format!("{}", FRAME_ADVANTAGE));
         }
 
         frame_counter::stop_counting(FRAME_COUNTER_INDEX);

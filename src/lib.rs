@@ -1,6 +1,7 @@
 #![feature(proc_macro_hygiene)]
 #![feature(with_options)]
 #![feature(const_mut_refs)]
+#![feature(exclusive_range_pattern)]
 
 pub mod common;
 mod hazard_manager;
