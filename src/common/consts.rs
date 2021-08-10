@@ -738,6 +738,7 @@ url_params! {
         pub input_delay: i32,
         pub save_damage: OnOff,
         pub save_state_mirroring: SaveStateMirroring,
+        pub frame_advantage: OnOff,
     }
 }
 
@@ -780,6 +781,7 @@ impl TrainingModpackMenu {
             (stage_hazards = OnOff::from_val(val))
             (tech_state = TechFlags::from_bits(val))
             (save_damage = OnOff::from_val(val))
+            (frame_advantage = OnOff::from_val(val))
 
             (save_state_mirroring = num::FromPrimitive::from_u32(val))
         );

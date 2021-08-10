@@ -1,11 +1,13 @@
 pub mod consts;
 pub mod menu;
 pub mod release;
+pub mod raygun_printer;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
+
 
 pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     hitbox_vis: OnOff::On,
@@ -35,6 +37,7 @@ pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     input_delay: 0,
     save_damage: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
+    frame_advantage: OnOff::Off
 };
 
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
