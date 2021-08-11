@@ -69,11 +69,12 @@
                 width: auto;
             }
 
-            /* */
+            /* Handle alignment of items in the header */
             .l-header {
                 display: flex;
             }
 
+            /* Set menu description color */
             .header-desc {
                 color: white;
             }
@@ -367,6 +368,7 @@
             }
 
             function resetSubmenu() {
+                // Resets any open or focused submenus to the default values
                 $("[default*='is-appear']").each(function () {
                     if (isSubmenuFocused(this)) {
                         this.classList.add("is-appear");
@@ -382,6 +384,7 @@
             }
 
             function isSubmenuFocused(elem) {
+                // Return true if the element is in a submenu which is either focused or opened
                 return (
                     $(elem).closest(".l-qa").children(".is-opened, .is-focused").length
                     || $(elem).closest(".is-focused").length
@@ -389,6 +392,7 @@
             }
 
             function resetAllSubmenus() {
+                // Resets all submenus to the default values
                 if (confirm("Are you sure that you want to reset all menu settings to the default?")) {
                     $("[default*='is-appear']").each(function () {
                             this.classList.add("is-appear");
