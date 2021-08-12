@@ -63,44 +63,7 @@ pub fn main() {
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
 
-    unsafe {
-        let mut buffer = format!("{:x}", &MENU as *const _ as u64);
-        log!(
-            "Writing training_modpack.log with {}...",
-            buffer
-        );
-        mkdir(c_str!("sd:/TrainingModpack/"), 777);
-
-        // Only necessary upon version upgrade.
-        // log!("[Training Modpack] Removing training_modpack_menu.conf...");
-        // remove(c_str!("sd:/TrainingModpack/training_modpack_menu.conf"));
-
-        let mut f = fopen(
-            c_str!("sd:/TrainingModpack/training_modpack.log"),
-            c_str!("w"),
-        );
-
-        if !f.is_null() {
-            fwrite(c_str!(buffer) as *const c_void, 1, buffer.len(), f);
-            fclose(f);
-        }
-
-        buffer = format!("{:x}", &FRAME_ADVANTAGE as *const _ as u64);
-        log!(
-            "Writing training_modpack_frame_adv.log with {}...",
-            buffer
-        );
-
-        f = fopen(
-            c_str!("sd:/TrainingModpack/training_modpack_frame_adv.log"),
-            c_str!("w"),
-        );
-
-        if !f.is_null() {
-            fwrite(c_str!(buffer) as *const c_void, 1, buffer.len(), f);
-            fclose(f);
-        }
-    }
+    mkdir(c_str!("sd:/TrainingModpack/"), 777);
 
     let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
     if !fs::metadata(ovl_path).is_err() {
@@ -110,4 +73,12 @@ pub fn main() {
 
     log!("Performing version check...");
     release::version_check();
+
+    
+    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
+    if !fs::metadata(menu_conf_path).is_err() {
+        log!("[Training Modpack] Loading previous menu from training_modpack_menu.conf...");
+        let menu_conf = fs::read(menu_conf_path).unwrap();
+        set_menu_from_url(menu_conf);
+    }
 }

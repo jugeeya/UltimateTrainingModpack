@@ -379,4 +379,9 @@ pub unsafe fn spawn_menu() {
     let last_url = response.get_last_url().unwrap();
 
     set_menu_from_url(last_url);
+
+    std::thread::spawn(||{
+        let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
+        std::fs::write(menu_conf_path, last_url);
+    });
 }
