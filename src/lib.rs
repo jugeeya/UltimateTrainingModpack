@@ -81,7 +81,7 @@ pub fn main() {
         let menu_conf = fs::read(menu_conf_path).unwrap();
         match std::str::from_utf8(&menu_conf) {
           Ok(s) => set_menu_from_url(s),
-          Err(e) => log!("Invalid UTF-8 sequence: {}", e),
+          Err(e) => _,
         };
     }
 }
