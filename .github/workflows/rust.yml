@@ -11,6 +11,9 @@ jobs:
     container: jugeeya/cargo-skyline:latest
     steps:
     - uses: actions/checkout@v2
+    - name: Check path
+      run: |
+        echo $PATH
     - name: Build release NRO
       run: |
         /root/.cargo/bin/cargo skyline build --release
