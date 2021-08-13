@@ -2,6 +2,7 @@ name: Rust
 
 on:
   push:
+  pull_request:
     branches: [ master ]
   workflow_dispatch:
 
@@ -72,6 +73,7 @@ jobs:
         cp svg/check.svg ${{env.SMASH_WEB_DIR}}/check.svg
         zip -r training_modpack_beta.zip atmosphere
     - name: Update Release
+      if: github.ref == 'refs/heads/master'
       uses: meeDamian/github-release@2.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
