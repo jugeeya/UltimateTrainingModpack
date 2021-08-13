@@ -363,6 +363,8 @@ pub unsafe fn write_menu() {
     fs::write(path, data).unwrap();
 }
 
+static mut last_url : &str = "";
+
 pub unsafe fn spawn_menu() {
     let fname = "index.html";
     let params = MENU.to_url_params();
@@ -375,13 +377,15 @@ pub unsafe fn spawn_menu() {
         .start_page(&format!("{}{}", fname, params))
         .open()
         .unwrap();
+    
+    unsafe {
+        last_url = response.get_last_url().unwrap();
 
-    let last_url = response.get_last_url().unwrap();
+        set_menu_from_url(last_url);
 
-    set_menu_from_url(last_url);
-
-    std::thread::spawn(||{
-        let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-        std::fs::write(menu_conf_path, last_url);
-    });
+        std::thread::spawn(||{
+            let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
+            std::fs::write(menu_conf_path, last_url);
+        });
+    }
 }
