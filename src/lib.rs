@@ -62,8 +62,10 @@ pub fn main() {
     hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
-
-    mkdir(c_str!("sd:/TrainingModpack/"), 777);
+     
+    unsafe {
+        mkdir(c_str!("sd:/TrainingModpack/"), 777);
+    }
 
     let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
     if !fs::metadata(ovl_path).is_err() {
