@@ -12,7 +12,7 @@ jobs:
     steps:
     - name: Try new proj
       run: |
-        /root/.cargo/bin/cargo skyline new test_proj
+        echo "stable" > rust-toolchain && /root/.cargo/bin/cargo skyline new test_proj
     - name: Build release NRO
       run: |
         /root/.cargo/bin/cargo skyline build --release
