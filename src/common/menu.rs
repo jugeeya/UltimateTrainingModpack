@@ -5,7 +5,7 @@ use crate::common::*;
 use skyline::info::get_program_id;
 use skyline::nn::hid::NpadHandheldState;
 use smash::lib::lua_const::*;
-use skyline_web::{Background, BootDisplay, Webpage};
+use skyline_web::{Background, BootDisplay, Webpage, PageResult};
 use ramhorns::{Template, Content};
 
 #[derive(Content)]
@@ -364,19 +364,23 @@ pub unsafe fn write_menu() {
 }
 
 static mut last_url : &str = "";
+static mut page_response : Option<PageResult> = None;
 
 pub unsafe fn spawn_menu() {
     let fname = "index.html";
     let params = MENU.to_url_params();
     
     unsafe {
-        last_url = Webpage::new()
+        page_response = Some(Webpage::new()
             .background(Background::BlurredScreenshot)
             .htdocs_dir("contents")
             .boot_display(BootDisplay::BlurredScreenshot)
             .boot_icon(true)
             .start_page(&format!("{}{}", fname, params))
             .open()
+            .unwrap());
+
+        last_url = page_response
             .unwrap()
             .get_last_url()
             .unwrap();
