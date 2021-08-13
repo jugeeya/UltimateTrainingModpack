@@ -12,8 +12,7 @@ jobs:
     steps:
     - name: Build release NRO
       run: |
-        echo $PATH && 
-        ~/.cargo/bin/cargo skyline build --release
+        /root/.cargo/bin/cargo skyline build --release
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v2
       with:
