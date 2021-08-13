@@ -10,10 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     container: jugeeya/cargo-skyline:latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Installc cargo-skyline
+    - name: Try new proj
       run: |
-        /root/.cargo/bin/cargo install cargo-skyline
+        /root/.cargo/bin/cargo skyline new test_proj
     - name: Build release NRO
       run: |
         /root/.cargo/bin/cargo skyline build --release
