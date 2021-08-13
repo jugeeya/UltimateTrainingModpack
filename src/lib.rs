@@ -18,9 +18,9 @@ extern crate bitflags;
 extern crate num_derive;
 
 use crate::common::*;
-use training::combo::FRAME_ADVANTAGE;
+use crate::menu::set_menu_from_url;
 
-use skyline::libc::{c_void, fclose, fopen, fwrite, mkdir};
+use skyline::libc::mkdir;
 use std::fs;
 use skyline::nro::{self, NroInfo};
 
