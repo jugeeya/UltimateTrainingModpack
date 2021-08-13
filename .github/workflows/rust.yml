@@ -9,21 +9,11 @@ jobs:
   plugin:
     runs-on: ubuntu-latest
     steps:
+    - uses: docker://jugeeya/cargo-skyline:latest
     - uses: actions/checkout@v2
-    - name: Install minimal stable rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-    - name: Install cargo-skyline
-      run: |
-        cargo install cargo-skyline
-    - name: Update skyline-rs toolchain
-      run: |
-        cargo skyline update-std
     - name: Build release NRO
       run: |
-        cargo skyline build --release
+        ~/.cargo/bin/cargo skyline build --release
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v2
       with:
