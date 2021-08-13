@@ -363,33 +363,27 @@ pub unsafe fn write_menu() {
     fs::write(path, data).unwrap();
 }
 
-static mut last_url : &str = "";
-static mut page_response : Option<PageResult> = None;
-
 pub unsafe fn spawn_menu() {
-    let fname = "index.html";
-    let params = MENU.to_url_params();
-    
-    unsafe {
-        page_response = Some(Webpage::new()
+    std::thread::spawn(||{
+        let fname = "index.html";
+        let params = MENU.to_url_params();
+        let page_response = Webpage::new()
             .background(Background::BlurredScreenshot)
             .htdocs_dir("contents")
             .boot_display(BootDisplay::BlurredScreenshot)
             .boot_icon(true)
             .start_page(&format!("{}{}", fname, params))
             .open()
-            .unwrap());
+            .unwrap();
 
-        last_url = page_response
-            .unwrap()
+        let last_url = page_response
             .get_last_url()
             .unwrap();
 
         set_menu_from_url(last_url);
 
-        std::thread::spawn(||{
-            let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-            std::fs::write(menu_conf_path, last_url);
-        });
-    }
+        let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
+        std::fs::write(menu_conf_path, last_url);
+    });
+}
 }
