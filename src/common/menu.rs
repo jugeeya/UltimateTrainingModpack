@@ -364,21 +364,21 @@ pub unsafe fn write_menu() {
 }
 
 static mut last_url : &str = "";
+static mut response : Webpage = Webpage::new();
 
 pub unsafe fn spawn_menu() {
     let fname = "index.html";
     let params = MENU.to_url_params();
-
-    let response = Webpage::new()
-        .background(Background::BlurredScreenshot)
-        .htdocs_dir("contents")
-        .boot_display(BootDisplay::BlurredScreenshot)
-        .boot_icon(true)
-        .start_page(&format!("{}{}", fname, params))
-        .open()
-        .unwrap();
     
     unsafe {
+        response = Webpage::new()
+            .background(Background::BlurredScreenshot)
+            .htdocs_dir("contents")
+            .boot_display(BootDisplay::BlurredScreenshot)
+            .boot_icon(true)
+            .start_page(&format!("{}{}", fname, params))
+            .open()
+            .unwrap();
         last_url = response.get_last_url().unwrap();
 
         set_menu_from_url(last_url);
