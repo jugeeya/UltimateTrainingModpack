@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: docker://jugeeya/cargo-skyline:latest
-    - uses: actions/checkout@v2
     - name: Build release NRO
       run: |
         ~/.cargo/bin/cargo skyline build --release
