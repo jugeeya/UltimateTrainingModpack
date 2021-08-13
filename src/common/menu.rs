@@ -386,4 +386,3 @@ pub unsafe fn spawn_menu() {
         std::fs::write(menu_conf_path, last_url);
     });
 }
-}
