@@ -79,6 +79,9 @@ pub fn main() {
     if !fs::metadata(menu_conf_path).is_err() {
         log!("[Training Modpack] Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
-        set_menu_from_url(menu_conf);
+        match str::from_utf8(menu_conf) {
+          Ok(s) => set_menu_from_url(s),
+          Err(e) => log!("Invalid UTF-8 sequence: {}", e),
+        };
     }
 }
