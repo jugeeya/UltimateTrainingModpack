@@ -8,7 +8,8 @@ on:
 jobs:
   plugin:
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:latest
+    container: 
+      image: jugeeya/cargo-skyline:latest
     steps:
     - name: Try new proj
       run: |
