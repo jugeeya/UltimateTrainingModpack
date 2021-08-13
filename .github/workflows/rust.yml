@@ -9,8 +9,8 @@ jobs:
   plugin:
     runs-on: ubuntu-latest
     steps:
-    - uses: docker://jugeeya/cargo-skyline:latest
     - name: Build release NRO
+      uses: docker://jugeeya/cargo-skyline:latest
       run: |
         ~/.cargo/bin/cargo skyline build --release
     - name: Upload plugin artifact
