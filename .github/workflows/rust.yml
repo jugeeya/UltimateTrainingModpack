@@ -69,6 +69,13 @@ jobs:
 
         cp svg/check.svg ${{env.SMASH_WEB_DIR}}/check.svg
         zip -r training_modpack_beta.zip atmosphere
+    - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      if: github.ref == 'refs/heads/master'
+      with:
+        delete_release: true
+        tag_name: beta
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Update Release
       if: github.ref == 'refs/heads/master'
       uses: meeDamian/github-release@2.0
