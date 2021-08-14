@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Get build deps
       run: |
-        apt-get update && apt install build-essential
+        apt-get update && apt install -y build-essential
     - uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
