@@ -11,15 +11,12 @@ jobs:
     container: 
       image: jugeeya/cargo-skyline:2.1.0
     steps:
-    - name: Git git
-      run: |
-        apt-get update && apt-get install -y git
-    - name: Clone repo
-      run: |
-        git clone https://github.com/jugeeya/UltimateTrainingModpack
+    - uses: actions/checkout@v2
     - name: Build release NRO
       run: |
         cd UltimateTrainingModpack && /root/.cargo/bin/cargo-skyline skyline build --release
+      env:
+        HOME: /root
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v2
       with:
