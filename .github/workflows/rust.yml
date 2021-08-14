@@ -28,6 +28,7 @@ jobs:
         args: --all-features --target aarch64-unknown-linux-gnu
       env:
         HOME: /root
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.cargo/bin
     - name: Build release NRO
       run: |
         PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
