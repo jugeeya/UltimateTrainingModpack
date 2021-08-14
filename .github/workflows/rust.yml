@@ -19,6 +19,7 @@ jobs:
         args: --all-features
       env:
         HOME: /root
+        PATH: /root/.cargo/bin
     - name: Build release NRO
       run: |
         PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
