@@ -19,7 +19,7 @@ jobs:
         git clone https://github.com/jugeeya/UltimateTrainingModpack
     - name: Build release NRO
       run: |
-        cd UltimateTrainingModpack && /root/.cargo/bin/cargo-skyline build --release
+        cd UltimateTrainingModpack && /root/.cargo/bin/cargo-skyline skyline build --release
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v2
       with:
