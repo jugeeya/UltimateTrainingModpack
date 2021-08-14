@@ -66,7 +66,6 @@ jobs:
         zip -r training_modpack_beta.zip atmosphere
     - name: Update Release
       uses: meeDamian/github-release@2.0
-      if: github.ref == 'refs/heads/master'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: true
