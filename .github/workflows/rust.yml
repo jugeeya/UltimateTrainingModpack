@@ -18,7 +18,7 @@ jobs:
         apt-get update && apt install -y build-essential
     - name: test
       run: |
-        export PATH=$PATH:/root/.cargo/bin; /root/.cargo/bin/rustup default +nightly
+        export PATH=$PATH:/root/.cargo/bin; /root/.cargo/bin/rustup default nightly
     - name: test2
       run: |
         /root/.cargo/bin/rustup target add x86_64-unknown-linux-gnu
