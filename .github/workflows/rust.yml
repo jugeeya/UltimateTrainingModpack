@@ -28,8 +28,10 @@ jobs:
         name: svg
         path: src/templates/check.svg
     - name: Build outside_training_mode NRO
-      run: cargo skyline build --features outside_training_mode 
+      if: github.ref == 'refs/heads/master'
+      run: PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --features outside_training_mode 
     - name: Upload plugin (outside training mode) artifact
+      if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
       with:
         name: plugin_outside_training_mode
@@ -66,6 +68,7 @@ jobs:
         zip -r training_modpack_beta.zip atmosphere
     - name: Update Release
       uses: meeDamian/github-release@2.0
+      if: github.ref == 'refs/heads/master'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: true
