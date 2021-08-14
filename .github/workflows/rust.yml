@@ -16,6 +16,11 @@ jobs:
     - name: Get build deps
       run: |
         apt-get update && apt install -y build-essential
+    - name: test
+      run: |
+        echo $PATH
+      env:
+        PATH: $PATH:/root/.cargo/bin
     - uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
