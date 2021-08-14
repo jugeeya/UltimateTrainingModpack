@@ -25,7 +25,8 @@ jobs:
     - uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: +nightly --all-features --target x86_64-unknown-linux-gnu
+        toolchain: skyline
+        args: --all-features
       env:
         HOME: /root
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.cargo/bin
