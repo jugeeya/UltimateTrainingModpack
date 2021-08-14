@@ -29,6 +29,8 @@ jobs:
         path: src/templates/check.svg
     - name: Build outside_training_mode NRO
       run: PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --features outside_training_mode 
+      env:
+        HOME: /root
     - name: Upload plugin (outside training mode) artifact
       uses: actions/upload-artifact@v2
       with:
