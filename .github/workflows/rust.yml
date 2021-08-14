@@ -11,9 +11,9 @@ jobs:
     container: 
       image: jugeeya/cargo-skyline:2.1.0
     steps:
-    - name: ls stuff
+    - name: Git git
       run: |
-        ls . && ls / && ls /root/.cargo/bin && echo $PATH
+        apt-get update && apt-get install -y git
     - name: Clone repo
       run: |
         git clone https://github.com/jugeeya/UltimateTrainingModpack
