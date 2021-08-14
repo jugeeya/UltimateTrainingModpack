@@ -21,11 +21,11 @@ jobs:
         export PATH=$PATH:/root/.cargo/bin
     - name: test2
       run: |
-        echo $PATH
+        rustup component add aarch64-unknown-linux-gnu
     - uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-features
+        args: --all-features --target aarch64-unknown-linux-gnu
       env:
         HOME: /root
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.cargo/bin
