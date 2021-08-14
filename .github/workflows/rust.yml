@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Try clippy
       run: |
-        PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/rustup component add clippy && /root/.cargo/bin/cargo-skyline clippy
+        PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/rustup component add clippy && /root/.cargo/bin/cargo clippy
       env:
         HOME: /root
     - name: Build release NRO
