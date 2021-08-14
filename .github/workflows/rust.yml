@@ -13,9 +13,10 @@ jobs:
       image: jugeeya/cargo-skyline:2.1.0
     steps:
     - uses: actions/checkout@v2
-    - name: Try clippy
-      run: |
-        PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/rustup component add clippy && /root/.cargo/bin/cargo clippy
+    - uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all-features
       env:
         HOME: /root
     - name: Build release NRO
