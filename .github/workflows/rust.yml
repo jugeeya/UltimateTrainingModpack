@@ -12,6 +12,11 @@ jobs:
       image: jugeeya/cargo-skyline:2.1.0
     steps:
     - uses: actions/checkout@v2
+    - name: Try clippy
+      run: |
+        PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline clippy
+      env:
+        HOME: /root
     - name: Build release NRO
       run: |
         PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
