@@ -21,15 +21,17 @@ struct Toggle<'a> {
     checked: &'a str,
     index: usize,
     value: usize,
+    default: &'a str,
 }
 
 impl<'a> Toggle<'a> {
     pub fn new(title: &'a str, checked: bool, value: usize) -> Toggle<'a> {
         Toggle{
             title,
-            checked: if checked { "is-appear "} else { "is-hidden" },
+            checked: if checked { "is-appear"} else { "is-hidden" },
             index: 0,
-            value
+            value,
+            default: if checked { "is-appear"} else { "is-hidden" },
         }
     }
 }
@@ -37,14 +39,16 @@ impl<'a> Toggle<'a> {
 #[derive(Content)]
 struct OnOffSelector<'a> {
     title: &'a str,
-    checked: &'a str
+    checked: &'a str,
+    default: &'a str,
 }
 
 impl <'a>OnOffSelector<'a> {
     pub fn new(title: &'a str, checked: bool) -> OnOffSelector<'a> {
         OnOffSelector {
             title,
-            checked: if checked { "is-appear "} else { "is-hidden" }
+            checked: if checked { "is-appear"} else { "is-hidden" },
+            default: if checked { "is-appear"} else { "is-hidden" },
         }
     }
 }
@@ -69,12 +73,13 @@ impl<'a> SubMenu<'a> {
             .unwrap_or(self.index)
     }
 
-    pub fn add_toggle(&mut self, title: &'a str, checked: bool, value: usize) {
+    pub fn add_toggle(&mut self, title: &'a str, checked: bool, value: usize, default: bool) {
         self.toggles.push(Toggle{
             title,
-            checked: if checked { "is-appear "} else { "is-hidden" },
+            checked: if checked { "is-appear"} else { "is-hidden" },
             index: self.max_idx() + 1,
-            value
+            value,
+            default: if default { "is-appear"} else { "is-hidden" },
         });
     }
 
@@ -87,12 +92,13 @@ impl<'a> SubMenu<'a> {
         });
     }
 
-    pub fn add_onoffselector(&mut self, title: &'a str, checked: bool) {
+    pub fn add_onoffselector(&mut self, title: &'a str, checked: bool, default: bool) {
         // TODO: Is there a more elegant way to do this?
         // The HTML only supports a single onoffselector but the SubMenu stores it as a Vec
         self.onoffselector.push(OnOffSelector{
             title,
-            checked: if checked { "is-appear "} else { "is-hidden" }
+            checked: if checked { "is-appear"} else { "is-hidden" },
+            default: if default { "is-appear"} else { "is-hidden" },
         });
     }
 }
@@ -111,7 +117,7 @@ impl<'a> Menu<'a> {
             .unwrap_or(0)
     }
 
-    pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>, sliders: Vec<(usize,usize,usize)>) {
+    pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>, sliders: Vec<(usize,usize,usize)>, defaults: usize) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -123,7 +129,7 @@ impl<'a> Menu<'a> {
         };
 
         for toggle in toggles {
-            sub_menu.add_toggle(toggle.0, (check_against & toggle.1) != 0, toggle.1)
+            sub_menu.add_toggle(toggle.0, (check_against & toggle.1) != 0, toggle.1, (defaults & toggle.1) != 0)
         }
 
         for slider in sliders {
@@ -133,7 +139,7 @@ impl<'a> Menu<'a> {
         self.sub_menus.push(sub_menu);
     }
 
-    pub fn add_sub_menu_sep(&mut self, title: &'a str, id: &'a str, check_against: usize, strs: Vec<&'a str>, vals: Vec<usize>) {
+    pub fn add_sub_menu_sep(&mut self, title: &'a str, id: &'a str, check_against: usize, strs: Vec<&'a str>, vals: Vec<usize>, defaults: usize) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -145,7 +151,7 @@ impl<'a> Menu<'a> {
         };
 
         for i in 0..strs.len() {
-            sub_menu.add_toggle(strs[i], (check_against & vals[i]) != 0, vals[i])
+            sub_menu.add_toggle(strs[i], (check_against & vals[i]) != 0, vals[i], (defaults & vals[i]) != 0)
         }
 
         // TODO: add sliders?
@@ -153,7 +159,7 @@ impl<'a> Menu<'a> {
         self.sub_menus.push(sub_menu);
     }
 
-    pub fn add_sub_menu_onoff(&mut self, title: &'a str, id: &'a str, check_against: usize, checked: bool) {
+    pub fn add_sub_menu_onoff(&mut self, title: &'a str, id: &'a str, check_against: usize, checked: bool, default: usize) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -164,7 +170,7 @@ impl<'a> Menu<'a> {
             check_against
         };
 
-        sub_menu.add_onoffselector(title, checked);
+        sub_menu.add_onoffselector(title, checked, (default & OnOff::On as usize) != 0);
         self.sub_menus.push(sub_menu);
     }
 }
@@ -180,7 +186,8 @@ macro_rules! add_bitflag_submenu {
                 stringify!($id), 
                 MENU.$id.bits() as usize,
                 [<$id _strs>].iter().map(|i| i.as_str()).collect(),
-                [<$id _vals>]
+                [<$id _vals>],
+                DEFAULT_MENU.$id.bits() as usize,
             );
         }
     }
@@ -279,7 +286,8 @@ pub unsafe fn write_menu() {
             ("Medium", SdiStrength::Medium as usize),
             ("High", SdiStrength::High as usize),
         ].to_vec(),
-        [].to_vec()
+        [].to_vec(),
+        DEFAULT_MENU.sdi_strength as usize,
     );
 
     overall_menu.add_sub_menu(
@@ -291,7 +299,8 @@ pub unsafe fn write_menu() {
             ("Hold", Shield::Hold as usize),
             ("Infinite", Shield::Infinite as usize),
         ].to_vec(),
-        [].to_vec()
+        [].to_vec(),
+        DEFAULT_MENU.shield_state as usize,
     );
 
     overall_menu.add_sub_menu(
@@ -303,7 +312,8 @@ pub unsafe fn write_menu() {
             ("Alternate", SaveStateMirroring::Alternate as usize),
             ("Random", SaveStateMirroring::Random as usize),
         ].to_vec(),
-        [].to_vec()
+        [].to_vec(),
+        DEFAULT_MENU.save_state_mirroring as usize,
     );
 
     // Slider menus
@@ -315,7 +325,8 @@ pub unsafe fn write_menu() {
         [].to_vec(),
         [
             (0, 10, MENU.input_delay as usize)
-        ].to_vec()
+        ].to_vec(),
+        DEFAULT_MENU.input_delay as usize,
     );
 
 
@@ -324,32 +335,37 @@ pub unsafe fn write_menu() {
         "Save Damage",
         "save_damage",
         MENU.save_damage as usize,
-        (MENU.save_damage as usize & OnOff::On as usize) != 0
+        (MENU.save_damage as usize & OnOff::On as usize) != 0,
+        DEFAULT_MENU.save_damage as usize,
     );
     overall_menu.add_sub_menu_onoff(
         "Hitbox Visualization",
         "hitbox_vis",
         MENU.hitbox_vis as usize,
-        (MENU.hitbox_vis as usize & OnOff::On as usize) != 0
+        (MENU.hitbox_vis as usize & OnOff::On as usize) != 0,
+        DEFAULT_MENU.hitbox_vis as usize,
     );
 
     overall_menu.add_sub_menu_onoff(
         "Stage Hazards",
         "stage_hazards",
         MENU.stage_hazards as usize,
-        (MENU.stage_hazards as usize & OnOff::On as usize) != 0
+        (MENU.stage_hazards as usize & OnOff::On as usize) != 0,
+        DEFAULT_MENU.stage_hazards as usize,
     );
     overall_menu.add_sub_menu_onoff(
         "Frame Advantage",
         "frame_advantage",
         MENU.frame_advantage as usize,
-        (MENU.frame_advantage as usize & OnOff::On as usize) != 0
+        (MENU.frame_advantage as usize & OnOff::On as usize) != 0,
+        DEFAULT_MENU.frame_advantage as usize,
     );
     overall_menu.add_sub_menu_onoff(
         "Mash In Neutral",
         "mash_in_neutral",
         MENU.mash_in_neutral as usize,
-        (MENU.mash_in_neutral as usize & OnOff::On as usize) != 0
+        (MENU.mash_in_neutral as usize & OnOff::On as usize) != 0,
+        DEFAULT_MENU.mash_in_neutral as usize,
     );
 
     let data = tpl.render(&overall_menu);

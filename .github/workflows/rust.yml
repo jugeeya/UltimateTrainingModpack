@@ -2,28 +2,22 @@ name: Rust
 
 on:
   push:
+  pull_request:
     branches: [ master ]
   workflow_dispatch:
 
 jobs:
   plugin:
     runs-on: ubuntu-latest
+    container: 
+      image: jugeeya/cargo-skyline:2.1.0
     steps:
     - uses: actions/checkout@v2
-    - name: Install minimal stable rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-    - name: Install cargo-skyline
-      run: |
-        cargo install cargo-skyline
-    - name: Update skyline-rs toolchain
-      run: |
-        cargo skyline update-std
     - name: Build release NRO
       run: |
-        cargo skyline build --release
+        PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
+      env:
+        HOME: /root
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v2
       with:
@@ -35,8 +29,12 @@ jobs:
         name: svg
         path: src/templates/check.svg
     - name: Build outside_training_mode NRO
-      run: cargo skyline build --features outside_training_mode 
+      if: github.ref == 'refs/heads/master'
+      run: PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --features outside_training_mode 
+      env:
+        HOME: /root
     - name: Upload plugin (outside training mode) artifact
+      if: github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
       with:
         name: plugin_outside_training_mode
@@ -71,7 +69,15 @@ jobs:
 
         cp svg/check.svg ${{env.SMASH_WEB_DIR}}/check.svg
         zip -r training_modpack_beta.zip atmosphere
+    - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      if: github.ref == 'refs/heads/master'
+      with:
+        delete_release: true
+        tag_name: beta
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Update Release
+      if: github.ref == 'refs/heads/master'
       uses: meeDamian/github-release@2.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}

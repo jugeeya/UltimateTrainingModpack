@@ -8,8 +8,7 @@ use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 
-
-pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
+pub static DEFAULT_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     hitbox_vis: OnOff::On,
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
@@ -40,6 +39,8 @@ pub static mut MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     frame_advantage: OnOff::Off
 };
 
+
+pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
