@@ -59,6 +59,7 @@ jobs:
         path: target/aarch64-skyline-switch/dev/libtraining_modpack.nro
   upload:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     needs:
       - plugin
     steps:
