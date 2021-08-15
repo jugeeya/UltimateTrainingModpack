@@ -2,15 +2,14 @@ name: Rust
 
 on:
   push:
+    branches: [ master ]
   pull_request:
     branches: [ master ]
   workflow_dispatch:
 
 jobs:
-  plugin:
+  clippy_pr:
     runs-on: ubuntu-latest
-    container: 
-      image: jugeeya/cargo-skyline:2.1.0
     steps:
     - uses: actions/checkout@v2
     - name: Install minimal nightly rust
@@ -26,6 +25,12 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         toolchain: nightly-2021-06-01
         args: --all-features --target=x86_64-unknown-linux-gnu
+  plugin:
+    runs-on: ubuntu-latest
+    container: 
+      image: jugeeya/cargo-skyline:2.1.0
+    steps:
+    - uses: actions/checkout@v2
     - name: Build release NRO
       run: |
         PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
@@ -54,6 +59,7 @@ jobs:
         path: target/aarch64-skyline-switch/dev/libtraining_modpack.nro
   upload:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     needs:
       - plugin
     steps:
