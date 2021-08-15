@@ -13,6 +13,19 @@ jobs:
       image: jugeeya/cargo-skyline:2.1.0
     steps:
     - uses: actions/checkout@v2
+    - name: Install minimal nightly rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly-2021-06-01
+        components: rustfmt, clippy
+        default: true
+        target: x86_64-unknown-linux-gnu
+    - uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        toolchain: nightly-2021-06-01
+        args: --all-features --target=x86_64-unknown-linux-gnu
     - name: Build release NRO
       run: |
         PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
@@ -55,29 +68,17 @@ jobs:
         mkdir -p ${{env.SKYLINE_DIR}} 
         mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
         mkdir -p ${{env.SMASH_WEB_DIR}}
-
         wget https://github.com/skyline-dev/skyline/releases/download/beta/skyline.zip
         unzip skyline.zip
-
         mv exefs ${{env.SKYLINE_DIR}}
-
         cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
         wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro
         wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.1.1/libnro_hook.nro
         cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
         cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
-
         cp svg/check.svg ${{env.SMASH_WEB_DIR}}/check.svg
         zip -r training_modpack_beta.zip atmosphere
-    - uses: dev-drprasad/delete-tag-and-release@v0.2.0
-      if: github.ref == 'refs/heads/master'
-      with:
-        delete_release: true
-        tag_name: beta
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Update Release
-      if: github.ref == 'refs/heads/master'
       uses: meeDamian/github-release@2.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}

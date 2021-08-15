@@ -13,7 +13,7 @@ pub static RAYGUN_HORIZ_OFFSET : f32 = 2.0;
         |_|                                                  /|\
 */
 
-pub static segment_dict: [[f32; 5]; 15] = [
+pub static SEGMENT_DICT: [[f32; 5]; 15] = [
         [0.0, RAYGUN_HEIGHT*2.0,   0.0,                    0.0, 0.25], // a
         [0.0, RAYGUN_HEIGHT,     RAYGUN_LENGTH,       90.0, 0.25], // b
         [0.0, 0.0,                 RAYGUN_LENGTH,       90.0, 0.25], // c
@@ -35,7 +35,7 @@ pub static segment_dict: [[f32; 5]; 15] = [
     Segments making up each character, each index corresponding to:
     'A' through 'Z', '0' through '9', ' ', '-', '+', '#' (where '#' is all segments)
 */
-pub static alphabet: [&str; 40] = [   
+pub static ALPHABET: [&str; 40] = [   
     "abcefg",
     "adefijn",
     "adef",
@@ -79,7 +79,7 @@ pub static alphabet: [&str; 40] = [
 ];
 
 // Each index is a segment's corresponding flipped segment, for when facing left
-pub static segment_rev: [char; 15] = [
+pub static SEGMENT_REV: [char; 15] = [
     'a',
     'f',
     'e',
@@ -98,7 +98,7 @@ pub static segment_rev: [char; 15] = [
 ];
 
 fn show_segment(module_accessor: &mut app::BattleObjectModuleAccessor, z: f32, y: f32, x: f32, zrot: f32, size: f32) {
-    let pos = Vector3f{x : x, y : y, z : z};
+    let pos = Vector3f{x, y, z};
     let rot = Vector3f{x : 0.0, y : 90.0, z : zrot};
     let random = Vector3f{x : 0.0, y : 0.0, z : 0.0};
 
@@ -126,14 +126,13 @@ fn print_char(module_accessor: &mut app::BattleObjectModuleAccessor,
     to_print: char, 
     line_num: i32, 
     horiz_offset: f32,
-    facing_left: f32) 
+    facing_left: i32) 
 {
     let alph_index = alphabet_index(to_print);
-    if (alph_index < 0 || alph_index >= 40) {
+    if !(0..40).contains(&alph_index) {
         return;
     }
-    let segment_str = alphabet[alph_index as usize];
-    let num_segments = segment_str.len();
+    let segment_str = ALPHABET[alph_index as usize];
 
     let line_offset = 40.0 - ((line_num as f32) * 16.0);
 
@@ -141,10 +140,10 @@ fn print_char(module_accessor: &mut app::BattleObjectModuleAccessor,
         let mut index = segment_char as i32 - 'a' as i32;
 
         let segment: [f32; 5];
-        if facing_left == -1.0 {
-            index = segment_rev[index as usize] as i32 - 'a' as i32;
+        if facing_left == -1 {
+            index = SEGMENT_REV[index as usize] as i32 - 'a' as i32;
         }
-        segment = segment_dict[index as usize];
+        segment = SEGMENT_DICT[index as usize];
 
         let size_mult : f32 = 0.5;
 
@@ -153,14 +152,14 @@ fn print_char(module_accessor: &mut app::BattleObjectModuleAccessor,
         let mut x = segment[2] + horiz_offset;
         let mut zrot = segment[3];
 
-        if facing_left == -1.0 {
+        if facing_left == -1 {
             zrot *= -1.0;
         }
 
         let mut size = segment[4];
 
         x *= size_mult;
-        x += facing_left * 5.0;
+        x += facing_left as f32 * 5.0;
         y *= size_mult;
         y += 5.0;
         z *= size_mult;
@@ -179,12 +178,12 @@ pub fn print_string(module_accessor: &mut app::BattleObjectModuleAccessor, to_wr
     let mut horiz_offset = 0.0;
     let mut char_num = 0;
 
-    let mut facing_left: f32 = 1.0;
+    let facing_left: i32;
     unsafe {
-        facing_left = app::lua_bind::PostureModule::lr(module_accessor);
+        facing_left = app::lua_bind::PostureModule::lr(module_accessor) as i32;
     }
 
-    if (to_write.len() <= 8 && !to_write.contains("\n")) {
+    if to_write.len() <= 8 && !to_write.contains('\n') {
         line_num = 1;
     }
     for curr_char in to_write.chars() {
@@ -200,12 +199,12 @@ pub fn print_string(module_accessor: &mut app::BattleObjectModuleAccessor, to_wr
         char_num += 1;
         // short characters
         if curr_char == 'D' || curr_char == '1' {
-            horiz_offset += facing_left * (RAYGUN_LENGTH/2.0 + 3.0);
+            horiz_offset += facing_left as f32 * (RAYGUN_LENGTH/2.0 + 3.0);
         } else {
-            horiz_offset += facing_left * (RAYGUN_LENGTH + 3.0);
+            horiz_offset += facing_left as f32 * (RAYGUN_LENGTH + 3.0);
         }
 
-        if (char_num > 8) {
+        if char_num > 8 {
             horiz_offset = 0.0;
             char_num = 0;
             line_num += 1;

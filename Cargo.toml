@@ -23,6 +23,8 @@ num = "0.3.0"
 num-derive = "0.3"
 num-traits = "0.2"
 wsl = "0.1.0"
+strum = "0.21.0"
+strum_macros = "0.21.0"
 
 [profile.dev]
 panic = "abort"
