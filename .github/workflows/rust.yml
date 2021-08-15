@@ -31,19 +31,6 @@ jobs:
       image: jugeeya/cargo-skyline:2.1.0
     steps:
     - uses: actions/checkout@v2
-    - name: Install minimal nightly rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: nightly-2021-06-01
-        components: rustfmt, clippy
-        default: true
-        target: x86_64-unknown-linux-gnu
-    - uses: actions-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        toolchain: nightly-2021-06-01
-        args: --all-features --target=x86_64-unknown-linux-gnu
     - name: Build release NRO
       run: |
         PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
