@@ -110,12 +110,11 @@ pub unsafe fn is_enable_transition_term(
     }
 
     // Disallow the default cliff-climb if we are waiting
-    if LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY {
-        if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
-            return Some(false);
-        }
+    if (LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY) &&
+            term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
+        return Some(false);
     }
-    return None
+    None
 }
 
 pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {

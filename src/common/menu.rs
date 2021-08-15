@@ -1,12 +1,11 @@
-
 use std::fs;
 use std::path::Path;
 use crate::common::*;
 use skyline::info::get_program_id;
-use skyline::nn::hid::NpadHandheldState;
 use smash::lib::lua_const::*;
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
+use strum::IntoEnumIterator;
 
 #[derive(Content)]
 struct Slider {
@@ -27,7 +26,7 @@ struct Toggle<'a> {
 impl<'a> Toggle<'a> {
     pub fn new(title: &'a str, checked: bool, value: usize) -> Toggle<'a> {
         Toggle{
-            title: title,
+            title,
             checked: if checked { "is-appear "} else { "is-hidden" },
             index: 0,
             value
@@ -44,7 +43,7 @@ struct OnOffSelector<'a> {
 impl <'a>OnOffSelector<'a> {
     pub fn new(title: &'a str, checked: bool) -> OnOffSelector<'a> {
         OnOffSelector {
-            title: title,
+            title,
             checked: if checked { "is-appear "} else { "is-hidden" }
         }
     }
@@ -72,7 +71,7 @@ impl<'a> SubMenu<'a> {
 
     pub fn add_toggle(&mut self, title: &'a str, checked: bool, value: usize) {
         self.toggles.push(Toggle{
-            title: title,
+            title,
             checked: if checked { "is-appear "} else { "is-hidden" },
             index: self.max_idx() + 1,
             value
@@ -92,7 +91,7 @@ impl<'a> SubMenu<'a> {
         // TODO: Is there a more elegant way to do this?
         // The HTML only supports a single onoffselector but the SubMenu stores it as a Vec
         self.onoffselector.push(OnOffSelector{
-            title: title,
+            title,
             checked: if checked { "is-appear "} else { "is-hidden" }
         });
     }
@@ -114,13 +113,13 @@ impl<'a> Menu<'a> {
 
     pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>, sliders: Vec<(usize,usize,usize)>) {
         let mut sub_menu = SubMenu {
-            title: title,
-            id: id,
+            title,
+            id,
             toggles: Vec::new(),
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against: check_against
+            check_against
         };
 
         for toggle in toggles {
@@ -136,13 +135,13 @@ impl<'a> Menu<'a> {
 
     pub fn add_sub_menu_sep(&mut self, title: &'a str, id: &'a str, check_against: usize, strs: Vec<&'a str>, vals: Vec<usize>) {
         let mut sub_menu = SubMenu {
-            title: title,
-            id: id,
+            title,
+            id,
             toggles: Vec::new(),
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against: check_against
+            check_against
         };
 
         for i in 0..strs.len() {
@@ -156,13 +155,13 @@ impl<'a> Menu<'a> {
 
     pub fn add_sub_menu_onoff(&mut self, title: &'a str, id: &'a str, check_against: usize, checked: bool) {
         let mut sub_menu = SubMenu {
-            title: title,
-            id: id,
+            title,
+            id,
             toggles: Vec::new(),
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against: check_against
+            check_against
         };
 
         sub_menu.add_onoffselector(title, checked);
@@ -187,25 +186,44 @@ macro_rules! add_bitflag_submenu {
     }
 }
 
+macro_rules! add_single_option_submenu {
+    ($menu:ident, $title:literal, $id:ident, $e:ty) => {
+        paste::paste!{
+            let [<$id _toggles>] = Vec::new();
+            for val in [<$e>]::iter() {
+                [<$id _toggles>].push((val.into_string().as_str(), val as usize));
+            }
+
+            $menu.add_sub_menu(
+                $title, 
+                stringify!($id), 
+                MENU.$id as usize,
+                [<$id _toggles>],
+                [].to_vec()
+            );
+        }
+    }
+}
+
 pub fn set_menu_from_url(s: &str) {
     let base_url_len = "http://localhost/?".len();
     let total_len = s.len();
 
     let ss: String = s.chars().skip(base_url_len).take(total_len - base_url_len).collect();
     
-    for toggle_values in ss.split("&") {
-        let toggle_value_split = toggle_values.split("=").collect::<Vec<&str>>();
+    for toggle_values in ss.split('&') {
+        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
         let toggle = toggle_value_split[0];
-        if toggle == "" { continue; }
+        if toggle.is_empty() { continue; }
         
         let toggle_vals = toggle_value_split[1];
         
         let mut bits = 0;
-        for toggle_val in toggle_vals.split(",") {
-            if toggle_val == "" { continue; }
+        for toggle_val in toggle_vals.split(',') {
+            if toggle_val.is_empty() { continue; }
         
             let val = toggle_val.parse::<u32>().unwrap();
-            bits = bits | val;
+            bits |= val;
         }
 
 

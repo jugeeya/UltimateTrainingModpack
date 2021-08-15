@@ -2,6 +2,7 @@
 #![feature(with_options)]
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
+#![allow(clippy::borrow_interior_mutable_const, clippy::not_unsafe_ptr_arg_deref, clippy::missing_safety_doc, clippy::wrong_self_convention)]
 
 pub mod common;
 mod hazard_manager;
@@ -103,7 +104,7 @@ pub fn main() {
     }
 
     let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
-    if !fs::metadata(ovl_path).is_err() {
+    if fs::metadata(ovl_path).is_ok() {
         log!("Removing ovlTrainingModpack.ovl...");
         fs::remove_file(ovl_path).unwrap();
     }

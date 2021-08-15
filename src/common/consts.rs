@@ -1,6 +1,8 @@
 use crate::common::get_random_int;
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 // bitflag helper function macro
 macro_rules! extra_bitflag_impls {
@@ -523,7 +525,7 @@ impl Delay {
     }
 
     pub fn into_delay(&self) -> u32 {
-        return self.to_index()
+        self.to_index()
     }
 }
 
@@ -604,7 +606,7 @@ impl LongDelay {
     }
 
     pub fn into_longdelay(&self) -> u32 {
-        return self.to_index() * 10
+        self.to_index() * 10
     }
 }
 
@@ -621,10 +623,7 @@ extra_bitflag_impls! {BoolFlag}
 
 impl BoolFlag {
     pub fn into_bool(self) -> bool {
-        match self {
-            BoolFlag::TRUE => true,
-            _ => false,
-        }
+        matches!(self, BoolFlag::TRUE)
     }
 
     pub fn into_string(self) -> String {
@@ -637,8 +636,7 @@ impl BoolFlag {
 
 
 #[repr(u32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive)]
-#[allow(dead_code)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter)]
 pub enum SdiStrength {
     Normal = 0,
     Medium = 1,
@@ -672,11 +670,11 @@ impl SdiStrength {
 }
 
 // For input delay
-trait to_url_param {
+trait ToUrlParam {
     fn to_url_param(&self) -> String;
 }
 
-impl to_url_param for i32 {
+impl ToUrlParam for i32 {
     fn to_url_param(&self) -> String {
         self.to_string()
     }
