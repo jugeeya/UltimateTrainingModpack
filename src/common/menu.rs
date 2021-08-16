@@ -39,7 +39,8 @@ struct SubMenu<'a> {
     sliders: Vec<Slider>,
     onoffselector: Vec<OnOffSelector<'a>>,
     index: usize,
-    check_against: usize
+    check_against: usize,
+    is_single_option: Option<bool>
 }
 
 impl<'a> SubMenu<'a> {
@@ -103,7 +104,8 @@ impl<'a> Menu<'a> {
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against
+            check_against,
+            is_single_option: Some(true)
         };
 
         for toggle in toggles {
@@ -125,7 +127,8 @@ impl<'a> Menu<'a> {
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against
+            check_against,
+            is_single_option: None
         };
 
         for i in 0..strs.len() {
@@ -145,7 +148,8 @@ impl<'a> Menu<'a> {
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against
+            check_against,
+            is_single_option: None
         };
 
         sub_menu.add_onoffselector(title, checked, (default & OnOff::On as usize) != 0);
