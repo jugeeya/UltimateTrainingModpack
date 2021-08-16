@@ -33,6 +33,7 @@ pub unsafe fn process_hit_stop_delay(
         let option = mod_sdi_direction(fighter);
 
         if let Some(angle) = option {
+            // is arg1 the angle? Maybe need to modify this...
             new_x = (angle.cos() as f32).into();
             new_y = (angle.sin() as f32).into();
         }
