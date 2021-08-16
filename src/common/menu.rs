@@ -5,7 +5,6 @@ use skyline::info::get_program_id;
 use smash::lib::lua_const::*;
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
-use strum::IntoEnumIterator;
 
 #[derive(Content)]
 struct Slider {
@@ -24,33 +23,11 @@ struct Toggle<'a> {
     default: &'a str,
 }
 
-impl<'a> Toggle<'a> {
-    pub fn new(title: &'a str, checked: bool, value: usize) -> Toggle<'a> {
-        Toggle{
-            title,
-            checked: if checked { "is-appear"} else { "is-hidden" },
-            index: 0,
-            value,
-            default: if checked { "is-appear"} else { "is-hidden" },
-        }
-    }
-}
-
 #[derive(Content)]
 struct OnOffSelector<'a> {
     title: &'a str,
     checked: &'a str,
     default: &'a str,
-}
-
-impl <'a>OnOffSelector<'a> {
-    pub fn new(title: &'a str, checked: bool) -> OnOffSelector<'a> {
-        OnOffSelector {
-            title,
-            checked: if checked { "is-appear"} else { "is-hidden" },
-            default: if checked { "is-appear"} else { "is-hidden" },
-        }
-    }
 }
 
 #[derive(Content)]
@@ -193,24 +170,24 @@ macro_rules! add_bitflag_submenu {
     }
 }
 
-macro_rules! add_single_option_submenu {
-    ($menu:ident, $title:literal, $id:ident, $e:ty) => {
-        paste::paste!{
-            let [<$id _toggles>] = Vec::new();
-            for val in [<$e>]::iter() {
-                [<$id _toggles>].push((val.into_string().as_str(), val as usize));
-            }
+// macro_rules! add_single_option_submenu {
+//     ($menu:ident, $title:literal, $id:ident, $e:ty) => {
+//         paste::paste!{
+//             let [<$id _toggles>] = Vec::new();
+//             for val in [<$e>]::iter() {
+//                 [<$id _toggles>].push((val.into_string().as_str(), val as usize));
+//             }
 
-            $menu.add_sub_menu(
-                $title, 
-                stringify!($id), 
-                MENU.$id as usize,
-                [<$id _toggles>],
-                [].to_vec()
-            );
-        }
-    }
-}
+//             $menu.add_sub_menu(
+//                 $title, 
+//                 stringify!($id), 
+//                 MENU.$id as usize,
+//                 [<$id _toggles>],
+//                 [].to_vec()
+//             );
+//         }
+//     }
+// }
 
 pub fn set_menu_from_url(s: &str) {
     let base_url_len = "http://localhost/?".len();
@@ -382,19 +359,26 @@ pub unsafe fn write_menu() {
 }
 
 pub unsafe fn spawn_menu() {
-    let fname = "index.html";
-    let params = MENU.to_url_params();
+    std::thread::spawn(||{
+        let fname = "index.html";
+        let params = MENU.to_url_params();
+        let page_response = Webpage::new()
+            .background(Background::BlurredScreenshot)
+            .htdocs_dir("contents")
+            .boot_display(BootDisplay::BlurredScreenshot)
+            .boot_icon(true)
+            .start_page(&format!("{}{}", fname, params))
+            .open()
+            .unwrap();
 
-    let response = Webpage::new()
-        .background(Background::BlurredScreenshot)
-        .htdocs_dir("contents")
-        .boot_display(BootDisplay::BlurredScreenshot)
-        .boot_icon(true)
-        .start_page(&format!("{}{}", fname, params))
-        .open()
-        .unwrap();
+        let last_url = page_response
+            .get_last_url()
+            .unwrap();
 
-    let last_url = response.get_last_url().unwrap();
+        set_menu_from_url(last_url);
 
-    set_menu_from_url(last_url);
+        let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
+        std::fs::write(menu_conf_path, last_url)
+            .expect("Failed to write menu conf file");
+    });
 }
