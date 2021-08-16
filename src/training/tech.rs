@@ -43,20 +43,15 @@ unsafe fn mod_handle_change_status(
 
     let state: TechFlags = MENU.tech_state.get_random();
 
-    let grnd_teched = handle_grnd_tech(module_accessor, status_kind, unk, status_kind_int, state);
-    if grnd_teched {
+    if handle_grnd_tech(module_accessor, status_kind, unk, status_kind_int, state) {
         return;
     }
 
-    let wall_teched = handle_wall_tech(module_accessor, status_kind, unk, status_kind_int, state);
-    if wall_teched {
+    if handle_wall_tech(module_accessor, status_kind, unk, status_kind_int, state) {
         return;
     }
 
-    let ceil_teched = handle_ceil_tech(module_accessor, status_kind, unk, status_kind_int, state);
-    if ceil_teched {
-        return;
-    }
+    handle_ceil_tech(module_accessor, status_kind, unk, status_kind_int, state);
 }
 fn handle_grnd_tech(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -109,7 +104,7 @@ fn handle_grnd_tech(
         _ => (),
     }
 
-    return true;
+    true
 }
 
 fn handle_wall_tech(
@@ -152,7 +147,7 @@ fn handle_wall_tech(
         _ => (),
     }
 
-    return true;
+    true
 }
 
 fn handle_ceil_tech(
@@ -185,7 +180,7 @@ fn handle_ceil_tech(
 
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
-    return true;
+    true
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -222,7 +217,6 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         StatusModule::change_status_request_from_script(module_accessor, status, false);
 
         mash::perform_defensive_option();
-        return;
     }
 }
 

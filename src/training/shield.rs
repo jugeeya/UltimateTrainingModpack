@@ -115,7 +115,7 @@ pub unsafe fn get_param_float(
         handle_oos_offset(module_accessor);
     }
 
-    return handle_shield_decay(param_type, param_hash);
+    handle_shield_decay(param_type, param_hash)
 }
 
 // Shield Decay//Recovery
@@ -144,7 +144,7 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
         return Some(999.0);
     }
 
-    return None;
+    None
 }
 
 pub unsafe fn param_installer() {
@@ -323,10 +323,7 @@ fn needs_oos_handling_drop_shield() -> bool {
 }
 
 pub fn is_aerial(action: Action) -> bool {
-    match action {
-        Action::NAIR | Action::FAIR | Action::BAIR | Action::UAIR | Action::DAIR => true,
-        _ => false,
-    }
+    matches!(action, Action::NAIR | Action::FAIR | Action::BAIR | Action::UAIR | Action::DAIR)
 }
 
 // Needed for shield drop options
