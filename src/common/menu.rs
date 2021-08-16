@@ -359,26 +359,24 @@ pub unsafe fn write_menu() {
 }
 
 pub unsafe fn spawn_menu() {
-    std::thread::spawn(||{
-        let fname = "index.html";
-        let params = MENU.to_url_params();
-        let page_response = Webpage::new()
-            .background(Background::BlurredScreenshot)
-            .htdocs_dir("contents")
-            .boot_display(BootDisplay::BlurredScreenshot)
-            .boot_icon(true)
-            .start_page(&format!("{}{}", fname, params))
-            .open()
-            .unwrap();
+    let fname = "index.html";
+    let params = MENU.to_url_params();
+    let page_response = Webpage::new()
+        .background(Background::BlurredScreenshot)
+        .htdocs_dir("contents")
+        .boot_display(BootDisplay::BlurredScreenshot)
+        .boot_icon(true)
+        .start_page(&format!("{}{}", fname, params))
+        .open()
+        .unwrap();
 
-        let last_url = page_response
-            .get_last_url()
-            .unwrap();
+     let last_url = page_response
+        .get_last_url()
+        .unwrap();
 
-        set_menu_from_url(last_url);
+    set_menu_from_url(last_url);
 
-        let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-        std::fs::write(menu_conf_path, last_url)
-            .expect("Failed to write menu conf file");
-    });
+    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
+    std::fs::write(menu_conf_path, last_url)
+        .expect("Failed to write menu conf file");
 }
