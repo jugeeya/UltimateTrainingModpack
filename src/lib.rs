@@ -63,8 +63,10 @@ pub fn main() {
     hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
-
-    mkdir(c_str!("sd:/TrainingModpack/"), 777);
+     
+    unsafe {
+        mkdir(c_str!("sd:/TrainingModpack/"), 777);
+    }
 
     let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
     if fs::metadata(ovl_path).is_ok() {
@@ -78,7 +80,7 @@ pub fn main() {
     
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     if !fs::metadata(menu_conf_path).is_err() {
-        log!("[Training Modpack] Loading previous menu from training_modpack_menu.conf...");
+        log!("Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
         set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
     }

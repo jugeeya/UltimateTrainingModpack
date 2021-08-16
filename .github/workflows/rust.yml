@@ -2,6 +2,7 @@ name: Rust
 
 on:
   push:
+  pull_request:
     branches: [ master ]
   pull_request:
     branches: [ master ]
@@ -10,8 +11,13 @@ on:
 jobs:
   clippy_pr:
     runs-on: ubuntu-latest
+    container: 
+      image: jugeeya/cargo-skyline:2.1.0
     steps:
     - uses: actions/checkout@v2
+    - name: test2
+      run: |
+        /root/.cargo/bin/rustup +nightly target add x86_64-unknown-linux-gnu && /root/.cargo/bin/rustup +nightly component add clippy --target=x86_64-unknown-linux-gnu
     - name: Install minimal nightly rust
       uses: actions-rs/toolchain@v1
       with:
@@ -25,12 +31,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         toolchain: nightly-2021-06-01
         args: --all-features --target=x86_64-unknown-linux-gnu
-  plugin:
-    runs-on: ubuntu-latest
-    container: 
-      image: jugeeya/cargo-skyline:2.1.0
-    steps:
-    - uses: actions/checkout@v2
     - name: Build release NRO
       run: |
         PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
