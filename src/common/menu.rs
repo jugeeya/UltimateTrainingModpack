@@ -56,7 +56,7 @@ impl<'a> SubMenu<'a> {
             checked: if checked { "is-appear"} else { "is-hidden" },
             index: self.max_idx() + 1,
             value,
-            default: if default { "is-appear"} else { "is-hidden" },
+            default: if default { "appear"} else { "hidden" },
         });
     }
 
@@ -75,7 +75,7 @@ impl<'a> SubMenu<'a> {
         self.onoffselector.push(OnOffSelector{
             title,
             checked: if checked { "is-appear"} else { "is-hidden" },
-            default: if default { "is-appear"} else { "is-hidden" },
+            default: if default { "appear"} else { "hidden" },
         });
     }
 }

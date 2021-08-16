@@ -370,13 +370,13 @@
 
             function resetSubmenu() {
                 // Resets any open or focused submenus to the default values
-                $("[default*='is-appear']").each(function () {
+                $("[default*='appear']").each(function () {
                     if (isSubmenuFocused(this)) {
                         $(this).addClass("is-appear");
                         $(this).removeClass("is-hidden");
                     }
                 });
-                $("[default*='is-hidden']").each(function() {
+                $("[default*='hidden']").each(function() {
                     if (isSubmenuFocused(this)) {
                         $(this).removeClass("is-appear");
                         $(this).addClass("is-hidden");
@@ -395,11 +395,11 @@
             function resetAllSubmenus() {
                 // Resets all submenus to the default values
                 if (confirm("Are you sure that you want to reset all menu settings to the default?")) {
-                    $("[default*='is-appear']").addClass("is-appear");
-                    $("[default*='is-appear']").removeClass("is-hidden");
+                    $("[default*='appear']").addClass("is-appear");
+                    $("[default*='appear']").removeClass("is-hidden");
 
-                    $("[default*='is-hidden']").removeClass("is-appear");
-                    $("[default*='is-hidden']").addClass("is-hidden");
+                    $("[default*='hidden']").removeClass("is-appear");
+                    $("[default*='hidden']").addClass("is-hidden");
                 }
             }
         </script>
