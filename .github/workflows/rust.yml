@@ -41,11 +41,11 @@ jobs:
       with:
         name: plugin
         path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-    - name: Upload check SVG
+    - name: Upload menu icons
       uses: actions/upload-artifact@v2
       with:
         name: svg
-        path: src/templates/check.svg
+        path: src/templates/*.svg
     - name: Build outside_training_mode NRO
       if: github.ref == 'refs/heads/master'
       run: PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --features outside_training_mode 
