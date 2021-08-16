@@ -191,6 +191,7 @@ macro_rules! add_bitflag_submenu {
 
 pub fn set_menu_from_url(s: &str) {
     let base_url_len = "http://localhost/?".len();
+    println!("Menu Full URL: {}", s);
     let total_len = s.len();
 
     let ss: String = s.chars().skip(base_url_len).take(total_len - base_url_len).collect();
@@ -198,10 +199,12 @@ pub fn set_menu_from_url(s: &str) {
     for toggle_values in ss.split('&') {
         let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
         let toggle = toggle_value_split[0];
+        println!("toggle_values: {}", toggle_values);
+        println!("toggle: {}", toggle);
         if toggle.is_empty() { continue; }
         
         let toggle_vals = toggle_value_split[1];
-        
+        println!("toggle_vals: {}", toggle_vals);
         let mut bits = 0;
         for toggle_val in toggle_vals.split(',') {
             if toggle_val.is_empty() { continue; }
