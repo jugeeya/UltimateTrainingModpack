@@ -316,12 +316,8 @@
             }
 
             function clickToggle(e) {
-                var toggleImage = e.children[0];
-                if (toggleImage.innerHTML.includes("is-appear")) {
-                    toggleImage.innerHTML = toggleImage.innerHTML.replace("is-appear", "is-hidden");
-                } else {
-                    toggleImage.innerHTML = toggleImage.innerHTML.replace("is-hidden", "is-appear");
-                }
+                $(e).find(".toggle").toggleClass("is-appear");
+                $(e).find(".toggle").toggleClass("is-hidden");
             }
 
             function getParams(url) {
@@ -346,13 +342,13 @@
                     var children = $(this).children("li");
                     for (var i = 0; i < children.length; i++) {
                         var child = children[i];
-                        var e = $(child).find("img.toggle")[0];
+                        var e = $(child).find("img.toggle");
                         if (section_setting.split(",").includes(child.getAttribute("val"))) {
-                            e.classList.add("is-appear");
-                            e.classList.remove("is-hidden");
+                            e.addClass("is-appear");
+                            e.removeClass("is-hidden");
                         } else {
-                            e.classList.remove("is-appear");
-                            e.classList.add("is-hidden");
+                            e.removeClass("is-appear");
+                            e.addClass("is-hidden");
                         };
                     }
                 });
@@ -361,14 +357,14 @@
                 $("div.onoff").each(function () {
                     var section = this.id;
                     var section_setting = decodeURIComponent(settings[section]);
-                    var e = $(this).find("img.toggle")[0];
+                    var e = $(this).find("img.toggle");
                     if (section_setting == "1") {
-                        e.classList.add("is-appear");
-                        e.classList.remove("is-hidden");
+                        e.addClass("is-appear");
+                        e.removeClass("is-hidden");
                     } else {
-                        e.classList.remove("is-appear");
-                        e.classList.add("is-hidden");
-                    }
+                        e.removeClass("is-appear");
+                        e.addClass("is-hidden");
+                    };
                 });
             }
 
@@ -376,14 +372,14 @@
                 // Resets any open or focused submenus to the default values
                 $("[default*='is-appear']").each(function () {
                     if (isSubmenuFocused(this)) {
-                        this.classList.add("is-appear");
-                        this.classList.remove("is-hidden");
+                        $(this).addClass("is-appear");
+                        $(this).removeClass("is-hidden");
                     }
                 });
                 $("[default*='is-hidden']").each(function() {
                     if (isSubmenuFocused(this)) {
-                        this.classList.remove("is-appear");
-                        this.classList.add("is-hidden");
+                        $(this).removeClass("is-appear");
+                        $(this).addClass("is-hidden");
                     }
                 });
             }
@@ -399,14 +395,11 @@
             function resetAllSubmenus() {
                 // Resets all submenus to the default values
                 if (confirm("Are you sure that you want to reset all menu settings to the default?")) {
-                    $("[default*='is-appear']").each(function () {
-                            this.classList.add("is-appear");
-                            this.classList.remove("is-hidden");
-                    });
-                    $("[default*='is-hidden']").each(function() {
-                            this.classList.remove("is-appear");
-                            this.classList.add("is-hidden");
-                    });
+                    $("[default*='is-appear']").addClass("is-appear");
+                    $("[default*='is-appear']").removeClass("is-hidden");
+
+                    $("[default*='is-hidden']").removeClass("is-appear");
+                    $("[default*='is-hidden']").addClass("is-hidden");
                 }
             }
         </script>
