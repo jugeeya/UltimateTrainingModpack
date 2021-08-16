@@ -213,8 +213,8 @@ macro_rules! add_single_option_submenu {
             }
 
             $menu.add_sub_menu(
-                $title,
-                stringify!($id),
+                $title, 
+                stringify!($id), 
                 MENU.$id as usize,
                 [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
                 [].to_vec(),
@@ -226,16 +226,16 @@ macro_rules! add_single_option_submenu {
 
 macro_rules! add_onoff_submenu {
     ($menu:ident, $title:literal, $id:ident) => {
-        paste::paste! {
+        paste::paste!{
             $menu.add_sub_menu_onoff(
-                $title,
-                stringify!($id),
+                $title, 
+                stringify!($id), 
                 MENU.$id as usize,
                 (MENU.$id as usize & OnOff::On as usize) != 0,
                 DEFAULT_MENU.$id as usize
             );
         }
-    };
+    }
 }
 
 pub fn set_menu_from_url(s: &str) {
@@ -322,12 +322,8 @@ pub unsafe fn write_menu() {
 
     add_single_option_submenu!(overall_menu, "SDI Strength", sdi_strength, SdiStrength);
     add_single_option_submenu!(overall_menu, "Shield Toggles", shield_state, Shield);
-    add_single_option_submenu!(
-        overall_menu,
-        "Mirroring",
-        save_state_mirroring,
-        SaveStateMirroring
-    );
+    add_single_option_submenu!(overall_menu, "Mirroring", save_state_mirroring, SaveStateMirroring);
+
 
     // Slider menus
     overall_menu.add_sub_menu(
