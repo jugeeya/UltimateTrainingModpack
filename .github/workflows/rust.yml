@@ -41,11 +41,11 @@ jobs:
       with:
         name: plugin
         path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-    - name: Upload check SVG
+    - name: Upload menu icons
       uses: actions/upload-artifact@v2
       with:
         name: svg
-        path: src/templates/check.svg
+        path: src/templates/*.svg
     - name: Build outside_training_mode NRO
       if: github.ref == 'refs/heads/master'
       run: PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --features outside_training_mode 
@@ -82,7 +82,7 @@ jobs:
         wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.1.1/libnro_hook.nro
         cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
         cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
-        cp svg/check.svg ${{env.SMASH_WEB_DIR}}/check.svg
+        ls -1 svg/*.svg | xargs -L1 -I{} cp {} ${{env.SMASH_WEB_DIR}}/{}.svg
         zip -r training_modpack_beta.zip atmosphere
     - name: Update Release
       uses: meeDamian/github-release@2.0

@@ -60,7 +60,7 @@
             }
 
             /* Fade icons slightly */
-            img.question-icon {
+            img.question-icon:not(.toggle) {
                 opacity: 75%;
             }
 
@@ -77,6 +77,11 @@
             /* Set menu description color */
             .header-desc {
                 color: white;
+            }
+
+            /* Center Icons */
+            .question::before {
+                width: 70px;
             }
         </style>
     </head>
