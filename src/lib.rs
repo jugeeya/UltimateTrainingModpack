@@ -77,7 +77,6 @@ pub fn main() {
     log!("Performing version check...");
     release::version_check();
 
-    
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     if fs::metadata(menu_conf_path).is_ok() {
         log!("Loading previous menu from training_modpack_menu.conf...");

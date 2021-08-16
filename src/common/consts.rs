@@ -1,7 +1,6 @@
 use crate::common::get_random_int;
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
-use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 // bitflag helper function macro
@@ -239,7 +238,7 @@ extra_bitflag_impls! {MissTechFlags}
 
 /// Shield States
 #[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter)]
 pub enum Shield {
     None = 0,
     Infinite = 1,
@@ -248,7 +247,7 @@ pub enum Shield {
 }
 
 impl Shield {
-    fn into_string(self) -> String {
+    pub fn into_string(self) -> String {
         match self {
             Shield::None => "None",
             Shield::Infinite => "Infinite",
@@ -269,7 +268,7 @@ impl Shield {
 
 // Save State Mirroring
 #[repr(i32)]
-#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter)]
 pub enum SaveStateMirroring {
     None = 0,
     Alternate = 1,
@@ -277,7 +276,7 @@ pub enum SaveStateMirroring {
 }
 
 impl SaveStateMirroring {
-    fn into_string(self) -> String {
+    pub fn into_string(self) -> String {
         match self {
             SaveStateMirroring::None => "None",
             SaveStateMirroring::Alternate => "Alternate",

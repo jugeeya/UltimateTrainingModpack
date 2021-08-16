@@ -5,6 +5,7 @@ use skyline::info::get_program_id;
 use smash::lib::lua_const::*;
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
+use strum::IntoEnumIterator;
 
 #[derive(Content)]
 struct Slider {
@@ -170,24 +171,39 @@ macro_rules! add_bitflag_submenu {
     }
 }
 
-// macro_rules! add_single_option_submenu {
-//     ($menu:ident, $title:literal, $id:ident, $e:ty) => {
-//         paste::paste!{
-//             let [<$id _toggles>] = Vec::new();
-//             for val in [<$e>]::iter() {
-//                 [<$id _toggles>].push((val.into_string().as_str(), val as usize));
-//             }
+macro_rules! add_single_option_submenu {
+    ($menu:ident, $title:literal, $id:ident, $e:ty) => {
+        paste::paste!{
+            let mut [<$id _toggles>] = Vec::new();
+            for val in [<$e>]::iter() {
+                [<$id _toggles>].push((val.into_string(), val as usize));
+            }
 
-//             $menu.add_sub_menu(
-//                 $title, 
-//                 stringify!($id), 
-//                 MENU.$id as usize,
-//                 [<$id _toggles>],
-//                 [].to_vec()
-//             );
-//         }
-//     }
-// }
+            $menu.add_sub_menu(
+                $title, 
+                stringify!($id), 
+                MENU.$id as usize,
+                [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
+                [].to_vec(),
+                DEFAULT_MENU.$id as usize
+            );
+        }
+    }
+}
+
+macro_rules! add_onoff_submenu {
+    ($menu:ident, $title:literal, $id:ident) => {
+        paste::paste!{
+            $menu.add_sub_menu_onoff(
+                $title, 
+                stringify!($id), 
+                MENU.$id as usize,
+                (MENU.$id as usize & OnOff::On as usize) != 0,
+                DEFAULT_MENU.$id as usize
+            );
+        }
+    }
+}
 
 pub fn set_menu_from_url(s: &str) {
     let base_url_len = "http://localhost/?".len();
@@ -254,44 +270,10 @@ pub unsafe fn write_menu() {
     add_bitflag_submenu!(overall_menu, "SDI Direction", sdi_state, Direction);
     add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction);
 
-    overall_menu.add_sub_menu(
-        "SDI Strength",
-        "sdi_strength",
-        MENU.sdi_strength as usize,
-        [
-            ("Normal", SdiStrength::Normal as usize),
-            ("Medium", SdiStrength::Medium as usize),
-            ("High", SdiStrength::High as usize),
-        ].to_vec(),
-        [].to_vec(),
-        DEFAULT_MENU.sdi_strength as usize,
-    );
+    add_single_option_submenu!(overall_menu, "SDI Strength", sdi_strength, SdiStrength);
+    add_single_option_submenu!(overall_menu, "Shield Toggles", shield_state, Shield);
+    add_single_option_submenu!(overall_menu, "Mirroring", save_state_mirroring, SaveStateMirroring);
 
-    overall_menu.add_sub_menu(
-        "Shield Toggles",
-        "shield_state",
-        MENU.shield_state as usize,
-        [
-            ("None", Shield::None as usize),
-            ("Hold", Shield::Hold as usize),
-            ("Infinite", Shield::Infinite as usize),
-        ].to_vec(),
-        [].to_vec(),
-        DEFAULT_MENU.shield_state as usize,
-    );
-
-    overall_menu.add_sub_menu(
-        "Mirroring",
-        "save_state_mirroring",
-        MENU.save_state_mirroring as usize,
-        [
-            ("None", SaveStateMirroring::None as usize),
-            ("Alternate", SaveStateMirroring::Alternate as usize),
-            ("Random", SaveStateMirroring::Random as usize),
-        ].to_vec(),
-        [].to_vec(),
-        DEFAULT_MENU.save_state_mirroring as usize,
-    );
 
     // Slider menus
     overall_menu.add_sub_menu(
@@ -299,51 +281,16 @@ pub unsafe fn write_menu() {
         "input_delay", 
         // unnecessary for slider?
         MENU.input_delay as usize,
-        [].to_vec(),
-        [
-            (0, 10, MENU.input_delay as usize)
-        ].to_vec(),
+        [("0", 0),("1",1),("2",2),("3",3),("4",4),("5",5),("6",6),("7",7),("8",8),("9",9),("10",10)].to_vec(),
+        [].to_vec(), //(0, 10, MENU.input_delay as usize)
         DEFAULT_MENU.input_delay as usize,
     );
 
-
-    // OnOff flags
-    overall_menu.add_sub_menu_onoff(
-        "Save Damage",
-        "save_damage",
-        MENU.save_damage as usize,
-        (MENU.save_damage as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.save_damage as usize,
-    );
-    overall_menu.add_sub_menu_onoff(
-        "Hitbox Visualization",
-        "hitbox_vis",
-        MENU.hitbox_vis as usize,
-        (MENU.hitbox_vis as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.hitbox_vis as usize,
-    );
-
-    overall_menu.add_sub_menu_onoff(
-        "Stage Hazards",
-        "stage_hazards",
-        MENU.stage_hazards as usize,
-        (MENU.stage_hazards as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.stage_hazards as usize,
-    );
-    overall_menu.add_sub_menu_onoff(
-        "Frame Advantage",
-        "frame_advantage",
-        MENU.frame_advantage as usize,
-        (MENU.frame_advantage as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.frame_advantage as usize,
-    );
-    overall_menu.add_sub_menu_onoff(
-        "Mash In Neutral",
-        "mash_in_neutral",
-        MENU.mash_in_neutral as usize,
-        (MENU.mash_in_neutral as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.mash_in_neutral as usize,
-    );
+    add_onoff_submenu!(overall_menu, "Save Damage", save_damage);
+    add_onoff_submenu!(overall_menu, "Hitbox Visualization", hitbox_vis);
+    add_onoff_submenu!(overall_menu, "Stage Hazards", stage_hazards);
+    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage);
+    add_onoff_submenu!(overall_menu, "Mash In Neutral", mash_in_neutral);
 
     let data = tpl.render(&overall_menu);
 
