@@ -282,9 +282,9 @@
                         var children = this.children;
                         for (var i = 0; i < children.length; i++) {
                             var child = children[i];
-                            if (child.innerHTML.includes("is-appear")) {
+                            if ($(child).find(".is-appear").length) {
                                 val += child.getAttribute("val") + ",";
-                            }
+                            };
                         }
 
                         settings.push({
@@ -297,7 +297,7 @@
                     $("div.onoff").each(function () {
                         var section = this.id;
                         var val = "";
-                        if (this.innerHTML.includes("is-appear")) {
+                        if ($(this).find(".is-appear").length) {
                             val = "1"
                         } else {
                             val = "0"
