@@ -82,7 +82,7 @@ jobs:
         wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.1.1/libnro_hook.nro
         cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
         cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
-        ls -1 svg/*.svg | xargs -L1 -I{} cp {} ${{env.SMASH_WEB_DIR}}/{}.svg
+        ls -1 svg/*.svg | xargs -n 1 basename | xargs -L1 -I{} cp svg/{} ${{env.SMASH_WEB_DIR}}/{}
         zip -r training_modpack_beta.zip atmosphere
     - name: Update Release
       uses: meeDamian/github-release@2.0
