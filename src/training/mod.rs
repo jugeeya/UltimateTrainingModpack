@@ -1,17 +1,17 @@
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
-use skyline::nn::ro::LookupSymbol;
 use skyline::nn::hid::*;
+use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 
 pub mod combo;
 pub mod directional_influence;
+pub mod ledge;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
-pub mod ledge;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -162,20 +162,19 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
     air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 
-
 /**
  * Called when:
  * angled ftilt/fsmash
  */
- #[skyline::hook(replace = ControlModule::get_stick_dir)]
- pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-     let ori = original!()(module_accessor);
-     if !is_training_mode() {
-         return ori;
-     }
+#[skyline::hook(replace = ControlModule::get_stick_dir)]
+pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
 
-     attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
- }
+    attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
+}
 
 /**
  *
@@ -322,7 +321,8 @@ create_nn_hid_hooks!(
     (GetNpadGcState, handle_get_npad_gc_state),
     (GetNpadJoyDualState, handle_get_joy_dual_state),
     (GetNpadJoyLeftState, handle_get_joy_left_state),
-    (GetNpadJoyRightState, handle_get_joy_right_state));
+    (GetNpadJoyRightState, handle_get_joy_right_state)
+);
 
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
@@ -334,7 +334,8 @@ pub fn training_mods() {
         handle_get_npad_gc_state,
         handle_get_joy_dual_state,
         handle_get_joy_left_state,
-        handle_get_joy_right_state);
+        handle_get_joy_right_state
+    );
 
     unsafe {
         LookupSymbol(
@@ -389,6 +390,8 @@ pub fn training_mods() {
     ledge::init();
 
     println!("[Training Modpack] Writing menu file index.html");
-    unsafe { menu::write_menu(); }
+    unsafe {
+        menu::write_menu();
+    }
     println!("[Training Modpack] Wrote menu file.");
 }

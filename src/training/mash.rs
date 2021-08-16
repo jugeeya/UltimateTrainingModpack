@@ -176,37 +176,35 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
                 Doesn't actually cause the shield, but will clear the buffer once shield is possible.
                 Shield hold is performed through shield::should_hold_shield and request_shield
                 */
-                (*FIGHTER_STATUS_KIND_GUARD_ON, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE)
+                (
+                    *FIGHTER_STATUS_KIND_GUARD_ON,
+                    *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+                )
             } else {
-                (*FIGHTER_STATUS_KIND_ESCAPE_AIR, *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE)
+                (
+                    *FIGHTER_STATUS_KIND_ESCAPE_AIR,
+                    *FIGHTER_PAD_CMD_CAT1_FLAG_AIR_ESCAPE,
+                )
             };
 
             get_flag(module_accessor, expected_status, command_flag)
         }
-        Action::JUMP => {
-            update_jump_flag(module_accessor)
-        }
-        Action::SPOT_DODGE => {
-            get_flag(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_ESCAPE,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
-            )
-        }
-        Action::ROLL_F => {
-            get_flag(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_ESCAPE_F,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
-            )
-        }
-        Action::ROLL_B => {
-            get_flag(
-                module_accessor,
-                *FIGHTER_STATUS_KIND_ESCAPE_B,
-                *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
-            )
-        }
+        Action::JUMP => update_jump_flag(module_accessor),
+        Action::SPOT_DODGE => get_flag(
+            module_accessor,
+            *FIGHTER_STATUS_KIND_ESCAPE,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE,
+        ),
+        Action::ROLL_F => get_flag(
+            module_accessor,
+            *FIGHTER_STATUS_KIND_ESCAPE_F,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_F,
+        ),
+        Action::ROLL_B => get_flag(
+            module_accessor,
+            *FIGHTER_STATUS_KIND_ESCAPE_B,
+            *FIGHTER_PAD_CMD_CAT1_FLAG_ESCAPE_B,
+        ),
         Action::SHIELD => {
             if !is_grounded(module_accessor) {
                 return 0;
@@ -237,7 +235,7 @@ pub fn request_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
     match get_current_buffer() {
         Action::SHIELD => true,
         Action::AIR_DODGE => is_grounded(module_accessor),
-        _ => false
+        _ => false,
     }
 }
 

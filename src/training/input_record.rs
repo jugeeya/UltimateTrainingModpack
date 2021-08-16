@@ -1,15 +1,13 @@
-use skyline::nn::hid::NpadHandheldState;
-use smash::app::{BattleObjectModuleAccessor, lua_bind::*};
-use smash::lib::lua_const::*;
+use crate::training::input_delay::p1_controller_id;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use crate::training::input_delay::p1_controller_id;
+use skyline::nn::hid::NpadHandheldState;
+use smash::app::{lua_bind::*, BattleObjectModuleAccessor};
+use smash::lib::lua_const::*;
 
 lazy_static! {
     static ref P1_NPAD_STATES: Mutex<[NpadHandheldState; 90]> =
-        Mutex::new([{
-            NpadHandheldState::default()
-        }; 90]);
+        Mutex::new([{ NpadHandheldState::default() }; 90]);
 }
 
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
@@ -26,22 +24,21 @@ use InputRecordState::*;
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
     let entry_id_int =
-            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
 
     if entry_id_int == 0 {
         // Attack + Dpad Right: Playback
         if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
-            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R) {
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R)
+        {
             playback();
         }
         // Attack + Dpad Left: Record
         else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
         {
-           record();
+            record();
         }
-
-
 
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
             if INPUT_RECORD_FRAME >= P1_NPAD_STATES.lock().len() - 1 {
@@ -70,10 +67,7 @@ pub unsafe fn playback() {
 }
 
 #[allow(dead_code)]
-pub unsafe fn handle_get_npad_state(
-    state: *mut NpadHandheldState,
-    controller_id: *const u32,
-) {
+pub unsafe fn handle_get_npad_state(state: *mut NpadHandheldState, controller_id: *const u32) {
     if *controller_id == p1_controller_id() {
         if INPUT_RECORD == Record {
             P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME] = *state;

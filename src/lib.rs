@@ -2,7 +2,12 @@
 #![feature(with_options)]
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
-#![allow(clippy::borrow_interior_mutable_const, clippy::not_unsafe_ptr_arg_deref, clippy::missing_safety_doc, clippy::wrong_self_convention)]
+#![allow(
+    clippy::borrow_interior_mutable_const,
+    clippy::not_unsafe_ptr_arg_deref,
+    clippy::missing_safety_doc,
+    clippy::wrong_self_convention
+)]
 
 pub mod common;
 mod hazard_manager;
@@ -22,8 +27,8 @@ use crate::common::*;
 use crate::menu::set_menu_from_url;
 
 use skyline::libc::mkdir;
-use std::fs;
 use skyline::nro::{self, NroInfo};
+use std::fs;
 
 use owo_colors::OwoColorize;
 
@@ -63,7 +68,7 @@ pub fn main() {
     hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
-     
+
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
     }
@@ -77,13 +82,12 @@ pub fn main() {
     log!("Performing version check...");
     release::version_check();
 
-    
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     if fs::metadata(menu_conf_path).is_ok() {
         log!("Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
         if menu_conf.starts_with(b"http://localhost") {
-           set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
+            set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
         }
     }
 }

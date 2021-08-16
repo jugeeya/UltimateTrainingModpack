@@ -59,14 +59,14 @@ pub unsafe fn generate_hitbox_effects(
 ) {
     let size_mult = 19.0 / 200.0;
 
-    let (x,y,z) = (center.x, center.y, center.z);
+    let (x, y, z) = (center.x, center.y, center.z);
 
     let x_dist: f32;
     let y_dist: f32;
     let z_dist: f32;
     let mut n_effects: i32;
     if let Some(capsule_center) = capsule_center {
-        let (x2,y2,z2) = (capsule_center.x, capsule_center.y, capsule_center.z);
+        let (x2, y2, z2) = (capsule_center.x, capsule_center.y, capsule_center.z);
         x_dist = x2 - x;
         y_dist = y2 - y;
         z_dist = z2 - z;
@@ -182,10 +182,18 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         }
 
         let attack_data = *AttackModule::attack_data(module_accessor, i, false);
-        let center = Vector3f{x: attack_data.x, y: attack_data.y, z: attack_data.z};
+        let center = Vector3f {
+            x: attack_data.x,
+            y: attack_data.y,
+            z: attack_data.z,
+        };
         let is_capsule = attack_data.x2 != 0.0 || attack_data.y2 != 0.0 || attack_data.z2 != 0.0;
         let capsule_center = if is_capsule {
-            Some(Vector3f{x: attack_data.x2, y: attack_data.y2, z: attack_data.z2})
+            Some(Vector3f {
+                x: attack_data.x2,
+                y: attack_data.y2,
+                z: attack_data.z2,
+            })
         } else {
             None
         };
@@ -246,10 +254,19 @@ unsafe fn mod_handle_attack(lua_state: u64) {
         let y2 = l2c_agent.pop_lua_stack(14); // float or void
         let z2 = l2c_agent.pop_lua_stack(15); // float or void
 
-        let center = Vector3f{x: x.get_num(), y: y.get_num(), z: z.get_num()};
-        let capsule_center = 
-        if let (Some(x2), Some(y2), Some(z2)) = (x2.try_get_num(), y2.try_get_num(), z2.try_get_num()) {
-            Some(Vector3f{x: x2, y: y2, z: z2})
+        let center = Vector3f {
+            x: x.get_num(),
+            y: y.get_num(),
+            z: z.get_num(),
+        };
+        let capsule_center = if let (Some(x2), Some(y2), Some(z2)) =
+            (x2.try_get_num(), y2.try_get_num(), z2.try_get_num())
+        {
+            Some(Vector3f {
+                x: x2,
+                y: y2,
+                z: z2,
+            })
         } else {
             None
         };
@@ -291,10 +308,19 @@ unsafe fn mod_handle_catch(lua_state: u64) {
     let y2 = l2c_agent.pop_lua_stack(8); // float or void
     let z2 = l2c_agent.pop_lua_stack(9); // float or void
 
-    let center = Vector3f{x: x.get_num(), y: y.get_num(), z: z.get_num()};
-    let capsule_center = 
-    if let (Some(x2), Some(y2), Some(z2)) = (x2.try_get_num(), y2.try_get_num(), z2.try_get_num()) {
-        Some(Vector3f{x: x2, y: y2, z: z2})
+    let center = Vector3f {
+        x: x.get_num(),
+        y: y.get_num(),
+        z: z.get_num(),
+    };
+    let capsule_center = if let (Some(x2), Some(y2), Some(z2)) =
+        (x2.try_get_num(), y2.try_get_num(), z2.try_get_num())
+    {
+        Some(Vector3f {
+            x: x2,
+            y: y2,
+            z: z2,
+        })
     } else {
         None
     };

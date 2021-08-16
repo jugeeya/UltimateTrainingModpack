@@ -323,7 +323,10 @@ fn needs_oos_handling_drop_shield() -> bool {
 }
 
 pub fn is_aerial(action: Action) -> bool {
-    matches!(action, Action::NAIR | Action::FAIR | Action::BAIR | Action::UAIR | Action::DAIR)
+    matches!(
+        action,
+        Action::NAIR | Action::FAIR | Action::BAIR | Action::UAIR | Action::DAIR
+    )
 }
 
 // Needed for shield drop options

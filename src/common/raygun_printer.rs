@@ -1,9 +1,9 @@
-use smash::phx::{Vector3f, Hash40};
 use smash::app;
+use smash::phx::{Hash40, Vector3f};
 
-pub static RAYGUN_LENGTH : f32 = 8.0;
-pub static RAYGUN_HEIGHT : f32 = 6.0;
-pub static RAYGUN_HORIZ_OFFSET : f32 = 2.0;
+pub static RAYGUN_LENGTH: f32 = 8.0;
+pub static RAYGUN_HEIGHT: f32 = 6.0;
+pub static RAYGUN_HORIZ_OFFSET: f32 = 2.0;
 
 /*
     segment data list : {Z, Y, X, ZRot, Size}
@@ -14,28 +14,40 @@ pub static RAYGUN_HORIZ_OFFSET : f32 = 2.0;
 */
 
 pub static SEGMENT_DICT: [[f32; 5]; 15] = [
-        [0.0, RAYGUN_HEIGHT*2.0,   0.0,                    0.0, 0.25], // a
-        [0.0, RAYGUN_HEIGHT,     RAYGUN_LENGTH,       90.0, 0.25], // b
-        [0.0, 0.0,                 RAYGUN_LENGTH,       90.0, 0.25], // c
-        [0.0, 0.0,                 0.0,                    0.0, 0.25], // d
-        [0.0, 0.0,                 0.0,                   90.0, 0.25], // e
-        [0.0, RAYGUN_HEIGHT,     0.0,                   90.0, 0.25], // f
-        [0.0, RAYGUN_HEIGHT,     0.0,                    0.0, 0.25], // g mid
-        [0.0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2.0,     90.0, 0.25], // h
-        [0.0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2.0,     52.0, 0.2],  // i
-        [0.0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2.0,    -52.0, 0.2],  // j
-        [0.0, 0.0,                 RAYGUN_LENGTH/2.0,     90.0, 0.25], // k
-        [0.0, RAYGUN_HEIGHT/2.0,   RAYGUN_LENGTH*3.0/16.0,  52.0, 0.2],  // l
-        [0.0, RAYGUN_HEIGHT*3.0/2.0, RAYGUN_LENGTH*3.0/16.0, -52.0, 0.2],  // m
-        [0.0, RAYGUN_HEIGHT,     0.0,                    0.0, 0.15], // n
-        [0.0, RAYGUN_HEIGHT,     RAYGUN_LENGTH/2.0,      0.0, 0.15], // o
-    ];
+    [0.0, RAYGUN_HEIGHT * 2.0, 0.0, 0.0, 0.25],            // a
+    [0.0, RAYGUN_HEIGHT, RAYGUN_LENGTH, 90.0, 0.25],       // b
+    [0.0, 0.0, RAYGUN_LENGTH, 90.0, 0.25],                 // c
+    [0.0, 0.0, 0.0, 0.0, 0.25],                            // d
+    [0.0, 0.0, 0.0, 90.0, 0.25],                           // e
+    [0.0, RAYGUN_HEIGHT, 0.0, 90.0, 0.25],                 // f
+    [0.0, RAYGUN_HEIGHT, 0.0, 0.0, 0.25],                  // g mid
+    [0.0, RAYGUN_HEIGHT, RAYGUN_LENGTH / 2.0, 90.0, 0.25], // h
+    [0.0, RAYGUN_HEIGHT, RAYGUN_LENGTH / 2.0, 52.0, 0.2],  // i
+    [0.0, RAYGUN_HEIGHT, RAYGUN_LENGTH / 2.0, -52.0, 0.2], // j
+    [0.0, 0.0, RAYGUN_LENGTH / 2.0, 90.0, 0.25],           // k
+    [
+        0.0,
+        RAYGUN_HEIGHT / 2.0,
+        RAYGUN_LENGTH * 3.0 / 16.0,
+        52.0,
+        0.2,
+    ], // l
+    [
+        0.0,
+        RAYGUN_HEIGHT * 3.0 / 2.0,
+        RAYGUN_LENGTH * 3.0 / 16.0,
+        -52.0,
+        0.2,
+    ], // m
+    [0.0, RAYGUN_HEIGHT, 0.0, 0.0, 0.15],                  // n
+    [0.0, RAYGUN_HEIGHT, RAYGUN_LENGTH / 2.0, 0.0, 0.15],  // o
+];
 
-/* 
+/*
     Segments making up each character, each index corresponding to:
     'A' through 'Z', '0' through '9', ' ', '-', '+', '#' (where '#' is all segments)
 */
-pub static ALPHABET: [&str; 40] = [   
+pub static ALPHABET: [&str; 40] = [
     "abcefg",
     "adefijn",
     "adef",
@@ -80,33 +92,44 @@ pub static ALPHABET: [&str; 40] = [
 
 // Each index is a segment's corresponding flipped segment, for when facing left
 pub static SEGMENT_REV: [char; 15] = [
-    'a',
-    'f',
-    'e',
-    'd',
-    'c',
-    'b',
-    'g',
-    'h',
-    'm',
-    'l',
-    'k',
-    'j',
-    'i',
-    'o',
-    'n',
+    'a', 'f', 'e', 'd', 'c', 'b', 'g', 'h', 'm', 'l', 'k', 'j', 'i', 'o', 'n',
 ];
 
-fn show_segment(module_accessor: &mut app::BattleObjectModuleAccessor, z: f32, y: f32, x: f32, zrot: f32, size: f32) {
-    let pos = Vector3f{x, y, z};
-    let rot = Vector3f{x : 0.0, y : 90.0, z : zrot};
-    let random = Vector3f{x : 0.0, y : 0.0, z : 0.0};
+fn show_segment(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    z: f32,
+    y: f32,
+    x: f32,
+    zrot: f32,
+    size: f32,
+) {
+    let pos = Vector3f { x, y, z };
+    let rot = Vector3f {
+        x: 0.0,
+        y: 90.0,
+        z: zrot,
+    };
+    let random = Vector3f {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
 
     unsafe {
-        app::lua_bind::EffectModule::req_on_joint(module_accessor, 
-            Hash40::new("sys_raygun_bullet"), Hash40::new("top"), 
-            &pos, &rot, size, &random, &random, 
-            false, 0, 0, 0);
+        app::lua_bind::EffectModule::req_on_joint(
+            module_accessor,
+            Hash40::new("sys_raygun_bullet"),
+            Hash40::new("top"),
+            &pos,
+            &rot,
+            size,
+            &random,
+            &random,
+            false,
+            0,
+            0,
+            0,
+        );
     }
 }
 
@@ -118,16 +141,17 @@ fn alphabet_index(to_print: char) -> i32 {
         '-' => 37,
         '+' => 38,
         '#' => 39,
-        _ => -1
+        _ => -1,
     }
 }
 
-fn print_char(module_accessor: &mut app::BattleObjectModuleAccessor,
-    to_print: char, 
-    line_num: i32, 
+fn print_char(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    to_print: char,
+    line_num: i32,
     horiz_offset: f32,
-    facing_left: i32) 
-{
+    facing_left: i32,
+) {
     let alph_index = alphabet_index(to_print);
     if !(0..40).contains(&alph_index) {
         return;
@@ -136,7 +160,7 @@ fn print_char(module_accessor: &mut app::BattleObjectModuleAccessor,
 
     let line_offset = 40.0 - ((line_num as f32) * 16.0);
 
-    for segment_char in  segment_str.chars() {
+    for segment_char in segment_str.chars() {
         let mut index = segment_char as i32 - 'a' as i32;
 
         let segment: [f32; 5];
@@ -145,7 +169,7 @@ fn print_char(module_accessor: &mut app::BattleObjectModuleAccessor,
         }
         segment = SEGMENT_DICT[index as usize];
 
-        let size_mult : f32 = 0.5;
+        let size_mult: f32 = 0.5;
 
         let mut z = segment[0];
         let mut y = segment[1] + line_offset;
@@ -171,7 +195,12 @@ fn print_char(module_accessor: &mut app::BattleObjectModuleAccessor,
 pub fn print_string(module_accessor: &mut app::BattleObjectModuleAccessor, to_write: &str) {
     // Delete any previous strings
     unsafe {
-        app::lua_bind::EffectModule::kill_kind(module_accessor, Hash40::new("sys_raygun_bullet"), false, true);
+        app::lua_bind::EffectModule::kill_kind(
+            module_accessor,
+            Hash40::new("sys_raygun_bullet"),
+            false,
+            true,
+        );
     }
 
     let mut line_num = 0;
@@ -194,12 +223,18 @@ pub fn print_string(module_accessor: &mut app::BattleObjectModuleAccessor, to_wr
             continue;
         }
 
-        print_char(module_accessor, curr_char.to_uppercase().collect::<Vec<_>>()[0], line_num, horiz_offset, facing_left);
+        print_char(
+            module_accessor,
+            curr_char.to_uppercase().collect::<Vec<_>>()[0],
+            line_num,
+            horiz_offset,
+            facing_left,
+        );
 
         char_num += 1;
         // short characters
         if curr_char == 'D' || curr_char == '1' {
-            horiz_offset += facing_left as f32 * (RAYGUN_LENGTH/2.0 + 3.0);
+            horiz_offset += facing_left as f32 * (RAYGUN_LENGTH / 2.0 + 3.0);
         } else {
             horiz_offset += facing_left as f32 * (RAYGUN_LENGTH + 3.0);
         }

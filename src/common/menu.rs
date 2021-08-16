@@ -1,17 +1,18 @@
+use crate::common::*;
+use ramhorns::{Content, Template};
+use skyline::info::get_program_id;
+use skyline_web::{Background, BootDisplay, Webpage};
+use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
-use crate::common::*;
-use skyline::info::get_program_id;
-use smash::lib::lua_const::*;
-use skyline_web::{Background, BootDisplay, Webpage};
-use ramhorns::{Template, Content};
+use strum::IntoEnumIterator;
 
 #[derive(Content)]
 struct Slider {
     min: usize,
     max: usize,
     index: usize,
-    value: usize
+    value: usize,
 }
 
 #[derive(Content)]
@@ -38,51 +39,51 @@ struct SubMenu<'a> {
     sliders: Vec<Slider>,
     onoffselector: Vec<OnOffSelector<'a>>,
     index: usize,
-    check_against: usize
+    check_against: usize,
 }
 
 impl<'a> SubMenu<'a> {
     pub fn max_idx(&self) -> usize {
         self.toggles
             .iter()
-            .max_by(|t1,t2| t1.index.cmp(&t2.index))
+            .max_by(|t1, t2| t1.index.cmp(&t2.index))
             .map(|t| t.index)
             .unwrap_or(self.index)
     }
 
     pub fn add_toggle(&mut self, title: &'a str, checked: bool, value: usize, default: bool) {
-        self.toggles.push(Toggle{
+        self.toggles.push(Toggle {
             title,
-            checked: if checked { "is-appear"} else { "is-hidden" },
+            checked: if checked { "is-appear" } else { "is-hidden" },
             index: self.max_idx() + 1,
             value,
-            default: if default { "is-appear"} else { "is-hidden" },
+            default: if default { "is-appear" } else { "is-hidden" },
         });
     }
 
     pub fn add_slider(&mut self, min: usize, max: usize, value: usize) {
-        self.sliders.push(Slider{
+        self.sliders.push(Slider {
             min,
             max,
             index: self.max_idx() + 1,
-            value
+            value,
         });
     }
 
     pub fn add_onoffselector(&mut self, title: &'a str, checked: bool, default: bool) {
         // TODO: Is there a more elegant way to do this?
         // The HTML only supports a single onoffselector but the SubMenu stores it as a Vec
-        self.onoffselector.push(OnOffSelector{
+        self.onoffselector.push(OnOffSelector {
             title,
-            checked: if checked { "is-appear"} else { "is-hidden" },
-            default: if default { "is-appear"} else { "is-hidden" },
+            checked: if checked { "is-appear" } else { "is-hidden" },
+            default: if default { "is-appear" } else { "is-hidden" },
         });
     }
 }
 
 #[derive(Content)]
 struct Menu<'a> {
-    sub_menus: Vec<SubMenu<'a>>
+    sub_menus: Vec<SubMenu<'a>>,
 }
 
 impl<'a> Menu<'a> {
@@ -94,7 +95,15 @@ impl<'a> Menu<'a> {
             .unwrap_or(0)
     }
 
-    pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>, sliders: Vec<(usize,usize,usize)>, defaults: usize) {
+    pub fn add_sub_menu(
+        &mut self,
+        title: &'a str,
+        id: &'a str,
+        check_against: usize,
+        toggles: Vec<(&'a str, usize)>,
+        sliders: Vec<(usize, usize, usize)>,
+        defaults: usize,
+    ) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -102,11 +111,16 @@ impl<'a> Menu<'a> {
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against
+            check_against,
         };
 
         for toggle in toggles {
-            sub_menu.add_toggle(toggle.0, (check_against & toggle.1) != 0, toggle.1, (defaults & toggle.1) != 0)
+            sub_menu.add_toggle(
+                toggle.0,
+                (check_against & toggle.1) != 0,
+                toggle.1,
+                (defaults & toggle.1) != 0,
+            )
         }
 
         for slider in sliders {
@@ -116,7 +130,15 @@ impl<'a> Menu<'a> {
         self.sub_menus.push(sub_menu);
     }
 
-    pub fn add_sub_menu_sep(&mut self, title: &'a str, id: &'a str, check_against: usize, strs: Vec<&'a str>, vals: Vec<usize>, defaults: usize) {
+    pub fn add_sub_menu_sep(
+        &mut self,
+        title: &'a str,
+        id: &'a str,
+        check_against: usize,
+        strs: Vec<&'a str>,
+        vals: Vec<usize>,
+        defaults: usize,
+    ) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -124,11 +146,16 @@ impl<'a> Menu<'a> {
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against
+            check_against,
         };
 
         for i in 0..strs.len() {
-            sub_menu.add_toggle(strs[i], (check_against & vals[i]) != 0, vals[i], (defaults & vals[i]) != 0)
+            sub_menu.add_toggle(
+                strs[i],
+                (check_against & vals[i]) != 0,
+                vals[i],
+                (defaults & vals[i]) != 0,
+            )
         }
 
         // TODO: add sliders?
@@ -136,7 +163,14 @@ impl<'a> Menu<'a> {
         self.sub_menus.push(sub_menu);
     }
 
-    pub fn add_sub_menu_onoff(&mut self, title: &'a str, id: &'a str, check_against: usize, checked: bool, default: usize) {
+    pub fn add_sub_menu_onoff(
+        &mut self,
+        title: &'a str,
+        id: &'a str,
+        check_against: usize,
+        checked: bool,
+        default: usize,
+    ) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -144,7 +178,7 @@ impl<'a> Menu<'a> {
             sliders: Vec::new(),
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
-            check_against
+            check_against,
         };
 
         sub_menu.add_onoffselector(title, checked, (default & OnOff::On as usize) != 0);
@@ -159,8 +193,8 @@ macro_rules! add_bitflag_submenu {
             let [<$id _vals>] = <$e>::to_toggle_vals();
 
             $menu.add_sub_menu_sep(
-                $title, 
-                stringify!($id), 
+                $title,
+                stringify!($id),
                 MENU.$id.bits() as usize,
                 [<$id _strs>].iter().map(|i| i.as_str()).collect(),
                 [<$id _vals>],
@@ -170,46 +204,68 @@ macro_rules! add_bitflag_submenu {
     }
 }
 
-// macro_rules! add_single_option_submenu {
-//     ($menu:ident, $title:literal, $id:ident, $e:ty) => {
-//         paste::paste!{
-//             let [<$id _toggles>] = Vec::new();
-//             for val in [<$e>]::iter() {
-//                 [<$id _toggles>].push((val.into_string().as_str(), val as usize));
-//             }
+macro_rules! add_single_option_submenu {
+    ($menu:ident, $title:literal, $id:ident, $e:ty) => {
+        paste::paste!{
+            let mut [<$id _toggles>] = Vec::new();
+            for val in [<$e>]::iter() {
+                [<$id _toggles>].push((val.into_string(), val as usize));
+            }
 
-//             $menu.add_sub_menu(
-//                 $title, 
-//                 stringify!($id), 
-//                 MENU.$id as usize,
-//                 [<$id _toggles>],
-//                 [].to_vec()
-//             );
-//         }
-//     }
-// }
+            $menu.add_sub_menu(
+                $title,
+                stringify!($id),
+                MENU.$id as usize,
+                [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
+                [].to_vec(),
+                DEFAULT_MENU.$id as usize
+            );
+        }
+    }
+}
+
+macro_rules! add_onoff_submenu {
+    ($menu:ident, $title:literal, $id:ident) => {
+        paste::paste! {
+            $menu.add_sub_menu_onoff(
+                $title,
+                stringify!($id),
+                MENU.$id as usize,
+                (MENU.$id as usize & OnOff::On as usize) != 0,
+                DEFAULT_MENU.$id as usize
+            );
+        }
+    };
+}
 
 pub fn set_menu_from_url(s: &str) {
     let base_url_len = "http://localhost/?".len();
     let total_len = s.len();
 
-    let ss: String = s.chars().skip(base_url_len).take(total_len - base_url_len).collect();
-    
+    let ss: String = s
+        .chars()
+        .skip(base_url_len)
+        .take(total_len - base_url_len)
+        .collect();
+
     for toggle_values in ss.split('&') {
         let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
         let toggle = toggle_value_split[0];
-        if toggle.is_empty() { continue; }
-        
+        if toggle.is_empty() {
+            continue;
+        }
+
         let toggle_vals = toggle_value_split[1];
-        
+
         let mut bits = 0;
         for toggle_val in toggle_vals.split(',') {
-            if toggle_val.is_empty() { continue; }
-        
+            if toggle_val.is_empty() {
+                continue;
+            }
+
             let val = toggle_val.parse::<u32>().unwrap();
             bits |= val;
         }
-
 
         unsafe {
             MENU.set(toggle, bits);
@@ -218,15 +274,15 @@ pub fn set_menu_from_url(s: &str) {
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
-    ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL) &&
-    ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
+    ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL)
+        && ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
 }
 
 pub unsafe fn write_menu() {
     let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
 
     let mut overall_menu = Menu {
-        sub_menus: Vec::new()
+        sub_menus: Vec::new(),
     };
 
     // Toggle/bitflag menus
@@ -237,8 +293,18 @@ pub unsafe fn write_menu() {
     add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption);
     add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, LongDelay);
     add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags);
-    add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags);
-    add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive);
+    add_bitflag_submenu!(
+        overall_menu,
+        "Miss Tech Options",
+        miss_tech_state,
+        MissTechFlags
+    );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Defensive Options",
+        defensive_state,
+        Defensive
+    );
 
     add_bitflag_submenu!(overall_menu, "Aerial Delay", aerial_delay, Delay);
     add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay);
@@ -254,96 +320,44 @@ pub unsafe fn write_menu() {
     add_bitflag_submenu!(overall_menu, "SDI Direction", sdi_state, Direction);
     add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction);
 
-    overall_menu.add_sub_menu(
-        "SDI Strength",
-        "sdi_strength",
-        MENU.sdi_strength as usize,
-        [
-            ("Normal", SdiStrength::Normal as usize),
-            ("Medium", SdiStrength::Medium as usize),
-            ("High", SdiStrength::High as usize),
-        ].to_vec(),
-        [].to_vec(),
-        DEFAULT_MENU.sdi_strength as usize,
-    );
-
-    overall_menu.add_sub_menu(
-        "Shield Toggles",
-        "shield_state",
-        MENU.shield_state as usize,
-        [
-            ("None", Shield::None as usize),
-            ("Hold", Shield::Hold as usize),
-            ("Infinite", Shield::Infinite as usize),
-        ].to_vec(),
-        [].to_vec(),
-        DEFAULT_MENU.shield_state as usize,
-    );
-
-    overall_menu.add_sub_menu(
+    add_single_option_submenu!(overall_menu, "SDI Strength", sdi_strength, SdiStrength);
+    add_single_option_submenu!(overall_menu, "Shield Toggles", shield_state, Shield);
+    add_single_option_submenu!(
+        overall_menu,
         "Mirroring",
-        "save_state_mirroring",
-        MENU.save_state_mirroring as usize,
-        [
-            ("None", SaveStateMirroring::None as usize),
-            ("Alternate", SaveStateMirroring::Alternate as usize),
-            ("Random", SaveStateMirroring::Random as usize),
-        ].to_vec(),
-        [].to_vec(),
-        DEFAULT_MENU.save_state_mirroring as usize,
+        save_state_mirroring,
+        SaveStateMirroring
     );
 
     // Slider menus
     overall_menu.add_sub_menu(
-        "Input Delay", 
-        "input_delay", 
+        "Input Delay",
+        "input_delay",
         // unnecessary for slider?
         MENU.input_delay as usize,
-        [].to_vec(),
         [
-            (0, 10, MENU.input_delay as usize)
-        ].to_vec(),
+            ("0", 0),
+            ("1", 1),
+            ("2", 2),
+            ("3", 3),
+            ("4", 4),
+            ("5", 5),
+            ("6", 6),
+            ("7", 7),
+            ("8", 8),
+            ("9", 9),
+            ("10", 10),
+        ]
+        .to_vec(),
+        [].to_vec(), //(0, 10, MENU.input_delay as usize)
         DEFAULT_MENU.input_delay as usize,
     );
 
-
-    // OnOff flags
-    overall_menu.add_sub_menu_onoff(
-        "Save Damage",
-        "save_damage",
-        MENU.save_damage as usize,
-        (MENU.save_damage as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.save_damage as usize,
-    );
-    overall_menu.add_sub_menu_onoff(
-        "Hitbox Visualization",
-        "hitbox_vis",
-        MENU.hitbox_vis as usize,
-        (MENU.hitbox_vis as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.hitbox_vis as usize,
-    );
-
-    overall_menu.add_sub_menu_onoff(
-        "Stage Hazards",
-        "stage_hazards",
-        MENU.stage_hazards as usize,
-        (MENU.stage_hazards as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.stage_hazards as usize,
-    );
-    overall_menu.add_sub_menu_onoff(
-        "Frame Advantage",
-        "frame_advantage",
-        MENU.frame_advantage as usize,
-        (MENU.frame_advantage as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.frame_advantage as usize,
-    );
-    overall_menu.add_sub_menu_onoff(
-        "Mash In Neutral",
-        "mash_in_neutral",
-        MENU.mash_in_neutral as usize,
-        (MENU.mash_in_neutral as usize & OnOff::On as usize) != 0,
-        DEFAULT_MENU.mash_in_neutral as usize,
-    );
+    add_onoff_submenu!(overall_menu, "Save Damage", save_damage);
+    add_onoff_submenu!(overall_menu, "Hitbox Visualization", hitbox_vis);
+    add_onoff_submenu!(overall_menu, "Stage Hazards", stage_hazards);
+    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage);
+    add_onoff_submenu!(overall_menu, "Mash In Neutral", mash_in_neutral);
 
     let data = tpl.render(&overall_menu);
 
@@ -370,13 +384,10 @@ pub unsafe fn spawn_menu() {
         .open()
         .unwrap();
 
-     let last_url = page_response
-        .get_last_url()
-        .unwrap();
+    let last_url = page_response.get_last_url().unwrap();
 
     set_menu_from_url(last_url);
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-    std::fs::write(menu_conf_path, last_url)
-        .expect("Failed to write menu conf file");
+    std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
 }

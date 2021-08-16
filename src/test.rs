@@ -6,13 +6,16 @@
 #[test]
 fn write_menu() {
     unsafe {
-        use std::process::Command;
         use crate::common::menu::write_menu;
+        use std::process::Command;
 
         let folder_path = "../contents.htdocs";
         let path = "../contents.htdocs/index.html";
 
-        assert!(std::path::Path::new(folder_path).exists(), "Needs required folder: ../contents.htdocs!");
+        assert!(
+            std::path::Path::new(folder_path).exists(),
+            "Needs required folder: ../contents.htdocs!"
+        );
 
         std::fs::write(path, write_menu()).unwrap();
 
