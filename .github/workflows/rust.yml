@@ -27,7 +27,7 @@ jobs:
         args: --all-features --target=x86_64-unknown-linux-gnu
     - uses: mbrobbel/rustfmt-check@master
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }} 
   plugin:
     runs-on: ubuntu-latest
     container: 
