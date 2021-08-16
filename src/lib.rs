@@ -79,9 +79,11 @@ pub fn main() {
 
     
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-    if !fs::metadata(menu_conf_path).is_err() {
+    if fs::metadata(menu_conf_path).is_ok() {
         log!("Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
-        set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
+        if menu_conf.starts_with(b"http://localhost") {
+           set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
+        }
     }
 }
