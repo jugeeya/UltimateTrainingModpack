@@ -69,6 +69,7 @@ pub unsafe fn playback() {
     INPUT_RECORD_FRAME = 0;
 }
 
+#[allow(dead_code)]
 pub unsafe fn handle_get_npad_state(
     state: *mut NpadHandheldState,
     controller_id: *const u32,
