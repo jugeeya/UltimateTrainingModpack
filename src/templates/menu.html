@@ -155,7 +155,7 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg" default="{{default}}">
+                                                            <img class="button-icon toggle {{checked}} {{#is_single_option}}is-single-option{{/is_single_option}}" ref="./check.svg" src="./check.svg" default="{{default}}">
                                                         </div>
                                                         <div class="button-msg-wrapper">
                                                             <div class="keyword-message f-u-bold">
@@ -316,8 +316,18 @@
             }
 
             function clickToggle(e) {
-                $(e).find(".toggle").toggleClass("is-appear");
-                $(e).find(".toggle").toggleClass("is-hidden");
+                var toggleOptions = $(e).find(".toggle");
+                if ($(e).find(".is-single-option").length) { // Single-option submenu
+                    // Deselect all submenu options
+                    $(e).closest(".l-qa").find(".toggle").removeClass("is-appear");
+                    $(e).closest(".l-qa").find(".toggle").addClass("is-hidden");
+                    // Then set the current one as the active setting
+                    toggleOptions.addClass("is-appear");
+                    toggleOptions.removeClass("is-hidden");
+                } else { // Multi-option submenu
+                    toggleOptions.toggleClass("is-appear");
+                    toggleOptions.toggleClass("is-hidden");
+                }
             }
 
             function getParams(url) {
