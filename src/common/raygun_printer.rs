@@ -112,8 +112,8 @@ fn show_segment(module_accessor: &mut app::BattleObjectModuleAccessor, z: f32, y
 
 fn alphabet_index(to_print: char) -> i32 {
     match to_print {
-        'A'..'Z' => to_print as i32 - 'A' as i32,
-        '0'..'9' => to_print as i32 - '0' as i32 + 'Z' as i32 - 'A' as i32 + 1,
+        'A'..='Z' => to_print as i32 - 'A' as i32,
+        '0'..='9' => to_print as i32 - '0' as i32 + 'Z' as i32 - 'A' as i32 + 1,
         ' ' => 36,
         '-' => 37,
         '+' => 38,
