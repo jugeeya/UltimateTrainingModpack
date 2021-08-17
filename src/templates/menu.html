@@ -7,6 +7,7 @@
         <title>Document</title>
         <link rel="stylesheet" href="./help/css/common.css" />
         <link rel="stylesheet" href="./help/css/qa.css" />
+        <link rel="stylesheet" href="./help/css/top.css" />
         <link id="font-stylesheet" rel="stylesheet" href="./help/css/font.css">
         <link rel="stylesheet" href="./help/css/keyword.css">
         <link href="./nouislider.min.css" rel="stylesheet">
@@ -50,9 +51,9 @@
                 width: 100%;
             }
 
-            /* Overwrite margin on the last child to avoid overlap*/
+            /* Overwrite margin on the last child to avoid overlap with footer */
             .l-qa:last-child .qa {
-                margin-bottom: 0px;
+                margin-bottom: 75px;
             }
 
             .l-qa:last-child .qa.is-opened {
@@ -82,6 +83,12 @@
             /* Center Icons */
             .question::before {
                 width: 70px;
+            }
+
+            /* Footer */
+            .footer {
+                position: fixed;
+                z-index: 10;
             }
         </style>
     </head>
@@ -136,7 +143,7 @@
             {{#sub_menus}}
                 <div class="l-qa">
                     {{^onoffselector}}
-                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)" onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
+                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="openAnswer(this)" nx-se-disabled="">
                             <div class="question-outer">
                                 <div class="question-border">
                                     <div id="question-{{id}}" class="question scuffle-thema">
@@ -207,7 +214,7 @@
                         </a>
                     {{/onoffselector}}
                     {{#onoffselector}}
-                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this)" onblur="defocusQA(this)" onclick="clickToggle(this)" nx-se-disabled="">
+                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="clickToggle(this)" nx-se-disabled="">
                             <div class="question-outer">
                                 <div class="question-border">
                                     <div id="question-{{id}}" class="question scuffle-thema">
@@ -225,7 +232,6 @@
                     {{/onoffselector}}
                 </div>
             {{/sub_menus}}
-
         </div>
         {{#sub_menus}}
             {{#sliders}}
@@ -241,6 +247,9 @@
                 </script>
             {{/sliders}}
         {{/sub_menus}}
+        <footer id="footer" class="footer l-footer f-u-bold">
+            <p id="help-text" class="header-desc"></p>
+        </footer>
         <script>
             if (isNx) {
                 window.nx.footer.setAssign('B', '', goBackHook, {
@@ -411,6 +420,11 @@
                     $("[default*='is-hidden']").removeClass("is-appear");
                     $("[default*='is-hidden']").addClass("is-hidden");
                 }
+            }
+
+            function setHelpText(text) {
+                // Modify the help text in the footer
+                $("#help-text").text(text);
             }
         </script>
         <script>
