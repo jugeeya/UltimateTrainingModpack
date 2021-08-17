@@ -40,7 +40,8 @@ struct SubMenu<'a> {
     onoffselector: Vec<OnOffSelector<'a>>,
     index: usize,
     check_against: usize,
-    is_single_option: Option<bool>
+    is_single_option: Option<bool>,
+    help_text: &'a str,
 }
 
 impl<'a> SubMenu<'a> {
@@ -96,7 +97,7 @@ impl<'a> Menu<'a> {
             .unwrap_or(0)
     }
 
-    pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>, sliders: Vec<(usize,usize,usize)>, defaults: usize) {
+    pub fn add_sub_menu(&mut self, title: &'a str, id: &'a str, check_against: usize, toggles: Vec<(&'a str, usize)>, sliders: Vec<(usize,usize,usize)>, defaults: usize, help_text: &'a str) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -105,7 +106,8 @@ impl<'a> Menu<'a> {
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
             check_against,
-            is_single_option: Some(true)
+            is_single_option: Some(true),
+            help_text,
         };
 
         for toggle in toggles {
@@ -119,7 +121,7 @@ impl<'a> Menu<'a> {
         self.sub_menus.push(sub_menu);
     }
 
-    pub fn add_sub_menu_sep(&mut self, title: &'a str, id: &'a str, check_against: usize, strs: Vec<&'a str>, vals: Vec<usize>, defaults: usize) {
+    pub fn add_sub_menu_sep(&mut self, title: &'a str, id: &'a str, check_against: usize, strs: Vec<&'a str>, vals: Vec<usize>, defaults: usize, help_text: &'a str) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -128,7 +130,8 @@ impl<'a> Menu<'a> {
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
             check_against,
-            is_single_option: None
+            is_single_option: None,
+            help_text,
         };
 
         for i in 0..strs.len() {
@@ -140,7 +143,7 @@ impl<'a> Menu<'a> {
         self.sub_menus.push(sub_menu);
     }
 
-    pub fn add_sub_menu_onoff(&mut self, title: &'a str, id: &'a str, check_against: usize, checked: bool, default: usize) {
+    pub fn add_sub_menu_onoff(&mut self, title: &'a str, id: &'a str, check_against: usize, checked: bool, default: usize, help_text: &'a str) {
         let mut sub_menu = SubMenu {
             title,
             id,
@@ -149,7 +152,8 @@ impl<'a> Menu<'a> {
             onoffselector: Vec::new(),
             index: self.max_idx() + 1,
             check_against,
-            is_single_option: None
+            is_single_option: None,
+            help_text,
         };
 
         sub_menu.add_onoffselector(title, checked, (default & OnOff::On as usize) != 0);
@@ -158,7 +162,7 @@ impl<'a> Menu<'a> {
 }
 
 macro_rules! add_bitflag_submenu {
-    ($menu:ident, $title:literal, $id:ident, $e:ty) => {
+    ($menu:ident, $title:literal, $id:ident, $e:ty, $help_text:literal) => {
         paste::paste!{
             let [<$id _strs>] = <$e>::to_toggle_strs();
             let [<$id _vals>] = <$e>::to_toggle_vals();
@@ -170,13 +174,14 @@ macro_rules! add_bitflag_submenu {
                 [<$id _strs>].iter().map(|i| i.as_str()).collect(),
                 [<$id _vals>],
                 DEFAULT_MENU.$id.bits() as usize,
+                stringify!($help_text),
             );
         }
     }
 }
 
 macro_rules! add_single_option_submenu {
-    ($menu:ident, $title:literal, $id:ident, $e:ty) => {
+    ($menu:ident, $title:literal, $id:ident, $e:ty, $help_text:literal) => {
         paste::paste!{
             let mut [<$id _toggles>] = Vec::new();
             for val in [<$e>]::iter() {
@@ -189,21 +194,23 @@ macro_rules! add_single_option_submenu {
                 MENU.$id as usize,
                 [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
                 [].to_vec(),
-                DEFAULT_MENU.$id as usize
+                DEFAULT_MENU.$id as usize,
+                stringify!($help_text),
             );
         }
     }
 }
 
 macro_rules! add_onoff_submenu {
-    ($menu:ident, $title:literal, $id:ident) => {
+    ($menu:ident, $title:literal, $id:ident, $help_text:literal) => {
         paste::paste!{
             $menu.add_sub_menu_onoff(
                 $title, 
                 stringify!($id), 
                 MENU.$id as usize,
                 (MENU.$id as usize & OnOff::On as usize) != 0,
-                DEFAULT_MENU.$id as usize
+                DEFAULT_MENU.$id as usize,
+                stringify!($help_text),
             );
         }
     }
@@ -250,33 +257,33 @@ pub unsafe fn write_menu() {
     };
 
     // Toggle/bitflag menus
-    add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action);
-    add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action);
-    add_bitflag_submenu!(overall_menu, "Attack Angle", attack_angle, AttackAngle);
+    add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action, "Mash Toggles");
+    add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action, "Followup Toggles");
+    add_bitflag_submenu!(overall_menu, "Attack Angle", attack_angle, AttackAngle, "Attack Angle");
 
-    add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption);
-    add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, LongDelay);
-    add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags);
-    add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags);
-    add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive);
+    add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption, "Ledge Options");
+    add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, LongDelay, "Ledge Delay");
+    add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags, "Tech Options");
+    add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags, "Miss Tech Options");
+    add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive, "Defensive Options");
 
-    add_bitflag_submenu!(overall_menu, "Aerial Delay", aerial_delay, Delay);
-    add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay);
-    add_bitflag_submenu!(overall_menu, "Reaction Time", reaction_time, Delay);
+    add_bitflag_submenu!(overall_menu, "Aerial Delay", aerial_delay, Delay, "Aerial Delay");
+    add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay, "OoS Offset");
+    add_bitflag_submenu!(overall_menu, "Reaction Time", reaction_time, Delay, "Reaction Time");
 
-    add_bitflag_submenu!(overall_menu, "Fast Fall", fast_fall, BoolFlag);
-    add_bitflag_submenu!(overall_menu, "Fast Fall Delay", fast_fall_delay, Delay);
-    add_bitflag_submenu!(overall_menu, "Falling Aerials", falling_aerials, BoolFlag);
-    add_bitflag_submenu!(overall_menu, "Full Hop", full_hop, BoolFlag);
+    add_bitflag_submenu!(overall_menu, "Fast Fall", fast_fall, BoolFlag, "Fast Fall");
+    add_bitflag_submenu!(overall_menu, "Fast Fall Delay", fast_fall_delay, Delay, "Fast Fall Delay");
+    add_bitflag_submenu!(overall_menu, "Falling Aerials", falling_aerials, BoolFlag, "Falling Aerials");
+    add_bitflag_submenu!(overall_menu, "Full Hop", full_hop, BoolFlag, "Full Hop");
 
-    add_bitflag_submenu!(overall_menu, "Shield Tilt", shield_tilt, Direction);
-    add_bitflag_submenu!(overall_menu, "DI Direction", di_state, Direction);
-    add_bitflag_submenu!(overall_menu, "SDI Direction", sdi_state, Direction);
-    add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction);
+    add_bitflag_submenu!(overall_menu, "Shield Tilt", shield_tilt, Direction, "Shield Tilt");
+    add_bitflag_submenu!(overall_menu, "DI Direction", di_state, Direction, "DI Direction");
+    add_bitflag_submenu!(overall_menu, "SDI Direction", sdi_state, Direction, "SDI Direction");
+    add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction, "Airdodge Direction");
 
-    add_single_option_submenu!(overall_menu, "SDI Strength", sdi_strength, SdiStrength);
-    add_single_option_submenu!(overall_menu, "Shield Toggles", shield_state, Shield);
-    add_single_option_submenu!(overall_menu, "Mirroring", save_state_mirroring, SaveStateMirroring);
+    add_single_option_submenu!(overall_menu, "SDI Strength", sdi_strength, SdiStrength, "SDI Strength");
+    add_single_option_submenu!(overall_menu, "Shield Toggles", shield_state, Shield, "Shield Toggles");
+    add_single_option_submenu!(overall_menu, "Mirroring", save_state_mirroring, SaveStateMirroring, "Mirroring");
 
 
     // Slider menus
@@ -288,13 +295,14 @@ pub unsafe fn write_menu() {
         [("0", 0),("1",1),("2",2),("3",3),("4",4),("5",5),("6",6),("7",7),("8",8),("9",9),("10",10)].to_vec(),
         [].to_vec(), //(0, 10, MENU.input_delay as usize)
         DEFAULT_MENU.input_delay as usize,
+        "Input Delay",
     );
 
-    add_onoff_submenu!(overall_menu, "Save Damage", save_damage);
-    add_onoff_submenu!(overall_menu, "Hitbox Visualization", hitbox_vis);
-    add_onoff_submenu!(overall_menu, "Stage Hazards", stage_hazards);
-    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage);
-    add_onoff_submenu!(overall_menu, "Mash In Neutral", mash_in_neutral);
+    add_onoff_submenu!(overall_menu, "Save Damage", save_damage, "Save Damage");
+    add_onoff_submenu!(overall_menu, "Hitbox Visualization", hitbox_vis, "Hitbox Visualization");
+    add_onoff_submenu!(overall_menu, "Stage Hazards", stage_hazards, "Stage Hazards");
+    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage, "Frame Advantage");
+    add_onoff_submenu!(overall_menu, "Mash In Neutral", mash_in_neutral, "Mash In Neutral");
 
     let data = tpl.render(&overall_menu);
 
