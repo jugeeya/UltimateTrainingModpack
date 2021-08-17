@@ -257,33 +257,33 @@ pub unsafe fn write_menu() {
     };
 
     // Toggle/bitflag menus
-    add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action, "Mash Toggles");
-    add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action, "Followup Toggles");
-    add_bitflag_submenu!(overall_menu, "Attack Angle", attack_angle, AttackAngle, "Attack Angle");
+    add_bitflag_submenu!(overall_menu, "Mash Toggles", mash_state, Action, "Mash Toggles: Actions to be performed as soon as possible");
+    add_bitflag_submenu!(overall_menu, "Followup Toggles", follow_up, Action, "Followup Toggles: Actions to be performed after the Mash option");
+    add_bitflag_submenu!(overall_menu, "Attack Angle", attack_angle, AttackAngle, "Attack Angle: For attacks that can be angled, such as some forward tilts");
 
-    add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption, "Ledge Options");
-    add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, LongDelay, "Ledge Delay");
-    add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags, "Tech Options");
-    add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags, "Miss Tech Options");
-    add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive, "Defensive Options");
+    add_bitflag_submenu!(overall_menu, "Ledge Options", ledge_state, LedgeOption, "Ledge Options: Actions to be taken when on the ledge");
+    add_bitflag_submenu!(overall_menu, "Ledge Delay", ledge_delay, LongDelay, "Ledge Delay: How many frames to delay the ledge option");
+    add_bitflag_submenu!(overall_menu, "Tech Options", tech_state, TechFlags, "Tech Options: Actions to take when slammed into a hard surface");
+    add_bitflag_submenu!(overall_menu, "Miss Tech Options", miss_tech_state, MissTechFlags, "Miss Tech Options: Actions to take after missing a tech");
+    add_bitflag_submenu!(overall_menu, "Defensive Options", defensive_state, Defensive, "Defensive Options: Actions to take after a ledge option, tech option, or miss tech option");
 
-    add_bitflag_submenu!(overall_menu, "Aerial Delay", aerial_delay, Delay, "Aerial Delay");
-    add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay, "OoS Offset");
-    add_bitflag_submenu!(overall_menu, "Reaction Time", reaction_time, Delay, "Reaction Time");
+    add_bitflag_submenu!(overall_menu, "Aerial Delay", aerial_delay, Delay, "Aerial Delay: How long to delay a Mash aerial attack");
+    add_bitflag_submenu!(overall_menu, "OoS Offset", oos_offset, Delay, "OoS Offset: How many times the CPU shield can be hit before performing a Mash option");
+    add_bitflag_submenu!(overall_menu, "Reaction Time", reaction_time, Delay, "Reaction Time: How many frames to delay before performing an option out of shield");
 
-    add_bitflag_submenu!(overall_menu, "Fast Fall", fast_fall, BoolFlag, "Fast Fall");
-    add_bitflag_submenu!(overall_menu, "Fast Fall Delay", fast_fall_delay, Delay, "Fast Fall Delay");
-    add_bitflag_submenu!(overall_menu, "Falling Aerials", falling_aerials, BoolFlag, "Falling Aerials");
-    add_bitflag_submenu!(overall_menu, "Full Hop", full_hop, BoolFlag, "Full Hop");
+    add_bitflag_submenu!(overall_menu, "Fast Fall", fast_fall, BoolFlag, "Fast Fall: Should the CPU fastfall during a jump");
+    add_bitflag_submenu!(overall_menu, "Fast Fall Delay", fast_fall_delay, Delay, "Fast Fall Delay: How many frames the CPU should delay their fastfall");
+    add_bitflag_submenu!(overall_menu, "Falling Aerials", falling_aerials, BoolFlag, "Falling Aerials: Should aerials be performed when rising or when falling");
+    add_bitflag_submenu!(overall_menu, "Full Hop", full_hop, BoolFlag, "Full Hop: Should the CPU perform a full hop or a short hop");
 
-    add_bitflag_submenu!(overall_menu, "Shield Tilt", shield_tilt, Direction, "Shield Tilt");
-    add_bitflag_submenu!(overall_menu, "DI Direction", di_state, Direction, "DI Direction");
-    add_bitflag_submenu!(overall_menu, "SDI Direction", sdi_state, Direction, "SDI Direction");
-    add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction, "Airdodge Direction");
+    add_bitflag_submenu!(overall_menu, "Shield Tilt", shield_tilt, Direction, "Shield Tilt: Direction to tilt the shield");
+    add_bitflag_submenu!(overall_menu, "DI Direction", di_state, Direction, "DI Direction: Direction to angle the directional influence during hitlag");
+    add_bitflag_submenu!(overall_menu, "SDI Direction", sdi_state, Direction, "SDI Direction: Direction to angle the smash directional influence during hitlag");
+    add_bitflag_submenu!(overall_menu, "Airdodge Direction", air_dodge_dir, Direction, "Airdodge Direction: Direction to angle airdodges");
 
-    add_single_option_submenu!(overall_menu, "SDI Strength", sdi_strength, SdiStrength, "SDI Strength");
-    add_single_option_submenu!(overall_menu, "Shield Toggles", shield_state, Shield, "Shield Toggles");
-    add_single_option_submenu!(overall_menu, "Mirroring", save_state_mirroring, SaveStateMirroring, "Mirroring");
+    add_single_option_submenu!(overall_menu, "SDI Strength", sdi_strength, SdiStrength, "SDI Strength: Relative strength of the smash directional influence inputs");
+    add_single_option_submenu!(overall_menu, "Shield Toggles", shield_state, Shield, "Shield Toggles: CPU Shield Behavior");
+    add_single_option_submenu!(overall_menu, "Mirroring", save_state_mirroring, SaveStateMirroring, "Mirroring: Flips save states in the left-right direction across the stage center");
 
 
     // Slider menus
@@ -295,14 +295,14 @@ pub unsafe fn write_menu() {
         [("0", 0),("1",1),("2",2),("3",3),("4",4),("5",5),("6",6),("7",7),("8",8),("9",9),("10",10)].to_vec(),
         [].to_vec(), //(0, 10, MENU.input_delay as usize)
         DEFAULT_MENU.input_delay as usize,
-        "Input Delay",
+        stringify!("Input Delay: Frames to delay player inputs by"),
     );
 
-    add_onoff_submenu!(overall_menu, "Save Damage", save_damage, "Save Damage");
-    add_onoff_submenu!(overall_menu, "Hitbox Visualization", hitbox_vis, "Hitbox Visualization");
-    add_onoff_submenu!(overall_menu, "Stage Hazards", stage_hazards, "Stage Hazards");
-    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage, "Frame Advantage");
-    add_onoff_submenu!(overall_menu, "Mash In Neutral", mash_in_neutral, "Mash In Neutral");
+    add_onoff_submenu!(overall_menu, "Save Damage", save_damage, "Save Damage: Should save states retain player/CPU damage");
+    add_onoff_submenu!(overall_menu, "Hitbox Visualization", hitbox_vis, "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects");
+    add_onoff_submenu!(overall_menu, "Stage Hazards", stage_hazards, "Stage Hazards: Should stage hazards be present");
+    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage, "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable");
+    add_onoff_submenu!(overall_menu, "Mash In Neutral", mash_in_neutral, "Mash In Neutral: Should Mash options be performed repeatedly or only when the CPU is hit");
 
     let data = tpl.render(&overall_menu);
 
