@@ -289,52 +289,16 @@ fn params_main(params_info: &ParamsInfo<'_>) {
     }
 }
 
-macro_rules! create_nn_hid_hooks {
-    (
-        $(
-            ($func:ident, $hook:ident)
-        ),*
-    ) => {
-        $(
-            #[allow(non_snake_case)]
-            #[skyline::hook(replace = $func)]
-            pub unsafe fn $hook(
-                state: *mut skyline::nn::hid::NpadHandheldState,
-                controller_id: *const u32,
-            ) {
-                original!()(state, controller_id);
-                if is_training_mode() {
-                    input_delay::handle_get_npad_state(state, controller_id);
-                    /* TODO:
-                    1) make number of frames configurable
-                    2) make possible without a second controller plugged in
-                    **/
-                    // input_record::handle_get_npad_state(state, controller_id);
-                }
-            }
-        )*
-    };
-}
-
-create_nn_hid_hooks!(
-    (GetNpadHandheldState, handle_get_npad_handheld_state),
-    (GetNpadFullKeyState, handle_get_npad_full_key_state),
-    (GetNpadGcState, handle_get_npad_gc_state),
-    (GetNpadJoyDualState, handle_get_joy_dual_state),
-    (GetNpadJoyLeftState, handle_get_joy_left_state),
-    (GetNpadJoyRightState, handle_get_joy_right_state));
-
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
 
     // Input Recording/Delay
-    skyline::install_hooks!(
-        handle_get_npad_handheld_state,
-        handle_get_npad_full_key_state,
-        handle_get_npad_gc_state,
-        handle_get_joy_dual_state,
-        handle_get_joy_left_state,
-        handle_get_joy_right_state);
+    unsafe {
+        if (add_nn_hid_hook as *const ()).is_null() {
+            panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
+        }
+        add_nn_hid_hook(input_delay::handle_get_npad_state);
+    }
 
     unsafe {
         LookupSymbol(

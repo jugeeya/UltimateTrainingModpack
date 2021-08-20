@@ -23,25 +23,29 @@ pub unsafe fn p1_controller_id() -> u32 {
     }
 }
 
-pub unsafe fn handle_get_npad_state(
+pub fn handle_get_npad_state(
     state: *mut NpadHandheldState,
     controller_id: *const u32,
 ) {
-    if *controller_id == p1_controller_id() {
-        let mut delayed_states = P1_DELAYED_NPAD_STATES.lock();
-        let actual_state = *state;
+    unsafe {
+        if crate::common::is_training_mode() {
+            if *controller_id == p1_controller_id() {
+                let mut delayed_states = P1_DELAYED_NPAD_STATES.lock();
+                let actual_state = *state;
 
-        if delayed_states.len() < MENU.input_delay as usize {
-            let update_count = (*state).updateCount;
-            *state = NpadHandheldState::default();
-            (*state).updateCount = update_count;
-        } else if let Some(delayed_state) = delayed_states.back() {
-            let update_count = (*state).updateCount;
-            *state = *delayed_state;
-            (*state).updateCount = update_count;
+                if delayed_states.len() < MENU.input_delay as usize {
+                    let update_count = (*state).updateCount;
+                    *state = NpadHandheldState::default();
+                    (*state).updateCount = update_count;
+                } else if let Some(delayed_state) = delayed_states.back() {
+                    let update_count = (*state).updateCount;
+                    *state = *delayed_state;
+                    (*state).updateCount = update_count;
+                }
+
+                delayed_states.push_front(actual_state);
+                delayed_states.truncate(MENU.input_delay as usize);
+            }
         }
-
-        delayed_states.push_front(actual_state);
-        delayed_states.truncate(MENU.input_delay as usize);
     }
 }
