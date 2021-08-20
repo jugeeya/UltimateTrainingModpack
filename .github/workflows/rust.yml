@@ -85,7 +85,7 @@ jobs:
         cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
         wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro
         wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.1.1/libnro_hook.nro
-        wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/beta/libnn_hid_hook.nro
+        wget https://github.com/jugeeya/nn-hid-hook/releases/download/beta/libnn_hid_hook.nro
         cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
         cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
         cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
