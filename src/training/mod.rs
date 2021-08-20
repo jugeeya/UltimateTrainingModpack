@@ -289,6 +289,11 @@ fn params_main(params_info: &ParamsInfo<'_>) {
     }
 }
 
+#[allow(improper_ctypes)]
+extern "C" {
+    fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState,*const u32));
+}
+
 pub fn training_mods() {
     println!("[Training Modpack] Applying training mods.");
 
