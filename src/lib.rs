@@ -48,7 +48,6 @@ macro_rules! c_str {
     };
 }
 
-#[cfg(not(test))]
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
     macro_rules! log {
@@ -59,6 +58,19 @@ pub fn main() {
     }
 
     log!("Initialized.");
+
+    // HTTP endpoint
+    let host = "my-project-1511972643240-default-rtdb.firebaseio.com";
+    let path = "/users/jack/name.json";
+    
+    let url = format!("{}{}", host, path);
+    let response: String = minreq::get(url)
+        .send()
+        .ok()
+        .unwrap();
+
+    println!("response: {}", response);
+
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
