@@ -2,12 +2,9 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::frame_counter;
 use crate::training::mash;
-use smash::app;
-use smash::app::lua_bind::*;
-use smash::app::sv_system;
+use smash::app::{self, lua_bind::*, sv_system};
 use smash::hash40;
-use smash::lib::lua_const::*;
-use smash::lib::L2CValue;
+use smash::lib::{L2CAgent, L2CValue, lua_const::*};
 use smash::lua2cpp::L2CFighterCommon;
 
 // How many hits to hold shield until picking an Out Of Shield option
@@ -385,5 +382,24 @@ unsafe fn should_return_none_in_check_button(
 fn was_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     unsafe {
         StatusModule::prev_status_kind(module_accessor, 0) == FIGHTER_STATUS_KIND_GUARD_DAMAGE
+    }
+}
+
+pub unsafe fn mod_handle_attack(lua_state: u64) {
+    let mut l2c_agent = L2CAgent::new(lua_state);
+
+    // necessary if param object fails
+    // hacky way of forcing no shield damage on all hitboxes
+    if MENU.shield_state == Shield::Infinite {
+        let mut hitbox_params: Vec<L2CValue> =
+            (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
+        l2c_agent.clear_lua_stack();
+        for (i, mut x) in hitbox_params.iter_mut().enumerate().take(36) {
+            if i == 20 {
+                l2c_agent.push_lua_stack(&mut L2CValue::new_num(-999.0));
+            } else {
+                l2c_agent.push_lua_stack(&mut x);
+            }
+        }
     }
 }

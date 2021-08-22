@@ -299,7 +299,7 @@ pub unsafe fn write_menu() {
     );
 
     add_onoff_submenu!(overall_menu, "Save Damage", save_damage, "Save Damage: Should save states retain player/CPU damage");
-    add_onoff_submenu!(overall_menu, "Hitbox Visualization", hitbox_vis, "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects");
+    add_bitflag_submenu!(overall_menu, "Visualization", visualization, VisualizationFlags, "Visualization: Should hitboxes and/or hurtboxes be displayed.");
     add_onoff_submenu!(overall_menu, "Stage Hazards", stage_hazards, "Stage Hazards: Should stage hazards be present");
     add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage, "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable");
     add_onoff_submenu!(overall_menu, "Mash In Neutral", mash_in_neutral, "Mash In Neutral: Should Mash options be performed repeatedly or only when the CPU is hit");
