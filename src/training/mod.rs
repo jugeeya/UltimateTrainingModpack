@@ -1,5 +1,4 @@
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
-use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use skyline::nn::hid::*;
 use smash::app::{self, lua_bind::*};
@@ -12,6 +11,7 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod ledge;
+pub mod visualizer;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -78,6 +78,8 @@ pub unsafe fn handle_get_command_flag_cat(
         shield::param_installer();
     }
 
+    visualizer::get_command_flag_cat(module_accessor);
+
     if !is_training_mode() {
         return flag;
     }
@@ -104,7 +106,6 @@ fn once_per_frame_per_fighter(
 
         input_record::get_command_flag_cat(module_accessor);
         combo::get_command_flag_cat(module_accessor);
-        hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
         tech::get_command_flag_cat(module_accessor);
     }
