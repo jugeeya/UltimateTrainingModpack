@@ -12,9 +12,11 @@ pub unsafe fn get_command_flag_cat(_module_accessor: &mut app::BattleObjectModul
         panic!("The visualizer plugin is not found. Please check your Skyline plugins directory for visualizer.nro.");
     }
 
-    let visualization = !is_training_mode() && MENU.hitbox_vis == OnOff::On;
+    let vis_options = MENU.visualization.to_vec();
+    let hitbox_vis = is_training_mode() && vis_options.contains(&VisualizationFlags::HITBOX_VIS);
+    let hurtbox_vis = is_training_mode() && vis_options.contains(&VisualizationFlags::HURTBOX_VIS);
 
-    enable_hitbox_vis(visualization);
-    enable_hurtbox_vis(visualization);
-    enable_special_vis(visualization);
+    enable_hitbox_vis(hitbox_vis);
+    enable_hurtbox_vis(hurtbox_vis);
+    enable_special_vis(hitbox_vis);
 }
