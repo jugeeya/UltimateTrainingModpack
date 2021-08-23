@@ -1,7 +1,7 @@
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use skyline::nn::ro::LookupSymbol;
 use skyline::nn::hid::*;
-use smash::app::{self, lua_bind::*};
+use smash::app::{self, lua_bind::*, sv_animcmd};
 use smash::lib::lua_const::*;
 use smash::params::*;
 
@@ -280,6 +280,15 @@ pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
     original!()(lua_state)
 }
 
+#[skyline::hook(replace = sv_animcmd::ATTACK)]
+unsafe fn handle_attack(lua_state: u64) {
+    if is_training_mode() {
+        shield::mod_handle_attack(lua_state);
+    }
+
+    original!()(lua_state);
+}
+
 pub static mut COMMON_PARAMS: *mut CommonParams = 0 as *mut _;
 
 fn params_main(params_info: &ParamsInfo<'_>) {
@@ -350,6 +359,8 @@ pub fn training_mods() {
         handle_is_enable_transition_term,
         // SDI
         crate::training::sdi::check_hit_stop_delay_command,
+        // Infinite shield damage
+        handle_attack
     );
 
     combo::init();
