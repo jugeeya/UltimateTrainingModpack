@@ -313,6 +313,7 @@ pub fn training_mods() {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
+        add_nn_hid_hook(input_record::handle_get_npad_state)
     }
 
     unsafe {
