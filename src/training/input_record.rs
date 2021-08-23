@@ -71,18 +71,19 @@ pub unsafe fn playback() {
     INPUT_RECORD_FRAME = 0;
 }
 
-#[allow(dead_code)]
-pub unsafe fn handle_get_npad_state(
+pub fn handle_get_npad_state(
     state: *mut NpadHandheldState,
     controller_id: *const u32,
 ) {
-    if *controller_id == p1_controller_id() {
-        if INPUT_RECORD == Record {
-            P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME] = *state;
+    unsafe {
+        if *controller_id == p1_controller_id() {
+            if INPUT_RECORD == Record {
+                P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME] = *state;
+            }
+        } else if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+            let update_count = (*state).updateCount;
+            *state = P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME];
+            (*state).updateCount = update_count;
         }
-    } else if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-        let update_count = (*state).updateCount;
-        *state = P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME];
-        (*state).updateCount = update_count;
     }
 }
