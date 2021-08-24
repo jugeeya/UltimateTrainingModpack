@@ -53,7 +53,8 @@ At any time in Training Mode, you can press `Grab + Down Taunt` to save the stat
 Practice with emulated extra input delay, in frames. Use this to practice with online's default delay.
 
 ## Frame Advantage
-*Currently only works on shield*. Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield.
+
+Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield. Can also be used to find the advantage on hit to determine appropriate followups.
 
 ## Hitbox Visualization
 Currently, hitboxes and grabboxes are supported. When visualization is active, other move effects are temporarily turned off for easier visualization.
