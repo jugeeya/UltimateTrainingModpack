@@ -1,5 +1,3 @@
-https://imgur.com/a/FUn58w6
-
 [<img src="https://imgur.com/7BVjKtZ.jpg">](https://imgur.com/7BVjKtZ.jpg)
 
 # Ultimate Training Modpack Plugin
