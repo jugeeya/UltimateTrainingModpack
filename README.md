@@ -1,136 +1,227 @@
+https://imgur.com/a/FUn58w6
+
+[<img src="https://imgur.com/7BVjKtZ.jpg">](https://imgur.com/7BVjKtZ.jpg)
+
 # Ultimate Training Modpack Plugin
 
 [![GitHub All Releases](https://img.shields.io/github/downloads/jugeeya/UltimateTrainingModpack/total?logo=download&style=for-the-badge)](https://github.com/jugeeya/UltimateTrainingModpack/releases)
+
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jugeeya/UltimateTrainingModpack/Rust?style=for-the-badge)](https://github.com/jugeeya/UltimateTrainingModpack/actions)
+
 [![Discord](https://img.shields.io/discord/407970595418931200?label=discord&logo=discord&style=for-the-badge)](https://discord.gg/qU4TBwV)
+
 [![Twitter Follow](https://img.shields.io/twitter/follow/jugeeya?color=brightgreen&logo=twitter&style=for-the-badge)](https://twitter.com/jugeeya)
 
-A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyline](https://github.com/jam1garner/cargo-skyline) for adding features to the training mode. It interfaces with a [Tesla](https://github.com/WerWolv/libtesla), a Switch custom overlay, for use as a menu to the features offered in training mode.
+A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyline](https://github.com/jam1garner/cargo-skyline) for adding features to the training mode. It interfaces with [skyline-web](https://github.com/skyline-rs/skyline-web) to provide a menu for customizing training options.
 
-Built releases can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/).
+The latest stable release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest).
 
-- [Features](#features)
-- [Build](#build)
+The latest beta release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta).
+
+-  [Features](#features)
+
+-  [Installation](#installation)
+
+-  [Frequently Asked Questions](#faq)
+
+-  [Build Instructions](#build)
 
 <a name="features"/>
 
 # Features
-The features in this modpack are configured through the Tesla menu, which can be accessed at any time with by pressing `L+X+DPad Left`. This button configuration is fully configurable in the file `/config/tesla/config.ini`.
-[<img src="https://i.imgur.com/HRKvIb3.jpg">](https://i.imgur.com/HRKvIb3.jpg)
-[<img src="https://i.imgur.com/eSrtDyj.png">](https://i.imgur.com/eSrtDyj.png)
-[<img src="https://i.imgur.com/7Cd6utU.jpg">](https://i.imgur.com/7Cd6utU.jpg)
+The features in this modpack are configured through the menu, which can be accessed within training mode by pressing `SPECIAL+UPTAUNT`. Generally they fall into three categories:
 
-#### Stage Hazards Toggle
+- Enables or disables stage hazards
+- Saves and loads the positional state of the player and CPU
+- Displays additional information onscreen
+- Controls CPU behavior
+
+[<img src="https://imgur.com/5Blmsbc.jpg">](https://imgur.com/5Blmsbc.jpg)
+
+[<img src="https://imgur.com/NR0Rl7j.jpg">](https://imgur.com/NR0Rl7j.jpg)
+
+## Stage Hazards
+
 Set stage hazards on or off in Training Mode! Use this to practice on tournament legal stages with hazards.
 
-#### Input Delay
-Practice with emulated extra input delay, in frames. This should help a lot by allowing practice with online's default delay.
 
-#### Frame Advantage. 
+## Save States
+
+At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. Use this instead of the built-in training mode reset!
+## Input Delay
+
+Practice with emulated extra input delay, in frames. Use this to practice with online's default delay.
+
+## Frame Advantage
 *Currently only works on shield*. Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield.
 
-#### Save States
-At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. Use this instead of the built-in training mode reset!
-
-#### Hitbox Visualization
+## Hitbox Visualization
 Currently, hitboxes and grabboxes are supported. When visualization is active, other move effects are temporarily turned off for easier visualization.
 
-#### Selecting Multiple Options
-Any submenu that allows you to toggle multiple options will randomize between only those options. This is the vast majority of items in the menu detailed below, and it's a huge change that allows for really deep practice.
+## CPU Behavior
 
+The CPU can be instructed to perform a wide array of different actions in response to particular situations. The following situations are available:
 
-##### Mash Section
-###### Mash Toggles
-*Note:* Combine this with the shield toggles to force the CPU to perform options OoS when their shield is damaged!
+- Mash: To be performed after being hit or shielding an attack
+- Followup: To be performed as soon as possible after the mash option
+- Ledge: To be performed when hanging on the ledge
+- Tech: To be performed when slammed into the ground or wall
+- Miss Tech: To be performed after failing to tech
+- Defensive: To be performed after the ledge, tech, or miss tech option
 
-CPUs will mash an option on the first frame possible out of hitstun.
+The timing of the CPU option can be influenced by the following settings:
 
-Airdodge has specific logic that the CPU will also flash shield when landing.
+- Aerial Delay
+- Ledge Delay
+- OoS Offset
+- Reaction Time
+- Fast Fall Delay
+- Falling Aerials
+- Mash in Neutral
 
-###### Followup Toggles
-Set a mash option to perform directly after the one specified with Mash Toggles.
+-----
 
-###### Mash in Neutral
-Set a CPU to mash specified option in neutral/idle state.
+## Menu Settings
 
-##### Left Stick Section
-###### DI
-CPUs DI in the direction specified, relative to the player's facing position.
+When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button.
 
-###### SDI
-Works the same way as the DI toggle, but choose a direction for the CPU to SDI every 4 frames of hitlag. 
+| Feature              | Description                                                                                 | Options                                                                                                           |
+|----------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| Mash Toggles         | Actions to be performed as soon as possible out of hitstun or shieldstun                    | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
+| Followup Toggles     | Actions to be performed after the Mash option                                               | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
+| Attack Angles        | For attacks that can be angled, such as some forward tilts                                  | Neutral, up, down                                                                                                 |
+| Ledge Options        | Actions to be taken when on the ledge                                                       | Neutral getup, ledge roll, ledge attack, wait                                                                     |
+| Ledge Delay          | How many frames to delay the ledge option                                                   | 0 to 300 frames (5 seconds) in increments of 10 frames                                                            |
+| Tech Options         | Actions to take when slammed into a hard surface                                            | Miss tech, tech in place, tech roll in, tech roll out                                                             |
+| Miss Tech Options    | Actions to take after missing a tech                                                        | Neutral getup, getup attack, roll in, roll out                                                                    |
+| Defensive Options    | Actions to take after a ledge option, tech option, or miss tech option                      | Spotdodge, roll in, roll out, jab, shield                                                                         |
+| Aerial Delay         | How long to delay a Mash aerial attack                                                      | 0 to 30 frames (0.5 seconds)                                                                                      |
+| OoS Offset           | How many times the CPU shield can be hit before performing a Mash option                    | 0 to 30 hits                                                                                                      |
+| Reaction Time        | How many frames to delay before performing an option out of shield                          | 0 to 30 frames (0.5 seconds)                                                                                      |
+| Fast Fall            | Should the CPU fastfall during a jump                                                       | Yes, No                                                                                                           |
+| Fast Fall Delay      | How many frames the CPU should delay their fastfall                                         | 0 to 30 frames (0.5 seconds)                                                                                      |
+| Falling Aerials      | Should aerials be performed when rising or when falling                                     | Yes, No                                                                                                           |
+| Full Hop             | Should the CPU perform a full hop or a short hop                                            | Yes, No                                                                                                           |
+| Shield Tilt          | Direction to tilt the shield                                                                | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right                                         |
+| DI Direction         | Direction to angle the directional influence during hitlag                                  | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right                                         |
+| SDI Direction        | Direction to angle the smash directional influence during hitlag                            | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right                                         |
+| Airdodge Direction   | Direction to angle airdodges                                                                | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right                                         |
+| SDI Strength         | Relative strength of the smash directional influence inputs                                 | Normal (8 frames between SDI inputs), Medium (6 frames), High (4 frames)                                          |
+| Shield Toggles       | CPU Shield Behavior                                                                         | None, Infinite (no shield damage or decay), Hold (no shield decay until the shield is hit for the first time), Constant (no shield decay)                                      |
+| Mirroring            | Flips save states in the left-right direction across the stage center                       | None, Alternate, Random                                                                                           |
+| Input Delay          | Frames to delay player inputs by                                                            | 0 to 10 frames (0.167 seconds)                                                                                    |
+| Save Damage          | Should save states retain player/CPU damage                                                 | Yes, No                                                                                                           |
+| Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects                                   | Yes, No                                                                                                           |
+| Stage Hazards        | Should stage hazards be present                                                             | Yes, No                                                                                                           |
+| Frame Advantage      | Display the time difference between when the player is actionable and the CPU is actionable | Yes, No                                                                                                           |
+| Mash in Neutral      | Should Mash options be performed repeatedly or only when the CPU is hit                     | Yes, No                                                                                                           |
 
-###### Airdodge Direction
-When a CPU is set to mash airdodge, it will use this direction as its airdodge direction.
+<a name="installation"/>
 
-##### Chase Section
-###### Ledge Option
-CPUs will perform a random ledge option among the selected options.
+# Installation
 
-CPUs will also perform a defensive option after getting up.
+To install the training modpack, download the .zip file from the [latest release page](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest). Extract the files from the .zip file using the file explorer on Windows or Mac, or a program such as 7-zip (windows) or unzip (Linux). Then transfer the extracted contents onto the root of your SD card, merging the /atmosphere folder with the one on your SD card. No files need to be deleted when upgrading from a previous version. The SD card should have the below files at these locations.
 
-###### Ledge Delay
-CPUs will delay their getup option by a random number of frames among the selected options.
+```
+SD Card Root
+├── atmosphere
+│   └── contents
+│       └── 01006A800016E000
+│           ├── exefs
+│           │   ├── main.npdm
+│           │   └── subsdk9
+│           ├── manual_html
+│           │   └── html-document
+│           │       └── contents.htdocs
+│           │           ├── aerial_delay.svg
+│           │           ├── air_dodge_dir.svg
+│           │           ├── attack_angle.svg
+│           │           ├── check.svg
+│           │           ├── defensive_state.svg
+│           │           ├── di_state.svg
+│           │           ├── falling_aerials.svg
+│           │           ├── fast_fall.svg
+│           │           ├── fast_fall_delay.svg
+│           │           ├── follow_up.svg
+│           │           ├── frame_advantage.svg
+│           │           ├── full_hop.svg
+│           │           ├── input_delay.svg
+│           │           ├── ledge_delay.svg
+│           │           ├── ledge_state.svg
+│           │           ├── mash_in_neutral.svg
+│           │           ├── mash_state.svg
+│           │           ├── miss_tech_state.svg
+│           │           ├── oos_offset.svg
+│           │           ├── reaction_time.svg
+│           │           ├── save_damage.svg
+│           │           ├── save_state_mirroring.svg
+│           │           ├── sdi_state.svg
+│           │           ├── sdi_strength.svg
+│           │           ├── shield_state.svg
+│           │           ├── shield_tilt.svg
+│           │           ├── stage_hazards.svg
+│           │           ├── tech_state.svg
+│           │           └── visualization.svg
+│           └── romfs
+│               └── skyline
+│                   └── plugins
+│                       ├── libnn_hid_hook.nro
+│                       ├── libnro_hook.nro
+│                       ├── libparam_hook.nro
+│                       ├── libtraining_modpack.nro
+│                       └── visualizer.nro
+└── colors.json
+```
 
-###### Tech Option
-CPUs will perform a random tech option among the selected options.
+To install a beta version of the modpack, follow the same procedure using the [latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta) on Github. Beta releases may have additional features and bugfixes, but are subject to change.
 
-CPUs will also perform a defensive option after getting up.
+<a name="faq"/>
 
-###### Missed Tech Option
-CPUs will perform a random getup option among the selected options after missing a tech.
+# Frequently Asked Questions
 
-###### Defensive Option
-CPUs will perform the defensive option a CPU will perform after teching or getting up from the ledge, among the selected options.
-
-##### Shield Section
-
-###### Shield Options
-- Infinite: CPUs will hold a shield that does not deteriorate over time or by damage.
-- Hold: CPUs will hold a shield that does not deteriorate over time until hit for the first time.
-
-###### OOS Offset
-The CPU will delay until the specified number of hits to perform an OoS option.
-
-###### OOS Reaction Time
-The CPU will delay a specified number of frames before performing an OoS option.
-
-###### Shield Tilt
-Set the CPU to tilt their shield in a direction while set to Hold or Infinite shield. 
-
-#### Aerials Section
-Edit how the CPU performs aerials.
-
-##### Fast Fall
-##### Full Hops 
-##### Falling Aerials
-##### Fast Fall Delay 
-Specified in frames (from apex of CPU's jump).
-
-###### Aerial Delay
-CPUs will delay their aerial attack input by a random number of frames among the selected options.
+* Can my Switch run the Training Modpack?
+    * Your swithc has to be hackable, which means it needs to be an early enough unit. You can check at https://ismyswitchpatched.com/ .
+* Is this mod wifi-safe?
+    * Yes*. Smash online is client sided. What this means is when playing against an opponent, their instance of the game is separate from your instance of the game, and when the server sends over data from the other player, it is replicated on your screen. Desyncs arise from when properties from the other side differ from what your game expects. (For example, Mario’s Forward Smash dealing 95% instead of its’ normal amount of damage). Because Training Modpack is only available while using Training Mode, the training modpack is safe to use while using online games. However, you should recognize that mods are not sanctioned by Nintendo and that there is always some ban risk associated with using them. Use this mod and others at your own risk.
+* Is this mod compatible with Yuzu or other emulators?
+    * No, emulators do not support Skyline yet, which is the code framework this mod works under. However, if those emulators add Skyline support at some point in the future, then it may be possible for the training modpack to run on those platforms.
+* Can I change the button combination to bring up the menu?
+    * No, this is not currently supported. Use `SPECIAL+UPTAUNT` to open the menu.
+* How do I fix the error message "The software has been closed due to an error" when starting Smash?
+    * If you're on a Mac, check your SD card for files with dots at the beginning of them in the training mod files, they should be deleted (like, `._libtraining_modpack.nro` in addition to `libtraining_modpack.nro`).
+* How do I fix the error message "Fatal error: Failed to stat stage2 (atmosphere/fusee-secondary.bin)"?
+    * This is caused by improperly setting up the SD card. When adding files onto the SD card, make sure that you extract the contents of the .zip file first then add only the contents and not the parent folder onto the SD card! Consult the [Atmosphere documentation](https://github.com/Atmosphere-NX/Atmosphere) for additional information.
+* How do I remove the Training Mod?
+    * It's as simple as removing the files associated with the modpack. Make sure you only remove the files that you wish to remove:
+        * Skyline, the loader for code plugins like the modpack
+        `atmosphere/contents/01006A800016E000/exefs/*`
+        * Modpack plugins
+            * `atmosphere/contents/01006A800016E000/romfs/libnn_hid_hook.nro`
+            * `atmosphere/contents/01006A800016E000/romfs/libnro_hook.nro`
+            * `atmosphere/contents/01006A800016E000/romfs/libtraining_modpack.nro`
+            * `atmosphere/contents/01006A800016E000/romfs/visualizer.nro`
+        * Additional static files
+            * `atmosphere/contents/01006A800016E000/manual_html/html-document/contents.htdocs/*`
+            * `colors.json`
+            * `TrainingModpack/*` (which is generated by the modpack)
+    * Make sure that you only remove the files that you don't want on your SD card anymore (e.g. don't remove skyline if you have other skyline plugins)
+* What features are under development?
+    * Check the [Projects Tab on Github](https://github.com/jugeeya/UltimateTrainingModpack/projects) and the Discord for the latest information on new development
+* How do I contribute to the modpack?
+    * Pull requests to the project repository are welcome for new features and bugfixes.
 
 <a name="build"/>
 
 # Build from Source
 
-The overall process can be found in the [Github Actions specification file](https://github.com/jugeeya/UltimateTrainingModpack/blob/master/.github/workflows/rust.yml) as well.
+If you'd like to build the modpack starting from the source code, you can build the NRO using the standard command for skyline plugins:
+
+```bash
+cargo skyline build --release
+```
+
+To build the entire modpack including supporting files, use the steps in [`full_build.sh`](full_build.sh) or in the [Github Actions specification file](https://github.com/jugeeya/UltimateTrainingModpack/blob/master/.github/workflows/rust.yml).
 
 ## Prerequisites
-- Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
-- [DEVKITPRO](https://devkitpro.org/wiki/Getting_Started) `switch-dev` installation 
-- Built [Skyline](https://github.com/shadowninja108/Skyline), [Tesla nx-ovlloader and Tesla Menu](https://gbatemp.net/threads/tesla-the-nintendo-switch-overlay-menu.557362/), and [libnro_hook.nro](https://github.com/ultimate-research/nro-hook-plugin)
-
-## Build steps
-```bash
-# clone the repository recursively
-git clone --recursive 
-
-# to build the training mod Skyline plugin
-# resulting build is found in target/aarch64-skyline-switch/release/libtraining_modpack.nro
-cargo skyline build --release
-
-# to build the training mod Tesla overlay
-# resulting build is ovlTrainingModpack.ovl
-cd TrainingModpackOverlay && make
-```
+- Stable Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
+- [DEVKITPRO](https://devkitpro.org/wiki/Getting_Started) `switch-dev` installation
