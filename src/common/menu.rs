@@ -313,12 +313,12 @@ pub unsafe fn write_menu() {
     let path = Path::new("sd:/atmosphere/contents")
         .join(&format!("{:016X}", program_id))
         .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
-        .join("index.html");
+        .join("training_menu.html");
     fs::write(path, data).unwrap();
 }
 
 pub unsafe fn spawn_menu() {
-    let fname = "index.html";
+    let fname = "training_menu.html";
     let params = MENU.to_url_params();
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)
