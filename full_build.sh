@@ -6,6 +6,7 @@ git clone --recursive
 cargo skyline build --release
 
 # Make directories
+rm -r release
 mkdir -p release
 mkdir -p release/atmosphere/contents/01006A800016E000
 mkdir -p release/atmosphere/contents/01006A800016E000/romfs/skyline/plugins
@@ -26,10 +27,11 @@ wget https://github.com/jugeeya/nn-hid-hook/releases/download/beta/libnn_hid_hoo
 wget https://github.com/blu-dev/smash-visualizer/releases/download/0.1.0/Smash-Visualizer-0.1.0.zip
 unzip -o Smash-Visualizer-0.1.0.zip
 rm Smash-Visualizer-0.1.0.zip
-rm -r atmosphere
 
 # Move files to release
-mv exefs release/atmosphere/contents/01006A800016E000
+mv atmosphere/contents/01006A800016E000/romfs/skyline/plugins release/atmosphere/contents/01006A800016E000/romfs/skyline
+rm -r atmosphere
+rm -r exefs
 mv libparam_hook.nro release/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libparam_hook.nro
 mv libnro_hook.nro release/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnro_hook.nro
 mv libnn_hid_hook.nro release/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnn_hid_hook.nro
