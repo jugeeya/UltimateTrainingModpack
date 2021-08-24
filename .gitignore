@@ -12,3 +12,4 @@ TrainingModpackOverlay/build/
 *.nacp
 
 *.nro
+release/
