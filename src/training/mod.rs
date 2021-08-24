@@ -369,7 +369,7 @@ pub fn training_mods() {
     mash::init();
     ledge::init();
 
-    println!("[Training Modpack] Writing menu file index.html");
+    println!("[Training Modpack] Writing menu file training_menu.html");
     unsafe { menu::write_menu(); }
     println!("[Training Modpack] Wrote menu file.");
 }
