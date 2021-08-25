@@ -9,7 +9,7 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub static DEFAULT_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
-    visualization: VisualizationFlags::all(),
+    hitbox_vis: OnOff::On,
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),

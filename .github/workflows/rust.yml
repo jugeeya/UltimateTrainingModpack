@@ -86,17 +86,11 @@ jobs:
         wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro
         wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.1.1/libnro_hook.nro
         wget https://github.com/jugeeya/nn-hid-hook/releases/download/beta/libnn_hid_hook.nro
-        wget https://github.com/blu-dev/smash-visualizer/releases/download/0.1.0/Smash-Visualizer-0.1.0.zip
         cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
         cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
         cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
-        unzip -o Smash-Visualizer-0.1.0.zip
-        ls
-        #cp Smash-Visualizer/${{env.SMASH_PLUGIN_DIR}}/visualizer.nro ${{env.SMASH_PLUGIN_DIR}}/visualizer.nro
-        #cp Smash-Visualizer/colors.json colors.json
-        
         ls -1 svg/*.svg | xargs -n 1 basename | xargs -L1 -I{} cp svg/{} ${{env.SMASH_WEB_DIR}}/{}
-        zip -r training_modpack_beta.zip atmosphere colors.json
+        zip -r training_modpack_beta.zip atmosphere
     - name: Update Release
       uses: meeDamian/github-release@2.0
       with:

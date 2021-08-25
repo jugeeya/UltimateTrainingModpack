@@ -6,6 +6,7 @@
 
 pub mod common;
 mod hazard_manager;
+mod hitbox_visualizer;
 mod training;
 
 #[cfg(test)]
@@ -58,6 +59,7 @@ pub fn main() {
     }
 
     log!("Initialized.");
+    hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();

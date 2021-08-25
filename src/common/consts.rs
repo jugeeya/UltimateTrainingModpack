@@ -79,25 +79,6 @@ pub fn random_option<T>(arg: &[T]) -> &T {
     &arg[get_random_int(arg.len() as i32) as usize]
 }
 
-bitflags! {
-    pub struct VisualizationFlags : u32 {
-        const HITBOX_VIS = 0x1;
-        const HURTBOX_VIS = 0x2;
-    }
-}
-
-impl VisualizationFlags {
-    fn into_string(self) -> String {
-        match self {
-            VisualizationFlags::HITBOX_VIS => "Hitbox Visualization",
-            VisualizationFlags::HURTBOX_VIS => "Hurtbox Visualization",
-            _ => "",
-        }.to_string()
-    }
-}
-
-extra_bitflag_impls! {VisualizationFlags}
-
 // DI
 /*
  0, 0.785398, 1.570796, 2.356194, -3.14159, -2.356194,  -1.570796, -0.785398
@@ -730,7 +711,7 @@ macro_rules! url_params {
 url_params! {
     #[derive(Clone, Copy, )]
     pub struct TrainingModpackMenu {
-        pub visualization: VisualizationFlags,
+        pub hitbox_vis: OnOff,
         pub stage_hazards: OnOff,
         pub di_state: Direction,
         pub sdi_state: Direction,
@@ -784,7 +765,7 @@ impl TrainingModpackMenu {
             (fast_fall = BoolFlag::from_bits(val))
             (follow_up = Action::from_bits(val))
             (full_hop = BoolFlag::from_bits(val))
-            (visualization = VisualizationFlags::from_bits(val))
+            (hitbox_vis = OnOff::from_val(val))
             (input_delay = Some(val as i32))
             (ledge_delay = LongDelay::from_bits(val))
             (ledge_state = LedgeOption::from_bits(val))
