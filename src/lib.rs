@@ -67,6 +67,8 @@ pub fn main() {
     let response: String = minreq::get(url)
         .send()
         .ok()
+        .unwrap()
+        .json()
         .unwrap();
 
     println!("response: {}", response);
