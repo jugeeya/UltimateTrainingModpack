@@ -62,7 +62,6 @@ pub fn main() {
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
-    nro::add_hook(nro_main);
      
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
