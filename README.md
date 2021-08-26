@@ -27,7 +27,7 @@ The latest beta release can be found [here](https://github.com/jugeeya/UltimateT
 <a name="features"/>
 
 # Features
-The features in this modpack are configured through the menu, which can be accessed within training mode by pressing `SPECIAL+UPTAUNT`. Generally they fall into three categories:
+The features in this modpack are configured through the menu, which can be accessed within training mode by pressing `SPECIAL+UPTAUNT`. Generally they fall into these categories:
 
 - Enables or disables stage hazards
 - Saves and loads the positional state of the player and CPU
@@ -123,53 +123,50 @@ To install the training modpack, download the .zip file from the [latest release
 
 ```
 SD Card Root
-├── atmosphere
-│   └── contents
-│       └── 01006A800016E000
-│           ├── exefs
-│           │   ├── main.npdm
-│           │   └── subsdk9
-│           ├── manual_html
-│           │   └── html-document
-│           │       └── contents.htdocs
-│           │           ├── aerial_delay.svg
-│           │           ├── air_dodge_dir.svg
-│           │           ├── attack_angle.svg
-│           │           ├── check.svg
-│           │           ├── defensive_state.svg
-│           │           ├── di_state.svg
-│           │           ├── falling_aerials.svg
-│           │           ├── fast_fall.svg
-│           │           ├── fast_fall_delay.svg
-│           │           ├── follow_up.svg
-│           │           ├── frame_advantage.svg
-│           │           ├── full_hop.svg
-│           │           ├── input_delay.svg
-│           │           ├── ledge_delay.svg
-│           │           ├── ledge_state.svg
-│           │           ├── mash_in_neutral.svg
-│           │           ├── mash_state.svg
-│           │           ├── miss_tech_state.svg
-│           │           ├── oos_offset.svg
-│           │           ├── reaction_time.svg
-│           │           ├── save_damage.svg
-│           │           ├── save_state_mirroring.svg
-│           │           ├── sdi_state.svg
-│           │           ├── sdi_strength.svg
-│           │           ├── shield_state.svg
-│           │           ├── shield_tilt.svg
-│           │           ├── stage_hazards.svg
-│           │           ├── tech_state.svg
-│           │           └── visualization.svg
-│           └── romfs
-│               └── skyline
-│                   └── plugins
-│                       ├── libnn_hid_hook.nro
-│                       ├── libnro_hook.nro
-│                       ├── libparam_hook.nro
-│                       ├── libtraining_modpack.nro
-│                       └── visualizer.nro
-└── colors.json
+└── atmosphere
+    └── contents
+        └── 01006A800016E000
+            ├── exefs
+            │   ├── main.npdm
+            │   └── subsdk9
+            ├── manual_html
+            │   └── html-document
+            │       └── contents.htdocs
+            │           ├── aerial_delay.svg
+            │           ├── air_dodge_dir.svg
+            │           ├── attack_angle.svg
+            │           ├── check.svg
+            │           ├── defensive_state.svg
+            │           ├── di_state.svg
+            │           ├── falling_aerials.svg
+            │           ├── fast_fall.svg
+            │           ├── fast_fall_delay.svg
+            │           ├── follow_up.svg
+            │           ├── frame_advantage.svg
+            │           ├── full_hop.svg
+            │           ├── input_delay.svg
+            │           ├── ledge_delay.svg
+            │           ├── ledge_state.svg
+            │           ├── mash_in_neutral.svg
+            │           ├── mash_state.svg
+            │           ├── miss_tech_state.svg
+            │           ├── oos_offset.svg
+            │           ├── reaction_time.svg
+            │           ├── save_damage.svg
+            │           ├── save_state_mirroring.svg
+            │           ├── sdi_state.svg
+            │           ├── sdi_strength.svg
+            │           ├── shield_state.svg
+            │           ├── shield_tilt.svg
+            │           ├── stage_hazards.svg
+            │           └── tech_state.svg
+            └── romfs
+                └── skyline
+                    └── plugins
+                        ├── libnn_hid_hook.nro
+                        ├── libnro_hook.nro
+                        ├── libparam_hook.nro
+                        └── libtraining_modpack.nro
 ```
 
 To install a beta version of the modpack, follow the same procedure using the [latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta) on Github. Beta releases may have additional features and bugfixes, but are subject to change.
@@ -179,7 +176,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
 # Frequently Asked Questions
 
 * Can my Switch run the Training Modpack?
-    * Your swithc has to be hackable, which means it needs to be an early enough unit. You can check at https://ismyswitchpatched.com/ .
+    * Your switch has to be hackable, which means it needs to be an early enough unit. You can check at https://ismyswitchpatched.com/ .
 * Is this mod wifi-safe?
     * Yes*. Smash online is client sided. What this means is when playing against an opponent, their instance of the game is separate from your instance of the game, and when the server sends over data from the other player, it is replicated on your screen. Desyncs arise from when properties from the other side differ from what your game expects. (For example, Mario’s Forward Smash dealing 95% instead of its’ normal amount of damage). Because Training Modpack is only available while using Training Mode, the training modpack is safe to use while using online games. However, you should recognize that mods are not sanctioned by Nintendo and that there is always some ban risk associated with using them. Use this mod and others at your own risk.
 * Is this mod compatible with Yuzu or other emulators?
@@ -198,10 +195,8 @@ To install a beta version of the modpack, follow the same procedure using the [l
             * `atmosphere/contents/01006A800016E000/romfs/libnn_hid_hook.nro`
             * `atmosphere/contents/01006A800016E000/romfs/libnro_hook.nro`
             * `atmosphere/contents/01006A800016E000/romfs/libtraining_modpack.nro`
-            * `atmosphere/contents/01006A800016E000/romfs/visualizer.nro`
         * Additional static files
             * `atmosphere/contents/01006A800016E000/manual_html/html-document/contents.htdocs/*`
-            * `colors.json`
             * `TrainingModpack/*` (which is generated by the modpack)
     * Make sure that you only remove the files that you don't want on your SD card anymore (e.g. don't remove skyline if you have other skyline plugins)
 * What features are under development?
