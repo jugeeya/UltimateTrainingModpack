@@ -19,7 +19,7 @@ pub fn init() {
 
 unsafe fn was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
-    (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
+    (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
 }
 
 unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
