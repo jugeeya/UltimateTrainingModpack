@@ -45,7 +45,10 @@ Set stage hazards on or off in Training Mode! Use this to practice on tournament
 
 ## Save States
 
-At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. Use this instead of the built-in training mode reset!
+At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. With the mirroring setting,loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
+
+[<img src="https://i.imgur.com/FLy0xiw.gif">](https://i.imgur.com/FLy0xiw.gif)
+
 ## Input Delay
 
 Practice with emulated extra input delay, in frames. Use this to practice with online's default delay.
