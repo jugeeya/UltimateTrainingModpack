@@ -25,8 +25,7 @@ num-traits = "0.2"
 wsl = "0.1.0"
 strum = "0.21.0"
 strum_macros = "0.21.0"
-# minreq = { version = "=1.2.1", features = ["https"] }
-http = "0.2.4"
+minreq = { version = "=1.2.1", features = ["https"] }
 
 [patch.crates-io]
 ring = { git = "https://github.com/skyline-rs/ring" }
