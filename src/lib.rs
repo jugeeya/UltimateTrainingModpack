@@ -64,14 +64,10 @@ pub fn main() {
     let path = "/users/jack/name.json";
     
     let url = format!("{}{}", host, path);
-    let response: String = minreq::get(url)
-        .send()
-        .ok()
-        .unwrap()
-        .json()
-        .unwrap();
+    let response = ureq::get(url)
+        .call();
 
-    println!("response: {}", response);
+    println!("response: {:?}", response);
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
