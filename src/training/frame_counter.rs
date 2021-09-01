@@ -13,7 +13,7 @@ impl FrameCounter {
         let counter = FrameCounter {
             counter: 0,
             should_count: false
-        }
+        };
             
         COUNTERS.push(counter);
         counter

@@ -12,7 +12,7 @@ static mut LEDGE_CASE: LedgeOption = LedgeOption::empty();
 
 pub fn init() {
     unsafe {
-        LEDGE_DELAY_COUNTER = frame_counter::FrameCounter::new();
+        LEDGE_DELAY_COUNTER = Some(frame_counter::FrameCounter::new());
     }
 }
 
