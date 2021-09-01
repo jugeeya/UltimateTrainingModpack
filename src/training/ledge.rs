@@ -7,12 +7,12 @@ use smash::lib::lua_const::*;
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
-static mut LEDGE_DELAY_COUNTER: usize = 0;
+static mut LEDGE_DELAY_COUNTER: Option<frame_counter::FrameCounter> = None;
 static mut LEDGE_CASE: LedgeOption = LedgeOption::empty();
 
 pub fn init() {
     unsafe {
-        LEDGE_DELAY_COUNTER = frame_counter::register_counter();
+        LEDGE_DELAY_COUNTER = frame_counter::FrameCounter::new();
     }
 }
 
@@ -20,7 +20,7 @@ pub fn reset_ledge_delay() {
     unsafe {
         if LEDGE_DELAY != NOT_SET {
             LEDGE_DELAY = NOT_SET;
-            frame_counter::full_reset(LEDGE_DELAY_COUNTER);
+            LEDGE_DELAY_COUNTER.unwrap().full_reset();
         }
     }
 }
@@ -81,7 +81,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
-    if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
+    if LEDGE_DELAY_COUNTER.unwrap().should_delay(LEDGE_DELAY) {
         // Not yet time to perform the ledge action
         return;
     }
@@ -110,7 +110,7 @@ pub unsafe fn is_enable_transition_term(
     }
 
     // Disallow the default cliff-climb if we are waiting
-    if (LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY) &&
+    if (LEDGE_CASE == LedgeOption::WAIT || LEDGE_DELAY_COUNTER.unwrap().get_frame_count() < LEDGE_DELAY) &&
             term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB {
         return Some(false);
     }

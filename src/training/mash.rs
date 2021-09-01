@@ -14,7 +14,7 @@ static mut QUEUE: Vec<Action> = vec![];
 
 static mut FALLING_AERIAL: bool = false;
 
-static mut AERIAL_DELAY_COUNTER: usize = 0;
+static mut AERIAL_DELAY_COUNTER: Option<frame_counter::FrameCounter> = None;
 static mut AERIAL_DELAY: u32 = 0;
 
 pub fn buffer_action(action: Action) {
@@ -74,7 +74,7 @@ fn reset() {
     shield::suspend_shield(get_current_buffer());
 
     unsafe {
-        frame_counter::full_reset(AERIAL_DELAY_COUNTER);
+        AERIAL_DELAY_COUNTER.unwrap().full_reset();
         AERIAL_DELAY = 0;
     }
 }
@@ -404,7 +404,7 @@ unsafe fn get_aerial_flag(
 
 pub fn init() {
     unsafe {
-        AERIAL_DELAY_COUNTER = frame_counter::register_counter();
+        AERIAL_DELAY_COUNTER = Some(frame_counter::FrameCounter::new());
     }
 }
 
@@ -434,7 +434,7 @@ fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) ->
             return true;
         }
 
-        frame_counter::should_delay(AERIAL_DELAY, AERIAL_DELAY_COUNTER)
+        AERIAL_DELAY_COUNTER.unwrap().should_delay(AERIAL_DELAY)
     }
 }
 

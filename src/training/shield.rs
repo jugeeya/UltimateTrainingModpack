@@ -19,14 +19,14 @@ static mut SHIELD_DELAY: u32 = 0;
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
-static mut REACTION_INDEX: usize = 0;
+static mut REACTION_FRAME_COUNTER: Option<frame_counter::FrameCounter> = None;
 
 // For how many frames should the shield hold be overwritten
 static mut SUSPEND_SHIELD: bool = false;
 
 pub fn init() {
     unsafe {
-        REACTION_INDEX = frame_counter::register_counter();
+        REACTION_FRAME_COUNTER = Some(frame_counter::FrameCounter::new());
     }
 }
 
@@ -210,11 +210,11 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     if !is_shielding(module_accessor) {
-        frame_counter::full_reset(REACTION_INDEX);
+        REACTION_FRAME_COUNTER.unwrap().full_reset();
         return;
     }
 
-    if frame_counter::should_delay(SHIELD_DELAY, REACTION_INDEX) {
+    if REACTION_FRAME_COUNTER.unwrap().should_delay(SHIELD_DELAY) {
         return;
     }
 

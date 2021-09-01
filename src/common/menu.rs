@@ -6,14 +6,14 @@ use smash::lib::lua_const::*;
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
 use strum::IntoEnumIterator;
-use crate::training::frame_counter;
+use crate::training::frame_counter::FrameCounter;
 
-static mut FRAME_COUNTER_INDEX: usize = 0;
+static mut MENU_FRAME_COUNTER: Option<FrameCounter> = None;
 const MENU_LOCKOUT_FRAMES: u32 = 5;
 
 pub fn init() {
     unsafe {
-        FRAME_COUNTER_INDEX = frame_counter::register_counter();
+        MENU_FRAME_COUNTER = Some(FrameCounter::new());
         write_menu();
     }
 }
@@ -258,7 +258,7 @@ pub fn set_menu_from_url(s: &str) {
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
     // Only check for button combination if the counter is 0 (not locked out)
-    match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
+    match MENU_FRAME_COUNTER.unwrap().get_frame_count(FRAME_COUNTER_INDEX) {
         0 => {
             ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL) &&
             ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
@@ -266,7 +266,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
         1..MENU_LOCKOUT_FRAMES => false,
         _ => {
             // Waited longer than the lockout time, reset the counter so the menu can be opened again
-            frame_counter::full_reset(FRAME_COUNTER_INDEX);
+            MENU_FRAME_COUNTER.unwrap().full_reset(FRAME_COUNTER_INDEX);
             false
         }
     }
