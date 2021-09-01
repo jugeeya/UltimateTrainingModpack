@@ -4,7 +4,9 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
-static mut FAST_FALL_FRAME_COUNTER: Option<frame_counter::FrameCounter> = None;
+lazy_static::lazy_static! {
+    static ref FAST_FALL_FRAME_COUNTER: frame_counter::FrameCounter = frame_counter::FrameCounter::new();
+}
 
 // The current fastfall delay
 static mut DELAY: u32 = 0;
@@ -20,12 +22,6 @@ fn should_fast_fall() -> bool {
 pub fn roll_fast_fall() {
     unsafe {
         FAST_FALL = MENU.fast_fall.get_random().into_bool();
-    }
-}
-
-pub fn init() {
-    unsafe {
-        FAST_FALL_FRAME_COUNTER = Some(frame_counter::FrameCounter::new());
     }
 }
 
@@ -47,7 +43,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         if !is_falling(module_accessor) {
             // Roll FF delay
             DELAY = MENU.fast_fall_delay.get_random().into_delay();
-            FAST_FALL_FRAME_COUNTER.unwrap().full_reset();
+            FAST_FALL_FRAME_COUNTER.full_reset();
             return;
         }
 
@@ -61,7 +57,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         }
 
         // Check delay
-        if FAST_FALL_FRAME_COUNTER.unwrap().should_delay(DELAY) {
+        if FAST_FALL_FRAME_COUNTER.should_delay(DELAY) {
             return;
         }
 

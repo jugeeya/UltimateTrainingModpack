@@ -9,12 +9,8 @@ static mut PLAYER_ACTIVE_FRAME: u32 = 0;
 static mut CPU_ACTIVE_FRAME: u32 = 0;
 static mut FRAME_ADVANTAGE_CHECK: bool = false;
 
-static mut FRAME_ADVANTAGE_COUNTER: Option<frame_counter::FrameCounter> = None;
-
-pub fn init() {
-    unsafe {
-        FRAME_ADVANTAGE_COUNTER = Some(frame_counter::FrameCounter::new());
-    }
+lazy_static::lazy_static! {
+    static ref FRAME_ADVANTAGE_COUNTER: frame_counter::FrameCounter = frame_counter::FrameCounter::new();
 }
 
 unsafe fn was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
@@ -76,7 +72,7 @@ pub unsafe fn is_enable_transition_term(
             ||
             (CancelModule::is_enable_cancel(module_accessor))
         ) {
-        PLAYER_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.unwrap().get_frame_count();
+        PLAYER_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.get_frame_count();
         PLAYER_ACTIONABLE = true;
 
         // if both are now active
@@ -87,7 +83,7 @@ pub unsafe fn is_enable_transition_term(
                     (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32);
             }
 
-            FRAME_ADVANTAGE_COUNTER.unwrap().stop_counting();
+            FRAME_ADVANTAGE_COUNTER.stop_counting();
             FRAME_ADVANTAGE_CHECK = false;
         }
     }
@@ -114,11 +110,11 @@ pub unsafe fn get_command_flag_cat(
 
     // the frame the fighter *becomes* actionable
     if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) {
-        CPU_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.unwrap().get_frame_count();
+        CPU_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.get_frame_count();
     }
 
     if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
-        PLAYER_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.unwrap().get_frame_count();
+        PLAYER_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.get_frame_count();
     }
 
     CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
@@ -127,8 +123,8 @@ pub unsafe fn get_command_flag_cat(
     // if neither are active
     if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
         if !FRAME_ADVANTAGE_CHECK {
-            FRAME_ADVANTAGE_COUNTER.unwrap().reset_frame_count();
-            FRAME_ADVANTAGE_COUNTER.unwrap().start_counting();
+            FRAME_ADVANTAGE_COUNTER.reset_frame_count();
+            FRAME_ADVANTAGE_COUNTER.start_counting();
         }
         FRAME_ADVANTAGE_CHECK = true;
     }
@@ -140,7 +136,7 @@ pub unsafe fn get_command_flag_cat(
                 (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32);
         }
 
-        FRAME_ADVANTAGE_COUNTER.unwrap().stop_counting();
+        FRAME_ADVANTAGE_COUNTER.stop_counting();
         FRAME_ADVANTAGE_CHECK = false;
     }
 }

@@ -351,10 +351,5 @@ pub fn training_mods() {
         crate::training::sdi::check_hit_stop_delay_command,
     );
 
-    combo::init();
-    shield::init();
-    fast_fall::init();
-    mash::init();
-    ledge::init();
     menu::init();
 }
