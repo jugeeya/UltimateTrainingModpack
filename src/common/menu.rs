@@ -14,6 +14,7 @@ const MENU_LOCKOUT_FRAMES: u32 = 5;
 pub fn init() {
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
+        write_menu();
     }
 }
 
