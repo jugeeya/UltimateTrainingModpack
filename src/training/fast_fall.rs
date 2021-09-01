@@ -1,11 +1,12 @@
 use crate::common::*;
-use crate::training::frame_counter;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+use crate::training::frame_counter::FrameCounter;
+use parking_lot::Mutex;
 
 lazy_static::lazy_static! {
-    static ref FAST_FALL_FRAME_COUNTER: frame_counter::FrameCounter = frame_counter::FrameCounter::new();
+    static ref FAST_FALL_FRAME_COUNTER: Mutex<FrameCounter> = Mutex::new(FrameCounter::new());
 }
 
 // The current fastfall delay
@@ -43,7 +44,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         if !is_falling(module_accessor) {
             // Roll FF delay
             DELAY = MENU.fast_fall_delay.get_random().into_delay();
-            FAST_FALL_FRAME_COUNTER.full_reset();
+            FAST_FALL_FRAME_COUNTER.lock().full_reset();
             return;
         }
 
@@ -57,7 +58,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         }
 
         // Check delay
-        if FAST_FALL_FRAME_COUNTER.should_delay(DELAY) {
+        if FAST_FALL_FRAME_COUNTER.lock().should_delay(DELAY) {
             return;
         }
 

@@ -3,11 +3,12 @@ use crate::common::*;
 use crate::training::attack_angle;
 use crate::training::character_specific;
 use crate::training::fast_fall;
-use crate::training::frame_counter;
 use crate::training::full_hop;
 use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+use crate::training::frame_counter::FrameCounter;
+use parking_lot::Mutex;
 
 static mut CURRENT_AERIAL: Action = Action::NAIR;
 static mut QUEUE: Vec<Action> = vec![];
@@ -15,7 +16,7 @@ static mut QUEUE: Vec<Action> = vec![];
 static mut FALLING_AERIAL: bool = false;
 
 lazy_static::lazy_static! {
-    static ref AERIAL_DELAY_COUNTER: frame_counter::FrameCounter = frame_counter::FrameCounter::new();
+    static ref AERIAL_DELAY_COUNTER: Mutex<FrameCounter> = Mutex::new(FrameCounter::new());
 }
 static mut AERIAL_DELAY: u32 = 0;
 
@@ -76,7 +77,7 @@ fn reset() {
     shield::suspend_shield(get_current_buffer());
 
     unsafe {
-        AERIAL_DELAY_COUNTER.full_reset();
+        AERIAL_DELAY_COUNTER.lock().full_reset();
         AERIAL_DELAY = 0;
     }
 }
@@ -430,7 +431,7 @@ fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) ->
             return true;
         }
 
-        AERIAL_DELAY_COUNTER.should_delay(AERIAL_DELAY)
+        AERIAL_DELAY_COUNTER.lock().should_delay(AERIAL_DELAY)
     }
 }
 

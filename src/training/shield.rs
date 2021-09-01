@@ -1,6 +1,5 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::frame_counter;
 use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
@@ -9,6 +8,8 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
+use crate::training::frame_counter::FrameCounter;
+use parking_lot::Mutex;
 
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
@@ -20,7 +21,7 @@ static mut SHIELD_DELAY: u32 = 0;
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
 lazy_static::lazy_static! {
-    static ref REACTION_FRAME_COUNTER: frame_counter::FrameCounter = frame_counter::FrameCounter::new();
+    static ref REACTION_FRAME_COUNTER: Mutex<FrameCounter> = Mutex::new(FrameCounter::new());
 }
 
 // For how many frames should the shield hold be overwritten
@@ -206,11 +207,11 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     if !is_shielding(module_accessor) {
-        REACTION_FRAME_COUNTER.full_reset();
+        REACTION_FRAME_COUNTER.lock().full_reset();
         return;
     }
 
-    if REACTION_FRAME_COUNTER.should_delay(SHIELD_DELAY) {
+    if REACTION_FRAME_COUNTER.lock().should_delay(SHIELD_DELAY) {
         return;
     }
 
