@@ -258,7 +258,7 @@ pub fn set_menu_from_url(s: &str) {
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
     // Only check for button combination if the counter is 0 (not locked out)
-    match MENU_FRAME_COUNTER.unwrap().get_frame_count(FRAME_COUNTER_INDEX) {
+    match MENU_FRAME_COUNTER.unwrap().get_frame_count() {
         0 => {
             ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL) &&
             ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
@@ -266,7 +266,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
         1..MENU_LOCKOUT_FRAMES => false,
         _ => {
             // Waited longer than the lockout time, reset the counter so the menu can be opened again
-            MENU_FRAME_COUNTER.unwrap().full_reset(FRAME_COUNTER_INDEX);
+            MENU_FRAME_COUNTER.unwrap().full_reset();
             false
         }
     }
@@ -341,8 +341,8 @@ pub unsafe fn write_menu() {
 }
 
 pub unsafe fn spawn_menu() {
-    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    MENU_FRAME_COUNTER.unwrap().reset_frame_count();
+    MENU_FRAME_COUNTER.unwrap().start_counting();
     let fname = "training_menu.html";
     let params = MENU.to_url_params();
     let page_response = Webpage::new()

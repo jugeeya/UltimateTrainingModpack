@@ -9,11 +9,14 @@ pub struct FrameCounter {
 }
 
 impl FrameCounter {
-    fn new() -> FrameCounter {
-        COUNTERS.push(self);
-        self.counter = 0;
-        self.should_count = false;
-        self
+    pub fn new() -> FrameCounter {
+        let counter = FrameCounter {
+            counter: 0,
+            should_count: false
+        }
+            
+        COUNTERS.push(counter);
+        counter
     }
 
     pub fn get_frame_count(&self) -> u32 {
@@ -51,14 +54,14 @@ impl FrameCounter {
             return false;
         }
 
-        let current_frame = self.get_frame_count(index);
+        let current_frame = self.get_frame_count();
 
         if current_frame == 0 {
-            self.start_counting(index);
+            self.start_counting();
         }
 
         if current_frame >= delay {
-            self.full_reset(index);
+            self.full_reset();
             return false;
         }
 

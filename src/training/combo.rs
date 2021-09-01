@@ -118,7 +118,7 @@ pub unsafe fn get_command_flag_cat(
     }
 
     if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
-        PLAYER_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.unwrap()get_frame_count();
+        PLAYER_ACTIVE_FRAME = FRAME_ADVANTAGE_COUNTER.unwrap().get_frame_count();
     }
 
     CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
