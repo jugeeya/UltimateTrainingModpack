@@ -3,6 +3,7 @@ use crate::training::*;
 
 static mut COUNTERS: Vec<FrameCounter> = vec![];
 
+#[derive(Clone, Copy)]
 pub struct FrameCounter {
     counter: u32,
     should_count: bool
@@ -14,8 +15,10 @@ impl FrameCounter {
             counter: 0,
             should_count: false
         };
-            
-        COUNTERS.push(counter);
+        
+        unsafe {
+            COUNTERS.push(counter);
+        }
         counter
     }
 
@@ -23,25 +26,25 @@ impl FrameCounter {
         self.counter
     }
 
-    pub fn tick(&self) {
+    pub fn tick(&mut self) {
         if self.should_count {
             self.counter += 1;
         }
     }
 
-    pub fn start_counting(&self) {
+    pub fn start_counting(&mut self) {
         self.should_count = true;
     }
 
-    pub fn stop_counting(&self) {
+    pub fn stop_counting(&mut self) {
         self.should_count = false;
     }
 
-    pub fn reset_frame_count(&self) {
+    pub fn reset_frame_count(&mut self) {
         self.counter = 0
     }
 
-    pub fn full_reset(&self) {
+    pub fn full_reset(&mut self) {
         self.reset_frame_count();
         self.stop_counting();
     }
@@ -49,7 +52,7 @@ impl FrameCounter {
     /**
     * Returns true until a certain number of frames have passed
     */
-    pub fn should_delay(&self, delay: u32) -> bool {
+    pub fn should_delay(&mut self, delay: u32) -> bool {
         if delay == 0 {
             return false;
         }
