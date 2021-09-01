@@ -356,8 +356,5 @@ pub fn training_mods() {
     fast_fall::init();
     mash::init();
     ledge::init();
-
-    println!("[Training Modpack] Writing menu file training_menu.html");
-    unsafe { menu::write_menu(); }
-    println!("[Training Modpack] Wrote menu file.");
+    menu::init();
 }
