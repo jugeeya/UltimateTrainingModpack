@@ -74,7 +74,7 @@ impl FrameCounter {
 
 fn tick() {
     unsafe {
-        for counter in COUNTERS {
+        for counter in COUNTERS.iter() {
             counter.tick();
         }
     }
@@ -82,7 +82,7 @@ fn tick() {
 
 pub fn reset_all(){
     unsafe {
-        for counter in COUNTERS {
+        for counter in COUNTERS.iter() {
             counter.full_reset();
         }
     }
