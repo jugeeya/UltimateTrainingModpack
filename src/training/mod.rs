@@ -89,6 +89,10 @@ pub unsafe fn handle_get_command_flag_cat(
     flag
 }
 
+lazy_static::lazy_static! {
+    static ref HAS_INSTALLED_NRO_HOOKS: parking_lot::Mutex<bool> = parking_lot::Mutex::new(false);
+}
+
 fn once_per_frame_per_fighter(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     category: i32,
@@ -98,6 +102,17 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
+        let mut has_installed_hooks = HAS_INSTALLED_NRO_HOOKS.lock();
+        if !*has_installed_hooks {
+            skyline::install_hooks!(
+                shield::handle_sub_guard_cont,
+                directional_influence::handle_correct_damage_vector_common,
+                sdi::process_hit_stop_delay,
+                tech::handle_change_status,
+            );
+            *has_installed_hooks = true;
+        }
+
         if crate::common::menu::menu_condition(module_accessor) {
             crate::common::menu::spawn_menu();
         }

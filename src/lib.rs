@@ -23,24 +23,8 @@ use crate::menu::set_menu_from_url;
 
 use skyline::libc::mkdir;
 use std::fs;
-use skyline::nro::{self, NroInfo};
 
 use owo_colors::OwoColorize;
-
-fn nro_main(nro: &NroInfo<'_>) {
-    if nro.module.isLoaded {
-        return;
-    }
-
-    if nro.name == "common" {
-        skyline::install_hooks!(
-            training::shield::handle_sub_guard_cont,
-            training::directional_influence::handle_correct_damage_vector_common,
-            training::sdi::process_hit_stop_delay,
-            training::tech::handle_change_status,
-        );
-    }
-}
 
 macro_rules! c_str {
     ($l:tt) => {
@@ -62,7 +46,6 @@ pub fn main() {
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
-    nro::add_hook(nro_main).unwrap();
      
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
