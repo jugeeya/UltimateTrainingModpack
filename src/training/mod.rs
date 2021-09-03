@@ -1,4 +1,4 @@
-use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
+use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR, consts::FighterId};
 use crate::hitbox_visualizer;
 use skyline::nn::ro::LookupSymbol;
 use skyline::nn::hid::*;
@@ -89,9 +89,7 @@ pub unsafe fn handle_get_command_flag_cat(
     flag
 }
 
-lazy_static::lazy_static! {
-    static ref HAS_INSTALLED_NRO_HOOKS: parking_lot::Mutex<bool> = parking_lot::Mutex::new(false);
-}
+static mut HAS_INSTALLED_NRO_HOOKS: bool = false;
 
 fn once_per_frame_per_fighter(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -102,15 +100,15 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
-        let mut has_installed_hooks = HAS_INSTALLED_NRO_HOOKS.lock();
-        if !*has_installed_hooks {
+        if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) 
+            == FighterId::Player as i32 && !HAS_INSTALLED_NRO_HOOKS {
             skyline::install_hooks!(
                 shield::handle_sub_guard_cont,
                 directional_influence::handle_correct_damage_vector_common,
                 sdi::process_hit_stop_delay,
                 tech::handle_change_status,
             );
-            *has_installed_hooks = true;
+            HAS_INSTALLED_NRO_HOOKS = true;
         }
 
         if crate::common::menu::menu_condition(module_accessor) {
