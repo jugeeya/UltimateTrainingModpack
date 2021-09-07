@@ -65,7 +65,7 @@ pub fn main() {
     if fs::metadata(nro_hook_path).is_ok() {
         let rm_nro_hook = Dialog::yes_no(
             "You are starting Smash with the NRO hook installed.\n\n\
-            This file causes instability and should not be installed with the Training Modpack any longer.\n\
+            This file causes instability and should not be installed with the Training Modpack any longer. Would you like to remove it?\n\
             If you don't know what this means and do not use any character moveset-changing mods, please select Yes."
         );
         if rm_nro_hook {
