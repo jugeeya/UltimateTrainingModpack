@@ -22,6 +22,7 @@ use crate::common::*;
 use crate::menu::set_menu_from_url;
 
 use skyline::libc::mkdir;
+use skyline_web::{Dialog, DialogOk};
 use std::fs;
 
 use owo_colors::OwoColorize;
@@ -59,6 +60,20 @@ pub fn main() {
 
     log!("Performing version check...");
     release::version_check();
+    
+    let nro_hook_path = "sd:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnro_hook.nro";
+    if fs::metadata(nro_hook_path).is_ok() {
+        let rm_nro_hook = Dialog::yes_no(
+            "You are starting Smash with the NRO hook installed.\n\n\
+            This file causes instability and should not be installed with the Training Modpack any longer.\n\
+            If you don't know what this means and do not use any character moveset-changing mods, please select Yes."
+        );
+        if rm_nro_hook {
+            log!("Removing libnro_hook.nro...");
+            fs::remove_file(nro_hook_path).unwrap();
+            DialogOk::ok("Thank you! Please restart Smash for a more stable experience.");
+        }
+    }
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     if fs::metadata(menu_conf_path).is_ok() {
