@@ -60,23 +60,23 @@ pub fn main() {
     log!("Initialized.");
 
     // HTTP endpoint
-    let host = "my-project-1511972643240-default-rtdb.firebaseio.com";
+    let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
     let path = "/users/jack/name.json";
     
     let url = format!("{}{}", host, path);
-    let response: String = minreq::get(url)
+    let response: minreq::Response = minreq::get(url)
         .send()
         .ok()
         .unwrap()
-        .json()
-        .unwrap();
+        // .json()
+        // .unwrap()
+        ;
 
-    println!("response: {}", response);
+    println!("response: {:?}", response);
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
-    nro::add_hook(nro_main).unwrap();
      
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
