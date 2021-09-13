@@ -2,6 +2,7 @@
 #![feature(with_options)]
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
+#![feature(once_cell)]
 #![allow(clippy::borrow_interior_mutable_const, clippy::not_unsafe_ptr_arg_deref, clippy::missing_safety_doc, clippy::wrong_self_convention)]
 
 pub mod common;
@@ -19,6 +20,7 @@ extern crate bitflags;
 extern crate num_derive;
 
 use crate::common::*;
+use crate::events::{Event, EVENT_QUEUE};
 use crate::menu::set_menu_from_url;
 
 use skyline::libc::mkdir;
@@ -58,26 +60,14 @@ pub fn main() {
     }
 
     log!("Initialized.");
-
-    // HTTP endpoint
-    let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
-    let path = "/users/jack/name.json";
-    
-    let url = format!("{}{}", host, path);
-    let response: minreq::Response = minreq::get(url)
-        .send()
-        .ok()
-        .unwrap()
-        // .json()
-        // .unwrap()
-        ;
-
-    println!("response: {:?}", response);
+    unsafe {
+        EVENT_QUEUE.push(Event::smash_open());
+    }
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
-    nro::add_hook(nro_main).unwrap()
+    nro::add_hook(nro_main).unwrap();
      
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
@@ -100,4 +90,24 @@ pub fn main() {
            set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
         }
     }
+
+    std::thread::spawn(||{
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(5));
+            unsafe {
+                while let Some(event) = EVENT_QUEUE.pop() {
+                    let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
+                    let path = format!("/event/{}/device/{}/{}.json", 
+                        event.event_name, event.device_id, event.event_time);
+                    
+                    let url = format!("{}{}", host, path);
+                    minreq::post(url)
+                        .with_json(&event)
+                        .unwrap()
+                        .send()
+                        .ok();
+                }
+            }
+        }
+    });
 }

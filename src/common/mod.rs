@@ -1,9 +1,11 @@
 pub mod consts;
+pub mod events;
 pub mod menu;
 pub mod release;
 pub mod raygun_printer;
 
 use crate::common::consts::*;
+use crate::common::events::*;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
