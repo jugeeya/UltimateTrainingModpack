@@ -6,6 +6,7 @@ use smash::lib::lua_const::*;
 use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
 use strum::IntoEnumIterator;
+use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -363,4 +364,7 @@ pub unsafe fn spawn_menu() {
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url)
         .expect("Failed to write menu conf file");
+    unsafe {
+        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    }
 }
