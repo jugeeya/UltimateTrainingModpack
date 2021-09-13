@@ -28,14 +28,12 @@ jobs:
   plugin:
     runs-on: ubuntu-latest
     container: 
-      image: jugeeya/cargo-skyline:2.1.0
+      image: jugeeya/cargo-skyline:2.1.0-dkp
     steps:
     - uses: actions/checkout@v2
     - name: Build release NRO
       run: |
-        PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --release
-      env:
-        HOME: /root
+        cargo skyline build --release
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v2
       with:
@@ -54,9 +52,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build outside_training_mode NRO
-      run: PATH=$PATH:/root/.cargo/bin /root/.cargo/bin/cargo-skyline skyline build --features outside_training_mode 
-      env:
-        HOME: /root
+      run: cargo skyline build --features outside_training_mode 
     - name: Upload plugin (outside training mode) artifact
       uses: actions/upload-artifact@v2
       with:
