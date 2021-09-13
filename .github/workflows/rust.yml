@@ -13,6 +13,12 @@ jobs:
      container: jugeeya/cargo-skyline:2.1.0-dkp
      steps:
      - uses: actions/checkout@v2
+     - name: Install clippy
+       run: |
+         /root/.cargo/bin/rustup component add clippy
+       env:
+         HOME: /root
+         PATH: $PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin
      - uses: actions-rs/clippy-check@v1
        with:
          token: ${{ secrets.GITHUB_TOKEN }}
