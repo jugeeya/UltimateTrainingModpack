@@ -10,7 +10,7 @@ fn write_menu() {
         use crate::common::menu::write_menu;
 
         let folder_path = "../contents.htdocs";
-        let path = "../contents.htdocs/index.html";
+        let path = "../contents.htdocs/training_menu.html";
 
         assert!(std::path::Path::new(folder_path).exists(), "Needs required folder: ../contents.htdocs!");
 

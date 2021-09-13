@@ -7,6 +7,18 @@ use skyline_web::{Background, BootDisplay, Webpage};
 use ramhorns::{Template, Content};
 use strum::IntoEnumIterator;
 use crate::events::{Event, EVENT_QUEUE};
+use crate::training::frame_counter;
+
+static mut FRAME_COUNTER_INDEX: usize = 0;
+const MENU_LOCKOUT_FRAMES: u32 = 5;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER_INDEX = frame_counter::register_counter();
+        write_menu();
+    }
+}
+
 
 #[derive(Content)]
 struct Slider {
@@ -246,8 +258,19 @@ pub fn set_menu_from_url(s: &str) {
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
-    ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL) &&
-    ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
+    // Only check for button combination if the counter is 0 (not locked out)
+    match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
+        0 => {
+            ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL) &&
+            ControlModule::check_button_on_trriger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
+        },
+        1..MENU_LOCKOUT_FRAMES => false,
+        _ => {
+            // Waited longer than the lockout time, reset the counter so the menu can be opened again
+            frame_counter::full_reset(FRAME_COUNTER_INDEX);
+            false
+        }
+    }
 }
 
 pub unsafe fn write_menu() {
@@ -314,12 +337,14 @@ pub unsafe fn write_menu() {
     let path = Path::new("sd:/atmosphere/contents")
         .join(&format!("{:016X}", program_id))
         .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
-        .join("index.html");
+        .join("training_menu.html");
     fs::write(path, data).unwrap();
 }
 
 pub unsafe fn spawn_menu() {
-    let fname = "index.html";
+    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    let fname = "training_menu.html";
     let params = MENU.to_url_params();
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)

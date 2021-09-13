@@ -12,12 +12,12 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod ledge;
+pub mod frame_counter;
 
 mod air_dodge_direction;
 mod attack_angle;
 mod character_specific;
 mod fast_fall;
-mod frame_counter;
 mod full_hop;
 mod input_delay;
 mod input_record;
@@ -356,8 +356,5 @@ pub fn training_mods() {
     fast_fall::init();
     mash::init();
     ledge::init();
-
-    println!("[Training Modpack] Writing menu file index.html");
-    unsafe { menu::write_menu(); }
-    println!("[Training Modpack] Wrote menu file.");
+    menu::init();
 }
