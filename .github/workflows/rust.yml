@@ -8,24 +8,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  clippy_pr:
-    runs-on: ubuntu-latest
-    container: devkitpro/devkita64
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install minimal nightly rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: nightly-2021-06-01
-        components: rustfmt, clippy
-        default: true
-        target: x86_64-unknown-linux-gnu
-    - uses: actions-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        toolchain: nightly-2021-06-01
-        args: --all-features --target=x86_64-unknown-linux-gnu
+#  clippy_pr:
+#    runs-on: ubuntu-latest
+#    container: devkitpro/devkita64
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: Install minimal nightly rust
+#      uses: actions-rs/toolchain@v1
+#      with:
+#        profile: minimal
+#        toolchain: nightly-2021-06-01
+#        components: rustfmt, clippy
+#        default: true
+#        target: x86_64-unknown-linux-gnu
+#    - uses: actions-rs/clippy-check@v1
+#      with:
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        toolchain: nightly-2021-06-01
+#        args: --all-features --target=x86_64-unknown-linux-gnu
   plugin:
     runs-on: ubuntu-latest
     container: 
