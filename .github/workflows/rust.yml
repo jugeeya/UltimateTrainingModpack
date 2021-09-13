@@ -33,7 +33,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build release NRO
       run: |
-        cargo skyline build --release
+        PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
+      env:
+        HOME: /root
     - name: Upload plugin artifact
       uses: actions/upload-artifact@v2
       with:
@@ -48,11 +50,14 @@ jobs:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     container: 
-      image: jugeeya/cargo-skyline:2.1.0
+      image: jugeeya/cargo-skyline:2.1.0-dkp
     steps:
     - uses: actions/checkout@v2
     - name: Build outside_training_mode NRO
-      run: cargo skyline build --features outside_training_mode 
+      run: |
+        PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
+      env:
+        HOME: /root
     - name: Upload plugin (outside training mode) artifact
       uses: actions/upload-artifact@v2
       with:
