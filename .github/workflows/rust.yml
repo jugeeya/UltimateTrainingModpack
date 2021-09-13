@@ -13,9 +13,10 @@ jobs:
      container: jugeeya/cargo-skyline:2.1.0-dkp
      steps:
      - uses: actions/checkout@v2
+     - name: Setup PATH
+       run: export PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin
      - name: Install clippy
-       run: |
-         export PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin && /root/.cargo/bin/rustup component add clippy
+       run: /root/.cargo/bin/rustup component add clippy
        env:
          HOME: /root
      - uses: actions-rs/clippy-check@v1
