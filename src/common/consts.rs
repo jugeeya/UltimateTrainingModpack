@@ -679,12 +679,6 @@ impl ToUrlParam for i32 {
     }
 }
 
-impl ToUrlParam for String {
-    fn to_url_param(&self) -> String {
-        self.to_string()
-    }
-}
-
 // Macro to build the url parameter string
 macro_rules! url_params {
     (
@@ -707,7 +701,7 @@ macro_rules! url_params {
                     s.push_str(&"&");
                 )*
                 s.pop(); // Get rid of trailing ampersand
-                s.replace("&focus=", "#") // set fragment, not inplace
+                s
             }
         }
     }
@@ -715,7 +709,7 @@ macro_rules! url_params {
 
 #[repr(C)]
 url_params! {
-    #[derive(Clone, )]
+    #[derive(Clone, Copy, )]
     pub struct TrainingModpackMenu {
         pub hitbox_vis: OnOff,
         pub stage_hazards: OnOff,
@@ -745,7 +739,6 @@ url_params! {
         pub save_damage: OnOff,
         pub save_state_mirroring: SaveStateMirroring,
         pub frame_advantage: OnOff,
-        pub focus: String,
     }
 }
 

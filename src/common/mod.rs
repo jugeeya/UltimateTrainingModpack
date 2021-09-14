@@ -39,12 +39,10 @@ pub static DEFAULT_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMe
     save_damage: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
     frame_advantage: OnOff::Off,
-    focus: String::new(),
 };
 
 
-pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU.clone();
-// pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
+pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 

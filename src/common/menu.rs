@@ -8,9 +8,15 @@ use ramhorns::{Template, Content};
 use strum::IntoEnumIterator;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 5;
+
+lazy_static! {
+    static ref FOCUS: Mutex<String> = Mutex::new("".to_string());
+}
 
 pub fn init() {
     unsafe {
@@ -229,7 +235,7 @@ macro_rules! add_onoff_submenu {
     }
 }
 
-pub fn set_menu_from_url(s: &str) {
+pub fn set_menu_from_url(s: &str) -> Result<(), Box<dyn std::error::Error>> {
     let ss = s.split_once("?").unwrap().1;
     let toggles_and_focus = match ss.split_once("#") {
         Some(x) => x,
@@ -237,9 +243,7 @@ pub fn set_menu_from_url(s: &str) {
     };
 
     // Set focus
-    unsafe {
-        MENU.focus = toggles_and_focus.1.to_owned();
-    }
+    *FOCUS.lock()? = (toggles_and_focus.1).to_string();
 
     // Set toggles
     for toggle_values in toggles_and_focus.0.split('&') {
@@ -259,6 +263,8 @@ pub fn set_menu_from_url(s: &str) {
             MENU.set(toggle, bits);
         }
     }
+
+    Ok(())
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
@@ -345,12 +351,12 @@ pub unsafe fn write_menu() {
     fs::write(path, data).unwrap();
 }
 
-pub unsafe fn spawn_menu() {
+pub unsafe fn spawn_menu() -> Result<(), Box<dyn std::error::Error>> {
     frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
     frame_counter::start_counting(FRAME_COUNTER_INDEX);
     let fname = "training_menu.html";
     let params = MENU.to_url_params();
-    let focus = &MENU.focus;
+    let focus = FOCUS.lock()?;
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)
         .htdocs_dir("contents")
@@ -360,7 +366,7 @@ pub unsafe fn spawn_menu() {
         .open()
         .unwrap();
 
-     let last_url = page_response
+    let last_url = page_response
         .get_last_url()
         .unwrap();
 
@@ -372,4 +378,6 @@ pub unsafe fn spawn_menu() {
     unsafe {
         EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
     }
+
+    Ok(())
 }
