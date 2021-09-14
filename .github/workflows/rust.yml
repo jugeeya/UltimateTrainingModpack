@@ -28,6 +28,9 @@ jobs:
          token: ${{ secrets.GITHUB_TOKEN }}
          toolchain: nightly-2021-06-01
          args: --all-features --target=x86_64-unknown-linux-gnu
+     - uses: mbrobbel/rustfmt-check@master
+       with:
+         token: ${{ secrets.GITHUB_TOKEN }} 
   plugin:
     runs-on: ubuntu-latest
     container: 
