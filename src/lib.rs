@@ -3,7 +3,12 @@
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
 #![feature(once_cell)]
-#![allow(clippy::borrow_interior_mutable_const, clippy::not_unsafe_ptr_arg_deref, clippy::missing_safety_doc, clippy::wrong_self_convention)]
+#![allow(
+    clippy::borrow_interior_mutable_const,
+    clippy::not_unsafe_ptr_arg_deref,
+    clippy::missing_safety_doc,
+    clippy::wrong_self_convention
+)]
 
 pub mod common;
 mod hazard_manager;
@@ -24,8 +29,8 @@ use crate::events::{Event, EVENT_QUEUE};
 use crate::menu::set_menu_from_url;
 
 use skyline::libc::mkdir;
-use std::fs;
 use skyline::nro::{self, NroInfo};
+use std::fs;
 
 use owo_colors::OwoColorize;
 
@@ -68,7 +73,7 @@ pub fn main() {
     hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
-     
+
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
     }
@@ -87,26 +92,22 @@ pub fn main() {
         log!("Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
         if menu_conf.starts_with(b"http://localhost") {
-           set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
+            set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
         }
     }
 
-    std::thread::spawn(||{
-        loop {
-            std::thread::sleep(std::time::Duration::from_secs(5));
-            unsafe {
-                while let Some(event) = EVENT_QUEUE.pop() {
-                    let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
-                    let path = format!("/event/{}/device/{}/{}.json", 
-                        event.event_name, event.device_id, event.event_time);
-                    
-                    let url = format!("{}{}", host, path);
-                    minreq::post(url)
-                        .with_json(&event)
-                        .unwrap()
-                        .send()
-                        .ok();
-                }
+    std::thread::spawn(|| loop {
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        unsafe {
+            while let Some(event) = EVENT_QUEUE.pop() {
+                let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
+                let path = format!(
+                    "/event/{}/device/{}/{}.json",
+                    event.event_name, event.device_id, event.event_time
+                );
+
+                let url = format!("{}{}", host, path);
+                minreq::post(url).with_json(&event).unwrap().send().ok();
             }
         }
     });

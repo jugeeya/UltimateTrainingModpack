@@ -1,8 +1,8 @@
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
-use crate::common::MENU;
 use crate::common::get_random_int;
+use crate::common::MENU;
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -51,7 +51,7 @@ pub unsafe fn should_mirror() -> f32 {
     match MENU.save_state_mirroring {
         SaveStateMirroring::None => 1.0,
         SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
-        SaveStateMirroring::Random => {([-1.0, 1.0])[get_random_int(2) as usize]},
+        SaveStateMirroring::Random => ([-1.0, 1.0])[get_random_int(2) as usize],
     }
 }
 
@@ -81,7 +81,7 @@ pub unsafe fn get_param_int(
     None
 }
 
-fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor,  damage : f32) {
+fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32) {
     let overwrite_damage;
 
     unsafe {

@@ -19,7 +19,7 @@ pub unsafe fn mod_get_stick_dir(
 
     match DIRECTION {
         AttackAngle::UP => Some(1.0),
-        AttackAngle::DOWN =>Some(-1.0),
+        AttackAngle::DOWN => Some(-1.0),
         _ => None,
     }
 }

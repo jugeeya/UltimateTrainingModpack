@@ -75,7 +75,7 @@ fn tick() {
     }
 }
 
-pub fn reset_all(){
+pub fn reset_all() {
     unsafe {
         for (index, _frame) in COUNTERS.iter().enumerate() {
             full_reset(index);
@@ -83,9 +83,7 @@ pub fn reset_all(){
     }
 }
 
-pub fn get_command_flag_cat(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) {
+pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }

@@ -1,18 +1,18 @@
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
-use skyline::nn::ro::LookupSymbol;
 use skyline::nn::hid::*;
+use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 
 pub mod combo;
 pub mod directional_influence;
+pub mod frame_counter;
+pub mod ledge;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
-pub mod ledge;
-pub mod frame_counter;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -162,20 +162,19 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
     air_dodge_direction::mod_get_stick_x(module_accessor).unwrap_or(ori)
 }
 
-
 /**
  * Called when:
  * angled ftilt/fsmash
  */
- #[skyline::hook(replace = ControlModule::get_stick_dir)]
- pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
-     let ori = original!()(module_accessor);
-     if !is_training_mode() {
-         return ori;
-     }
+#[skyline::hook(replace = ControlModule::get_stick_dir)]
+pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+    let ori = original!()(module_accessor);
+    if !is_training_mode() {
+        return ori;
+    }
 
-     attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
- }
+    attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
+}
 
 /**
  *
@@ -291,7 +290,7 @@ fn params_main(params_info: &ParamsInfo<'_>) {
 
 #[allow(improper_ctypes)]
 extern "C" {
-    fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState,*const u32));
+    fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState, *const u32));
 }
 
 pub fn training_mods() {

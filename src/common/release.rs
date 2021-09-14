@@ -1,6 +1,6 @@
+use skyline_web::DialogOk;
 use std::fs;
 use std::io::Write;
-use skyline_web::DialogOk;
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const VERSION_FILE_PATH: &str = "sd:/TrainingModpack/version.txt";
 
