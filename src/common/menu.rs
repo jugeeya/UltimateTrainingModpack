@@ -237,16 +237,16 @@ macro_rules! add_onoff_submenu {
 
 pub fn set_menu_from_url(s: &str) -> Result<(), Box<dyn std::error::Error>> {
     let ss = s.split_once("?").unwrap().1;
-    let toggles_and_focus = match ss.split_once("#") {
+    let (toggles, focus) = match ss.split_once("#") {
         Some(x) => x,
         None => (ss, "")
     };
 
     // Set focus
-    *FOCUS.lock()? = (toggles_and_focus.1).to_string();
+    *FOCUS.lock()? = focus.to_string();
 
     // Set toggles
-    for toggle_values in toggles_and_focus.0.split('&') {
+    for toggle_values in toggles.split('&') {
         let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
         let toggle = toggle_value_split[0];
         if toggle.is_empty() { continue; }
@@ -254,7 +254,7 @@ pub fn set_menu_from_url(s: &str) -> Result<(), Box<dyn std::error::Error>> {
         let mut bits = 0;
         for toggle_val in toggle_vals.split(',') {
             if toggle_val.is_empty() { continue; }
-            let val = toggle_val.parse::<u32>().unwrap();
+            let val = toggle_val.parse::<u32>()?;
             bits |= val;
         }
 
@@ -367,10 +367,9 @@ pub unsafe fn spawn_menu() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let last_url = page_response
-        .get_last_url()
-        .unwrap();
+        .get_last_url()?;
 
-    set_menu_from_url(last_url).unwrap();
+    set_menu_from_url(last_url)?;
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url)
