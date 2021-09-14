@@ -28,8 +28,6 @@ jobs:
          token: ${{ secrets.GITHUB_TOKEN }}
          toolchain: nightly-2021-06-01
          args: --all-features --target=x86_64-unknown-linux-gnu
-       env:
-         HOME: /root
   plugin:
     runs-on: ubuntu-latest
     container: 
