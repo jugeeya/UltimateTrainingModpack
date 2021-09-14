@@ -230,22 +230,26 @@ macro_rules! add_onoff_submenu {
 }
 
 pub fn set_menu_from_url(s: &str) {
-    let base_url_len = "http://localhost/?".len();
-    let total_len = s.len();
+    let ss = s.split_once("?").unwrap().1;
+    let toggles_and_focus = match ss.split_once("#") {
+        Some(x) => x,
+        None => (ss, "")
+    };
 
-    let ss: String = s.chars().skip(base_url_len).take(total_len - base_url_len).collect();
-    
-    for toggle_values in ss.split('&') {
+    // Set focus
+    unsafe {
+        MENU.focus = toggles_and_focus.1.to_owned();
+    }
+
+    // Set toggles
+    for toggle_values in toggles_and_focus.0.split('&') {
         let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
         let toggle = toggle_value_split[0];
         if toggle.is_empty() { continue; }
-        
         let toggle_vals = toggle_value_split[1];
-        
         let mut bits = 0;
         for toggle_val in toggle_vals.split(',') {
             if toggle_val.is_empty() { continue; }
-        
             let val = toggle_val.parse::<u32>().unwrap();
             bits |= val;
         }
@@ -346,12 +350,13 @@ pub unsafe fn spawn_menu() {
     frame_counter::start_counting(FRAME_COUNTER_INDEX);
     let fname = "training_menu.html";
     let params = MENU.to_url_params();
+    let focus = &MENU.focus;
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)
         .htdocs_dir("contents")
         .boot_display(BootDisplay::BlurredScreenshot)
         .boot_icon(true)
-        .start_page(&format!("{}{}", fname, params))
+        .start_page(&format!("{}{}{}", fname, params, focus))
         .open()
         .unwrap();
 
