@@ -68,7 +68,7 @@ pub fn main() {
     hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
-     
+
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
     }
@@ -87,7 +87,7 @@ pub fn main() {
         log!("Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
         if menu_conf.starts_with(b"http://localhost") {
-           set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
+            set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap()).unwrap();
         }
     }
 
@@ -97,9 +97,9 @@ pub fn main() {
             unsafe {
                 while let Some(event) = EVENT_QUEUE.pop() {
                     let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
-                    let path = format!("/event/{}/device/{}/{}.json", 
+                    let path = format!("/event/{}/device/{}/{}.json",
                         event.event_name, event.device_id, event.event_time);
-                    
+
                     let url = format!("{}{}", host, path);
                     minreq::post(url)
                         .with_json(&event)

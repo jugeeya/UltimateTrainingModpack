@@ -99,7 +99,7 @@ fn once_per_frame_per_fighter(
 
     unsafe {
         if crate::common::menu::menu_condition(module_accessor) {
-            crate::common::menu::spawn_menu();
+            crate::common::menu::spawn_menu().unwrap();
         }
 
         input_record::get_command_flag_cat(module_accessor);

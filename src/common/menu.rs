@@ -187,8 +187,8 @@ macro_rules! add_bitflag_submenu {
             let [<$id _vals>] = <$e>::to_toggle_vals();
 
             $menu.add_sub_menu_sep(
-                $title, 
-                stringify!($id), 
+                $title,
+                stringify!($id),
                 MENU.$id.bits() as usize,
                 [<$id _strs>].iter().map(|i| i.as_str()).collect(),
                 [<$id _vals>],
@@ -208,8 +208,8 @@ macro_rules! add_single_option_submenu {
             }
 
             $menu.add_sub_menu(
-                $title, 
-                stringify!($id), 
+                $title,
+                stringify!($id),
                 MENU.$id as usize,
                 [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
                 [].to_vec(),
@@ -224,8 +224,8 @@ macro_rules! add_onoff_submenu {
     ($menu:ident, $title:literal, $id:ident, $help_text:literal) => {
         paste::paste!{
             $menu.add_sub_menu_onoff(
-                $title, 
-                stringify!($id), 
+                $title,
+                stringify!($id),
                 MENU.$id as usize,
                 (MENU.$id as usize & OnOff::On as usize) != 0,
                 DEFAULT_MENU.$id as usize,
@@ -322,8 +322,8 @@ pub unsafe fn write_menu() {
 
     // Slider menus
     overall_menu.add_sub_menu(
-        "Input Delay", 
-        "input_delay", 
+        "Input Delay",
+        "input_delay",
         // unnecessary for slider?
         MENU.input_delay as usize,
         [("0", 0),("1",1),("2",2),("3",3),("4",4),("5",5),("6",6),("7",7),("8",8),("9",9),("10",10)].to_vec(),
@@ -370,14 +370,13 @@ pub unsafe fn spawn_menu() -> Result<(), Box<dyn std::error::Error>> {
         .get_last_url()
         .unwrap();
 
-    set_menu_from_url(last_url);
+    set_menu_from_url(last_url).unwrap();
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url)
         .expect("Failed to write menu conf file");
-    unsafe {
-        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-    }
+
+    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
 
     Ok(())
 }
