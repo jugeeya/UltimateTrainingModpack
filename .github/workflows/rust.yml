@@ -27,7 +27,7 @@ jobs:
        with:
          token: ${{ secrets.GITHUB_TOKEN }}
          toolchain: nightly-2021-06-01
-         args: --all-features --target=x86_64-unknown-linux-gnu 
+         args: --all-features --target=x86_64-unknown-linux-gnu
   plugin:
     runs-on: ubuntu-latest
     container: 
