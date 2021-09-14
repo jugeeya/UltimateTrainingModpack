@@ -6,9 +6,7 @@ use smash::lib::lua_const::*;
 static mut FULL_HOP: bool = false;
 
 pub fn should_full_hop() -> bool {
-    unsafe{
-        FULL_HOP
-    }
+    unsafe { FULL_HOP }
 }
 
 pub fn roll_full_hop() {

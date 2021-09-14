@@ -12,9 +12,7 @@ static mut DELAY: u32 = 0;
 static mut FAST_FALL: bool = false;
 
 fn should_fast_fall() -> bool {
-    unsafe {
-        FAST_FALL
-    }
+    unsafe { FAST_FALL }
 }
 
 pub fn roll_fast_fall() {

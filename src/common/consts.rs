@@ -28,7 +28,7 @@ macro_rules! extra_bitflag_impls {
                 if self.bits == 0 {
                     return 0;
                 }
-    
+
                 return self.bits.trailing_zeros();
             }
 
@@ -144,7 +144,8 @@ impl Direction {
             Direction::LEFT => "Left",
             Direction::RIGHT => "Right",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -182,7 +183,8 @@ impl LedgeOption {
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -206,7 +208,8 @@ impl TechFlags {
             TechFlags::ROLL_B => "Roll Backwards",
             TechFlags::IN_PLACE => "Tech In Place",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -230,7 +233,8 @@ impl MissTechFlags {
             MissTechFlags::ROLL_F => "Roll Forwards",
             MissTechFlags::ROLL_B => "Roll Backwards",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -253,7 +257,8 @@ impl Shield {
             Shield::Infinite => "Infinite",
             Shield::Hold => "Hold",
             Shield::Constant => "Constant",
-        }.to_string()
+        }
+        .to_string()
     }
 
     pub fn to_url_param(&self) -> String {
@@ -262,7 +267,8 @@ impl Shield {
             Shield::Infinite => "1",
             Shield::Hold => "2",
             Shield::Constant => "3",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -281,7 +287,8 @@ impl SaveStateMirroring {
             SaveStateMirroring::None => "None",
             SaveStateMirroring::Alternate => "Alternate",
             SaveStateMirroring::Random => "Random",
-        }.to_string()
+        }
+        .to_string()
     }
 
     fn to_url_param(&self) -> String {
@@ -289,7 +296,8 @@ impl SaveStateMirroring {
             SaveStateMirroring::None => "0",
             SaveStateMirroring::Alternate => "1",
             SaveStateMirroring::Random => "2",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -313,7 +321,8 @@ impl Defensive {
             Defensive::JAB => "Jab",
             Defensive::SHIELD => "Shield",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -331,7 +340,7 @@ impl OnOff {
         match val {
             1 => Some(OnOff::On),
             0 => Some(OnOff::Off),
-            _ => None
+            _ => None,
         }
     }
 
@@ -339,14 +348,16 @@ impl OnOff {
         match self {
             OnOff::Off => "Off",
             OnOff::On => "On",
-        }.to_string()
+        }
+        .to_string()
     }
 
     pub fn to_url_param(&self) -> String {
         match self {
             OnOff::Off => "0",
             OnOff::On => "1",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -421,7 +432,8 @@ impl Action {
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -441,13 +453,13 @@ impl AttackAngle {
             AttackAngle::NEUTRAL => "Neutral",
             AttackAngle::UP => "Up",
             AttackAngle::DOWN => "Down",
-            _ => ""
-        }.to_string()
+            _ => "",
+        }
+        .to_string()
     }
 }
 
 extra_bitflag_impls! {AttackAngle}
-
 
 bitflags! {
     pub struct Delay : u32 {
@@ -488,16 +500,16 @@ bitflags! {
 impl Delay {
     pub fn into_string(self) -> String {
         match self {
-            Delay::D0  => "0",
-            Delay::D1  => "1",
-            Delay::D2  => "2",
-            Delay::D3  => "3",
-            Delay::D4  => "4",
-            Delay::D5  => "5",
-            Delay::D6  => "6",
-            Delay::D7  => "7",
-            Delay::D8  => "8",
-            Delay::D9  => "9",
+            Delay::D0 => "0",
+            Delay::D1 => "1",
+            Delay::D2 => "2",
+            Delay::D3 => "3",
+            Delay::D4 => "4",
+            Delay::D5 => "5",
+            Delay::D6 => "6",
+            Delay::D7 => "7",
+            Delay::D8 => "8",
+            Delay::D9 => "9",
             Delay::D10 => "10",
             Delay::D11 => "11",
             Delay::D12 => "12",
@@ -520,7 +532,8 @@ impl Delay {
             Delay::D29 => "29",
             Delay::D30 => "30",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 
     pub fn into_delay(&self) -> u32 {
@@ -569,16 +582,16 @@ bitflags! {
 impl LongDelay {
     pub fn into_string(self) -> String {
         match self {
-            LongDelay::D0  => "0",
-            LongDelay::D10  => "10",
-            LongDelay::D20  => "20",
-            LongDelay::D30  => "30",
-            LongDelay::D40  => "40",
-            LongDelay::D50  => "50",
-            LongDelay::D60  => "60",
-            LongDelay::D70  => "70",
-            LongDelay::D80  => "80",
-            LongDelay::D90  => "90",
+            LongDelay::D0 => "0",
+            LongDelay::D10 => "10",
+            LongDelay::D20 => "20",
+            LongDelay::D30 => "30",
+            LongDelay::D40 => "40",
+            LongDelay::D50 => "50",
+            LongDelay::D60 => "60",
+            LongDelay::D70 => "70",
+            LongDelay::D80 => "80",
+            LongDelay::D90 => "90",
             LongDelay::D100 => "100",
             LongDelay::D110 => "110",
             LongDelay::D120 => "120",
@@ -601,7 +614,8 @@ impl LongDelay {
             LongDelay::D290 => "290",
             LongDelay::D300 => "300",
             _ => "",
-        }.to_string()
+        }
+        .to_string()
     }
 
     pub fn into_longdelay(&self) -> u32 {
@@ -629,10 +643,10 @@ impl BoolFlag {
         match self {
             BoolFlag::TRUE => "True",
             _ => "False",
-        }.to_string()
+        }
+        .to_string()
     }
 }
-
 
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter)]
@@ -656,7 +670,8 @@ impl SdiStrength {
             SdiStrength::Normal => "Normal",
             SdiStrength::Medium => "Medium",
             SdiStrength::High => "High",
-        }.to_string()
+        }
+        .to_string()
     }
 
     pub fn to_url_param(&self) -> String {
@@ -664,7 +679,8 @@ impl SdiStrength {
             SdiStrength::Normal => "0",
             SdiStrength::Medium => "1",
             SdiStrength::High => "2",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -754,36 +770,34 @@ macro_rules! set_by_str {
 
 impl TrainingModpackMenu {
     pub fn set(&mut self, s: &str, val: u32) {
-        set_by_str!(self, s,
-            (aerial_delay = Delay::from_bits(val))
-            (air_dodge_dir = Direction::from_bits(val))
-            (attack_angle = AttackAngle::from_bits(val))
-            (defensive_state = Defensive::from_bits(val))
-            (di_state = Direction::from_bits(val))
-            (falling_aerials = BoolFlag::from_bits(val))
-            (fast_fall_delay = Delay::from_bits(val))
-            (fast_fall = BoolFlag::from_bits(val))
-            (follow_up = Action::from_bits(val))
-            (full_hop = BoolFlag::from_bits(val))
-            (hitbox_vis = OnOff::from_val(val))
-            (input_delay = Some(val as i32))
-            (ledge_delay = LongDelay::from_bits(val))
-            (ledge_state = LedgeOption::from_bits(val))
-            (mash_in_neutral = OnOff::from_val(val))
-            (mash_state = Action::from_bits(val))
-            (miss_tech_state = MissTechFlags::from_bits(val))
-            (oos_offset = Delay::from_bits(val))
-            (reaction_time = Delay::from_bits(val))
-            (sdi_state = Direction::from_bits(val))
-            (sdi_strength = num::FromPrimitive::from_u32(val))
-            (shield_state = num::FromPrimitive::from_u32(val))
-            (shield_tilt = Direction::from_bits(val))
-            (stage_hazards = OnOff::from_val(val))
-            (tech_state = TechFlags::from_bits(val))
-            (save_damage = OnOff::from_val(val))
-            (frame_advantage = OnOff::from_val(val))
-
-            (save_state_mirroring = num::FromPrimitive::from_u32(val))
+        set_by_str!(
+            self,
+            s,
+            (aerial_delay = Delay::from_bits(val))(air_dodge_dir = Direction::from_bits(val))(
+                attack_angle = AttackAngle::from_bits(val)
+            )(defensive_state = Defensive::from_bits(val))(
+                di_state = Direction::from_bits(val)
+            )(falling_aerials = BoolFlag::from_bits(val))(
+                fast_fall_delay = Delay::from_bits(val)
+            )(fast_fall = BoolFlag::from_bits(val))(follow_up = Action::from_bits(val))(
+                full_hop = BoolFlag::from_bits(val)
+            )(hitbox_vis = OnOff::from_val(val))(input_delay = Some(val as i32))(
+                ledge_delay = LongDelay::from_bits(val)
+            )(ledge_state = LedgeOption::from_bits(val))(
+                mash_in_neutral = OnOff::from_val(val)
+            )(mash_state = Action::from_bits(val))(
+                miss_tech_state = MissTechFlags::from_bits(val)
+            )(oos_offset = Delay::from_bits(val))(reaction_time = Delay::from_bits(val))(
+                sdi_state = Direction::from_bits(val)
+            )(sdi_strength = num::FromPrimitive::from_u32(val))(
+                shield_state = num::FromPrimitive::from_u32(val)
+            )(shield_tilt = Direction::from_bits(val))(
+                stage_hazards = OnOff::from_val(val)
+            )(tech_state = TechFlags::from_bits(val))(
+                save_damage = OnOff::from_val(val)
+            )(frame_advantage = OnOff::from_val(val))(
+                save_state_mirroring = num::FromPrimitive::from_u32(val)
+            )
         );
     }
 }
