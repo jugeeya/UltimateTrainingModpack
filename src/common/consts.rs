@@ -759,7 +759,7 @@ url_params! {
 }
 
 macro_rules! set_by_str {
-    ($obj:ident, $s:ident, $(($field:ident = $rhs:expr))*) => {
+    ($obj:ident, $s:ident, $($field:ident = $rhs:expr,)*) => {
         $(
             if $s == stringify!($field) {
                 $obj.$field = $rhs.unwrap();
@@ -773,31 +773,34 @@ impl TrainingModpackMenu {
         set_by_str!(
             self,
             s,
-            (aerial_delay = Delay::from_bits(val))(air_dodge_dir = Direction::from_bits(val))(
-                attack_angle = AttackAngle::from_bits(val)
-            )(defensive_state = Defensive::from_bits(val))(
-                di_state = Direction::from_bits(val)
-            )(falling_aerials = BoolFlag::from_bits(val))(
-                fast_fall_delay = Delay::from_bits(val)
-            )(fast_fall = BoolFlag::from_bits(val))(follow_up = Action::from_bits(val))(
-                full_hop = BoolFlag::from_bits(val)
-            )(hitbox_vis = OnOff::from_val(val))(input_delay = Some(val as i32))(
-                ledge_delay = LongDelay::from_bits(val)
-            )(ledge_state = LedgeOption::from_bits(val))(
-                mash_in_neutral = OnOff::from_val(val)
-            )(mash_state = Action::from_bits(val))(
-                miss_tech_state = MissTechFlags::from_bits(val)
-            )(oos_offset = Delay::from_bits(val))(reaction_time = Delay::from_bits(val))(
-                sdi_state = Direction::from_bits(val)
-            )(sdi_strength = num::FromPrimitive::from_u32(val))(
-                shield_state = num::FromPrimitive::from_u32(val)
-            )(shield_tilt = Direction::from_bits(val))(
-                stage_hazards = OnOff::from_val(val)
-            )(tech_state = TechFlags::from_bits(val))(
-                save_damage = OnOff::from_val(val)
-            )(frame_advantage = OnOff::from_val(val))(
-                save_state_mirroring = num::FromPrimitive::from_u32(val)
-            )
+            aerial_delay = Delay::from_bits(val),
+            air_dodge_dir = Direction::from_bits(val),
+            attack_angle = AttackAngle::from_bits(val),
+            defensive_state = Defensive::from_bits(val),
+            di_state = Direction::from_bits(val),
+            falling_aerials = BoolFlag::from_bits(val),
+            fast_fall_delay = Delay::from_bits(val),
+            fast_fall = BoolFlag::from_bits(val),
+            follow_up = Action::from_bits(val),
+            full_hop = BoolFlag::from_bits(val),
+            hitbox_vis = OnOff::from_val(val),
+            input_delay = Some(val as i32),
+            ledge_delay = LongDelay::from_bits(val),
+            ledge_state = LedgeOption::from_bits(val),
+            mash_in_neutral = OnOff::from_val(val),
+            mash_state = Action::from_bits(val),
+            miss_tech_state = MissTechFlags::from_bits(val),
+            oos_offset = Delay::from_bits(val),
+            reaction_time = Delay::from_bits(val),
+            sdi_state = Direction::from_bits(val),
+            sdi_strength = num::FromPrimitive::from_u32(val),
+            shield_state = num::FromPrimitive::from_u32(val),
+            shield_tilt = Direction::from_bits(val),
+            stage_hazards = OnOff::from_val(val),
+            tech_state = TechFlags::from_bits(val),
+            save_damage = OnOff::from_val(val),
+            frame_advantage = OnOff::from_val(val),
+            save_state_mirroring = num::FromPrimitive::from_u32(val),
         );
     }
 }
