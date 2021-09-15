@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
-skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git", branch = "impl-l2c-value" }
+skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git", branch = "impl-l2c-value" } 
 skyline-web = { git = "https://github.com/skyline-rs/skyline-web.git" }
 bitflags = "1.2.1"
 parking_lot = { version = "0.11.1", features = ["nightly"] }
