@@ -9,9 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
-# TODO: Update from commit 95ea66a to latest
-# skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git", features=["weak_l2cvalue"]}
-skyline_smash = {git = "https://github.com/ultimate-research/skyline-smash.git", rev = "95ea66a"}
+skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" } 
 skyline-web = { git = "https://github.com/skyline-rs/skyline-web.git" }
 bitflags = "1.2.1"
 parking_lot = { version = "0.11.1", features = ["nightly"] }
