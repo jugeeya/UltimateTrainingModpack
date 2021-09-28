@@ -755,6 +755,7 @@ url_params! {
         pub save_damage: OnOff,
         pub save_state_mirroring: SaveStateMirroring,
         pub frame_advantage: OnOff,
+        pub save_state_enable: OnOff
     }
 }
 
@@ -801,6 +802,7 @@ impl TrainingModpackMenu {
             save_damage = OnOff::from_val(val),
             frame_advantage = OnOff::from_val(val),
             save_state_mirroring = num::FromPrimitive::from_u32(val),
+            save_state_enable = OnOff::from_val(val),
         );
     }
 }
