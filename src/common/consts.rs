@@ -755,7 +755,7 @@ url_params! {
         pub save_damage: OnOff,
         pub save_state_mirroring: SaveStateMirroring,
         pub frame_advantage: OnOff,
-        pub save_state_enable: OnOff
+        pub save_state_enable: OnOff,
     }
 }
 
