@@ -514,7 +514,7 @@ pub unsafe fn write_menu() {
     add_onoff_submenu!(
         overall_menu,
         "Save States",
-        save_states_enable,
+        save_state_enable,
         "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt."
     );
     add_onoff_submenu!(
