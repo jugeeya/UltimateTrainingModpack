@@ -103,6 +103,10 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
 }
 
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if MENU.save_state_enable == OnOff::Off {
+        return;
+    }
+
     let status = StatusModule::status_kind(module_accessor) as i32;
     let save_state = if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
         == FighterId::CPU as i32
