@@ -8,3 +8,5 @@ edition = "2018"
 [dependencies]
 datafusion = "5.0.0"
 tokio = "1.11.0"
+plotters = "0.3.1"
+chrono = "0.4.19"
