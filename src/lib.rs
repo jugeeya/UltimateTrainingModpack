@@ -18,15 +18,9 @@ mod training;
 #[cfg(test)]
 mod test;
 
-#[macro_use]
-extern crate bitflags;
-
-#[macro_use]
-extern crate num_derive;
-
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
-use crate::menu::set_menu_from_url;
+use crate::consts::set_menu_from_url;
 
 use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
@@ -92,7 +86,9 @@ pub fn main() {
         log!("Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
         if menu_conf.starts_with(b"http://localhost") {
-            set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
+            unsafe {
+                set_menu_from_url(std::str::from_utf8(&menu_conf), MENU).unwrap();
+            }
         }
     }
 

@@ -21,7 +21,7 @@ struct Event {
 }
 
 use chrono::{DateTime, NaiveDateTime, Utc};
-fn timestamp_to_datetime(ts: i64) -> DateTime<Utc> {
+fn timestamp_secs_to_datetime(ts: i64) -> DateTime<Utc> {
     DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts, 0), Utc)
 }
 
@@ -43,9 +43,9 @@ fn draw_chart(results: Vec<RecordBatch>) -> Result<(), Box<dyn std::error::Error
         .expect("Failed to downcast").values();
 
     let device_data_points = num_devices.iter()
-        .enumerate().map(|(i, x)| (timestamp_to_datetime(timestamp_millis[i] / 1000), *x));
+        .enumerate().map(|(i, x)| (timestamp_secs_to_datetime(timestamp_millis[i] / 1000), *x));
     let session_data_points = num_sessions.iter()
-        .enumerate().map(|(i, x)| (timestamp_to_datetime(timestamp_millis[i] / 1000), *x));
+        .enumerate().map(|(i, x)| (timestamp_secs_to_datetime(timestamp_millis[i] / 1000), *x));
     
     let root = SVGBackend::new(OUT_FILE_NAME, (1024, 768)).into_drawing_area();
     root.fill(&WHITE)?;
@@ -55,7 +55,7 @@ fn draw_chart(results: Vec<RecordBatch>) -> Result<(), Box<dyn std::error::Error
         .x_label_area_size(30)
         .y_label_area_size(30)
         .build_cartesian_2d(
-            (timestamp_to_datetime(timestamp_millis[0] / 1000))..(timestamp_to_datetime(*timestamp_millis.last().unwrap() / 1000)), 
+            (timestamp_secs_to_datetime(timestamp_millis[0] / 1000))..(timestamp_secs_to_datetime(*timestamp_millis.last().unwrap() / 1000)), 
             0..*num_sessions.iter().max().unwrap())?;
 
     chart.configure_mesh().draw()?;
@@ -105,6 +105,7 @@ async fn main() -> datafusion::error::Result<()> {
                 Field::new("menu_settings", DataType::Utf8, false),
                 Field::new("session_id", DataType::Utf8, false),
                 Field::new("smash_version", DataType::Utf8, false),
+                Field::new("mod_version", DataType::Utf8, false),
                 Field::new("user_id", DataType::Utf8, false),
             ]))),
             schema_infer_max_records: 0,
@@ -122,13 +123,14 @@ async fn main() -> datafusion::error::Result<()> {
     let df = ctx.sql(
         "SELECT 
             COUNT(DISTINCT device_id) num_devices, 
-            COUNT(DISTINCT session_id) num_sessions, 
+            -- COUNT(DISTINCT session_id) num_sessions, 
+            COUNT(DISTINCT smash_version) num_sessions,  
             COUNT(*) num_events, 
             TO_TIMESTAMP_MILLIS(DATE_TRUNC('day', CAST(event_time * 1000000 AS timestamp))) AS date FROM menu_open
-        WHERE 
-            DATE_PART('year', CAST(event_time * 1000000 AS timestamp)) = 2021 
+        WHERE
             -- after 09/01/2021
-            AND event_time > 1630454400000
+            event_time > 1630454400000
+            -- before today
             AND CAST(event_time * 1000000 AS timestamp) < NOW()
         GROUP BY date ORDER BY date"
     )?;

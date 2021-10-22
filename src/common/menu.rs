@@ -264,41 +264,6 @@ macro_rules! add_onoff_submenu {
     };
 }
 
-pub fn set_menu_from_url(s: &str) {
-    let base_url_len = "http://localhost/?".len();
-    let total_len = s.len();
-
-    let ss: String = s
-        .chars()
-        .skip(base_url_len)
-        .take(total_len - base_url_len)
-        .collect();
-
-    for toggle_values in ss.split('&') {
-        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
-        let toggle = toggle_value_split[0];
-        if toggle.is_empty() {
-            continue;
-        }
-
-        let toggle_vals = toggle_value_split[1];
-
-        let mut bits = 0;
-        for toggle_val in toggle_vals.split(',') {
-            if toggle_val.is_empty() {
-                continue;
-            }
-
-            let val = toggle_val.parse::<u32>().unwrap();
-            bits |= val;
-        }
-
-        unsafe {
-            MENU.set(toggle, bits);
-        }
-    }
-}
-
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
     // Only check for button combination if the counter is 0 (not locked out)
     match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
@@ -572,11 +537,9 @@ pub unsafe fn spawn_menu() {
 
     let last_url = page_response.get_last_url().unwrap();
 
-    set_menu_from_url(last_url);
+    set_menu_from_url(last_url, MENU);
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
-    unsafe {
-        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-    }
+    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
 }

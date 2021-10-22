@@ -28,16 +28,17 @@ extern "C" {
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct Uuid {
-    Size: u32,
-    StringSize: u32,
+    size: u32,
+    string_size: u32,
     data: [u8; 16],
 }
 
 impl Uuid {
     pub fn to_str(&self) -> String {
         self.data
-            .into_iter()
+            .iter()
             .map(|i| format!("{:02x}", i))
             .collect::<Vec<String>>()
             .join("")
@@ -51,15 +52,14 @@ struct Sha256Hash {
 impl Event {
     pub fn new() -> Event {
         let mut device_uuid = Uuid {
-            Size: 16,
-            StringSize: 300,
+            size: 16,
+            string_size: 300,
             data: [0u8; 16],
         };
         unsafe {
             GetPseudoDeviceId(&mut device_uuid as *mut Uuid);
         }
 
-        let mut time = skyline::nn::time::PosixTime { time: 0 };
         unsafe {
             time::Initialize();
             let event_time = SystemTime::now()
@@ -88,7 +88,7 @@ impl Event {
                     .set(
                         user_uid
                             .id
-                            .into_iter()
+                            .iter()
                             .map(|i| format!("{:02x}", i))
                             .collect::<Vec<String>>()
                             .join(""),
@@ -106,7 +106,7 @@ impl Event {
                     .set(
                         device_uuid
                             .data
-                            .into_iter()
+                            .iter()
                             .map(|i| format!("{:02x}", i))
                             .collect::<Vec<String>>()
                             .join(""),
@@ -134,7 +134,7 @@ impl Event {
                     .set(
                         session_id_hash
                             .hash
-                            .into_iter()
+                            .iter()
                             .map(|i| format!("{:02x}", i))
                             .collect::<Vec<String>>()
                             .join(""),
