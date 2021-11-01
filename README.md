@@ -1,4 +1,4 @@
-[<img src="https://imgur.com/7BVjKtZ.jpg">](https://imgur.com/7BVjKtZ.jpg)
+<img src="./photos/2021081718384700-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
 
 # Ultimate Training Modpack Plugin
 
@@ -34,9 +34,9 @@ The features in this modpack are configured through the menu, which can be acces
 - Displays additional information onscreen
 - Controls CPU behavior
 
-[<img src="https://imgur.com/5Blmsbc.jpg">](https://imgur.com/5Blmsbc.jpg)
+<img src="./photos/2021081718312800-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
 
-[<img src="https://imgur.com/NR0Rl7j.jpg">](https://imgur.com/NR0Rl7j.jpg)
+<img src="./photos/2021081718323900-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
 
 ## Stage Hazards
 
@@ -47,7 +47,7 @@ Set stage hazards on or off in Training Mode! Use this to practice on tournament
 
 At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. With the mirroring setting,loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
 
-![<img src="https://i.imgur.com/FLy0xiw.gif">](https://i.imgur.com/FLy0xiw.gif)
+<img src="./photos/FLy0xiw.gif">
 
 ## Input Delay
 
