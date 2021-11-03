@@ -68,7 +68,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: plugin_outside_training_mode
-        path: target/aarch64-skyline-switch/dev/libtraining_modpack.nro
+        path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
   upload:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
