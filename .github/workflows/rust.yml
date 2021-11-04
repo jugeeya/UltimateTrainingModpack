@@ -61,7 +61,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build outside_training_mode NRO
       run: |
-        PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
+        PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release --features outside_training_mode
       env:
         HOME: /root
     - name: Upload plugin (outside training mode) artifact
