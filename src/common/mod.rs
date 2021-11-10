@@ -123,7 +123,7 @@ pub fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
     unsafe {
         status_kind = StatusModule::status_kind(module_accessor);
     }
-    (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
+    (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind;
