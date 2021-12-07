@@ -10,6 +10,7 @@ pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
 pub mod ledge;
+pub mod throw;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
@@ -112,6 +113,7 @@ fn once_per_frame_per_fighter(
     fast_fall::get_command_flag_cat(module_accessor);
     frame_counter::get_command_flag_cat(module_accessor);
     ledge::get_command_flag_cat(module_accessor);
+    throw::get_command_flag_cat(module_accessor);
     shield::get_command_flag_cat(module_accessor);
     directional_influence::get_command_flag_cat(module_accessor);
     reset::check_reset(module_accessor);
@@ -261,6 +263,11 @@ pub unsafe fn handle_is_enable_transition_term(
     match ledge::is_enable_transition_term(module_accessor, transition_term) {
         Some(r) => r,
         None => ori,
+    };
+
+    match throw::is_enable_transition_term(module_accessor, transition_term) {
+        Some(r) => r,
+        None => ori,
     }
 }
 
@@ -355,5 +362,6 @@ pub fn training_mods() {
     fast_fall::init();
     mash::init();
     ledge::init();
+    throw::init();
     menu::init();
 }

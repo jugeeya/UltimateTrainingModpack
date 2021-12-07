@@ -497,6 +497,45 @@ bitflags! {
     }
 }
 
+// Throw Option
+bitflags! {
+    pub struct ThrowOption : u32
+    {
+        const NONE = 0x1;
+        const FORWARD = 0x2;
+        const BACKWARD = 0x4;
+        const UP = 0x8;
+        const DOWN = 0x10;
+    }
+}
+
+impl ThrowOption {
+    pub fn into_status(self) -> Option<i32> {
+        Some(match self {
+            ThrowOption::NONE => *FIGHTER_STATUS_KIND_CATCH_WAIT,
+            ThrowOption::FORWARD => *FIGHTER_STATUS_KIND_THROW,
+            ThrowOption::BACKWARD => *FIGHTER_STATUS_KIND_THROW,
+            ThrowOption::UP => *FIGHTER_STATUS_KIND_THROW,
+            ThrowOption::DOWN => *FIGHTER_STATUS_KIND_THROW,
+            _ => return None,
+        })
+    }
+
+    fn into_string(self) -> String {
+        match self {
+            ThrowOption::NONE => "None",
+            ThrowOption::FORWARD => "Forward Throw",
+            ThrowOption::BACKWARD => "Back Throw",
+            ThrowOption::UP => "Up Throw",
+            ThrowOption::DOWN => "Down Throw",
+            _ => "",
+        }
+        .to_string()
+    }
+}
+
+extra_bitflag_impls! {ThrowOption}
+
 impl Delay {
     pub fn into_string(self) -> String {
         match self {
@@ -756,6 +795,8 @@ url_params! {
         pub save_state_mirroring: SaveStateMirroring,
         pub frame_advantage: OnOff,
         pub save_state_enable: OnOff,
+        pub throw_state: ThrowOption,
+        pub throw_delay: Delay,
     }
 }
 
@@ -803,6 +844,8 @@ impl TrainingModpackMenu {
             frame_advantage = OnOff::from_val(val),
             save_state_mirroring = num::FromPrimitive::from_u32(val),
             save_state_enable = OnOff::from_val(val),
+            throw_state = ThrowOption::from_bits(val),
+            throw_delay = Delay::from_bits(val),
         );
     }
 }

@@ -41,7 +41,7 @@ fn roll_throw_delay() {
             return;
         }
 
-        THROW_DELAY = MENU.throw_delay.get_random.into_delay(); // NEW! removed into long delay, 
+        THROW_DELAY = MENU.throw_delay.get_random().into_delay(); // NEW! removed into long delay, 
 													 // assuming it's why ledge options 
 													 // are increments of 10 instead of 1.into_longdelay();
     }
@@ -69,10 +69,12 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
-		// NEW! Can you add all 4 "FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW"s?
-		// Can you just use one of them? What does this code snippet actually do?
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW_HI,
     ) {
+        // NEW! Can you add all 4 "FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW"s?
+		// Can you just use one of them? What does this code snippet actually do?
+        // I assume that it just checks get up attack originally because if you can't get up attack,
+        // you can't do any ledge option. So I'll make it up throw for now.
         // Not able to take any action yet
         return;
     }
@@ -80,7 +82,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     roll_throw_delay();
     roll_throw_case();
 
-    if THROW_CASE == ThrowOption::WAIT {
+    if THROW_CASE == ThrowOption::NONE {
         // Do nothing, but don't reset the throw case.
         return;
     }
@@ -93,7 +95,8 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let status = THROW_CASE.into_status().unwrap_or(0);
     match THROW_CASE { // NEW! Should I change ThrowOption JUMP to always mash here? Or always use a defensive option?
 						// Because a throw means that grab is a mash or followup. Always do a defensive option?
-        ThrowOption::JUMP => {
+                        // I'll test with only mashing after up throw for now.
+        ThrowOption::UP => {
             mash::buffer_menu_mash();
         }
         _ => mash::perform_defensive_option(),
@@ -120,6 +123,7 @@ pub unsafe fn is_enable_transition_term(
     // NEW! There is no default throw option, outside of grab release. Most likely should remove,
 	// but could be used to override regular mashing/percent windows to force X pummels and a throw or something
 	// Disallow the default cliff-climb if we are waiting
+    /*
     if (THROW_CASE == ThrowOption::WAIT
         || frame_counter::get_frame_count(THROW_DELAY_COUNTER) < THROW_DELAY)
         && term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
@@ -127,6 +131,7 @@ pub unsafe fn is_enable_transition_term(
     {
         return Some(false);
     }
+    */
     None
 }
 

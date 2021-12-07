@@ -1,6 +1,7 @@
 use crate::common::*;
 use crate::training::frame_counter;
 use crate::training::ledge;
+use crate::training::throw;
 use crate::training::mash;
 use crate::training::sdi;
 use crate::training::shield_tilt;
@@ -43,5 +44,6 @@ pub fn on_reset() {
     sdi::roll_direction();
     frame_counter::reset_all();
     ledge::reset_ledge_delay();
+    throw::reset_throw_delay();
     shield_tilt::roll_direction();
 }

@@ -40,6 +40,8 @@ pub static DEFAULT_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMe
     save_state_mirroring: SaveStateMirroring::None,
     frame_advantage: OnOff::Off,
     save_state_enable: OnOff::On,
+    throw_state: ThrowOption::NONE,
+    throw_delay: Delay::empty(),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
