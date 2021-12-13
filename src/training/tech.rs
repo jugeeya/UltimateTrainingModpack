@@ -195,9 +195,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     let status = StatusModule::status_kind(module_accessor) as i32;
 
     if [
-        *FIGHTER_STATUS_KIND_DOWN_WAIT, // Mistech
+        *FIGHTER_STATUS_KIND_DOWN_WAIT,          // Mistech
         *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE, // Mistech
-        *FIGHTER_STATUS_KIND_LAY_DOWN, // Snake down throw
+        *FIGHTER_STATUS_KIND_LAY_DOWN,           // Snake down throw
     ]
     .contains(&status)
     {
