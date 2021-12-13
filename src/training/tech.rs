@@ -197,7 +197,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     if [
         *FIGHTER_STATUS_KIND_DOWN_WAIT,
         *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE,
-        *FIGHTER_STATUS_KIND_DOWN_SPOT,
+        *FIGHTER_STATUS_KIND_LAY_DOWN,
     ]
     .contains(&status)
     {
