@@ -264,7 +264,7 @@ macro_rules! add_onoff_submenu {
     };
 }
 
-pub fn set_menu_from_url(s: &str) {
+pub unsafe fn set_menu_from_url(mut menu: TrainingModpackMenu, s: &str) {
     let base_url_len = "http://localhost/?".len();
     let total_len = s.len();
 
@@ -293,9 +293,7 @@ pub fn set_menu_from_url(s: &str) {
             bits |= val;
         }
 
-        unsafe {
-            MENU.set(toggle, bits);
-        }
+        menu.set(toggle, bits);
     }
 }
 
@@ -571,12 +569,43 @@ pub unsafe fn spawn_menu() {
         .unwrap();
 
     let last_url = page_response.get_last_url().unwrap();
-
-    set_menu_from_url(last_url);
+    set_menu_from_url(MENU, last_url);
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
-    unsafe {
-        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+}
+
+pub unsafe fn save_menu_defaults_condition(
+    module_accessor: &mut smash::app::BattleObjectModuleAccessor,
+) -> bool {
+    // Checks the combination to save the menu defaults to file
+    // Only check for button combination if the counter is 0 (not locked out)
+    match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
+        0 => {
+            ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL)
+                && ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_JUMP)
+                && ControlModule::check_button_on_trriger(
+                    module_accessor,
+                    *CONTROL_PAD_BUTTON_APPEAL_LW,
+                )
+        }
+        1..MENU_LOCKOUT_FRAMES => false,
+        _ => {
+            // Waited longer than the lockout time, reset the counter so the menu can be opened again
+            frame_counter::full_reset(FRAME_COUNTER_INDEX);
+            false
+        }
     }
+}
+
+pub unsafe fn save_menu_defaults() {
+    let last_url = format!("{}{}", "http://localhost", MENU.to_url_params());
+    DEFAULT_MENU = MENU;
+    // If this doesn't work can also try
+    // set_menu_from_url(DEFAULT_MENU, &last_url);
+
+    let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
+    std::fs::write(menu_defaults_conf_path, last_url)
+        .expect("Failed to write default menu conf file");
 }

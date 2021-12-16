@@ -92,7 +92,23 @@ pub fn main() {
         log!("Loading previous menu from training_modpack_menu.conf...");
         let menu_conf = fs::read(menu_conf_path).unwrap();
         if menu_conf.starts_with(b"http://localhost") {
-            set_menu_from_url(std::str::from_utf8(&menu_conf).unwrap());
+            unsafe {
+                set_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap());
+            }
+        }
+    }
+
+    let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
+    if fs::metadata(menu_defaults_conf_path).is_ok() {
+        log!("Loading previous menu from training_modpack_menu.conf...");
+        let menu_defaults_conf = fs::read(menu_defaults_conf_path).unwrap();
+        if menu_defaults_conf.starts_with(b"http://localhost") {
+            unsafe {
+                set_menu_from_url(
+                    DEFAULT_MENU,
+                    std::str::from_utf8(&menu_defaults_conf).unwrap(),
+                );
+            }
         }
     }
 
