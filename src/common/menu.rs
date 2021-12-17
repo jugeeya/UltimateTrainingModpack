@@ -605,12 +605,13 @@ pub unsafe fn save_menu_defaults() {
     println!("Saving menu defaults...");
     let last_url = format!("{}{}", "http://localhost", MENU.to_url_params());
     DEFAULT_MENU = set_menu_from_url(DEFAULT_MENU, &last_url);
+    write_menu();
 
     let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
     std::fs::write(menu_defaults_conf_path, last_url)
         .expect("Failed to write default menu conf file");
-    write_menu();
 
+    // Generate visual effect
     let zeros = Vector3f {
         x: 0.0,
         y: 0.0,
@@ -622,7 +623,7 @@ pub unsafe fn save_menu_defaults() {
         Hash40::new("top"),
         &zeros,
         &zeros,
-        3.0,
+        1.0,
         &zeros,
         &zeros,
         true,
