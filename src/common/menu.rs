@@ -5,6 +5,7 @@ use ramhorns::{Content, Template};
 use skyline::info::get_program_id;
 use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
+use smash::phx::{Hash40, Vector3f};
 use std::fs;
 use std::path::Path;
 use strum::IntoEnumIterator;
@@ -609,4 +610,26 @@ pub unsafe fn save_menu_defaults() {
     std::fs::write(menu_defaults_conf_path, last_url)
         .expect("Failed to write default menu conf file");
     write_menu();
+
+    let zeros = Vector3f {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    EffectModule::req_on_joint(
+        get_module_accessor(FighterId::Player),
+        Hash40::new("sys_hit_magic_s"),
+        Hash40::new("top"),
+        &zeros,
+        &zeros,
+        3.0,
+        &zeros,
+        &zeros,
+        true,
+        *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
+            | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
+            | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+        0,
+        0,
+    );
 }
