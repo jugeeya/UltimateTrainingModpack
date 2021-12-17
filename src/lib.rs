@@ -26,7 +26,7 @@ extern crate num_derive;
 
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
-use crate::menu::set_menu_from_url;
+use crate::menu::get_menu_from_url;
 
 use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
@@ -94,7 +94,7 @@ pub fn main() {
         if menu_conf.starts_with(b"http://localhost") {
             log!("Previous menu found, loading from training_modpack_menu.conf");
             unsafe {
-                MENU = set_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap());
+                MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap());
             }
         } else {
             log!("Previous menu found but is invalid.");
@@ -110,7 +110,7 @@ pub fn main() {
         if menu_defaults_conf.starts_with(b"http://localhost") {
             log!("Menu defaults found, loading from training_modpack_menu_defaults.conf");
             unsafe {
-                DEFAULT_MENU = set_menu_from_url(
+                DEFAULT_MENU = get_menu_from_url(
                     DEFAULT_MENU,
                     std::str::from_utf8(&menu_defaults_conf).unwrap(),
                 );

@@ -265,7 +265,7 @@ macro_rules! add_onoff_submenu {
     };
 }
 
-pub fn set_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
+pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
     let base_url_len = "http://localhost/?".len();
     let total_len = s.len();
 
@@ -570,67 +570,19 @@ pub unsafe fn spawn_menu() {
         .open()
         .unwrap();
 
-    let last_url = page_response.get_last_url().unwrap();
-    MENU = set_menu_from_url(MENU, last_url);
+    let orig_last_url = page_response.get_last_url().unwrap();
+    let last_url = &orig_last_url.replace("&save_defaults=1", "");
+    MENU = get_menu_from_url(MENU, last_url);
+    if last_url.len() != orig_last_url.len() {
+        // Save as default
+        DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, last_url);
+        write_menu();
+        let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
+        std::fs::write(menu_defaults_conf_path, last_url)
+            .expect("Failed to write default menu conf file");
+    }
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
     EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-}
-
-pub unsafe fn save_menu_defaults_condition(
-    module_accessor: &mut smash::app::BattleObjectModuleAccessor,
-) -> bool {
-    // Checks the combination to save the menu defaults to file
-    // Only check for button combination if the counter is 0 (not locked out)
-    match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
-        0 => {
-            ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL)
-                && ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_JUMP)
-                && ControlModule::check_button_on_trriger(
-                    module_accessor,
-                    *CONTROL_PAD_BUTTON_APPEAL_LW,
-                )
-        }
-        1..MENU_LOCKOUT_FRAMES => false,
-        _ => {
-            // Waited longer than the lockout time, reset the counter so the menu can be opened again
-            frame_counter::full_reset(FRAME_COUNTER_INDEX);
-            false
-        }
-    }
-}
-
-pub unsafe fn save_menu_defaults() {
-    println!("Saving menu defaults...");
-    let last_url = format!("{}{}", "http://localhost", MENU.to_url_params());
-    DEFAULT_MENU = set_menu_from_url(DEFAULT_MENU, &last_url);
-    write_menu();
-
-    let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
-    std::fs::write(menu_defaults_conf_path, last_url)
-        .expect("Failed to write default menu conf file");
-
-    // Generate visual effect
-    let zeros = Vector3f {
-        x: 0.0,
-        y: 0.0,
-        z: 0.0,
-    };
-    EffectModule::req_on_joint(
-        get_module_accessor(FighterId::Player),
-        Hash40::new("sys_hit_magic_s"),
-        Hash40::new("top"),
-        &zeros,
-        &zeros,
-        1.0,
-        &zeros,
-        &zeros,
-        true,
-        *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
-            | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
-            | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
-        0,
-        0,
-    );
 }
