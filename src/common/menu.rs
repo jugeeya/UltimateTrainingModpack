@@ -264,7 +264,7 @@ macro_rules! add_onoff_submenu {
     };
 }
 
-pub unsafe fn set_menu_from_url(mut menu: TrainingModpackMenu, s: &str) {
+pub fn set_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
     let base_url_len = "http://localhost/?".len();
     let total_len = s.len();
 
@@ -295,6 +295,7 @@ pub unsafe fn set_menu_from_url(mut menu: TrainingModpackMenu, s: &str) {
 
         menu.set(toggle, bits);
     }
+    menu
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
@@ -569,7 +570,7 @@ pub unsafe fn spawn_menu() {
         .unwrap();
 
     let last_url = page_response.get_last_url().unwrap();
-    set_menu_from_url(MENU, last_url);
+    MENU = set_menu_from_url(MENU, last_url);
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
@@ -600,12 +601,12 @@ pub unsafe fn save_menu_defaults_condition(
 }
 
 pub unsafe fn save_menu_defaults() {
+    println!("Saving menu defaults...");
     let last_url = format!("{}{}", "http://localhost", MENU.to_url_params());
-    DEFAULT_MENU = MENU;
-    // If this doesn't work can also try
-    // set_menu_from_url(DEFAULT_MENU, &last_url);
+    DEFAULT_MENU = set_menu_from_url(DEFAULT_MENU, &last_url);
 
     let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
     std::fs::write(menu_defaults_conf_path, last_url)
         .expect("Failed to write default menu conf file");
+    write_menu();
 }
