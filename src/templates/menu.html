@@ -90,6 +90,32 @@
                 position: fixed;
                 z-index: 10;
             }
+
+            /* Save Defaults Container */
+            .defaults-checkbox-container {
+                position: fixed;
+                right: 50px;
+                display: flex;
+                justify-content: center;
+                flex-direction: column;
+            }
+
+            /* Checkbox element (hidden) */
+            #saveDefaults {
+                position: absolute;
+                left: -100vw;
+            }
+
+            /* Displayed Checkbox (unchecked) */
+            .checkbox-display::after {
+                content: "&#xE14C;";
+                color: white;
+            }
+
+            /* Displayed Checkbox (checked) */
+            #saveDefaults:checked ~ .checkbox-display::after {
+                content: "&#xE14B;";
+            }
         </style>
     </head>
 
@@ -249,6 +275,11 @@
         {{/sub_menus}}
         <footer id="footer" class="footer l-footer f-u-bold">
             <p id="help-text" class="header-desc"></p>
+            <div class="defaults-checkbox-container">
+                <label class="header-desc" for="saveDefaults">Save defaults: &#xE0A5;</label>
+                <input type="checkbox" id="saveDefaults">
+                <div class="checkbox-display"></div>
+            </div>
         </footer>
         <script>
             if (isNx) {
@@ -259,6 +290,9 @@
                     se: ''
                 })
                 window.nx.footer.setAssign('L', '', resetAllSubmenus, {
+                    se: ''
+                })
+                window.nx.footer.setAssign('R', '', toggleSaveDefaults, {
                     se: ''
                 })
             }
@@ -273,11 +307,6 @@
                     disabledOtherLink()
 
                     playSound('cancel')
-
-                    fadeOutPage(function () {
-                        window.history.back()
-                    })
-
 
                     var url = "http://localhost/"
 
@@ -317,7 +346,16 @@
                         });
                     });
 
-                    location.href = url + "?" + decodeURIComponent($.param(settings));
+                    url += "?" + decodeURIComponent($.param(settings));
+                    if ($("#saveDefaults").prop("checked")) {
+                        url += "&save_defaults=1";
+                    }
+                    // console.log(url);
+                    location.href = url;
+
+                    fadeOutPage(function () {
+                        window.history.back()
+                    })
                 } else {
                     // Close any open submenus
                     $(".qa.is-opened").each(function () { openAnswer(this); });
@@ -425,6 +463,15 @@
             function setHelpText(text) {
                 // Modify the help text in the footer
                 $("#help-text").text(text);
+            }
+
+            function toggleSaveDefaults() {
+                // Change the status of the Save Defaults checkbox
+                var saveDefaultsCheckbox = $("#saveDefaults");
+                saveDefaultsCheckbox.prop(
+                    "checked",
+                    !saveDefaultsCheckbox.prop("checked")
+                );
             }
         </script>
         <script>
