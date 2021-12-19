@@ -219,7 +219,7 @@ macro_rules! add_bitflag_submenu {
                 $title,
                 stringify!($id),
                 MENU.$id.bits() as usize,
-                [<$id _strs>].iter().map(|i| i.as_str()).collect(),
+                [<$id _strs>],
                 [<$id _vals>],
                 DEFAULT_MENU.$id.bits() as usize,
                 stringify!($help_text),
@@ -233,14 +233,14 @@ macro_rules! add_single_option_submenu {
         paste::paste!{
             let mut [<$id _toggles>] = Vec::new();
             for val in [<$e>]::iter() {
-                [<$id _toggles>].push((val.into_string(), val as usize));
+                [<$id _toggles>].push((val.as_str().unwrap_or(""), val as usize));
             }
 
             $menu.add_sub_menu(
                 $title,
                 stringify!($id),
                 MENU.$id as usize,
-                [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
+                [<$id _toggles>],
                 [].to_vec(),
                 DEFAULT_MENU.$id as usize,
                 stringify!($help_text),

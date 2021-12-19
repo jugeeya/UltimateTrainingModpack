@@ -26,10 +26,10 @@ macro_rules! extra_bitflag_impls {
 
             pub fn to_index(&self) -> u32 {
                 if self.bits == 0 {
-                    return 0;
+                    0
+                } else {
+                    self.bits.trailing_zeros()
                 }
-
-                return self.bits.trailing_zeros();
             }
 
             pub fn get_random(&self) -> $e {
@@ -47,9 +47,9 @@ macro_rules! extra_bitflag_impls {
                 }
             }
 
-            pub fn to_toggle_strs() -> Vec<String> {
+            pub fn to_toggle_strs() -> Vec<&'static str> {
                 let all_options = <$e>::all().to_vec();
-                all_options.iter().map(|i| i.into_string()).collect()
+                all_options.iter().map(|i| i.as_str().unwrap_or("")).collect()
             }
 
             pub fn to_toggle_vals() -> Vec<usize> {
@@ -57,19 +57,11 @@ macro_rules! extra_bitflag_impls {
                 all_options.iter().map(|i| i.bits() as usize).collect()
             }
             pub fn to_url_param(&self) -> String {
-                let mut vec = self.to_vec();
-                let mut s = String::new();
-                let mut first = true;
-                while !vec.is_empty() {
-                    let field = vec.pop().unwrap().bits();
-                    if !first {
-                        s.push_str(",");
-                    } else {
-                        first = false;
-                    }
-                    s.push_str(&field.to_string());
-                }
-                s
+                self.to_vec()
+                    .into_iter()
+                    .map(|field| field.bits().to_string())
+                    .collect::<Vec<_>>()
+                    .join(",")
             }
         }
     }
@@ -108,10 +100,10 @@ impl Direction {
         let index = self.into_index();
 
         if index == 0 {
-            return None;
+            None
+        } else {
+            Some((index as i32 - 1) as f64 * PI / 4.0)
         }
-
-        Some((index as i32 - 1) as f64 * PI / 4.0)
     }
     fn into_index(self) -> i32 {
         match self {
@@ -130,8 +122,8 @@ impl Direction {
         }
     }
 
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Direction::OUT => "Away",
             Direction::UP_OUT => "Up and Away",
             Direction::UP => "Up",
@@ -143,9 +135,8 @@ impl Direction {
             Direction::NEUTRAL => "Neutral",
             Direction::LEFT => "Left",
             Direction::RIGHT => "Right",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -175,16 +166,15 @@ impl LedgeOption {
         })
     }
 
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             LedgeOption::NEUTRAL => "Neutral Getup",
             LedgeOption::ROLL => "Roll",
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -201,15 +191,14 @@ bitflags! {
 }
 
 impl TechFlags {
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             TechFlags::NO_TECH => "No Tech",
             TechFlags::ROLL_F => "Roll Forwards",
             TechFlags::ROLL_B => "Roll Backwards",
             TechFlags::IN_PLACE => "Tech In Place",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -226,15 +215,14 @@ bitflags! {
 }
 
 impl MissTechFlags {
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             MissTechFlags::GETUP => "Neutral Getup",
             MissTechFlags::ATTACK => "Getup Attack",
             MissTechFlags::ROLL_F => "Roll Forwards",
             MissTechFlags::ROLL_B => "Roll Backwards",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -251,24 +239,17 @@ pub enum Shield {
 }
 
 impl Shield {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Shield::None => "None",
             Shield::Infinite => "Infinite",
             Shield::Hold => "Hold",
             Shield::Constant => "Constant",
-        }
-        .to_string()
+        })
     }
 
     pub fn to_url_param(&self) -> String {
-        match self {
-            Shield::None => "0",
-            Shield::Infinite => "1",
-            Shield::Hold => "2",
-            Shield::Constant => "3",
-        }
-        .to_string()
+        (*self as i32).to_string()
     }
 }
 
@@ -282,22 +263,16 @@ pub enum SaveStateMirroring {
 }
 
 impl SaveStateMirroring {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             SaveStateMirroring::None => "None",
             SaveStateMirroring::Alternate => "Alternate",
             SaveStateMirroring::Random => "Random",
-        }
-        .to_string()
+        })
     }
 
     fn to_url_param(&self) -> String {
-        match self {
-            SaveStateMirroring::None => "0",
-            SaveStateMirroring::Alternate => "1",
-            SaveStateMirroring::Random => "2",
-        }
-        .to_string()
+        (*self as i32).to_string()
     }
 }
 
@@ -313,16 +288,15 @@ bitflags! {
 }
 
 impl Defensive {
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Defensive::SPOT_DODGE => "Spotdodge",
             Defensive::ROLL_F => "Roll Forwards",
             Defensive::ROLL_B => "Roll Backwards",
             Defensive::JAB => "Jab",
             Defensive::SHIELD => "Shield",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -344,20 +318,15 @@ impl OnOff {
         }
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             OnOff::Off => "Off",
             OnOff::On => "On",
-        }
-        .to_string()
+        })
     }
 
     pub fn to_url_param(&self) -> String {
-        match self {
-            OnOff::Off => "0",
-            OnOff::On => "1",
-        }
-        .to_string()
+        (*self as i32).to_string()
     }
 }
 
@@ -404,8 +373,8 @@ impl Action {
         })
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Action::AIR_DODGE => "Airdodge",
             Action::JUMP => "Jump",
             Action::SHIELD => "Shield",
@@ -431,9 +400,8 @@ impl Action {
             Action::GRAB => "Grab",
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -448,14 +416,13 @@ bitflags! {
 }
 
 impl AttackAngle {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             AttackAngle::NEUTRAL => "Neutral",
             AttackAngle::UP => "Up",
             AttackAngle::DOWN => "Down",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -498,8 +465,8 @@ bitflags! {
 }
 
 impl Delay {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Delay::D0 => "0",
             Delay::D1 => "1",
             Delay::D2 => "2",
@@ -531,9 +498,8 @@ impl Delay {
             Delay::D28 => "28",
             Delay::D29 => "29",
             Delay::D30 => "30",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 
     pub fn into_delay(&self) -> u32 {
@@ -580,8 +546,8 @@ bitflags! {
 }
 
 impl LongDelay {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             LongDelay::D0 => "0",
             LongDelay::D10 => "10",
             LongDelay::D20 => "20",
@@ -613,9 +579,8 @@ impl LongDelay {
             LongDelay::D280 => "280",
             LongDelay::D290 => "290",
             LongDelay::D300 => "300",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 
     pub fn into_longdelay(&self) -> u32 {
@@ -639,12 +604,11 @@ impl BoolFlag {
         matches!(self, BoolFlag::TRUE)
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             BoolFlag::TRUE => "True",
             _ => "False",
-        }
-        .to_string()
+        })
     }
 }
 
@@ -665,22 +629,16 @@ impl SdiStrength {
         }
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             SdiStrength::Normal => "Normal",
             SdiStrength::Medium => "Medium",
             SdiStrength::High => "High",
-        }
-        .to_string()
+        })
     }
 
     pub fn to_url_param(&self) -> String {
-        match self {
-            SdiStrength::Normal => "0",
-            SdiStrength::Medium => "1",
-            SdiStrength::High => "2",
-        }
-        .to_string()
+        (*self as u32).to_string()
     }
 }
 
