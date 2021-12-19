@@ -5,6 +5,8 @@ use skyline::nn::{account, crypto, oe, time};
 use std::convert::TryInto;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::common::release::CURRENT_VERSION;
+
 pub static mut EVENT_QUEUE: Vec<Event> = vec![];
 static mut SESSION_ID: OnceCell<String> = OnceCell::new();
 static mut DEVICE_ID: OnceCell<String> = OnceCell::new();
@@ -29,18 +31,17 @@ extern "C" {
 
 #[derive(Debug)]
 pub struct Uuid {
-    Size: u32,
-    StringSize: u32,
+    size: u32,
+    string_size: u32,
     data: [u8; 16],
 }
 
 impl Uuid {
     pub fn to_str(&self) -> String {
         self.data
-            .into_iter()
+            .iter()
             .map(|i| format!("{:02x}", i))
-            .collect::<Vec<String>>()
-            .join("")
+            .collect::<String>()
     }
 }
 
@@ -51,15 +52,14 @@ struct Sha256Hash {
 impl Event {
     pub fn new() -> Event {
         let mut device_uuid = Uuid {
-            Size: 16,
-            StringSize: 300,
+            size: 16,
+            string_size: 300,
             data: [0u8; 16],
         };
         unsafe {
             GetPseudoDeviceId(&mut device_uuid as *mut Uuid);
         }
 
-        let mut time = skyline::nn::time::PosixTime { time: 0 };
         unsafe {
             time::Initialize();
             let event_time = SystemTime::now()
@@ -67,10 +67,6 @@ impl Event {
                 .expect("Time went backwards")
                 .as_millis();
 
-            let mut smash_version = oe::DisplayVersion {
-                name: [0 as skyline::libc::c_char; 16],
-            };
-            oe::GetDisplayVersion(&mut smash_version);
             if SESSION_ID.get().is_none() {
                 account::Initialize();
                 let mut user_uid = account::Uid::new();
@@ -88,7 +84,7 @@ impl Event {
                     .set(
                         user_uid
                             .id
-                            .into_iter()
+                            .iter()
                             .map(|i| format!("{:02x}", i))
                             .collect::<Vec<String>>()
                             .join(""),
@@ -106,7 +102,7 @@ impl Event {
                     .set(
                         device_uuid
                             .data
-                            .into_iter()
+                            .iter()
                             .map(|i| format!("{:02x}", i))
                             .collect::<Vec<String>>()
                             .join(""),
@@ -134,7 +130,7 @@ impl Event {
                     .set(
                         session_id_hash
                             .hash
-                            .into_iter()
+                            .iter()
                             .map(|i| format!("{:02x}", i))
                             .collect::<Vec<String>>()
                             .join(""),
@@ -142,32 +138,42 @@ impl Event {
                     .unwrap();
             }
 
-            let mut event = Event::default();
-            event.user_id = USER_ID.get().unwrap().to_string();
-            event.device_id = DEVICE_ID.get().unwrap().to_string();
-            event.event_time = event_time;
-            event.session_id = SESSION_ID.get().unwrap().to_string();
-            event.mod_version = crate::common::release::CURRENT_VERSION.to_string();
-            event.smash_version =
-                std::ffi::CStr::from_ptr(smash_version.name.as_ptr() as *const i8)
-                    .to_owned()
-                    .to_str()
-                    .unwrap()
-                    .to_string();
-            event
+            Event {
+                user_id: USER_ID.get().unwrap().to_string(),
+                device_id: DEVICE_ID.get().unwrap().to_string(),
+                event_time,
+                session_id: SESSION_ID.get().unwrap().to_string(),
+                mod_version: CURRENT_VERSION.to_string(),
+                smash_version: smash_version(),
+                ..Default::default()
+            }
         }
     }
 
     pub fn smash_open() -> Event {
-        let mut event = Event::new();
-        event.event_name = "SMASH_OPEN".to_string();
-        event
+        Event {
+            event_name: "SMASH_OPEN".to_string(),
+            ..Event::new()
+        }
     }
 
     pub fn menu_open(menu_settings: String) -> Event {
-        let mut event = Event::new();
-        event.event_name = "MENU_OPEN".to_string();
-        event.menu_settings = menu_settings;
-        event
+        Event {
+            event_name: "MENU_OPEN".to_string(),
+            menu_settings,
+            ..Event::new()
+        }
+    }
+}
+
+fn smash_version() -> String {
+    let mut smash_version = oe::DisplayVersion { name: [0; 16] };
+
+    unsafe {
+        oe::GetDisplayVersion(&mut smash_version);
+
+        std::ffi::CStr::from_ptr(smash_version.name.as_ptr() as *const i8)
+            .to_string_lossy()
+            .into_owned()
     }
 }
