@@ -5,7 +5,6 @@ pub mod raygun_printer;
 pub mod release;
 
 use crate::common::consts::*;
-use crate::common::events::*;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;

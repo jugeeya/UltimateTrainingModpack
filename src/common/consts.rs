@@ -318,7 +318,7 @@ impl OnOff {
         }
     }
 
-    fn as_str(self) -> Option<&'static str> {
+    pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
             OnOff::Off => "Off",
             OnOff::On => "On",
