@@ -95,6 +95,7 @@
             .defaults-checkbox-container {
                 position: fixed;
                 right: 50px;
+                margin-top: 10px;
                 display: flex;
                 justify-content: center;
                 flex-direction: column;
@@ -106,15 +107,19 @@
                 left: -100vw;
             }
 
+            .checkbox-display {
+                margin: 10px 70px;
+            }
+
             /* Displayed Checkbox (unchecked) */
             .checkbox-display::after {
-                content: "&#xE14C;";
+                content: "\E14C";
                 color: white;
             }
 
             /* Displayed Checkbox (checked) */
             #saveDefaults:checked ~ .checkbox-display::after {
-                content: "&#xE14B;";
+                content: "\E14B";
             }
         </style>
     </head>
