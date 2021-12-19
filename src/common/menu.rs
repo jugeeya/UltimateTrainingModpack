@@ -556,11 +556,14 @@ pub unsafe fn write_menu() {
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
-pub unsafe fn spawn_menu() {
-    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+pub fn spawn_menu() {
+    unsafe {
+        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    }
+
     let fname = "training_menu.html";
-    let params = MENU.to_url_params();
+    let params = unsafe { MENU.to_url_params() };
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)
         .htdocs_dir("contents")
