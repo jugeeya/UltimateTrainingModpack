@@ -6,6 +6,7 @@ use skyline::info::get_program_id;
 use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
+use std::ops::BitOr;
 use std::path::Path;
 use strum::IntoEnumIterator;
 
@@ -283,15 +284,12 @@ pub fn set_menu_from_url(s: &str) {
 
         let toggle_vals = toggle_value_split[1];
 
-        let mut bits = 0;
-        for toggle_val in toggle_vals.split(',') {
-            if toggle_val.is_empty() {
-                continue;
-            }
-
-            let val = toggle_val.parse::<u32>().unwrap();
-            bits |= val;
-        }
+        let bitwise_or = <u32 as BitOr<u32>>::bitor;
+        let bits = toggle_vals
+            .split(',')
+            .filter(|val| !val.is_empty())
+            .map(|val| val.parse().unwrap())
+            .fold(0, bitwise_or);
 
         unsafe {
             MENU.set(toggle, bits);
@@ -556,6 +554,8 @@ pub unsafe fn write_menu() {
     fs::write(path, data).unwrap();
 }
 
+const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
+
 pub unsafe fn spawn_menu() {
     frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
     frame_counter::start_counting(FRAME_COUNTER_INDEX);
@@ -574,8 +574,7 @@ pub unsafe fn spawn_menu() {
 
     set_menu_from_url(last_url);
 
-    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-    std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
+    std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
     unsafe {
         EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
     }
