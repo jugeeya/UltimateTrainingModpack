@@ -5,8 +5,8 @@ use ramhorns::{Content, Template};
 use skyline::info::get_program_id;
 use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
-use smash::phx::{Hash40, Vector3f};
 use std::fs;
+use std::ops::BitOr;
 use std::path::Path;
 use strum::IntoEnumIterator;
 
@@ -220,7 +220,7 @@ macro_rules! add_bitflag_submenu {
                 $title,
                 stringify!($id),
                 MENU.$id.bits() as usize,
-                [<$id _strs>].iter().map(|i| i.as_str()).collect(),
+                [<$id _strs>],
                 [<$id _vals>],
                 DEFAULT_MENU.$id.bits() as usize,
                 stringify!($help_text),
@@ -234,14 +234,14 @@ macro_rules! add_single_option_submenu {
         paste::paste!{
             let mut [<$id _toggles>] = Vec::new();
             for val in [<$e>]::iter() {
-                [<$id _toggles>].push((val.into_string(), val as usize));
+                [<$id _toggles>].push((val.as_str().unwrap_or(""), val as usize));
             }
 
             $menu.add_sub_menu(
                 $title,
                 stringify!($id),
                 MENU.$id as usize,
-                [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
+                [<$id _toggles>],
                 [].to_vec(),
                 DEFAULT_MENU.$id as usize,
                 stringify!($help_text),
@@ -284,15 +284,12 @@ pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModp
 
         let toggle_vals = toggle_value_split[1];
 
-        let mut bits = 0;
-        for toggle_val in toggle_vals.split(',') {
-            if toggle_val.is_empty() {
-                continue;
-            }
-
-            let val = toggle_val.parse::<u32>().unwrap();
-            bits |= val;
-        }
+        let bitwise_or = <u32 as BitOr<u32>>::bitor;
+        let bits = toggle_vals
+            .split(',')
+            .filter(|val| !val.is_empty())
+            .map(|val| val.parse().unwrap())
+            .fold(0, bitwise_or);
 
         menu.set(toggle, bits);
     }
@@ -556,11 +553,16 @@ pub unsafe fn write_menu() {
     fs::write(path, data).unwrap();
 }
 
-pub unsafe fn spawn_menu() {
-    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
+
+pub fn spawn_menu() {
+    unsafe {
+        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    }
+
     let fname = "training_menu.html";
-    let params = MENU.to_url_params();
+    let params = unsafe { MENU.to_url_params() };
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)
         .htdocs_dir("contents")
@@ -572,17 +574,22 @@ pub unsafe fn spawn_menu() {
 
     let orig_last_url = page_response.get_last_url().unwrap();
     let last_url = &orig_last_url.replace("&save_defaults=1", "");
-    MENU = get_menu_from_url(MENU, last_url);
+    unsafe {
+        MENU = get_menu_from_url(MENU, last_url);
+    }
     if last_url.len() != orig_last_url.len() {
         // Save as default
-        DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, last_url);
-        write_menu();
+        unsafe {
+            DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, last_url);
+            write_menu();
+        }
         let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
         std::fs::write(menu_defaults_conf_path, last_url)
             .expect("Failed to write default menu conf file");
     }
 
-    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-    std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
-    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
+    unsafe {
+        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    }
 }

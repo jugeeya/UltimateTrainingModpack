@@ -1,9 +1,11 @@
+use std::ops::Neg;
+
 use smash::app;
 use smash::phx::{Hash40, Vector3f};
 
-pub static RAYGUN_LENGTH: f32 = 8.0;
-pub static RAYGUN_HEIGHT: f32 = 6.0;
-pub static RAYGUN_HORIZ_OFFSET: f32 = 2.0;
+pub const RAYGUN_LENGTH: f32 = 8.0;
+pub const RAYGUN_HEIGHT: f32 = 6.0;
+pub const RAYGUN_HORIZ_OFFSET: f32 = 2.0;
 
 /*
     segment data list : {Z, Y, X, ZRot, Size}
@@ -152,6 +154,9 @@ fn print_char(
     horiz_offset: f32,
     facing_left: i32,
 ) {
+    let is_facing_left = facing_left == -1;
+    let x_direction = facing_left as f32;
+
     let alph_index = alphabet_index(to_print);
     if !(0..40).contains(&alph_index) {
         return;
@@ -164,30 +169,22 @@ fn print_char(
         let mut index = segment_char as i32 - 'a' as i32;
 
         let segment: [f32; 5];
-        if facing_left == -1 {
+        if is_facing_left {
             index = SEGMENT_REV[index as usize] as i32 - 'a' as i32;
         }
         segment = SEGMENT_DICT[index as usize];
 
-        let size_mult: f32 = 0.5;
+        const SIZE_MULT: f32 = 0.5;
 
-        let mut z = segment[0];
-        let mut y = segment[1] + line_offset;
-        let mut x = segment[2] + horiz_offset;
-        let mut zrot = segment[3];
+        let x = ((segment[2] + horiz_offset) * SIZE_MULT) + (x_direction * 5.0);
+        let y = ((segment[1] + line_offset) * SIZE_MULT) + 5.0;
+        let z = segment[0] * SIZE_MULT;
 
-        if facing_left == -1 {
-            zrot *= -1.0;
-        }
+        let zrot = segment[3];
+        let zrot = if is_facing_left { zrot.neg() } else { zrot };
 
-        let mut size = segment[4];
+        let size = segment[4] * SIZE_MULT;
 
-        x *= size_mult;
-        x += facing_left as f32 * 5.0;
-        y *= size_mult;
-        y += 5.0;
-        z *= size_mult;
-        size *= size_mult;
         show_segment(module_accessor, z, y, x, zrot, size);
     }
 }
@@ -207,10 +204,8 @@ pub fn print_string(module_accessor: &mut app::BattleObjectModuleAccessor, to_wr
     let mut horiz_offset = 0.0;
     let mut char_num = 0;
 
-    let facing_left: i32;
-    unsafe {
-        facing_left = app::lua_bind::PostureModule::lr(module_accessor) as i32;
-    }
+    let facing_left = unsafe { app::lua_bind::PostureModule::lr(module_accessor) as i32 };
+    let facing_direction = facing_left as f32;
 
     if to_write.len() <= 8 && !to_write.contains('\n') {
         line_num = 1;
@@ -234,9 +229,9 @@ pub fn print_string(module_accessor: &mut app::BattleObjectModuleAccessor, to_wr
         char_num += 1;
         // short characters
         if curr_char == 'D' || curr_char == '1' {
-            horiz_offset += facing_left as f32 * (RAYGUN_LENGTH / 2.0 + 3.0);
+            horiz_offset += facing_direction * (RAYGUN_LENGTH / 2.0 + 3.0);
         } else {
-            horiz_offset += facing_left as f32 * (RAYGUN_LENGTH + 3.0);
+            horiz_offset += facing_direction * (RAYGUN_LENGTH + 3.0);
         }
 
         if char_num > 8 {
