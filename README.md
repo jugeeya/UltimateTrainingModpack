@@ -85,8 +85,8 @@ The timing of the CPU option can be influenced by the following settings:
 
 ## Menu Settings
 
-When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button.
-When in-game, the current menu selections can be set as the default by pressing the `SPECIAL+JUMP+Down Taunt` combination. This will change the defaults that are used for the in-menu reset.
+When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button. These defaults can be saved upon exiting the menu by pressing `R` when in-menu. Use this to make a preset that fits your personal training style.
+
 
 | Feature              | Description                                                                                 | Options                                                                                                           |
 |----------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
