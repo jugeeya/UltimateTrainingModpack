@@ -58,12 +58,10 @@ fn roll_throw_case() {
         THROW_CASE = MENU.throw_state.get_random();
     }
 }
-
+/*
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_WAIT {
         // No longer holding character, so re-roll the throw case and reset the delay counter for next time
-        reset_throw_case();
-        reset_throw_delay();
         return;
     }
 
@@ -79,32 +77,17 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
-    roll_throw_delay();
-    roll_throw_case();
+    let status = *FIGHTER_STATUS_KIND_CATCH_WAIT;
 
-    if THROW_CASE == ThrowOption::NONE {
-        // Do nothing, but don't reset the throw case.
-        return;
-    }
+    match THROW_CASE { // Perform mash after throwing
+        _ => mash::buffer_menu_mash(),
+    };
 
-    if frame_counter::should_delay(THROW_DELAY, THROW_DELAY_COUNTER) {
-        // Not yet time to perform the throw action
-        return;
-    }
-
-    let status = THROW_CASE.into_status().unwrap_or(0);
-    match THROW_CASE { // NEW! Should I change ThrowOption JUMP to always mash here? Or always use a defensive option?
-						// Because a throw means that grab is a mash or followup. Always do a defensive option?
-                        // I'll test with only mashing after up throw for now.
-        ThrowOption::UP => {
-            mash::buffer_menu_mash();
-        }
-        _ => mash::perform_defensive_option(),
-    }
-
+    //WorkModule::set_flag(module_accessor, true, *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_B);
     StatusModule::change_status_request_from_script(module_accessor, status, true);
-}
 
+}
+*/
 pub unsafe fn is_enable_transition_term(
     _module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
@@ -135,7 +118,7 @@ pub unsafe fn is_enable_transition_term(
     None
 }
 
-pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+/*pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }
@@ -146,6 +129,72 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         }
 
         force_option(module_accessor);
+        //WorkModule::set_flag(module_accessor, true, *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_B);
+        // *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_B // Need to fix!!! Maybe this function needs to return?
     }
-}
+}*/
 
+pub unsafe fn get_command_flag_throw_direction(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    category: i32,
+) -> i32 {
+    // Only do once per frame
+    /*if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
+        return 0;
+    }*/
+
+    if !is_operation_cpu(module_accessor) {
+        return 0;
+    }
+    
+    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_WAIT {
+        // No longer holding character, so re-roll the throw case and reset the delay counter for next time
+        // Does this really need to be checked every frame?
+        reset_throw_case();
+        reset_throw_delay();
+        return 0;
+    }
+    
+    if !WorkModule::is_enable_transition_term( // If you can't throw right now, don't bother
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW_HI,
+    ) {
+        return 0;
+    }
+
+    roll_throw_delay();
+    roll_throw_case();
+
+    if THROW_CASE == ThrowOption::NONE {
+        // Do nothing, but don't reset the throw case.
+        return 0;
+    }
+
+    if frame_counter::should_delay(THROW_DELAY, THROW_DELAY_COUNTER) {
+        // Not yet time to perform the throw action
+
+        /*
+        // Add Pummel Handling here?
+        if StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CATCH_WAIT {
+            
+            //if PUMMEL_CASE == True/PummelOption::PUMMEL { // - Pummel options so you can have cpu mix up between pummeling and not pummeling
+                let pummelCmd = PUMMEL_CASE.into_CMD().unwrap_or(0); //THROW_CASE.into_CMD().unwrap_or(0);
+                return pummelCmd;
+            //}
+
+        }
+        // Need to buffer the throw mash?
+        */
+        return 0;
+    }
+
+
+    // Need to deal with NONE as well?
+    if StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CATCH_WAIT {
+        let cmd = THROW_CASE.into_CMD().unwrap_or(0);
+        mash::buffer_menu_mash();
+        return cmd; // if throwing, with CATCH_WAIT and doesn't catch delay
+    }
+    
+    return 0;
+}
