@@ -24,6 +24,7 @@ struct SavedState {
     lr: f32,
     situation_kind: i32,
     state: SaveState,
+    fighter_kind: i32,
 }
 
 macro_rules! default_save_state {
@@ -35,6 +36,7 @@ macro_rules! default_save_state {
             lr: 1.0,
             situation_kind: 0,
             state: NoAction,
+            fighter_kind: -1,
         }
     };
 }
@@ -140,11 +142,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == KillPlayer {
         // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
         let dead_statuses = if !is_ptrainer {
-            [
-                *FIGHTER_STATUS_KIND_DEAD,
-                *FIGHTER_STATUS_KIND_STANDBY,
-                -1,
-            ]
+            [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY, -1]
         } else {
             [
                 *FIGHTER_STATUS_KIND_DEAD,
@@ -154,7 +152,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         };
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            save_state.state = PosMove;
+            if !(is_ptrainer && fighter_kind != save_state.fighter_kind) {
+                // For ptrainer, don't move on unless we're cycled back to the right pokemon
+                save_state.state = PosMove;
+            }
         } else if !dead_statuses.contains(&status) {
             // Try moving off-screen so we don't see effects.
             let pos = Vector3f {
@@ -253,6 +254,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
         save_state.situation_kind = StatusModule::situation_kind(module_accessor);
+        if is_ptrainer {
+            // Only store the fighter_kind for pokemon trainer
+            save_state.fighter_kind = app::utility::get_kind(module_accessor);
+        } else {
+            save_state.fighter_kind = -1;
+        }
 
         let zeros = Vector3f {
             x: 0.0,
