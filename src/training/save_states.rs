@@ -108,13 +108,20 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     let status = StatusModule::status_kind(module_accessor) as i32;
-    let save_state = if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
-        == FighterId::CPU as i32
-    {
+    let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
+        == FighterId::CPU as i32;
+    let save_state = if is_cpu {
         &mut SAVE_STATE_CPU
     } else {
         &mut SAVE_STATE_PLAYER
     };
+    let fighter_kind = app::utility::get_kind(module_accessor);
+    let is_ptrainer = [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+    ]
+    .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
@@ -131,10 +138,24 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to camera bounds
     if save_state.state == KillPlayer {
+        // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
+        let dead_statuses = if !is_ptrainer {
+            [
+                *FIGHTER_STATUS_KIND_DEAD,
+                *FIGHTER_STATUS_KIND_STANDBY,
+                -1,
+            ]
+        } else {
+            [
+                *FIGHTER_STATUS_KIND_DEAD,
+                *FIGHTER_STATUS_KIND_STANDBY,
+                *FIGHTER_STATUS_KIND_WAIT,
+            ]
+        };
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
             save_state.state = PosMove;
-        } else if status != FIGHTER_STATUS_KIND_DEAD && status != FIGHTER_STATUS_KIND_STANDBY {
+        } else if !dead_statuses.contains(&status) {
             // Try moving off-screen so we don't see effects.
             let pos = Vector3f {
                 x: -300.0,
