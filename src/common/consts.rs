@@ -510,7 +510,7 @@ bitflags! {
 }
 
 impl ThrowOption {
-    pub fn into_CMD(self) -> Option<i32> { // Change into status to into_CMD or something, and deal with NONE somehow.
+    pub fn into_cmd(self) -> Option<i32> {
         Some(match self {
             ThrowOption::NONE => 0,
             ThrowOption::FORWARD => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_F,

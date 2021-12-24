@@ -84,8 +84,8 @@ pub unsafe fn handle_get_command_flag_cat(
     }
 
     flag |= mash::get_command_flag_cat(module_accessor, category);
-    // test adding direction from throw
-    flag |= throw::get_command_flag_throw_direction(module_accessor, category);
+    // Get throw directions
+    flag |= throw::get_command_flag_throw_direction(module_accessor);
     
     once_per_frame_per_fighter(module_accessor, category);
 
@@ -115,7 +115,6 @@ fn once_per_frame_per_fighter(
     fast_fall::get_command_flag_cat(module_accessor);
     frame_counter::get_command_flag_cat(module_accessor);
     ledge::get_command_flag_cat(module_accessor);
-    //throw::get_command_flag_cat(module_accessor);
     shield::get_command_flag_cat(module_accessor);
     directional_influence::get_command_flag_cat(module_accessor);
     reset::check_reset(module_accessor);
@@ -263,11 +262,6 @@ pub unsafe fn handle_is_enable_transition_term(
 
     combo::is_enable_transition_term(module_accessor, transition_term, ori);
     match ledge::is_enable_transition_term(module_accessor, transition_term) {
-        Some(r) => r,
-        None => ori,
-    };
-
-    match throw::is_enable_transition_term(module_accessor, transition_term) {
         Some(r) => r,
         None => ori,
     }

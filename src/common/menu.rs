@@ -501,10 +501,10 @@ pub unsafe fn write_menu() {
     );
     add_bitflag_submenu!(
         overall_menu,
-        "Pummel Delay",
+        "Pummel Timing",
         pummel_delay,
         MedDelay,
-        "Pummel Delay: How many frames to delay pummelling"
+        "Pummel Timing: How many frames after a grab before starting to pummel"
     );
 
     // Slider menus
@@ -597,7 +597,5 @@ pub unsafe fn spawn_menu() {
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
-    unsafe {
-        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-    }
+    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
 }
