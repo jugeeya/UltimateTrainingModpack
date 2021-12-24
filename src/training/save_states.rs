@@ -1,8 +1,8 @@
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
-use crate::common::get_random_int;
 use crate::common::MENU;
+use crate::common::{get_random_int, is_dead};
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -24,6 +24,7 @@ struct SavedState {
     lr: f32,
     situation_kind: i32,
     state: SaveState,
+    fighter_kind: i32,
 }
 
 macro_rules! default_save_state {
@@ -35,6 +36,7 @@ macro_rules! default_save_state {
             lr: 1.0,
             situation_kind: 0,
             state: NoAction,
+            fighter_kind: -1,
         }
     };
 }
@@ -108,13 +110,21 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     let status = StatusModule::status_kind(module_accessor) as i32;
-    let save_state = if WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
-        == FighterId::CPU as i32
-    {
+    let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
+        == FighterId::CPU as i32;
+    let save_state = if is_cpu {
         &mut SAVE_STATE_CPU
     } else {
         &mut SAVE_STATE_PLAYER
     };
+
+    let fighter_kind = app::utility::get_kind(module_accessor);
+    let fighter_is_ptrainer = [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+    ]
+    .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
@@ -133,8 +143,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == KillPlayer {
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            save_state.state = PosMove;
-        } else if status != FIGHTER_STATUS_KIND_DEAD && status != FIGHTER_STATUS_KIND_STANDBY {
+            if !(fighter_is_ptrainer
+                && save_state.fighter_kind > 0
+                && fighter_kind != save_state.fighter_kind)
+            {
+                // For ptrainer, don't move on unless we're cycled back to the right pokemon
+                save_state.state = PosMove;
+            }
+        } else if !is_dead(module_accessor) {
             // Try moving off-screen so we don't see effects.
             let pos = Vector3f {
                 x: -300.0,
@@ -232,6 +248,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
         save_state.situation_kind = StatusModule::situation_kind(module_accessor);
+        if fighter_is_ptrainer {
+            // Only store the fighter_kind for pokemon trainer
+            save_state.fighter_kind = app::utility::get_kind(module_accessor);
+        } else {
+            save_state.fighter_kind = -1;
+        }
 
         let zeros = Vector3f {
             x: 0.0,

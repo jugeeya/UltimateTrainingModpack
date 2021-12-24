@@ -85,7 +85,8 @@ The timing of the CPU option can be influenced by the following settings:
 
 ## Menu Settings
 
-When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button.
+When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button. These defaults can be saved upon exiting the menu by pressing `R` when in-menu. Use this to make a preset that fits your personal training style.
+
 
 | Feature              | Description                                                                                 | Options                                                                                                           |
 |----------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
