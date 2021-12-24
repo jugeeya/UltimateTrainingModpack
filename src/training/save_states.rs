@@ -143,7 +143,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == KillPlayer {
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            if !(fighter_is_ptrainer && fighter_kind != save_state.fighter_kind) {
+            if !(fighter_is_ptrainer && save_state.fighter_kind > 0 && fighter_kind != save_state.fighter_kind) {
                 // For ptrainer, don't move on unless we're cycled back to the right pokemon
                 save_state.state = PosMove;
             }
