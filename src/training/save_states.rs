@@ -117,8 +117,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     } else {
         &mut SAVE_STATE_PLAYER
     };
+
     let fighter_kind = app::utility::get_kind(module_accessor);
-    let is_ptrainer = [
+    let fighter_is_ptrainer = [
         *FIGHTER_KIND_PZENIGAME,
         *FIGHTER_KIND_PFUSHIGISOU,
         *FIGHTER_KIND_PLIZARDON,
@@ -140,23 +141,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to camera bounds
     if save_state.state == KillPlayer {
-        // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
-        let dead_statuses = if !is_ptrainer {
-            [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY, -1]
-        } else {
-            [
-                *FIGHTER_STATUS_KIND_DEAD,
-                *FIGHTER_STATUS_KIND_STANDBY,
-                *FIGHTER_STATUS_KIND_WAIT,
-            ]
-        };
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            if !(is_ptrainer && fighter_kind != save_state.fighter_kind) {
+            if !(fighter_is_ptrainer && fighter_kind != save_state.fighter_kind) {
                 // For ptrainer, don't move on unless we're cycled back to the right pokemon
                 save_state.state = PosMove;
             }
-        } else if !dead_statuses.contains(&status) {
+        } else if !is_dead(module_accessor) {
             // Try moving off-screen so we don't see effects.
             let pos = Vector3f {
                 x: -300.0,
@@ -254,7 +245,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
         save_state.situation_kind = StatusModule::situation_kind(module_accessor);
-        if is_ptrainer {
+        if fighter_is_ptrainer {
             // Only store the fighter_kind for pokemon trainer
             save_state.fighter_kind = app::utility::get_kind(module_accessor);
         } else {
@@ -283,5 +274,26 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             0,
             0,
         );
+    }
+}
+
+unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let fighter_kind = app::utility::get_kind(module_accessor);
+    let fighter_is_ptrainer = [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+    ]
+    .contains(&fighter_kind);
+    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+
+    // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
+    if fighter_is_ptrainer {
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
+            || (status_kind == FIGHTER_STATUS_KIND_WAIT
+                && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
+    } else {
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
     }
 }
