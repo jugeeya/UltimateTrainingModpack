@@ -488,16 +488,15 @@ impl ThrowOption {
         })
     }
 
-    fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             ThrowOption::NONE => "None",
             ThrowOption::FORWARD => "Forward Throw",
             ThrowOption::BACKWARD => "Back Throw",
             ThrowOption::UP => "Up Throw",
             ThrowOption::DOWN => "Down Throw",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -585,8 +584,8 @@ bitflags! {
 }
 
 impl MedDelay {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             MedDelay::D0 => "0",
             MedDelay::D5 => "5",
             MedDelay::D10 => "10",
@@ -618,9 +617,8 @@ impl MedDelay {
             MedDelay::D140 => "140",
             MedDelay::D145 => "145",
             MedDelay::D150 => "150",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 
     pub fn into_meddelay(&self) -> u32 {
