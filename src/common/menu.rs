@@ -501,10 +501,10 @@ pub unsafe fn write_menu() {
     );
     add_bitflag_submenu!(
         overall_menu,
-        "Pummel Timing",
+        "Pummel Delay",
         pummel_delay,
         MedDelay,
-        "Pummel Timing: How many frames after a grab to wait before starting to pummel"
+        "Pummel Delay: How many frames after a grab to wait before starting to pummel"
     );
 
     // Slider menus
