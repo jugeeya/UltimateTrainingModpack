@@ -1,8 +1,8 @@
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
-use crate::common::get_random_int;
 use crate::common::MENU;
+use crate::common::{get_random_int, is_dead};
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -143,7 +143,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == KillPlayer {
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            if !(fighter_is_ptrainer && save_state.fighter_kind > 0 && fighter_kind != save_state.fighter_kind) {
+            if !(fighter_is_ptrainer
+                && save_state.fighter_kind > 0
+                && fighter_kind != save_state.fighter_kind)
+            {
                 // For ptrainer, don't move on unless we're cycled back to the right pokemon
                 save_state.state = PosMove;
             }
@@ -274,26 +277,5 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             0,
             0,
         );
-    }
-}
-
-unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let fighter_kind = app::utility::get_kind(module_accessor);
-    let fighter_is_ptrainer = [
-        *FIGHTER_KIND_PZENIGAME,
-        *FIGHTER_KIND_PFUSHIGISOU,
-        *FIGHTER_KIND_PLIZARDON,
-    ]
-    .contains(&fighter_kind);
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-
-    // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
-    if fighter_is_ptrainer {
-        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
-            || (status_kind == FIGHTER_STATUS_KIND_WAIT
-                && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
-    } else {
-        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
     }
 }

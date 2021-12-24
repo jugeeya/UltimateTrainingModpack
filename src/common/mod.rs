@@ -142,3 +142,24 @@ pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -
 pub fn get_random_int(max: i32) -> i32 {
     unsafe { app::sv_math::rand(hash40("fighter"), max) }
 }
+
+pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let fighter_kind = app::utility::get_kind(module_accessor);
+    let fighter_is_ptrainer = [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+    ]
+    .contains(&fighter_kind);
+    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+    // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
+    // And the previous status is FIGHTER_STATUS_NONE
+    if fighter_is_ptrainer {
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
+            || (status_kind == FIGHTER_STATUS_KIND_WAIT
+                && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
+    } else {
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
+    }
+}
