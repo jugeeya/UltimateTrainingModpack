@@ -504,7 +504,7 @@ pub unsafe fn write_menu() {
         "Pummel Timing",
         pummel_delay,
         MedDelay,
-        "Pummel Timing: How many frames after a grab before starting to pummel"
+        "Pummel Timing: How many frames after a grab to wait before starting to pummel"
     );
 
     // Slider menus
