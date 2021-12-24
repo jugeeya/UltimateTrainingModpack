@@ -583,6 +583,88 @@ impl Delay {
 extra_bitflag_impls! {Delay}
 
 bitflags! {
+    pub struct MedDelay : u32 {
+        const D0 = 0x1;
+        const D5 = 0x2;
+        const D10 = 0x4;
+        const D15 = 0x8;
+        const D20 = 0x10;
+        const D25 = 0x20;
+        const D30 = 0x40;
+        const D35 = 0x80;
+        const D40 = 0x100;
+        const D45 = 0x200;
+        const D50 = 0x400;
+        const D55 = 0x800;
+        const D60 = 0x1000;
+        const D65 = 0x2000;
+        const D70 = 0x4000;
+        const D75 = 0x8000;
+        const D80 = 0x10000;
+        const D85 = 0x20000;
+        const D90 = 0x40000;
+        const D95 = 0x80000;
+        const D100 = 0x0010_0000;
+        const D105 = 0x0020_0000;
+        const D110 = 0x0040_0000;
+        const D115 = 0x0080_0000;
+        const D120 = 0x0100_0000;
+        const D125 = 0x0200_0000;
+        const D130 = 0x0400_0000;
+        const D135 = 0x0800_0000;
+        const D140 = 0x1000_0000;
+        const D145 = 0x2000_0000;
+        const D150 = 0x4000_0000;
+    }
+}
+
+impl MedDelay {
+    pub fn into_string(self) -> String {
+        match self {
+            MedDelay::D0 => "0",
+            MedDelay::D5 => "5",
+            MedDelay::D10 => "10",
+            MedDelay::D15 => "15",
+            MedDelay::D20 => "20",
+            MedDelay::D25 => "25",
+            MedDelay::D30 => "30",
+            MedDelay::D35 => "35",
+            MedDelay::D40 => "40",
+            MedDelay::D45 => "45",
+            MedDelay::D50 => "50",
+            MedDelay::D55 => "55",
+            MedDelay::D60 => "60",
+            MedDelay::D65 => "65",
+            MedDelay::D70 => "70",
+            MedDelay::D75 => "75",
+            MedDelay::D80 => "80",
+            MedDelay::D85 => "85",
+            MedDelay::D90 => "90",
+            MedDelay::D95 => "95",
+            MedDelay::D100 => "100",
+            MedDelay::D105 => "105",
+            MedDelay::D110 => "110",
+            MedDelay::D115 => "115",
+            MedDelay::D120 => "120",
+            MedDelay::D125 => "125",
+            MedDelay::D130 => "130",
+            MedDelay::D135 => "135",
+            MedDelay::D140 => "140",
+            MedDelay::D145 => "145",
+            MedDelay::D150 => "150",
+            _ => "",
+        }
+        .to_string()
+    }
+
+    pub fn into_meddelay(&self) -> u32 {
+        self.to_index() * 5
+    }
+}
+
+extra_bitflag_impls! {MedDelay}
+
+bitflags! {
     pub struct LongDelay : u32 {
         const D0 = 0x1;
         const D10 = 0x2;
@@ -796,7 +878,8 @@ url_params! {
         pub frame_advantage: OnOff,
         pub save_state_enable: OnOff,
         pub throw_state: ThrowOption,
-        pub throw_delay: Delay,
+        pub throw_delay: MedDelay,
+        pub pummel_delay: MedDelay,
     }
 }
 
@@ -845,7 +928,8 @@ impl TrainingModpackMenu {
             save_state_mirroring = num::FromPrimitive::from_u32(val),
             save_state_enable = OnOff::from_val(val),
             throw_state = ThrowOption::from_bits(val),
-            throw_delay = Delay::from_bits(val),
+            throw_delay = MedDelay::from_bits(val),
+            pummel_delay = MedDelay::from_bits(val),
         );
     }
 }

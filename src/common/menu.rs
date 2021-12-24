@@ -496,8 +496,15 @@ pub unsafe fn write_menu() {
         overall_menu,
         "Throw Delay",
         throw_delay,
-        Delay,
+        MedDelay,
         "Throw Delay: How many frames to delay the throw option"
+    );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Pummel Delay",
+        pummel_delay,
+        MedDelay,
+        "Pummel Delay: How many frames to delay pummelling"
     );
 
     // Slider menus
