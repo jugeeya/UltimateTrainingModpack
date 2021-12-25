@@ -126,6 +126,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_PLIZARDON,
     ]
     .contains(&fighter_kind);
+    let fighter_is_popo = fighter_kind == *FIGHTER_KIND_POPO; // For making sure Popo doesn't steal Nana's PosMove
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen savestates etc.
 
     // Grab + Dpad up: reset state
@@ -136,12 +137,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
-            
-            if app::utility::get_kind(module_accessor) != 85 {
-                println!("NoAction");
-                println!("CurrFighter: {}", app::utility::get_kind(module_accessor));
-                println!("Status: {}", StatusModule::status_kind(module_accessor));
-            }
         }
         MIRROR_STATE = should_mirror();
         reset::on_reset();
@@ -150,11 +145,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to camera bounds
     if save_state.state == KillPlayer {
-        if app::utility::get_kind(module_accessor) != 85 {
-            println!("KillPlayer");
-            println!("CurrFighter: {}", app::utility::get_kind(module_accessor));
-            println!("Status: {}", StatusModule::status_kind(module_accessor));
-        }
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
             if !(fighter_is_ptrainer
@@ -164,8 +154,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 // For ptrainer, don't move on unless we're cycled back to the right pokemon
                 save_state.state = PosMove;
             }
-        } else if !is_dead(module_accessor) && !fighter_is_nana { // *FIGHTER_KIND_NANA {
-            // Don't kill Nana again, since she already gets killed by the game
+        } else if !is_dead(module_accessor) && !fighter_is_nana {
+            // Don't kill Nana again, since she already gets killed by the game from Popo's death
             // Try moving off-screen so we don't see effects.
             let pos = Vector3f {
                 x: -300.0,
@@ -187,11 +177,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to correct pos
     if save_state.state == PosMove {
-        if app::utility::get_kind(module_accessor) != 85 {
-            println!("PosMove");
-            println!("CurrFighter: {}", app::utility::get_kind(module_accessor));
-            println!("Status: {}", StatusModule::status_kind(module_accessor));
-        }
         SoundModule::stop_all_sound(module_accessor);
         MotionAnimcmdModule::set_sleep(module_accessor, false);
         SoundModule::pause_se_all(module_accessor, false);
@@ -248,12 +233,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             set_damage(module_accessor, save_state.percent);
         }
 
-        // if the fighter is Popo, go back to PosMove so Nana can be moved to you (behind you?)
-        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        // if the fighter is Popo, change the state to one where only Nana can move
+        // This is needed because for some reason, outside of frame by frame mode,
+        // Popo will keep trying to move instead of letting Nana move if you just
+        // change the state back to PosMove
         let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-
-        if prev_status_kind == FIGHTER_STATUS_KIND_REBIRTH && app::utility::get_kind(module_accessor) == 75 { // status_kind == FIGHTER_STATUS_KIND_WAIT && 
-            println!("Status Condition Matched");
+        if prev_status_kind == FIGHTER_STATUS_KIND_REBIRTH && fighter_is_popo {
             save_state.state = NanaPosMove;
         }
 
@@ -262,12 +247,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // Fix Nana's Position
     if save_state.state == NanaPosMove {
-        if app::utility::get_kind(module_accessor) != 85 {
-            println!("NanaPosMove");
-            println!("CurrFighter: {}", app::utility::get_kind(module_accessor));
-            println!("Status: {}", StatusModule::status_kind(module_accessor));
-        }
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        // We only want Nana using this second move, and we only want her using it once she's done respawning
         if !fighter_is_nana || status_kind == FIGHTER_STATUS_KIND_STANDBY {
             return;
         }
@@ -277,7 +258,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
 
-        let pos = Vector3f {
+        let pos = Vector3f { // Do we want to offset Nana's position from Popo's slightly?
             x: MIRROR_STATE * save_state.x,
             y: save_state.y,
             z: 0.0,
@@ -333,14 +314,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     // Grab + Dpad down: Save state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
         && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
-        && !fighter_is_nana
+        && !fighter_is_nana // Don't begin saving state if Nana's delayed input is captured
     {
         MIRROR_STATE = 1.0;
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;
     }
 
-    if save_state.state == Save && fighter_kind != 76 { // Don't save states with Nana. Should already be fine, just a safety.
+    if save_state.state == Save && !fighter_is_nana { // Don't save states with Nana. Should already be fine, just a safety.
         save_state.state = NoAction;
 
         save_state.x = PostureModule::pos_x(module_accessor);
