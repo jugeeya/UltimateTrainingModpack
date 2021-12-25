@@ -11,7 +11,7 @@ use std::path::Path;
 use strum::IntoEnumIterator;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
-const MENU_LOCKOUT_FRAMES: u32 = 5;
+const MENU_LOCKOUT_FRAMES: u32 = 15;
 
 pub fn init() {
     unsafe {
