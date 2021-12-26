@@ -1,10 +1,10 @@
 use crate::common::*;
 use crate::training::frame_counter;
 use crate::training::ledge;
-use crate::training::throw;
 use crate::training::mash;
 use crate::training::sdi;
 use crate::training::shield_tilt;
+use crate::training::throw;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 

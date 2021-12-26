@@ -56,7 +56,7 @@ fn roll_throw_delay() {
             return;
         }
 
-        THROW_DELAY = MENU.throw_delay.get_random().into_meddelay(); 
+        THROW_DELAY = MENU.throw_delay.get_random().into_meddelay();
     }
 }
 
@@ -67,7 +67,7 @@ fn roll_pummel_delay() {
             return;
         }
 
-        PUMMEL_DELAY = MENU.pummel_delay.get_random().into_meddelay(); 
+        PUMMEL_DELAY = MENU.pummel_delay.get_random().into_meddelay();
     }
 }
 
@@ -83,16 +83,15 @@ fn roll_throw_case() {
 }
 
 pub unsafe fn get_command_flag_throw_direction(
-    module_accessor: &mut app::BattleObjectModuleAccessor
+    module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> i32 {
-
     if !is_operation_cpu(module_accessor) {
         return 0;
     }
 
-    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_WAIT 
-    && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_PULL
-    && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_ATTACK
+    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_WAIT
+        && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_PULL
+        && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_ATTACK
     {
         // No longer holding character, so re-roll the throw case and reset the delay counter for next time
         reset_throw_case();
@@ -101,8 +100,9 @@ pub unsafe fn get_command_flag_throw_direction(
         reset_pummel_delay();
         return 0;
     }
-    
-    if !WorkModule::is_enable_transition_term( // If you can't throw right now, don't bother
+
+    if !WorkModule::is_enable_transition_term(
+        // If you can't throw right now, don't bother
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW_HI,
     ) {
@@ -130,10 +130,10 @@ pub unsafe fn get_command_flag_throw_direction(
         if MENU.pummel_delay == MedDelay::empty() {
             return 0;
         }
-        
+
         // (this conditional would need to be changed to speed up pummelling)
         if StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CATCH_WAIT {
-            let status = *FIGHTER_STATUS_KIND_CATCH_ATTACK;//.unwrap_or(0);
+            let status = *FIGHTER_STATUS_KIND_CATCH_ATTACK; //.unwrap_or(0);
             StatusModule::change_status_request_from_script(module_accessor, status, true);
         }
 
@@ -149,6 +149,6 @@ pub unsafe fn get_command_flag_throw_direction(
         mash::buffer_menu_mash();
         return cmd;
     }
-    
+
     return 0;
 }
