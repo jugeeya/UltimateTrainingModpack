@@ -39,6 +39,9 @@ pub static BASE_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu 
     save_state_mirroring: SaveStateMirroring::None,
     frame_advantage: OnOff::Off,
     save_state_enable: OnOff::On,
+    throw_state: ThrowOption::NONE,
+    throw_delay: MedDelay::empty(),
+    pummel_delay: MedDelay::empty(),
 };
 
 pub static mut DEFAULT_MENU: TrainingModpackMenu = BASE_MENU;

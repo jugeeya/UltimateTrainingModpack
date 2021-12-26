@@ -10,6 +10,7 @@ pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
 pub mod ledge;
+pub mod throw;
 pub mod sdi;
 pub mod shield;
 pub mod tech;
@@ -83,7 +84,9 @@ pub unsafe fn handle_get_command_flag_cat(
     }
 
     flag |= mash::get_command_flag_cat(module_accessor, category);
-
+    // Get throw directions
+    flag |= throw::get_command_flag_throw_direction(module_accessor);
+    
     once_per_frame_per_fighter(module_accessor, category);
 
     flag
@@ -355,5 +358,6 @@ pub fn training_mods() {
     fast_fall::init();
     mash::init();
     ledge::init();
+    throw::init();
     menu::init();
 }

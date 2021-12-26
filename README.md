@@ -112,6 +112,9 @@ When multiple options are selected, one of the selected options will be chosen a
 | SDI Strength         | Relative strength of the smash directional influence inputs                                 | Normal (8 frames between SDI inputs), Medium (6 frames), High (4 frames)                                          |
 | Shield Toggles       | CPU Shield Behavior                                                                         | None, Infinite (no shield damage or decay), Hold (no shield decay until the shield is hit for the first time), Constant (no shield decay)                                      |
 | Mirroring            | Flips save states in the left-right direction across the stage center                       | None, Alternate, Random                                                                                           |
+| Throw Options        | Throw to be performed when a grab is landed                                                 | None, Forward Throw, Back Throw, Up Throw, Down Throw                                                             |
+| Throw Delay          | How many frames to delay the throw option                                                   | 0 to 150 frames (2.5 seconds) in increments of 5 frames                                                           |
+| Pummel Delay         | How many frames after a grab to wait before starting to pummel                              | 0 to 150 frames (2.5 seconds) in increments of 5 frames                                                           |
 | Input Delay          | Frames to delay player inputs by                                                            | 0 to 10 frames (0.167 seconds)                                                                                    |
 | Save Damage          | Should save states retain player/CPU damage                                                 | Yes, No                                                                                                           |
 | Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects                                   | Yes, No                                                                                                           |
@@ -157,6 +160,7 @@ SD Card Root
             │           ├── mash_state.svg
             │           ├── miss_tech_state.svg
             │           ├── oos_offset.svg
+            │           ├── pummel_delay.svg
             │           ├── reaction_time.svg
             │           ├── save_damage.svg
             │           ├── save_state_mirroring.svg
@@ -165,7 +169,9 @@ SD Card Root
             │           ├── shield_state.svg
             │           ├── shield_tilt.svg
             │           ├── stage_hazards.svg
-            │           └── tech_state.svg
+            │           ├── tech_state.svg
+            │           ├── throw_delay.svg
+            │           └── throw_state.svg
             └── romfs
                 └── skyline
                     └── plugins

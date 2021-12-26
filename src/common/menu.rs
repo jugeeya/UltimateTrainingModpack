@@ -482,6 +482,27 @@ pub unsafe fn write_menu() {
         SaveStateMirroring,
         "Mirroring: Flips save states in the left-right direction across the stage center"
     );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Throw Options",
+        throw_state,
+        ThrowOption,
+        "Throw Options: Throw to be performed when a grab is landed"
+    );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Throw Delay",
+        throw_delay,
+        MedDelay,
+        "Throw Delay: How many frames to delay the throw option"
+    );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Pummel Delay",
+        pummel_delay,
+        MedDelay,
+        "Pummel Delay: How many frames after a grab to wait before starting to pummel"
+    );
 
     // Slider menus
     overall_menu.add_sub_menu(
