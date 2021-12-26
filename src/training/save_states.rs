@@ -176,7 +176,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // move to correct pos
-    if save_state.state == PosMove {
+    if save_state.state == PosMove || save_state.state == NanaPosMove {
+        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        if save_state.state == NanaPosMove && (!fighter_is_nana || (status_kind == FIGHTER_STATUS_KIND_STANDBY)) {
+            return;
+        }
         SoundModule::stop_all_sound(module_accessor);
         MotionAnimcmdModule::set_sleep(module_accessor, false);
         SoundModule::pause_se_all(module_accessor, false);
@@ -240,72 +244,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
         if prev_status_kind == FIGHTER_STATUS_KIND_REBIRTH && fighter_is_popo {
             save_state.state = NanaPosMove;
-        }
-
-        return;
-    }
-
-    // Fix Nana's Position
-    if save_state.state == NanaPosMove {
-        let status_kind = StatusModule::status_kind(module_accessor) as i32;
-        // We only want Nana using this second move, and we only want her using it once she's done respawning
-        if !fighter_is_nana || status_kind == FIGHTER_STATUS_KIND_STANDBY {
-            return;
-        }
-        SoundModule::stop_all_sound(module_accessor);
-        MotionAnimcmdModule::set_sleep(module_accessor, false);
-        SoundModule::pause_se_all(module_accessor, false);
-        ControlModule::stop_rumble(module_accessor, false);
-        KineticModule::clear_speed_all(module_accessor);
-
-        let pos = Vector3f { // Do we want to offset Nana's position from Popo's slightly?
-            x: MIRROR_STATE * save_state.x,
-            y: save_state.y,
-            z: 0.0,
-        };
-        let lr = MIRROR_STATE * save_state.lr;
-        PostureModule::set_pos(module_accessor, &pos);
-        PostureModule::set_lr(module_accessor, lr);
-
-        if save_state.situation_kind == SITUATION_KIND_GROUND {
-            if status != FIGHTER_STATUS_KIND_WAIT {
-                StatusModule::change_status_request(
-                    module_accessor,
-                    *FIGHTER_STATUS_KIND_WAIT,
-                    false,
-                );
-            } else {
-                save_state.state = NoAction;
-            }
-        } else if save_state.situation_kind == SITUATION_KIND_AIR {
-            if status != FIGHTER_STATUS_KIND_FALL {
-                StatusModule::change_status_request(
-                    module_accessor,
-                    *FIGHTER_STATUS_KIND_FALL,
-                    false,
-                );
-            } else {
-                save_state.state = NoAction;
-            }
-        } else if save_state.situation_kind == SITUATION_KIND_CLIFF {
-            if status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
-                && status != FIGHTER_STATUS_KIND_CLIFF_CATCH
-            {
-                StatusModule::change_status_request(
-                    module_accessor,
-                    *FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE,
-                    false,
-                );
-            } else {
-                save_state.state = NoAction;
-            }
-        } else {
-            save_state.state = NoAction;
-        }
-
-        // if we're done moving, reset percent
-        if save_state.state == NoAction {
-            set_damage(module_accessor, save_state.percent);
         }
 
         return;
