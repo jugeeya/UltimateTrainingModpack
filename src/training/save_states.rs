@@ -178,7 +178,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     // move to correct pos
     if save_state.state == PosMove || save_state.state == NanaPosMove {
         let status_kind = StatusModule::status_kind(module_accessor) as i32;
-        if save_state.state == NanaPosMove && (!fighter_is_nana || (status_kind == FIGHTER_STATUS_KIND_STANDBY)) {
+        if save_state.state == NanaPosMove
+            && (!fighter_is_nana || (status_kind == FIGHTER_STATUS_KIND_STANDBY))
+        {
             return;
         }
         SoundModule::stop_all_sound(module_accessor);
@@ -252,14 +254,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     // Grab + Dpad down: Save state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
         && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
-        && !fighter_is_nana // Don't begin saving state if Nana's delayed input is captured
+        && !fighter_is_nana
+    // Don't begin saving state if Nana's delayed input is captured
     {
         MIRROR_STATE = 1.0;
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;
     }
 
-    if save_state.state == Save && !fighter_is_nana { // Don't save states with Nana. Should already be fine, just a safety.
+    if save_state.state == Save && !fighter_is_nana {
+        // Don't save states with Nana. Should already be fine, just a safety.
         save_state.state = NoAction;
 
         save_state.x = PostureModule::pos_x(module_accessor);
