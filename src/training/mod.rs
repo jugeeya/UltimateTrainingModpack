@@ -105,6 +105,30 @@ fn once_per_frame_per_fighter(
             crate::common::menu::spawn_menu();
         }
 
+        let fighter_kind = app::utility::get_kind(module_accessor);
+        let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
+        if fighter_is_brave {
+            let status_kind = StatusModule::status_kind(module_accessor) as i32;
+            let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+            //println!("Brave Status: {}, SPD-UP = {}, START = {}", status_kind, *FIGHTER_BRAVE_SPECIAL_LW_COMMAND11_SPEED_UP, *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START);
+            
+            //println!("Select = ");
+
+            println!("Brave Status: {}, Work_Int_Decide = {}, Fighter Log Attack Kind (How many frames have fallen at max fall speed?) = {}", status_kind, WorkModule::get_int(module_accessor,*FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND), WorkModule::get_int(module_accessor,*FIGHTER_LOG_DATA_INT_ATTACK_NUM_KIND));
+            
+            /*
+            if status_kind == 493 { // menu
+                StatusModule::change_status_request_from_script(module_accessor, 497, true);
+                WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // probably should have this after status? unsure
+            }
+            if status_kind == 497 { // instant spell, makes nothing happen aside from mp loss
+                StatusModule::change_status_request_from_script(module_accessor, 0, true);
+                WorkModule::unable_transition_term(module_accessor, 44);
+            }
+            */
+        }
+        
+
         input_record::get_command_flag_cat(module_accessor);
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);

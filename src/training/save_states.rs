@@ -235,6 +235,24 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // if we're done moving, reset percent
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
+            /*
+            let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
+            if fighter_is_brave {
+                let status_kind = StatusModule::status_kind(module_accessor) as i32;
+                let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+                if status_kind == 44 { // dtilt
+                    StatusModule::change_status_request_from_script(module_accessor, 497, true);
+                    WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // probably should have this after status? unsure
+                }
+                if status_kind == 497 { // instant spell
+                    StatusModule::change_status_request_from_script(module_accessor, 0, true);
+                }
+            }
+            */
+
+
+
+
         }
 
         // if the fighter is Popo, change the state to one where only Nana can move
