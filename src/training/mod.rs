@@ -104,7 +104,20 @@ fn once_per_frame_per_fighter(
         if crate::common::menu::menu_condition(module_accessor) {
             crate::common::menu::spawn_menu();
         }
-
+        /*
+        let fighter_kind = app::utility::get_kind(module_accessor);
+        let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
+        if fighter_is_brave {
+            if status_kind == 497 { // instant spell, makes nothing happen aside from mp loss
+                //StatusModule::change_status_request_from_script(module_accessor, 0, true);
+                //WorkModule::unable_transition_term(module_accessor, 44);
+                //let current_frame = MotionModule::frame(module_accessor);
+                //println!("Current Spell Frame: {}",current_frame);
+                MotionModule::set_rate(module_accessor, 40.0);
+            }
+        }
+        */
+        /*
         let fighter_kind = app::utility::get_kind(module_accessor);
         let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
         if fighter_is_brave {
@@ -114,19 +127,22 @@ fn once_per_frame_per_fighter(
             
             //println!("Select = ");
 
-            println!("Brave Status: {}, Work_Int_Decide = {}, Fighter Log Attack Kind (How many frames have fallen at max fall speed?) = {}", status_kind, WorkModule::get_int(module_accessor,*FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND), WorkModule::get_int(module_accessor,*FIGHTER_LOG_DATA_INT_ATTACK_NUM_KIND));
+            //println!("Brave Status: {}, Work_Int_Decide = {}, Fighter Log Attack Kind (How many frames have fallen at max fall speed?) = {}", status_kind, WorkModule::get_int(module_accessor,*FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND), WorkModule::get_int(module_accessor,*FIGHTER_LOG_DATA_INT_ATTACK_NUM_KIND));
             
-            /*
-            if status_kind == 493 { // menu
+            
+            if status_kind == 493 { // menu = 493, dtilt = 44
                 StatusModule::change_status_request_from_script(module_accessor, 497, true);
                 WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // probably should have this after status? unsure
             }
             if status_kind == 497 { // instant spell, makes nothing happen aside from mp loss
-                StatusModule::change_status_request_from_script(module_accessor, 0, true);
-                WorkModule::unable_transition_term(module_accessor, 44);
+                //StatusModule::change_status_request_from_script(module_accessor, 0, true);
+                //WorkModule::unable_transition_term(module_accessor, 44);
+                //let current_frame = MotionModule::frame(module_accessor);
+                //println!("Current Spell Frame: {}",current_frame);
+                MotionModule::set_rate(module_accessor, 40.0);
             }
-            */
-        }
+            
+        } */
         
 
         input_record::get_command_flag_cat(module_accessor);

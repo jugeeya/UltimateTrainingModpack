@@ -16,6 +16,8 @@ enum SaveState {
     KillPlayer,
     PosMove,
     NanaPosMove,
+    ApplyBuff,
+    CompleteBuff,
 }
 
 struct SavedState {
@@ -105,6 +107,27 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
     }
 }
 
+/*
+unsafe fn set_buff(module_accessor: &mut app::BattleObjectModuleAccessor, buff: i32) {
+    let fighter_kind = app::utility::get_kind(module_accessor);
+    let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
+    if fighter_is_brave {
+        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        //let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+        //if status_kind == 44 { // dtilt
+        println!("Fighter is Brave!");
+        println!("Status: {}",status_kind);
+        StatusModule::change_status_request_from_script(module_accessor, 497, false); // _from_script?
+        WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // probably should have this after status? unsure
+        //}
+        println!("New Status: {}",status_kind);
+        if status_kind == 497 { // instant spell, maybe need to make this happen a frame later? unsure
+            MotionModule::set_rate(module_accessor, 40.0);
+        }
+    }
+}
+*/
+
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if MENU.save_state_enable == OnOff::Off {
         return;
@@ -177,7 +200,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to correct pos
     if save_state.state == PosMove || save_state.state == NanaPosMove {
-        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        let status_kind = StatusModule::status_kind(module_accessor) as i32; // delete?
         if save_state.state == NanaPosMove && (!fighter_is_nana || (status_kind == FIGHTER_STATUS_KIND_STANDBY)) {
             return;
         }
@@ -206,7 +229,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             } else {
                 save_state.state = NoAction;
             }
-        } else if save_state.situation_kind == SITUATION_KIND_AIR {
+        } else if save_state.situation_kind == SITUATION_KIND_AIR { // FIGHTER_STATUS_KIND_FALL
             if status != FIGHTER_STATUS_KIND_FALL {
                 StatusModule::change_status_request(
                     module_accessor,
@@ -235,25 +258,29 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // if we're done moving, reset percent
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
-            /*
+            
             let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
+            
             if fighter_is_brave {
-                let status_kind = StatusModule::status_kind(module_accessor) as i32;
-                let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-                if status_kind == 44 { // dtilt
-                    StatusModule::change_status_request_from_script(module_accessor, 497, true);
-                    WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // probably should have this after status? unsure
-                }
-                if status_kind == 497 { // instant spell
-                    StatusModule::change_status_request_from_script(module_accessor, 0, true);
-                }
+                save_state.state = ApplyBuff;
             }
-            */
-
-
-
-
+            
         }
+        /*
+        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        //let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+        //if status_kind == 44 { // dtilt
+        println!("Fighter is Brave!");
+        println!("Status: {}",status_kind);
+        StatusModule::change_status_request_from_script(module_accessor, 497, false); // _from_script?
+        WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // probably should have this after status? unsure
+        //}
+        println!("New Status: {}",status_kind);
+        if status_kind == 497 { // instant spell, maybe need to make this happen a frame later? unsure
+            MotionModule::set_rate(module_accessor, 40.0);
+            save_state.state = NoAction;
+        }
+        */
 
         // if the fighter is Popo, change the state to one where only Nana can move
         // This is needed because for some reason, outside of frame by frame mode,
@@ -265,6 +292,33 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         return;
+    }
+
+    if save_state.state == ApplyBuff {
+        //ControlModule::clear_command(module_accessor,true); // fix guard loop?
+        println!("Status: {}", status);
+        if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
+            WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND);
+            StatusModule::change_status_force( // _request_from_script?
+                module_accessor,
+                *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START,
+                false,
+            );
+        } else {
+            MotionModule::set_rate(module_accessor, 40.0);
+            save_state.state = NoAction;
+        }
+        save_state.state = CompleteBuff;
+    }
+
+    if save_state.state == CompleteBuff {
+        let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0); //prob shouldn't be kind?
+        println!("Completing Buff: {}", status);
+        if status == 497 {
+            MotionModule::set_rate(module_accessor, 40.0);
+        } else if prev_status_kind == 497 { // status!= 497, and prev status is
+            save_state.state = NoAction;
+        }
     }
 
     // Grab + Dpad down: Save state
