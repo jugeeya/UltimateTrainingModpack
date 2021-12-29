@@ -14,6 +14,7 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod throw;
+pub mod buff;
 
 mod air_dodge_direction;
 mod attack_angle;

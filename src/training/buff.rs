@@ -67,5 +67,48 @@ pub unsafe fn get_command_flag_throw_direction(module_accessor: &mut app::Battle
 }
 */
 
+pub unsafe fn handle_buffs(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32, status: i32) -> bool {
+    if fighter_kind == *FIGHTER_KIND_BRAVE {
+        return buff_hero(module_accessor,status);
+    }
+    return true;
+}
 
+unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+    println!("Status: {}, Prev: {}", status, prev_status_kind);
+    if prev_status_kind == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START { //&& buffs_remaining = 0 // If finished applying buffs, need to have some kind of struct responsible
+        return true;
+    }
+    if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
+        WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND);
+        StatusModule::change_status_force( // _request_from_script?
+            module_accessor,
+            *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START,
+            false,
+        );
+    } else {
+        MotionModule::set_rate(module_accessor, 40.0);
+    }
+    return false;
+}
 
+unsafe fn _buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor) {
+
+}
+
+unsafe fn _buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) {
+
+}
+
+unsafe fn _buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) {
+
+}
+
+unsafe fn _buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) {
+
+}
+
+unsafe fn _buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor) {
+
+}
