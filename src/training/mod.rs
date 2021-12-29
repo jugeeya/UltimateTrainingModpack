@@ -1,3 +1,6 @@
+use crate::is_operation_cpu; // used for debug
+use smash::hash40; // won't be needed if param is handled in buffs
+use smash::phx::Hash40; // same...? maybe not
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::hid::*;
@@ -27,6 +30,19 @@ mod mash;
 mod reset;
 mod save_states;
 mod shield_tilt;
+
+static FLOAT_OFFSET: usize = 0x4e53C0; // needs updating every patch
+#[skyline::hook(offset = FLOAT_OFFSET)]
+pub unsafe fn get_param_float_hook(work_module: *mut u64, param_object: smash::phx::Hash40, param_name: smash::phx::Hash40) -> f32 {
+    let mut boma = *work_module.add(1) as *mut app::BattleObjectModuleAccessor;
+    // do your checks
+    if param_name == Hash40::new("limit_gauge_add") { //|| param_type == hash40("limit_gauge_add") { // something about param_type being hash for vl.prc? idr
+        println!("Limit Gauge Add! Name");
+        return 500.0;
+    }
+    // This function can/will be used for custom Hero menus in the future
+    original!()(work_module, param_object, param_name)
+}
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -105,46 +121,6 @@ fn once_per_frame_per_fighter(
         if crate::common::menu::menu_condition(module_accessor) {
             crate::common::menu::spawn_menu();
         }
-        /*
-        let fighter_kind = app::utility::get_kind(module_accessor);
-        let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
-        if fighter_is_brave {
-            if status_kind == 497 { // instant spell, makes nothing happen aside from mp loss
-                //StatusModule::change_status_request_from_script(module_accessor, 0, true);
-                //WorkModule::unable_transition_term(module_accessor, 44);
-                //let current_frame = MotionModule::frame(module_accessor);
-                //println!("Current Spell Frame: {}",current_frame);
-                MotionModule::set_rate(module_accessor, 40.0);
-            }
-        }
-        */
-        /*
-        let fighter_kind = app::utility::get_kind(module_accessor);
-        let fighter_is_brave = fighter_kind == *FIGHTER_KIND_BRAVE;
-        if fighter_is_brave {
-            let status_kind = StatusModule::status_kind(module_accessor) as i32;
-            let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-            //println!("Brave Status: {}, SPD-UP = {}, START = {}", status_kind, *FIGHTER_BRAVE_SPECIAL_LW_COMMAND11_SPEED_UP, *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START);
-            
-            //println!("Select = ");
-
-            //println!("Brave Status: {}, Work_Int_Decide = {}, Fighter Log Attack Kind (How many frames have fallen at max fall speed?) = {}", status_kind, WorkModule::get_int(module_accessor,*FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND), WorkModule::get_int(module_accessor,*FIGHTER_LOG_DATA_INT_ATTACK_NUM_KIND));
-            
-            
-            if status_kind == 493 { // menu = 493, dtilt = 44
-                StatusModule::change_status_request_from_script(module_accessor, 497, true);
-                WorkModule::set_int(module_accessor, 10, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // probably should have this after status? unsure
-            }
-            if status_kind == 497 { // instant spell, makes nothing happen aside from mp loss
-                //StatusModule::change_status_request_from_script(module_accessor, 0, true);
-                //WorkModule::unable_transition_term(module_accessor, 44);
-                //let current_frame = MotionModule::frame(module_accessor);
-                //println!("Current Spell Frame: {}",current_frame);
-                MotionModule::set_rate(module_accessor, 40.0);
-            }
-            
-        } */
-        
 
         input_record::get_command_flag_cat(module_accessor);
         combo::get_command_flag_cat(module_accessor);
@@ -392,6 +368,8 @@ pub fn training_mods() {
         handle_is_enable_transition_term,
         // SDI
         crate::training::sdi::check_hit_stop_delay_command,
+        // Buffs
+        get_param_float_hook,
     );
 
     combo::init();

@@ -18,7 +18,6 @@ enum SaveState {
     PosMove,
     NanaPosMove,
     ApplyBuff,
-    CompleteBuff,
 }
 
 struct SavedState {
