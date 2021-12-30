@@ -31,19 +31,6 @@ mod reset;
 mod save_states;
 mod shield_tilt;
 
-static FLOAT_OFFSET: usize = 0x4e53C0; // needs updating every patch
-#[skyline::hook(offset = FLOAT_OFFSET)]
-pub unsafe fn get_param_float_hook(work_module: *mut u64, param_object: smash::phx::Hash40, param_name: smash::phx::Hash40) -> f32 {
-    let mut boma = *work_module.add(1) as *mut app::BattleObjectModuleAccessor;
-    // do your checks
-    if param_name == Hash40::new("limit_gauge_add") { //|| param_type == hash40("limit_gauge_add") { // something about param_type being hash for vl.prc? idr
-        println!("Limit Gauge Add! Name");
-        return 500.0;
-    }
-    // This function can/will be used for custom Hero menus in the future
-    original!()(work_module, param_object, param_name)
-}
-
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -127,6 +114,21 @@ fn once_per_frame_per_fighter(
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
         tech::get_command_flag_cat(module_accessor);
+
+        if !is_operation_cpu(module_accessor) {
+            //println!("Cloud Limit Gauge: {}", WorkModule::get_float(module_accessor, *FIGHTER_CLOUD_INSTANCE_WORK_ID_FLOAT_LIMIT_GAUGE));
+            println!("Edge Thresh: {}, Activate: {}, Damage Diff Min: {}, FlagAct'd: {}, FlagEnd: {}, State: {}, Process: {}", 
+                WorkModule::get_float(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLOAT_ONE_WINGED_THRESHOLD_ACTIVATE_POINT),
+                WorkModule::get_float(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLOAT_ONE_WINGED_ACTIVATE_POINT),
+                WorkModule::get_float(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLOAT_ONE_WINGED_DAMAGE_DIFF_MIN),
+                WorkModule::is_flag(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_ONE_WINGED_ACTIVATED),
+                WorkModule::is_flag(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_ONE_WINGED_END_ACTIVATE),
+                WorkModule::get_int(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_WING_STATE),
+                WorkModule::get_int(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_PROCESS),
+            );
+
+        }
+
     }
 
     fast_fall::get_command_flag_cat(module_accessor);
@@ -369,7 +371,7 @@ pub fn training_mods() {
         // SDI
         crate::training::sdi::check_hit_stop_delay_command,
         // Buffs
-        get_param_float_hook,
+        //get_param_float_hook,
     );
 
     combo::init();

@@ -264,7 +264,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
     
     if save_state.state == ApplyBuff { // needs its own save_state.state since this may take multiple frames, want it to loop
-        if buff::handle_buffs(module_accessor, fighter_kind, status) { // returns true when done, will run every frame until then
+        if buff::handle_buffs(module_accessor, fighter_kind, status, save_state.percent) { // returns true when done, will run every frame until then
             save_state.state = NoAction; 
         }
     }
