@@ -247,6 +247,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
             if fighter_is_buffable {
+                //buff::count_buff_delay();
                 save_state.state = ApplyBuff;
             }
         }
@@ -265,6 +266,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     
     if save_state.state == ApplyBuff { // needs its own save_state.state since this may take multiple frames, want it to loop
         if buff::handle_buffs(module_accessor, fighter_kind, status, save_state.percent) { // returns true when done, will run every frame until then
+            buff::reset_buff_delay(); // set back to 0 whenever we treutrn true above
             save_state.state = NoAction; 
         }
     }

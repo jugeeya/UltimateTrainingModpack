@@ -114,7 +114,7 @@ fn once_per_frame_per_fighter(
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
         tech::get_command_flag_cat(module_accessor);
-
+        /*
         if !is_operation_cpu(module_accessor) {
             //println!("Cloud Limit Gauge: {}", WorkModule::get_float(module_accessor, *FIGHTER_CLOUD_INSTANCE_WORK_ID_FLOAT_LIMIT_GAUGE));
             println!("Edge Thresh: {}, Activate: {}, Damage Diff Min: {}, FlagAct'd: {}, FlagEnd: {}, State: {}, Process: {}", 
@@ -128,6 +128,7 @@ fn once_per_frame_per_fighter(
             );
 
         }
+        */
 
     }
 
@@ -381,4 +382,5 @@ pub fn training_mods() {
     ledge::init();
     throw::init();
     menu::init();
+    buff::init();
 }

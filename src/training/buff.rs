@@ -7,70 +7,48 @@ use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-/*const NOT_SET: u32 = 9001;
-static mut THROW_DELAY: u32 = NOT_SET;
-static mut THROW_DELAY_COUNTER: usize = 0;
-static mut THROW_CASE: ThrowOption = ThrowOption::empty();
+const NOT_SET: u32 = 9001;
+static mut BUFF_DELAY: u32 = NOT_SET;
+static mut BUFF_DELAY_COUNTER: usize = 0;
+static mut BUFF_CASE: BuffOption = BuffOption::empty();
+static mut BUFF_REMAINING: i32 = 0;
+static mut NUM_OPERATIONS: i32 = 0;
 
-pub fn init() {
+pub fn init() { // need to init!!!!
     unsafe {
-        THROW_DELAY_COUNTER = frame_counter::register_counter();
-    }
-}*/
-
-/*
-// Rolling Throw Delays and Pummel Delays separately
-
-pub fn reset_throw_delay() {
-    unsafe {
-        if THROW_DELAY != NOT_SET {
-            THROW_DELAY = NOT_SET;
-            frame_counter::full_reset(THROW_DELAY_COUNTER);
-        }
+        BUFF_DELAY_COUNTER = frame_counter::register_counter();
     }
 }
 
-pub fn reset_throw_case() {
+pub fn reset_buff_delay() {
     unsafe {
-        if THROW_CASE != ThrowOption::empty() {
-            // Don't roll another throw option if one is already selected
-            THROW_CASE = ThrowOption::empty();
-        }
+        frame_counter::full_reset(BUFF_DELAY_COUNTER);
     }
 }
 
-fn roll_throw_delay() {
+pub fn count_buff_delay() {
     unsafe {
-        if THROW_DELAY != NOT_SET {
-            // Don't roll another throw delay if one is already selected
-            return;
-        }
-
-        THROW_DELAY = MENU.throw_delay.get_random().into_meddelay();
+        frame_counter::start_counting(BUFF_DELAY_COUNTER);
     }
 }
 
-
-fn roll_throw_case() {
+fn _get_buff_vec() { // prob unneeded
     unsafe {
-        // Don't re-roll if there is already a throw option selected
-        if THROW_CASE != ThrowOption::empty() {
-            return;
-        }
-
-        THROW_CASE = MENU.throw_state.get_random();
+        BUFF_CASE = MENU.buff_state.get_random();
     }
 }
-*/
-
-/*
-pub unsafe fn get_command_flag_throw_direction(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
-
-}
-*/
 
 pub unsafe fn handle_buffs(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32, status: i32, percent: f32) -> bool {
     SoundModule::stop_all_sound(module_accessor); // should silence voice lines etc. need to test on every buff
+    //MotionAnimcmdModule::set_sleep(module_accessor, false); // does this prevent all the anims?
+    SoundModule::pause_se_all(module_accessor, false);
+    ControlModule::stop_rumble(module_accessor, false);
+    //KineticModule::clear_speed_all(module_accessor);
+    //ShakeModule::stop(module_accessor); // doesn't work?
+    //CameraModule::stop_quake(module_accessor, 60); // doesn't work
+    //app::sv_animcmd::QUAKE_STOP(60); crashes game very cool
+
+    //fix psyche up camera shake?
     // This cannot be a match statement, though you may be able to write something smarter than this like iter over a tuple of your pointer values and use find() or position()
     // unsure if the above idea has any merit though
     if fighter_kind == *FIGHTER_KIND_BRAVE {
@@ -91,28 +69,81 @@ pub unsafe fn handle_buffs(module_accessor: &mut app::BattleObjectModuleAccessor
 }
 
 // Probably should have some vector of the statuses selected on the Menu, and for each status you
-// have the framecounter delay be its index (0 for first, 1 frame/index for second, etc.)
+// have the framecounter delay be its index (0 for first, 1 frame/index for second, etc.), this probably goes backwards? Unsure
+// probably better to just always call the first if its not empty, but won't cause idk how
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    return buff_hero_single(module_accessor, status, 10);
-}
-
-unsafe fn buff_hero_single(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32, spell_index: i32) -> bool {
-    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-    if prev_status_kind == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START { //&& buffs_remaining = 0 // If finished applying buffs, need to have some kind of struct responsible
+    // does frame_counter actually prevent crashes at all? Or does it never tick because of the infinite loop?
+    // probably should implement another static var as a failsafe
+    if NUM_OPERATIONS > 30 {
+        println!("31 Ops reached");
         return true;
     }
-    if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
-        WorkModule::set_int(module_accessor, spell_index, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND);
-        StatusModule::change_status_force( // _request_from_script? - no, because you need to override shield buffer
+    
+    let buff_vec = vec![BuffOption::OOMPH,BuffOption::PSYCHE,BuffOption::BOUNCE,BuffOption::ACCELERATLE];
+    //let buff_vec = vec![BuffOption::OOMPH,BuffOption::ACCELERATLE];
+
+    //let mut buff_vec = MENU.buff_state.to_vec().intersect(spell_vec); // vector of currently selected hero buffs
+    
+    let current_frame = frame_counter::get_frame_count(BUFF_DELAY_COUNTER) as i32; // do I want to be grabbing this like that?
+    
+    println!("Frame: {}, Operations: {}",current_frame,NUM_OPERATIONS);
+    
+    if current_frame == 0 { // should I do 0 or 1? Initial set up for spells
+        count_buff_delay(); // This should be fine, as starting it multiple times per frame shouldn't be an issue. Start counting
+        NUM_OPERATIONS = 0;
+        BUFF_REMAINING = buff_vec.len() as i32; // since its the first frame, we need to set up how many buffs there are
+    } // else { // commands to use if we're buffing, does this else need to be here?
+    if BUFF_REMAINING <= 0 { // If there are no buffs selected/left, get out of here
+        return true; // this may be needed since we're casting a potential -1 to usize?
+    }
+    let spell_index = BUFF_REMAINING - 1; // as usize here? var used to get spell from our vector
+    let spell_option = buff_vec.get(spell_index as usize);
+    if spell_option.is_none() { // there are no spells selected, or something went wrong with making the vector
+        return true;
+    }
+    let spell_value = spell_option.unwrap().into_int().unwrap(); // this just seems extremely wrong
+    buff_hero_single(module_accessor, status, buff_vec);
+    println!("Buff Hero Frame: {}, PostStatus: {}, Spell: {}",current_frame,status,spell_value);
+    //}
+    return false;
+}
+
+unsafe fn buff_hero_single(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32, buff_vec: Vec<BuffOption>) {
+    NUM_OPERATIONS += 1;
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+    if prev_status_kind == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START { //&& buffs_remaining = 0 // If finished applying buffs, need to have some kind of struct responsible
+        BUFF_REMAINING -= 1;
+    }
+    
+    // need to handle finding the buff in here due to the above if statement
+    let spell_index = BUFF_REMAINING - 1; // as usize here? var used to get spell from our vector
+    let spell_option = buff_vec.get(spell_index as usize);
+    if spell_option.is_none() { // there are no spells selected, or something went wrong with making the vector
+        return;
+    }
+    let real_spell_value = spell_option.unwrap().into_int().unwrap();
+
+
+
+    if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START && BUFF_REMAINING != 0 { // probably needed
+        WorkModule::set_int(module_accessor, real_spell_value, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // not being set at right time
+        StatusModule::change_status_force( // does this crash if forcing while already in the status?
             module_accessor,
             *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START,
-            true, // originally false, probably should be true though so inputs aren't interfered with as we go through multiple buffs
+            true, // true to prevent shielding over
         );
-    } else {
-        MotionModule::set_rate(module_accessor, 40.0);
+    } 
+    if status == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
+        if (BUFF_REMAINING > 1) { // not last buff
+            MotionModule::set_rate(module_accessor, 50.0); //only needs to be 40 I think ??? 46 for psyche up?
+        } else {
+            MotionModule::set_rate(module_accessor, 50.0);
+        } // works decently for 2 spells, but should honestly just forget frame counters and move on I think
+        
+        // try delaying for 2 frames before next spell here?
+        // RESET, but don't start counting
     }
-    return false;
 }
 
 unsafe fn buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
