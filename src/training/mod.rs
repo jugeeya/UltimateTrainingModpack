@@ -31,6 +31,12 @@ mod reset;
 mod save_states;
 mod shield_tilt;
 
+static CLOUD_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
+#[skyline::hook(offset = CLOUD_OFFSET)]
+pub unsafe fn cloud_func_hook(add_limit: f32, module_accessor: &mut app::BattleObjectModuleAccessor, is_specialLw: u64) {
+    original!()(add_limit,module_accessor,is_specialLw)
+}
+
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -373,6 +379,7 @@ pub fn training_mods() {
         crate::training::sdi::check_hit_stop_delay_command,
         // Buffs
         //get_param_float_hook,
+        cloud_func_hook,
     );
 
     combo::init();
@@ -382,5 +389,4 @@ pub fn training_mods() {
     ledge::init();
     throw::init();
     menu::init();
-    buff::init();
 }

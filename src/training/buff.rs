@@ -1,40 +1,31 @@
 use crate::common::consts::*;
-use smash::hash40;
-//use crate::common::consts::FighterId;
 use crate::common::*;
-use crate::training::frame_counter;
-use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+use crate::training::cloud_func_hook;
 
-const NOT_SET: u32 = 9001;
-static mut BUFF_DELAY: u32 = NOT_SET;
-static mut BUFF_DELAY_COUNTER: usize = 0;
-static mut BUFF_CASE: BuffOption = BuffOption::empty();
 static mut BUFF_REMAINING: i32 = 0;
 static mut NUM_OPERATIONS: i32 = 0;
+static mut IS_BUFFING: bool = false;
 
-pub fn init() { // need to init!!!!
+pub fn restart_buff() {
     unsafe {
-        BUFF_DELAY_COUNTER = frame_counter::register_counter();
+        IS_BUFFING = false;
     }
 }
 
-pub fn reset_buff_delay() {
+fn get_spell_vec() -> Vec<BuffOption> { // prob unneeded
     unsafe {
-        frame_counter::full_reset(BUFF_DELAY_COUNTER);
-    }
-}
-
-pub fn count_buff_delay() {
-    unsafe {
-        frame_counter::start_counting(BUFF_DELAY_COUNTER);
-    }
-}
-
-fn _get_buff_vec() { // prob unneeded
-    unsafe {
-        BUFF_CASE = MENU.buff_state.get_random();
+        //let spell_buff = vec![BuffOption::OOMPH,BuffOption::PSYCHE,BuffOption::BOUNCE,BuffOption::ACCELERATLE];
+        let menu_buff = MENU.buff_state.to_vec();
+        let menu_iter = menu_buff.iter();
+        let mut spell_buff: Vec<BuffOption> = Vec::new();
+        for buff in menu_iter {
+            if buff.into_int().unwrap_or(1) != 1 { // all non-spells into_int as 1. Maybe should be 0 instead?
+                spell_buff.push(*buff); 
+            }
+        }
+        return spell_buff;
     }
 }
 
@@ -49,19 +40,23 @@ pub unsafe fn handle_buffs(module_accessor: &mut app::BattleObjectModuleAccessor
     //app::sv_animcmd::QUAKE_STOP(60); crashes game very cool
 
     //fix psyche up camera shake?
-    // This cannot be a match statement, though you may be able to write something smarter than this like iter over a tuple of your pointer values and use find() or position()
+    // This cannot be a match statement because of the pointer derefrencing, 
+    // though you may be able to write something smarter than this like iter over a tuple of your pointer values and use find() or position()
     // unsure if the above idea has any merit though
+
+    let menu_vec = MENU.buff_state.to_vec();
+
     if fighter_kind == *FIGHTER_KIND_BRAVE {
         return buff_hero(module_accessor,status);
-    } else if fighter_kind == *FIGHTER_KIND_JACK {
+    } else if fighter_kind == *FIGHTER_KIND_JACK && menu_vec.contains(&BuffOption::ARSENE) {
         return buff_joker(module_accessor,status);
-    } else if fighter_kind == *FIGHTER_KIND_WIIFIT {
+    } else if fighter_kind == *FIGHTER_KIND_WIIFIT && menu_vec.contains(&BuffOption::BREATHING) {
         return buff_wiifit(module_accessor,status);
-    } else if fighter_kind == *FIGHTER_KIND_CLOUD {
+    } else if fighter_kind == *FIGHTER_KIND_CLOUD && menu_vec.contains(&BuffOption::LIMIT) {
         return buff_cloud(module_accessor, status);
-    } else if fighter_kind == *FIGHTER_KIND_LITTLEMAC {
+    } else if fighter_kind == *FIGHTER_KIND_LITTLEMAC && menu_vec.contains(&BuffOption::KO) {
         return buff_mac(module_accessor, status);
-    } else if fighter_kind == *FIGHTER_KIND_EDGE {
+    } else if fighter_kind == *FIGHTER_KIND_EDGE && menu_vec.contains(&BuffOption::WING) {
         return buff_sepiroth(module_accessor, percent);
     }
 
@@ -73,39 +68,16 @@ pub unsafe fn handle_buffs(module_accessor: &mut app::BattleObjectModuleAccessor
 // probably better to just always call the first if its not empty, but won't cause idk how
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    // does frame_counter actually prevent crashes at all? Or does it never tick because of the infinite loop?
-    // probably should implement another static var as a failsafe
-    if NUM_OPERATIONS > 30 {
-        println!("31 Ops reached");
-        return true;
-    }
-    
-    let buff_vec = vec![BuffOption::OOMPH,BuffOption::PSYCHE,BuffOption::BOUNCE,BuffOption::ACCELERATLE];
-    //let buff_vec = vec![BuffOption::OOMPH,BuffOption::ACCELERATLE];
-
-    //let mut buff_vec = MENU.buff_state.to_vec().intersect(spell_vec); // vector of currently selected hero buffs
-    
-    let current_frame = frame_counter::get_frame_count(BUFF_DELAY_COUNTER) as i32; // do I want to be grabbing this like that?
-    
-    println!("Frame: {}, Operations: {}",current_frame,NUM_OPERATIONS);
-    
-    if current_frame == 0 { // should I do 0 or 1? Initial set up for spells
-        count_buff_delay(); // This should be fine, as starting it multiple times per frame shouldn't be an issue. Start counting
+    let buff_vec = get_spell_vec();
+    if !IS_BUFFING { // should I do 0 or 1? Initial set up for spells
+        IS_BUFFING = true; // This should be fine, as starting it multiple times per frame shouldn't be an issue. Start counting
         NUM_OPERATIONS = 0;
         BUFF_REMAINING = buff_vec.len() as i32; // since its the first frame, we need to set up how many buffs there are
     } // else { // commands to use if we're buffing, does this else need to be here?
     if BUFF_REMAINING <= 0 { // If there are no buffs selected/left, get out of here
         return true; // this may be needed since we're casting a potential -1 to usize?
     }
-    let spell_index = BUFF_REMAINING - 1; // as usize here? var used to get spell from our vector
-    let spell_option = buff_vec.get(spell_index as usize);
-    if spell_option.is_none() { // there are no spells selected, or something went wrong with making the vector
-        return true;
-    }
-    let spell_value = spell_option.unwrap().into_int().unwrap(); // this just seems extremely wrong
     buff_hero_single(module_accessor, status, buff_vec);
-    println!("Buff Hero Frame: {}, PostStatus: {}, Spell: {}",current_frame,status,spell_value);
-    //}
     return false;
 }
 
@@ -115,17 +87,13 @@ unsafe fn buff_hero_single(module_accessor: &mut app::BattleObjectModuleAccessor
     if prev_status_kind == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START { //&& buffs_remaining = 0 // If finished applying buffs, need to have some kind of struct responsible
         BUFF_REMAINING -= 1;
     }
-    
-    // need to handle finding the buff in here due to the above if statement
+    // need to handle finding the buff in here due to the above if statement, probably should do in a function
     let spell_index = BUFF_REMAINING - 1; // as usize here? var used to get spell from our vector
     let spell_option = buff_vec.get(spell_index as usize);
     if spell_option.is_none() { // there are no spells selected, or something went wrong with making the vector
         return;
     }
     let real_spell_value = spell_option.unwrap().into_int().unwrap();
-
-
-
     if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START && BUFF_REMAINING != 0 { // probably needed
         WorkModule::set_int(module_accessor, real_spell_value, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND); // not being set at right time
         StatusModule::change_status_force( // does this crash if forcing while already in the status?
@@ -135,25 +103,33 @@ unsafe fn buff_hero_single(module_accessor: &mut app::BattleObjectModuleAccessor
         );
     } 
     if status == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
-        if (BUFF_REMAINING > 1) { // not last buff
-            MotionModule::set_rate(module_accessor, 50.0); //only needs to be 40 I think ??? 46 for psyche up?
-        } else {
-            MotionModule::set_rate(module_accessor, 50.0);
-        } // works decently for 2 spells, but should honestly just forget frame counters and move on I think
-        
-        // try delaying for 2 frames before next spell here?
-        // RESET, but don't start counting
+        MotionModule::set_rate(module_accessor, 50.0); //needs to be at least 46 for psyche up?
     }
 }
-
+/*
+unsafe fn _buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
+    println!("Next Status: {}", StatusModule::status_kind_next(module_accessor));
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+    if prev_status_kind == FIGHTER_CLOUD_STATUS_KIND_SPECIAL_LW_END {
+        //KineticModule::clear_speed_all(module_accessor);
+        return true;
+    }
+    if !IS_BUFFING {
+        IS_BUFFING = true;
+        WorkModule::set_float(module_accessor, 100.0, *FIGHTER_CLOUD_INSTANCE_WORK_ID_FLOAT_LIMIT_GAUGE);
+        StatusModule::change_status_request_from_script( // not doing from_script crashes the game here
+            module_accessor,
+            *FIGHTER_CLOUD_STATUS_KIND_SPECIAL_LW_CHARGE,
+            true, // originally false, probably should be true though so inputs aren't interfered with as we go through multiple buffs
+        );
+    } 
+    MotionModule::set_rate(module_accessor, 50.0);
+    return false;
+}
+*/
 unsafe fn buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    // forcing status module crashes the game
-    /*StatusModule::change_status_force( // _request_from_script? - no, because you need to override shield buffer
-        module_accessor,
-        *FIGHTER_CLOUD_STATUS_KIND_SPECIAL_LW_END,
-        true, // originally false, probably should be true though so inputs aren't interfered with as we go through multiple buffs
-    );*/
-    WorkModule::set_float(module_accessor, 100.0, *FIGHTER_CLOUD_INSTANCE_WORK_ID_FLOAT_LIMIT_GAUGE);
+    //WorkModule::set_float(module_accessor, 99.0, *FIGHTER_CLOUD_INSTANCE_WORK_ID_FLOAT_LIMIT_GAUGE);
+    cloud_func_hook(100.0,module_accessor,0);
     return true;
 }
 
