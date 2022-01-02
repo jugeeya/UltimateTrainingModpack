@@ -1,4 +1,3 @@
-use crate::is_operation_cpu; // used for debug
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::hid::*;
@@ -42,7 +41,7 @@ pub unsafe fn handle_check_doyle_summon_dispatch(module_accessor: &mut app::Batt
         return ori;
     }
     if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 {
-        if buff::is_buffing() {
+        if buff::is_buffing(module_accessor) {
             return 4294967295;
         }
     }

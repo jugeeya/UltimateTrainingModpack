@@ -4,11 +4,15 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use crate::training::handle_add_limit;
 use crate::training::frame_counter;
+use crate::is_operation_cpu;
 
 static mut BUFF_DELAY_COUNTER: usize = 0;
 
-static mut BUFF_REMAINING: i32 = 0;
-static mut IS_BUFFING: bool = false;
+static mut BUFF_REMAINING_PLAYER: i32 = 0;
+static mut BUFF_REMAINING_CPU: i32 = 0;
+
+static mut IS_BUFFING_PLAYER: bool = false;
+static mut IS_BUFFING_CPU: bool = false;
 
 pub fn init() {
     unsafe {
@@ -16,12 +20,42 @@ pub fn init() {
     }
 }
 
-pub unsafe fn restart_buff() {
-    IS_BUFFING = false;
+pub unsafe fn restart_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if is_operation_cpu(module_accessor) {
+        IS_BUFFING_CPU = false;
+        return;
+    }
+    IS_BUFFING_PLAYER = false;
 }
 
-pub unsafe fn is_buffing() -> bool {
-    return IS_BUFFING;
+pub unsafe fn start_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if is_operation_cpu(module_accessor) {
+        IS_BUFFING_CPU = true;
+        return;
+    }
+    IS_BUFFING_PLAYER = true;
+}
+
+pub unsafe fn is_buffing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if is_operation_cpu(module_accessor) {
+        return IS_BUFFING_CPU;
+    }
+    return IS_BUFFING_PLAYER;
+}
+
+pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: i32) {
+    if is_operation_cpu(module_accessor) {
+        BUFF_REMAINING_CPU = new_value;
+        return;
+    }
+    BUFF_REMAINING_PLAYER = new_value;
+}
+
+pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
+    if is_operation_cpu(module_accessor) {
+        return BUFF_REMAINING_CPU;
+    }
+    return BUFF_REMAINING_PLAYER;
 }
 
 
@@ -72,12 +106,12 @@ pub unsafe fn handle_buffs(module_accessor: &mut app::BattleObjectModuleAccessor
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
     let buff_vec = get_spell_vec();
-    if !IS_BUFFING { // should I do 0 or 1? Initial set up for spells
-        IS_BUFFING = true; // This should be fine, as starting it multiple times per frame shouldn't be an issue. Start counting
-        BUFF_REMAINING = buff_vec.len() as i32; // since its the first step of buffing, we need to set up how many buffs there are
-    } // else { // commands to use if we're buffing, does this else need to be here?
-    if BUFF_REMAINING <= 0 { // If there are no buffs selected/left, get out of here
-        return true; // this may be needed since we're casting a potential -1 to usize?
+    if !is_buffing(module_accessor) { // Initial set up for spells
+        start_buff(module_accessor);
+        set_buff_rem(module_accessor,buff_vec.len() as i32); // since its the first step of buffing, we need to set up how many buffs there are
+    }
+    if get_buff_rem(module_accessor) <= 0 { // If there are no buffs selected/left, we're done
+        return true;
     }
     buff_hero_single(module_accessor, status, buff_vec);
     return false;
@@ -85,45 +119,46 @@ unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, statu
 
 unsafe fn buff_hero_single(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32, buff_vec: Vec<BuffOption>) {
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-    if prev_status_kind == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START { //&& buffs_remaining = 0 // If finished applying buffs, need to have some kind of struct responsible
-        BUFF_REMAINING -= 1;
+    if prev_status_kind == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START { // if we just applied a buff successfully, subtract from buffs remaining
+        let new_rem_value = get_buff_rem(module_accessor) - 1;
+        set_buff_rem(module_accessor, new_rem_value);
     }
     // need to handle finding the buff in here due to the above if statement, probably should do in a function
-    let spell_index = BUFF_REMAINING - 1; // as usize here? var used to get spell from our vector
+    let spell_index = get_buff_rem(module_accessor) - 1; // var used to get spell from our vector
     let spell_option = buff_vec.get(spell_index as usize);
     if spell_option.is_none() { // there are no spells selected, or something went wrong with making the vector
         return;
     }
     let real_spell_value = spell_option.unwrap().into_int().unwrap();
-    if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START && BUFF_REMAINING != 0 { // probably needed
+    if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
         WorkModule::set_int(module_accessor, real_spell_value, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND);
-        StatusModule::change_status_force( // does this crash if forcing while already in the status?
+        StatusModule::change_status_force(
             module_accessor,
             *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START,
             true, // true to prevent shielding over
         );
     } 
     if status == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
-        MotionModule::set_rate(module_accessor, 50.0); //needs to be at least 46 for psyche up?
+        MotionModule::set_rate(module_accessor, 50.0); // needs to be at least 46 for psyche up?
     }
 }
 
 unsafe fn buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if !IS_BUFFING { // only need to set limit gauge once
-        IS_BUFFING = true;
+    if !is_buffing(module_accessor) { // only need to add to the limit gauge once
+        start_buff(module_accessor);
         handle_add_limit(100.0,module_accessor,0);
     }
     if frame_counter::should_delay(2 as u32, BUFF_DELAY_COUNTER) { // need to wait 2 frames to make sure we stop the limit SFX, since it's a bit delayed
         return false;
-    } // see if stop se stuff works for this, or if I should just stop the limit line 
+    }
     return true;
 }
 
 unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if !IS_BUFFING { // only need to set rebel gauge once
-        IS_BUFFING = true;
-        let entry_id = app::FighterEntryID(FighterId::Player as i32); // may need to be 0? // May want to apply to CPU? For 2 framing?
-        app::FighterSpecializer_Jack::add_rebel_gauge(module_accessor, entry_id, 120.0); // Why do I need to use app:: when I don't need to for other Modules?
+    if !is_buffing(module_accessor) { // only need to add to the rebel gauge once
+        start_buff(module_accessor);
+        let entry_id = app::FighterEntryID(FighterId::CPU as i32); // strangely, this doesn't actually matter and works for both fighters
+        app::FighterSpecializer_Jack::add_rebel_gauge(module_accessor, entry_id, 120.0);
     }
 
     if frame_counter::should_delay(5 as u32, BUFF_DELAY_COUNTER) { // need to wait 5 frames to make sure we stop the voice call, since it's a bit delayed
@@ -134,17 +169,12 @@ unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 }
 
 unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if !IS_BUFFING { // only need to set rebel gauge once
-        IS_BUFFING = true;
-        WorkModule::set_float(module_accessor, 100.0, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE); // Sets meter to full
-    }
-    //WorkModule::on_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_REQUEST_KO_GAUGE_MAX_EFFECT); // doesn't work?
+    WorkModule::set_float(module_accessor, 100.0, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE); // Sets meter to full
     SoundModule::stop_se(module_accessor,smash::phx::Hash40::new("se_littlemac_kogeuge_burst"), 0);
-    /*if frame_counter::should_delay(10 as u32, BUFF_DELAY_COUNTER) { // need to wait 3 frames to stop the KO Punch SFX
-        return false;
-    }*/
+
     // Trying to stop KO Punch from playing seems to make it play multiple times in rapid succession. Look at 0x7100c44b60 for the func that handles this
-    // Need to figure out how to update the KO meter. Probably a fighter specializer function? Maybe can just put him in hitstop though, unsure
+    // Need to figure out how to update the KO meter. Maybe can just put him in hitstop though, unsure
+    //WorkModule::on_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_REQUEST_KO_GAUGE_MAX_EFFECT); // doesn't work?
     return true;
 }
 
@@ -175,7 +205,7 @@ unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, sta
             false,
         );
     } else {
-        MotionModule::set_rate(module_accessor, 40.0); // frame count for deep breathing???
+        MotionModule::set_rate(module_accessor, 40.0);
     }
     return false;
 }
