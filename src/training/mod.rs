@@ -1,6 +1,4 @@
 use crate::is_operation_cpu; // used for debug
-use smash::hash40; // won't be needed if param is handled in buffs
-use smash::phx::Hash40; // same...? maybe not
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
 use skyline::nn::hid::*;
@@ -31,10 +29,24 @@ mod reset;
 mod save_states;
 mod shield_tilt;
 
-static CLOUD_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
-#[skyline::hook(offset = CLOUD_OFFSET)]
-pub unsafe fn cloud_func_hook(add_limit: f32, module_accessor: &mut app::BattleObjectModuleAccessor, is_specialLw: u64) {
-    original!()(add_limit,module_accessor,is_specialLw)
+static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
+#[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
+pub unsafe fn handle_add_limit(add_limit: f32, module_accessor: &mut app::BattleObjectModuleAccessor, is_special_lw: u64) {
+    original!()(add_limit,module_accessor,is_special_lw)
+}
+
+#[skyline::hook(replace = app::FighterSpecializer_Jack::check_doyle_summon_dispatch)] // returns 481 when summoning Arsene, 482 when dispatching, 4294967295 otherwise.
+pub unsafe fn handle_check_doyle_summon_dispatch(module_accessor: &mut app::BattleObjectModuleAccessor, bool_1: bool, bool_2: bool) -> u64 {
+    let ori = original!()(module_accessor,bool_1,bool_2);
+    if !is_training_mode() {
+        return ori;
+    }
+    if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 {
+        if buff::is_buffing() {
+            return 4294967295;
+        }
+    }
+    return ori;
 }
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
@@ -379,7 +391,8 @@ pub fn training_mods() {
         crate::training::sdi::check_hit_stop_delay_command,
         // Buffs
         //get_param_float_hook,
-        cloud_func_hook,
+        handle_add_limit,
+        handle_check_doyle_summon_dispatch,
     );
 
     combo::init();
@@ -389,4 +402,5 @@ pub fn training_mods() {
     ledge::init();
     throw::init();
     menu::init();
+    buff::init();
 }
