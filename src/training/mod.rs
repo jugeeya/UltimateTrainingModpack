@@ -281,16 +281,6 @@ pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
     original!()(lua_state)
 }
 
-pub static mut COMMON_PARAMS: *mut CommonParams = 0 as *mut _;
-
-fn params_main(params_info: &ParamsInfo<'_>) {
-    if let Ok(common) = params_info.get::<CommonParams>() {
-        unsafe {
-            COMMON_PARAMS = common as *mut _;
-        }
-    }
-}
-
 #[skyline::hook(replace = CameraModule::req_quake)]
 pub unsafe fn handle_req_quake(module_accessor: &mut app::BattleObjectModuleAccessor, my_int: i32) -> u64 {
     if !is_training_mode() {
@@ -300,6 +290,16 @@ pub unsafe fn handle_req_quake(module_accessor: &mut app::BattleObjectModuleAcce
         return original!()(module_accessor, *CAMERA_QUAKE_KIND_NONE);
     }
     original!()(module_accessor,my_int)
+}
+
+pub static mut COMMON_PARAMS: *mut CommonParams = 0 as *mut _;
+
+fn params_main(params_info: &ParamsInfo<'_>) {
+    if let Ok(common) = params_info.get::<CommonParams>() {
+        unsafe {
+            COMMON_PARAMS = common as *mut _;
+        }
+    }
 }
 
 #[allow(improper_ctypes)]
@@ -346,6 +346,7 @@ pub fn training_mods() {
         // Save states
         handle_get_param_int,
         handle_set_dead_rumble,
+        handle_req_quake,
         // Mash attack
         handle_get_attack_air_kind,
         // Attack angle
