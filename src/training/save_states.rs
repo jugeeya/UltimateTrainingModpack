@@ -50,6 +50,13 @@ static mut MIRROR_STATE: f32 = 1.0;
 // MIRROR_STATE == 1 -> Do not mirror
 // MIRROR_STATE == -1 -> Do Mirror
 
+pub unsafe fn is_killing() -> bool {
+    if SAVE_STATE_PLAYER.state == KillPlayer || SAVE_STATE_CPU.state == KillPlayer {
+        return true;
+    }
+    return false;
+}
+
 pub unsafe fn should_mirror() -> f32 {
     match MENU.save_state_mirroring {
         SaveStateMirroring::None => 1.0,
