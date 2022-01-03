@@ -58,7 +58,6 @@ pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor
     return BUFF_REMAINING_PLAYER;
 }
 
-
 fn get_spell_vec() -> Vec<BuffOption> {
     unsafe {
         let menu_buff = MENU.buff_state.to_vec();
@@ -161,7 +160,7 @@ unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         app::FighterSpecializer_Jack::add_rebel_gauge(module_accessor, entry_id, 120.0);
     }
 
-    if frame_counter::should_delay(5 as u32, BUFF_DELAY_COUNTER) { // need to wait 5 frames to make sure we stop the voice call, since it's a bit delayed
+    if frame_counter::should_delay(2 as u32, BUFF_DELAY_COUNTER) { // need to wait 2 frames to make sure we stop the voice call, since it's a bit delayed
         return false;
     }
         
@@ -179,6 +178,7 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
 }
 
 unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor, percent: f32) -> bool {
+    start_buff(module_accessor);
     if WorkModule::get_int(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_WING_STATE) == 1 { // once we're in wing, heal to correct damage
         DamageModule::heal(
             module_accessor,
@@ -194,9 +194,17 @@ unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor, p
 }
 
 unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
+    if is_buffing(module_accessor) {
+        if frame_counter::should_delay(2 as u32, BUFF_DELAY_COUNTER) { // need to wait 2 frames to make sure we stop the breathing SFX
+            return false;
+        }
+        return true;
+    }
+    
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
     if prev_status_kind == FIGHTER_WIIFIT_STATUS_KIND_SPECIAL_LW_SUCCESS {
-        return true;
+        start_buff(module_accessor);
+        return false;
     }
     if status != FIGHTER_WIIFIT_STATUS_KIND_SPECIAL_LW_SUCCESS {
         StatusModule::change_status_force(

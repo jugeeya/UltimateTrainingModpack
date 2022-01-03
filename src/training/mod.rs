@@ -5,6 +5,7 @@ use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
+use smash::phx::Hash40;
 
 pub mod combo;
 pub mod directional_influence;
@@ -34,7 +35,20 @@ pub unsafe fn handle_add_limit(add_limit: f32, module_accessor: &mut app::Battle
     original!()(add_limit,module_accessor,is_special_lw)
 }
 
-#[skyline::hook(replace = app::FighterSpecializer_Jack::check_doyle_summon_dispatch)] // returns 481 when summoning Arsene, 482 when dispatching, 4294967295 otherwise.
+#[skyline::hook(replace = EffectModule::req_screen)]
+pub unsafe fn handle_req_screen(module_accessor: &mut app::BattleObjectModuleAccessor, my_hash: Hash40, bool_1:bool, bool_2:bool, bool_3:bool) -> u64 {
+    if !is_training_mode() {
+        return original!()(module_accessor,my_hash,bool_1,bool_2,bool_3);
+    }
+    let new_hash = my_hash.hash;
+    if new_hash == 72422354958 && buff::is_buffing(module_accessor) { // Wing bg hash
+        let replace_hash = Hash40::new("bg");
+        return original!()(module_accessor,replace_hash,bool_1,bool_2,bool_3);
+    }
+    original!()(module_accessor,my_hash,bool_1,bool_2,bool_3)
+}
+
+#[skyline::hook(replace = app::FighterSpecializer_Jack::check_doyle_summon_dispatch)]
 pub unsafe fn handle_check_doyle_summon_dispatch(module_accessor: &mut app::BattleObjectModuleAccessor, bool_1: bool, bool_2: bool) -> u64 {
     let ori = original!()(module_accessor,bool_1,bool_2);
     if !is_training_mode() {
@@ -392,6 +406,7 @@ pub fn training_mods() {
         //get_param_float_hook,
         handle_add_limit,
         handle_check_doyle_summon_dispatch,
+        handle_req_screen,
     );
 
     combo::init();
