@@ -29,39 +29,6 @@ mod reset;
 mod save_states;
 mod shield_tilt;
 
-static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
-#[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
-pub unsafe fn handle_add_limit(add_limit: f32, module_accessor: &mut app::BattleObjectModuleAccessor, is_special_lw: u64) {
-    original!()(add_limit,module_accessor,is_special_lw)
-}
-
-#[skyline::hook(replace = EffectModule::req_screen)]
-pub unsafe fn handle_req_screen(module_accessor: &mut app::BattleObjectModuleAccessor, my_hash: Hash40, bool_1:bool, bool_2:bool, bool_3:bool) -> u64 {
-    if !is_training_mode() {
-        return original!()(module_accessor,my_hash,bool_1,bool_2,bool_3);
-    }
-    let new_hash = my_hash.hash;
-    if new_hash == 72422354958 && buff::is_buffing(module_accessor) { // Wing bg hash
-        let replace_hash = Hash40::new("bg");
-        return original!()(module_accessor,replace_hash,bool_1,bool_2,bool_3);
-    }
-    original!()(module_accessor,my_hash,bool_1,bool_2,bool_3)
-}
-
-#[skyline::hook(replace = app::FighterSpecializer_Jack::check_doyle_summon_dispatch)]
-pub unsafe fn handle_check_doyle_summon_dispatch(module_accessor: &mut app::BattleObjectModuleAccessor, bool_1: bool, bool_2: bool) -> u64 {
-    let ori = original!()(module_accessor,bool_1,bool_2);
-    if !is_training_mode() {
-        return ori;
-    }
-    if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 {
-        if buff::is_buffing(module_accessor) {
-            return 4294967295;
-        }
-    }
-    return ori;
-}
-
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -145,22 +112,6 @@ fn once_per_frame_per_fighter(
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
         tech::get_command_flag_cat(module_accessor);
-        /*
-        if !is_operation_cpu(module_accessor) {
-            //println!("Cloud Limit Gauge: {}", WorkModule::get_float(module_accessor, *FIGHTER_CLOUD_INSTANCE_WORK_ID_FLOAT_LIMIT_GAUGE));
-            println!("Edge Thresh: {}, Activate: {}, Damage Diff Min: {}, FlagAct'd: {}, FlagEnd: {}, State: {}, Process: {}", 
-                WorkModule::get_float(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLOAT_ONE_WINGED_THRESHOLD_ACTIVATE_POINT),
-                WorkModule::get_float(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLOAT_ONE_WINGED_ACTIVATE_POINT),
-                WorkModule::get_float(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLOAT_ONE_WINGED_DAMAGE_DIFF_MIN),
-                WorkModule::is_flag(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_ONE_WINGED_ACTIVATED),
-                WorkModule::is_flag(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_ONE_WINGED_END_ACTIVATE),
-                WorkModule::get_int(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_WING_STATE),
-                WorkModule::get_int(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_PROCESS),
-            );
-
-        }
-        */
-
     }
 
     fast_fall::get_command_flag_cat(module_accessor);
@@ -340,6 +291,39 @@ fn params_main(params_info: &ParamsInfo<'_>) {
             COMMON_PARAMS = common as *mut _;
         }
     }
+}
+
+static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
+#[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
+pub unsafe fn handle_add_limit(add_limit: f32, module_accessor: &mut app::BattleObjectModuleAccessor, is_special_lw: u64) {
+    original!()(add_limit,module_accessor,is_special_lw)
+}
+
+#[skyline::hook(replace = EffectModule::req_screen)] // hooked to prevent the screen from darkening when loading a save state with One-Winged Angel
+pub unsafe fn handle_req_screen(module_accessor: &mut app::BattleObjectModuleAccessor, my_hash: Hash40, bool_1:bool, bool_2:bool, bool_3:bool) -> u64 {
+    if !is_training_mode() {
+        return original!()(module_accessor,my_hash,bool_1,bool_2,bool_3);
+    }
+    let new_hash = my_hash.hash;
+    if new_hash == 72422354958 && buff::is_buffing(module_accessor) { // Wing bg hash
+        let replace_hash = Hash40::new("bg");
+        return original!()(module_accessor,replace_hash,bool_1,bool_2,bool_3);
+    }
+    original!()(module_accessor,my_hash,bool_1,bool_2,bool_3)
+}
+
+#[skyline::hook(replace = app::FighterSpecializer_Jack::check_doyle_summon_dispatch)] // returns status of summon dispatch if triggered, -1 as u64 otherwise
+pub unsafe fn handle_check_doyle_summon_dispatch(module_accessor: &mut app::BattleObjectModuleAccessor, bool_1: bool, bool_2: bool) -> u64 {
+    let ori = original!()(module_accessor,bool_1,bool_2);
+    if !is_training_mode() {
+        return ori;
+    }
+    if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 {
+        if buff::is_buffing(module_accessor) {
+            return 4294967295;
+        }
+    }
+    return ori;
 }
 
 #[allow(improper_ctypes)]
