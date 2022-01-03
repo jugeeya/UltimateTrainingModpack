@@ -149,7 +149,7 @@ unsafe fn buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         handle_add_limit(100.0,module_accessor,0);
     }
     if frame_counter::should_delay(2 as u32, BUFF_DELAY_COUNTER) { 
-        // need to wait 2 frames to make sure we stop the limit SFX, since it's a bit delayed
+        // Need to wait 2 frames to make sure we stop the limit SFX, since it's a bit delayed
         return false;
     }
     return true;
@@ -171,7 +171,8 @@ unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 
 unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     WorkModule::set_float(module_accessor, 100.0, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE);
-    // Trying to stop KO Punch from playing seems to make it play multiple times in rapid succession. Look at 0x7100c44b60 for the func that handles this
+    // Trying to stop KO Punch from playing seems to make it play multiple times in rapid succession
+    // Look at 0x7100c44b60 for the func that handles this
     // Need to figure out how to update the KO meter if this is fixed
     return true;
 }
@@ -179,7 +180,7 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
 unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor, percent: f32) -> bool {
     start_buff(module_accessor);
     if WorkModule::get_int(module_accessor, *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_WING_STATE) == 1 { 
-        // once we're in wing, heal to correct damage
+        // Once we're in wing, heal to correct damage
         DamageModule::heal(
             module_accessor,
             -1.0 * DamageModule::damage(module_accessor, 0),
