@@ -76,8 +76,6 @@ pub unsafe fn handle_buffs(module_accessor: &mut app::BattleObjectModuleAccessor
     SoundModule::stop_all_sound(module_accessor); // silences buff sfx other than KO Punch
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);
-    //KineticModule::clear_speed_all(module_accessor);
-    //CameraModule::stop_quake(module_accessor, 60); // doesn't work
 
     let menu_vec = MENU.buff_state.to_vec();
 

@@ -538,8 +538,8 @@ impl BuffOption {
         Some(match self {
             BuffOption::ACCELERATLE => "Acceleratle",
             BuffOption::OOMPH => "Oomph",
-            BuffOption::PSYCHE => "Psyche Up",
             BuffOption::BOUNCE => "Bounce",
+            BuffOption::PSYCHE => "Psyche Up",
             BuffOption::BREATHING => "Deep Breathing",
             BuffOption::ARSENE => "Arsene",
             BuffOption::LIMIT => "Limit Break",
