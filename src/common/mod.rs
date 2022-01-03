@@ -87,15 +87,17 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
             return false;
         }
 
-        let entry_id_int = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
-        
+        let entry_id_int =
+            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+
         if entry_id_int == 0 {
             return false;
-        }   
-        
+        }
+
         let entry_id = app::FighterEntryID(entry_id_int);
         let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-        let fighter_information = FighterManager::get_fighter_information(mgr, entry_id) as *mut app::FighterInformation;
+        let fighter_information =
+            FighterManager::get_fighter_information(mgr, entry_id) as *mut app::FighterInformation;
 
         FighterInformation::is_operation_cpu(fighter_information)
     }
