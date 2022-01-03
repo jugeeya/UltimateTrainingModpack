@@ -291,6 +291,17 @@ fn params_main(params_info: &ParamsInfo<'_>) {
     }
 }
 
+#[skyline::hook(replace = CameraModule::req_quake)]
+pub unsafe fn handle_req_quake(module_accessor: &mut app::BattleObjectModuleAccessor, my_int: i32) -> u64 {
+    if !is_training_mode() {
+        return original!()(module_accessor,my_int);
+    }
+    if save_states::is_killing() {
+        return original!()(module_accessor, *CAMERA_QUAKE_KIND_NONE);
+    }
+    original!()(module_accessor,my_int)
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState, *const u32));
