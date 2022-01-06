@@ -66,12 +66,17 @@ pub unsafe fn should_mirror() -> f32 {
 }
 
 pub unsafe fn get_param_int(
-    _module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
     param_type: u64,
     param_hash: u64,
 ) -> Option<i32> {
     if param_type == hash40("common") {
         if param_hash == hash40("dead_rebirth_wait_frame") {
+            let jostle_frame = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME);
+            if jostle_frame > 1 {
+                // Allow jostle to stop being ignored before we die
+                WorkModule::set_int(module_accessor, 1, *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME);
+            }
             return Some(1);
         }
         if param_hash == hash40("rebirth_move_frame") {
@@ -163,11 +168,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
         } else if !is_dead(module_accessor) && !fighter_is_nana {
             // Don't kill Nana again, since she already gets killed by the game from Popo's death
-            let jostle_frame = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME);
-            if jostle_frame > 1 {
-                // Allow jostle to stop being ignored before we die
-                WorkModule::set_int(module_accessor, 1, *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME);
-            }
             // Try moving off-screen so we don't see effects.
             let pos = Vector3f {
                 x: -300.0,
