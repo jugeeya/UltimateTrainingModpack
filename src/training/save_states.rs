@@ -72,10 +72,17 @@ pub unsafe fn get_param_int(
 ) -> Option<i32> {
     if param_type == hash40("common") {
         if param_hash == hash40("dead_rebirth_wait_frame") {
-            let jostle_frame = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME);
+            let jostle_frame = WorkModule::get_int(
+                module_accessor,
+                *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME,
+            );
             if jostle_frame > 1 {
                 // Allow jostle to stop being ignored before we respawn
-                WorkModule::set_int(module_accessor, 1, *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME);
+                WorkModule::set_int(
+                    module_accessor,
+                    1,
+                    *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME,
+                );
             }
             return Some(1);
         }
