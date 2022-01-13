@@ -4,6 +4,7 @@ use crate::common::consts::SaveStateMirroring;
 use crate::common::MENU;
 use crate::common::{get_random_int, is_dead};
 use crate::training::reset;
+use crate::training::charge;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -26,6 +27,8 @@ struct SavedState {
     situation_kind: i32,
     state: SaveState,
     fighter_kind: i32,
+    //charge_old: f32,
+    charge: (f32,f32,f32),
 }
 
 macro_rules! default_save_state {
@@ -38,6 +41,8 @@ macro_rules! default_save_state {
             situation_kind: 0,
             state: NoAction,
             fighter_kind: -1,
+            //charge_old: -1.0,
+            charge: (-1.0,-1.0,-1.0),
         }
     };
 }
@@ -256,6 +261,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // if we're done moving, reset percent
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
+
+            // add charge
+            if save_state.fighter_kind == fighter_kind { // make sure the wrong variables don't get applied to - does this cause problems with squirtle?
+                charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
+            }
+            // pass in fighter kind since it's more efficient than pulling it twice?
+
         }
 
         // if the fighter is Popo, change the state to one where only Nana can move
@@ -290,12 +302,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
         save_state.situation_kind = StatusModule::situation_kind(module_accessor);
-        if fighter_is_ptrainer {
-            // Only store the fighter_kind for pokemon trainer
-            save_state.fighter_kind = app::utility::get_kind(module_accessor);
-        } else {
-            save_state.fighter_kind = -1;
-        }
+        // Always store fighter kind so that charges are handled properly
+        save_state.fighter_kind = app::utility::get_kind(module_accessor);
+        save_state.charge = charge::get_charge(module_accessor, fighter_kind);
 
         let zeros = Vector3f {
             x: 0.0,
