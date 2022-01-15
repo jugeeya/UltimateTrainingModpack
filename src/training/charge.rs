@@ -22,6 +22,17 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // Mewtwo Shadowball
 
+    if fighter_kind == FIGHTER_KIND_MEWTWO {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME) as f32;
+        let prev_frame = WorkModule::get_int(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME) as f32;
+        let ball_had = WorkModule::is_flag(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
+        println!("Charge Frame: {}, Prev Frame: {}, Ball Had: {}",my_charge,prev_frame,ball_had);
+        if ball_had {
+            return (my_charge, prev_frame, 1.0);
+        }
+        return (my_charge, prev_frame, -1.0);
+    }
+
     // GnW Bucket
 
     if fighter_kind == FIGHTER_KIND_GAMEWATCH {
@@ -32,8 +43,7 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // Wario Waft
     if fighter_kind == FIGHTER_KIND_WARIO {
-        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_LEVEL) as f32;
-        println!("Waft Get: {}", my_charge);
+        let my_charge = WorkModule::get_int(module_accessor, 0x100000BF) as f32;
         return (my_charge, -1.0, -1.0);
     }
 
@@ -59,6 +69,11 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
     // Incineroar Revenge
 
     // Plant Poison
+
+    if fighter_kind == FIGHTER_KIND_PACKUN {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT) as f32;
+        return (my_charge, -1.0, -1.0);
+    }
 
     // Hero (Ka)frizz(le)
 
@@ -99,17 +114,25 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Mewtwo Shadowball
 
+    if fighter_kind == FIGHTER_KIND_MEWTWO { // 0 to 120, 0 to 120, false/true. Flash, hand aura
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME);
+        WorkModule::set_int(module_accessor, charge.1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME);
+        if charge.2 > 0.0 {
+            WorkModule::on_flag(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
+        }
+    }
+
     // GnW Bucket
 
-    if fighter_kind == FIGHTER_KIND_GAMEWATCH {
+    if fighter_kind == FIGHTER_KIND_GAMEWATCH { // 0 to 3, unk
         WorkModule::set_float(module_accessor, charge.0, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_GAUGE);
         WorkModule::set_float(module_accessor, charge.1, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_ATTACK);
     }
 
     // Wario Waft
 
-    if fighter_kind == FIGHTER_KIND_WARIO {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_LEVEL); // need other vars
+    if fighter_kind == FIGHTER_KIND_WARIO { // 0 to 6600. Frames?
+        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000BF);
     }
 
     // Squirtle Water Gun
@@ -133,6 +156,10 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Incineroar Revenge
 
     // Plant Poison
+
+    if fighter_kind == FIGHTER_KIND_PACKUN { // ? to ? (didn't check), just flashing?
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT);
+    }
 
     // Hero (Ka)frizz(le)
 
