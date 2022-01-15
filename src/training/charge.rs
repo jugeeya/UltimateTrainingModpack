@@ -26,7 +26,6 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME) as f32;
         let prev_frame = WorkModule::get_int(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME) as f32;
         let ball_had = WorkModule::is_flag(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
-        println!("Charge Frame: {}, Prev Frame: {}, Ball Had: {}",my_charge,prev_frame,ball_had);
         if ball_had {
             return (my_charge, prev_frame, 1.0);
         }
@@ -49,11 +48,33 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // Squirtle Water Gun
 
+    if fighter_kind == FIGHTER_KIND_PZENIGAME {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE) as f32;
+        return (my_charge, -1.0, -1.0);
+    }
+
     // Olimar Pikmin .-.
 
     // Lucario Aura Sphere
 
-    // ROB Gyro/Laser (maybe just Gyro?)
+    if fighter_kind == FIGHTER_KIND_LUCARIO {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME) as f32;
+        let prev_frame = WorkModule::get_int(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_PREV_AURABALL_CHARGE_FRAME) as f32;
+        let ball_had = WorkModule::is_flag(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD);
+        if ball_had {
+            return (my_charge, prev_frame, 1.0);
+        }
+        return (my_charge, prev_frame, -1.0);
+    }
+
+    // ROB Gyro/Laser/Fuel
+
+    if fighter_kind == FIGHTER_KIND_ROBOT {
+        let laser_charge = WorkModule::get_float(module_accessor, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE);
+        let gyro_charge = WorkModule::get_float(module_accessor, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_GYRO_CHARGE_VALUE);
+        let fuel_charge = WorkModule::get_float(module_accessor, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BURNER_ENERGY_VALUE);
+        return (laser_charge, gyro_charge, fuel_charge);
+    }
 
     // Wii Fit Sun Salutation
 
@@ -114,7 +135,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Mewtwo Shadowball
 
-    if fighter_kind == FIGHTER_KIND_MEWTWO { // 0 to 120, 0 to 120, false/true. Flash, hand aura
+    if fighter_kind == FIGHTER_KIND_MEWTWO { // 0 to 120, 0 to 120, true/false. Flash, hand aura
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME);
         WorkModule::set_int(module_accessor, charge.1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME);
         if charge.2 > 0.0 {
@@ -137,11 +158,29 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Squirtle Water Gun
 
+    if fighter_kind == FIGHTER_KIND_PZENIGAME { // 0 to ?, flash
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE)
+    }
+
     // Olimar Pikmin .-.
 
     // Lucario Aura Sphere
 
-    // ROB Gyro/Laser (maybe just Gyro?)
+    if fighter_kind == FIGHTER_KIND_LUCARIO { // ?, ?, true/false. Flash, hand aura. I think you can use Mewtwo's vars and it still works, changed anyway tho
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME);
+        WorkModule::set_int(module_accessor, charge.1 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_PREV_AURABALL_CHARGE_FRAME);
+        if charge.2 > 0.0 {
+            WorkModule::on_flag(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD);
+        }
+    }
+
+    // ROB Gyro/Laser/Fuel
+
+    if fighter_kind == FIGHTER_KIND_ROBOT { // all ?, didn't check
+        WorkModule::set_float(module_accessor, charge.0, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE);
+        WorkModule::set_float(module_accessor, charge.1, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_GYRO_CHARGE_VALUE);
+        WorkModule::set_float(module_accessor, charge.2, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BURNER_ENERGY_VALUE);
+    }
 
     // Wii Fit Sun Salutation
 
