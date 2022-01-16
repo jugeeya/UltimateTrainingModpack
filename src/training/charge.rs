@@ -3,6 +3,9 @@ use smash::lib::lua_const::*;
 
 pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> (f32, f32, f32) {
     // Looks like I'm in the if else dimension again here, since we can't match with these pointers. We could always use the numbers directly and match, up to y'all.
+    
+    // Mario FLUDD
+    
     if fighter_kind == FIGHTER_KIND_MARIO {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE) as f32;
         return (my_charge, -1.0, -1.0);
@@ -10,10 +13,18 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // DK Punch, AttackPower thing? Unsure
 
+    /*
+    
+    */
+
+    // Samus/Dark Samus Charge Shot
+
     if fighter_kind == FIGHTER_KIND_SAMUS || fighter_kind == FIGHTER_KIND_SAMUSD {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT) as f32;
         return (my_charge, -1.0, -1.0);
     }
+
+    // Sheik Needles
 
     if fighter_kind == FIGHTER_KIND_SHEIK {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT) as f32;
@@ -85,9 +96,43 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // Pac-Man Bonus Fruit
 
+    if fighter_kind == FIGHTER_KIND_PACMAN {
+        let my_charge = WorkModule::get_int(module_accessor, 0x100000C1) as f32;
+        let max_have = WorkModule::is_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
+        let max_effect = WorkModule::is_flag(module_accessor, 0x200000E3);
+        println!("Rank: {}, max have: {}, max eff: {}",my_charge,max_have,max_effect);
+        if max_have && max_effect {
+            return (my_charge, 1.0, 1.0);
+        }
+        if max_have {
+            return (my_charge, 1.0, -1.0);
+        }
+        if max_effect {
+            return (my_charge, -1.0, 1.0);
+        }
+        return (my_charge, -1.0, -1.0);
+    }
+
     // Robin Thunder Tome Spells
 
+    if fighter_kind == FIGHTER_KIND_REFLET {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND) as f32;
+        return (my_charge, -1.0, -1.0);
+    }
+
     // Incineroar Revenge
+
+    if fighter_kind == FIGHTER_KIND_GAOGAEN {
+        let attack_no = WorkModule::get_int(module_accessor, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_ATTACK_HIT_REVENGE_ATTACK_NO) as f32;
+        let revenge_damage = WorkModule::get_float(module_accessor, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_TOTAL_DAMAGE);
+        let revenge_rate = WorkModule::get_float(module_accessor, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_RATE);
+        let is_revenge = WorkModule::is_flag(module_accessor, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE);
+        println!("Attack No: {}, Revenge Damage: {}, Rate: {}, Is Rev: {}",attack_no,revenge_damage,revenge_rate,is_revenge);
+        if is_revenge {
+            return (revenge_rate, 1.0, -1.0);
+        }
+        return (revenge_rate, -1.0, -1.0);
+    }
 
     // Plant Poison
 
@@ -105,11 +150,32 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // Banjo Wonderwing
 
+    if fighter_kind == FIGHTER_KIND_BUDDY {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN) as f32;
+        return (my_charge, -1.0, -1.0);
+    }
+
     // Steve Tools
+
+    if fighter_kind == FIGHTER_KIND_PICKEL {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_HAVE_CRAFT_WEAPON_MATERIAL_KIND) as f32;
+        println!("Mat Kind: {}", my_charge);
+        return (my_charge, -1.0, -1.0);
+    }
 
     // Sora Spell
 
+    /*if fighter_kind == FIGHTER_KIND_TRAIL {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND) as f32;
+        return (my_charge, -1.0, -1.0);
+    }*/
+
     // Mii Gunner Charge Blast
+
+    if fighter_kind == FIGHTER_KIND_MIIGUNNER {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT) as f32;
+        return (my_charge, -1.0, -1.0);
+    }
 
     return (-1.0, -1.0, -1.0);
 }
@@ -118,6 +184,8 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     if charge.0 < 0.0 {
         return;
     }
+
+    // Mario Fludd
 
     if fighter_kind == FIGHTER_KIND_MARIO { // 0 to 80, flash
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE)
@@ -128,6 +196,8 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     if fighter_kind == FIGHTER_KIND_SAMUS || fighter_kind == FIGHTER_KIND_SAMUSD { // 0 to 112, flash, gun sparks
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT)
     }
+
+    // Sheik Needles
 
     if fighter_kind == FIGHTER_KIND_SHEIK { // 0 to 6, flash, needles in hand
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT);
@@ -190,9 +260,33 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Pac-Man Bonus Fruit
 
+    if fighter_kind == FIGHTER_KIND_PACMAN { // 0 to 12, this only keeps the flash once so still needs more work
+        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000C1);
+        if charge.1 > 0.0 {
+            WorkModule::on_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
+        }
+        if charge.2 > 0.0 {
+            WorkModule::on_flag(module_accessor, 0x200000E3);
+        }
+    }
+
     // Robin Thunder Tome Spells
 
+    if fighter_kind == FIGHTER_KIND_REFLET { // ? to ?, flash effect and hand lightning
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND);
+    }
+
     // Incineroar Revenge
+
+    if fighter_kind == FIGHTER_KIND_GAOGAEN { // WIP
+        //WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_ATTACK_HIT_REVENGE_ATTACK_NO);
+        //WorkModule::set_float(module_accessor, charge.0, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_TOTAL_DAMAGE);
+        WorkModule::set_float(module_accessor, charge.0, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_RATE);
+
+        if charge.1 > 0.0 {
+            WorkModule::on_flag(module_accessor, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE);
+        }
+    }
 
     // Plant Poison
 
@@ -208,11 +302,28 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Banjo Wonderwing
 
+    if fighter_kind == FIGHTER_KIND_BUDDY {
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN)
+    }
+
     // Steve Tools
+
+    if fighter_kind == FIGHTER_KIND_PICKEL { // 0 to ?? Flash, Gun sparks
+        println!("Setting as: {}", charge.0);
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_HAVE_CRAFT_WEAPON_MATERIAL_KIND)
+    }
 
     // Sora Spell
 
+    /*if fighter_kind == FIGHTER_KIND_TRAIL { // 
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND)
+    }*/
+
     // Mii Gunner Charge Blast
+
+    if fighter_kind == FIGHTER_KIND_MIIGUNNER { // 0 to ?? Flash, Gun sparks
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT)
+    }
 
     return;
 }

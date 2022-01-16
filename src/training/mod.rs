@@ -28,6 +28,15 @@ mod reset;
 mod save_states;
 mod shield_tilt;
 
+/*static CRAFT_OFFSET: usize = 0xf10840; // get_craft_weapon_material
+#[skyline::hook(offset = CRAFT_OFFSET)] // what is the actual return value? Only is called when mining with a tool?
+pub unsafe fn get_craft_weapon_material_hook(fighter: &mut app::Fighter, kind: u64) -> i32 {
+    let ori = original!()(fighter, kind);
+    println!("Get Craft Weapon Material: {}",ori);
+    //return 6; // diamond
+    return ori;
+}*/
+
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
     module_accessor: &mut app::BattleObjectModuleAccessor,
