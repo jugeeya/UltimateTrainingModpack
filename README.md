@@ -115,6 +115,7 @@ When multiple options are selected, one of the selected options will be chosen a
 | Throw Options        | Throw to be performed when a grab is landed                                                 | None, Forward Throw, Back Throw, Up Throw, Down Throw                                                             |
 | Throw Delay          | How many frames to delay the throw option                                                   | 0 to 150 frames (2.5 seconds) in increments of 5 frames                                                           |
 | Pummel Delay         | How many frames after a grab to wait before starting to pummel                              | 0 to 150 frames (2.5 seconds) in increments of 5 frames                                                           |
+| Buff Options         | Buffs to be applied to respective character when loading save states                        | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit Break, KO Punch, One-Winged Angel            |
 | Input Delay          | Frames to delay player inputs by                                                            | 0 to 10 frames (0.167 seconds)                                                                                    |
 | Save Damage          | Should save states retain player/CPU damage                                                 | Yes, No                                                                                                           |
 | Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects                                   | Yes, No                                                                                                           |
@@ -144,6 +145,7 @@ SD Card Root
             │           ├── aerial_delay.svg
             │           ├── air_dodge_dir.svg
             │           ├── attack_angle.svg
+            │           ├── buff_state.svg
             │           ├── check.svg
             │           ├── defensive_state.svg
             │           ├── di_state.svg

@@ -42,6 +42,7 @@ pub static BASE_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu 
     throw_state: ThrowOption::NONE,
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
+    buff_state: BuffOption::empty(),
 };
 
 pub static mut DEFAULT_MENU: TrainingModpackMenu = BASE_MENU;

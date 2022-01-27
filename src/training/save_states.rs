@@ -4,6 +4,7 @@ use crate::common::consts::SaveStateMirroring;
 use crate::common::MENU;
 use crate::common::{get_random_int, is_dead};
 use crate::training::reset;
+use crate::training::buff;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -16,6 +17,7 @@ enum SaveState {
     KillPlayer,
     PosMove,
     NanaPosMove,
+    ApplyBuff,
 }
 
 struct SavedState {
@@ -147,6 +149,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
     let fighter_is_popo = fighter_kind == *FIGHTER_KIND_POPO; // For making sure Popo doesn't steal Nana's PosMove
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen savestates etc.
+    let fighter_is_buffable = [
+        *FIGHTER_KIND_BRAVE,
+        *FIGHTER_KIND_CLOUD,
+        *FIGHTER_KIND_JACK,
+        *FIGHTER_KIND_LITTLEMAC,
+        *FIGHTER_KIND_EDGE,
+        *FIGHTER_KIND_WIIFIT,
+    ]
+    .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
@@ -253,9 +264,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state.state = NoAction;
         }
 
-        // if we're done moving, reset percent
+        // if we're done moving, reset percent and apply buffs
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
+            if fighter_is_buffable {
+                save_state.state = ApplyBuff;
+            }
         }
 
         // if the fighter is Popo, change the state to one where only Nana can move
@@ -268,6 +282,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         return;
+    }
+    
+    if save_state.state == ApplyBuff { 
+        // needs its own save_state.state since this may take multiple frames, want it to loop
+        if buff::handle_buffs(module_accessor, fighter_kind, status, save_state.percent) { 
+            // returns true when done buffing fighter
+            buff::restart_buff(module_accessor); 
+            // set is_buffing back to false when done
+            save_state.state = NoAction; 
+        }
     }
 
     // Grab + Dpad down: Save state

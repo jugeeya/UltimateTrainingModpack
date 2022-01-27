@@ -502,6 +502,56 @@ impl ThrowOption {
 
 extra_bitflag_impls! {ThrowOption}
 
+// Buff Option
+bitflags! {
+    pub struct BuffOption : u32
+    {
+        const ACCELERATLE = 0x1;
+        const OOMPH = 0x2;
+        const PSYCHE = 0x4;
+        const BOUNCE = 0x8;
+        const ARSENE = 0x10;
+        const BREATHING = 0x20;
+        const LIMIT = 0x40;
+        const KO = 0x80;
+        const WING = 0x100;
+    }
+}
+
+impl BuffOption {
+    pub fn into_int(self) -> Option<i32> {
+        Some(match self {
+            BuffOption::ACCELERATLE => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND11_SPEED_UP,
+            BuffOption::OOMPH => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND12_ATTACK_UP,
+            BuffOption::PSYCHE => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND21_CHARGE,
+            BuffOption::BOUNCE => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND13_REFLECT,
+            BuffOption::BREATHING => 1,
+            BuffOption::ARSENE => 1,
+            BuffOption::LIMIT => 1,
+            BuffOption::KO => 1,
+            BuffOption::WING => 1,
+            _ => return None,
+        })
+    }
+
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            BuffOption::ACCELERATLE => "Acceleratle",
+            BuffOption::OOMPH => "Oomph",
+            BuffOption::BOUNCE => "Bounce",
+            BuffOption::PSYCHE => "Psyche Up",
+            BuffOption::BREATHING => "Deep Breathing",
+            BuffOption::ARSENE => "Arsene",
+            BuffOption::LIMIT => "Limit Break",
+            BuffOption::KO => "KO Punch",
+            BuffOption::WING => "One-Winged Angel",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {BuffOption}
+
 impl Delay {
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
@@ -836,6 +886,7 @@ url_params! {
         pub throw_state: ThrowOption,
         pub throw_delay: MedDelay,
         pub pummel_delay: MedDelay,
+        pub buff_state: BuffOption,
     }
 }
 
@@ -886,6 +937,7 @@ impl TrainingModpackMenu {
             throw_state = ThrowOption::from_bits(val),
             throw_delay = MedDelay::from_bits(val),
             pummel_delay = MedDelay::from_bits(val),
+            buff_state = BuffOption::from_bits(val),
         );
     }
 }

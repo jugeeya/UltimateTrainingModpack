@@ -503,6 +503,13 @@ pub unsafe fn write_menu() {
         MedDelay,
         "Pummel Delay: How many frames after a grab to wait before starting to pummel"
     );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Buff Options",
+        buff_state,
+        BuffOption,
+        "Buff Options: Buff(s) to be applied to respective character when loading save states"
+    );
 
     // Slider menus
     overall_menu.add_sub_menu(
