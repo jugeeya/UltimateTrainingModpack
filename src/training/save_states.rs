@@ -3,8 +3,8 @@ use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
 use crate::common::MENU;
 use crate::common::{get_random_int, is_dead};
-use crate::training::reset;
 use crate::training::buff;
+use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -283,14 +283,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
         return;
     }
-    
-    if save_state.state == ApplyBuff { 
+
+    if save_state.state == ApplyBuff {
         // needs its own save_state.state since this may take multiple frames, want it to loop
-        if buff::handle_buffs(module_accessor, fighter_kind, status, save_state.percent) { 
+        if buff::handle_buffs(module_accessor, fighter_kind, status, save_state.percent) {
             // returns true when done buffing fighter
-            buff::restart_buff(module_accessor); 
+            buff::restart_buff(module_accessor);
             // set is_buffing back to false when done
-            save_state.state = NoAction; 
+            save_state.state = NoAction;
         }
     }
 

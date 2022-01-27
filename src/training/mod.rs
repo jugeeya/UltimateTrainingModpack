@@ -7,6 +7,7 @@ use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::Hash40;
 
+pub mod buff;
 pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
@@ -15,7 +16,6 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod throw;
-pub mod buff;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -309,26 +309,41 @@ fn params_main(params_info: &ParamsInfo<'_>) {
 
 static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
 #[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
-pub unsafe fn handle_add_limit(add_limit: f32, module_accessor: &mut app::BattleObjectModuleAccessor, is_special_lw: u64) {
-    original!()(add_limit,module_accessor,is_special_lw)
+pub unsafe fn handle_add_limit(
+    add_limit: f32,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    is_special_lw: u64,
+) {
+    original!()(add_limit, module_accessor, is_special_lw)
 }
 
 #[skyline::hook(replace = EffectModule::req_screen)] // hooked to prevent the screen from darkening when loading a save state with One-Winged Angel
-pub unsafe fn handle_req_screen(module_accessor: &mut app::BattleObjectModuleAccessor, my_hash: Hash40, bool_1:bool, bool_2:bool, bool_3:bool) -> u64 {
+pub unsafe fn handle_req_screen(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    my_hash: Hash40,
+    bool_1: bool,
+    bool_2: bool,
+    bool_3: bool,
+) -> u64 {
     if !is_training_mode() {
-        return original!()(module_accessor,my_hash,bool_1,bool_2,bool_3);
+        return original!()(module_accessor, my_hash, bool_1, bool_2, bool_3);
     }
     let new_hash = my_hash.hash;
-    if new_hash == 72422354958 && buff::is_buffing(module_accessor) { // Wing bg hash
+    if new_hash == 72422354958 && buff::is_buffing(module_accessor) {
+        // Wing bg hash
         let replace_hash = Hash40::new("bg");
-        return original!()(module_accessor,replace_hash,bool_1,bool_2,bool_3);
+        return original!()(module_accessor, replace_hash, bool_1, bool_2, bool_3);
     }
-    original!()(module_accessor,my_hash,bool_1,bool_2,bool_3)
+    original!()(module_accessor, my_hash, bool_1, bool_2, bool_3)
 }
 
 #[skyline::hook(replace = app::FighterSpecializer_Jack::check_doyle_summon_dispatch)] // returns status of summon dispatch if triggered, -1 as u64 otherwise
-pub unsafe fn handle_check_doyle_summon_dispatch(module_accessor: &mut app::BattleObjectModuleAccessor, bool_1: bool, bool_2: bool) -> u64 {
-    let ori = original!()(module_accessor,bool_1,bool_2);
+pub unsafe fn handle_check_doyle_summon_dispatch(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    bool_1: bool,
+    bool_2: bool,
+) -> u64 {
+    let ori = original!()(module_accessor, bool_1, bool_2);
     if !is_training_mode() {
         return ori;
     }
