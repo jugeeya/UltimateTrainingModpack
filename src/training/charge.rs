@@ -14,9 +14,10 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // DK Punch, AttackPower thing? Unsure
 
-    /*
-    
-    */
+    if fighter_kind == FIGHTER_KIND_DONKEY {
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT) as f32;
+        return (my_charge, -1.0, -1.0);
+    }
 
     // Samus/Dark Samus Charge Shot
 
@@ -193,13 +194,19 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Mario Fludd
 
     if fighter_kind == FIGHTER_KIND_MARIO { // 0 to 80, flash
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE)
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE);
     }
 
     // DK Punch, AttackPower thing? Unsure
 
+    if fighter_kind == FIGHTER_KIND_DONKEY { // ? to ?, flash handled, need to do angry expression
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
+    }
+
+    // Samus (D) Charge Shot
+
     if fighter_kind == FIGHTER_KIND_SAMUS || fighter_kind == FIGHTER_KIND_SAMUSD { // 0 to 112, flash, gun sparks
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT)
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
     }
 
     // Sheik Needles
@@ -313,7 +320,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Steve Tools
 
-    if fighter_kind == FIGHTER_KIND_PICKEL { // 0 to ?? Flash, Gun sparks
+    if fighter_kind == FIGHTER_KIND_PICKEL {
         let extend_buffer = WorkModule::get_int64(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_EXTEND_BUFFER);
         
         let new_sword_mat = charge.0 as u8 as char;
