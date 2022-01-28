@@ -3,6 +3,7 @@ use smash::lib::lua_const::*;
 
 pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> (f32, f32, f32) {
     // Looks like I'm in the if else dimension again here, since we can't match with these pointers. We could always use the numbers directly and match, up to y'all.
+    // TODO: add elses so we spend less time in this function
     
     // Mario FLUDD
     
@@ -158,9 +159,13 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
     // Steve Tools
 
     if fighter_kind == FIGHTER_KIND_PICKEL {
-        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_HAVE_CRAFT_WEAPON_MATERIAL_KIND) as f32;
-        println!("Mat Kind: {}", my_charge);
-        return (my_charge, -1.0, -1.0);
+        let extend_buffer = WorkModule::get_int64(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_EXTEND_BUFFER);
+        //let buffer_pointer = extend_buffer;
+        let sword_mat: char = *(extend_buffer as *const char);
+        let axe_mat: char = *((extend_buffer + 0xC) as *const char);
+        let pick_mat: char = *((extend_buffer + 0xC + 0xC) as *const char);
+        println!("Sword: {}, Axe: {}, Pick: {}", sword_mat, axe_mat, pick_mat);
+        return (sword_mat as i32 as f32, axe_mat as i32 as f32, pick_mat as i32 as f32);
     }
 
     // Sora Spell
@@ -180,7 +185,7 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
     return (-1.0, -1.0, -1.0);
 }
 
-pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32, charge: (f32, f32, f32)) {
+pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32, charge: (f32, f32, f32)) { // add return;s?
     if charge.0 < 0.0 {
         return;
     }
@@ -309,8 +314,17 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Steve Tools
 
     if fighter_kind == FIGHTER_KIND_PICKEL { // 0 to ?? Flash, Gun sparks
-        println!("Setting as: {}", charge.0);
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_HAVE_CRAFT_WEAPON_MATERIAL_KIND)
+        let extend_buffer = WorkModule::get_int64(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_EXTEND_BUFFER);
+        
+        let new_sword_mat = charge.0 as u8 as char;
+        let new_axe_mat = charge.1 as u8 as char;
+        let new_pick_mat = charge.2 as u8 as char;
+
+
+        *(extend_buffer as *mut char) = new_sword_mat;
+        *((extend_buffer + 0xC) as *mut char) = new_axe_mat;
+        *((extend_buffer + 0xC + 0xC) as *mut char) = new_pick_mat;
+        println!("Setting! Sword: {}, Axe: {}, Pick: {}", new_sword_mat, new_axe_mat, new_pick_mat);
     }
 
     // Sora Spell

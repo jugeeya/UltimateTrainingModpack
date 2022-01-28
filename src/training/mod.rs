@@ -28,13 +28,56 @@ mod reset;
 mod save_states;
 mod shield_tilt;
 
-/*static CRAFT_OFFSET: usize = 0xf10840; // get_craft_weapon_material
+/*static CRAFT_OFFSET: usize = 0xf10840; // get_craft_weapon_material, this isn't used for what I need afaik
 #[skyline::hook(offset = CRAFT_OFFSET)] // what is the actual return value? Only is called when mining with a tool?
 pub unsafe fn get_craft_weapon_material_hook(fighter: &mut app::Fighter, kind: u64) -> i32 {
     let ori = original!()(fighter, kind);
     println!("Get Craft Weapon Material: {}",ori);
     //return 6; // diamond
+    if ori != -1 {
+        println!("Overriding with 6!");
+        return 6;
+    }
     return ori;
+}*/
+
+/*static SET_INT_OFFSET: usize = 0x4e4600;
+
+//#[skyline::hook(replace = WorkModule::set_int)]
+#[skyline::hook(offset = SET_INT_OFFSET)]
+pub unsafe fn handle_set_int(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    value: i32, // could be wrong order
+    address: i32,
+) {
+    if !is_training_mode() {
+        original!()(module_accessor, value, address);
+    }
+    // may need to be calling not this WorkModule set_int, but replacing the other set_int
+    // maybe should try stopping the get int? Unsure, especially because of how the extend buffer is used
+    
+    if address == *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_HAVE_CRAFT_WEAPON_MATERIAL_KIND { // doesn't seem to be called?
+        // probably isn't being called because the module_accessor is a Fighter? But isn't it normally?
+        // Maybe value and Address are switched?
+        println!("Address Match!");
+        let fighter_kind = app::utility::get_kind(module_accessor);
+        println!("Fighter Kind? = {}",fighter_kind);
+        if fighter_kind == *FIGHTER_KIND_PICKEL {
+            println!("Setting Material Kind to: {}",value);
+        }
+        println!("Setting Material Kind to: {}",value);
+        if value != -1 {
+            println!("Overriding with 6!");
+            original!()(module_accessor, 6, address);
+            return;
+        }
+        original!()(module_accessor, value, address);
+        return;
+    }
+
+    original!()(module_accessor, value, address);
+    return; // are these returns necessary?
+
 }*/
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
@@ -376,6 +419,8 @@ pub fn training_mods() {
         handle_is_enable_transition_term,
         // SDI
         crate::training::sdi::check_hit_stop_delay_command,
+        // Charge
+        //handle_set_int,
     );
 
     combo::init();
