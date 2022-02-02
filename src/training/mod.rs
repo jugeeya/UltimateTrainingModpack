@@ -6,6 +6,13 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 
+//se smash::phx::Vector3f;
+//smash::phx::Hash40;
+//debug?
+//use smash::lib::L2CValue;
+use smash::phx::{Hash40, Vector3f};
+
+
 pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
@@ -41,44 +48,102 @@ pub unsafe fn get_craft_weapon_material_hook(fighter: &mut app::Fighter, kind: u
     return ori;
 }*/
 
-/*static SET_INT_OFFSET: usize = 0x4e4600;
-
-//#[skyline::hook(replace = WorkModule::set_int)]
-#[skyline::hook(offset = SET_INT_OFFSET)]
-pub unsafe fn handle_set_int(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    value: i32, // could be wrong order
-    address: i32,
-) {
-    if !is_training_mode() {
-        original!()(module_accessor, value, address);
-    }
-    // may need to be calling not this WorkModule set_int, but replacing the other set_int
-    // maybe should try stopping the get int? Unsure, especially because of how the extend buffer is used
-    
-    if address == *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_HAVE_CRAFT_WEAPON_MATERIAL_KIND { // doesn't seem to be called?
-        // probably isn't being called because the module_accessor is a Fighter? But isn't it normally?
-        // Maybe value and Address are switched?
-        println!("Address Match!");
-        let fighter_kind = app::utility::get_kind(module_accessor);
-        println!("Fighter Kind? = {}",fighter_kind);
-        if fighter_kind == *FIGHTER_KIND_PICKEL {
-            println!("Setting Material Kind to: {}",value);
-        }
-        println!("Setting Material Kind to: {}",value);
-        if value != -1 {
-            println!("Overriding with 6!");
-            original!()(module_accessor, 6, address);
-            return;
-        }
-        original!()(module_accessor, value, address);
-        return;
-    }
-
-    original!()(module_accessor, value, address);
-    return; // are these returns necessary?
-
+/*static SPARK_OFFSET: usize = 0x005870;
+#[skyline::hook(offset = SPARK_OFFSET)]
+pub unsafe fn spark_hook(address: u64, fighter: &mut app::Fighter, req_follow: u64, val_at_address: u64, armr_hash: u64, float1: u64, float2: u64, float3: u64, float4: u64, float5: u64, float6: u64,float7: u64,bool_false: bool,int1: i32,int2: i32,int3: i32) {
+    println!("Spark Func");
+    original!()(address,fighter,req_follow,val_at_address,armr_hash,float1,float2,float3,float4,float5,float6,float7,bool_false,int1,int2,int3);
 }*/
+
+/*#[skyline::hook(replace = EffectModule::req_follow)]
+pub unsafe fn lua_handle_req_follow( // this is luabind, may need to hook the other one?
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    effect_hash: Hash40,
+    bone_hash: Hash40,
+    pos: *const Vector3f, // needs to be const?
+    rot: *const Vector3f, // needs to be const?
+    float: f32,
+    bool1: bool,
+    int1: i32,
+    int2: i32,
+    int3: i32,
+    int4: i32,
+    int5: i32,
+    bool2: bool,
+    bool3: bool,
+) -> u64 {
+    //println!("Lua Effect Requested!");
+    let ori = original!()(module_accessor, effect_hash, bone_hash, pos, rot, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    if !is_training_mode() {
+        return ori;
+    }
+    return ori;
+}*/
+
+static FOLLOW_OFFSET: usize = 0x44f860;
+#[skyline::hook(offset = FOLLOW_OFFSET)]
+pub unsafe fn handle_req_follow( // this is luabind, may need to hook the other one?
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    effect_hash: Hash40,
+    bone_hash: Hash40,
+    pos: *const Vector3f, // needs to be const?
+    rot: *const Vector3f, // needs to be const?
+    float: f32,
+    bool1: bool,
+    int1: i32,
+    int2: i32,
+    int3: i32,
+    int4: i32,
+    int5: i32,
+    bool2: bool,
+    bool3: bool,
+) -> u64 {
+    
+    let ori = original!()(module_accessor, effect_hash, bone_hash, pos, rot, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    if !is_training_mode() {
+        return ori;
+    }
+    println!("Address Effect Requested!");
+    let hero_hash = Hash40::new("brave_fire3_hold_max");
+    let samus_hash = Hash40::new("samusd_cshot_max");
+    let gunner_hash = Hash40::new("miigunner_cshot_max");
+    let reflet_hash = Hash40::new("reflet_specialn_max");
+    let plant_hash = Hash40::new("packun_poison_max");
+    let plant_hash2 = Hash40::new("packun_poison_max_smoke");
+    
+    if effect_hash == hero_hash {
+        println!("Hero!");
+        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
+        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    } else
+    if effect_hash == samus_hash {
+        println!("SamusD!");
+        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
+        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    } else
+    if effect_hash == gunner_hash {
+        println!("Gunner!");
+        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
+        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    } else
+    if effect_hash == reflet_hash {
+        println!("Robin!");
+        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
+        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    } else
+    if effect_hash == plant_hash {
+        println!("Plant!");
+        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
+        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    } else
+    if effect_hash == plant_hash2 {
+        println!("Plant Smoke!");
+        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
+        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+    }
+
+    return ori;
+}
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -421,6 +486,10 @@ pub fn training_mods() {
         crate::training::sdi::check_hit_stop_delay_command,
         // Charge
         //handle_set_int,
+        //spark_hook,
+        //lua_handle_req_follow,
+        handle_req_follow,
+
     );
 
     combo::init();

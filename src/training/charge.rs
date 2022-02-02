@@ -1,9 +1,11 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+use smash::phx::{Hash40, Vector3f};
 
 pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> (f32, f32, f32) {
     // Looks like I'm in the if else dimension again here, since we can't match with these pointers. We could always use the numbers directly and match, up to y'all.
     // TODO: add elses so we spend less time in this function
+    // Create all the hashes on startup so we can just call them later and save time?
     
     // Mario FLUDD
     
@@ -66,8 +68,6 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         return (my_charge, -1.0, -1.0);
     }
 
-    // Olimar Pikmin .-.
-
     // Lucario Aura Sphere
 
     if fighter_kind == FIGHTER_KIND_LUCARIO {
@@ -102,7 +102,6 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         let my_charge = WorkModule::get_int(module_accessor, 0x100000C1) as f32;
         let max_have = WorkModule::is_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
         let max_effect = WorkModule::is_flag(module_accessor, 0x200000E3);
-        println!("Rank: {}, max have: {}, max eff: {}",my_charge,max_have,max_effect);
         if max_have && max_effect {
             return (my_charge, 1.0, 1.0);
         }
@@ -169,13 +168,6 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         return (sword_mat as i32 as f32, axe_mat as i32 as f32, pick_mat as i32 as f32);
     }
 
-    // Sora Spell
-
-    /*if fighter_kind == FIGHTER_KIND_TRAIL {
-        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND) as f32;
-        return (my_charge, -1.0, -1.0);
-    }*/
-
     // Mii Gunner Charge Blast
 
     if fighter_kind == FIGHTER_KIND_MIIGUNNER {
@@ -195,24 +187,64 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     if fighter_kind == FIGHTER_KIND_MARIO { // 0 to 80, flash
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE);
+        if charge.0 as i32 == 80 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        }
     }
 
-    // DK Punch, AttackPower thing? Unsure
+    // DK Punch
 
     if fighter_kind == FIGHTER_KIND_DONKEY { // ? to ?, flash handled, need to do angry expression
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
+        /*if charge.0 as i32 == 110 {
+            // This prevents the flash and smoke from happening
+            WorkModule::on_flag(module_accessor,*FIGHTER_DONKEY_INSTANCE_WORK_ID_FLAG_N_EFFECT);
+        }*/
     }
 
     // Samus (D) Charge Shot
 
     if fighter_kind == FIGHTER_KIND_SAMUS || fighter_kind == FIGHTER_KIND_SAMUSD { // 0 to 112, flash, gun sparks
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
+        if charge.0 as i32 == 112 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            
+            let samus_cshot_hash;
+            if fighter_kind == FIGHTER_KIND_SAMUS {
+                samus_cshot_hash = Hash40::new("samus_cshot_max");
+            } else {
+                samus_cshot_hash = Hash40::new("samusd_cshot_max");
+            }
+            let joint_hash = Hash40::new("armr");
+            
+            let pos = Vector3f {
+                x: 7.98004,
+                y: -0.50584,
+                z: -0.25092,
+            };
+            
+            let rot = Vector3f {
+                x: -91.2728,
+                y: -1.7974,
+                z: 176.373,
+            };
+
+            let efh = EffectModule::req_follow(
+                module_accessor, samus_cshot_hash, 
+                joint_hash, &pos, &rot, 1.0, false,
+                0, 0, 0, 0, 0,
+                false, false);
+            WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
+        }
     }
 
     // Sheik Needles
 
     if fighter_kind == FIGHTER_KIND_SHEIK { // 0 to 6, flash, needles in hand
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT);
+        if charge.0 as i32 == 6 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        }
     }
 
     // Mewtwo Shadowball
@@ -230,6 +262,12 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     if fighter_kind == FIGHTER_KIND_GAMEWATCH { // 0 to 3, unk
         WorkModule::set_float(module_accessor, charge.0, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_GAUGE);
         WorkModule::set_float(module_accessor, charge.1, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_ATTACK);
+        if charge.0 == 3.0 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        } else {
+            // GnW flashes when successfully bucketing, and it will persist if state is loaded during that time, so we remove it here
+            EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
+        }
     }
 
     // Wario Waft
@@ -241,10 +279,11 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Squirtle Water Gun
 
     if fighter_kind == FIGHTER_KIND_PZENIGAME { // 0 to ?, flash
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE)
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE);
+        if charge.0 as i32 == 45 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        }
     }
-
-    // Olimar Pikmin .-.
 
     // Lucario Aura Sphere
 
@@ -262,6 +301,10 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
         WorkModule::set_float(module_accessor, charge.0, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE);
         WorkModule::set_float(module_accessor, charge.1, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_GYRO_CHARGE_VALUE);
         WorkModule::set_float(module_accessor, charge.2, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BURNER_ENERGY_VALUE);
+
+        if charge.1 as i32 == 90 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        }
     }
 
     // Wii Fit Sun Salutation
@@ -277,14 +320,15 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
         if charge.1 > 0.0 {
             WorkModule::on_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
         }
-        if charge.2 > 0.0 {
-            WorkModule::on_flag(module_accessor, 0x200000E3);
+        if charge.0 as i32 == 12 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
         }
     }
 
     // Robin Thunder Tome Spells
 
     if fighter_kind == FIGHTER_KIND_REFLET { // ? to ?, flash effect and hand lightning
+        println!("Charge: {}", charge.0);
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND);
     }
 
@@ -303,6 +347,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Plant Poison
 
     if fighter_kind == FIGHTER_KIND_PACKUN { // ? to ? (didn't check), just flashing?
+        println!("Charge: {}", charge.0);    
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT);
     }
 
@@ -331,19 +376,38 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
         *(extend_buffer as *mut char) = new_sword_mat;
         *((extend_buffer + 0xC) as *mut char) = new_axe_mat;
         *((extend_buffer + 0xC + 0xC) as *mut char) = new_pick_mat;
-        println!("Setting! Sword: {}, Axe: {}, Pick: {}", new_sword_mat, new_axe_mat, new_pick_mat);
     }
-
-    // Sora Spell
-
-    /*if fighter_kind == FIGHTER_KIND_TRAIL { // 
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND)
-    }*/
 
     // Mii Gunner Charge Blast
 
-    if fighter_kind == FIGHTER_KIND_MIIGUNNER { // 0 to ?? Flash, Gun sparks
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT)
+    if fighter_kind == FIGHTER_KIND_MIIGUNNER { // 0 to 120 Flash, Gun sparks
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT);
+        if charge.0 as i32 == 120 { // check
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            
+            let gunner_hash = Hash40::new("miigunner_cshot_max");
+            
+            let joint_hash = Hash40::new("armr"); // ? could be incorrect
+            
+            let pos = Vector3f {
+                x: 6.0,
+                y: 0.0,
+                z: 0.0,
+            };
+            
+            let rot = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+
+            let efh = EffectModule::req_follow(
+                module_accessor, gunner_hash, 
+                joint_hash, &pos, &rot, 1.0, false,
+                0, 0, 0, 0, 0,
+                false, false);
+            WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
+        }
     }
 
     return;
