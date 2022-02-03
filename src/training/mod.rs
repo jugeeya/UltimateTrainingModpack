@@ -82,7 +82,7 @@ pub unsafe fn lua_handle_req_follow( // this is luabind, may need to hook the ot
 
 static FOLLOW_OFFSET: usize = 0x44f860;
 #[skyline::hook(offset = FOLLOW_OFFSET)]
-pub unsafe fn handle_req_follow( // this is luabind, may need to hook the other one?
+pub unsafe fn handle_req_follow(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     effect_hash: Hash40,
     bone_hash: Hash40,
@@ -104,42 +104,45 @@ pub unsafe fn handle_req_follow( // this is luabind, may need to hook the other 
         return ori;
     }
     println!("Address Effect Requested!");
-    let hero_hash = Hash40::new("brave_fire3_hold_max");
-    let samus_hash = Hash40::new("samusd_cshot_max");
-    let gunner_hash = Hash40::new("miigunner_cshot_max");
-    let reflet_hash = Hash40::new("reflet_specialn_max");
-    let plant_hash = Hash40::new("packun_poison_max");
-    let plant_hash2 = Hash40::new("packun_poison_max_smoke");
-    
-    if effect_hash == hero_hash {
-        println!("Hero!");
+
+    let lucario_hadoudan_hold = Hash40::new("lucario_hadoudan_hold");
+    let lucario_hadoudan_max_hold = Hash40::new("lucario_hadoudan_max_hold");
+    let lucario_hadoudan_max_l = Hash40::new("lucario_hadoudan_max_l");
+    let lucario_hadoudan_max_r = Hash40::new("lucario_hadoudan_max_r");
+    let lucario_hadoudan_max_sign = Hash40::new("lucario_hadoudan_max_sign");
+    let lucario_hadoudan_tail = Hash40::new("lucario_hadoudan_tail");
+    let mewtwo_shadowball_max_hand = Hash40::new("mewtwo_shadowball_max_hand");
+
+    let print_hash = [
+        lucario_hadoudan_hold,
+        lucario_hadoudan_max_hold,
+        lucario_hadoudan_max_l,
+        lucario_hadoudan_max_r,
+        lucario_hadoudan_max_sign,
+        lucario_hadoudan_tail,
+        mewtwo_shadowball_max_hand,
+    ].contains(&effect_hash);
+
+    if effect_hash == lucario_hadoudan_hold {
+        println!("lucario_hadoudan_hold");
+    } else if effect_hash == lucario_hadoudan_max_hold {
+        println!("lucario_hadoudan_max_hold");
+    } else if effect_hash == lucario_hadoudan_max_l {
+        println!("lucario_hadoudan_max_l");
+    } else if effect_hash == lucario_hadoudan_max_r {
+        println!("lucario_hadoudan_max_r");
+    } else if effect_hash == lucario_hadoudan_max_sign {
+        println!("lucario_hadoudan_max_sign");
+    } else if effect_hash == lucario_hadoudan_tail {
+        println!("lucario_hadoudan_tail");
+    } else if effect_hash == mewtwo_shadowball_max_hand {
+        println!("mewtwo_shadowball_max_hand");
+    }
+
+    if print_hash {
         println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
         (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-    } else
-    if effect_hash == samus_hash {
-        println!("SamusD!");
-        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
-        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-    } else
-    if effect_hash == gunner_hash {
-        println!("Gunner!");
-        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
-        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-    } else
-    if effect_hash == reflet_hash {
-        println!("Robin!");
-        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
-        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-    } else
-    if effect_hash == plant_hash {
-        println!("Plant!");
-        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
-        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-    } else
-    if effect_hash == plant_hash2 {
-        println!("Plant Smoke!");
-        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
-        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
+        println!("Bone Hash: {}",bone_hash.hash);
     }
 
     return ori;

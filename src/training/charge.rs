@@ -6,7 +6,8 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
     // Looks like I'm in the if else dimension again here, since we can't match with these pointers. We could always use the numbers directly and match, up to y'all.
     // TODO: add elses so we spend less time in this function
     // Create all the hashes on startup so we can just call them later and save time?
-    
+    // Make a function to handle effects?
+
     // Mario FLUDD
     
     if fighter_kind == FIGHTER_KIND_MARIO {
@@ -233,7 +234,8 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 module_accessor, samus_cshot_hash, 
                 joint_hash, &pos, &rot, 1.0, false,
                 0, 0, 0, 0, 0,
-                false, false);
+                false, false
+            );
             WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
         }
     }
@@ -254,6 +256,42 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
         WorkModule::set_int(module_accessor, charge.1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME);
         if charge.2 > 0.0 {
             WorkModule::on_flag(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
+        }
+
+        if charge.1 == 120.0 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            
+            let effect_hash = Hash40::new("mewtwo_shadowball_max_hand");
+
+            let joint_hash_1 = Hash40::new("handl");
+            let joint_hash_2 = Hash40::new("handr");
+            
+            let pos = Vector3f {
+                x: 1.0,
+                y: 0.5,
+                z: 0.0,
+            };
+            
+            let rot = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+
+            let efh_1 = EffectModule::req_follow(
+                module_accessor, effect_hash, 
+                joint_hash_1, &pos, &rot, 1.0, false,
+                0, 0, -1, 0, 0,
+                false, false
+            );
+            let efh_2 = EffectModule::req_follow(
+                module_accessor, effect_hash, 
+                joint_hash_2, &pos, &rot, 1.0, false,
+                0, 0, -1, 0, 0,
+                false, false
+            );
+            WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_L);
+            WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_R);
         }
     }
 
@@ -293,6 +331,51 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
         if charge.2 > 0.0 {
             WorkModule::on_flag(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD);
         }
+
+        if charge.1 == 90.0 {
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            
+            let effect_hash_1 = Hash40::new("lucario_hadoudan_max_l");
+            let effect_hash_2 = Hash40::new("lucario_hadoudan_max_r");
+            //let effect_hash_2 = Hash40::new("lucario_hadoudan_max_hold");
+
+            let joint_hash_1 = Hash40::new("handl");
+            let joint_hash_2 = Hash40::new("handr");
+            //let joint_hash_3 = Hash40::new("top");
+            
+            let pos = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+            
+            let rot = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+
+            let efh_1 = EffectModule::req_follow(
+                module_accessor, effect_hash_1, 
+                joint_hash_1, &pos, &rot, 1.0, false,
+                0, 0, -1, 0, 0,
+                false, false
+            );
+            let efh_2 = EffectModule::req_follow(
+                module_accessor, effect_hash_2, 
+                joint_hash_2, &pos, &rot, 1.0, false,
+                0, 0, -1, 0, 0,
+                false, false
+            );
+            /*let efh_3 = EffectModule::req_follow(
+                module_accessor, effect_hash, 
+                joint_hash_2, &pos, &rot, 1.0, false,
+                49512, 0, -1, 0, 0,
+                false, false
+            );*/
+            WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_L);
+            WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_R);
+        }
     }
 
     // ROB Gyro/Laser/Fuel
@@ -327,28 +410,65 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Robin Thunder Tome Spells
 
-    if fighter_kind == FIGHTER_KIND_REFLET { // ? to ?, flash effect and hand lightning
-        println!("Charge: {}", charge.0);
+    if fighter_kind == FIGHTER_KIND_REFLET { // 0 to 3, flash effect and hand lightning
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND);
-    }
+        if charge.0 as i32 == 3 { 
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            
+            let reflet_hash = Hash40::new("reflet_thunder_max");            
+            let joint_hash = Hash40::new("handl");
+            
+            let pos = Vector3f {
+                x: 1.0,
+                y: 2.0,
+                z: 0.0,
+            };
+            
+            let rot = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
 
-    // Incineroar Revenge
-
-    if fighter_kind == FIGHTER_KIND_GAOGAEN { // WIP
-        //WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_ATTACK_HIT_REVENGE_ATTACK_NO);
-        //WorkModule::set_float(module_accessor, charge.0, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_TOTAL_DAMAGE);
-        WorkModule::set_float(module_accessor, charge.0, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_RATE);
-
-        if charge.1 > 0.0 {
-            WorkModule::on_flag(module_accessor, *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE);
+            EffectModule::req_follow(
+                module_accessor, reflet_hash, 
+                joint_hash, &pos, &rot, 1.0, false,
+                0, 0, -1, 0, 0,
+                false, false
+            );
         }
     }
 
     // Plant Poison
 
-    if fighter_kind == FIGHTER_KIND_PACKUN { // ? to ? (didn't check), just flashing?
-        println!("Charge: {}", charge.0);    
+    if fighter_kind == FIGHTER_KIND_PACKUN { // 0 to 75 (didn't check), just flashing?  
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT);
+        if charge.0 as i32 == 75 { 
+            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            
+            let plant_hash = Hash40::new("packun_poison_max_smoke");            
+            let joint_hash = Hash40::new("hip");
+            
+            let pos = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+            
+            let rot = Vector3f {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
+
+            let efh = EffectModule::req_follow(
+                module_accessor, plant_hash, 
+                joint_hash, &pos, &rot, 1.0, false,
+                32768, 0, -1, 0, 0,
+                false, false
+            );
+            WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_CHARGE_MAX_EFFECT_HANDLE);
+        }
     }
 
     // Hero (Ka)frizz(le)
@@ -405,7 +525,8 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 module_accessor, gunner_hash, 
                 joint_hash, &pos, &rot, 1.0, false,
                 0, 0, 0, 0, 0,
-                false, false);
+                false, false
+            );
             WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
         }
     }
