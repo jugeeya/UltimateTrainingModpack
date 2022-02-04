@@ -1,4 +1,4 @@
-use smash::app::{self, lua_bind::*};
+use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterUtil, FighterFacial};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
@@ -195,12 +195,11 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // DK Punch
 
-    if fighter_kind == FIGHTER_KIND_DONKEY { // ? to ?, flash handled, need to do angry expression
+    if fighter_kind == FIGHTER_KIND_DONKEY { // 0 to 110, flash handled, need to do angry expression
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
-        /*if charge.0 as i32 == 110 {
-            // This prevents the flash and smoke from happening
-            WorkModule::on_flag(module_accessor,*FIGHTER_DONKEY_INSTANCE_WORK_ID_FLAG_N_EFFECT);
-        }*/
+        if charge.0 as i32 == 110 {
+            FighterUtil::set_face_motion_by_priority(module_accessor,FighterFacial(*FIGHTER_FACIAL_SPECIAL), Hash40::new("special_n_max_face"));
+        }
     }
 
     // Samus (D) Charge Shot
@@ -244,8 +243,23 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     if fighter_kind == FIGHTER_KIND_SHEIK { // 0 to 6, flash, needles in hand
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT);
-        if charge.0 as i32 == 6 {
+        ArticleModule::generate_article_enable(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, false, -1);
+        let hash_main = Hash40::new("set_main");
+        if charge.0 == 6.0 {
             EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, hash_main, Hash40::new("group_main_default"),ArticleOperationTarget(0));
+        } else if charge.0 == 5.0 {
+            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, hash_main, Hash40::new("group_main_5"),ArticleOperationTarget(0));
+        } else if charge.0 == 4.0 {
+            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, hash_main, Hash40::new("group_main_4"),ArticleOperationTarget(0));
+        } else if charge.0 == 3.0 {
+            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, hash_main, Hash40::new("group_main_3"),ArticleOperationTarget(0));
+        } else if charge.0 == 2.0 {
+            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, hash_main, Hash40::new("group_main_2"),ArticleOperationTarget(0));
+        } else if charge.0 == 1.0 {
+            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, hash_main, Hash40::new("group_main_1"),ArticleOperationTarget(0));
+        } else if charge.0 == 0.0 {
+            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, hash_main, Hash40::new("group_main_0"),ArticleOperationTarget(0));
         }
     }
 
@@ -474,13 +488,13 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Hero (Ka)frizz(le)
 
     if fighter_kind == FIGHTER_KIND_BRAVE { // 0 to 81, flash, fire on hand all handled already
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME)
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
     }
 
     // Banjo Wonderwing
 
     if fighter_kind == FIGHTER_KIND_BUDDY {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN)
+        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN);
     }
 
     // Steve Tools
