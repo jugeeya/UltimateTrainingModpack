@@ -488,6 +488,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Hero (Ka)frizz(le)
 
     if fighter_kind == FIGHTER_KIND_BRAVE { // 0 to 81, flash, fire on hand all handled already
+        WorkModule::off_flag(module_accessor, 0x200000E8);
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
     }
 

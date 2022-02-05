@@ -105,38 +105,14 @@ pub unsafe fn handle_req_follow(
     }
     println!("Address Effect Requested!");
 
-    let lucario_hadoudan_hold = Hash40::new("lucario_hadoudan_hold");
-    let lucario_hadoudan_max_hold = Hash40::new("lucario_hadoudan_max_hold");
-    let lucario_hadoudan_max_l = Hash40::new("lucario_hadoudan_max_l");
-    let lucario_hadoudan_max_r = Hash40::new("lucario_hadoudan_max_r");
-    let lucario_hadoudan_max_sign = Hash40::new("lucario_hadoudan_max_sign");
-    let lucario_hadoudan_tail = Hash40::new("lucario_hadoudan_tail");
-    let mewtwo_shadowball_max_hand = Hash40::new("mewtwo_shadowball_max_hand");
+    let brave_fire3_hold_max = Hash40::new("brave_fire3_hold_max");
 
     let print_hash = [
-        lucario_hadoudan_hold,
-        lucario_hadoudan_max_hold,
-        lucario_hadoudan_max_l,
-        lucario_hadoudan_max_r,
-        lucario_hadoudan_max_sign,
-        lucario_hadoudan_tail,
-        mewtwo_shadowball_max_hand,
+        brave_fire3_hold_max,
     ].contains(&effect_hash);
 
-    if effect_hash == lucario_hadoudan_hold {
-        println!("lucario_hadoudan_hold");
-    } else if effect_hash == lucario_hadoudan_max_hold {
-        println!("lucario_hadoudan_max_hold");
-    } else if effect_hash == lucario_hadoudan_max_l {
-        println!("lucario_hadoudan_max_l");
-    } else if effect_hash == lucario_hadoudan_max_r {
-        println!("lucario_hadoudan_max_r");
-    } else if effect_hash == lucario_hadoudan_max_sign {
-        println!("lucario_hadoudan_max_sign");
-    } else if effect_hash == lucario_hadoudan_tail {
-        println!("lucario_hadoudan_tail");
-    } else if effect_hash == mewtwo_shadowball_max_hand {
-        println!("mewtwo_shadowball_max_hand");
+    if effect_hash == brave_fire3_hold_max {
+        println!("brave_fire3_hold_max");
     }
 
     if print_hash {
