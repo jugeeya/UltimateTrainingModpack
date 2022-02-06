@@ -6,13 +6,6 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 
-//se smash::phx::Vector3f;
-//smash::phx::Hash40;
-//debug?
-//use smash::lib::L2CValue;
-use smash::phx::{Hash40, Vector3f};
-
-
 pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
@@ -34,95 +27,6 @@ mod mash;
 mod reset;
 mod save_states;
 mod shield_tilt;
-
-/*static CRAFT_OFFSET: usize = 0xf10840; // get_craft_weapon_material, this isn't used for what I need afaik
-#[skyline::hook(offset = CRAFT_OFFSET)] // what is the actual return value? Only is called when mining with a tool?
-pub unsafe fn get_craft_weapon_material_hook(fighter: &mut app::Fighter, kind: u64) -> i32 {
-    let ori = original!()(fighter, kind);
-    println!("Get Craft Weapon Material: {}",ori);
-    //return 6; // diamond
-    if ori != -1 {
-        println!("Overriding with 6!");
-        return 6;
-    }
-    return ori;
-}*/
-
-/*static SPARK_OFFSET: usize = 0x005870;
-#[skyline::hook(offset = SPARK_OFFSET)]
-pub unsafe fn spark_hook(address: u64, fighter: &mut app::Fighter, req_follow: u64, val_at_address: u64, armr_hash: u64, float1: u64, float2: u64, float3: u64, float4: u64, float5: u64, float6: u64,float7: u64,bool_false: bool,int1: i32,int2: i32,int3: i32) {
-    println!("Spark Func");
-    original!()(address,fighter,req_follow,val_at_address,armr_hash,float1,float2,float3,float4,float5,float6,float7,bool_false,int1,int2,int3);
-}*/
-
-/*#[skyline::hook(replace = EffectModule::req_follow)]
-pub unsafe fn lua_handle_req_follow( // this is luabind, may need to hook the other one?
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    effect_hash: Hash40,
-    bone_hash: Hash40,
-    pos: *const Vector3f, // needs to be const?
-    rot: *const Vector3f, // needs to be const?
-    float: f32,
-    bool1: bool,
-    int1: i32,
-    int2: i32,
-    int3: i32,
-    int4: i32,
-    int5: i32,
-    bool2: bool,
-    bool3: bool,
-) -> u64 {
-    //println!("Lua Effect Requested!");
-    let ori = original!()(module_accessor, effect_hash, bone_hash, pos, rot, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-    if !is_training_mode() {
-        return ori;
-    }
-    return ori;
-}*/
-
-static FOLLOW_OFFSET: usize = 0x44f860;
-#[skyline::hook(offset = FOLLOW_OFFSET)]
-pub unsafe fn handle_req_follow(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    effect_hash: Hash40,
-    bone_hash: Hash40,
-    pos: *const Vector3f, // needs to be const?
-    rot: *const Vector3f, // needs to be const?
-    float: f32,
-    bool1: bool,
-    int1: i32,
-    int2: i32,
-    int3: i32,
-    int4: i32,
-    int5: i32,
-    bool2: bool,
-    bool3: bool,
-) -> u64 {
-    
-    let ori = original!()(module_accessor, effect_hash, bone_hash, pos, rot, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-    if !is_training_mode() {
-        return ori;
-    }
-    println!("Address Effect Requested!");
-
-    let brave_fire3_hold_max = Hash40::new("brave_fire3_hold_max");
-
-    let print_hash = [
-        brave_fire3_hold_max,
-    ].contains(&effect_hash);
-
-    if effect_hash == brave_fire3_hold_max {
-        println!("brave_fire3_hold_max");
-    }
-
-    if print_hash {
-        println!("PosX: {}, PosY: {}, PosZ: {}, RotX: {}, RotY: {}, RotZ: {}, Float: {}, bool1: {}, int1: {}, int2: {}, int3: {}, int4: {}, int5: {}, bool2: {}, bool3: {}",
-        (*pos).x, (*pos).y, (*pos).z, (*rot).x, (*rot).y, (*rot).z, float, bool1, int1, int2, int3, int4, int5, bool2, bool3);
-        println!("Bone Hash: {}",bone_hash.hash);
-    }
-
-    return ori;
-}
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -463,12 +367,6 @@ pub fn training_mods() {
         handle_is_enable_transition_term,
         // SDI
         crate::training::sdi::check_hit_stop_delay_command,
-        // Charge
-        //handle_set_int,
-        //spark_hook,
-        //lua_handle_req_follow,
-        handle_req_follow,
-
     );
 
     combo::init();

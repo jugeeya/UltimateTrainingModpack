@@ -260,12 +260,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
 
-            // add charge
-            if save_state.fighter_kind == fighter_kind { // make sure the wrong variables don't get applied to - does this cause problems with squirtle?
+            // Add Charge - Make sure the fighter doesn't have the wrong variables applied to them
+            if save_state.fighter_kind == fighter_kind {
                 charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
             }
-            // pass in fighter kind since it's more efficient than pulling it twice?
-
         }
 
         // if the fighter is Popo, change the state to one where only Nana can move

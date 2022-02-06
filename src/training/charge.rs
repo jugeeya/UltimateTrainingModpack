@@ -4,7 +4,7 @@ use smash::phx::{Hash40, Vector3f};
 
 pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> (f32, f32, f32) {
     // Looks like I'm in the if else dimension again here, since we can't match with these pointers. We could always use the numbers directly and match, up to y'all.
-    // Should we create all the hashes on startup so we can just grab them later and save time?
+    // Should we create all the hashes on startup so we can just grab them later and save time? If so, as static variables, or as parts of static hash maps?
     // Make a function to handle requesting effects? (Takes input ints and fighter and such and creates the data structures we need, as well as choosing the hashes)
 
     // Mario FLUDD
@@ -172,7 +172,6 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
         if charge.0 as i32 == 112 {
             EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            
             let samus_cshot_hash;
             if fighter_kind == FIGHTER_KIND_SAMUS {
                 samus_cshot_hash = Hash40::new("samus_cshot_max");
@@ -180,19 +179,16 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 samus_cshot_hash = Hash40::new("samusd_cshot_max");
             }
             let joint_hash = Hash40::new("armr");
-            
             let pos = Vector3f {
                 x: 7.98004,
                 y: -0.50584,
                 z: -0.25092,
             };
-            
             let rot = Vector3f {
                 x: -91.2728,
                 y: -1.7974,
                 z: 176.373,
             };
-
             let efh = EffectModule::req_follow(
                 module_accessor, samus_cshot_hash, 
                 joint_hash, &pos, &rot, 1.0, false,
