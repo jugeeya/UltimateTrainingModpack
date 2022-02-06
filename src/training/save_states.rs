@@ -3,6 +3,7 @@ use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
 use crate::common::MENU;
 use crate::common::{get_random_int, is_dead};
+use crate::training::buff;
 use crate::training::reset;
 use crate::training::charge;
 use smash::app::{self, lua_bind::*};
@@ -17,6 +18,7 @@ enum SaveState {
     KillPlayer,
     PosMove,
     NanaPosMove,
+    ApplyBuff,
 }
 
 struct SavedState {
@@ -150,6 +152,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
     let fighter_is_popo = fighter_kind == *FIGHTER_KIND_POPO; // For making sure Popo doesn't steal Nana's PosMove
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen savestates etc.
+    let fighter_is_buffable = [
+        *FIGHTER_KIND_BRAVE,
+        *FIGHTER_KIND_CLOUD,
+        *FIGHTER_KIND_JACK,
+        *FIGHTER_KIND_LITTLEMAC,
+        *FIGHTER_KIND_EDGE,
+        *FIGHTER_KIND_WIIFIT,
+    ]
+    .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
     if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
@@ -256,13 +267,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state.state = NoAction;
         }
 
-        // if we're done moving, reset percent
+        // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
-
-            // Add Charge - Make sure the fighter doesn't have the wrong variables applied to them
+            // Set the charge of special moves if the fighter matches the kind in the save state
             if save_state.fighter_kind == fighter_kind {
                 charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
+            }
+            // Buff the fighter if they're one of the fighters who can be buffed
+            if fighter_is_buffable {
+                save_state.state = ApplyBuff;
             }
         }
 
@@ -276,6 +290,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         return;
+    }
+
+    if save_state.state == ApplyBuff {
+        // needs its own save_state.state since this may take multiple frames, want it to loop
+        if buff::handle_buffs(module_accessor, fighter_kind, status, save_state.percent) {
+            // returns true when done buffing fighter
+            buff::restart_buff(module_accessor);
+            // set is_buffing back to false when done
+            save_state.state = NoAction;
+        }
     }
 
     // Grab + Dpad down: Save state
