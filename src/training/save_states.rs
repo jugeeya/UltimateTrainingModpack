@@ -27,7 +27,6 @@ struct SavedState {
     situation_kind: i32,
     state: SaveState,
     fighter_kind: i32,
-    //charge_old: f32,
     charge: (f32,f32,f32),
 }
 
@@ -41,7 +40,6 @@ macro_rules! default_save_state {
             situation_kind: 0,
             state: NoAction,
             fighter_kind: -1,
-            //charge_old: -1.0,
             charge: (-1.0,-1.0,-1.0),
         }
     };
