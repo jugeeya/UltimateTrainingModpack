@@ -1,12 +1,12 @@
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
+use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::Hash40;
-use skyline::hooks::{InlineCtx, Region, getRegionAddress};
 
 pub mod buff;
 pub mod combo;
