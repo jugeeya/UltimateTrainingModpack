@@ -1,5 +1,6 @@
 use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
 use crate::hitbox_visualizer;
+use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, lua_bind::*};
@@ -356,6 +357,27 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
     return ori;
 }
 
+// Set Stale Moves to On
+static STALE_OFFSET: usize = 0x013e88a4;
+// One instruction after stale moves toggle register is set to 0
+#[skyline::hook(offset=STALE_OFFSET, inline)]
+unsafe fn stale_handle(ctx: &mut InlineCtx) {
+    let x22 = ctx.registers[22].x.as_mut();
+    let training_structure_address = (*x22 + 0xb60) as *mut u8;
+    *training_structure_address = 1;
+}
+
+// Set Stale Moves to On in the menu text
+static STALE_MENU_OFFSET: usize = 0x013e88a0;
+// One instruction after menu text register is set to off
+#[skyline::hook(offset=STALE_MENU_OFFSET, inline)]
+unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
+    // Set the text pointer to where "mel_training_on" is located
+    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x42b215e as u64)) as u64;
+    let x1 = ctx.registers[1].x.as_mut();
+    *x1 = on_text_ptr;
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState, *const u32));
@@ -418,10 +440,12 @@ pub fn training_mods() {
         // SDI
         crate::training::sdi::check_hit_stop_delay_command,
         // Buffs
-        //get_param_float_hook,
         handle_add_limit,
         handle_check_doyle_summon_dispatch,
         handle_req_screen,
+        // Stale Moves
+        stale_handle,
+        stale_menu_handle,
     );
 
     combo::init();
