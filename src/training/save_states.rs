@@ -10,6 +10,8 @@ use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+//
+use crate::training::character_specific::steve;
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -30,6 +32,7 @@ struct SavedState {
     state: SaveState,
     fighter_kind: i32,
     charge: (f32,f32,f32),
+    steve_state: steve::SteveState,
 }
 
 macro_rules! default_save_state {
@@ -43,6 +46,23 @@ macro_rules! default_save_state {
             state: NoAction,
             fighter_kind: -1,
             charge: (-1.0,-1.0,-1.0),
+            steve_state: steve::SteveState {
+                mat_g1: 0,
+                mat_wood: 0,
+                mat_stone: 0,
+                mat_iron: 0,
+                mat_gold: 0,
+                mat_redstone: 0,
+                mat_diamond: 0,
+                sword_mat: 0 as char,
+                sword_durability: 0.0,
+                axe_mat: 0 as char,
+                axe_durability: 0.0,
+                pick_mat: 0 as char,
+                pick_durability: 0.0,
+                shovel_mat: 0 as char,
+                shovel_durability: 0.0,
+            }
         }
     };
 }
@@ -278,6 +298,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             if fighter_is_buffable {
                 save_state.state = ApplyBuff;
             }
+            // Perform fighter specific loading actions
+            steve::load_steve_state(module_accessor,save_state.steve_state);
         }
 
         // if the fighter is Popo, change the state to one where only Nana can move
@@ -325,6 +347,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // Always store fighter kind so that charges are handled properly
         save_state.fighter_kind = app::utility::get_kind(module_accessor);
         save_state.charge = charge::get_charge(module_accessor, fighter_kind);
+        // Perform fighter specific saving actions
+        save_state.steve_state = steve::save_steve_state(module_accessor).unwrap_or(save_state.steve_state);
 
         let zeros = Vector3f {
             x: 0.0,

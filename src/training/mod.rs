@@ -378,6 +378,30 @@ unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     *x1 = on_text_ptr;
 }
 
+/*
+static STEVE_METER_OFFSET: usize = 0x00f04850; // this function is used to update Steve's material meter.
+// Hooking it here so we can call it in character_specific/steve.rs
+#[skyline::hook(offset = STEVE_METER_OFFSET)]
+pub unsafe fn handle_steve_meter(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) {
+    let material = WorkModule::get_int(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_MATERIAL_KIND_FOR_UI);
+    println!("Steve UI Material: {}",material as u8 as char);
+    original!()(module_accessor)
+}
+*/
+
+static STEVE_SUB_OFFSET: usize = 0x00f0dc50; // this function is used to update Steve's material meter.
+// Hooking it here so we can call it in character_specific/steve.rs
+#[skyline::hook(offset = STEVE_SUB_OFFSET)]
+pub unsafe fn handle_steve_meter(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    arg2: i32,
+    arg3: i32,
+) {
+    original!()(module_accessor,arg2,arg3)
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState, *const u32));
@@ -446,6 +470,7 @@ pub fn training_mods() {
         // Stale Moves
         stale_handle,
         stale_menu_handle,
+        handle_steve_meter,
     );
 
     combo::init();
