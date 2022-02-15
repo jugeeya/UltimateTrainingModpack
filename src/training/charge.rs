@@ -127,15 +127,6 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         return (my_charge, -1.0, -1.0);
     }
 
-    // Steve Tools
-    if fighter_kind == FIGHTER_KIND_PICKEL {
-        let extend_buffer = WorkModule::get_int64(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_EXTEND_BUFFER);
-        let sword_mat: char = *(extend_buffer as *const char);
-        let axe_mat: char = *((extend_buffer + 0xC) as *const char);
-        let pick_mat: char = *((extend_buffer + 0xC + 0xC) as *const char);
-        return (sword_mat as i32 as f32, axe_mat as i32 as f32, pick_mat as i32 as f32);
-    }
-
     // Mii Gunner Charge Blast
     if fighter_kind == FIGHTER_KIND_MIIGUNNER {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT) as f32;
@@ -451,19 +442,6 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
     // Banjo Wonderwing - 0 to 5
     else if fighter_kind == FIGHTER_KIND_BUDDY {
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN);
-    }
-
-    // Steve Tools - Buffer manipulation
-    else if fighter_kind == FIGHTER_KIND_PICKEL {
-        let extend_buffer = WorkModule::get_int64(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_EXTEND_BUFFER);
-
-        let new_sword_mat = charge.0 as u8 as char;
-        let new_axe_mat = charge.1 as u8 as char;
-        let new_pick_mat = charge.2 as u8 as char;
-
-        *(extend_buffer as *mut char) = new_sword_mat;
-        *((extend_buffer + 0xC) as *mut char) = new_axe_mat;
-        *((extend_buffer + 0xC + 0xC) as *mut char) = new_pick_mat;
     }
 
     return;
