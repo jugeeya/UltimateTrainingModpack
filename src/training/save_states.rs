@@ -277,7 +277,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     module_accessor,
                     Hash40::new("se_system_position_reset"),
                     true,
-                    true
+                    true,
                 );
             }
         }

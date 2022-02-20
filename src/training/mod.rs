@@ -3,7 +3,7 @@ use crate::hitbox_visualizer;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
-use smash::app::{self, lua_bind::*, enSEType};
+use smash::app::{self, enSEType, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
@@ -385,14 +385,30 @@ pub unsafe fn handle_se(
     bool2: bool,
     bool3: bool,
     bool4: bool,
-    se_type: enSEType
+    se_type: enSEType,
 ) -> u64 {
     // Make effects silent while we're killing fighters. Stops death explosion and fighter misfoot.
     if save_states::is_killing() {
         let silent_hash = Hash40::new("se_silent");
-        return original!()(module_accessor,silent_hash,bool1,bool2,bool3,bool4,se_type);
+        return original!()(
+            module_accessor,
+            silent_hash,
+            bool1,
+            bool2,
+            bool3,
+            bool4,
+            se_type,
+        );
     }
-    original!()(module_accessor, my_hash,bool1,bool2,bool3,bool4,se_type)
+    original!()(
+        module_accessor,
+        my_hash,
+        bool1,
+        bool2,
+        bool3,
+        bool4,
+        se_type,
+    )
 }
 
 #[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
@@ -402,16 +418,36 @@ pub unsafe fn handle_effect(
     pos: *const Vector3f,
     rot: *const Vector3f,
     size: f32,
-    arg6: u32, 
-    arg7: i32, 
-    arg8: bool, 
-    arg9: i32
+    arg6: u32,
+    arg7: i32,
+    arg8: bool,
+    arg9: i32,
 ) -> u64 {
     if save_states::is_killing() {
         // Making the size 0 prevents these effects from being displayed. Fixs throw explosions, ICs squall, etc.
-        return original!()(module_accessor,eff_hash,pos,rot,0.0,arg6,arg7,arg8,arg9);
+        return original!()(
+            module_accessor,
+            eff_hash,
+            pos,
+            rot,
+            0.0,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+        );
     }
-    original!()(module_accessor,eff_hash,pos,rot,size,arg6,arg7,arg8,arg9)
+    original!()(
+        module_accessor,
+        eff_hash,
+        pos,
+        rot,
+        size,
+        arg6,
+        arg7,
+        arg8,
+        arg9,
+    )
 }
 
 #[allow(improper_ctypes)]
