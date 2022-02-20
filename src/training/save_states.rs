@@ -270,6 +270,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             if fighter_is_buffable {
                 save_state.state = ApplyBuff;
             }
+            // Play Training Reset SFX, since silence is eerie
+            // Only play for the CPU so we don't have 2 overlapping
+            if is_cpu {
+                SoundModule::play_se_no3d(
+                    module_accessor,
+                    Hash40::new("se_system_position_reset"),
+                    true,
+                    true
+                );
+            }
         }
 
         // if the fighter is Popo, change the state to one where only Nana can move

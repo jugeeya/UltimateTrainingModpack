@@ -7,6 +7,8 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::Hash40;
+use smash::app::enSEType;
+use skyline::logging::print_stack_trace;
 
 pub mod buff;
 pub mod combo;
@@ -376,6 +378,43 @@ unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     let x1 = ctx.registers[1].x.as_mut();
     *x1 = on_text_ptr;
 }
+/*
+#[skyline::hook(replace = SoundModule::play_down_se)] // hooked to prevent the screen from darkening when loading a save state with One-Winged Angel
+pub unsafe fn handle_down_se(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    my_hash: Hash40
+) -> u64 {
+    //let new_hash = my_hash.hash;
+    //if new_hash == 72422354958 {
+        //return original!()(module_accessor, replace_hash);
+    //}
+    println!("Down SFX!");
+    original!()(module_accessor, my_hash)
+}
+*/
+#[skyline::hook(replace = SoundModule::play_se)] // hooked to prevent death sfx from playing when loading save states
+pub unsafe fn handle_se(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    my_hash: Hash40,
+    bool1: bool,
+    bool2: bool,
+    bool3: bool,
+    bool4: bool,
+    se_type: enSEType
+) -> u64 {
+    let se_hash = my_hash.hash;
+    if se_hash == 88374189363 && save_states::is_killing() { // se_common_stage_fall
+        println!("Death attempt!");
+        //let silent_hash = Hash40::new("se_system_position_reset");
+        let silent_hash = Hash40::new("se_silent");
+        return original!()(module_accessor,silent_hash,bool1,bool2,bool3,bool4,se_type);
+    } else if save_states::is_killing() {
+        println!("Misfoot!");
+        print_stack_trace();
+    }
+    println!("SE Hash: {}",se_hash);
+    original!()(module_accessor, my_hash,bool1,bool2,bool3,bool4,se_type)
+}
 
 #[allow(improper_ctypes)]
 extern "C" {
@@ -445,6 +484,8 @@ pub fn training_mods() {
         // Stale Moves
         stale_handle,
         stale_menu_handle,
+        // Death SFX
+        handle_se,
     );
 
     combo::init();
