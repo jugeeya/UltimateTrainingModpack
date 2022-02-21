@@ -1,0 +1,303 @@
+@charset "utf-8";
+/* Layout */
+
+.l-bg {
+  position: absolute;
+  background: url('../img/bg_default.webp');
+}
+
+.l-one-column {
+  padding: 92px 67px 0px;
+}
+
+.l-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.l-item {
+  margin: 0px 13px;
+}
+
+/* Module */
+
+/* Keyword Button */
+
+.keyword-button-outer {
+  border: 5px solid transparent;
+  will-change: transform;
+}
+
+.keyword-button-outer.is-focused {
+  background: linear-gradient(90deg, rgb(255, 109, 0) 0%, rgb(255, 255, 0) 65%, rgb(255, 109, 0) 70%);
+  background-size: 200% 1px;
+  animation: cursor-anim 650ms linear infinite normal;
+  transform: scale(1.05);
+}
+
+.is-selected .keyword-button-outer.is-focused {
+  animation-play-state: paused;
+}
+
+.keyword-button-outer.is-focused.is-pause-anim {
+  animation-play-state: paused;
+}
+
+.keyword-button {
+  position: relative;
+  z-index: 0;
+  height: 66px;
+  background: #d9e4ea;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  border: solid 4px #2e3c45;
+  box-shadow: 1px 1px 6px rgba(24, 24, 24, 0.6);
+}
+
+.keyword-message {
+  font-size: 22px;
+  color: #2b3940;
+  padding: 0px 5px;
+}
+
+.keyword-message:lang(ja) {
+  font-size: 23px;
+  line-height: 2.5;
+}
+
+.keyword-message:lang(ko) {
+  font-size: 23px;
+}
+
+.keyword-message:lang(zh-cn) {
+  font-size: 23px;
+}
+
+.keyword-message:lang(zh-tw) {
+  font-size: 23px;
+}
+
+.keyword-message rt {
+  transform: translateY(9px);
+  font-size: 9px;
+}
+
+.is-focused .keyword-button {
+  box-shadow: none;
+  border-color: #000000;
+}
+
+.is-focused .keyword-message {
+  color: #FFFFFF;
+  -webkit-text-stroke: 2px #000000;
+}
+
+.is-focused .keyword-message span:nth-child(1) {
+  position: absolute;
+  display: block;
+  width: 249px;
+  margin-left: 1px;
+  margin-top: 2px;
+  color: #000000;
+  z-index: -1;
+}
+
+.is-focused .keyword-button rt {
+  transform: translate3d(0, 9px, 0);
+  -webkit-text-stroke: initial;
+}
+
+.is-focused .keyword-message span:nth-child(1) rt {
+  visibility: hidden;
+}
+
+@keyframes scale-btn-anim {
+  0% {
+    transform: scale(0.95);
+  }
+  42% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.l-item.is-selected {
+  z-index: 101;
+  transform: translate3d(0, 0, 0);
+  animation: scale-btn-anim 200ms linear 0s 1 normal;
+}
+
+.button-icon-wrapper {
+  width: 80px;
+  height: 58px;
+  margin-left: -1px;
+  display: flex;
+  align-items: center;
+  -webkit-clip-path: polygon(0% 0%, 100% 0%, 57px 100%, 0% 100%);
+  background: #000000;
+}
+
+.is-focused .button-icon-wrapper {
+  height: 60px;
+}
+
+.is-focused .keyword-button path {
+  fill: #ffffff;
+}
+
+.is-focused .keyword-button rect {
+  fill: #ffffff;
+}
+
+.is-focused .keyword-button polygon {
+  fill: #ffffff;
+}
+
+@keyframes highlight-anim {
+  0% {
+    background-color: #ffffff;
+  }
+  100% {
+    background-color: #ffffff;
+  }
+}
+
+.is-selected .keyword-button {
+  animation: highlight-anim 84ms linear 0s 1 normal;
+}
+
+.button-icon {
+  width: 53px;
+  height: 53px;
+  margin-left: 4px;
+}
+
+.button-msg-wrapper {
+  width: 259px;
+}
+
+/* Thema */
+
+.header-decoration {
+  background: #a80114;
+}
+
+@keyframes header-decoration-anim {
+  0% {
+    background-color: #fe6175;
+  }
+  42% {
+    background-color: #fe6175;
+  }
+  100% {
+    background-color: inherit;
+  }
+}
+
+.ret-icon path {
+  fill: #f46264;
+}
+
+.ret-icon-shadow path {
+  fill: #70000a;
+}
+
+.header-title {
+  color: #f46264;
+}
+
+.fade-mask {
+  position: absolute;
+}
+
+/* scuffle */
+
+.is-focused .scuffle-thema {
+  background: #df1624;
+}
+
+.scuffle-thema path {
+  fill: #f46264;
+}
+
+.scuffle-thema rect {
+  fill: #f46264;
+}
+
+.scuffle-thema polygon {
+  fill: #f46264;
+}
+
+/* spirits */
+
+.is-focused .spirits-thema {
+  background: #009a36;
+}
+
+.spirits-thema path {
+  fill: #40c970;
+}
+
+.spirits-thema rect {
+  fill: #40c970;
+}
+
+.spirits-thema polygon {
+  fill: #40c970;
+}
+
+/* outgame */
+
+.is-focused .outgame-thema {
+  background: #0085f5;
+}
+
+.outgame-thema path {
+  fill: #46bafd;
+}
+
+.outgame-thema rect {
+  fill: #46bafd;
+}
+
+.outgame-thema polygon {
+  fill: #46bafd;
+}
+
+/* collection */
+
+.is-focused .collection-thema {
+  background: #e82c98;
+}
+
+.collection-thema path {
+  fill: #e46aa3;
+}
+
+.collection-thema rect {
+  fill: #e46aa3;
+}
+
+.collection-thema polygon {
+  fill: #e46aa3;
+}
+
+/* palette */
+
+.is-focused .palette-thema {
+  background: #11bcc1;
+}
+
+.palette-thema path {
+  fill: #5ec4c8;
+}
+
+.palette-thema rect {
+  fill: #5ec4c8;
+}
+
+.palette-thema polygon {
+  fill: #5ec4c8;
+}

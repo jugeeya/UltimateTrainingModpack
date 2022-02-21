@@ -1,0 +1,235 @@
+﻿@charset "utf-8";
+/* reset----------------------------------------------------------------------*/
+
+body, div, th, td, p, ul, ol, dl, dt, dd, img, h1, h2, h3, h4, h5, h6, footer, header, nav, section, span, figure {
+  margin: 0px;
+  padding: 0px;
+  word-break: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+body {
+  width: 1280px;
+  background: #000000;
+}
+
+a {
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+ul, ol {
+  list-style-type: none;
+}
+
+button {
+  background: transparent;
+  border: none;
+  padding: 0px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img, svg {
+  opacity: 0;
+}
+
+span {
+  /* 文字が欠ける対策 */
+  letter-spacing: 0.01px;
+}
+
+/* Layout */
+
+.l-bg {
+  position: fixed;
+  width: 1280px;
+  height: 720px;
+  z-index: -100;
+}
+
+.l-header {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  z-index: 100;
+  box-shadow: 0px 1px 1px #000000;
+}
+
+.l-header-title {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 1280px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Module */
+
+/* Header */
+
+.header-title {
+  font-size: 26px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 2.5;
+}
+
+.header-title rt {
+  transform: translateY(10px);
+  font-size: 11px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  height: 65px;
+  background: #000000;
+  border-bottom: 7px solid #000000;
+}
+
+.header-decoration {
+  display: inline-flex;
+  align-items: center;
+  width: 101px;
+  height: 65px;
+  padding-left: 21px;
+  /* -29px */
+  -webkit-clip-path: polygon(0% 0%, 100% 0%, 93px 100%, 0% 100%);
+}
+
+.ret-icon-wrapper {
+  position: relative;
+  margin-left: -4px;
+}
+
+.ret-icon {
+  display: inline-block;
+  width: 58px;
+  height: 58px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ret-icon-shadow {
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  left: 2px;
+  display: inline-block;
+  width: 58px;
+  height: 58px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.breadcrumb-list {
+  margin-left: 25px;
+  font-size: 30px;
+}
+
+.breadcrumb-list p {
+  display: inline-block;
+}
+
+/* ボタン */
+
+.flex-button {
+  flex: 1;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* screen shot */
+
+.screen-shot {
+  transition: opacity 0.2s ease;
+}
+
+/* State */
+
+/* show after loading content */
+
+.show-after-font-loading {
+  opacity: 0;
+}
+
+.is-appear {
+  opacity: 1;
+}
+
+@keyframes header-decoration-anim {
+  0% {
+    background-color: #8dd3df;
+  }
+  42% {
+    background-color: #8dd3df;
+  }
+  100% {
+    background-color: inherit;
+  }
+}
+
+.is-focus.header-decoration {
+  animation: header-decoration-anim 200ms linear 0s 1 normal;
+}
+
+@keyframes ret-icon-animation {
+  0% {
+    transform: translate3d(-10px, 0px, 0);
+  }
+  100% {
+    transform: translate3d(0px, 0px, 0);
+  }
+}
+
+.is-focus .ret-icon-wrapper {
+  animation: ret-icon-animation 50ms linear 0ms 1 normal;
+}
+
+.is-focus .ret-icon path {
+  fill: rgb(239, 225, 32);
+}
+
+.is-hidden {
+  display: none;
+}
+
+@keyframes cursor-anim {
+  0% {
+    background-position: 200% 0%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes mask-fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000000;
+  opacity: 0;
+  z-index: 200;
+  animation: mask-fade 234ms linear 0s 1 forwards;
+}

@@ -1,0 +1,287 @@
+﻿@charset "utf-8";
+/*------------------------------------------------------------------------------
+                                    font
+------------------------------------------------------------------------------*/
+
+@font-face {
+  font-family: "FontB";
+  src: url("../../common/font/nintendoP_RodinNTLG-B_003.woff") format("woff");
+}
+
+@font-face {
+  font-family: "FontUB";
+  src: url("../../common/font/nintendoP_RodinNTLG-UB_003.woff") format("woff");
+}
+
+@font-face {
+  font-family: "FontB-Asia";
+  src: url("../../common/font/nintendoP_RodinNTLG-B_003.woff") format("woff");
+  unicode-range: U+0020-024f, U+0391-03ff, U+0400-052f;
+}
+
+@font-face {
+  font-family: "FontUB-Asia";
+  src: url("../../common/font/nintendoP_RodinNTLG-UB_003.woff") format("woff");
+  unicode-range: U+0020-024f, U+0391-03ff, U+0400-052f;
+}
+
+/* ----- 韓国語 ----- */
+
+/* KoreanGD-Ultra */
+
+@font-face {
+  font-family: "AsiaKGDU";
+  src: url("../../common/font/AsiaKGDU.woff") format("woff");
+  unicode-range: U+1100-11FF, U+2000-206F, U+2190-21FF, U+3000-303F, U+A960-A97F, U+D7B0-D7FF, U+3130-318F, U+AC00-D7AF;
+}
+
+/* KoreanBIG-Regular */
+
+@font-face {
+  font-family: "AsiaKBIGR";
+  src: url("../../common/font/AsiaKBIGR.woff") format("woff");
+  unicode-range: U+1100-11FF, U+2000-206F, U+2190-21FF, U+3000-303F, U+A960-A97F, U+D7B0-D7FF, U+3130-318F, U+AC00-D7AF;
+}
+
+/* ----- 簡体字(zh-cn) ----- */
+
+/* 华康黑体W9 */
+
+@font-face {
+  font-family: "DFP_GB_H9";
+  src: url("../../common/font/DFP_GB_H9.woff") format("woff");
+  unicode-range: U+2000-206F/* 一般句読点 */
+  , U+2190-21FF/* 矢印 */
+  , U+2E80-2EFF/* CJK部首補助 */
+  , U+2F00-2FDF/* 康煕部首 */
+  , U+2FF0-2FFF/* 漢字構成記述文字 */
+  , U+3000-303F/* CJKの記号及び句読点 */
+  , U+3100-312F/* 注音字母 */
+  , U+31A0-31BF/* 注音字母拡張 */
+  , U+31C0-31EF/* CJKの筆画 */
+  , U+3400-4DB5/* CJK統合漢字拡張A */
+  , U+4E00-9FEA/* CJK統合漢字 */
+  , U+A000-A48F/* イ文字 */
+  , U+A490-A4CF/* イ文字部首 */
+  , U+A4D0-A4FF/* リス文字 */
+  , U+F900-FAFF/* CJK互換漢字 */
+  , U+FF00-FFEF/* 半角・全角形 */
+  , U+16F00-16F9F/* ポラード文字 */
+  , U+17000-187EC/* 西夏文字 */
+  , U+18800-18AFF/* 西夏文字構成要素 */
+  , U+1B170-1B2FF/* 女書 */
+  , U+20000-2A6D6/* CJK統合漢字拡張B */
+  , U+2A700-2B734/* CJK統合漢字拡張C */
+  , U+2B740-2B81D/* CJK統合漢字拡張D */
+  , U+2B820-2CEA1/* CJK統合漢字拡張E */
+  , U+2CEB0-2EBE0/* CJK統合漢字拡張F */
+  , U+2F800-2FA1F/* CJK互換漢字補助 */
+  , U+E0100-E01EF/* 異体字セレクタ補助 */
+  ;
+}
+
+/* 华康黑体W12 */
+
+@font-face {
+  font-family: "DFP_GB_HC";
+  src: url("../../common/font/DFP_GB_HC.woff") format("woff");
+  unicode-range: U+2000-206F/* 一般句読点 */
+  , U+2190-21FF/* 矢印 */
+  , U+2E80-2EFF/* CJK部首補助 */
+  , U+2F00-2FDF/* 康煕部首 */
+  , U+2FF0-2FFF/* 漢字構成記述文字 */
+  , U+3000-303F/* CJKの記号及び句読点 */
+  , U+3100-312F/* 注音字母 */
+  , U+31A0-31BF/* 注音字母拡張 */
+  , U+31C0-31EF/* CJKの筆画 */
+  , U+3400-4DB5/* CJK統合漢字拡張A */
+  , U+4E00-9FEA/* CJK統合漢字 */
+  , U+A000-A48F/* イ文字 */
+  , U+A490-A4CF/* イ文字部首 */
+  , U+A4D0-A4FF/* リス文字 */
+  , U+F900-FAFF/* CJK互換漢字 */
+  , U+FF00-FFEF/* 半角・全角形 */
+  , U+16F00-16F9F/* ポラード文字 */
+  , U+17000-187EC/* 西夏文字 */
+  , U+18800-18AFF/* 西夏文字構成要素 */
+  , U+1B170-1B2FF/* 女書 */
+  , U+20000-2A6D6/* CJK統合漢字拡張B */
+  , U+2A700-2B734/* CJK統合漢字拡張C */
+  , U+2B740-2B81D/* CJK統合漢字拡張D */
+  , U+2B820-2CEA1/* CJK統合漢字拡張E */
+  , U+2CEB0-2EBE0/* CJK統合漢字拡張F */
+  , U+2F800-2FA1F/* CJK互換漢字補助 */
+  , U+E0100-E01EF/* 異体字セレクタ補助 */
+  ;
+}
+
+/* ----- 繁体字(zh-tw) ----- */
+
+/* 華康新特黑體 */
+
+@font-face {
+  font-family: "DFPT_B9";
+  src: url("../../common/font/DFPT_B9.woff") format("woff");
+  unicode-range: U+2000-206F/* 一般句読点 */
+  , U+2190-21FF/* 矢印 */
+  , U+2E80-2EFF/* CJK部首補助 */
+  , U+2F00-2FDF/* 康煕部首 */
+  , U+2FF0-2FFF/* 漢字構成記述文字 */
+  , U+3000-303F/* CJKの記号及び句読点 */
+  , U+3100-312F/* 注音字母 */
+  , U+31A0-31BF/* 注音字母拡張 */
+  , U+31C0-31EF/* CJKの筆画 */
+  , U+3400-4DB5/* CJK統合漢字拡張A */
+  , U+4E00-9FEA/* CJK統合漢字 */
+  , U+A000-A48F/* イ文字 */
+  , U+A490-A4CF/* イ文字部首 */
+  , U+A4D0-A4FF/* リス文字 */
+  , U+F900-FAFF/* CJK互換漢字 */
+  , U+FF00-FFEF/* 半角・全角形 */
+  , U+16F00-16F9F/* ポラード文字 */
+  , U+17000-187EC/* 西夏文字 */
+  , U+18800-18AFF/* 西夏文字構成要素 */
+  , U+1B170-1B2FF/* 女書 */
+  , U+20000-2A6D6/* CJK統合漢字拡張B */
+  , U+2A700-2B734/* CJK統合漢字拡張C */
+  , U+2B740-2B81D/* CJK統合漢字拡張D */
+  , U+2B820-2CEA1/* CJK統合漢字拡張E */
+  , U+2CEB0-2EBE0/* CJK統合漢字拡張F */
+  , U+2F800-2FA1F/* CJK互換漢字補助 */
+  , U+E0100-E01EF/* 異体字セレクタ補助 */
+  ;
+}
+
+/* 華康超黑體 */
+
+@font-face {
+  font-family: "DFPT_BC";
+  src: url("../../common/font/DFPT_BC.woff") format("woff");
+  unicode-range: U+2000-206F/* 一般句読点 */
+  , U+2190-21FF/* 矢印 */
+  , U+2E80-2EFF/* CJK部首補助 */
+  , U+2F00-2FDF/* 康煕部首 */
+  , U+2FF0-2FFF/* 漢字構成記述文字 */
+  , U+3000-303F/* CJKの記号及び句読点 */
+  , U+3100-312F/* 注音字母 */
+  , U+31A0-31BF/* 注音字母拡張 */
+  , U+31C0-31EF/* CJKの筆画 */
+  , U+3400-4DB5/* CJK統合漢字拡張A */
+  , U+4E00-9FEA/* CJK統合漢字 */
+  , U+A000-A48F/* イ文字 */
+  , U+A490-A4CF/* イ文字部首 */
+  , U+A4D0-A4FF/* リス文字 */
+  , U+F900-FAFF/* CJK互換漢字 */
+  , U+FF00-FFEF/* 半角・全角形 */
+  , U+16F00-16F9F/* ポラード文字 */
+  , U+17000-187EC/* 西夏文字 */
+  , U+18800-18AFF/* 西夏文字構成要素 */
+  , U+1B170-1B2FF/* 女書 */
+  , U+20000-2A6D6/* CJK統合漢字拡張B */
+  , U+2A700-2B734/* CJK統合漢字拡張C */
+  , U+2B740-2B81D/* CJK統合漢字拡張D */
+  , U+2B820-2CEA1/* CJK統合漢字拡張E */
+  , U+2CEB0-2EBE0/* CJK統合漢字拡張F */
+  , U+2F800-2FA1F/* CJK互換漢字補助 */
+  , U+E0100-E01EF/* 異体字セレクタ補助 */
+  ;
+}
+
+/* keyhelp font */
+
+@font-face {
+  font-family: "KeyHelpFont";
+  src: url('../../common/font/add_font.woff') format("woff");
+  unicode-range: U+E200-E2FF;
+}
+
+/* ルビ調整 */
+
+ruby rt {
+  text-align: center;
+  line-height: normal;
+  -webkit-text-emphasis-style: none;
+  -webkit-text-emphasis-color: initial;
+}
+
+/* B */
+
+.f-b-bold {
+  font-family: "FontB", "KeyHelpFont";
+}
+
+/* 韓国語 */
+
+.f-b-bold:lang(ko) {
+  font-family: "AsiaKGDU", "FontB-Asia", "KeyHelpFont", "FontB";
+}
+
+.f-b-bold:lang(ko) al {
+  font-size: 0.98em;
+  vertical-align: -0.078em;
+}
+
+/* 中国語(簡体字) */
+
+.f-b-bold:lang(zh-cn) {
+  font-family: "DFP_GB_H9", "FontB-Asia", "KeyHelpFont", "FontB";
+}
+
+.f-b-bold:lang(zh-cn) al {
+  font-size: 0.98em;
+  vertical-align: -0.031em;
+}
+
+/* 中国語(繁体字) */
+
+.f-b-bold:lang(zh-tw) {
+  font-family: "DFPT_B9", "FontB-Asia", "KeyHelpFont", "FontB";
+}
+
+.f-b-bold:lang(zh-tw) al {
+  font-size: 0.99em;
+  vertical-align: -0.078em;
+}
+
+/* UB */
+
+.f-u-bold {
+  font-family: "FontUB", "KeyHelpFont";
+}
+
+.f-u-bold rt {
+  font-family: "FontB";
+}
+
+/* 韓国語 */
+
+.f-u-bold:lang(ko) {
+  font-family: "AsiaKBIGR", "FontUB-Asia", "KeyHelpFont", "FontUB";
+}
+
+.f-u-bold:lang(ko) al {
+  font-size: 0.99em;
+  vertical-align: -0.109em;
+}
+
+/* 中国語(簡体字) */
+
+.f-u-bold:lang(zh-cn) {
+  font-family: "DFP_GB_HC", "FontUB-Asia", "KeyHelpFont", "FontUB";
+}
+
+.f-u-bold:lang(zh-cn) al {
+  font-size: 0.98em;
+  vertical-align: -0.016em;
+}
+
+/* 中国語(繁体字) */
+
+.f-u-bold:lang(zh-tw) {
+  font-family: "DFPT_BC", "FontUB-Asia", "KeyHelpFont", "FontUB";
+}
+
+.f-u-bold:lang(zh-tw) al {
+  font-size: 0.97em;
+  vertical-align: -0.078em;
+}
