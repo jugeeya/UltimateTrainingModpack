@@ -3,10 +3,6 @@ use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
 pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> (f32, f32, f32) {
-    // Looks like I'm in the if else dimension again here, since we can't match with these pointers. We could always use the numbers directly and match, up to y'all.
-    // Should we create all the hashes on startup so we can just grab them later and save time? If so, as static variables, or as parts of static hash maps?
-    // Make a function to handle requesting effects? (Takes input ints and fighter and such and creates the data structures we need, as well as choosing the hashes)
-
     // Mario FLUDD
     if fighter_kind == FIGHTER_KIND_MARIO {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE) as f32;
@@ -88,17 +84,11 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // Pac-Man Bonus Fruit
     if fighter_kind == FIGHTER_KIND_PACMAN {
-        let my_charge = WorkModule::get_int(module_accessor, 0x100000C1) as f32;
+        let my_charge = WorkModule::get_int(module_accessor, 0x100000C1) as f32; // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
         let max_have = WorkModule::is_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
-        let max_effect = WorkModule::is_flag(module_accessor, 0x200000E3);
-        if max_have && max_effect {
-            return (my_charge, 1.0, 1.0);
-        }
+
         if max_have {
             return (my_charge, 1.0, -1.0);
-        }
-        if max_effect {
-            return (my_charge, -1.0, 1.0);
         }
         return (my_charge, -1.0, -1.0);
     }
@@ -274,7 +264,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Wario Waft - 0 to 6000
     else if fighter_kind == FIGHTER_KIND_WARIO {
-        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000BF);
+        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
     }
 
     // Squirtle Water Gun - 0 to 45
@@ -344,7 +334,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Pac-Man Bonus Fruit - 0 to 12
     else if fighter_kind == FIGHTER_KIND_PACMAN {
-        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000C1);
+        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
         if charge.1 > 0.0 {
             WorkModule::on_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
         }
@@ -435,7 +425,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Hero (Ka)frizz(le) - 0 to 81
     else if fighter_kind == FIGHTER_KIND_BRAVE {
-        WorkModule::off_flag(module_accessor, 0x200000E8);
+        WorkModule::off_flag(module_accessor, 0x200000E8); // FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT
         WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
     }
 
