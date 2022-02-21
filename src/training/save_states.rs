@@ -1,9 +1,9 @@
+use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
-use crate::common::MENU;
 use crate::common::is_dead;
-use crate::common::consts::get_random_int;
+use crate::common::MENU;
 use crate::training::buff;
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
