@@ -9,7 +9,7 @@ use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 
-pub static DEFAULT_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
+pub static BASE_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
     hitbox_vis: OnOff::On,
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
@@ -39,9 +39,14 @@ pub static DEFAULT_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMe
     save_state_mirroring: SaveStateMirroring::None,
     frame_advantage: OnOff::Off,
     save_state_enable: OnOff::On,
+    throw_state: ThrowOption::NONE,
+    throw_delay: MedDelay::empty(),
+    pummel_delay: MedDelay::empty(),
+    buff_state: BuffOption::empty(),
 };
 
-pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
+pub static mut DEFAULT_MENU: TrainingModpackMenu = BASE_MENU;
+pub static mut MENU: TrainingModpackMenu = BASE_MENU;
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
@@ -84,6 +89,11 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
 
         let entry_id_int =
             WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+
+        if entry_id_int == 0 {
+            return false;
+        }
+
         let entry_id = app::FighterEntryID(entry_id_int);
         let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
         let fighter_information =
@@ -94,59 +104,43 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
 }
 
 pub fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let situation_kind;
-    unsafe {
-        situation_kind = StatusModule::situation_kind(module_accessor) as i32;
-    }
+    let situation_kind = unsafe { StatusModule::situation_kind(module_accessor) as i32 };
+
     situation_kind == SITUATION_KIND_GROUND
 }
 
 pub fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let situation_kind;
-    unsafe {
-        situation_kind = StatusModule::situation_kind(module_accessor) as i32;
-    }
+    let situation_kind = unsafe { StatusModule::situation_kind(module_accessor) as i32 };
+
     situation_kind == SITUATION_KIND_AIR
 }
 
 pub fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind;
-    unsafe {
-        status_kind = StatusModule::status_kind(module_accessor);
-    }
+    let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
+
     status_kind == FIGHTER_STATUS_KIND_WAIT
 }
 
 pub fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind;
-    unsafe {
-        status_kind = StatusModule::status_kind(module_accessor);
-    }
-    (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
+    let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
+
+    (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind;
-    unsafe {
-        status_kind = StatusModule::status_kind(module_accessor);
-    }
+    let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
+
     (*FIGHTER_STATUS_KIND_TREAD_DAMAGE..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind)
 }
 
 pub fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe {
-        let status_kind = StatusModule::status_kind(module_accessor) as i32;
-        (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
-    }
+    let status_kind = unsafe { StatusModule::status_kind(module_accessor) as i32 };
+
+    (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
 }
 
 pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind;
-    let prev_status;
-
-    unsafe {
-        status_kind = StatusModule::status_kind(module_accessor);
-        prev_status = StatusModule::prev_status_kind(module_accessor, 0);
-    }
+    let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
+    let prev_status = unsafe { StatusModule::prev_status_kind(module_accessor, 0) };
 
     // If we are taking shield damage or we are droping shield from taking shield damage we are in hitstun
     status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE
@@ -156,4 +150,25 @@ pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -
 
 pub fn get_random_int(max: i32) -> i32 {
     unsafe { app::sv_math::rand(hash40("fighter"), max) }
+}
+
+pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let fighter_kind = app::utility::get_kind(module_accessor);
+    let fighter_is_ptrainer = [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+    ]
+    .contains(&fighter_kind);
+    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+    // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
+    // And the previous status is FIGHTER_STATUS_NONE
+    if fighter_is_ptrainer {
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
+            || (status_kind == FIGHTER_STATUS_KIND_WAIT
+                && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
+    } else {
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
+    }
 }

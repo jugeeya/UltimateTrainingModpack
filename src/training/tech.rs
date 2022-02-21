@@ -195,8 +195,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     let status = StatusModule::status_kind(module_accessor) as i32;
 
     if [
-        *FIGHTER_STATUS_KIND_DOWN_WAIT,
-        *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE,
+        *FIGHTER_STATUS_KIND_DOWN_WAIT,          // Mistech
+        *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE, // Mistech
+        *FIGHTER_STATUS_KIND_LAY_DOWN,           // Snake down throw
     ]
     .contains(&status)
     {
@@ -213,11 +214,26 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
             }
             _ => return,
         };
-
         StatusModule::change_status_request_from_script(module_accessor, status, false);
 
         mash::perform_defensive_option();
-    }
+    } else if [
+        // Handle slips (like Diddy banana)
+        *FIGHTER_STATUS_KIND_SLIP_WAIT,
+    ]
+    .contains(&status)
+    {
+        let status: i32 = match MENU.miss_tech_state.get_random() {
+            MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_SLIP_STAND,
+            MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_SLIP_STAND_ATTACK,
+            MissTechFlags::ROLL_F => *FIGHTER_STATUS_KIND_SLIP_STAND_F,
+            MissTechFlags::ROLL_B => *FIGHTER_STATUS_KIND_SLIP_STAND_B,
+            _ => return,
+        };
+        StatusModule::change_status_request_from_script(module_accessor, status, false);
+
+        mash::perform_defensive_option();
+    };
 }
 
 pub unsafe fn change_motion(

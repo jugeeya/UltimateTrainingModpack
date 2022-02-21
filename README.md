@@ -1,4 +1,4 @@
-[<img src="https://imgur.com/7BVjKtZ.jpg">](https://imgur.com/7BVjKtZ.jpg)
+<img src="./photos/2021081718384700-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
 
 # Ultimate Training Modpack Plugin
 
@@ -34,9 +34,9 @@ The features in this modpack are configured through the menu, which can be acces
 - Displays additional information onscreen
 - Controls CPU behavior
 
-[<img src="https://imgur.com/5Blmsbc.jpg">](https://imgur.com/5Blmsbc.jpg)
+<img src="./photos/2021081718312800-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
 
-[<img src="https://imgur.com/NR0Rl7j.jpg">](https://imgur.com/NR0Rl7j.jpg)
+<img src="./photos/2021081718323900-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
 
 ## Stage Hazards
 
@@ -47,7 +47,7 @@ Set stage hazards on or off in Training Mode! Use this to practice on tournament
 
 At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. With the mirroring setting,loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
 
-[<img src="https://i.imgur.com/FLy0xiw.gif">](https://i.imgur.com/FLy0xiw.gif)
+<img src="./photos/FLy0xiw.gif">
 
 ## Input Delay
 
@@ -85,7 +85,8 @@ The timing of the CPU option can be influenced by the following settings:
 
 ## Menu Settings
 
-When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button.
+When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button. These defaults can be saved upon exiting the menu by pressing `R` when in-menu. Use this to make a preset that fits your personal training style.
+
 
 | Feature              | Description                                                                                 | Options                                                                                                           |
 |----------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
@@ -111,6 +112,10 @@ When multiple options are selected, one of the selected options will be chosen a
 | SDI Strength         | Relative strength of the smash directional influence inputs                                 | Normal (8 frames between SDI inputs), Medium (6 frames), High (4 frames)                                          |
 | Shield Toggles       | CPU Shield Behavior                                                                         | None, Infinite (no shield damage or decay), Hold (no shield decay until the shield is hit for the first time), Constant (no shield decay)                                      |
 | Mirroring            | Flips save states in the left-right direction across the stage center                       | None, Alternate, Random                                                                                           |
+| Throw Options        | Throw to be performed when a grab is landed                                                 | None, Forward Throw, Back Throw, Up Throw, Down Throw                                                             |
+| Throw Delay          | How many frames to delay the throw option                                                   | 0 to 150 frames (2.5 seconds) in increments of 5 frames                                                           |
+| Pummel Delay         | How many frames after a grab to wait before starting to pummel                              | 0 to 150 frames (2.5 seconds) in increments of 5 frames                                                           |
+| Buff Options         | Buffs to be applied to respective character when loading save states                        | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit Break, KO Punch, One-Winged Angel            |
 | Input Delay          | Frames to delay player inputs by                                                            | 0 to 10 frames (0.167 seconds)                                                                                    |
 | Save Damage          | Should save states retain player/CPU damage                                                 | Yes, No                                                                                                           |
 | Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects                                   | Yes, No                                                                                                           |
@@ -122,6 +127,11 @@ When multiple options are selected, one of the selected options will be chosen a
 
 # Installation
 
+The training modpack requires the following prerequisite packages:
+
+* Atmosphere: https://github.com/Atmosphere-NX/Atmosphere/releases
+* Skyline: https://github.com/skyline-dev/skyline/releases
+
 To install the training modpack, download the .zip file from the [latest release page](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest). Extract the files from the .zip file using the file explorer on Windows or Mac, or a program such as 7-zip (windows) or unzip (Linux). Then transfer the extracted contents onto the root of your SD card, merging the /atmosphere folder with the one on your SD card. No files need to be deleted when upgrading from a previous version. The SD card should have the below files at these locations.
 
 ```
@@ -129,15 +139,13 @@ SD Card Root
 └── atmosphere
     └── contents
         └── 01006A800016E000
-            ├── exefs
-            │   ├── main.npdm
-            │   └── subsdk9
             ├── manual_html
             │   └── html-document
             │       └── contents.htdocs
             │           ├── aerial_delay.svg
             │           ├── air_dodge_dir.svg
             │           ├── attack_angle.svg
+            │           ├── buff_state.svg
             │           ├── check.svg
             │           ├── defensive_state.svg
             │           ├── di_state.svg
@@ -154,6 +162,7 @@ SD Card Root
             │           ├── mash_state.svg
             │           ├── miss_tech_state.svg
             │           ├── oos_offset.svg
+            │           ├── pummel_delay.svg
             │           ├── reaction_time.svg
             │           ├── save_damage.svg
             │           ├── save_state_mirroring.svg
@@ -162,7 +171,9 @@ SD Card Root
             │           ├── shield_state.svg
             │           ├── shield_tilt.svg
             │           ├── stage_hazards.svg
-            │           └── tech_state.svg
+            │           ├── tech_state.svg
+            │           ├── throw_delay.svg
+            │           └── throw_state.svg
             └── romfs
                 └── skyline
                     └── plugins
@@ -188,16 +199,17 @@ To install a beta version of the modpack, follow the same procedure using the [l
     * No, this is not currently supported. Use `SPECIAL+UPTAUNT` to open the menu.
 * How do I fix the error message "The software has been closed due to an error" when starting Smash?
     * If you're on a Mac, check your SD card for files with dots at the beginning of them in the training mod files, they should be deleted (like, `._libtraining_modpack.nro` in addition to `libtraining_modpack.nro`).
-* How do I fix the error message "Fatal error: Failed to stat stage2 (atmosphere/fusee-secondary.bin)"?
+* How do I fix the error message "Failed to open sdmc:/atmosphere/package3"?
     * This is caused by improperly setting up the SD card. When adding files onto the SD card, make sure that you extract the contents of the .zip file first then add only the contents and not the parent folder onto the SD card! Consult the [Atmosphere documentation](https://github.com/Atmosphere-NX/Atmosphere) for additional information.
+* How do I fix the error message "Panic occurred while running Atmosphere. Title ID: 010041544D530000 Error: std::abort (0xFFE)
+    * This is caused by a missing or improper [Skyline](https://github.com/skyline-dev/skyline/releases) installation. Make sure that you install the `subsdk9` and `main.npdm` files to `atmosphere/contents/01006A800016E000/exefs/`, as indicated in the Installation instructions.
 * How do I remove the Training Mod?
     * It's as simple as removing the files associated with the modpack. Make sure you only remove the files that you wish to remove:
-        * Skyline, the loader for code plugins like the modpack
-        `atmosphere/contents/01006A800016E000/exefs/*`
         * Modpack plugins
-            * `atmosphere/contents/01006A800016E000/romfs/libnn_hid_hook.nro`
-            * `atmosphere/contents/01006A800016E000/romfs/libnro_hook.nro`
-            * `atmosphere/contents/01006A800016E000/romfs/libtraining_modpack.nro`
+            * `atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnn_hid_hook.nro`
+            * `atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnro_hook.nro`
+            * * `atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libparam_hook.nro`
+            * `atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`
         * Additional static files
             * `atmosphere/contents/01006A800016E000/manual_html/html-document/contents.htdocs/*`
             * `TrainingModpack/*` (which is generated by the modpack)

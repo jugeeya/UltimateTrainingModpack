@@ -1,6 +1,6 @@
 use skyline_web::DialogOk;
 use std::fs;
-use std::io::Write;
+
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const VERSION_FILE_PATH: &str = "sd:/TrainingModpack/version.txt";
 
@@ -9,14 +9,15 @@ fn is_current_version(fpath: &str) -> bool {
     if fs::metadata(fpath).is_err() {
         let _ = fs::File::create(fpath).expect("Could not create version file!");
     }
-    let content = fs::read_to_string(fpath).unwrap_or_else(|_| "".to_string());
-    content == CURRENT_VERSION
+
+    fs::read_to_string(fpath)
+        .map(|content| content == CURRENT_VERSION)
+        .unwrap_or(false)
 }
 
 fn record_current_version(fpath: &str) {
     // Write the current version to the version file
-    let mut f = fs::File::create(fpath).unwrap();
-    write!(f, "{}", CURRENT_VERSION.to_owned()).expect("Could not record current version!");
+    fs::write(fpath, CURRENT_VERSION).expect("Could not record current version!")
 }
 
 pub fn version_check() {

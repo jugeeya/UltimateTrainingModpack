@@ -4,6 +4,9 @@ extern crate bitflags;
 #[macro_use]
 extern crate num_derive;
 
+#[cfg(feature = "random_available")]
+use crate::common::get_random_int;
+
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
 use strum_macros::EnumIter;
@@ -31,10 +34,10 @@ macro_rules! extra_bitflag_impls {
 
             pub fn to_index(&self) -> u32 {
                 if self.bits == 0 {
-                    return 0;
+                    0
+                } else {
+                    self.bits.trailing_zeros()
                 }
-
-                return self.bits.trailing_zeros();
             }
 
             pub fn get_random(&self) -> $e {
@@ -47,14 +50,18 @@ macro_rules! extra_bitflag_impls {
                         return options[0];
                     }
                     _ => {
+                        #[cfg(feature = "random_available")]
                         return *random_option(&options);
+
+                        #[cfg(not(feature = "random_available"))]
+                        return <$e>::empty();
                     }
                 }
             }
 
-            pub fn to_toggle_strs() -> Vec<String> {
+            pub fn to_toggle_strs() -> Vec<&'static str> {
                 let all_options = <$e>::all().to_vec();
-                all_options.iter().map(|i| i.into_string()).collect()
+                all_options.iter().map(|i| i.as_str().unwrap_or("")).collect()
             }
 
             pub fn to_toggle_vals() -> Vec<usize> {
@@ -62,19 +69,11 @@ macro_rules! extra_bitflag_impls {
                 all_options.iter().map(|i| i.bits() as usize).collect()
             }
             pub fn to_url_param(&self) -> String {
-                let mut vec = self.to_vec();
-                let mut s = String::new();
-                let mut first = true;
-                while !vec.is_empty() {
-                    let field = vec.pop().unwrap().bits();
-                    if !first {
-                        s.push_str(",");
-                    } else {
-                        first = false;
-                    }
-                    s.push_str(&field.to_string());
-                }
-                s
+                self.to_vec()
+                    .into_iter()
+                    .map(|field| field.bits().to_string())
+                    .collect::<Vec<_>>()
+                    .join(",")
             }
         }
     }
@@ -104,23 +103,15 @@ bitflags! {
     }
 }
 
-pub fn random_option<T>(arg: &[T]) -> &T {
-    &arg[get_random_int(arg.len() as i32) as usize]
-}
-
-pub fn get_random_int(max: i32) -> i32 {
-    unsafe { smash::app::sv_math::rand(smash::hash40("fighter"), max) }
-}
-
 impl Direction {
     pub fn into_angle(self) -> Option<f64> {
         let index = self.into_index();
 
         if index == 0 {
-            return None;
+            None
+        } else {
+            Some((index as i32 - 1) as f64 * PI / 4.0)
         }
-
-        Some((index as i32 - 1) as f64 * PI / 4.0)
     }
     fn into_index(self) -> i32 {
         match self {
@@ -139,8 +130,8 @@ impl Direction {
         }
     }
 
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Direction::OUT => "Away",
             Direction::UP_OUT => "Up and Away",
             Direction::UP => "Up",
@@ -152,9 +143,8 @@ impl Direction {
             Direction::NEUTRAL => "Neutral",
             Direction::LEFT => "Left",
             Direction::RIGHT => "Right",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -184,16 +174,15 @@ impl LedgeOption {
         })
     }
 
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             LedgeOption::NEUTRAL => "Neutral Getup",
             LedgeOption::ROLL => "Roll",
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -210,15 +199,14 @@ bitflags! {
 }
 
 impl TechFlags {
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             TechFlags::NO_TECH => "No Tech",
             TechFlags::ROLL_F => "Roll Forwards",
             TechFlags::ROLL_B => "Roll Backwards",
             TechFlags::IN_PLACE => "Tech In Place",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -235,15 +223,14 @@ bitflags! {
 }
 
 impl MissTechFlags {
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             MissTechFlags::GETUP => "Neutral Getup",
             MissTechFlags::ATTACK => "Getup Attack",
             MissTechFlags::ROLL_F => "Roll Forwards",
             MissTechFlags::ROLL_B => "Roll Backwards",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -260,24 +247,17 @@ pub enum Shield {
 }
 
 impl Shield {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Shield::None => "None",
             Shield::Infinite => "Infinite",
             Shield::Hold => "Hold",
             Shield::Constant => "Constant",
-        }
-        .to_string()
+        })
     }
 
     pub fn to_url_param(&self) -> String {
-        match self {
-            Shield::None => "0",
-            Shield::Infinite => "1",
-            Shield::Hold => "2",
-            Shield::Constant => "3",
-        }
-        .to_string()
+        (*self as i32).to_string()
     }
 }
 
@@ -291,22 +271,16 @@ pub enum SaveStateMirroring {
 }
 
 impl SaveStateMirroring {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             SaveStateMirroring::None => "None",
             SaveStateMirroring::Alternate => "Alternate",
             SaveStateMirroring::Random => "Random",
-        }
-        .to_string()
+        })
     }
 
     fn to_url_param(&self) -> String {
-        match self {
-            SaveStateMirroring::None => "0",
-            SaveStateMirroring::Alternate => "1",
-            SaveStateMirroring::Random => "2",
-        }
-        .to_string()
+        (*self as i32).to_string()
     }
 }
 
@@ -322,16 +296,15 @@ bitflags! {
 }
 
 impl Defensive {
-    fn into_string(self) -> String {
-        match self {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Defensive::SPOT_DODGE => "Spotdodge",
             Defensive::ROLL_F => "Roll Forwards",
             Defensive::ROLL_B => "Roll Backwards",
             Defensive::JAB => "Jab",
             Defensive::SHIELD => "Shield",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -353,20 +326,15 @@ impl OnOff {
         }
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             OnOff::Off => "Off",
             OnOff::On => "On",
-        }
-        .to_string()
+        })
     }
 
     pub fn to_url_param(&self) -> String {
-        match self {
-            OnOff::Off => "0",
-            OnOff::On => "1",
-        }
-        .to_string()
+        (*self as i32).to_string()
     }
 }
 
@@ -413,8 +381,8 @@ impl Action {
         })
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Action::AIR_DODGE => "Airdodge",
             Action::JUMP => "Jump",
             Action::SHIELD => "Shield",
@@ -440,9 +408,8 @@ impl Action {
             Action::GRAB => "Grab",
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -457,14 +424,13 @@ bitflags! {
 }
 
 impl AttackAngle {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             AttackAngle::NEUTRAL => "Neutral",
             AttackAngle::UP => "Up",
             AttackAngle::DOWN => "Down",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 }
 
@@ -506,9 +472,97 @@ bitflags! {
     }
 }
 
+// Throw Option
+bitflags! {
+    pub struct ThrowOption : u32
+    {
+        const NONE = 0x1;
+        const FORWARD = 0x2;
+        const BACKWARD = 0x4;
+        const UP = 0x8;
+        const DOWN = 0x10;
+    }
+}
+
+impl ThrowOption {
+    pub fn into_cmd(self) -> Option<i32> {
+        Some(match self {
+            ThrowOption::NONE => 0,
+            ThrowOption::FORWARD => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_F,
+            ThrowOption::BACKWARD => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_B,
+            ThrowOption::UP => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_HI,
+            ThrowOption::DOWN => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_LW,
+            _ => return None,
+        })
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            ThrowOption::NONE => "None",
+            ThrowOption::FORWARD => "Forward Throw",
+            ThrowOption::BACKWARD => "Back Throw",
+            ThrowOption::UP => "Up Throw",
+            ThrowOption::DOWN => "Down Throw",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {ThrowOption}
+
+// Buff Option
+bitflags! {
+    pub struct BuffOption : u32
+    {
+        const ACCELERATLE = 0x1;
+        const OOMPH = 0x2;
+        const PSYCHE = 0x4;
+        const BOUNCE = 0x8;
+        const ARSENE = 0x10;
+        const BREATHING = 0x20;
+        const LIMIT = 0x40;
+        const KO = 0x80;
+        const WING = 0x100;
+    }
+}
+
+impl BuffOption {
+    pub fn into_int(self) -> Option<i32> {
+        Some(match self {
+            BuffOption::ACCELERATLE => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND11_SPEED_UP,
+            BuffOption::OOMPH => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND12_ATTACK_UP,
+            BuffOption::PSYCHE => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND21_CHARGE,
+            BuffOption::BOUNCE => *FIGHTER_BRAVE_SPECIAL_LW_COMMAND13_REFLECT,
+            BuffOption::BREATHING => 1,
+            BuffOption::ARSENE => 1,
+            BuffOption::LIMIT => 1,
+            BuffOption::KO => 1,
+            BuffOption::WING => 1,
+            _ => return None,
+        })
+    }
+
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            BuffOption::ACCELERATLE => "Acceleratle",
+            BuffOption::OOMPH => "Oomph",
+            BuffOption::BOUNCE => "Bounce",
+            BuffOption::PSYCHE => "Psyche Up",
+            BuffOption::BREATHING => "Deep Breathing",
+            BuffOption::ARSENE => "Arsene",
+            BuffOption::LIMIT => "Limit Break",
+            BuffOption::KO => "KO Punch",
+            BuffOption::WING => "One-Winged Angel",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {BuffOption}
+
 impl Delay {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             Delay::D0 => "0",
             Delay::D1 => "1",
             Delay::D2 => "2",
@@ -540,9 +594,8 @@ impl Delay {
             Delay::D28 => "28",
             Delay::D29 => "29",
             Delay::D30 => "30",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 
     pub fn into_delay(&self) -> u32 {
@@ -551,6 +604,87 @@ impl Delay {
 }
 
 extra_bitflag_impls! {Delay}
+
+bitflags! {
+    pub struct MedDelay : u32 {
+        const D0 = 0x1;
+        const D5 = 0x2;
+        const D10 = 0x4;
+        const D15 = 0x8;
+        const D20 = 0x10;
+        const D25 = 0x20;
+        const D30 = 0x40;
+        const D35 = 0x80;
+        const D40 = 0x100;
+        const D45 = 0x200;
+        const D50 = 0x400;
+        const D55 = 0x800;
+        const D60 = 0x1000;
+        const D65 = 0x2000;
+        const D70 = 0x4000;
+        const D75 = 0x8000;
+        const D80 = 0x10000;
+        const D85 = 0x20000;
+        const D90 = 0x40000;
+        const D95 = 0x80000;
+        const D100 = 0x0010_0000;
+        const D105 = 0x0020_0000;
+        const D110 = 0x0040_0000;
+        const D115 = 0x0080_0000;
+        const D120 = 0x0100_0000;
+        const D125 = 0x0200_0000;
+        const D130 = 0x0400_0000;
+        const D135 = 0x0800_0000;
+        const D140 = 0x1000_0000;
+        const D145 = 0x2000_0000;
+        const D150 = 0x4000_0000;
+    }
+}
+
+impl MedDelay {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            MedDelay::D0 => "0",
+            MedDelay::D5 => "5",
+            MedDelay::D10 => "10",
+            MedDelay::D15 => "15",
+            MedDelay::D20 => "20",
+            MedDelay::D25 => "25",
+            MedDelay::D30 => "30",
+            MedDelay::D35 => "35",
+            MedDelay::D40 => "40",
+            MedDelay::D45 => "45",
+            MedDelay::D50 => "50",
+            MedDelay::D55 => "55",
+            MedDelay::D60 => "60",
+            MedDelay::D65 => "65",
+            MedDelay::D70 => "70",
+            MedDelay::D75 => "75",
+            MedDelay::D80 => "80",
+            MedDelay::D85 => "85",
+            MedDelay::D90 => "90",
+            MedDelay::D95 => "95",
+            MedDelay::D100 => "100",
+            MedDelay::D105 => "105",
+            MedDelay::D110 => "110",
+            MedDelay::D115 => "115",
+            MedDelay::D120 => "120",
+            MedDelay::D125 => "125",
+            MedDelay::D130 => "130",
+            MedDelay::D135 => "135",
+            MedDelay::D140 => "140",
+            MedDelay::D145 => "145",
+            MedDelay::D150 => "150",
+            _ => return None,
+        })
+    }
+
+    pub fn into_meddelay(&self) -> u32 {
+        self.to_index() * 5
+    }
+}
+
+extra_bitflag_impls! {MedDelay}
 
 bitflags! {
     pub struct LongDelay : u32 {
@@ -589,8 +723,8 @@ bitflags! {
 }
 
 impl LongDelay {
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             LongDelay::D0 => "0",
             LongDelay::D10 => "10",
             LongDelay::D20 => "20",
@@ -622,9 +756,8 @@ impl LongDelay {
             LongDelay::D280 => "280",
             LongDelay::D290 => "290",
             LongDelay::D300 => "300",
-            _ => "",
-        }
-        .to_string()
+            _ => return None,
+        })
     }
 
     pub fn into_longdelay(&self) -> u32 {
@@ -648,12 +781,11 @@ impl BoolFlag {
         matches!(self, BoolFlag::TRUE)
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             BoolFlag::TRUE => "True",
             _ => "False",
-        }
-        .to_string()
+        })
     }
 }
 
@@ -674,22 +806,16 @@ impl SdiStrength {
         }
     }
 
-    pub fn into_string(self) -> String {
-        match self {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
             SdiStrength::Normal => "Normal",
             SdiStrength::Medium => "Medium",
             SdiStrength::High => "High",
-        }
-        .to_string()
+        })
     }
 
     pub fn to_url_param(&self) -> String {
-        match self {
-            SdiStrength::Normal => "0",
-            SdiStrength::Medium => "1",
-            SdiStrength::High => "2",
-        }
-        .to_string()
+        (*self as u32).to_string()
     }
 }
 
@@ -765,6 +891,10 @@ url_params! {
         pub save_state_mirroring: SaveStateMirroring,
         pub frame_advantage: OnOff,
         pub save_state_enable: OnOff,
+        pub throw_state: ThrowOption,
+        pub throw_delay: MedDelay,
+        pub pummel_delay: MedDelay,
+        pub buff_state: BuffOption,
     }
 }
 
@@ -775,41 +905,6 @@ macro_rules! set_by_str {
                 $obj.$field = $rhs.unwrap();
             }
         )*
-    }
-}
-
-pub fn set_menu_from_url(s: &str, mut menu: TrainingModpackMenu) {
-    let base_url_len = "http://localhost/?".len();
-    let total_len = s.len();
-
-    let ss: String = s
-        .chars()
-        .skip(base_url_len)
-        .take(total_len - base_url_len)
-        .collect();
-
-    for toggle_values in ss.split('&') {
-        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
-        let toggle = toggle_value_split[0];
-        if toggle.is_empty() {
-            continue;
-        }
-
-        let toggle_vals = toggle_value_split[1];
-
-        let mut bits = 0;
-        for toggle_val in toggle_vals.split(',') {
-            if toggle_val.is_empty() {
-                continue;
-            }
-
-            let val = toggle_val.parse::<u32>().unwrap();
-            bits |= val;
-        }
-
-        unsafe {
-            menu.set(toggle, bits);
-        }
     }
 }
 
@@ -847,6 +942,10 @@ impl TrainingModpackMenu {
             frame_advantage = OnOff::from_val(val),
             save_state_mirroring = num::FromPrimitive::from_u32(val),
             save_state_enable = OnOff::from_val(val),
+            throw_state = ThrowOption::from_bits(val),
+            throw_delay = MedDelay::from_bits(val),
+            pummel_delay = MedDelay::from_bits(val),
+            buff_state = BuffOption::from_bits(val),
         );
     }
 }

@@ -4,6 +4,7 @@ use crate::training::ledge;
 use crate::training::mash;
 use crate::training::sdi;
 use crate::training::shield_tilt;
+use crate::training::throw;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
@@ -43,5 +44,6 @@ pub fn on_reset() {
     sdi::roll_direction();
     frame_counter::reset_all();
     ledge::reset_ledge_delay();
+    throw::reset_throw_delay();
     shield_tilt::roll_direction();
 }

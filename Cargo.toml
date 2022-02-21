@@ -1,6 +1,6 @@
 [package]
 name = "training_modpack"
-version = "3.1.0-beta"
+version = "3.2.0"
 authors = ["jugeeya <jugeeya@live.com>"]
 edition = "2018"
 
@@ -49,3 +49,4 @@ plugin-dependencies = [
 
 [features]
 outside_training_mode = []
+random_available = []

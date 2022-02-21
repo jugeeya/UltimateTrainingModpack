@@ -123,8 +123,7 @@ async fn main() -> datafusion::error::Result<()> {
     let df = ctx.sql(
         "SELECT 
             COUNT(DISTINCT device_id) num_devices, 
-            -- COUNT(DISTINCT session_id) num_sessions, 
-            COUNT(DISTINCT smash_version) num_sessions,  
+            COUNT(DISTINCT session_id) num_sessions,
             COUNT(*) num_events, 
             TO_TIMESTAMP_MILLIS(DATE_TRUNC('day', CAST(event_time * 1000000 AS timestamp))) AS date FROM menu_open
         WHERE

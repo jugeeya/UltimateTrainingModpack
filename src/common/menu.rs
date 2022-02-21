@@ -6,11 +6,12 @@ use skyline::info::get_program_id;
 use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
+use std::ops::BitOr;
 use std::path::Path;
 use strum::IntoEnumIterator;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
-const MENU_LOCKOUT_FRAMES: u32 = 5;
+const MENU_LOCKOUT_FRAMES: u32 = 15;
 
 pub fn init() {
     unsafe {
@@ -219,7 +220,7 @@ macro_rules! add_bitflag_submenu {
                 $title,
                 stringify!($id),
                 MENU.$id.bits() as usize,
-                [<$id _strs>].iter().map(|i| i.as_str()).collect(),
+                [<$id _strs>],
                 [<$id _vals>],
                 DEFAULT_MENU.$id.bits() as usize,
                 stringify!($help_text),
@@ -233,14 +234,14 @@ macro_rules! add_single_option_submenu {
         paste::paste!{
             let mut [<$id _toggles>] = Vec::new();
             for val in [<$e>]::iter() {
-                [<$id _toggles>].push((val.into_string(), val as usize));
+                [<$id _toggles>].push((val.as_str().unwrap_or(""), val as usize));
             }
 
             $menu.add_sub_menu(
                 $title,
                 stringify!($id),
                 MENU.$id as usize,
-                [<$id _toggles>].iter().map(|(x, y)| (x.as_str(), *y)).collect::<Vec<(&str, usize)>>(),
+                [<$id _toggles>],
                 [].to_vec(),
                 DEFAULT_MENU.$id as usize,
                 stringify!($help_text),
@@ -262,6 +263,37 @@ macro_rules! add_onoff_submenu {
             );
         }
     };
+}
+
+pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
+    let base_url_len = "http://localhost/?".len();
+    let total_len = s.len();
+
+    let ss: String = s
+        .chars()
+        .skip(base_url_len)
+        .take(total_len - base_url_len)
+        .collect();
+
+    for toggle_values in ss.split('&') {
+        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
+        let toggle = toggle_value_split[0];
+        if toggle.is_empty() {
+            continue;
+        }
+
+        let toggle_vals = toggle_value_split[1];
+
+        let bitwise_or = <u32 as BitOr<u32>>::bitor;
+        let bits = toggle_vals
+            .split(',')
+            .filter(|val| !val.is_empty())
+            .map(|val| val.parse().unwrap())
+            .fold(0, bitwise_or);
+
+        menu.set(toggle, bits);
+    }
+    menu
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
@@ -450,6 +482,34 @@ pub unsafe fn write_menu() {
         SaveStateMirroring,
         "Mirroring: Flips save states in the left-right direction across the stage center"
     );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Throw Options",
+        throw_state,
+        ThrowOption,
+        "Throw Options: Throw to be performed when a grab is landed"
+    );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Throw Delay",
+        throw_delay,
+        MedDelay,
+        "Throw Delay: How many frames to delay the throw option"
+    );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Pummel Delay",
+        pummel_delay,
+        MedDelay,
+        "Pummel Delay: How many frames after a grab to wait before starting to pummel"
+    );
+    add_bitflag_submenu!(
+        overall_menu,
+        "Buff Options",
+        buff_state,
+        BuffOption,
+        "Buff Options: Buff(s) to be applied to respective character when loading save states"
+    );
 
     // Slider menus
     overall_menu.add_sub_menu(
@@ -521,11 +581,16 @@ pub unsafe fn write_menu() {
     fs::write(path, data).unwrap();
 }
 
-pub unsafe fn spawn_menu() {
-    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
+
+pub fn spawn_menu() {
+    unsafe {
+        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    }
+
     let fname = "training_menu.html";
-    let params = MENU.to_url_params();
+    let params = unsafe { MENU.to_url_params() };
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)
         .htdocs_dir("contents")
@@ -535,11 +600,24 @@ pub unsafe fn spawn_menu() {
         .open()
         .unwrap();
 
-    let last_url = page_response.get_last_url().unwrap();
+    let orig_last_url = page_response.get_last_url().unwrap();
+    let last_url = &orig_last_url.replace("&save_defaults=1", "");
+    unsafe {
+        MENU = get_menu_from_url(MENU, last_url);
+    }
+    if last_url.len() != orig_last_url.len() {
+        // Save as default
+        unsafe {
+            DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, last_url);
+            write_menu();
+        }
+        let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
+        std::fs::write(menu_defaults_conf_path, last_url)
+            .expect("Failed to write default menu conf file");
+    }
 
-    set_menu_from_url(last_url, MENU);
-
-    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-    std::fs::write(menu_conf_path, last_url).expect("Failed to write menu conf file");
-    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
+    unsafe {
+        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    }
 }
