@@ -9,112 +9,112 @@ on:
 
 jobs:
   clippy_pr:
-     runs-on: ubuntu-latest
-     container: jugeeya/cargo-skyline:2.1.0-dkp
-     steps:
-     - uses: actions/checkout@v2
-     - name: Setup PATH
-       run: export PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin
-     - name: Install minimal nightly rust
-       uses: actions-rs/toolchain@v1
-       with:
-         profile: minimal
-         toolchain: nightly-2021-06-01
-         components: rustfmt, clippy
-         default: true
-         target: x86_64-unknown-linux-gnu
-     - uses: actions-rs/clippy-check@v1
-       with:
-         token: ${{ secrets.GITHUB_TOKEN }}
-         toolchain: nightly-2021-06-01
-         args: --all-features --target=x86_64-unknown-linux-gnu
-     - uses: mbrobbel/rustfmt-check@master
-       with:
-         token: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    container: jugeeya/cargo-skyline:2.1.0-dkp
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PATH
+        run: export PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin
+      - name: Install minimal nightly rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2021-06-01
+          components: rustfmt, clippy
+          default: true
+          target: x86_64-unknown-linux-gnu
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          toolchain: nightly-2021-06-01
+          args: --all-features --target=x86_64-unknown-linux-gnu
+      - uses: mbrobbel/rustfmt-check@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
   plugin:
     runs-on: ubuntu-latest
-    container: 
+    container:
       image: jugeeya/cargo-skyline:2.1.0-dkp
     steps:
-    - uses: actions/checkout@v2
-    - name: Build release NRO
-      run: |
-        PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
-      env:
-        HOME: /root
-    - name: Upload plugin artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: plugin
-        path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-    - name: Upload menu icons
-      uses: actions/upload-artifact@v2
-      with:
-        name: svg
-        path: src/templates/*.svg
+      - uses: actions/checkout@v2
+      - name: Build release NRO
+        run: |
+          PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
+        env:
+          HOME: /root
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: plugin
+          path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
+      - name: Upload menu icons
+        uses: actions/upload-artifact@v2
+        with:
+          name: svg
+          path: src/templates/*.svg
   plugin_outside_training_mode:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    container: 
+    container:
       image: jugeeya/cargo-skyline:2.1.0-dkp
     steps:
-    - uses: actions/checkout@v2
-    - name: Build outside_training_mode NRO
-      run: |
-        PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release --features outside_training_mode
-      env:
-        HOME: /root
-    - name: Upload plugin (outside training mode) artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: plugin_outside_training_mode
-        path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
+      - uses: actions/checkout@v2
+      - name: Build outside_training_mode NRO
+        run: |
+          PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release --features outside_training_mode
+        env:
+          HOME: /root
+      - name: Upload plugin (outside training mode) artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: plugin_outside_training_mode
+          path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
   upload:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     needs:
       - plugin
     steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v2
-    - name: Prepare zip
-      env:
-        SKYLINE_DIR: atmosphere/contents/01006A800016E000
-        SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
-        SMASH_WEB_DIR: atmosphere/contents/01006A800016E000/manual_html/html-document/contents.htdocs
-      run: |        
-        mkdir -p ${{env.SKYLINE_DIR}} 
-        mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
-        mkdir -p ${{env.SMASH_WEB_DIR}}
-        wget https://github.com/skyline-dev/skyline/releases/download/beta/skyline.zip
-        unzip skyline.zip
-        mv exefs ${{env.SKYLINE_DIR}}
-        cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
-        wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro
-        wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.3.0/libnro_hook.nro
-        wget https://github.com/jugeeya/nn-hid-hook/releases/download/beta/libnn_hid_hook.nro
-        cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
-        cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
-        cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
-        ls -1 svg/*.svg | xargs -n 1 basename | xargs -L1 -I{} cp svg/{} ${{env.SMASH_WEB_DIR}}/{}
-        zip -r training_modpack_beta.zip atmosphere
-    - name: Update Release
-      uses: meeDamian/github-release@2.0
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        prerelease: true
-        allow_override: true
-        gzip: false
-        tag: beta
-        name: beta
-        body: >
-          Beta built off of the latest code in the repository. 
-          
-          Install the same way you would install a full release.
-        files: >
-          training_modpack_beta.zip
-    - name: Upload zip as artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: full_build
-        path: training_modpack_beta.zip
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+      - name: Prepare zip
+        env:
+          SKYLINE_DIR: atmosphere/contents/01006A800016E000
+          SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
+          SMASH_WEB_DIR: atmosphere/contents/01006A800016E000/manual_html/html-document/contents.htdocs
+        run: |
+          mkdir -p ${{env.SKYLINE_DIR}} 
+          mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
+          mkdir -p ${{env.SMASH_WEB_DIR}}
+          wget https://github.com/skyline-dev/skyline/releases/download/beta/skyline.zip
+          unzip skyline.zip
+          mv exefs ${{env.SKYLINE_DIR}}
+          cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
+          wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro
+          wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.3.0/libnro_hook.nro
+          wget https://github.com/jugeeya/nn-hid-hook/releases/download/beta/libnn_hid_hook.nro
+          cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
+          cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
+          cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
+          ls -1 svg/*.svg | xargs -n 1 basename | xargs -L1 -I{} cp svg/{} ${{env.SMASH_WEB_DIR}}/{}
+          zip -r training_modpack_beta.zip atmosphere
+      - name: Update Release
+        uses: meeDamian/github-release@2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: true
+          allow_override: true
+          gzip: false
+          tag: beta
+          name: beta
+          body: >
+            Beta built off of the latest code in the repository. 
+            
+            Install the same way you would install a full release.
+          files: >
+            training_modpack_beta.zip
+      - name: Upload zip as artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: full_build
+          path: training_modpack_beta.zip

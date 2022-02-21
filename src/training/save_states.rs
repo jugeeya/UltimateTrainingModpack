@@ -1,8 +1,9 @@
+use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
+use crate::common::is_dead;
 use crate::common::MENU;
-use crate::common::{get_random_int, is_dead};
 use crate::training::buff;
 use crate::training::reset;
 use crate::training::charge;
@@ -277,6 +278,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             // Buff the fighter if they're one of the fighters who can be buffed
             if fighter_is_buffable {
                 save_state.state = ApplyBuff;
+            }
+            // Play Training Reset SFX, since silence is eerie
+            // Only play for the CPU so we don't have 2 overlapping
+            if is_cpu {
+                SoundModule::play_se_no3d(
+                    module_accessor,
+                    Hash40::new("se_system_position_reset"),
+                    true,
+                    true,
+                );
             }
         }
 
