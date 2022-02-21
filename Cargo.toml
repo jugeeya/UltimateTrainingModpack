@@ -49,4 +49,3 @@ plugin-dependencies = [
 
 [features]
 outside_training_mode = []
-random_available = []

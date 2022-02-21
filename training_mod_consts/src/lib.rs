@@ -4,9 +4,6 @@ extern crate bitflags;
 #[macro_use]
 extern crate num_derive;
 
-#[cfg(feature = "random_available")]
-use crate::common::get_random_int;
-
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
 use strum_macros::EnumIter;
@@ -50,11 +47,7 @@ macro_rules! extra_bitflag_impls {
                         return options[0];
                     }
                     _ => {
-                        #[cfg(feature = "random_available")]
                         return *random_option(&options);
-
-                        #[cfg(not(feature = "random_available"))]
-                        return <$e>::empty();
                     }
                 }
             }
@@ -77,6 +70,14 @@ macro_rules! extra_bitflag_impls {
             }
         }
     }
+}
+
+pub fn get_random_int(max: i32) -> i32 {
+    unsafe { smash::app::sv_math::rand(smash::hash40("fighter"), max) }
+}
+
+pub fn random_option<T>(arg: &[T]) -> &T {
+    &arg[get_random_int(arg.len() as i32) as usize]
 }
 
 // DI
