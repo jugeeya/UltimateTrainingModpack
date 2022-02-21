@@ -30,6 +30,7 @@ extern "C" {
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct Uuid {
     size: u32,
     string_size: u32,

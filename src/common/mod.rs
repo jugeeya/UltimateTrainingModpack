@@ -6,7 +6,6 @@ pub mod release;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
-use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub static BASE_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
@@ -146,10 +145,6 @@ pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -
     status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE
         || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
             && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF)
-}
-
-pub fn get_random_int(max: i32) -> i32 {
-    unsafe { app::sv_math::rand(hash40("fighter"), max) }
 }
 
 pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
