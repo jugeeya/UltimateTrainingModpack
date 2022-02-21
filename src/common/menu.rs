@@ -573,7 +573,7 @@ pub unsafe fn write_menu() {
     // Now that we have the html, write it to file
     // From skyline-web
     let program_id = get_program_id();
-    let htdocs_dir = "contents";
+    let htdocs_dir = "trainingmodpack";
     let path = Path::new("sd:/atmosphere/contents")
         .join(&format!("{:016X}", program_id))
         .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
@@ -593,7 +593,7 @@ pub fn spawn_menu() {
     let params = unsafe { MENU.to_url_params() };
     let page_response = Webpage::new()
         .background(Background::BlurredScreenshot)
-        .htdocs_dir("contents")
+        .htdocs_dir("trainingmodpack")
         .boot_display(BootDisplay::BlurredScreenshot)
         .boot_icon(true)
         .start_page(&format!("{}{}", fname, params))

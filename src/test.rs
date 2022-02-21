@@ -9,12 +9,12 @@ fn write_menu() {
         use crate::common::menu::write_menu;
         use std::process::Command;
 
-        let folder_path = "../contents.htdocs";
-        let path = "../contents.htdocs/training_menu.html";
+        let folder_path = "../trainingmodpack.htdocs";
+        let path = "../trainingmodpack.htdocs/training_menu.html";
 
         assert!(
             std::path::Path::new(folder_path).exists(),
-            "Needs required folder: ../contents.htdocs!"
+            "Needs required folder: ../trainingmodpack.htdocs!"
         );
 
         std::fs::write(path, write_menu()).unwrap();
