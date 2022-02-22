@@ -6,7 +6,9 @@ use crate::common::is_dead;
 use crate::common::MENU;
 use crate::training::buff;
 use crate::training::reset;
-use crate::training::charge;
+//use crate::training::charge;
+//use crate::training::charge::ChargeState;
+use crate::training::charge::{self, ChargeState}; // is this the same as the above 2 lines?
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -30,7 +32,7 @@ struct SavedState {
     situation_kind: i32,
     state: SaveState,
     fighter_kind: i32,
-    charge: (f32,f32,f32),
+    charge: ChargeState,
 }
 
 macro_rules! default_save_state {
@@ -43,7 +45,14 @@ macro_rules! default_save_state {
             situation_kind: 0,
             state: NoAction,
             fighter_kind: -1,
-            charge: (-1.0,-1.0,-1.0),
+            charge: ChargeState {
+                int_x: None,
+                int_y: None,
+                float_x: None,
+                float_y: None,
+                float_z: None,
+                has_charge: None
+            }
         }
     };
 }
