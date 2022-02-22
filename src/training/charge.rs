@@ -58,7 +58,7 @@ impl Default for ChargeState {
     }
 }
 
-pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> ChargeState { // ADD ELSES
+pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> ChargeState {
     // Mario FLUDD
     if fighter_kind == FIGHTER_KIND_MARIO {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE);
@@ -100,7 +100,7 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 
     // Wario Waft
     if fighter_kind == FIGHTER_KIND_WARIO {
-        let my_charge = WorkModule::get_int(module_accessor, 0x100000BF); // DOCUMENT THISSSSSSSSSSSSS
+        let my_charge = WorkModule::get_int(module_accessor, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
         return ChargeState::default().int_x(my_charge);
     }
 
@@ -173,11 +173,6 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 }
 
 pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32, charge: ChargeState) {
-    // Don't bother checking the fighter type if we don't have a charge stored
-    //if charge == (-1.0, -1.0, -1.0) {
-       // return;
-    //}
-
     // Mario Fludd - 0 to 80
     if fighter_kind == FIGHTER_KIND_MARIO {
         if let Some(fludd_charge) = charge.int_x {
@@ -187,300 +182,350 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
             }
         }
     }
-    /*
+    
     // DK Punch - 0 to 110
     else if fighter_kind == FIGHTER_KIND_DONKEY {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
-        if charge.0 as i32 == 110 {
-            FighterUtil::set_face_motion_by_priority(module_accessor,FighterFacial(*FIGHTER_FACIAL_SPECIAL), Hash40::new("special_n_max_face"));
+        if let Some(punch_charge) = charge.int_x {
+            WorkModule::set_int(module_accessor, punch_charge, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
+            if punch_charge == 110 {
+                FighterUtil::set_face_motion_by_priority(module_accessor,FighterFacial(*FIGHTER_FACIAL_SPECIAL), Hash40::new("special_n_max_face"));
+            }
         }
     }
 
     // Samus/Dark Samus Charge Shot - 0 to 112
     else if fighter_kind == FIGHTER_KIND_SAMUS || fighter_kind == FIGHTER_KIND_SAMUSD {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
-        if charge.0 as i32 == 112 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            let samus_cshot_hash;
-            if fighter_kind == FIGHTER_KIND_SAMUS {
-                samus_cshot_hash = Hash40::new("samus_cshot_max");
-            } else {
-                samus_cshot_hash = Hash40::new("samusd_cshot_max");
+        if let Some(shot_charge) = charge.int_x {
+            WorkModule::set_int(module_accessor, shot_charge, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
+            if shot_charge == 112 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let samus_cshot_hash;
+                if fighter_kind == FIGHTER_KIND_SAMUS {
+                    samus_cshot_hash = Hash40::new("samus_cshot_max");
+                } else {
+                    samus_cshot_hash = Hash40::new("samusd_cshot_max");
+                }
+                let joint_hash = Hash40::new("armr");
+                let pos = Vector3f {
+                    x: 7.98004,
+                    y: -0.50584,
+                    z: -0.25092,
+                };
+                let rot = Vector3f {
+                    x: -91.2728,
+                    y: -1.7974,
+                    z: 176.373,
+                };
+                let efh = EffectModule::req_follow(
+                    module_accessor, samus_cshot_hash, 
+                    joint_hash, &pos, &rot, 1.0, false,
+                    0, 0, 0, 0, 0,
+                    false, false
+                );
+                WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
             }
-            let joint_hash = Hash40::new("armr");
-            let pos = Vector3f {
-                x: 7.98004,
-                y: -0.50584,
-                z: -0.25092,
-            };
-            let rot = Vector3f {
-                x: -91.2728,
-                y: -1.7974,
-                z: 176.373,
-            };
-            let efh = EffectModule::req_follow(
-                module_accessor, samus_cshot_hash, 
-                joint_hash, &pos, &rot, 1.0, false,
-                0, 0, 0, 0, 0,
-                false, false
-            );
-            WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
         }
     }
 
     // Sheik Needles - 0 to 6
     else if fighter_kind == FIGHTER_KIND_SHEIK {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT);
-        ArticleModule::generate_article_enable(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, false, -1);
-        let hash_main = Hash40::new("set_main");
-        if charge.0 == 6.0 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
-                hash_main, Hash40::new("group_main_default"),ArticleOperationTarget(0));
-        } else if charge.0 == 5.0 {
-            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
-                hash_main, Hash40::new("group_main_5"),ArticleOperationTarget(0));
-        } else if charge.0 == 4.0 {
-            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
-                hash_main, Hash40::new("group_main_4"),ArticleOperationTarget(0));
-        } else if charge.0 == 3.0 {
-            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
-                hash_main, Hash40::new("group_main_3"),ArticleOperationTarget(0));
-        } else if charge.0 == 2.0 {
-            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
-                hash_main, Hash40::new("group_main_2"),ArticleOperationTarget(0));
-        } else if charge.0 == 1.0 {
-            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
-                hash_main, Hash40::new("group_main_1"),ArticleOperationTarget(0));
-        } else if charge.0 == 0.0 {
-            ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
-                hash_main, Hash40::new("group_main_0"),ArticleOperationTarget(0));
+        if let Some(needle_charge) = charge.int_x {
+            WorkModule::set_int(module_accessor, needle_charge, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT);
+            ArticleModule::generate_article_enable(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, false, -1);
+            let hash_main = Hash40::new("set_main");
+            match needle_charge {
+                6 => {
+                    EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                    ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
+                        hash_main, Hash40::new("group_main_default"),ArticleOperationTarget(0));
+                }
+                5 => {
+                    ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
+                        hash_main, Hash40::new("group_main_5"),ArticleOperationTarget(0));
+                }
+                4 => {
+                    ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
+                        hash_main, Hash40::new("group_main_4"),ArticleOperationTarget(0));
+                }
+                3 => {
+                    ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
+                        hash_main, Hash40::new("group_main_3"),ArticleOperationTarget(0)); 
+                }
+                2 => {
+                    ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
+                        hash_main, Hash40::new("group_main_2"),ArticleOperationTarget(0)); 
+                }
+                1 => {
+                    ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
+                        hash_main, Hash40::new("group_main_1"),ArticleOperationTarget(0));
+                }
+                _ => {
+                    ArticleModule::set_visibility(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE,
+                        hash_main, Hash40::new("group_main_0"),ArticleOperationTarget(0));
+                }
+
+            }
+
         }
     }
 
     // Mewtwo Shadowball - 0 to 120, Boolean
     else if fighter_kind == FIGHTER_KIND_MEWTWO {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME);
-        WorkModule::set_int(module_accessor, charge.1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME);
-        if charge.2 > 0.0 {
-            WorkModule::on_flag(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
+        if let Some(charge_frame) = charge.int_x {
+            WorkModule::set_int(module_accessor, charge_frame, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME);
         }
-
-        if charge.1 == 120.0 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            let effect_hash = Hash40::new("mewtwo_shadowball_max_hand");
-            let joint_hash_1 = Hash40::new("handl");
-            let joint_hash_2 = Hash40::new("handr");
-            let pos = Vector3f {
-                x: 1.0,
-                y: 0.5,
-                z: 0.0,
-            };
-            let rot = Vector3f {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            let efh_1 = EffectModule::req_follow(
-                module_accessor, effect_hash, 
-                joint_hash_1, &pos, &rot, 1.0, false,
-                0, 0, -1, 0, 0,
-                false, false
-            );
-            let efh_2 = EffectModule::req_follow(
-                module_accessor, effect_hash, 
-                joint_hash_2, &pos, &rot, 1.0, false,
-                0, 0, -1, 0, 0,
-                false, false
-            );
-            WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_L);
-            WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_R);
+        if let Some(prev_frame) = charge.int_y {
+            WorkModule::set_int(module_accessor, prev_frame, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME);
+            if prev_frame == 120 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let effect_hash = Hash40::new("mewtwo_shadowball_max_hand");
+                let joint_hash_1 = Hash40::new("handl");
+                let joint_hash_2 = Hash40::new("handr");
+                let pos = Vector3f {
+                    x: 1.0,
+                    y: 0.5,
+                    z: 0.0,
+                };
+                let rot = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let efh_1 = EffectModule::req_follow(
+                    module_accessor, effect_hash, 
+                    joint_hash_1, &pos, &rot, 1.0, false,
+                    0, 0, -1, 0, 0,
+                    false, false
+                );
+                let efh_2 = EffectModule::req_follow(
+                    module_accessor, effect_hash, 
+                    joint_hash_2, &pos, &rot, 1.0, false,
+                    0, 0, -1, 0, 0,
+                    false, false
+                );
+                WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_L);
+                WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_R);
+            }
+        }
+        if let Some(has_shadowball) = charge.has_charge {
+            WorkModule::set_flag(module_accessor, has_shadowball, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
         }
     }
 
     // GnW Bucket - 0 to 3, Attack not tested
     else if fighter_kind == FIGHTER_KIND_GAMEWATCH {
-        WorkModule::set_float(module_accessor, charge.0, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_GAUGE);
-        WorkModule::set_float(module_accessor, charge.1, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_ATTACK);
-        if charge.0 == 3.0 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-        } else {
-            // GnW flashes when successfully bucketing, and it will persist if state is loaded during that time, so we remove it here
-            EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
+        if let Some(bucket_level) = charge.float_x {
+            WorkModule::set_float(module_accessor, bucket_level, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_GAUGE);
+            if bucket_level == 3.0 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            } else {
+                // GnW flashes when successfully bucketing, and it will persist if state is loaded during that time, so we remove it here
+                EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
+            }
+        }
+        if let Some(bucket_attack) = charge.float_y {
+            WorkModule::set_float(module_accessor, bucket_attack, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_ATTACK);
         }
     }
 
     // Wario Waft - 0 to 6000
     else if fighter_kind == FIGHTER_KIND_WARIO {
-        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
+        if let Some(waft_count) = charge.int_x {
+            WorkModule::set_int(module_accessor, waft_count, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
+        }
     }
 
     // Squirtle Water Gun - 0 to 45
     else if fighter_kind == FIGHTER_KIND_PZENIGAME {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE);
-        if charge.0 as i32 == 45 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        if let Some(water_charge) = charge.int_x {
+            WorkModule::set_int(module_accessor, water_charge, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE);
+            if water_charge == 45 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            }
         }
     }
 
     // Lucario Aura Sphere - 0 to 90, Boolean
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME);
-        WorkModule::set_int(module_accessor, charge.1 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_PREV_AURABALL_CHARGE_FRAME);
-        if charge.2 > 0.0 {
-            WorkModule::on_flag(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD);
+        if let Some(charge_frame) = charge.int_x {
+            WorkModule::set_int(module_accessor, charge_frame, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME);
         }
-
-        if charge.1 == 90.0 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            let effect_hash_1 = Hash40::new("lucario_hadoudan_max_l");
-            let effect_hash_2 = Hash40::new("lucario_hadoudan_max_r");
-            let joint_hash_1 = Hash40::new("handl");
-            let joint_hash_2 = Hash40::new("handr");
-            let pos = Vector3f {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            let rot = Vector3f {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            let efh_1 = EffectModule::req_follow(
-                module_accessor, effect_hash_1, 
-                joint_hash_1, &pos, &rot, 1.0, false,
-                0, 0, -1, 0, 0,
-                false, false
-            );
-            let efh_2 = EffectModule::req_follow(
-                module_accessor, effect_hash_2, 
-                joint_hash_2, &pos, &rot, 1.0, false,
-                0, 0, -1, 0, 0,
-                false, false
-            );
-            WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_L);
-            WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_R);
+        if let Some(prev_frame) = charge.int_y {
+            WorkModule::set_int(module_accessor, prev_frame, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_PREV_AURABALL_CHARGE_FRAME);
+            if prev_frame == 90 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let effect_hash_1 = Hash40::new("lucario_hadoudan_max_l");
+                let effect_hash_2 = Hash40::new("lucario_hadoudan_max_r");
+                let joint_hash_1 = Hash40::new("handl");
+                let joint_hash_2 = Hash40::new("handr");
+                let pos = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let rot = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let efh_1 = EffectModule::req_follow(
+                    module_accessor, effect_hash_1, 
+                    joint_hash_1, &pos, &rot, 1.0, false,
+                    0, 0, -1, 0, 0,
+                    false, false
+                );
+                let efh_2 = EffectModule::req_follow(
+                    module_accessor, effect_hash_2, 
+                    joint_hash_2, &pos, &rot, 1.0, false,
+                    0, 0, -1, 0, 0,
+                    false, false
+                );
+                WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_L);
+                WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_R);
+            }
+        }
+        if let Some(has_aurasphere) = charge.has_charge {
+            WorkModule::set_flag(module_accessor, has_aurasphere, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD);
         }
     }
 
     // ROB Gyro/Laser/Fuel - Gyro from 0 to 90, rest unchecked
     else if fighter_kind == FIGHTER_KIND_ROBOT {
-        WorkModule::set_float(module_accessor, charge.0, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE);
-        WorkModule::set_float(module_accessor, charge.1, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_GYRO_CHARGE_VALUE);
-        WorkModule::set_float(module_accessor, charge.2, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BURNER_ENERGY_VALUE);
-
-        if charge.1 as i32 == 90 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        if let Some(beam_energy) = charge.float_x {
+            WorkModule::set_float(module_accessor, beam_energy, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE);
+        }
+        if let Some(gyro_charge) = charge.float_y {
+            WorkModule::set_float(module_accessor, gyro_charge, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_GYRO_CHARGE_VALUE);
+            if gyro_charge == 90.0 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            }
+        }
+        if let Some(burner_energy) = charge.float_z {
+            WorkModule::set_float(module_accessor, burner_energy, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BURNER_ENERGY_VALUE);
         }
     }
 
     // Wii Fit Sun Salutation - 0 to 1
     else if fighter_kind == FIGHTER_KIND_WIIFIT {
-        WorkModule::set_float(module_accessor, charge.0, *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO)
+        if let Some(sun_ratio) = charge.float_x {
+            WorkModule::set_float(module_accessor, sun_ratio, *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO)
+        }
     }
 
     // Pac-Man Bonus Fruit - 0 to 12
     else if fighter_kind == FIGHTER_KIND_PACMAN {
-        WorkModule::set_int(module_accessor, charge.0 as i32, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
-        if charge.1 > 0.0 {
-            WorkModule::on_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
+        if let Some(charge_rank) = charge.int_x {
+            WorkModule::set_int(module_accessor, charge_rank, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
+            
+            if charge_rank == 12 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            }
         }
-        if charge.0 as i32 == 12 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+        if let Some(has_fruit) = charge.has_charge {
+            WorkModule::set_flag(module_accessor, has_fruit, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
         }
     }
 
     // Robin Thunder Tome Spells - 0 to 3
     else if fighter_kind == FIGHTER_KIND_REFLET {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND);
-        if charge.0 as i32 == 3 { 
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            let reflet_hash = Hash40::new("reflet_thunder_max");            
-            let joint_hash = Hash40::new("handl");
-            let pos = Vector3f {
-                x: 1.0,
-                y: 2.0,
-                z: 0.0,
-            };
-            let rot = Vector3f {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            EffectModule::req_follow(
-                module_accessor, reflet_hash, 
-                joint_hash, &pos, &rot, 1.0, false,
-                0, 0, -1, 0, 0,
-                false, false
-            );
+        if let Some(thunder_kind) = charge.int_x {
+            WorkModule::set_int(module_accessor, thunder_kind, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND);
+            if thunder_kind == 3 { 
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let reflet_hash = Hash40::new("reflet_thunder_max");            
+                let joint_hash = Hash40::new("handl");
+                let pos = Vector3f {
+                    x: 1.0,
+                    y: 2.0,
+                    z: 0.0,
+                };
+                let rot = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                EffectModule::req_follow(
+                    module_accessor, reflet_hash, 
+                    joint_hash, &pos, &rot, 1.0, false,
+                    0, 0, -1, 0, 0,
+                    false, false
+                );
+            }
         }
     }
 
     // Mii Gunner Charge Blast - 0 to 120
     else if fighter_kind == FIGHTER_KIND_MIIGUNNER {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT);
-        if charge.0 as i32 == 120 {
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            let gunner_hash = Hash40::new("miigunner_cshot_max");
-            let joint_hash = Hash40::new("armr");
-            let pos = Vector3f {
-                x: 6.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            let rot = Vector3f {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            let efh = EffectModule::req_follow(
-                module_accessor, gunner_hash, 
-                joint_hash, &pos, &rot, 1.0, false,
-                0, 0, 0, 0, 0,
-                false, false
-            );
-            WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
+        if let Some(blast_charge) = charge.int_x {
+            WorkModule::set_int(module_accessor, blast_charge, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT);
+            if blast_charge == 120 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let gunner_hash = Hash40::new("miigunner_cshot_max");
+                let joint_hash = Hash40::new("armr");
+                let pos = Vector3f {
+                    x: 6.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let rot = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let efh = EffectModule::req_follow(
+                    module_accessor, gunner_hash, 
+                    joint_hash, &pos, &rot, 1.0, false,
+                    0, 0, 0, 0, 0,
+                    false, false
+                );
+                WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
+            }
         }
     }
 
     // Plant Poison - 0 to 75
     else if fighter_kind == FIGHTER_KIND_PACKUN {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT);
-        if charge.0 as i32 == 75 { 
-            EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-            let plant_hash = Hash40::new("packun_poison_max_smoke");            
-            let joint_hash = Hash40::new("hip");
-            let pos = Vector3f {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            let rot = Vector3f {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            };
-            let efh = EffectModule::req_follow(
-                module_accessor, plant_hash, 
-                joint_hash, &pos, &rot, 1.0, false,
-                32768, 0, -1, 0, 0,
-                false, false
-            );
-            WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_CHARGE_MAX_EFFECT_HANDLE);
+        if let Some(poison_count) = charge.int_x {
+            WorkModule::set_int(module_accessor, poison_count, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT);
+            if poison_count == 75 { 
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let plant_hash = Hash40::new("packun_poison_max_smoke");            
+                let joint_hash = Hash40::new("hip");
+                let pos = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let rot = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let efh = EffectModule::req_follow(
+                    module_accessor, plant_hash, 
+                    joint_hash, &pos, &rot, 1.0, false,
+                    32768, 0, -1, 0, 0,
+                    false, false
+                );
+                WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_CHARGE_MAX_EFFECT_HANDLE);
+            }
         }
     }
 
     // Hero (Ka)frizz(le) - 0 to 81
     else if fighter_kind == FIGHTER_KIND_BRAVE {
         WorkModule::off_flag(module_accessor, 0x200000E8); // FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
+        if let Some(frizz_charge) = charge.int_x {
+            WorkModule::set_int(module_accessor, frizz_charge, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
+        }
     }
 
     // Banjo Wonderwing - 0 to 5
     else if fighter_kind == FIGHTER_KIND_BUDDY {
-        WorkModule::set_int(module_accessor, charge.0 as i32, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN);
+        if let Some(wing_remain) = charge.int_x {
+            WorkModule::set_int(module_accessor, wing_remain, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN);
+        }
     }
-    */
+    
     return;
 }
