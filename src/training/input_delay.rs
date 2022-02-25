@@ -5,8 +5,7 @@ use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
 use std::collections::VecDeque;
 
 lazy_static! {
-    static ref P1_DELAYED_NPAD_STATES: Mutex<VecDeque<NpadGcState>> =
-        Mutex::new(VecDeque::new());
+    static ref P1_DELAYED_NPAD_STATES: Mutex<VecDeque<NpadGcState>> = Mutex::new(VecDeque::new());
 }
 
 pub unsafe fn p1_controller_id() -> u32 {
