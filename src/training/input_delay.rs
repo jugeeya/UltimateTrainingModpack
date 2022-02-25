@@ -1,11 +1,11 @@
 use crate::common::MENU;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use skyline::nn::hid::{GetNpadStyleSet, NpadHandheldState};
+use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
 use std::collections::VecDeque;
 
 lazy_static! {
-    static ref P1_DELAYED_NPAD_STATES: Mutex<VecDeque<NpadHandheldState>> =
+    static ref P1_DELAYED_NPAD_STATES: Mutex<VecDeque<NpadGcState>> =
         Mutex::new(VecDeque::new());
 }
 
@@ -23,7 +23,7 @@ pub unsafe fn p1_controller_id() -> u32 {
     }
 }
 
-pub fn handle_get_npad_state(state: *mut NpadHandheldState, controller_id: *const u32) {
+pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32) {
     unsafe {
         if crate::common::is_training_mode() {
             if *controller_id == p1_controller_id() {
@@ -32,7 +32,7 @@ pub fn handle_get_npad_state(state: *mut NpadHandheldState, controller_id: *cons
 
                 if delayed_states.len() < MENU.input_delay as usize {
                     let update_count = (*state).updateCount;
-                    *state = NpadHandheldState::default();
+                    *state = NpadGcState::default();
                     (*state).updateCount = update_count;
                 } else if let Some(delayed_state) = delayed_states.back() {
                     let update_count = (*state).updateCount;
