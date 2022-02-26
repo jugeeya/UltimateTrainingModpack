@@ -8,11 +8,6 @@
         font-family: "nintendo_ext_003";
         src: url("../nintendo_ext_003.ttf");
     }
-
-    @font-face {
-        font-family: "nintendoP_RodinNTLG-UB_003";
-        src: url("../nintendoP_RodinNTLG-UB_003.woff");
-    }
 }
 
 @keyframes background-slide {
@@ -124,23 +119,7 @@
 
 .is-focused .question-message {
     color: #FFFFFF;
-}
-
-.is-focused .question-message span::after {
-    content: '';
-    display: inline-block;
-    transform: translate3d(0, 0, 0);
-}
-
-.is-focused .question-message span:nth-child(1) {
-    color: #000000;
-    display: block;
-    margin-left: 2px;
-    margin-top: 2px;
-    position: absolute;
-    width: 817px;
-    width: auto;
-    z-index: -1;
+    text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
 }
 
 .is-focused .question.scuffle-thema {
@@ -322,17 +301,6 @@
     height: 58px;
     transition: opacity 0.2s ease;
     width: 58px;
-}
-
-.ret-icon-shadow {
-    display: inline-block;
-    height: 58px;
-    left: 2px;
-    position: absolute;
-    top: 3px;
-    transition: opacity 0.2s ease;
-    width: 58px;
-    z-index: -1;
 }
 
 .ret-icon-wrapper {
