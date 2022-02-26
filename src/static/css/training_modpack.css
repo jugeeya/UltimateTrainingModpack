@@ -1,24 +1,25 @@
 @-moz-document url-prefix() {
     @font-face {
         font-family: "nintendo_udsgr_std_003";
-        src: url("../nintendo_udsgr_std_003.ttf");
+        src: url("../fonts/nintendo_udsgr_std_003.ttf");
     }
 
     @font-face {
         font-family: "nintendo_ext_003";
-        src: url("../nintendo_ext_003.ttf");
+        src: url("../fonts/nintendo_ext_003.ttf");
     }
 }
 
 @keyframes background-slide {
     0% {
-      background-position-x: 0px;
+        background-position-x: 0px;
     }
-  
+
     100% {
-      background-position-x: 422.4px;
+        background-position-x: 422.4px;
     }
-  }
+}
+
 .answer-border-outer {
     margin-top: 5px;
 }
