@@ -141,39 +141,44 @@ SD Card Root
         └── 01006A800016E000
             ├── manual_html
             │   └── html-document
-            │       └── contents.htdocs
-            │           ├── aerial_delay.svg
-            │           ├── air_dodge_dir.svg
-            │           ├── attack_angle.svg
-            │           ├── buff_state.svg
-            │           ├── check.svg
-            │           ├── defensive_state.svg
-            │           ├── di_state.svg
-            │           ├── falling_aerials.svg
-            │           ├── fast_fall.svg
-            │           ├── fast_fall_delay.svg
-            │           ├── follow_up.svg
-            │           ├── frame_advantage.svg
-            │           ├── full_hop.svg
-            │           ├── input_delay.svg
-            │           ├── ledge_delay.svg
-            │           ├── ledge_state.svg
-            │           ├── mash_in_neutral.svg
-            │           ├── mash_state.svg
-            │           ├── miss_tech_state.svg
-            │           ├── oos_offset.svg
-            │           ├── pummel_delay.svg
-            │           ├── reaction_time.svg
-            │           ├── save_damage.svg
-            │           ├── save_state_mirroring.svg
-            │           ├── sdi_state.svg
-            │           ├── sdi_strength.svg
-            │           ├── shield_state.svg
-            │           ├── shield_tilt.svg
-            │           ├── stage_hazards.svg
-            │           ├── tech_state.svg
-            │           ├── throw_delay.svg
-            │           └── throw_state.svg
+            │       └── training_modpack.htdocs
+            │           ├── css
+            │           │   └── training_modpack.css
+            │           ├── img
+            │           │   ├── aerial_delay.svg
+            │           │   ├── air_dodge_dir.svg
+            │           │   ├── attack_angle.svg
+            │           │   ├── buff_state.svg
+            │           │   ├── check.svg
+            │           │   ├── defensive_state.svg
+            │           │   ├── di_state.svg
+            │           │   ├── falling_aerials.svg
+            │           │   ├── fast_fall.svg
+            │           │   ├── fast_fall_delay.svg
+            │           │   ├── follow_up.svg
+            │           │   ├── frame_advantage.svg
+            │           │   ├── full_hop.svg
+            │           │   ├── input_delay.svg
+            │           │   ├── ledge_delay.svg
+            │           │   ├── ledge_state.svg
+            │           │   ├── mash_in_neutral.svg
+            │           │   ├── mash_state.svg
+            │           │   ├── miss_tech_state.svg
+            │           │   ├── oos_offset.svg
+            │           │   ├── pummel_delay.svg
+            │           │   ├── reaction_time.svg
+            │           │   ├── save_damage.svg
+            │           │   ├── save_state_mirroring.svg
+            │           │   ├── sdi_state.svg
+            │           │   ├── sdi_strength.svg
+            │           │   ├── shield_state.svg
+            │           │   ├── shield_tilt.svg
+            │           │   ├── stage_hazards.svg
+            │           │   ├── tech_state.svg
+            │           │   ├── throw_delay.svg
+            │           │   └── throw_state.svg
+            │           └── js
+            │               └── training_modpack.js
             └── romfs
                 └── skyline
                     └── plugins

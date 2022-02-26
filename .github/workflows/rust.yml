@@ -47,11 +47,11 @@ jobs:
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-      - name: Upload menu icons
+      - name: Upload static files
         uses: actions/upload-artifact@v2
         with:
-          name: svg
-          path: src/templates/*.svg
+          name: static
+          path: src/static
   plugin_outside_training_mode:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
@@ -81,7 +81,7 @@ jobs:
         env:
           SKYLINE_DIR: atmosphere/contents/01006A800016E000
           SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
-          SMASH_WEB_DIR: atmosphere/contents/01006A800016E000/manual_html/html-document/contents.htdocs
+          SMASH_WEB_DIR: atmosphere/contents/01006A800016E000/manual_html/html-document/training_modpack.htdocs
         run: |
           mkdir -p ${{env.SKYLINE_DIR}} 
           mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
@@ -96,7 +96,8 @@ jobs:
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
-          ls -1 svg/*.svg | xargs -n 1 basename | xargs -L1 -I{} cp svg/{} ${{env.SMASH_WEB_DIR}}/{}
+          cp -r static/* ${{env.SMASH_WEB_DIR}}
+          rm ${{env.SMASH_WEB_DIR}}/fonts
           zip -r training_modpack_beta.zip atmosphere
       - name: Update Release
         uses: meeDamian/github-release@2.0
