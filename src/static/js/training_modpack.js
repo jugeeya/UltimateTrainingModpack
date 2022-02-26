@@ -109,9 +109,6 @@ function goBackHook() {
     // Otherwise if all submenus are closed, exit the menu and return to the game
     if ($(".qa.is-opened").length == 0) {
         // If all submenus are closed, exit and return through localhost
-        $('.is-focused').addClass('is-pause-anim')
-        $('#ret-button').addClass('is-focus')
-
         playSound('cancel')
 
         var url = "http://localhost/"
@@ -159,7 +156,7 @@ function goBackHook() {
         console.log(url);
         location.href = url;
 
-        window.history.back()
+        window.nx.endApplet();
     } else {
         // Close any open submenus
         $(".qa.is-opened").each(function () { toggleAnswer(this); });
