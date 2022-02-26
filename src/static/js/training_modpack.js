@@ -1,18 +1,11 @@
 var isNx = (typeof window.nx !== 'undefined')
-var MAX_SOUND_COUNT = 5
-var cursorSoundCount = 0
 var $prevQuestionMsg = null
 var $prevFocusedElm = null
 var scrollTimeoutId = null
 var OFFSET_Y = 85
 
 function focusQA(e) {
-    if (cursorSoundCount < MAX_SOUND_COUNT) {
-        playSound('cursor', function () {
-            cursorSoundCount = cursorSoundCount - 1
-        })
-        cursorSoundCount = cursorSoundCount + 1
-    }
+    playSound("SeSelectUncheck");
     $prevFocusedElm = e;
     e.classList.add("is-focused")
 }
@@ -29,6 +22,7 @@ function defocusQA(e) {
 }
 
 function toggleAnswer(e) {
+    playSound("SeToggleBtnOn")
     e.classList.toggle("is-opened")
 
     // Toggle visibility of child answers
@@ -48,23 +42,46 @@ function toggleAnswer(e) {
 
     if (e.classList.contains("is-opened")) {
         scrollQA(e.id)
-        playSound('fixed')
-    } else {
-        playSound('cursor')
     }
 }
 
-function playSound(label, opt_onEnded) {
-    if (isNx && window.wsnd && window.wsnd.play) {
-        if (isSoundLoaded) {
-            window.wsnd.play(label, opt_onEnded)
-        } else if (opt_onEnded) {
-            opt_onEnded()
-        }
-    } else if (opt_onEnded) {
-        setTimeout(function () {
-            opt_onEnded()
-        }, 500)
+function playSound(label) {
+    // Valid labels:
+    // SeToggleBtnFocus
+    // SeToggleBtnOn
+    // SeToggleBtnOff
+    // SeCheckboxFocus
+    // SeCheckboxOn
+    // SeCheckboxOff
+    // SeRadioBtnFocus
+    // SeRadioBtnOn
+    // SeSelectCheck
+    // SeSelectUncheck
+    // SeBtnDecide
+    // SeTouchUnfocus
+    // SeBtnFocus
+    // SeKeyError
+    // SeDialogOpen
+    // SeWebZoomOut
+    // SeWebZoomIn
+    // SeWebNaviFocus
+    // SeWebPointerFocus
+    // SeFooterFocus
+    // SeFooterDecideBack
+    // SeFooterDecideFinish
+    // SeWebChangeCursorPointer
+    // SeWebTouchFocus
+    // SeWebLinkDecide
+    // SeWebTextboxStartEdit
+    // SeWebButtonDecide
+    // SeWebRadioBtnOn
+    // SeWebCheckboxUncheck
+    // SeWebCheckboxCheck
+    // SeWebMenuListOpen
+    if (isNx) {
+        window.nx.playSystemSe(label);
+    } else {
+        console.log("Sound Effect: " + label);
     }
 }
 
@@ -109,7 +126,7 @@ function goBackHook() {
     // Otherwise if all submenus are closed, exit the menu and return to the game
     if ($(".qa.is-opened").length == 0) {
         // If all submenus are closed, exit and return through localhost
-        playSound('cancel')
+        playSound("SeFooterDecideBack");
 
         var url = "http://localhost/"
 
@@ -164,6 +181,7 @@ function goBackHook() {
 }
 
 function clickToggle(e) {
+    playSound("SeCheckboxOn")
     var toggleOptions = $(e).find(".toggle");
     if ($(e).find(".is-single-option").length) { // Single-option submenu
         // Deselect all submenu options
@@ -228,6 +246,7 @@ function setSettings() {
 
 function resetSubmenu() {
     // Resets any open or focused submenus to the default values
+    playSound("SeToggleBtnOff");
     $("[default*='is-appear']").each(function () {
         if (isSubmenuFocused(this)) {
             $(this).addClass("is-appear");
@@ -253,6 +272,7 @@ function isSubmenuFocused(elem) {
 function resetAllSubmenus() {
     // Resets all submenus to the default values
     if (confirm("Are you sure that you want to reset all menu settings to the default?")) {
+        playSound("SeToggleBtnOff");
         $("[default*='is-appear']").addClass("is-appear");
         $("[default*='is-appear']").removeClass("is-hidden");
 
@@ -268,6 +288,7 @@ function setHelpText(text) {
 
 function toggleSaveDefaults() {
     // Change the status of the Save Defaults checkbox
+    playSound("SeCheckboxOn");
     var saveDefaultsCheckbox = $("#saveDefaults");
     saveDefaultsCheckbox.prop(
         "checked",
