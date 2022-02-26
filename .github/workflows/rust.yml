@@ -86,8 +86,7 @@ jobs:
           mkdir -p ${{env.SKYLINE_DIR}} 
           mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
           mkdir -p ${{env.SMASH_WEB_DIR}}
-          wget https://github.com/skyline-dev/skyline/archive/refs/tags/beta.zip
-          mv beta.zip skyline.zip
+          wget https://github.com/skyline-dev/skyline/releases/download/untagged-34501f8ec57f9829a2f0/skyline.zip
           unzip skyline.zip
           mv exefs ${{env.SKYLINE_DIR}}
           cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
