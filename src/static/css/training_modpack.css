@@ -1,3 +1,33 @@
+@-moz-document url-prefix() {
+    @font-face {
+        font-family: "nintendo_udsgr_std_003";
+        src: url("../nintendo_udsgr_std_003.ttf");
+    }
+
+    @font-face {
+        font-family: "nintendo_ext_003";
+        src: url("../nintendo_ext_003.ttf");
+    }
+
+    @font-face {
+        font-family: "nintendoP_RodinNTLG-UB_003";
+        src: url("../nintendoP_RodinNTLG-UB_003.woff");
+    }
+}
+
+@keyframes background-slide {
+    0% {
+      background-position-x: 0px;
+    }
+  
+    100% {
+      background-position-x: 422.4px;
+    }
+  }
+.answer-border-outer {
+    margin-top: 5px;
+}
+
 .button-icon {
     height: 53px;
     margin-left: 4px;
@@ -35,10 +65,6 @@
     margin-top: 10px;
     position: fixed;
     right: 50px;
-}
-
-.f-u-bold {
-    font-family: "FontUB", "KeyHelpFont";
 }
 
 .flex-button {
@@ -130,16 +156,16 @@
 }
 
 .is-opened .question {
-    bottom: 5px;
+    bottom: 11px;
 }
 
 .is-opened .question-border::before {
     background: #000000;
-    bottom: 0px;
+    bottom: 5px;
 }
 
 .is-opened .question-outer {
-    height: 80px;
+    height: 86px;
     width: 100%;
 }
 
@@ -225,17 +251,10 @@
     will-change: scroll-position;
 }
 
-.qa.is-focused {
-    background-position-x: 0%;
-    background-size: 200% 100%;
-    background-size: auto;
+.is-focused {
     background: linear-gradient(90deg, rgb(255, 109, 0) 0%, rgb(255, 255, 0) 65%, rgb(255, 109, 0) 70%);
-    transform: none;
     will-change: animation;
-}
-
-.qa.is-opened.is-focused {
-    animation: translate-anim 1ms linear 480ms 1 normal forwards;
+    animation: background-slide 650ms linear infinite normal;
 }
 
 .question {
@@ -342,12 +361,12 @@ body {
     width: 1280px;
 }
 
-body, div, th, td, p, ul, ol, dl, dt, dd, img, h1, h2, h3, h4, h5, h6, footer, header, nav, section, span, figure {
+body, div, th, td, p, ul, ol, dl, dt, dd, img, h1, h2, h3, h4, h5, h6, footer, header, nav, p, section, span, figure {
     margin: 0px;
     overflow-wrap: break-word;
     padding: 0px;
     word-break: normal;
-    font-family: "nintendo_ext_003";
+    font-family: "nintendo_ext_003", "nintendo_udsgr_std_003";
 }
 
 img, svg {
