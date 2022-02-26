@@ -5,148 +5,31 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
         <title>Document</title>
-        <link rel="stylesheet" href="./help/css/common.css" />
-        <link rel="stylesheet" href="./help/css/qa.css" />
-        <link rel="stylesheet" href="./help/css/top.css" />
-        <link id="font-stylesheet" rel="stylesheet" href="./help/css/font.css">
-        <link rel="stylesheet" href="./help/css/keyword.css">
-        <link href="./nouislider.min.css" rel="stylesheet">
-        <style>
-            @-moz-document url-prefix() {
-                @font-face {
-                    font-family: '-webkit-standard';
-                    src: url('nintendo_udsg-r_std_003.ttf');
-                }
-            }
-
-            body {
-                background: none;
-            }
-
-            /* Overwrite padding from keyword stuff. */
-            .l-main-content {
-                padding: 0px 0px 0px;
-            }
-
-            /* Somehow isn't getting passed through from default css. */
-            .ret-icon-shadow {
-                position: absolute;
-                z-index: -1;
-                top: 3px;
-                left: 2px;
-                display: inline-block;
-                width: 58px;
-                height: 58px;
-                opacity: 0;
-                transition: opacity 0.2s ease;
-            }
-
-            /* Column size */
-            .l-qa {
-                flex-basis: 33%;
-            }
-
-            /* Full width for opened lists */
-            .is-opened .question-outer {
-                width: 100%;
-            }
-
-            /* Overwrite margin on the last child to avoid overlap with footer */
-            .l-qa:last-child .qa {
-                margin-bottom: 75px;
-            }
-
-            .l-qa:last-child .qa.is-opened {
-                margin-bottom: 0px;
-            }
-
-            /* Fade icons slightly */
-            img.question-icon:not(.toggle) {
-                opacity: 0.75;
-            }
-
-            /* Override excessive question width on focus */
-            .is-focused .question-message span:nth-child(1) {
-                width: auto;
-            }
-
-            /* Handle alignment of items in the header */
-            .l-header {
-                display: flex;
-            }
-
-            /* Set menu description color */
-            .header-desc {
-                color: white;
-            }
-
-            /* Center Icons */
-            .question::before {
-                width: 70px;
-            }
-
-            /* Footer */
-            .footer {
-                position: fixed;
-                z-index: 10;
-            }
-
-            /* Save Defaults Container */
-            .defaults-checkbox-container {
-                position: fixed;
-                right: 50px;
-                margin-top: 10px;
-                display: flex;
-                justify-content: center;
-                flex-direction: column;
-            }
-
-            /* Checkbox element (hidden) */
-            #saveDefaults {
-                position: absolute;
-                left: -100vw;
-            }
-
-            .checkbox-display {
-                margin: 10px 70px;
-            }
-
-            /* Displayed Checkbox (unchecked) */
-            .checkbox-display::after {
-                content: "\E14C";
-                color: white;
-            }
-
-            /* Displayed Checkbox (checked) */
-            #saveDefaults:checked ~ .checkbox-display::after {
-                content: "\E14B";
-            }
-        </style>
+        <link rel="stylesheet" href="./css/training_modpack.css" />
     </head>
 
     <body>
-        <script src="./help/js/jquery-3.3.1.min.js"></script>
-        <script src="./help/common/js/wsnd.min.js"></script>
-        <script src="./help/common/js/keyhelp.js"></script>
-        <script src="./help/js/common.js"></script>
-        <script src="./help/js/qa.js"></script>
-        <script src="./nouislider.min.js"></script>
+        <script src="./js/jquery-3.3.1.min.js"></script>
+        <script src="./common/js/wsnd.min.js"></script>
+        <script src="./common/js/keyhelp.js"></script>
+        <script src="./js/common.js"></script>
+        <script src="./js/qa.js"></script>
 
         <div class="l-header">
             <div class="l-header-title">
-                <div class="header-title f-u-bold"><span data-msgcom="true" data-msgid="textbox_id-10020">Ultimate
+                <div class="header-title"><span data-msgcom="true" data-msgid="textbox_id-10020">Ultimate
                         Training
                         Modpack Menu</span></div>
             </div>
             <div class="header" style="flex-grow: 1;">
                 <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();" nx-se-disabled="">
                     <div class="ret-icon-wrapper">
-                        <img class="ret-icon-shadow is-appear" ref="./help/img/icon/m_retnormal.svg" src="./help/img/icon/m_retnormal.svg">
-                        <img class="ret-icon is-appear" ref="./help/img/icon/m_retnormal.svg" src="./help/img/icon/m_retnormal.svg">
+                        <img class="ret-icon-shadow is-appear" ref="./img/icon/m_retnormal.svg" src="./img/m_retnormal.svg">
+                        <img class="ret-icon is-appear" ref="./img/icon/m_retnormal.svg" src="./img/m_retnormal.svg">
                     </div>
                 </a>
             </div>
-            <div class="header f-u-bold" style="flex-direction: column; justify-content: center; align-items: end;">
+            <div class="header" style="flex-direction: column; justify-content: center; align-items: end;">
                 <p class="header-desc">Reset Current Menu: &#xE0A2;</p>
                 <p class="header-desc">Reset All Menus: &#xE0A4;</p>
             </div>
@@ -178,8 +61,8 @@
                             <div class="question-outer">
                                 <div class="question-border">
                                     <div id="question-{{id}}" class="question scuffle-thema">
-                                        <img class="question-icon" ref="./{{id}}.svg" src="./{{id}}.svg" />
-                                        <p class="question-message f-u-bold">
+                                        <img class="question-icon" ref="./img/{{id}}.svg" src="./img/{{id}}.svg" />
+                                        <p class="question-message">
                                             <span data-msgid="textbox_id-7">{{title}}</span>
                                         </p>
                                     </div>
@@ -193,10 +76,10 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon toggle {{checked}} {{#is_single_option}}is-single-option{{/is_single_option}}" ref="./check.svg" src="./check.svg" default="{{default}}">
+                                                            <img class="button-icon toggle {{checked}} {{#is_single_option}}is-single-option{{/is_single_option}}" ref="./img/check.svg" src="./img/check.svg" default="{{default}}">
                                                         </div>
                                                         <div class="button-msg-wrapper">
-                                                            <div class="keyword-message f-u-bold">
+                                                            <div class="keyword-message">
                                                                 {{title}}
                                                             </div>
                                                         </div>
@@ -209,10 +92,10 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
+                                                            <img class="button-icon toggle {{checked}}" ref="./img/check.svg" src="./img/check.svg">
                                                         </div>
                                                         <div class="button-msg-wrapper">
-                                                            <div class="keyword-message f-u-bold">
+                                                            <div class="keyword-message">
                                                                 <div name='range_slider' oninput="this.nextElementSibling.value = this.value">
                                                                 </div>
                                                                 <output>{{value}}</output>
@@ -227,10 +110,10 @@
                                                 <div class="keyword-button-outer">
                                                     <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
                                                         <div class="button-icon-wrapper">
-                                                            <img class="button-icon toggle {{checked}}" ref="./check.svg" src="./check.svg">
+                                                            <img class="button-icon toggle {{checked}}" ref="./img/check.svg" src="./img/check.svg">
                                                         </div>
                                                         <div class="button-msg-wrapper">
-                                                            <div class="keyword-message f-u-bold">
+                                                            <div class="keyword-message">
                                                                 <div name="{{id}}">
                                                                 </div>
                                                             </div>
@@ -250,9 +133,9 @@
                                 <div class="question-border">
                                     <div id="question-{{id}}" class="question scuffle-thema">
                                         <div id="{{id}}" class="onoff">
-                                            <img class="question-icon" style="z-index: 1;" ref="./{{id}}.svg" src="./{{id}}.svg" />
-                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" ref="./check.svg" src="./check.svg" default="{{default}}"/></div>
-                                            <p class="keyword-message f-u-bold">
+                                            <img class="question-icon" style="z-index: 1;" ref="./img/{{id}}.svg" src="./img/{{id}}.svg" />
+                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" ref="./img/check.svg" src="./img/check.svg" default="{{default}}"/></div>
+                                            <p class="keyword-message">
                                                 {{title}}
                                             </p>
                                         </div>
@@ -278,7 +161,7 @@
                 </script>
             {{/sliders}}
         {{/sub_menus}}
-        <footer id="footer" class="footer l-footer f-u-bold">
+        <footer id="footer" class="footer l-footer">
             <p id="help-text" class="header-desc"></p>
             <div class="defaults-checkbox-container">
                 <label class="header-desc" for="saveDefaults">Save defaults: &#xE0A5;</label>
