@@ -453,7 +453,7 @@ pub unsafe fn handle_effect(
 
 #[allow(improper_ctypes)]
 extern "C" {
-    fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState, *const u32));
+    fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
 }
 
 pub fn training_mods() {
