@@ -6,6 +6,9 @@ use crate::common::is_dead;
 use crate::common::MENU;
 use crate::training::buff;
 use crate::training::reset;
+//use crate::training::charge;
+//use crate::training::charge::ChargeState;
+use crate::training::charge::{self, ChargeState}; // is this the same as the above 2 lines?
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -29,6 +32,7 @@ struct SavedState {
     situation_kind: i32,
     state: SaveState,
     fighter_kind: i32,
+    charge: ChargeState,
 }
 
 macro_rules! default_save_state {
@@ -41,6 +45,14 @@ macro_rules! default_save_state {
             situation_kind: 0,
             state: NoAction,
             fighter_kind: -1,
+            charge: ChargeState {
+                int_x: None,
+                int_y: None,
+                float_x: None,
+                float_y: None,
+                float_z: None,
+                has_charge: None
+            }
         }
     };
 }
@@ -265,9 +277,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state.state = NoAction;
         }
 
-        // if we're done moving, reset percent and apply buffs
+        // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
+            // Set the charge of special moves if the fighter matches the kind in the save state
+            if save_state.fighter_kind == fighter_kind {
+                charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
+            }
+            // Buff the fighter if they're one of the fighters who can be buffed
             if fighter_is_buffable {
                 save_state.state = ApplyBuff;
             }
@@ -325,12 +342,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
         save_state.situation_kind = StatusModule::situation_kind(module_accessor);
-        if fighter_is_ptrainer {
-            // Only store the fighter_kind for pokemon trainer
-            save_state.fighter_kind = app::utility::get_kind(module_accessor);
-        } else {
-            save_state.fighter_kind = -1;
-        }
+        // Always store fighter kind so that charges are handled properly
+        save_state.fighter_kind = app::utility::get_kind(module_accessor);
+        save_state.charge = charge::get_charge(module_accessor, fighter_kind);
 
         let zeros = Vector3f {
             x: 0.0,
