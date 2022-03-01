@@ -68,7 +68,8 @@ pub fn main() {
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
 
-    #[cfg(not(feature = "ryujinx"))] {
+    #[cfg(not(feature = "ryujinx"))]
+    {
         unsafe {
             mkdir(c_str!("sd:/TrainingModpack/"), 777);
         }
@@ -81,7 +82,6 @@ pub fn main() {
 
         log!("Performing version check...");
         release::version_check();
-
 
         let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
         log!("Checking for previous menu in training_modpack_menu.conf...");
