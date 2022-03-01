@@ -176,27 +176,27 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
 pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32, charge: ChargeState) {
     // Mario Fludd - 0 to 80
     if fighter_kind == FIGHTER_KIND_MARIO {
-        if let Some(fludd_charge) = charge.int_x {
+        charge.int_x.map(|fludd_charge| {
             WorkModule::set_int(module_accessor, fludd_charge, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE);
             if fludd_charge == 80 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
-        }
+        });
     }
     
     // DK Punch - 0 to 110
     else if fighter_kind == FIGHTER_KIND_DONKEY {
-        if let Some(punch_charge) = charge.int_x {
+        charge.int_x.map(|punch_charge| {
             WorkModule::set_int(module_accessor, punch_charge, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
             if punch_charge == 110 {
                 FighterUtil::set_face_motion_by_priority(module_accessor,FighterFacial(*FIGHTER_FACIAL_SPECIAL), Hash40::new("special_n_max_face"));
             }
-        }
+        });
     }
 
     // Samus/Dark Samus Charge Shot - 0 to 112
     else if fighter_kind == FIGHTER_KIND_SAMUS || fighter_kind == FIGHTER_KIND_SAMUSD {
-        if let Some(shot_charge) = charge.int_x {
+        charge.int_x.map(|shot_charge| {
             WorkModule::set_int(module_accessor, shot_charge, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
             if shot_charge == 112 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -225,12 +225,12 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 );
                 WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
             }
-        }
+        });
     }
 
     // Sheik Needles - 0 to 6
     else if fighter_kind == FIGHTER_KIND_SHEIK {
-        if let Some(needle_charge) = charge.int_x {
+        charge.int_x.map(|needle_charge| {
             WorkModule::set_int(module_accessor, needle_charge, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT);
             ArticleModule::generate_article_enable(module_accessor,*FIGHTER_SHEIK_GENERATE_ARTICLE_NEEDLEHAVE, false, -1);
             let hash_main = Hash40::new("set_main");
@@ -267,15 +267,15 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
             }
 
-        }
+        });
     }
 
     // Mewtwo Shadowball - 0 to 120, Boolean
     else if fighter_kind == FIGHTER_KIND_MEWTWO {
-        if let Some(charge_frame) = charge.int_x {
+        charge.int_x.map(|charge_frame| {
             WorkModule::set_int(module_accessor, charge_frame, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME);
-        }
-        if let Some(prev_frame) = charge.int_y {
+        });
+        charge.int_y.map(|prev_frame| {
             WorkModule::set_int(module_accessor, prev_frame, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME);
             if prev_frame == 120 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -307,15 +307,15 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_L);
                 WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_R);
             }
-        }
-        if let Some(has_shadowball) = charge.has_charge {
+        });
+        charge.has_charge.map(|has_shadowball| {
             WorkModule::set_flag(module_accessor, has_shadowball, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
-        }
+        });
     }
 
     // GnW Bucket - 0 to 3, Attack not tested
     else if fighter_kind == FIGHTER_KIND_GAMEWATCH {
-        if let Some(bucket_level) = charge.float_x {
+        charge.float_x.map(|bucket_level| {
             WorkModule::set_float(module_accessor, bucket_level, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_GAUGE);
             if bucket_level == 3.0 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -323,35 +323,35 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 // GnW flashes when successfully bucketing, and it will persist if state is loaded during that time, so we remove it here
                 EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
             }
-        }
-        if let Some(bucket_attack) = charge.float_y {
+        });
+        charge.float_y.map(|bucket_attack| {
             WorkModule::set_float(module_accessor, bucket_attack, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_ATTACK);
-        }
+        });
     }
 
     // Wario Waft - 0 to 6000
     else if fighter_kind == FIGHTER_KIND_WARIO {
-        if let Some(waft_count) = charge.int_x {
+        charge.int_x.map(|waft_count| {
             WorkModule::set_int(module_accessor, waft_count, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
-        }
+        });
     }
 
     // Squirtle Water Gun - 0 to 45
     else if fighter_kind == FIGHTER_KIND_PZENIGAME {
-        if let Some(water_charge) = charge.int_x {
+        charge.int_x.map(|water_charge| {
             WorkModule::set_int(module_accessor, water_charge, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE);
             if water_charge == 45 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
-        }
+        });
     }
 
     // Lucario Aura Sphere - 0 to 90, Boolean
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
-        if let Some(charge_frame) = charge.int_x {
+        charge.int_x.map(|charge_frame| {
             WorkModule::set_int(module_accessor, charge_frame, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME);
-        }
-        if let Some(prev_frame) = charge.int_y {
+        });
+        charge.int_y.map(|prev_frame| {
             WorkModule::set_int(module_accessor, prev_frame, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_PREV_AURABALL_CHARGE_FRAME);
             if prev_frame == 90 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -384,52 +384,52 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 WorkModule::set_int(module_accessor, efh_1 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_L);
                 WorkModule::set_int(module_accessor, efh_2 as i32, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_R);
             }
-        }
-        if let Some(has_aurasphere) = charge.has_charge {
+        });
+        charge.has_charge.map(|has_aurasphere| {
             WorkModule::set_flag(module_accessor, has_aurasphere, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD);
-        }
+        });
     }
 
     // ROB Gyro/Laser/Fuel - Gyro from 0 to 90, rest unchecked
     else if fighter_kind == FIGHTER_KIND_ROBOT {
-        if let Some(beam_energy) = charge.float_x {
+        charge.float_x.map(|beam_energy| {
             WorkModule::set_float(module_accessor, beam_energy, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE);
-        }
-        if let Some(gyro_charge) = charge.float_y {
+        });
+        charge.float_y.map(|gyro_charge| {
             WorkModule::set_float(module_accessor, gyro_charge, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_GYRO_CHARGE_VALUE);
             if gyro_charge == 90.0 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
-        }
-        if let Some(burner_energy) = charge.float_z {
+        });
+        charge.float_z.map(|burner_energy| {
             WorkModule::set_float(module_accessor, burner_energy, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BURNER_ENERGY_VALUE);
-        }
+        });
     }
 
     // Wii Fit Sun Salutation - 0 to 1
     else if fighter_kind == FIGHTER_KIND_WIIFIT {
-        if let Some(sun_ratio) = charge.float_x {
+        charge.float_x.map(|sun_ratio| {
             WorkModule::set_float(module_accessor, sun_ratio, *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO)
-        }
+        });
     }
 
     // Pac-Man Bonus Fruit - 0 to 12
     else if fighter_kind == FIGHTER_KIND_PACMAN {
-        if let Some(charge_rank) = charge.int_x {
+        charge.int_x.map(|charge_rank| {
             WorkModule::set_int(module_accessor, charge_rank, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
             
             if charge_rank == 12 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
-        }
-        if let Some(has_fruit) = charge.has_charge {
+        });
+        charge.has_charge.map(|has_fruit| {
             WorkModule::set_flag(module_accessor, has_fruit, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
-        }
+        });
     }
 
     // Robin Thunder Tome Spells - 0 to 3
     else if fighter_kind == FIGHTER_KIND_REFLET {
-        if let Some(thunder_kind) = charge.int_x {
+        charge.int_x.map(|thunder_kind| {
             WorkModule::set_int(module_accessor, thunder_kind, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND);
             if thunder_kind == 3 { 
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -452,12 +452,12 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                     false, false
                 );
             }
-        }
+        });
     }
 
     // Mii Gunner Charge Blast - 0 to 120
     else if fighter_kind == FIGHTER_KIND_MIIGUNNER {
-        if let Some(blast_charge) = charge.int_x {
+        charge.int_x.map(|blast_charge| {
             WorkModule::set_int(module_accessor, blast_charge, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT);
             if blast_charge == 120 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -481,12 +481,12 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 );
                 WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX);
             }
-        }
+        });
     }
 
     // Plant Poison - 0 to 75
     else if fighter_kind == FIGHTER_KIND_PACKUN {
-        if let Some(poison_count) = charge.int_x {
+        charge.int_x.map(|poison_count| {
             WorkModule::set_int(module_accessor, poison_count, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT);
             if poison_count == 75 { 
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -510,22 +510,22 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
                 );
                 WorkModule::set_int(module_accessor, efh as i32, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_CHARGE_MAX_EFFECT_HANDLE);
             }
-        }
+        });
     }
 
     // Hero (Ka)frizz(le) - 0 to 81
     else if fighter_kind == FIGHTER_KIND_BRAVE {
         WorkModule::off_flag(module_accessor, 0x200000E8); // FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT
-        if let Some(frizz_charge) = charge.int_x {
+        charge.int_x.map(|frizz_charge| {
             WorkModule::set_int(module_accessor, frizz_charge, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
-        }
+        });
     }
 
     // Banjo Wonderwing - 0 to 5
     else if fighter_kind == FIGHTER_KIND_BUDDY {
-        if let Some(wing_remain) = charge.int_x {
+        charge.int_x.map(|wing_remain| {
             WorkModule::set_int(module_accessor, wing_remain, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN);
-        }
+        });
     }
     
     return;
