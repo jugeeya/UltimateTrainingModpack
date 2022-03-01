@@ -59,28 +59,29 @@ impl Default for ChargeState {
 }
 
 pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32) -> ChargeState {
+    let charge_state = ChargeState::default();
     // Mario FLUDD
     if fighter_kind == FIGHTER_KIND_MARIO {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MARIO_INSTANCE_WORK_ID_INT_SPECIAL_LW_CHARGE);
-        return ChargeState::default().int_x(my_charge); // why can't I do the no semicolon return here?
+        return charge_state.int_x(my_charge);
     }
 
     // Donkey Kong Giant Punch
     if fighter_kind == FIGHTER_KIND_DONKEY {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_DONKEY_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Samus/Dark Samus Charge Shot
     if fighter_kind == FIGHTER_KIND_SAMUS || fighter_kind == FIGHTER_KIND_SAMUSD {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Sheik Needles
     if fighter_kind == FIGHTER_KIND_SHEIK {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Mewtwo Shadowball
@@ -88,26 +89,26 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME);
         let prev_frame = WorkModule::get_int(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME);
         let ball_had = WorkModule::is_flag(module_accessor, *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD);
-        return ChargeState::default().int_x(my_charge).int_y(prev_frame).has_charge(ball_had);
+        return charge_state.int_x(my_charge).int_y(prev_frame).has_charge(ball_had);
     }
 
     // Game and Watch Bucket
     if fighter_kind == FIGHTER_KIND_GAMEWATCH {
         let my_charge = WorkModule::get_float(module_accessor, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_GAUGE);
         let my_attack = WorkModule::get_float(module_accessor, *FIGHTER_GAMEWATCH_INSTANCE_WORK_ID_FLOAT_SPECIAL_LW_ATTACK);
-        return ChargeState::default().float_x(my_charge).float_y(my_attack);
+        return charge_state.float_x(my_charge).float_y(my_attack);
     }
 
     // Wario Waft
     if fighter_kind == FIGHTER_KIND_WARIO {
         let my_charge = WorkModule::get_int(module_accessor, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Squirtle Water Gun
     if fighter_kind == FIGHTER_KIND_PZENIGAME {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Lucario Aura Sphere
@@ -115,7 +116,7 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME);
         let prev_frame = WorkModule::get_int(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_PREV_AURABALL_CHARGE_FRAME);
         let ball_had = WorkModule::is_flag(module_accessor, *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD);
-        return ChargeState::default().int_x(my_charge).int_y(prev_frame).has_charge(ball_had);
+        return charge_state.int_x(my_charge).int_y(prev_frame).has_charge(ball_had);
     }
 
     // ROB Gyro/Laser/Fuel
@@ -123,53 +124,53 @@ pub unsafe fn get_charge(module_accessor: &mut app::BattleObjectModuleAccessor, 
         let laser_charge = WorkModule::get_float(module_accessor, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE);
         let gyro_charge = WorkModule::get_float(module_accessor, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_GYRO_CHARGE_VALUE);
         let fuel_charge = WorkModule::get_float(module_accessor, *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BURNER_ENERGY_VALUE);
-        return ChargeState::default().float_x(laser_charge).float_y(gyro_charge).float_z(fuel_charge);
+        return charge_state.float_x(laser_charge).float_y(gyro_charge).float_z(fuel_charge);
     }
 
     // Wii Fit Sun Salutation
     if fighter_kind == FIGHTER_KIND_WIIFIT {
         let my_charge = WorkModule::get_float(module_accessor, *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO);
-        return ChargeState::default().float_x(my_charge);
+        return charge_state.float_x(my_charge);
     }
 
     // Pac-Man Bonus Fruit
     if fighter_kind == FIGHTER_KIND_PACMAN {
         let my_charge = WorkModule::get_int(module_accessor, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
         let max_have = WorkModule::is_flag(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM);
-        return ChargeState::default().int_x(my_charge).has_charge(max_have);
+        return charge_state.int_x(my_charge).has_charge(max_have);
     }
 
     // Robin Thunder Tome Spells
     if fighter_kind == FIGHTER_KIND_REFLET {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Plant Poison Breath
     if fighter_kind == FIGHTER_KIND_PACKUN {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PACKUN_INSTANCE_WORK_ID_INT_SPECIAL_S_COUNT);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Hero (Ka)frizz(le)
     if fighter_kind == FIGHTER_KIND_BRAVE {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Banjo Wonderwing
     if fighter_kind == FIGHTER_KIND_BUDDY {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
     // Mii Gunner Charge Blast
     if fighter_kind == FIGHTER_KIND_MIIGUNNER {
         let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT);
-        return ChargeState::default().int_x(my_charge);
+        return charge_state.int_x(my_charge);
     }
 
-    return ChargeState::default();
+    return charge_state;
 }
 
 pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccessor, fighter_kind: i32, charge: ChargeState) {
