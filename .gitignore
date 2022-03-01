@@ -3,7 +3,7 @@
 **/*.pyc
 Cargo.lock
 
-TrainingModpackOverlay/build/
+.idea/
 
 *.ovl
 

@@ -104,6 +104,7 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
+        #[cfg(not(feature = "ryujinx"))]
         if crate::common::menu::menu_condition(module_accessor) {
             crate::common::menu::spawn_menu();
         }
@@ -530,6 +531,9 @@ pub fn training_mods() {
     mash::init();
     ledge::init();
     throw::init();
+
+    #[cfg(not(feature = "ryujinx"))]
     menu::init();
+
     buff::init();
 }
