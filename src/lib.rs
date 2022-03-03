@@ -18,12 +18,6 @@ mod training;
 #[cfg(test)]
 mod test;
 
-#[macro_use]
-extern crate bitflags;
-
-#[macro_use]
-extern crate num_derive;
-
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::menu::get_menu_from_url;

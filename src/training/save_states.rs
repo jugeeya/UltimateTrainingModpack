@@ -1,16 +1,17 @@
+use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
+use crate::common::is_dead;
 use crate::common::MENU;
-use crate::common::{get_random_int, is_dead};
 use crate::training::buff;
 use crate::training::reset;
-use crate::training::charge;
+use crate::training::charge::{self, ChargeState};
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-//
+
 use crate::training::character_specific::steve;
 
 #[derive(PartialEq)]
@@ -31,8 +32,7 @@ struct SavedState {
     situation_kind: i32,
     state: SaveState,
     fighter_kind: i32,
-    charge: (f32,f32,f32),
-    steve_state: steve::SteveState,
+    charge: ChargeState,
 }
 
 macro_rules! default_save_state {
@@ -45,7 +45,14 @@ macro_rules! default_save_state {
             situation_kind: 0,
             state: NoAction,
             fighter_kind: -1,
-            charge: (-1.0,-1.0,-1.0),
+            charge: ChargeState {
+                int_x: None,
+                int_y: None,
+                float_x: None,
+                float_y: None,
+                float_z: None,
+                has_charge: None
+            }
             steve_state: steve::SteveState {
                 mat_g1: 0,
                 mat_wood: 0,
@@ -300,6 +307,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
             // Perform fighter specific loading actions
             steve::load_steve_state(module_accessor,save_state.steve_state);
+            // Play Training Reset SFX, since silence is eerie
+            // Only play for the CPU so we don't have 2 overlapping
+            if is_cpu {
+                SoundModule::play_se_no3d(
+                    module_accessor,
+                    Hash40::new("se_system_position_reset"),
+                    true,
+                    true,
+                );
+            }
         }
 
         // if the fighter is Popo, change the state to one where only Nana can move

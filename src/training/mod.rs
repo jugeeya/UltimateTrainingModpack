@@ -3,10 +3,10 @@ use crate::hitbox_visualizer;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
-use smash::app::{self, lua_bind::*};
+use smash::app::{self, enSEType, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
-use smash::phx::Hash40;
+use smash::phx::{Hash40, Vector3f};
 
 pub mod buff;
 pub mod combo;
@@ -401,10 +401,82 @@ pub unsafe fn handle_steve_meter(
 ) {
     original!()(module_accessor,arg2,arg3)
 }
+#[skyline::hook(replace = SoundModule::play_se)] // hooked to prevent death sfx from playing when loading save states
+pub unsafe fn handle_se(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    my_hash: Hash40,
+    bool1: bool,
+    bool2: bool,
+    bool3: bool,
+    bool4: bool,
+    se_type: enSEType,
+) -> u64 {
+    // Make effects silent while we're killing fighters. Stops death explosion and fighter misfoot.
+    if save_states::is_killing() {
+        let silent_hash = Hash40::new("se_silent");
+        return original!()(
+            module_accessor,
+            silent_hash,
+            bool1,
+            bool2,
+            bool3,
+            bool4,
+            se_type,
+        );
+    }
+    original!()(
+        module_accessor,
+        my_hash,
+        bool1,
+        bool2,
+        bool3,
+        bool4,
+        se_type,
+    )
+}
+
+#[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
+pub unsafe fn handle_effect(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    eff_hash: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    size: f32,
+    arg6: u32,
+    arg7: i32,
+    arg8: bool,
+    arg9: i32,
+) -> u64 {
+    if save_states::is_killing() {
+        // Making the size 0 prevents these effects from being displayed. Fixs throw explosions, ICs squall, etc.
+        return original!()(
+            module_accessor,
+            eff_hash,
+            pos,
+            rot,
+            0.0,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+        );
+    }
+    original!()(
+        module_accessor,
+        eff_hash,
+        pos,
+        rot,
+        size,
+        arg6,
+        arg7,
+        arg8,
+        arg9,
+    )
+}
 
 #[allow(improper_ctypes)]
 extern "C" {
-    fn add_nn_hid_hook(callback: fn(*mut NpadHandheldState, *const u32));
+    fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
 }
 
 pub fn training_mods() {
@@ -467,10 +539,14 @@ pub fn training_mods() {
         handle_add_limit,
         handle_check_doyle_summon_dispatch,
         handle_req_screen,
+        handle_steve_meter,
         // Stale Moves
         stale_handle,
         stale_menu_handle,
-        handle_steve_meter,
+        // Death SFX
+        handle_se,
+        // Death GFX
+        handle_effect,
     );
 
     combo::init();
