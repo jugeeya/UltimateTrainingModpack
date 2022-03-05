@@ -532,7 +532,6 @@ pub fn training_mods() {
     ledge::init();
     throw::init();
 
-    #[cfg(not(feature = "ryujinx"))]
     menu::init();
 
     buff::init();
