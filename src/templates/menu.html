@@ -10,17 +10,14 @@
 
     <body id="body">
         <script defer src="./js/training_modpack.js"></script>
-
         <div class="l-header">
             <div class="l-header-title">
-                <div class="header-title"><span data-msgcom="true" data-msgid="textbox_id-10020">Ultimate
-                        Training
-                        Modpack Menu</span></div>
+                <div class="header-title"><span>Ultimate Training Modpack Menu</span></div>
             </div>
             <div class="header" style="flex-grow: 1;">
-                <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();" nx-se-disabled="">
+                <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();">
                     <div class="ret-icon-wrapper">
-                        <img class="ret-icon is-appear" ref="./img/icon/m_retnormal.svg" src="./img/m_retnormal.svg">
+                        <img class="ret-icon is-appear" src="./img/m_retnormal.svg">
                     </div>
                 </a>
             </div>
@@ -52,49 +49,49 @@
             {{#sub_menus}}
                 <div class="l-qa">
                     {{^onoffselector}}
-                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="toggleAnswer(this)" nx-se-disabled="">
+                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="toggleAnswer(this)">
                             <div class="question-outer">
                                 <div class="question-border">
                                     <div id="question-{{id}}" class="question scuffle-thema">
-                                        <img class="question-icon" ref="./img/{{id}}.svg" src="./img/{{id}}.svg" />
+                                        <img class="question-icon" src="./img/{{id}}.svg" />
                                         <p class="question-message">
                                             <span>{{title}}</span>
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                            <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
-                                <div class="l-main">
-                                    <ul class="l-grid" id="{{id}}">
-                                        {{#toggles}}
-                                            <li class="l-item" val="{{value}}">
-                                                <div class="keyword-button-outer">
-                                                    <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);" nx-se-disabled="">
-                                                        <div class="button-icon-wrapper">
-                                                            <img class="button-icon toggle {{checked}} {{#is_single_option}}is-single-option{{/is_single_option}}" ref="./img/check.svg" src="./img/check.svg" default="{{default}}">
-                                                        </div>
-                                                        <div class="button-msg-wrapper">
-                                                            <div class="keyword-message">
-                                                                {{title}}
-                                                            </div>
-                                                        </div>
-                                                    </a>
-                                                </div>
-                                            </li>
-                                        {{/toggles}}
-                                    </ul>
-                                </div>
-                            </div>
                         </a>
+                        <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
+                            <div class="l-main">
+                                <ul class="l-grid" id="{{id}}">
+                                    {{#toggles}}
+                                        <li class="l-item" val="{{value}}">
+                                            <div class="keyword-button-outer">
+                                                <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);">
+                                                    <div class="button-icon-wrapper">
+                                                        <img class="button-icon toggle {{checked}} {{#is_single_option}}is-single-option{{/is_single_option}}" src="./img/check.svg" default="{{default}}">
+                                                    </div>
+                                                    <div class="button-msg-wrapper">
+                                                        <div class="keyword-message">
+                                                            {{title}}
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    {{/toggles}}
+                                </ul>
+                            </div>
+                        </div>
                     {{/onoffselector}}
                     {{#onoffselector}}
-                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="clickToggle(this)" nx-se-disabled="">
+                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="clickToggle(this)">
                             <div class="question-outer">
                                 <div class="question-border">
                                     <div id="question-{{id}}" class="question scuffle-thema">
                                         <div id="{{id}}" class="onoff">
-                                            <img class="question-icon" style="z-index: 1;" ref="./img/{{id}}.svg" src="./img/{{id}}.svg" />
-                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" ref="./img/check.svg" src="./img/check.svg" default="{{default}}"/></div>
+                                            <img class="question-icon" style="z-index: 1;" src="./img/{{id}}.svg" />
+                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" src="./img/check.svg" default="{{default}}"/></div>
                                             <p class="question-message">
                                                 <span>{{title}}</span>
                                             </p>

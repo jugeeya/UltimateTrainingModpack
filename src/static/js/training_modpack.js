@@ -1,20 +1,12 @@
-var isNx = (typeof window.nx !== 'undefined')
-var prevQuestionMsg = null
-var prevFocusedElm = null
+var isNx = (typeof window.nx !== 'undefined');
+var prevQuestionMsg = null;
+var prevFocusedElm = null;
 
 if (isNx) {
-    window.nx.footer.setAssign('B', '', goBackHook, {
-        se: ''
-    })
-    window.nx.footer.setAssign('X', '', resetSubmenu, {
-        se: ''
-    })
-    window.nx.footer.setAssign('L', '', resetAllSubmenus, {
-        se: ''
-    })
-    window.nx.footer.setAssign('R', '', toggleSaveDefaults, {
-        se: ''
-    })
+    window.nx.footer.setAssign('B', '', goBackHook, {se: ''});
+    window.nx.footer.setAssign('X', '', resetSubmenu, {se: ''});
+    window.nx.footer.setAssign('L', '', resetAllSubmenus, {se: ''});
+    window.nx.footer.setAssign('R', '', toggleSaveDefaults, {se: ''});
 } else {
     document.getElementById("body").addEventListener('keypress', (event) => {
         switch (event.key) {
@@ -65,35 +57,35 @@ function getElementByXpath(path) {
 function focusQA(e) {
     playSound("SeSelectUncheck");
     prevFocusedElm = e;
-    e.classList.add("is-focused")
+    e.classList.add("is-focused");
 }
 
 function defocusQA(e) {
     if (prevFocusedElm) {
-        prevFocusedElm.classList.remove('is-focused')
+        prevFocusedElm.classList.remove('is-focused');
 
     }
     if (prevQuestionMsg) {
-        prevQuestionMsg.remove()
-        prevQuestionMsg = null
+        prevQuestionMsg.remove();
+        prevQuestionMsg = null;
     }
 }
 
 function toggleAnswer(e) {
-    playSound("SeToggleBtnOn")
-    e.classList.toggle("is-opened")
+    playSound("SeToggleBtnOn");
+    e.classList.toggle("is-opened");
 
     // Toggle visibility of child answers
-    e.childNodes.forEach((child) => {
+    [].forEach.call(e.childNodes, function (child) {
         if (!isTextNode(child) && child.classList.contains("answer-border-outer")) {
             child.classList.toggle("is-hidden");
         }
     });
 
     // Toggle visibility of sibling answers
-    var sibling = e.nextSibling
+    var sibling = e.nextElementSibling;
     if (sibling.classList.contains("answer-border-outer")) {
-        sibling.classList.toggle("is-hidden")
+        sibling.classList.toggle("is-hidden");
     }
 }
 
@@ -140,66 +132,63 @@ function playSound(label) {
 function goBackHook() {
     // If any submenus are open, close them
     // Otherwise if all submenus are closed, exit the menu and return to the game
+
     if (document.querySelectorAll(".qa.is-opened").length == 0) {
         // If all submenus are closed, exit and return through localhost
         playSound("SeFooterDecideBack");
-
-        var url = "http://localhost/"
-
-        var settings = [];
-
+        var url = "http://localhost/";
+        
+        var settings = new Map();
+        
         // Collect settings for toggles
         
-        document.querySelectorAll("ul.l-grid").forEach((toggle) => {
+        [].forEach.call(document.querySelectorAll("ul.l-grid"), function (toggle) {
             var section = toggle.id;
             var val = "";
-
-            toggle.childNodes.forEach((child) => {
+            
+            [].forEach.call(toggle.childNodes, function (child) {
                 if (!isTextNode(child) && child.querySelectorAll(".is-appear").length) {
                     val += child.getAttribute("val") + ",";
                 };
             });
-
-            settings.push({
-                name: section,
-                value: val
-            });
+            
+            settings.set(section,val);
         });
-
+        
         // Collect settings for OnOffs
-        document.querySelectorAll("div.onoff").forEach((onoff) => {
+        [].forEach.call(document.querySelectorAll("div.onoff"), function (onoff) {
             var section = onoff.id;
             var val = "";
             if (onoff.querySelectorAll(".is-appear").length) {
-                val = "1"
+                val = "1";
             } else {
-                val = "0"
+                val = "0";
             }
-            settings.push({
-                name: section,
-                value: val
-            });
+            settings.set(section,val);
         });
 
-        url += "?" + decodeURIComponent($.param(settings));
+        url += "?";
+        settings.forEach((val, section) => { url += section + "=" + val + "&" } );
+
         if (document.getElementById("saveDefaults").checked) {
-            url += "&save_defaults=1";
+            url += "save_defaults=1";
+        } else {
+            url = url.slice(0, -1);
         }
-        
+
         if (isNx) {
-            location.href = url;
-            window.nx.endApplet();
+            window.location.href = url;
         } else {
             console.log(url);
         }
     } else {
         // Close any open submenus
-        document.querySelectorAll(".qa.is-opened").forEach((submenu) => { toggleAnswer(submenu); });
+        [].forEach.call(document.querySelectorAll(".qa.is-opened"), function (submenu) { toggleAnswer(submenu); });
     }
 }
 
 function clickToggle(e) {
-    playSound("SeCheckboxOn")
+    playSound("SeCheckboxOn");
     var toggleOptions = e.querySelector(".toggle");
     if (e.querySelector(".is-single-option")) { // Single-option submenu
         // Deselect all submenu options
@@ -229,11 +218,11 @@ function setSettings() {
     const settings = getParams(document.URL);
 
     // Set Toggles
-    document.querySelectorAll("ul.l-grid").forEach((toggle) => {
+    [].forEach.call(document.querySelectorAll("ul.l-grid"), function (toggle) {
         var section = toggle.id;
         var section_setting = decodeURIComponent(settings[section]);
 
-        toggle.querySelectorAll("li").forEach((child) => {
+        [].forEach.call(toggle.querySelectorAll("li"), function (child) {
             var e = child.querySelector("img.toggle");
             if (section_setting.split(",").includes(child.getAttribute("val"))) {
                 e.classList.add("is-appear");
@@ -246,7 +235,7 @@ function setSettings() {
     });
 
     // Set OnOffs
-    document.querySelectorAll("div.onoff").forEach((onOff) => {
+    [].forEach.call(document.querySelectorAll("div.onoff"), function (onOff) {
         var section = onOff.id;
         var section_setting = decodeURIComponent(settings[section]);
         var e = onOff.querySelector("img.toggle");
@@ -263,14 +252,14 @@ function setSettings() {
 function resetSubmenu() {
     // Resets any open or focused submenus to the default values
     playSound("SeToggleBtnOff");
-    document.querySelectorAll("[default*='is-appear']").forEach((item) => {
+    [].forEach.call(document.querySelectorAll("[default*='is-appear']"), function (item) {
         if (isSubmenuFocused(item)) {
             item.classList.add("is-appear");
             item.classList.remove("is-hidden");
         }
     });
 
-    document.querySelectorAll("[default*='is-hidden']").forEach((item) => {
+    [].forEach.call(document.querySelectorAll("[default*='is-hidden']"), function (item) {
         if (isSubmenuFocused(item)) {
             item.classList.remove("is-appear");
             item.classList.add("is-hidden");
@@ -290,12 +279,12 @@ function resetAllSubmenus() {
     // Resets all submenus to the default values
     if (confirm("Are you sure that you want to reset all menu settings to the default?")) {
         playSound("SeToggleBtnOff");
-        document.querySelectorAll("[default*='is-appear']").forEach((item) => {
+        [].forEach.call(document.querySelectorAll("[default*='is-appear']"), function (item) {
             item.classList.add("is-appear");
             item.classList.remove("is-hidden");
         });
-    
-        document.querySelectorAll("[default*='is-hidden']").forEach((item) => {
+
+        [].forEach.call(document.querySelectorAll("[default*='is-hidden']"), function (item) {
             item.classList.remove("is-appear");
             item.classList.add("is-hidden");
         });
