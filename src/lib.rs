@@ -22,10 +22,9 @@ use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::menu::get_menu_from_url;
 
-use skyline::libc::mkdir;
+use skyline::libc::{c_char, mkdir};
 use skyline::nro::{self, NroInfo};
 use std::fs;
-use std::path::PathBuf;
 
 use owo_colors::OwoColorize;
 
@@ -42,6 +41,14 @@ fn nro_main(nro: &NroInfo<'_>) {
             training::tech::handle_change_status,
         );
     }
+}
+
+extern "C" {
+    #[link_name = "render_text_to_screen"]
+    pub fn render_text_to_screen(str: *const c_char);
+
+    #[link_name = "set_should_display_text_to_screen"]
+    pub fn set_should_display_text_to_screen(toggle: bool);
 }
 
 macro_rules! c_str {
@@ -120,7 +127,10 @@ pub fn main() {
     }
 
     std::thread::spawn(|| loop {
-        std::thread::sleep(std::time::Duration::from_secs(5));
+        std::thread::sleep(std::time::Duration::from_secs(10));
+        unsafe {
+            render_text_to_screen(c_str!("Hello from the Training Modpack!\nThat was a newline!"));
+        }
         unsafe {
             while let Some(event) = EVENT_QUEUE.pop() {
                 let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";

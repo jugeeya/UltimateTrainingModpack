@@ -9,6 +9,7 @@ use std::fs;
 use std::ops::BitOr;
 use std::path::Path;
 use strum::IntoEnumIterator;
+use crate::mkdir;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
@@ -574,11 +575,18 @@ pub unsafe fn write_menu() {
     // From skyline-web
     let program_id = get_program_id();
     let htdocs_dir = "training_modpack";
-    let path = Path::new("sd:/atmosphere/contents")
+    let menu_dir_path = Path::new("sd:/atmosphere/contents")
         .join(&format!("{:016X}", program_id))
-        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
+        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir));
+
+    let menu_html_path = menu_dir_path
         .join("training_menu.html");
-    fs::write(path, data).unwrap();
+
+    mkdir(menu_dir_path.to_str().unwrap().as_bytes().as_ptr(), 777);
+    let write_resp = fs::write(menu_html_path, data);
+    if write_resp.is_err() {
+        println!("Error!: {}", write_resp.err().unwrap());
+    }
 }
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
