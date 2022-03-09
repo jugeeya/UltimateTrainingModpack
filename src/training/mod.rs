@@ -24,7 +24,7 @@ mod attack_angle;
 mod character_specific;
 mod fast_fall;
 mod full_hop;
-mod input_delay;
+pub(crate) mod input_delay;
 mod input_record;
 mod mash;
 mod reset;

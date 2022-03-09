@@ -27,6 +27,7 @@ use skyline::nro::{self, NroInfo};
 use std::fs;
 
 use owo_colors::OwoColorize;
+use skyline::nn::hid::GetNpadFullKeyState;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -45,7 +46,7 @@ fn nro_main(nro: &NroInfo<'_>) {
 
 extern "C" {
     #[link_name = "render_text_to_screen"]
-    pub fn render_text_to_screen(str: *const c_char);
+    pub fn render_text_to_screen_cstr(str: *const c_char);
 
     #[link_name = "set_should_display_text_to_screen"]
     pub fn set_should_display_text_to_screen(toggle: bool);
@@ -55,6 +56,12 @@ macro_rules! c_str {
     ($l:tt) => {
         [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr();
     };
+}
+
+pub fn render_text_to_screen(s: &str) {
+    unsafe {
+        render_text_to_screen_cstr(c_str!(s));
+    }
 }
 
 #[skyline::main(name = "training_modpack")]
@@ -129,9 +136,6 @@ pub fn main() {
     std::thread::spawn(|| loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
         unsafe {
-            render_text_to_screen(c_str!("Hello from the Training Modpack!\nThat was a newline!"));
-        }
-        unsafe {
             while let Some(event) = EVENT_QUEUE.pop() {
                 let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
                 let path = format!(
@@ -141,6 +145,62 @@ pub fn main() {
 
                 let url = format!("{}{}", host, path);
                 minreq::post(url).with_json(&event).unwrap().send().ok();
+            }
+        }
+    });
+
+    std::thread::spawn(|| {
+        std::thread::sleep(std::time::Duration::from_secs(10));
+        let mut app = training_mod_tui::App::new();
+        let menu;
+        unsafe {
+            menu = crate::common::consts::get_menu();
+        }
+
+        let mut items = Vec::new();
+        for sub_menu in menu.sub_menus.iter() {
+            items.push((sub_menu.title, sub_menu.help_text));
+        }
+        app.items = training_mod_tui::StatefulList::with_items(items);
+        app.items.next();
+
+        let backend = training_mod_tui::TestBackend::new(50, 20);
+        let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
+        unsafe {
+            loop {
+                std::thread::sleep(std::time::Duration::from_millis(3000));
+                let mut view = String::new();
+
+                app.items.next();
+
+                // let mut npad_state = skyline::nn::hid::NpadGcState::default();
+                // let controller_id = crate::training::input_delay::p1_controller_id();
+                // skyline::nn::hid::GetNpadGcState(
+                //     &mut npad_state as *mut skyline::nn::hid::NpadGcState,
+                //     &controller_id);
+                //
+                // if npad_state.Buttons & (1 << 12) > 0 {
+                //     app.items.unselect();
+                // } else if npad_state.Buttons > 0 {
+                //     app.items.next();
+                // } else if npad_state.Buttons & (1 << 13) > 0 {
+                //     app.items.previous();
+                // }
+
+                let frame_res = terminal
+                    .draw(|f| training_mod_tui::ui(f, &mut app))
+                    .unwrap();
+
+                use std::fmt::Write;
+                for (i, cell) in frame_res.buffer.content().into_iter().enumerate() {
+                    write!(&mut view, "{}", cell.symbol);
+                    if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+                        write!(&mut view, "\n");
+                    }
+                }
+                write!(&mut view, "\n");
+
+                render_text_to_screen(view.as_str());
             }
         }
     });

@@ -8,44 +8,9 @@ use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-pub static BASE_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
-    hitbox_vis: OnOff::On,
-    stage_hazards: OnOff::Off,
-    di_state: Direction::empty(),
-    sdi_state: Direction::empty(),
-    sdi_strength: SdiStrength::Normal,
-    air_dodge_dir: Direction::empty(),
-    mash_state: Action::empty(),
-    follow_up: Action::empty(),
-    attack_angle: AttackAngle::empty(),
-    ledge_state: LedgeOption::all(),
-    ledge_delay: LongDelay::empty(),
-    tech_state: TechFlags::all(),
-    miss_tech_state: MissTechFlags::all(),
-    shield_state: Shield::None,
-    defensive_state: Defensive::all(),
-    oos_offset: Delay::empty(),
-    shield_tilt: Direction::empty(),
-    reaction_time: Delay::empty(),
-    mash_in_neutral: OnOff::Off,
-    fast_fall: BoolFlag::empty(),
-    fast_fall_delay: Delay::empty(),
-    falling_aerials: BoolFlag::empty(),
-    aerial_delay: Delay::empty(),
-    full_hop: BoolFlag::empty(),
-    input_delay: 0,
-    save_damage: OnOff::On,
-    save_state_mirroring: SaveStateMirroring::None,
-    frame_advantage: OnOff::Off,
-    save_state_enable: OnOff::On,
-    throw_state: ThrowOption::NONE,
-    throw_delay: MedDelay::empty(),
-    pummel_delay: MedDelay::empty(),
-    buff_state: BuffOption::empty(),
-};
-
-pub static mut DEFAULT_MENU: TrainingModpackMenu = BASE_MENU;
-pub static mut MENU: TrainingModpackMenu = BASE_MENU;
+pub use crate::common::consts::MENU;
+pub static mut DEFAULT_MENU: TrainingModpackMenu = crate::common::consts::DEFAULT_MENU;
+pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULT_MENU };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
