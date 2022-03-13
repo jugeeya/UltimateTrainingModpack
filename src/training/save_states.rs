@@ -33,7 +33,7 @@ struct SavedState {
     state: SaveState,
     fighter_kind: i32,
     charge: ChargeState,
-    steve_state: steve::SteveState,
+    steve_state: Option<steve::SteveState>,
 }
 
 macro_rules! default_save_state {
@@ -54,7 +54,7 @@ macro_rules! default_save_state {
                 float_z: None,
                 has_charge: None,
             },
-            steve_state: steve::SteveState {
+            steve_state: Some(steve::SteveState {
                 mat_g1: 0,
                 mat_wood: 0,
                 mat_stone: 0,
@@ -70,7 +70,7 @@ macro_rules! default_save_state {
                 pick_durability: 0.0,
                 shovel_mat: 0 as char,
                 shovel_durability: 0.0,
-            },
+            }),
         }
     };
 }
@@ -307,7 +307,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 save_state.state = ApplyBuff;
             }
             // Perform fighter specific loading actions
-            steve::load_steve_state(module_accessor,save_state.steve_state);
+            save_state.steve_state.map(|load_steve| {
+                steve::load_steve_state(module_accessor,load_steve);
+            });
             // Play Training Reset SFX, since silence is eerie
             // Only play for the CPU so we don't have 2 overlapping
             if is_cpu {
@@ -366,7 +368,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.fighter_kind = app::utility::get_kind(module_accessor);
         save_state.charge = charge::get_charge(module_accessor, fighter_kind);
         // Perform fighter specific saving actions
-        save_state.steve_state = steve::save_steve_state(module_accessor).unwrap_or(save_state.steve_state);
+        save_state.steve_state = steve::save_steve_state(module_accessor);
 
         let zeros = Vector3f {
             x: 0.0,
