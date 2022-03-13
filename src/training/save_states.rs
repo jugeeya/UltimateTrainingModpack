@@ -33,6 +33,7 @@ struct SavedState {
     state: SaveState,
     fighter_kind: i32,
     charge: ChargeState,
+    steve_state: steve::SteveState,
 }
 
 macro_rules! default_save_state {
@@ -51,8 +52,8 @@ macro_rules! default_save_state {
                 float_x: None,
                 float_y: None,
                 float_z: None,
-                has_charge: None
-            }
+                has_charge: None,
+            },
             steve_state: steve::SteveState {
                 mat_g1: 0,
                 mat_wood: 0,
@@ -69,7 +70,7 @@ macro_rules! default_save_state {
                 pick_durability: 0.0,
                 shovel_mat: 0 as char,
                 shovel_durability: 0.0,
-            }
+            },
         }
     };
 }

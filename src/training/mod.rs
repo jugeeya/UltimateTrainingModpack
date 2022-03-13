@@ -378,23 +378,10 @@ unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     *x1 = on_text_ptr;
 }
 
-/*
-static STEVE_METER_OFFSET: usize = 0x00f04850; // this function is used to update Steve's material meter.
-// Hooking it here so we can call it in character_specific/steve.rs
-#[skyline::hook(offset = STEVE_METER_OFFSET)]
-pub unsafe fn handle_steve_meter(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) {
-    let material = WorkModule::get_int(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_MATERIAL_KIND_FOR_UI);
-    println!("Steve UI Material: {}",material as u8 as char);
-    original!()(module_accessor)
-}
-*/
-
 static STEVE_SUB_OFFSET: usize = 0x00f0dc50; // this function is used to update Steve's material meter.
 // Hooking it here so we can call it in character_specific/steve.rs
 #[skyline::hook(offset = STEVE_SUB_OFFSET)]
-pub unsafe fn handle_steve_meter(
+pub unsafe fn subtract_steve_meter(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     arg2: i32,
     arg3: i32,
@@ -539,7 +526,7 @@ pub fn training_mods() {
         handle_add_limit,
         handle_check_doyle_summon_dispatch,
         handle_req_screen,
-        handle_steve_meter,
+        subtract_steve_meter,
         // Stale Moves
         stale_handle,
         stale_menu_handle,
