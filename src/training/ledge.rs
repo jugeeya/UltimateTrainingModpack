@@ -58,19 +58,52 @@ fn roll_ledge_case() {
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT {
+    if StatusModule::situation_kind(module_accessor) as i32 != *SITUATION_KIND_CLIFF {
         // No longer on ledge, so re-roll the ledge case and reset the delay counter for next time
         reset_ledge_case();
         reset_ledge_delay();
         return;
     }
 
+    let can_attack = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
+    );
+
+    let can_jump = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_JUMP,
+    );
+
+    let can_climb = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB,
+    );
+
+    let can_roll = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ESCAPE,
+    );
+
+    /*let can_fall = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_FALL,
+    );*/
+
+    let current_frame = MotionModule::frame(module_accessor);
+
+    println!("Cliff! Frame: {}, can_attack: {}, can_jump: {}, can_climb: {}, can_roll: {}",current_frame,can_attack,can_jump,can_climb,can_roll);
+
     if !WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
     ) {
         // Not able to take any action yet
-        return;
+        if current_frame == 19.0 {
+            println!("overriding!");
+        } else {
+            return;
+        }
     }
 
     roll_ledge_delay();
@@ -81,12 +114,17 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
+    // there is some issue with delay not counting correctly, should print when delay is getting checked/what the val is
+
     if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
         // Not yet time to perform the ledge action
         return;
     }
 
     let status = LEDGE_CASE.into_status().unwrap_or(0);
+
+    StatusModule::change_status_request_from_script(module_accessor, status, true);
+
     match LEDGE_CASE {
         LedgeOption::JUMP => {
             mash::buffer_menu_mash();
@@ -94,7 +132,6 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         _ => mash::perform_defensive_option(),
     }
 
-    StatusModule::change_status_request_from_script(module_accessor, status, true);
 }
 
 pub unsafe fn is_enable_transition_term(
