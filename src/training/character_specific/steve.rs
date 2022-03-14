@@ -1,5 +1,4 @@
 use smash::app::{self, lua_bind::*};
-use crate::training::subtract_steve_meter;
 use smash::lib::lua_const::*;
 
 #[derive(Copy, Clone)]
@@ -119,8 +118,7 @@ unsafe fn load(module_accessor: &mut app::BattleObjectModuleAccessor, steve_stat
     
     let mut curr_material = 0;
     while curr_material < 7 {
-        //app::FighterSpecializer_Pickel::sub_material_num(module_accessor,curr_material,0); // 2nd arg is mat type 
-        subtract_steve_meter(module_accessor,curr_material,0); // 2nd arg is mat type 
+        app::FighterSpecializer_Pickel::sub_material_num(module_accessor,curr_material,0);
         curr_material += 1;
     }
 }

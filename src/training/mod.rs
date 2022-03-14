@@ -378,16 +378,6 @@ unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     *x1 = on_text_ptr;
 }
 
-static STEVE_SUB_OFFSET: usize = 0x00f0dc50; // this function is used to update Steve's material meter.
-// Hooking it here so we can call it in character_specific/steve.rs
-#[skyline::hook(offset = STEVE_SUB_OFFSET)]
-pub unsafe fn subtract_steve_meter(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    arg2: i32,
-    arg3: i32,
-) {
-    original!()(module_accessor,arg2,arg3)
-}
 #[skyline::hook(replace = SoundModule::play_se)] // hooked to prevent death sfx from playing when loading save states
 pub unsafe fn handle_se(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -526,7 +516,6 @@ pub fn training_mods() {
         handle_add_limit,
         handle_check_doyle_summon_dispatch,
         handle_req_screen,
-        subtract_steve_meter,
         // Stale Moves
         stale_handle,
         stale_menu_handle,
