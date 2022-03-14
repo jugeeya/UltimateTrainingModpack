@@ -6,13 +6,13 @@ use crate::common::is_dead;
 use crate::common::MENU;
 use crate::training::buff;
 use crate::training::reset;
-//use crate::training::charge;
-//use crate::training::charge::ChargeState;
-use crate::training::charge::{self, ChargeState}; // is this the same as the above 2 lines?
+use crate::training::charge::{self, ChargeState};
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+
+use crate::training::character_specific::steve;
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -33,6 +33,7 @@ struct SavedState {
     state: SaveState,
     fighter_kind: i32,
     charge: ChargeState,
+    steve_state: Option<steve::SteveState>,
 }
 
 macro_rules! default_save_state {
@@ -51,8 +52,25 @@ macro_rules! default_save_state {
                 float_x: None,
                 float_y: None,
                 float_z: None,
-                has_charge: None
-            }
+                has_charge: None,
+            },
+            steve_state: Some(steve::SteveState {
+                mat_g1: 36,
+                mat_wood: 18,
+                mat_stone: 0,
+                mat_iron: 3,
+                mat_gold: 0,
+                mat_redstone: 2,
+                mat_diamond: 0,
+                sword_mat: 1 as char,
+                sword_durability: 25.0,
+                axe_mat: 1 as char,
+                axe_durability: 70.0,
+                pick_mat: 1 as char,
+                pick_durability: 70.0,
+                shovel_mat: 1 as char,
+                shovel_durability: 70.0,
+            }),
         }
     };
 }
@@ -288,6 +306,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             if fighter_is_buffable {
                 save_state.state = ApplyBuff;
             }
+            // Perform fighter specific loading actions
+            save_state.steve_state.map(|load_steve| {
+                steve::load_steve_state(module_accessor,load_steve);
+            });
             // Play Training Reset SFX, since silence is eerie
             // Only play for the CPU so we don't have 2 overlapping
             if is_cpu {
@@ -345,6 +367,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // Always store fighter kind so that charges are handled properly
         save_state.fighter_kind = app::utility::get_kind(module_accessor);
         save_state.charge = charge::get_charge(module_accessor, fighter_kind);
+        // Perform fighter specific saving actions
+        save_state.steve_state = steve::save_steve_state(module_accessor);
 
         let zeros = Vector3f {
             x: 0.0,
