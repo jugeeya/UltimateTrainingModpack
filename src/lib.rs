@@ -151,41 +151,44 @@ pub fn main() {
 
     std::thread::spawn(|| {
         std::thread::sleep(std::time::Duration::from_secs(10));
-        let mut app = training_mod_tui::App::new();
         let menu;
         unsafe {
             menu = crate::common::consts::get_menu();
         }
 
-        let mut items = Vec::new();
-        for sub_menu in menu.sub_menus.iter() {
-            items.push((sub_menu.title, sub_menu.help_text));
-        }
-        app.items = training_mod_tui::StatefulList::with_items(items);
-        app.items.next();
+        let tabs = vec![
+            "Mash Settings", "Defensive Settings", "Miscellaneous Settings"
+        ];
 
-        let backend = training_mod_tui::TestBackend::new(50, 20);
+        let mut menu_items = Vec::new();
+        for sub_menu in menu.sub_menus.into_iter() {
+            menu_items.push((sub_menu.title, sub_menu));
+        }
+
+        let mut app = training_mod_tui::App::new(tabs, menu_items, 3);
+
+        let backend = training_mod_tui::TestBackend::new(75, 20);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
+
         unsafe {
             loop {
-                std::thread::sleep(std::time::Duration::from_millis(3000));
+                std::thread::sleep(std::time::Duration::from_millis(1000));
                 let mut view = String::new();
 
-                app.items.next();
+                if training::input_delay::A_PRESS {
+                    training::input_delay::A_PRESS = false;
+                    app.on_a();
+                }
 
-                // let mut npad_state = skyline::nn::hid::NpadGcState::default();
-                // let controller_id = crate::training::input_delay::p1_controller_id();
-                // skyline::nn::hid::GetNpadGcState(
-                //     &mut npad_state as *mut skyline::nn::hid::NpadGcState,
-                //     &controller_id);
-                //
-                // if npad_state.Buttons & (1 << 12) > 0 {
-                //     app.items.unselect();
-                // } else if npad_state.Buttons > 0 {
-                //     app.items.next();
-                // } else if npad_state.Buttons & (1 << 13) > 0 {
-                //     app.items.previous();
-                // }
+                if training::input_delay::B_PRESS {
+                    training::input_delay::B_PRESS = false;
+                    app.on_b();
+                }
+
+                if training::input_delay::DOWN_PRESS {
+                    training::input_delay::DOWN_PRESS = false;
+                    app.on_down();
+                }
 
                 let frame_res = terminal
                     .draw(|f| training_mod_tui::ui(f, &mut app))

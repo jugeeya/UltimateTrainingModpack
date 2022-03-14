@@ -8,6 +8,10 @@ lazy_static! {
     static ref P1_DELAYED_NPAD_STATES: Mutex<VecDeque<NpadGcState>> = Mutex::new(VecDeque::new());
 }
 
+pub static mut A_PRESS: bool = false;
+pub static mut B_PRESS: bool = false;
+pub static mut DOWN_PRESS: bool = false;
+
 pub unsafe fn p1_controller_id() -> u32 {
     let min_controller_id = (0..8)
         .filter(|i| GetNpadStyleSet(i as *const _).flags != 0)
@@ -42,6 +46,18 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32)
                 delayed_states.push_front(actual_state);
                 delayed_states.truncate(MENU.input_delay as usize);
             }
+        }
+    }
+
+    unsafe {
+        if (*state).Buttons & 1 > 0 {
+            A_PRESS = true;
+        }
+        if (*state).Buttons & 2 > 0 {
+            B_PRESS = true;
+        }
+        if (*state).Buttons & (1 << 13) > 0 {
+            DOWN_PRESS = true;
         }
     }
 }
