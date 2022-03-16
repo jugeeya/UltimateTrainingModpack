@@ -999,7 +999,7 @@ pub enum FighterId {
     CPU = 1,
 }
 
-#[derive(Content)]
+#[derive(Content, Clone)]
 pub struct Slider {
     pub min: usize,
     pub max: usize,
@@ -1007,7 +1007,7 @@ pub struct Slider {
     pub value: usize,
 }
 
-#[derive(Content)]
+#[derive(Content, Clone)]
 pub struct Toggle<'a> {
     pub title: &'a str,
     pub checked: &'a str,
@@ -1016,17 +1016,36 @@ pub struct Toggle<'a> {
     pub default: &'a str,
 }
 
-#[derive(Content)]
+#[derive(Content, Clone)]
 pub struct OnOffSelector<'a> {
     pub title: &'a str,
     pub checked: &'a str,
     pub default: &'a str,
 }
 
-#[derive(Content)]
+#[derive(Clone)]
+pub enum SubMenuType {
+    TOGGLE,
+    SLIDER,
+    ONOFF,
+}
+
+impl SubMenuType {
+    pub fn from_str(s : &str) -> SubMenuType {
+        match s {
+            "toggle" => SubMenuType::TOGGLE,
+            "slider" => SubMenuType::SLIDER,
+            "onoff" => SubMenuType::ONOFF,
+            _ => panic!("Unexpected SubMenuType!")
+        }
+    }
+}
+
+#[derive(Content, Clone)]
 pub struct SubMenu<'a> {
     pub title: &'a str,
     pub id: &'a str,
+    pub _type: &'a str,
     pub toggles: Vec<Toggle<'a>>,
     pub sliders: Vec<Slider>,
     pub onoffselector: Vec<OnOffSelector<'a>>,
@@ -1114,7 +1133,7 @@ pub static DEFAULT_MENU: TrainingModpackMenu = TrainingModpackMenu {
 
 pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
 
-#[derive(Content)]
+#[derive(Content, Clone)]
 pub struct Menu<'a> {
     pub sub_menus: Vec<SubMenu<'a>>,
 }
@@ -1132,6 +1151,7 @@ impl<'a> Menu<'a> {
         &mut self,
         title: &'a str,
         id: &'a str,
+        _type: &'a str,
         check_against: usize,
         toggles: Vec<(&'a str, usize)>,
         sliders: Vec<(usize, usize, usize)>,
@@ -1141,6 +1161,7 @@ impl<'a> Menu<'a> {
         let mut sub_menu = SubMenu {
             title,
             id,
+            _type,
             toggles: Vec::new(),
             sliders: Vec::new(),
             onoffselector: Vec::new(),
@@ -1170,6 +1191,7 @@ impl<'a> Menu<'a> {
         &mut self,
         title: &'a str,
         id: &'a str,
+        _type: &'a str,
         check_against: usize,
         strs: Vec<&'a str>,
         vals: Vec<usize>,
@@ -1179,6 +1201,7 @@ impl<'a> Menu<'a> {
         let mut sub_menu = SubMenu {
             title,
             id,
+            _type,
             toggles: Vec::new(),
             sliders: Vec::new(),
             onoffselector: Vec::new(),
@@ -1206,6 +1229,7 @@ impl<'a> Menu<'a> {
         &mut self,
         title: &'a str,
         id: &'a str,
+        _type: &'a str,
         check_against: usize,
         checked: bool,
         default: usize,
@@ -1214,6 +1238,7 @@ impl<'a> Menu<'a> {
         let mut sub_menu = SubMenu {
             title,
             id,
+            _type,
             toggles: Vec::new(),
             sliders: Vec::new(),
             onoffselector: Vec::new(),
@@ -1237,6 +1262,7 @@ macro_rules! add_bitflag_submenu {
             $menu.add_sub_menu_sep(
                 $title,
                 stringify!($id),
+                "toggle",
                 MENU.$id.bits() as usize,
                 [<$id _strs>],
                 [<$id _vals>],
@@ -1258,6 +1284,7 @@ macro_rules! add_single_option_submenu {
             $menu.add_sub_menu(
                 $title,
                 stringify!($id),
+                "toggle",
                 MENU.$id as usize,
                 [<$id _toggles>],
                 [].to_vec(),
@@ -1274,6 +1301,7 @@ macro_rules! add_onoff_submenu {
             $menu.add_sub_menu_onoff(
                 $title,
                 stringify!($id),
+                "onoff",
                 MENU.$id as usize,
                 (MENU.$id as usize & OnOff::On as usize) != 0,
                 DEFAULT_MENU.$id as usize,
@@ -1482,6 +1510,7 @@ pub unsafe fn get_menu() -> Menu<'static> {
         "Input Delay",
         "input_delay",
         // unnecessary for slider?
+        "toggle",
         0,
         [
             ("0", 0),
