@@ -20,7 +20,7 @@ mod test;
 
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
-use crate::menu::get_menu_from_url;
+use crate::common::consts::get_menu_from_url;
 
 use skyline::libc::{c_char, mkdir};
 use skyline::nro::{self, NroInfo};
@@ -156,21 +156,13 @@ pub fn main() {
             menu = crate::common::consts::get_menu();
         }
 
-        let tabs = vec![
-            "Mash Settings", "Defensive Settings", "Miscellaneous Settings"
-        ];
-
-        let mut menu_items = Vec::new();
-        for sub_menu in menu.sub_menus.into_iter() {
-            menu_items.push((sub_menu.title, sub_menu));
-        }
-
-        let mut app = training_mod_tui::App::new(tabs, menu_items, 3);
+        let mut app = training_mod_tui::App::new(menu);
 
         let backend = training_mod_tui::TestBackend::new(75, 20);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
 
         unsafe {
+            let mut url = String::new();
             loop {
                 std::thread::sleep(std::time::Duration::from_millis(1000));
                 let mut view = String::new();
@@ -191,7 +183,7 @@ pub fn main() {
                 }
 
                 let frame_res = terminal
-                    .draw(|f| training_mod_tui::ui(f, &mut app))
+                    .draw(|f| url = training_mod_tui::ui(f, &mut app))
                     .unwrap();
 
                 use std::fmt::Write;

@@ -1,12 +1,12 @@
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
+use crate::common::consts::get_menu_from_url;
 use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
-use std::ops::BitOr;
 use std::path::Path;
 use strum::IntoEnumIterator;
 use crate::mkdir;
@@ -19,37 +19,6 @@ pub fn init() {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
         write_menu();
     }
-}
-
-pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
-    let base_url_len = "http://localhost/?".len();
-    let total_len = s.len();
-
-    let ss: String = s
-        .chars()
-        .skip(base_url_len)
-        .take(total_len - base_url_len)
-        .collect();
-
-    for toggle_values in ss.split('&') {
-        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
-        let toggle = toggle_value_split[0];
-        if toggle.is_empty() {
-            continue;
-        }
-
-        let toggle_vals = toggle_value_split[1];
-
-        let bitwise_or = <u32 as BitOr<u32>>::bitor;
-        let bits = toggle_vals
-            .split(',')
-            .filter(|val| !val.is_empty())
-            .map(|val| val.parse().unwrap())
-            .fold(0, bitwise_or);
-
-        menu.set(toggle, bits);
-    }
-    menu
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {

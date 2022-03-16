@@ -11,6 +11,7 @@ use strum_macros::EnumIter;
 use serde::{Serialize, Deserialize};
 use ramhorns::Content;
 use strum::IntoEnumIterator;
+use std::ops::BitOr;
 
 // bitflag helper function macro
 macro_rules! extra_bitflag_impls {
@@ -1564,4 +1565,35 @@ pub unsafe fn get_menu() -> Menu<'static> {
     );
 
     overall_menu
+}
+
+pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
+    let base_url_len = "http://localhost/?".len();
+    let total_len = s.len();
+
+    let ss: String = s
+        .chars()
+        .skip(base_url_len)
+        .take(total_len - base_url_len)
+        .collect();
+
+    for toggle_values in ss.split('&') {
+        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
+        let toggle = toggle_value_split[0];
+        if toggle.is_empty() {
+            continue;
+        }
+
+        let toggle_vals = toggle_value_split[1];
+
+        let bitwise_or = <u32 as BitOr<u32>>::bitor;
+        let bits = toggle_vals
+            .split(',')
+            .filter(|val| !val.is_empty())
+            .map(|val| val.parse().unwrap())
+            .fold(0, bitwise_or);
+
+        menu.set(toggle, bits);
+    }
+    menu
 }

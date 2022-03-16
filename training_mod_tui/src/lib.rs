@@ -21,7 +21,9 @@ pub struct MultiStatefulList<T> {
 impl<T: Clone> MultiStatefulList<T> {
     pub fn selected_list_item(&mut self) -> &mut T {
         let (list_section, list_idx) = self.idx_to_list_idx(self.state);
-        &mut self.lists[list_section].items[list_idx]
+        &mut self
+            .lists[list_section]
+            .items[list_idx]
     }
 
     fn idx_to_list_idx(&self, idx: usize) -> (usize, usize) {
@@ -61,7 +63,6 @@ impl<T: Clone> MultiStatefulList<T> {
         }).collect();
         let total_len = items.len();
         MultiStatefulList {
-            // Divide evenly into three lists
             lists: lists,
             total_len: total_len,
             state: 0
@@ -211,7 +212,64 @@ pub struct App<'a> {
 }
 
 impl<'a> App<'a> {
-    pub fn new(tabs: HashMap<&'a str, Vec<SubMenu<'a>>>, menu_items: Vec<SubMenu<'a>>, num_lists: usize) -> App<'a> {
+    pub fn new(menu: training_mod_consts::Menu<'a>) -> App<'a> {
+        let tab_specifiers = vec![
+            ("Mash Settings", vec![
+                "Mash Toggles",
+                "Followup Toggles",
+                "Attack Angle",
+                "Ledge Options",
+                "Ledge Delay",
+                "Tech Options",
+                "Miss Tech Options",
+                "Defensive Options",
+                "Aerial Delay",
+                "OoS Offset",
+                "Reaction Time",
+            ]),
+            ("Defensive Settings", vec![
+                "Fast Fall",
+                "Fast Fall Delay",
+                "Falling Aerials",
+                "Full Hop",
+                "Shield Tilt",
+                "DI Direction",
+                "SDI Direction",
+                "Airdodge Direction",
+                "SDI Strength",
+                "Shield Toggles",
+                "Mirroring",
+                "Throw Options",
+                "Throw Delay",
+                "Pummel Delay",
+                "Buff Options",
+            ]),
+            ("Miscellaneous Settings", vec![
+                "Input Delay",
+                "Save States",
+                "Save Damage",
+                "Hitbox Visualization",
+                "Stage Hazards",
+                "Frame Advantage",
+                "Mash In Neutral"
+            ])
+        ];
+        let mut tabs: std::collections::HashMap<&str, Vec<SubMenu>> = std::collections::HashMap::new();
+        tabs.insert("Mash Settings", vec![]);
+        tabs.insert("Defensive Settings", vec![]);
+        tabs.insert("Miscellaneous Settings", vec![]);
+
+        let mut menu_items = Vec::new();
+        for sub_menu in menu.sub_menus.iter() {
+            for tab_spec in tab_specifiers.iter() {
+                if tab_spec.1.contains(&sub_menu.title) {
+                    tabs.get_mut(tab_spec.0).unwrap().push(sub_menu.clone());
+                    menu_items.push( sub_menu.clone());
+                }
+            }
+        };
+        let num_lists = 3;
+
         let mut menu_items_stateful = HashMap::new();
         tabs.keys().for_each(|k| {
             menu_items_stateful.insert(
@@ -219,15 +277,19 @@ impl<'a> App<'a> {
                 MultiStatefulList::with_items(tabs.get(k).unwrap().clone(), num_lists)
             );
         });
-        App {
-            tabs: StatefulList::with_items(tabs.keys().cloned().collect()),
+        let mut tabs_sorted = tabs.keys().cloned().collect::<Vec<&str>>();
+        tabs_sorted.sort();
+        let mut app = App {
+            tabs: StatefulList::with_items(tabs_sorted),
             all_menu_items: menu_items.clone(),
             menu_items: menu_items_stateful,
             selected_sub_menu_toggles: MultiStatefulList::with_items(vec![], 0),
             selected_sub_menu_onoff_selectors: MultiStatefulList::with_items(vec![], 0),
             selected_sub_menu_sliders: MultiStatefulList::with_items(vec![], 0),
             outer_list: true
-        }
+        };
+        app.set_sub_menu_items();
+        app
     }
 
     pub fn set_sub_menu_items(&mut self) {
@@ -239,13 +301,16 @@ impl<'a> App<'a> {
         let onoffs = selected_sub_menu.onoffselector.clone();
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => {
-                self.selected_sub_menu_toggles = MultiStatefulList::with_items(toggles, 3)
+                self.selected_sub_menu_toggles = MultiStatefulList::with_items(
+                    toggles, if selected_sub_menu.toggles.len() >= 3 { 3 } else { selected_sub_menu.toggles.len()} )
             },
             SubMenuType::SLIDER => {
-                self.selected_sub_menu_sliders = MultiStatefulList::with_items(sliders, 3)
+                self.selected_sub_menu_sliders = MultiStatefulList::with_items(
+                    sliders, if selected_sub_menu.sliders.len() >= 3 { 3 } else { selected_sub_menu.sliders.len()} )
             },
             SubMenuType::ONOFF => {
-                self.selected_sub_menu_onoff_selectors = MultiStatefulList::with_items(onoffs.clone(), 3)
+                self.selected_sub_menu_onoff_selectors = MultiStatefulList::with_items(
+                    onoffs, if selected_sub_menu.onoffselector.len() >= 3 { 3 } else { selected_sub_menu.onoffselector.len()} )
             },
         };
     }
@@ -336,10 +401,11 @@ impl<'a> App<'a> {
                 vec![(vec![], ListState::default())]
             },
             SubMenuType::ONOFF => {
-                // self.selected_sub_menu_onoff_selectors.items.iter().map(
-                //     |onoff_selector| (onoff_selector.checked, onoff_selector.title)
-                // ).collect()
-                vec![(vec![], ListState::default())]
+                self.selected_sub_menu_onoff_selectors.lists.iter().map(|onoff_list| {
+                    (onoff_list.items.iter().map(
+                        |onoff| (onoff.checked, onoff.title)
+                    ).collect(), onoff_list.state.clone())
+                }).collect()
             },
         })
     }
@@ -379,6 +445,7 @@ impl<'a> App<'a> {
     pub fn on_left(&mut self) {
         if self.outer_list {
             self.menu_items.get_mut(self.tabs.items.get(self.tabs.state.selected().unwrap()).unwrap()).unwrap().previous_list();
+            self.set_sub_menu_items();
         } else {
             self.sub_menu_previous_list();
         }
@@ -387,6 +454,7 @@ impl<'a> App<'a> {
     pub fn on_right(&mut self) {
         if self.outer_list {
             self.menu_items.get_mut(self.tabs.items.get(self.tabs.state.selected().unwrap()).unwrap()).unwrap().next_list();
+            self.set_sub_menu_items();
         } else {
             self.sub_menu_next_list();
         }
@@ -445,7 +513,7 @@ impl<'a> App<'a> {
     }
 }
 
-pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
     let app_tabs = &app.tabs;
     let titles = app_tabs.items.iter().cloned().map(Spans::from).collect();
     let tabs = Tabs::new(titles)
@@ -520,42 +588,37 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     }
 
 
-    let url = "http://localhost/";
-        // var settings = new Map();
-        //
-        // // Collect settings for toggles
-        //
-        // [].forEach.call(document.querySelectorAll("ul.l-grid"), function (toggle) {
-        //     var section = toggle.id;
-        //     var val = "";
-        //
-        //     [].forEach.call(toggle.childNodes, function (child) {
-        //         if (!isTextNode(child) && child.querySelectorAll(".is-appear").length) {
-        //             val += child.getAttribute("val") + ",";
-        //         };
-        //     });
-        //
-        //     settings.set(section,val);
-        // });
-        //
-        // // Collect settings for OnOffs
-        // [].forEach.call(document.querySelectorAll("div.onoff"), function (onoff) {
-        //     var section = onoff.id;
-        //     var val = "";
-        //     if (onoff.querySelectorAll(".is-appear").length) {
-        //         val = "1";
-        //     } else {
-        //         val = "0";
-        //     }
-        //     settings.set(section,val);
-        // });
-        //
-        // url += "?";
-        // settings.forEach((val, section) => { url += section + "=" + val + "&" } );
-        //
-        // if (document.getElementById("saveDefaults").checked) {
-        //     url += "save_defaults=1";
-        // } else {
-        //     url = url.slice(0, -1);
-        // }
+    let mut url = "http://localhost/".to_owned();
+    let mut settings = HashMap::new();
+
+    // Collect settings for toggles
+    for key in app.menu_items.keys() {
+        for list in &app.menu_items.get(key).unwrap().lists {
+            for sub_menu in &list.items {
+                let mut val = String::new();
+                sub_menu.toggles.iter()
+                    .filter(|t| t.checked == "is-appear")
+                    .for_each(|t| val.push_str(format!("{},", t.value).as_str()));
+
+                sub_menu.onoffselector.iter()
+                    .for_each(|o| {
+                        val.push_str(
+                            format!("{}", if o.checked == "is-appear" { 1 } else { 0 }).as_str())
+                    });
+                settings.insert(sub_menu.id, val);
+            }
+        }
+    }
+
+    url.push_str("?");
+    settings.iter()
+        .for_each(|(section, val)| url.push_str(format!("{}={}&", section, val).as_str()));
+    url
+
+    // TODO: Add saveDefaults
+    // if (document.getElementById("saveDefaults").checked) {
+    //     url += "save_defaults=1";
+    // } else {
+    //     url = url.slice(0, -1);
+    // }
 }
