@@ -65,60 +65,22 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
     
+    // Need to roll ledge delay so we know if getup needs to be buffered
     roll_ledge_delay();
     roll_ledge_case();
 
-    let _can_attack = WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
-    );
-
-    let _can_jump = WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_JUMP,
-    );
-
-    let _can_climb = WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB,
-    );
-
-    let _can_roll = WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ESCAPE,
-    );
-
-    /*let can_fall = WorkModule::is_enable_transition_term(
-        module_accessor,
-        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_FALL,
-    );*/
-
+    // This flag is false when needing to buffer, and true when getting up
     let flag_cliff = WorkModule::is_flag(module_accessor,*FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
-    let no_catch_frame = WorkModule::get_int(module_accessor,*FIGHTER_INSTANCE_WORK_ID_INT_CLIFF_NO_CATCH_FRAME);
     let current_frame = MotionModule::frame(module_accessor) as i32;
-
-    println!("Cliff! Frame: {}, flag_cliff: {}, no_catch_frame: {}",current_frame,flag_cliff,no_catch_frame);
+    let should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
     ) {
         // Not able to take any action yet
-        //if current_frame == 19.0 && LEDGE_DELAY == 0 && no_catch_frame == 44 && !flag_cliff {
-        /*if (current_frame == 19) && (LEDGE_DELAY == 0) && (!flag_cliff) {
-            println!("overriding!");
-        } else {
-            return;
-        }*/
-        if (current_frame == 19) && (LEDGE_DELAY == 0) {
-            println!("override1 met! flag_cliff: {}, !flag_cliff: {}", flag_cliff, !flag_cliff); 
-            if !flag_cliff {
-                println!("overriding!");
-            } else {
-                return;
-            }
-            
-        } else {
+        // This check isn't reliable for buffered options in time, so don't return if we need to buffer an option this frame
+        if !should_buffer {
             return;
         }
     }
@@ -127,8 +89,6 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         // Do nothing, but don't reset the ledge case.
         return;
     }
-
-    // there is some issue with delay not counting correctly, should print when delay is getting checked/what the val is
 
     if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
         // Not yet time to perform the ledge action
