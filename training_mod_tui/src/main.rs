@@ -7,19 +7,15 @@ use crossterm::{
 
 #[cfg(feature = "has_terminal")]
 use tui::backend::CrosstermBackend;
+#[cfg(feature = "has_terminal")]
 use std::{
-    error::Error,
     io,
     time::{Duration, Instant},
 };
-use tui::{
-    backend::{Backend},
-    widgets::ListState,
-    Terminal,
-};
+use std::error::Error;
+use tui::Terminal;
 
 use training_mod_consts::*;
-use training_mod_tui::StatefulList;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let menu;
@@ -27,12 +23,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         menu = get_menu();
     }
 
-    let mut app = training_mod_tui::App::new(menu);
-
     #[cfg(not(feature = "has_terminal"))] {
+        let mut app = training_mod_tui::App::new(menu);
         let backend = tui::backend::TestBackend::new(100, 8);
         let mut terminal = Terminal::new(backend)?;
-        let mut state = ListState::default();
+        let mut state = tui::widgets::ListState::default();
         state.select(Some(1));
         let mut url = String::new();
         let frame_res = terminal.draw(|f| url = training_mod_tui::ui(f, &mut app))?;
@@ -44,9 +39,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         println!();
+
+        println!("URL: {}", url);
     }
 
     #[cfg(feature = "has_terminal")] {
+        let app = training_mod_tui::App::new(menu);
+
         // setup terminal
         enable_raw_mode()?;
         let mut stdout = io::stdout();
@@ -76,7 +75,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(
+#[cfg(feature = "has_terminal")]
+fn run_app<B: tui::backend::Backend>(
     terminal: &mut Terminal<B>,
     mut app: training_mod_tui::App,
     tick_rate: Duration,
@@ -90,11 +90,11 @@ fn run_app<B: Backend>(
             .checked_sub(last_tick.elapsed())
             .unwrap_or_else(|| Duration::from_secs(0));
 
-        #[cfg(feature = "has_terminal")]
+
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Char('q') => return Ok((url)),
+                    KeyCode::Char('q') => return Ok(url),
                     KeyCode::Char('r') => app.on_r(),
                     KeyCode::Char('l') => app.on_l(),
                     KeyCode::Left => app.on_left(),

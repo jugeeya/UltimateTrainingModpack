@@ -28,6 +28,7 @@ use std::fs;
 
 use owo_colors::OwoColorize;
 use skyline::nn::hid::GetNpadFullKeyState;
+use smash::app::lua_bind::HitModule::sleep;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -158,44 +159,59 @@ pub fn main() {
 
         let mut app = training_mod_tui::App::new(menu);
 
-        let backend = training_mod_tui::TestBackend::new(75, 20);
+        let backend = training_mod_tui::TestBackend::new(75, 8);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
 
         unsafe {
+            let mut has_slept_millis = 0;
             let mut url = String::new();
+            let mut button_presses = &mut common::menu::BUTTON_PRESSES;
             loop {
-                std::thread::sleep(std::time::Duration::from_millis(1000));
-                let mut view = String::new();
+                if menu::QUICK_MENU_ACTIVE || true {
+                    button_presses.a.read_press().then(|| app.on_a());
+                    button_presses.b.read_press().then(|| {
+                        if app.outer_list == false {
+                            app.on_b()
+                        } else {
+                            // Leave menu.
+                            menu::QUICK_MENU_ACTIVE = false;
+                            crate::menu::set_menu_from_url(url.as_str());
+                        }
+                    });
+                    button_presses.zl.read_press().then(|| app.on_l());
+                    button_presses.zl.read_press().then(|| app.on_r());
+                    button_presses.left.read_press().then(|| app.on_left());
+                    button_presses.right.read_press().then(|| app.on_right());
+                    button_presses.up.read_press().then(|| app.on_up());
+                    button_presses.down.read_press().then(|| app.on_down());
 
-                if training::input_delay::A_PRESS {
-                    training::input_delay::A_PRESS = false;
-                    app.on_a();
-                }
+                    std::thread::sleep(std::time::Duration::from_millis(16));
+                    has_slept_millis += 16;
+                    let render_frames = 5;
+                    if has_slept_millis > 16 * render_frames {
+                        has_slept_millis = 16;
+                        let mut view = String::new();
 
-                if training::input_delay::B_PRESS {
-                    training::input_delay::B_PRESS = false;
-                    app.on_b();
-                }
+                        let frame_res = terminal
+                            .draw(|f| url = training_mod_tui::ui(f, &mut app))
+                            .unwrap();
 
-                if training::input_delay::DOWN_PRESS {
-                    training::input_delay::DOWN_PRESS = false;
-                    app.on_down();
-                }
-
-                let frame_res = terminal
-                    .draw(|f| url = training_mod_tui::ui(f, &mut app))
-                    .unwrap();
-
-                use std::fmt::Write;
-                for (i, cell) in frame_res.buffer.content().into_iter().enumerate() {
-                    write!(&mut view, "{}", cell.symbol);
-                    if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+                        use std::fmt::Write;
+                        for (i, cell) in frame_res.buffer.content().into_iter().enumerate() {
+                            write!(&mut view, "{}", cell.symbol);
+                            if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+                                write!(&mut view, "\n");
+                            }
+                        }
                         write!(&mut view, "\n");
+
+                        if menu::QUICK_MENU_ACTIVE {
+                            render_text_to_screen(view.as_str());
+                        } else {
+                            set_should_display_text_to_screen(false);
+                        }
                     }
                 }
-                write!(&mut view, "\n");
-
-                render_text_to_screen(view.as_str());
             }
         }
     });

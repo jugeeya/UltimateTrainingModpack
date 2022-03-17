@@ -77,9 +77,9 @@ macro_rules! extra_bitflag_impls {
     }
 }
 
-pub fn get_random_int(max: i32) -> i32 {
+pub fn get_random_int(_max: i32) -> i32 {
     #[cfg(feature = "smash")]
-    unsafe { smash::app::sv_math::rand(smash::hash40("fighter"), max) }
+    unsafe { smash::app::sv_math::rand(smash::hash40("fighter"), _max) }
 
     #[cfg(not(feature = "smash"))]
     0
@@ -875,11 +875,13 @@ impl ToUrlParam for i32 {
 // Macro to build the url parameter string
 macro_rules! url_params {
     (
+        #[repr(C)]
         #[derive($($trait_name:ident, )*)]
         pub struct $e:ident {
             $(pub $field_name:ident: $field_type:ty,)*
         }
     ) => {
+        #[repr(C)]
         #[derive($($trait_name, )*)]
         pub struct $e {
             $(pub $field_name: $field_type,)*
@@ -900,8 +902,8 @@ macro_rules! url_params {
     }
 }
 
-#[repr(C)]
 url_params! {
+    #[repr(C)]
     #[derive(Clone, Copy, Serialize, Deserialize, Debug, )]
     pub struct TrainingModpackMenu {
         pub hitbox_vis: OnOff,
@@ -937,6 +939,7 @@ url_params! {
         pub throw_delay: MedDelay,
         pub pummel_delay: MedDelay,
         pub buff_state: BuffOption,
+        pub quick_menu: OnOff,
     }
 }
 
@@ -988,6 +991,7 @@ impl TrainingModpackMenu {
             throw_delay = MedDelay::from_bits(val),
             pummel_delay = MedDelay::from_bits(val),
             buff_state = BuffOption::from_bits(val),
+            quick_menu = OnOff::from_val(val),
         );
     }
 }
@@ -1130,6 +1134,7 @@ pub static DEFAULT_MENU: TrainingModpackMenu = TrainingModpackMenu {
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
     buff_state: BuffOption::empty(),
+    quick_menu: OnOff::On,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
@@ -1562,6 +1567,12 @@ pub unsafe fn get_menu() -> Menu<'static> {
         "Mash In Neutral",
         mash_in_neutral,
         "Mash In Neutral: Should Mash options be performed repeatedly or only when the CPU is hit"
+    );
+    add_onoff_submenu!(
+        overall_menu,
+        "Quick Menu",
+        quick_menu,
+        "Quick Menu: Whether to use Quick Menu or Web Menu"
     );
 
     overall_menu

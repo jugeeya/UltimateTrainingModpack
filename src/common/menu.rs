@@ -13,6 +13,7 @@ use crate::mkdir;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
+pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub fn init() {
     unsafe {
@@ -67,24 +68,7 @@ pub unsafe fn write_menu() {
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
-pub fn spawn_menu() {
-    unsafe {
-        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-        frame_counter::start_counting(FRAME_COUNTER_INDEX);
-    }
-
-    let fname = "training_menu.html";
-    let params = unsafe { MENU.to_url_params() };
-    let page_response = Webpage::new()
-        .background(Background::BlurredScreenshot)
-        .htdocs_dir("training_modpack")
-        .boot_display(BootDisplay::BlurredScreenshot)
-        .boot_icon(true)
-        .start_page(&format!("{}{}", fname, params))
-        .open()
-        .unwrap();
-
-    let orig_last_url = page_response.get_last_url().unwrap();
+pub fn set_menu_from_url(orig_last_url: &str) {
     let last_url = &orig_last_url.replace("&save_defaults=1", "");
     unsafe {
         MENU = get_menu_from_url(MENU, last_url);
@@ -93,15 +77,155 @@ pub fn spawn_menu() {
         // Save as default
         unsafe {
             DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, last_url);
-            write_menu();
+            // write_menu();
         }
-        let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
-        std::fs::write(menu_defaults_conf_path, last_url)
-            .expect("Failed to write default menu conf file");
+        // let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
+        // std::fs::write(menu_defaults_conf_path, last_url)
+        //     .expect("Failed to write default menu conf file");
     }
 
-    std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
+    // std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
+    // unsafe {
+    //     EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    // }
+}
+
+pub fn spawn_menu() {
     unsafe {
-        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    }
+
+    let mut quick_menu = false;
+    unsafe {
+        if MENU.quick_menu == OnOff::On {
+            quick_menu = true;
+        }
+    }
+
+    if !quick_menu {
+        #[cfg(not(feature = "ryujinx"))] {
+            let fname = "training_menu.html";
+            let params = unsafe { MENU.to_url_params() };
+            let page_response = Webpage::new()
+                .background(Background::BlurredScreenshot)
+                .htdocs_dir("training_modpack")
+                .boot_display(BootDisplay::BlurredScreenshot)
+                .boot_icon(true)
+                .start_page(&format!("{}{}", fname, params))
+                .open()
+                .unwrap();
+
+            let orig_last_url = page_response.get_last_url().unwrap();
+
+            set_menu_from_url(orig_last_url);
+        }
+    } else {
+        unsafe {
+            QUICK_MENU_ACTIVE = true;
+        }
     }
 }
+
+use skyline::nn::hid::NpadGcState;
+
+pub struct ButtonPresses {
+    pub a: ButtonPress,
+    pub b: ButtonPress,
+    pub zr: ButtonPress,
+    pub zl: ButtonPress,
+    pub left: ButtonPress,
+    pub right: ButtonPress,
+    pub up: ButtonPress,
+    pub down: ButtonPress
+}
+
+pub struct ButtonPress {
+    pub is_pressed: bool,
+    pub lockout_frames: usize
+}
+
+impl ButtonPress {
+    pub fn default() -> ButtonPress {
+        ButtonPress{
+            is_pressed: false,
+            lockout_frames: 0
+        }
+    }
+
+    pub fn read_press(&mut self) -> bool {
+        if self.is_pressed {
+            if self.lockout_frames == 0 {
+                self.is_pressed = false;
+                self.lockout_frames = 10;
+                return true;
+            } else {
+                self.lockout_frames -= 1;
+            }
+        }
+
+        false
+    }
+}
+
+impl ButtonPresses {
+    pub fn default() -> ButtonPresses {
+        ButtonPresses{
+            a: ButtonPress::default(),
+            b: ButtonPress::default(),
+            zr: ButtonPress::default(),
+            zl: ButtonPress::default(),
+            left: ButtonPress::default(),
+            right: ButtonPress::default(),
+            up: ButtonPress::default(),
+            down: ButtonPress::default()
+        }
+    }
+}
+
+pub static mut BUTTON_PRESSES : ButtonPresses = ButtonPresses{
+    a: ButtonPress{is_pressed: false, lockout_frames: 0},
+    b: ButtonPress{is_pressed: false, lockout_frames: 0},
+    zr: ButtonPress{is_pressed: false, lockout_frames: 0},
+    zl: ButtonPress{is_pressed: false, lockout_frames: 0},
+    left: ButtonPress{is_pressed: false, lockout_frames: 0},
+    right: ButtonPress{is_pressed: false, lockout_frames: 0},
+    up: ButtonPress{is_pressed: false, lockout_frames: 0},
+    down: ButtonPress{is_pressed: false, lockout_frames: 0},
+};
+
+pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32) {
+    unsafe {
+        if menu::QUICK_MENU_ACTIVE {
+            if (*state).Buttons & 1 > 0 {
+                BUTTON_PRESSES.a.is_pressed = true;
+            }
+            if (*state).Buttons & 2 > 0 {
+                BUTTON_PRESSES.b.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 8) > 0 {
+                BUTTON_PRESSES.zl.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 9) > 0 {
+                BUTTON_PRESSES.zr.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 12) | (1 << 16)) > 0 {
+                BUTTON_PRESSES.left.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 14) | (1 << 18)) > 0 {
+                BUTTON_PRESSES.right.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 15) | (1 << 19)) > 0 {
+                BUTTON_PRESSES.down.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 13) | (1 << 17)) > 0 {
+                BUTTON_PRESSES.up.is_pressed = true;
+            }
+
+            // If we're here, remove all other Npad presses...
+            // Should we exclude the home button?
+            (*state) = NpadGcState::default();
+        }
+    }
+}
+

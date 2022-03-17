@@ -105,7 +105,6 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
-        #[cfg(not(feature = "ryujinx"))]
         if crate::common::menu::menu_condition(module_accessor) {
             crate::common::menu::spawn_menu();
         }
@@ -466,6 +465,7 @@ pub fn training_mods() {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
+        add_nn_hid_hook(menu::handle_get_npad_state);
     }
 
     unsafe {
