@@ -64,23 +64,26 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         reset_ledge_delay();
         return;
     }
+    
+    roll_ledge_delay();
+    roll_ledge_case();
 
-    let can_attack = WorkModule::is_enable_transition_term(
+    let _can_attack = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
     );
 
-    let can_jump = WorkModule::is_enable_transition_term(
+    let _can_jump = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_JUMP,
     );
 
-    let can_climb = WorkModule::is_enable_transition_term(
+    let _can_climb = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB,
     );
 
-    let can_roll = WorkModule::is_enable_transition_term(
+    let _can_roll = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ESCAPE,
     );
@@ -90,24 +93,35 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_FALL,
     );*/
 
-    let current_frame = MotionModule::frame(module_accessor);
+    let flag_cliff = WorkModule::is_flag(module_accessor,*FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
+    let no_catch_frame = WorkModule::get_int(module_accessor,*FIGHTER_INSTANCE_WORK_ID_INT_CLIFF_NO_CATCH_FRAME);
+    let current_frame = MotionModule::frame(module_accessor) as i32;
 
-    println!("Cliff! Frame: {}, can_attack: {}, can_jump: {}, can_climb: {}, can_roll: {}",current_frame,can_attack,can_jump,can_climb,can_roll);
+    println!("Cliff! Frame: {}, flag_cliff: {}, no_catch_frame: {}",current_frame,flag_cliff,no_catch_frame);
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
     ) {
         // Not able to take any action yet
-        if current_frame == 19.0 {
+        //if current_frame == 19.0 && LEDGE_DELAY == 0 && no_catch_frame == 44 && !flag_cliff {
+        /*if (current_frame == 19) && (LEDGE_DELAY == 0) && (!flag_cliff) {
             println!("overriding!");
+        } else {
+            return;
+        }*/
+        if (current_frame == 19) && (LEDGE_DELAY == 0) {
+            println!("override1 met! flag_cliff: {}, !flag_cliff: {}", flag_cliff, !flag_cliff); 
+            if !flag_cliff {
+                println!("overriding!");
+            } else {
+                return;
+            }
+            
         } else {
             return;
         }
     }
-
-    roll_ledge_delay();
-    roll_ledge_case();
 
     if LEDGE_CASE == LedgeOption::WAIT {
         // Do nothing, but don't reset the ledge case.
