@@ -13,7 +13,8 @@ use crate::mkdir;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
-pub static mut QUICK_MENU_ACTIVE: bool = false;
+// TODO: Set false
+pub static mut QUICK_MENU_ACTIVE: bool = true;
 
 pub fn init() {
     unsafe {
@@ -155,13 +156,15 @@ impl ButtonPress {
 
     pub fn read_press(&mut self) -> bool {
         if self.is_pressed {
+            self.is_pressed = false;
             if self.lockout_frames == 0 {
-                self.is_pressed = false;
-                self.lockout_frames = 10;
+                self.lockout_frames = 15;
                 return true;
-            } else {
-                self.lockout_frames -= 1;
             }
+        }
+
+        if self.lockout_frames > 0 {
+            self.lockout_frames -= 1;
         }
 
         false
@@ -197,10 +200,18 @@ pub static mut BUTTON_PRESSES : ButtonPresses = ButtonPresses{
 pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32) {
     unsafe {
         if menu::QUICK_MENU_ACTIVE {
-            if (*state).Buttons & 1 > 0 {
+            // BUTTON_PRESSES.a.is_pressed = (*state).Buttons & (1 << 0) > 0;
+            // BUTTON_PRESSES.b.is_pressed = (*state).Buttons & (1 << 1) > 0;
+            // BUTTON_PRESSES.zl.is_pressed = (*state).Buttons & (1 << 8) > 0;
+            // BUTTON_PRESSES.zr.is_pressed = (*state).Buttons & (1 << 9) > 0;
+            // BUTTON_PRESSES.left.is_pressed = (*state).Buttons & ((1 << 12) | (1 << 16)) > 0;
+            // BUTTON_PRESSES.right.is_pressed = (*state).Buttons & ((1 << 14) | (1 << 18)) > 0;
+            // BUTTON_PRESSES.down.is_pressed = (*state).Buttons & ((1 << 15) | (1 << 19)) > 0;
+            // BUTTON_PRESSES.up.is_pressed = (*state).Buttons & ((1 << 13) | (1 << 17)) > 0;
+            if (*state).Buttons & (1 << 0) > 0 {
                 BUTTON_PRESSES.a.is_pressed = true;
             }
-            if (*state).Buttons & 2 > 0 {
+            if (*state).Buttons & (1 << 1) > 0 {
                 BUTTON_PRESSES.b.is_pressed = true;
             }
             if (*state).Buttons & (1 << 8) > 0 {

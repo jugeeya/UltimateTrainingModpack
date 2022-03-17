@@ -90,7 +90,6 @@ fn run_app<B: tui::backend::Backend>(
             .checked_sub(last_tick.elapsed())
             .unwrap_or_else(|| Duration::from_secs(0));
 
-
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
@@ -108,7 +107,6 @@ fn run_app<B: tui::backend::Backend>(
             }
         }
         if last_tick.elapsed() >= tick_rate {
-            // app.on_tick();
             last_tick = Instant::now();
         }
     }
