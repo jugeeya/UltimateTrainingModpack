@@ -229,6 +229,23 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SoundModule::pause_se_all(module_accessor, true);
             ControlModule::stop_rumble(module_accessor, true);
             SoundModule::stop_all_sound(module_accessor);
+            // Return camera to normal when loading save state
+            SlowModule::clear_whole(module_accessor);
+            CameraModule::zoom_out(module_accessor, 0);
+            // Remove blue effect (but does not remove darkened screen)
+            EffectModule::kill_kind(
+                module_accessor, 
+                Hash40::new("sys_bg_criticalhit"),
+                false, 
+                false
+            );
+            // Removes the darkened screen from special zooms
+            // If there's a crit that doesn't get removed, it's likely bg_criticalhit2.
+            EffectModule::remove_screen(module_accessor,Hash40::new("bg_criticalhit"),0);
+            // Remove all quakes to prevent screen shake lingering through load.
+            for quake_kind in *CAMERA_QUAKE_KIND_NONE..=*CAMERA_QUAKE_KIND_MAX {
+                CameraModule::stop_quake(module_accessor, quake_kind);
+            }
 
             StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         }
