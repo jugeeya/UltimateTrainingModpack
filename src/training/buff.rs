@@ -82,6 +82,7 @@ pub unsafe fn handle_buffs(
     SoundModule::stop_all_sound(module_accessor); // silences buff sfx other than KO Punch
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);
+    CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
 
     let menu_vec = MENU.buff_state.to_vec();
 
