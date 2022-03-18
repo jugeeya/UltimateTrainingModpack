@@ -515,6 +515,7 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Hero (Ka)frizz(le) - 0 to 81
     else if fighter_kind == FIGHTER_KIND_BRAVE {
+        EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
         WorkModule::off_flag(module_accessor, 0x200000E8); // FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT
         charge.int_x.map(|frizz_charge| {
             WorkModule::set_int(module_accessor, frizz_charge, *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME);
