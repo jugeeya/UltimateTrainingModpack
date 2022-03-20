@@ -47,11 +47,6 @@ jobs:
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-      - name: Upload menu plugin artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: menu_plugin
-          path: libtraining_modpack_menu.nro
       - name: Upload static files
         uses: actions/upload-artifact@v2
         with:
@@ -101,9 +96,10 @@ jobs:
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
-          cp menu_plugin/libtraining_modpack_menu.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_menu.nro
+          mv static/libtraining_modpack_menu.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_menu.nro
+          mv static/shader_binaries shader_binaries
+          mv static/font font.ttf
           cp -r static/* ${{env.SMASH_WEB_DIR}}
-          mv font font.ttf
           rm ${{env.SMASH_WEB_DIR}}/fonts -r
           zip -r training_modpack_beta.zip atmosphere shader_binaries font.ttf
       - name: Update Release
