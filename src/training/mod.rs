@@ -24,7 +24,7 @@ mod attack_angle;
 mod character_specific;
 mod fast_fall;
 mod full_hop;
-mod input_delay;
+pub(crate) mod input_delay;
 mod input_record;
 mod mash;
 mod reset;
@@ -465,6 +465,7 @@ pub fn training_mods() {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
+        add_nn_hid_hook(menu::handle_get_npad_state);
     }
 
     unsafe {

@@ -96,6 +96,7 @@ jobs:
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
+          cp libtraining_modpack_menu.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_menu.nro
           cp -r static/* ${{env.SMASH_WEB_DIR}}
           rm ${{env.SMASH_WEB_DIR}}/fonts -r
           zip -r training_modpack_beta.zip atmosphere

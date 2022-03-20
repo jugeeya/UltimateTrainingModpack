@@ -1,299 +1,24 @@
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
-use ramhorns::{Content, Template};
+use crate::common::consts::get_menu_from_url;
+use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
-use std::ops::BitOr;
 use std::path::Path;
-use strum::IntoEnumIterator;
+use crate::mkdir;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
+pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub fn init() {
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
         write_menu();
     }
-}
-
-#[derive(Content)]
-struct Slider {
-    min: usize,
-    max: usize,
-    index: usize,
-    value: usize,
-}
-
-#[derive(Content)]
-struct Toggle<'a> {
-    title: &'a str,
-    checked: &'a str,
-    index: usize,
-    value: usize,
-    default: &'a str,
-}
-
-#[derive(Content)]
-struct OnOffSelector<'a> {
-    title: &'a str,
-    checked: &'a str,
-    default: &'a str,
-}
-
-#[derive(Content)]
-struct SubMenu<'a> {
-    title: &'a str,
-    id: &'a str,
-    toggles: Vec<Toggle<'a>>,
-    sliders: Vec<Slider>,
-    onoffselector: Vec<OnOffSelector<'a>>,
-    index: usize,
-    check_against: usize,
-    is_single_option: Option<bool>,
-    help_text: &'a str,
-}
-
-impl<'a> SubMenu<'a> {
-    pub fn max_idx(&self) -> usize {
-        self.toggles
-            .iter()
-            .max_by(|t1, t2| t1.index.cmp(&t2.index))
-            .map(|t| t.index)
-            .unwrap_or(self.index)
-    }
-
-    pub fn add_toggle(&mut self, title: &'a str, checked: bool, value: usize, default: bool) {
-        self.toggles.push(Toggle {
-            title,
-            checked: if checked { "is-appear" } else { "is-hidden" },
-            index: self.max_idx() + 1,
-            value,
-            default: if default { "is-appear" } else { "is-hidden" },
-        });
-    }
-
-    pub fn add_slider(&mut self, min: usize, max: usize, value: usize) {
-        self.sliders.push(Slider {
-            min,
-            max,
-            index: self.max_idx() + 1,
-            value,
-        });
-    }
-
-    pub fn add_onoffselector(&mut self, title: &'a str, checked: bool, default: bool) {
-        // TODO: Is there a more elegant way to do this?
-        // The HTML only supports a single onoffselector but the SubMenu stores it as a Vec
-        self.onoffselector.push(OnOffSelector {
-            title,
-            checked: if checked { "is-appear" } else { "is-hidden" },
-            default: if default { "is-appear" } else { "is-hidden" },
-        });
-    }
-}
-
-#[derive(Content)]
-struct Menu<'a> {
-    sub_menus: Vec<SubMenu<'a>>,
-}
-
-impl<'a> Menu<'a> {
-    pub fn max_idx(&self) -> usize {
-        self.sub_menus
-            .iter()
-            .max_by(|x, y| x.max_idx().cmp(&y.max_idx()))
-            .map(|sub_menu| sub_menu.max_idx())
-            .unwrap_or(0)
-    }
-
-    pub fn add_sub_menu(
-        &mut self,
-        title: &'a str,
-        id: &'a str,
-        check_against: usize,
-        toggles: Vec<(&'a str, usize)>,
-        sliders: Vec<(usize, usize, usize)>,
-        defaults: usize,
-        help_text: &'a str,
-    ) {
-        let mut sub_menu = SubMenu {
-            title,
-            id,
-            toggles: Vec::new(),
-            sliders: Vec::new(),
-            onoffselector: Vec::new(),
-            index: self.max_idx() + 1,
-            check_against,
-            is_single_option: Some(true),
-            help_text,
-        };
-
-        for toggle in toggles {
-            sub_menu.add_toggle(
-                toggle.0,
-                (check_against & toggle.1) != 0,
-                toggle.1,
-                (defaults & toggle.1) != 0,
-            )
-        }
-
-        for slider in sliders {
-            sub_menu.add_slider(slider.0, slider.1, slider.2);
-        }
-
-        self.sub_menus.push(sub_menu);
-    }
-
-    pub fn add_sub_menu_sep(
-        &mut self,
-        title: &'a str,
-        id: &'a str,
-        check_against: usize,
-        strs: Vec<&'a str>,
-        vals: Vec<usize>,
-        defaults: usize,
-        help_text: &'a str,
-    ) {
-        let mut sub_menu = SubMenu {
-            title,
-            id,
-            toggles: Vec::new(),
-            sliders: Vec::new(),
-            onoffselector: Vec::new(),
-            index: self.max_idx() + 1,
-            check_against,
-            is_single_option: None,
-            help_text,
-        };
-
-        for i in 0..strs.len() {
-            sub_menu.add_toggle(
-                strs[i],
-                (check_against & vals[i]) != 0,
-                vals[i],
-                (defaults & vals[i]) != 0,
-            )
-        }
-
-        // TODO: add sliders?
-
-        self.sub_menus.push(sub_menu);
-    }
-
-    pub fn add_sub_menu_onoff(
-        &mut self,
-        title: &'a str,
-        id: &'a str,
-        check_against: usize,
-        checked: bool,
-        default: usize,
-        help_text: &'a str,
-    ) {
-        let mut sub_menu = SubMenu {
-            title,
-            id,
-            toggles: Vec::new(),
-            sliders: Vec::new(),
-            onoffselector: Vec::new(),
-            index: self.max_idx() + 1,
-            check_against,
-            is_single_option: None,
-            help_text,
-        };
-
-        sub_menu.add_onoffselector(title, checked, (default & OnOff::On as usize) != 0);
-        self.sub_menus.push(sub_menu);
-    }
-}
-
-macro_rules! add_bitflag_submenu {
-    ($menu:ident, $title:literal, $id:ident, $e:ty, $help_text:literal) => {
-        paste::paste!{
-            let [<$id _strs>] = <$e>::to_toggle_strs();
-            let [<$id _vals>] = <$e>::to_toggle_vals();
-
-            $menu.add_sub_menu_sep(
-                $title,
-                stringify!($id),
-                MENU.$id.bits() as usize,
-                [<$id _strs>],
-                [<$id _vals>],
-                DEFAULT_MENU.$id.bits() as usize,
-                stringify!($help_text),
-            );
-        }
-    }
-}
-
-macro_rules! add_single_option_submenu {
-    ($menu:ident, $title:literal, $id:ident, $e:ty, $help_text:literal) => {
-        paste::paste!{
-            let mut [<$id _toggles>] = Vec::new();
-            for val in [<$e>]::iter() {
-                [<$id _toggles>].push((val.as_str().unwrap_or(""), val as usize));
-            }
-
-            $menu.add_sub_menu(
-                $title,
-                stringify!($id),
-                MENU.$id as usize,
-                [<$id _toggles>],
-                [].to_vec(),
-                DEFAULT_MENU.$id as usize,
-                stringify!($help_text),
-            );
-        }
-    }
-}
-
-macro_rules! add_onoff_submenu {
-    ($menu:ident, $title:literal, $id:ident, $help_text:literal) => {
-        paste::paste! {
-            $menu.add_sub_menu_onoff(
-                $title,
-                stringify!($id),
-                MENU.$id as usize,
-                (MENU.$id as usize & OnOff::On as usize) != 0,
-                DEFAULT_MENU.$id as usize,
-                stringify!($help_text),
-            );
-        }
-    };
-}
-
-pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
-    let base_url_len = "http://localhost/?".len();
-    let total_len = s.len();
-
-    let ss: String = s
-        .chars()
-        .skip(base_url_len)
-        .take(total_len - base_url_len)
-        .collect();
-
-    for toggle_values in ss.split('&') {
-        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
-        let toggle = toggle_value_split[0];
-        if toggle.is_empty() {
-            continue;
-        }
-
-        let toggle_vals = toggle_value_split[1];
-
-        let bitwise_or = <u32 as BitOr<u32>>::bitor;
-        let bits = toggle_vals
-            .split(',')
-            .filter(|val| !val.is_empty())
-            .map(|val| val.parse().unwrap())
-            .fold(0, bitwise_or);
-
-        menu.set(toggle, bits);
-    }
-    menu
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
@@ -318,255 +43,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
 pub unsafe fn write_menu() {
     let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
 
-    let mut overall_menu = Menu {
-        sub_menus: Vec::new(),
-    };
-
-    // Toggle/bitflag menus
-    add_bitflag_submenu!(
-        overall_menu,
-        "Mash Toggles",
-        mash_state,
-        Action,
-        "Mash Toggles: Actions to be performed as soon as possible"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Followup Toggles",
-        follow_up,
-        Action,
-        "Followup Toggles: Actions to be performed after the Mash option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Attack Angle",
-        attack_angle,
-        AttackAngle,
-        "Attack Angle: For attacks that can be angled, such as some forward tilts"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Ledge Options",
-        ledge_state,
-        LedgeOption,
-        "Ledge Options: Actions to be taken when on the ledge"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Ledge Delay",
-        ledge_delay,
-        LongDelay,
-        "Ledge Delay: How many frames to delay the ledge option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Tech Options",
-        tech_state,
-        TechFlags,
-        "Tech Options: Actions to take when slammed into a hard surface"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Miss Tech Options",
-        miss_tech_state,
-        MissTechFlags,
-        "Miss Tech Options: Actions to take after missing a tech"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Defensive Options",
-        defensive_state,
-        Defensive,
-        "Defensive Options: Actions to take after a ledge option, tech option, or miss tech option"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Aerial Delay",
-        aerial_delay,
-        Delay,
-        "Aerial Delay: How long to delay a Mash aerial attack"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "OoS Offset",
-        oos_offset,
-        Delay,
-        "OoS Offset: How many times the CPU shield can be hit before performing a Mash option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Reaction Time",
-        reaction_time,
-        Delay,
-        "Reaction Time: How many frames to delay before performing an option out of shield"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Fast Fall",
-        fast_fall,
-        BoolFlag,
-        "Fast Fall: Should the CPU fastfall during a jump"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Fast Fall Delay",
-        fast_fall_delay,
-        Delay,
-        "Fast Fall Delay: How many frames the CPU should delay their fastfall"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Falling Aerials",
-        falling_aerials,
-        BoolFlag,
-        "Falling Aerials: Should aerials be performed when rising or when falling"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Full Hop",
-        full_hop,
-        BoolFlag,
-        "Full Hop: Should the CPU perform a full hop or a short hop"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Shield Tilt",
-        shield_tilt,
-        Direction,
-        "Shield Tilt: Direction to tilt the shield"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "DI Direction",
-        di_state,
-        Direction,
-        "DI Direction: Direction to angle the directional influence during hitlag"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "SDI Direction",
-        sdi_state,
-        Direction,
-        "SDI Direction: Direction to angle the smash directional influence during hitlag"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Airdodge Direction",
-        air_dodge_dir,
-        Direction,
-        "Airdodge Direction: Direction to angle airdodges"
-    );
-
-    add_single_option_submenu!(
-        overall_menu,
-        "SDI Strength",
-        sdi_strength,
-        SdiStrength,
-        "SDI Strength: Relative strength of the smash directional influence inputs"
-    );
-    add_single_option_submenu!(
-        overall_menu,
-        "Shield Toggles",
-        shield_state,
-        Shield,
-        "Shield Toggles: CPU Shield Behavior"
-    );
-    add_single_option_submenu!(
-        overall_menu,
-        "Mirroring",
-        save_state_mirroring,
-        SaveStateMirroring,
-        "Mirroring: Flips save states in the left-right direction across the stage center"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Throw Options",
-        throw_state,
-        ThrowOption,
-        "Throw Options: Throw to be performed when a grab is landed"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Throw Delay",
-        throw_delay,
-        MedDelay,
-        "Throw Delay: How many frames to delay the throw option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Pummel Delay",
-        pummel_delay,
-        MedDelay,
-        "Pummel Delay: How many frames after a grab to wait before starting to pummel"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Buff Options",
-        buff_state,
-        BuffOption,
-        "Buff Options: Buff(s) to be applied to respective character when loading save states"
-    );
-
-    // Slider menus
-    overall_menu.add_sub_menu(
-        "Input Delay",
-        "input_delay",
-        // unnecessary for slider?
-        MENU.input_delay as usize,
-        [
-            ("0", 0),
-            ("1", 1),
-            ("2", 2),
-            ("3", 3),
-            ("4", 4),
-            ("5", 5),
-            ("6", 6),
-            ("7", 7),
-            ("8", 8),
-            ("9", 9),
-            ("10", 10),
-        ]
-        .to_vec(),
-        [].to_vec(), //(0, 10, MENU.input_delay as usize)
-        DEFAULT_MENU.input_delay as usize,
-        stringify!("Input Delay: Frames to delay player inputs by"),
-    );
-
-    add_onoff_submenu!(
-        overall_menu,
-        "Save States",
-        save_state_enable,
-        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt."
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Save Damage",
-        save_damage,
-        "Save Damage: Should save states retain player/CPU damage"
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Hitbox Visualization",
-        hitbox_vis,
-        "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects"
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Stage Hazards",
-        stage_hazards,
-        "Stage Hazards: Should stage hazards be present"
-    );
-    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage, "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable");
-    add_onoff_submenu!(
-        overall_menu,
-        "Mash In Neutral",
-        mash_in_neutral,
-        "Mash In Neutral: Should Mash options be performed repeatedly or only when the CPU is hit"
-    );
+    let overall_menu = get_menu();
 
     let data = tpl.render(&overall_menu);
 
@@ -574,41 +51,45 @@ pub unsafe fn write_menu() {
     // From skyline-web
     let program_id = get_program_id();
     let htdocs_dir = "training_modpack";
-    let path = Path::new("sd:/atmosphere/contents")
+    let menu_dir_path = Path::new("sd:/atmosphere/contents")
         .join(&format!("{:016X}", program_id))
-        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
+        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir));
+
+    let menu_html_path = menu_dir_path
         .join("training_menu.html");
-    fs::write(path, data).unwrap();
+
+    mkdir(menu_dir_path.to_str().unwrap().as_bytes().as_ptr(), 777);
+    let write_resp = fs::write(menu_html_path, data);
+    if write_resp.is_err() {
+        println!("Error!: {}", write_resp.err().unwrap());
+    }
 }
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
-pub fn spawn_menu() {
-    unsafe {
-        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-        frame_counter::start_counting(FRAME_COUNTER_INDEX);
-    }
-
-    let fname = "training_menu.html";
-    let params = unsafe { MENU.to_url_params() };
-    let page_response = Webpage::new()
-        .background(Background::BlurredScreenshot)
-        .htdocs_dir("training_modpack")
-        .boot_display(BootDisplay::BlurredScreenshot)
-        .boot_icon(true)
-        .start_page(&format!("{}{}", fname, params))
-        .open()
-        .unwrap();
-
-    let orig_last_url = page_response.get_last_url().unwrap();
+pub fn set_menu_from_url(orig_last_url: &str) {
     let last_url = &orig_last_url.replace("&save_defaults=1", "");
     unsafe {
         MENU = get_menu_from_url(MENU, last_url);
+
+        if MENU.quick_menu == OnOff::Off {
+            let is_emulator = skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as u64  == 0x8004000;
+            if is_emulator {
+                skyline::error::show_error(
+                    0x69,
+                    "Cannot use web menu on emulator.\n",
+                    "Only the quick menu is runnable via emulator currently.",
+                );
+            }
+
+            MENU.quick_menu = OnOff::On;
+        }
     }
+
     if last_url.len() != orig_last_url.len() {
         // Save as default
         unsafe {
-            DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, last_url);
+            DEFAULT_MENU = MENU;
             write_menu();
         }
         let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
@@ -621,3 +102,152 @@ pub fn spawn_menu() {
         EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
     }
 }
+
+pub fn spawn_menu() {
+    unsafe {
+        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    }
+
+    let mut quick_menu = false;
+    unsafe {
+        if MENU.quick_menu == OnOff::On {
+            quick_menu = true;
+        }
+    }
+
+    if !quick_menu {
+        let fname = "training_menu.html";
+        let params = unsafe { MENU.to_url_params() };
+        let page_response = Webpage::new()
+            .background(Background::BlurredScreenshot)
+            .htdocs_dir("training_modpack")
+            .boot_display(BootDisplay::BlurredScreenshot)
+            .boot_icon(true)
+            .start_page(&format!("{}{}", fname, params))
+            .open()
+            .unwrap();
+
+        let orig_last_url = page_response.get_last_url().unwrap();
+
+        set_menu_from_url(orig_last_url);
+    } else {
+        unsafe {
+            QUICK_MENU_ACTIVE = true;
+        }
+    }
+}
+
+use skyline::nn::hid::NpadGcState;
+
+pub struct ButtonPresses {
+    pub a: ButtonPress,
+    pub b: ButtonPress,
+    pub zr: ButtonPress,
+    pub zl: ButtonPress,
+    pub left: ButtonPress,
+    pub right: ButtonPress,
+    pub up: ButtonPress,
+    pub down: ButtonPress
+}
+
+pub struct ButtonPress {
+    pub is_pressed: bool,
+    pub lockout_frames: usize
+}
+
+impl ButtonPress {
+    pub fn default() -> ButtonPress {
+        ButtonPress{
+            is_pressed: false,
+            lockout_frames: 0
+        }
+    }
+
+    pub fn read_press(&mut self) -> bool {
+        if self.is_pressed {
+            self.is_pressed = false;
+            if self.lockout_frames == 0 {
+                self.lockout_frames = 15;
+                return true;
+            }
+        }
+
+        if self.lockout_frames > 0 {
+            self.lockout_frames -= 1;
+        }
+
+        false
+    }
+}
+
+impl ButtonPresses {
+    pub fn default() -> ButtonPresses {
+        ButtonPresses{
+            a: ButtonPress::default(),
+            b: ButtonPress::default(),
+            zr: ButtonPress::default(),
+            zl: ButtonPress::default(),
+            left: ButtonPress::default(),
+            right: ButtonPress::default(),
+            up: ButtonPress::default(),
+            down: ButtonPress::default()
+        }
+    }
+}
+
+pub static mut BUTTON_PRESSES : ButtonPresses = ButtonPresses{
+    a: ButtonPress{is_pressed: false, lockout_frames: 0},
+    b: ButtonPress{is_pressed: false, lockout_frames: 0},
+    zr: ButtonPress{is_pressed: false, lockout_frames: 0},
+    zl: ButtonPress{is_pressed: false, lockout_frames: 0},
+    left: ButtonPress{is_pressed: false, lockout_frames: 0},
+    right: ButtonPress{is_pressed: false, lockout_frames: 0},
+    up: ButtonPress{is_pressed: false, lockout_frames: 0},
+    down: ButtonPress{is_pressed: false, lockout_frames: 0},
+};
+
+pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
+    unsafe {
+        if menu::QUICK_MENU_ACTIVE {
+            // TODO: This should make more sense, look into.
+            // BUTTON_PRESSES.a.is_pressed = (*state).Buttons & (1 << 0) > 0;
+            // BUTTON_PRESSES.b.is_pressed = (*state).Buttons & (1 << 1) > 0;
+            // BUTTON_PRESSES.zl.is_pressed = (*state).Buttons & (1 << 8) > 0;
+            // BUTTON_PRESSES.zr.is_pressed = (*state).Buttons & (1 << 9) > 0;
+            // BUTTON_PRESSES.left.is_pressed = (*state).Buttons & ((1 << 12) | (1 << 16)) > 0;
+            // BUTTON_PRESSES.right.is_pressed = (*state).Buttons & ((1 << 14) | (1 << 18)) > 0;
+            // BUTTON_PRESSES.down.is_pressed = (*state).Buttons & ((1 << 15) | (1 << 19)) > 0;
+            // BUTTON_PRESSES.up.is_pressed = (*state).Buttons & ((1 << 13) | (1 << 17)) > 0;
+            if (*state).Buttons & (1 << 0) > 0 {
+                BUTTON_PRESSES.a.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 1) > 0 {
+                BUTTON_PRESSES.b.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 8) > 0 {
+                BUTTON_PRESSES.zl.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 9) > 0 {
+                BUTTON_PRESSES.zr.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 12) | (1 << 16)) > 0 {
+                BUTTON_PRESSES.left.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 14) | (1 << 18)) > 0 {
+                BUTTON_PRESSES.right.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 15) | (1 << 19)) > 0 {
+                BUTTON_PRESSES.down.is_pressed = true;
+            }
+            if (*state).Buttons & ((1 << 13) | (1 << 17)) > 0 {
+                BUTTON_PRESSES.up.is_pressed = true;
+            }
+
+            // If we're here, remove all other Npad presses...
+            // Should we exclude the home button?
+            (*state) = NpadGcState::default();
+        }
+    }
+}
+
