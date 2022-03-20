@@ -27,8 +27,6 @@ use skyline::nro::{self, NroInfo};
 use std::fs;
 
 use owo_colors::OwoColorize;
-use skyline::nn::hid::GetNpadFullKeyState;
-use smash::app::lua_bind::HitModule::sleep;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -165,7 +163,7 @@ pub fn main() {
         unsafe {
             let mut has_slept_millis = 0;
             let mut url = String::new();
-            let mut button_presses = &mut common::menu::BUTTON_PRESSES;
+            let button_presses = &mut common::menu::BUTTON_PRESSES;
             loop {
                 button_presses.a.read_press().then(|| app.on_a());
                 button_presses.b.read_press().then(|| {
@@ -197,12 +195,12 @@ pub fn main() {
 
                     use std::fmt::Write;
                     for (i, cell) in frame_res.buffer.content().into_iter().enumerate() {
-                        write!(&mut view, "{}", cell.symbol);
+                        write!(&mut view, "{}", cell.symbol).unwrap();
                         if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
-                            write!(&mut view, "\n");
+                            write!(&mut view, "\n").unwrap();
                         }
                     }
-                    write!(&mut view, "\n");
+                    write!(&mut view, "\n").unwrap();
 
                     if menu::QUICK_MENU_ACTIVE {
                         render_text_to_screen(view.as_str());

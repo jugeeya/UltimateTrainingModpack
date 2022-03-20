@@ -1,5 +1,4 @@
 use crate::common::consts::*;
-use crate::common::*;
 use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;

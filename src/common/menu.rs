@@ -8,13 +8,11 @@ use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
-use strum::IntoEnumIterator;
 use crate::mkdir;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
-// TODO: Set false
-pub static mut QUICK_MENU_ACTIVE: bool = true;
+pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub fn init() {
     unsafe {
@@ -209,9 +207,10 @@ pub static mut BUTTON_PRESSES : ButtonPresses = ButtonPresses{
     down: ButtonPress{is_pressed: false, lockout_frames: 0},
 };
 
-pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32) {
+pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
     unsafe {
         if menu::QUICK_MENU_ACTIVE {
+            // TODO: This should make more sense, look into.
             // BUTTON_PRESSES.a.is_pressed = (*state).Buttons & (1 << 0) > 0;
             // BUTTON_PRESSES.b.is_pressed = (*state).Buttons & (1 << 1) > 0;
             // BUTTON_PRESSES.zl.is_pressed = (*state).Buttons & (1 << 8) > 0;
