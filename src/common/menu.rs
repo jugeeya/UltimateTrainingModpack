@@ -73,12 +73,11 @@ pub fn set_menu_from_url(orig_last_url: &str) {
         MENU = get_menu_from_url(MENU, last_url);
 
         if MENU.quick_menu == OnOff::Off {
-            let is_emulator = skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as u64  == 0x8004000;
-            if is_emulator {
+            if is_emulator() {
                 skyline::error::show_error(
                     0x69,
-                    "Cannot use web menu on emulator.\n",
-                    "Only the quick menu is runnable via emulator currently.",
+                    "Cannot use web menu on emulator.\n\0",
+                    "Only the quick menu is runnable via emulator currently.\n\0",
                 );
             }
 

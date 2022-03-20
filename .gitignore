@@ -1,15 +1,5 @@
 **/target
-**/*.py
-**/*.pyc
 Cargo.lock
 
 .idea/
-
-*.ovl
-
-*.elf
-
-*.nacp
-
-*.nro
 release/

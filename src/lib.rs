@@ -27,6 +27,7 @@ use skyline::nro::{self, NroInfo};
 use std::fs;
 
 use owo_colors::OwoColorize;
+use training_mod_consts::OnOff;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -104,6 +105,9 @@ pub fn main() {
             log!("Previous menu found, loading from training_modpack_menu.conf");
             unsafe {
                 MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap());
+                if is_emulator() {
+                    MENU.quick_menu = OnOff::On;
+                }
             }
         } else {
             log!("Previous menu found but is invalid.");
@@ -123,6 +127,9 @@ pub fn main() {
                     DEFAULT_MENU,
                     std::str::from_utf8(&menu_defaults_conf).unwrap(),
                 );
+                if is_emulator() {
+                    DEFAULT_MENU.quick_menu = OnOff::On;
+                }
                 crate::menu::write_menu();
             }
         } else {

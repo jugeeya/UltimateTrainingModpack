@@ -29,6 +29,11 @@ pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i3
     (module_accessor.info >> 28) as u8 as i32
 }
 
+pub fn is_emulator() -> bool {
+    unsafe { skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as u64  == 0x8004000 }
+}
+
+
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
     let entry_id_int = fighter_id as i32;
     let entry_id = app::FighterEntryID(entry_id_int);
