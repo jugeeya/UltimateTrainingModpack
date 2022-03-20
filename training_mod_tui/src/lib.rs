@@ -60,7 +60,7 @@ impl<'a> App<'a> {
                 "Pummel Delay",
                 "Buff Options",
             ]),
-            ("Miscellaneous Settings", vec![
+            ("Other Settings", vec![
                 "Input Delay",
                 "Save States",
                 "Save Damage",
@@ -74,7 +74,7 @@ impl<'a> App<'a> {
         let mut tabs: std::collections::HashMap<&str, Vec<SubMenu>> = std::collections::HashMap::new();
         tabs.insert("Mash Settings", vec![]);
         tabs.insert("Defensive Settings", vec![]);
-        tabs.insert("Miscellaneous Settings", vec![]);
+        tabs.insert("Other Settings", vec![]);
 
         for sub_menu in menu.sub_menus.iter() {
             for tab_spec in tab_specifiers.iter() {
@@ -208,15 +208,36 @@ impl<'a> App<'a> {
                 .items.get_mut(list_idx).unwrap();
             match SubMenuType::from_str(selected_sub_menu._type) {
                 SubMenuType::TOGGLE => {
-                    let toggle = self.selected_sub_menu_toggles.selected_list_item();
-                    if toggle.checked != "is-appear" {
-                        toggle.checked = "is-appear";
-                    } else {
-                        toggle.checked = "is-hidden";
-                    }
+                    let is_single_option = selected_sub_menu.is_single_option.is_some();
+                    let state = self.selected_sub_menu_toggles.state;
+                    self.selected_sub_menu_toggles.lists.iter_mut()
+                        .map(|list| (list.state.selected(), &mut list.items))
+                        .for_each(|(state, toggle_list)| toggle_list.iter_mut()
+                            .enumerate()
+                            .for_each(|(i, o)|
+                            if state.is_some() && i == state.unwrap() {
+                               if o.checked != "is-appear" {
+                                   o.checked = "is-appear";
+                               } else {
+                                   o.checked = "is-hidden";
+                               }
+                            } else if is_single_option {
+                                o.checked = "is-hidden";
+                            }
+                        ));
                     selected_sub_menu.toggles.iter_mut()
-                        .filter(|o| o.title == toggle.title)
-                        .for_each(|o| o.checked = toggle.checked);
+                        .enumerate()
+                        .for_each(|(i, o)| {
+                            if i == state  {
+                                if o.checked != "is-appear" {
+                                    o.checked = "is-appear";
+                                } else {
+                                    o.checked = "is-hidden";
+                                }
+                            } else if is_single_option {
+                                o.checked = "is-hidden";
+                            }
+                        });
                 },
                 SubMenuType::ONOFF => {
                     let onoff = self.selected_sub_menu_onoff_selectors.selected_list_item();
@@ -310,7 +331,10 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
 
     let vertical_chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(30), Constraint::Percentage(50), Constraint::Percentage(20)].as_ref())
+        .constraints([
+            Constraint::Length(2),
+            Constraint::Max(10),
+            Constraint::Length(2)].as_ref())
         .split(f.size());
 
     let list_chunks = Layout::default()

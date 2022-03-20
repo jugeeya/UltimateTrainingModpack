@@ -1561,7 +1561,11 @@ pub unsafe fn get_menu() -> Menu<'static> {
         stage_hazards,
         "Stage Hazards: Should stage hazards be present"
     );
-    add_onoff_submenu!(overall_menu, "Frame Advantage", frame_advantage, "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable");
+    add_onoff_submenu!(
+        overall_menu,
+        "Frame Advantage",
+        frame_advantage,
+        "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable");
     add_onoff_submenu!(
         overall_menu,
         "Mash In Neutral",

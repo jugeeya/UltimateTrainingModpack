@@ -16,9 +16,12 @@ impl<T: Clone> MultiStatefulList<T> {
 
     pub fn idx_to_list_idx(&self, idx: usize) -> (usize, usize) {
         for list_section in 0..self.lists.len() {
-            let list_section_min_idx = (self.total_len / self.lists.len()) * list_section;
-            let list_section_max_idx = (self.total_len / self.lists.len()) * (list_section + 1);
+            let list_section_min_idx = (self.total_len as f32 / self.lists.len() as f32).ceil() as usize * list_section;
+            let list_section_max_idx = std::cmp::min(
+                (self.total_len as f32 / self.lists.len() as f32).ceil() as usize * (list_section + 1),
+                self.total_len);
             if (list_section_min_idx..list_section_max_idx).contains(&idx) {
+                // println!("\n{}: ({}, {})", idx, list_section_min_idx, list_section_max_idx);
                 return (list_section, idx - list_section_min_idx)
             }
         }
@@ -36,8 +39,10 @@ impl<T: Clone> MultiStatefulList<T> {
 
     pub fn with_items(items: Vec<T>, num_lists: usize) -> MultiStatefulList<T> {
         let lists = (0..num_lists).map(|list_section| {
-            let list_section_min_idx = (items.len() / num_lists) * list_section;
-            let list_section_max_idx = (items.len() / num_lists) * (list_section + 1);
+            let list_section_min_idx = (items.len() as f32 / num_lists as f32).ceil() as usize * list_section;
+            let list_section_max_idx = std::cmp::min(
+                (items.len() as f32 / num_lists as f32).ceil() as usize * (list_section + 1),
+                items.len());
             let mut state = ListState::default();
             if list_section == 0 {
                 // Enforce state as first of list

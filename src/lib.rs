@@ -159,7 +159,7 @@ pub fn main() {
 
         let mut app = training_mod_tui::App::new(menu);
 
-        let backend = training_mod_tui::TestBackend::new(75, 8);
+        let backend = training_mod_tui::TestBackend::new(75, 15);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
 
         unsafe {

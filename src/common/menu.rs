@@ -73,22 +73,36 @@ pub fn set_menu_from_url(orig_last_url: &str) {
     let last_url = &orig_last_url.replace("&save_defaults=1", "");
     unsafe {
         MENU = get_menu_from_url(MENU, last_url);
+
+        if MENU.quick_menu == OnOff::Off {
+            let is_emulator = skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as u64  == 0x8004000;
+            if is_emulator {
+                skyline::error::show_error(
+                    0x69,
+                    "Cannot use web menu on emulator.\n",
+                    "Only the quick menu is runnable via emulator currently.",
+                );
+            }
+
+            MENU.quick_menu = OnOff::On;
+        }
     }
+
     if last_url.len() != orig_last_url.len() {
         // Save as default
         unsafe {
-            DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, last_url);
-            // write_menu();
+            DEFAULT_MENU = MENU;
+            write_menu();
         }
-        // let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
-        // std::fs::write(menu_defaults_conf_path, last_url)
-        //     .expect("Failed to write default menu conf file");
+        let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
+        std::fs::write(menu_defaults_conf_path, last_url)
+            .expect("Failed to write default menu conf file");
     }
 
-    // std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
-    // unsafe {
-    //     EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-    // }
+    std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
+    unsafe {
+        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
+    }
 }
 
 pub fn spawn_menu() {
@@ -105,22 +119,20 @@ pub fn spawn_menu() {
     }
 
     if !quick_menu {
-        #[cfg(not(feature = "ryujinx"))] {
-            let fname = "training_menu.html";
-            let params = unsafe { MENU.to_url_params() };
-            let page_response = Webpage::new()
-                .background(Background::BlurredScreenshot)
-                .htdocs_dir("training_modpack")
-                .boot_display(BootDisplay::BlurredScreenshot)
-                .boot_icon(true)
-                .start_page(&format!("{}{}", fname, params))
-                .open()
-                .unwrap();
+        let fname = "training_menu.html";
+        let params = unsafe { MENU.to_url_params() };
+        let page_response = Webpage::new()
+            .background(Background::BlurredScreenshot)
+            .htdocs_dir("training_modpack")
+            .boot_display(BootDisplay::BlurredScreenshot)
+            .boot_icon(true)
+            .start_page(&format!("{}{}", fname, params))
+            .open()
+            .unwrap();
 
-            let orig_last_url = page_response.get_last_url().unwrap();
+        let orig_last_url = page_response.get_last_url().unwrap();
 
-            set_menu_from_url(orig_last_url);
-        }
+        set_menu_from_url(orig_last_url);
     } else {
         unsafe {
             QUICK_MENU_ACTIVE = true;

@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     #[cfg(not(feature = "has_terminal"))] {
         let mut app = training_mod_tui::App::new(menu);
-        let backend = tui::backend::TestBackend::new(100, 8);
+        let backend = tui::backend::TestBackend::new(75, 15);
         let mut terminal = Terminal::new(backend)?;
         let mut state = tui::widgets::ListState::default();
         state.select(Some(1));
