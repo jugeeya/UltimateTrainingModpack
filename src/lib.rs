@@ -139,6 +139,10 @@ pub fn main() {
         log!("No previous menu defaults found.");
     }
 
+    if is_emulator() {
+        unsafe { MENU.quick_menu = OnOff::On; }
+    }
+
     std::thread::spawn(|| loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
         unsafe {
@@ -183,7 +187,7 @@ pub fn main() {
                     }
                 });
                 button_presses.zl.read_press().then(|| app.on_l());
-                button_presses.zl.read_press().then(|| app.on_r());
+                button_presses.zr.read_press().then(|| app.on_r());
                 button_presses.left.read_press().then(|| app.on_left());
                 button_presses.right.read_press().then(|| app.on_right());
                 button_presses.up.read_press().then(|| app.on_up());
