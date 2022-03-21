@@ -221,7 +221,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             if (*state).Buttons & (1 << 0) > 0 {
                 BUTTON_PRESSES.a.is_pressed = true;
             }
-            if (*state).Buttons & (1 << 1) > 0 {
+            if (*state).Buttons & (1 << 1) > 0 && frame_counter::get_frame_count(FRAME_COUNTER_INDEX) == 0 {
                 BUTTON_PRESSES.b.is_pressed = true;
             }
             if (*state).Buttons & (1 << 8) > 0 {

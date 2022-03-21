@@ -1134,7 +1134,7 @@ pub static DEFAULT_MENU: TrainingModpackMenu = TrainingModpackMenu {
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
     buff_state: BuffOption::empty(),
-    quick_menu: OnOff::On,
+    quick_menu: OnOff::Off,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
