@@ -79,9 +79,8 @@ pub fn set_menu_from_url(orig_last_url: &str) {
                     "Cannot use web menu on emulator.\n\0",
                     "Only the quick menu is runnable via emulator currently.\n\0",
                 );
+                MENU.quick_menu = OnOff::On;
             }
-
-            MENU.quick_menu = OnOff::On;
         }
     }
 
