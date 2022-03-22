@@ -33,10 +33,8 @@ pub fn save_steve_state(module_accessor: &mut app::BattleObjectModuleAccessor) -
     // Returns None if not Steve, a SteveState if it is
     if !is_steve(module_accessor) {
         None
-    }
-
-    unsafe {
-        Some(save(module_accessor)) // should return the SteveState
+    } else {
+        unsafe { Some(save(module_accessor)) // should return the SteveState }
     }
 }
 
@@ -44,13 +42,10 @@ pub fn load_steve_state(module_accessor: &mut app::BattleObjectModuleAccessor, s
     // Returns false if not Steve, true if it is and we've set the variables
     if !is_steve(module_accessor) {
         false
+    } else {
+        unsafe { load(module_accessor, steve_state) }
+        true
     }
-
-    unsafe {
-        load(module_accessor, steve_state)
-    }
-
-    true
 }
 
 unsafe fn save(module_accessor: &mut app::BattleObjectModuleAccessor) -> SteveState {
