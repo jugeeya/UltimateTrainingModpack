@@ -7,7 +7,9 @@
     clippy::borrow_interior_mutable_const,
     clippy::not_unsafe_ptr_arg_deref,
     clippy::missing_safety_doc,
-    clippy::wrong_self_convention
+    clippy::wrong_self_convention,
+    clippy::option_map_unit_fn,
+    clippy::float_cmp
 )]
 
 pub mod common;
@@ -68,8 +70,7 @@ pub fn render_text_to_screen(s: &str) {
 pub fn main() {
     macro_rules! log {
         ($($arg:tt)*) => {
-            print!("{}", "[Training Modpack] ".green());
-            println!($($arg)*);
+            print!("{}{}", "[Training Modpack] ".green(), format!($($arg)*));
         };
     }
 
@@ -177,10 +178,12 @@ pub fn main() {
             let button_presses = &mut common::menu::BUTTON_PRESSES;
             loop {
                 button_presses.a.read_press().then(|| app.on_a());
-                button_presses.b.read_press().then(|| {
-                    if app.outer_list == false {
+                let b_press = &mut button_presses.b;
+                let b_prev_press = b_press.prev_frame_is_pressed;
+                b_press.read_press().then(|| {
+                    if !app.outer_list {
                         app.on_b()
-                    } else {
+                    } else if !b_prev_press {
                         // Leave menu.
                         menu::QUICK_MENU_ACTIVE = false;
                         crate::menu::set_menu_from_url(url.as_str());
@@ -205,13 +208,13 @@ pub fn main() {
                         .unwrap();
 
                     use std::fmt::Write;
-                    for (i, cell) in frame_res.buffer.content().into_iter().enumerate() {
+                    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
                         write!(&mut view, "{}", cell.symbol).unwrap();
                         if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
-                            write!(&mut view, "\n").unwrap();
+                            writeln!(&mut view).unwrap();
                         }
                     }
-                    write!(&mut view, "\n").unwrap();
+                    writeln!(&mut view).unwrap();
 
                     if menu::QUICK_MENU_ACTIVE {
                         render_text_to_screen(view.as_str());

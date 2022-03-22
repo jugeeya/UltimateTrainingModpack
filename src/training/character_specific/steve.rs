@@ -32,24 +32,25 @@ fn is_steve(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
 pub fn save_steve_state(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<SteveState> {
     // Returns None if not Steve, a SteveState if it is
     if !is_steve(module_accessor) {
-        return None;
-    } else {
-        unsafe {
-            Some(save(module_accessor)) // should return the SteveState
-        } 
+        None
+    }
+
+    unsafe {
+        Some(save(module_accessor)) // should return the SteveState
     }
 }
 
 pub fn load_steve_state(module_accessor: &mut app::BattleObjectModuleAccessor, steve_state: SteveState) -> bool {
     // Returns false if not Steve, true if it is and we've set the variables
     if !is_steve(module_accessor) {
-        return false;
-    } else {
-        unsafe {
-            load(module_accessor, steve_state)
-        }
-        return true;
+        false
     }
+
+    unsafe {
+        load(module_accessor, steve_state)
+    }
+
+    true
 }
 
 unsafe fn save(module_accessor: &mut app::BattleObjectModuleAccessor) -> SteveState {
@@ -61,14 +62,18 @@ unsafe fn save(module_accessor: &mut app::BattleObjectModuleAccessor) -> SteveSt
     let mat_redstone = WorkModule::get_int(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_MATERIAL_NUM_RED_STONE);
     let mat_diamond = WorkModule::get_int(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_MATERIAL_NUM_DIAMOND);
     let extend_buffer_address = WorkModule::get_int64(module_accessor, *FIGHTER_PICKEL_INSTANCE_WORK_ID_INT_EXTEND_BUFFER);
-    let sword_mat = *((extend_buffer_address + (0xC * 0)) as *const char);
-    let sword_durability = *(((extend_buffer_address + ((0xC * 0) + 4))) as *const f32);
-    let axe_mat = *((extend_buffer_address + (0xC * 1)) as *const char);
-    let axe_durability = *(((extend_buffer_address + ((0xC * 1) + 4))) as *const f32);
-    let pick_mat = *((extend_buffer_address + (0xC * 2)) as *const char);
-    let pick_durability = *(((extend_buffer_address + ((0xC * 2) + 4))) as *const f32);
-    let shovel_mat = *((extend_buffer_address + (0xC * 3)) as *const char);
-    let shovel_durability = *(((extend_buffer_address + ((0xC * 3) + 4))) as *const f32);
+    let mut extend_buffer_offset = 0;
+    let sword_mat = *((extend_buffer_address + (0xC * extend_buffer_offset)) as *const char);
+    let sword_durability = *((extend_buffer_address + ((0xC * extend_buffer_offset) + 4)) as *const f32);
+    extend_buffer_offset += 1;
+    let axe_mat = *((extend_buffer_address + (0xC * extend_buffer_offset)) as *const char);
+    let axe_durability = *((extend_buffer_address + ((0xC * extend_buffer_offset) + 4)) as *const f32);
+    extend_buffer_offset += 1;
+    let pick_mat = *((extend_buffer_address + (0xC * extend_buffer_offset)) as *const char);
+    let pick_durability = *((extend_buffer_address + ((0xC * extend_buffer_offset) + 4)) as *const f32);
+    extend_buffer_offset += 1;
+    let shovel_mat = *((extend_buffer_address + (0xC * extend_buffer_offset)) as *const char);
+    let shovel_durability = *((extend_buffer_address + ((0xC * extend_buffer_offset) + 4)) as *const f32);
     
     SteveState {
         mat_g1,
@@ -102,17 +107,25 @@ unsafe fn load(module_accessor: &mut app::BattleObjectModuleAccessor, steve_stat
     // We have to grab the address every time instead of saving it, because loading
     //      a state from a separate training mode instance would cause a crash
 
-    *((extend_buffer_address + (0xC * 0)) as *mut char) = steve_state.sword_mat;
-    *((extend_buffer_address + (0xC * 1)) as *mut char) = steve_state.axe_mat;
-    *((extend_buffer_address + (0xC * 2)) as *mut char) = steve_state.pick_mat;
-    *((extend_buffer_address + (0xC * 3)) as *mut char) = steve_state.shovel_mat;
+    let mut extend_buffer_offset = 0;
+    *((extend_buffer_address + (0xC * extend_buffer_offset)) as *mut char) = steve_state.sword_mat;
+    extend_buffer_offset += 1;
+    *((extend_buffer_address + (0xC * extend_buffer_offset)) as *mut char) = steve_state.axe_mat;
+    extend_buffer_offset += 1;
+    *((extend_buffer_address + (0xC * extend_buffer_offset)) as *mut char) = steve_state.pick_mat;
+    extend_buffer_offset += 1;
+    *((extend_buffer_address + (0xC * extend_buffer_offset)) as *mut char) = steve_state.shovel_mat;
 
     // Update durability
 
-    *((extend_buffer_address + (0xC * 0) + 4) as *mut f32) = steve_state.sword_durability;
-    *((extend_buffer_address + (0xC * 1) + 4) as *mut f32) = steve_state.axe_durability;
-    *((extend_buffer_address + (0xC * 2) + 4) as *mut f32) = steve_state.pick_durability;
-    *((extend_buffer_address + (0xC * 3) + 4) as *mut f32) = steve_state.shovel_durability;
+    extend_buffer_offset = 0;
+    *((extend_buffer_address + (0xC * extend_buffer_offset) + 4) as *mut f32) = steve_state.sword_durability;
+    extend_buffer_offset += 1;
+    *((extend_buffer_address + (0xC * extend_buffer_offset) + 4) as *mut f32) = steve_state.axe_durability;
+    extend_buffer_offset += 1;
+    *((extend_buffer_address + (0xC * extend_buffer_offset) + 4) as *mut f32) = steve_state.pick_durability;
+    extend_buffer_offset += 1;
+    *((extend_buffer_address + (0xC * extend_buffer_offset) + 4) as *mut f32) = steve_state.shovel_durability;
 
     // Update UI meter at the bottom by subtracting the materials by 0 after setting them
     

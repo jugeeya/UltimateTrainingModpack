@@ -528,6 +528,4 @@ pub unsafe fn handle_charge(module_accessor: &mut app::BattleObjectModuleAccesso
             WorkModule::set_int(module_accessor, wing_remain, *FIGHTER_BUDDY_INSTANCE_WORK_ID_INT_SPECIAL_S_REMAIN);
         });
     }
-    
-    return;
 }

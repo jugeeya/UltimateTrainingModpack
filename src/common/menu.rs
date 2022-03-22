@@ -12,7 +12,8 @@ use crate::mkdir;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
-pub static mut QUICK_MENU_ACTIVE: bool = false;
+// TODO: Revert
+pub static mut QUICK_MENU_ACTIVE: bool = true;
 
 pub fn init() {
     unsafe {
@@ -150,6 +151,7 @@ pub struct ButtonPresses {
 }
 
 pub struct ButtonPress {
+    pub prev_frame_is_pressed: bool,
     pub is_pressed: bool,
     pub lockout_frames: usize
 }
@@ -157,6 +159,7 @@ pub struct ButtonPress {
 impl ButtonPress {
     pub fn default() -> ButtonPress {
         ButtonPress{
+            prev_frame_is_pressed: false,
             is_pressed: false,
             lockout_frames: 0
         }
@@ -165,8 +168,9 @@ impl ButtonPress {
     pub fn read_press(&mut self) -> bool {
         if self.is_pressed {
             self.is_pressed = false;
-            if self.lockout_frames == 0 {
-                self.lockout_frames = 15;
+            if !self.prev_frame_is_pressed && self.lockout_frames == 0 {
+                self.lockout_frames = 10;
+                self.prev_frame_is_pressed = true;
                 return true;
             }
         }
@@ -175,6 +179,7 @@ impl ButtonPress {
             self.lockout_frames -= 1;
         }
 
+        self.prev_frame_is_pressed = self.is_pressed;
         false
     }
 }
@@ -195,14 +200,14 @@ impl ButtonPresses {
 }
 
 pub static mut BUTTON_PRESSES : ButtonPresses = ButtonPresses{
-    a: ButtonPress{is_pressed: false, lockout_frames: 0},
-    b: ButtonPress{is_pressed: false, lockout_frames: 0},
-    zr: ButtonPress{is_pressed: false, lockout_frames: 0},
-    zl: ButtonPress{is_pressed: false, lockout_frames: 0},
-    left: ButtonPress{is_pressed: false, lockout_frames: 0},
-    right: ButtonPress{is_pressed: false, lockout_frames: 0},
-    up: ButtonPress{is_pressed: false, lockout_frames: 0},
-    down: ButtonPress{is_pressed: false, lockout_frames: 0},
+    a: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+    b: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+    zr: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+    zl: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+    left: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+    right: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+    up: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+    down: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
 };
 
 pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {

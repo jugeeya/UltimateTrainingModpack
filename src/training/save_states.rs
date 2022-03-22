@@ -87,7 +87,7 @@ pub unsafe fn is_killing() -> bool {
     if SAVE_STATE_PLAYER.state == KillPlayer || SAVE_STATE_CPU.state == KillPlayer {
         return true;
     }
-    return false;
+    false
 }
 
 pub unsafe fn should_mirror() -> f32 {
