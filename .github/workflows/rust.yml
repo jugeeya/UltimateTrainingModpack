@@ -115,6 +115,14 @@ jobs:
             Beta built off of the latest code in the repository. 
             
             Install the same way you would install a full release.
+            
+            ## Installing on Ryujinx
+            Instructions to get the beta working on Ryujinx.
+            1. Download a Skyline-tolerant build of Ryujinx, which can be found here: https://github.com/Ryujinx/Ryujinx/pull/2966#issuecomment-1003648371
+            2. Download the beta. https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta
+            3. The atmosphere folder from the beta zip is everything that should be in Ryujinx's mod folder. This means `%AppData%/Ryujinx/mods/contents/01006a800016e000` should have what `atmosphere/contents/01006a800016e000` has.
+            4. The other files/folders such as `shader_binaries` and `font.ttf` from the beta zip ishould be placed on the root of the SD card, which for Ryujinx is `%AppData/Ryujinx/sdcard`.
+            5. You should be good to go after this. When in training mode, use Special+Uptaunt to bring up the menu.
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact
