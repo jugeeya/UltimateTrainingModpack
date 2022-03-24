@@ -36,7 +36,7 @@ pub fn save_steve_state(module_accessor: &mut app::BattleObjectModuleAccessor) -
     } else {
         unsafe {
             Some(save(module_accessor)) // should return the SteveState
-        } 
+        }
     }
 }
 
