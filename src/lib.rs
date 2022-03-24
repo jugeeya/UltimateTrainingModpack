@@ -88,33 +88,14 @@ pub fn main() {
         if menu_conf.starts_with(b"http://localhost") {
             log!("Previous menu found, loading from training_modpack_menu.conf");
             unsafe {
-                MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap());
+                MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap(), false);
+                DEFAULT_MENU = get_menu_from_url(DEFAULT_MENU, std::str::from_utf8(&menu_conf).unwrap(), true);
             }
         } else {
             log!("Previous menu found but is invalid.");
         }
     } else {
         log!("No previous menu file found.");
-    }
-
-    let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
-    log!("Checking for previous menu defaults in training_modpack_menu_defaults.conf...");
-    if fs::metadata(menu_defaults_conf_path).is_ok() {
-        let menu_defaults_conf = fs::read(menu_defaults_conf_path).unwrap();
-        if menu_defaults_conf.starts_with(b"http://localhost") {
-            log!("Menu defaults found, loading from training_modpack_menu_defaults.conf");
-            unsafe {
-                DEFAULT_MENU = get_menu_from_url(
-                    DEFAULT_MENU,
-                    std::str::from_utf8(&menu_defaults_conf).unwrap(),
-                );
-                crate::menu::write_menu();
-            }
-        } else {
-            log!("Previous menu defaults found but are invalid.");
-        }
-    } else {
-        log!("No previous menu defaults found.");
     }
 
     std::thread::spawn(|| loop {

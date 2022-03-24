@@ -6,7 +6,13 @@ extern crate num_derive;
 
 use core::f64::consts::PI;
 use smash::lib::lua_const::*;
+use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+
+pub trait ToggleTrait {
+    fn to_toggle_strs() -> Vec<&'static str>;
+    fn to_toggle_vals() -> Vec<usize>;
+}
 
 // bitflag helper function macro
 macro_rules! extra_bitflag_impls {
@@ -51,22 +57,21 @@ macro_rules! extra_bitflag_impls {
                     }
                 }
             }
-
-            pub fn to_toggle_strs() -> Vec<&'static str> {
+        }
+        impl ToggleTrait for $e {
+            fn to_toggle_strs() -> Vec<&'static str> {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.as_str().unwrap_or("")).collect()
             }
 
-            pub fn to_toggle_vals() -> Vec<usize> {
+            fn to_toggle_vals() -> Vec<usize> {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.bits() as usize).collect()
             }
-            pub fn to_url_param(&self) -> String {
-                self.to_vec()
-                    .into_iter()
-                    .map(|field| field.bits().to_string())
-                    .collect::<Vec<_>>()
-                    .join(",")
+        }
+        impl ToUrlParam for $e {
+            fn to_url_param(&self) -> String {
+                self.bits().to_string()
             }
         }
     }
@@ -241,10 +246,10 @@ extra_bitflag_impls! {MissTechFlags}
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter)]
 pub enum Shield {
-    None = 0,
-    Infinite = 1,
-    Hold = 2,
-    Constant = 3,
+    None = 0x0,
+    Infinite = 0x1,
+    Hold = 0x2,
+    Constant = 0x4,
 }
 
 impl Shield {
@@ -262,13 +267,23 @@ impl Shield {
     }
 }
 
+impl ToggleTrait for Shield {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        Shield::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        Shield::iter().map(|i| i as usize).collect()
+    }
+}
+
 // Save State Mirroring
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter)]
 pub enum SaveStateMirroring {
-    None = 0,
-    Alternate = 1,
-    Random = 2,
+    None = 0x0,
+    Alternate = 0x1,
+    Random = 0x2,
 }
 
 impl SaveStateMirroring {
@@ -282,6 +297,16 @@ impl SaveStateMirroring {
 
     fn to_url_param(&self) -> String {
         (*self as i32).to_string()
+    }
+}
+
+impl ToggleTrait for SaveStateMirroring {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        SaveStateMirroring::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        SaveStateMirroring::iter().map(|i| i as usize).collect()
     }
 }
 
@@ -336,6 +361,15 @@ impl OnOff {
 
     pub fn to_url_param(&self) -> String {
         (*self as i32).to_string()
+    }
+}
+
+impl ToggleTrait for OnOff {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        vec!["Off", "On"]
+    }
+    fn to_toggle_vals() -> Vec<usize> {
+        vec![0, 1]
     }
 }
 
@@ -820,6 +854,16 @@ impl SdiStrength {
     }
 }
 
+impl ToggleTrait for SdiStrength {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        SdiStrength::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        SdiStrength::iter().map(|i| i as usize).collect()
+    }
+}
+
 // For input delay
 trait ToUrlParam {
     fn to_url_param(&self) -> String;
@@ -844,9 +888,14 @@ macro_rules! url_params {
             $(pub $field_name: $field_type,)*
         }
         impl $e {
-            pub fn to_url_params(&self) -> String {
-                let mut s = "?".to_string();
+            pub fn to_url_params(&self, defaults: bool) -> String {
+                let mut s = "".to_string();
+                let defaults_str = match defaults {
+                    true => &"__",  // Prefix field name with "__" if it is for the default menu
+                    false => &"",
+                };
                 $(
+                    s.push_str(defaults_str);
                     s.push_str(stringify!($field_name));
                     s.push_str(&"=");
                     s.push_str(&self.$field_name.to_url_param());
