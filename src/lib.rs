@@ -20,9 +20,9 @@ mod training;
 #[cfg(test)]
 mod test;
 
+use crate::common::consts::get_menu_from_url;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
-use crate::common::consts::get_menu_from_url;
 
 use skyline::libc::{c_char, mkdir};
 use skyline::nro::{self, NroInfo};
@@ -85,7 +85,6 @@ pub fn main() {
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
 
-
     unsafe {
         mkdir(c_str!("sd:/TrainingModpack/"), 777);
     }
@@ -142,7 +141,9 @@ pub fn main() {
     }
 
     if is_emulator() {
-        unsafe { MENU.quick_menu = OnOff::On; }
+        unsafe {
+            MENU.quick_menu = OnOff::On;
+        }
     }
 
     std::thread::spawn(|| loop {
@@ -180,7 +181,10 @@ pub fn main() {
             let button_presses = &mut common::menu::BUTTON_PRESSES;
             let mut received_input = true;
             loop {
-                button_presses.a.read_press().then(|| { app.on_a(); received_input = true; });
+                button_presses.a.read_press().then(|| {
+                    app.on_a();
+                    received_input = true;
+                });
                 let b_press = &mut button_presses.b;
                 let b_prev_press = b_press.prev_frame_is_pressed;
                 b_press.read_press().then(|| {
@@ -193,22 +197,44 @@ pub fn main() {
                         crate::menu::set_menu_from_url(url.as_str());
                     }
                 });
-                button_presses.zl.read_press().then(|| { app.on_l(); received_input = true; });
-                button_presses.zr.read_press().then(|| { app.on_r(); received_input = true; });
-                button_presses.left.read_press().then(|| { app.on_left(); received_input = true; });
-                button_presses.right.read_press().then(|| { app.on_right(); received_input = true; });
-                button_presses.up.read_press().then(|| { app.on_up(); received_input = true; });
-                button_presses.down.read_press().then(|| { app.on_down(); received_input = true; });
+                button_presses.zl.read_press().then(|| {
+                    app.on_l();
+                    received_input = true;
+                });
+                button_presses.zr.read_press().then(|| {
+                    app.on_r();
+                    received_input = true;
+                });
+                button_presses.left.read_press().then(|| {
+                    app.on_left();
+                    received_input = true;
+                });
+                button_presses.right.read_press().then(|| {
+                    app.on_right();
+                    received_input = true;
+                });
+                button_presses.up.read_press().then(|| {
+                    app.on_up();
+                    received_input = true;
+                });
+                button_presses.down.read_press().then(|| {
+                    app.on_down();
+                    received_input = true;
+                });
 
                 std::thread::sleep(std::time::Duration::from_millis(16));
                 has_slept_millis += 16;
-                if has_slept_millis < 16 * render_frames { continue; }
+                if has_slept_millis < 16 * render_frames {
+                    continue;
+                }
                 has_slept_millis = 16;
                 if !menu::QUICK_MENU_ACTIVE {
                     set_should_display_text_to_screen(false);
                     continue;
                 }
-                if !received_input { continue; }
+                if !received_input {
+                    continue;
+                }
                 let mut view = String::new();
 
                 let frame_res = terminal
@@ -230,9 +256,12 @@ pub fn main() {
                         Color::Yellow => write!(&mut view, "{}", &cell.symbol.yellow()),
                         Color::LightYellow => write!(&mut view, "{}", &cell.symbol.bright_yellow()),
                         Color::Magenta => write!(&mut view, "{}", &cell.symbol.magenta()),
-                        Color::LightMagenta => write!(&mut view, "{}", &cell.symbol.bright_magenta()),
-                        _  => write!(&mut view, "{}", &cell.symbol),
-                    }.unwrap();
+                        Color::LightMagenta => {
+                            write!(&mut view, "{}", &cell.symbol.bright_magenta())
+                        }
+                        _ => write!(&mut view, "{}", &cell.symbol),
+                    }
+                    .unwrap();
                     if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
                         writeln!(&mut view).unwrap();
                     }

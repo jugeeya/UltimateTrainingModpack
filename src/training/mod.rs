@@ -9,6 +9,7 @@ use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
 
 pub mod buff;
+pub mod charge;
 pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
@@ -17,7 +18,6 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod throw;
-pub mod charge;
 
 mod air_dodge_direction;
 mod attack_angle;

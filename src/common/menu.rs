@@ -1,14 +1,14 @@
+use crate::common::consts::get_menu_from_url;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
+use crate::mkdir;
 use crate::training::frame_counter;
-use crate::common::consts::get_menu_from_url;
 use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline_web::{Background, BootDisplay, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
-use crate::mkdir;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
@@ -55,8 +55,7 @@ pub unsafe fn write_menu() {
         .join(&format!("{:016X}", program_id))
         .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir));
 
-    let menu_html_path = menu_dir_path
-        .join("training_menu.html");
+    let menu_html_path = menu_dir_path.join("training_menu.html");
 
     mkdir(menu_dir_path.to_str().unwrap().as_bytes().as_ptr(), 777);
     let write_resp = fs::write(menu_html_path, data);
@@ -146,21 +145,21 @@ pub struct ButtonPresses {
     pub left: ButtonPress,
     pub right: ButtonPress,
     pub up: ButtonPress,
-    pub down: ButtonPress
+    pub down: ButtonPress,
 }
 
 pub struct ButtonPress {
     pub prev_frame_is_pressed: bool,
     pub is_pressed: bool,
-    pub lockout_frames: usize
+    pub lockout_frames: usize,
 }
 
 impl ButtonPress {
     pub fn default() -> ButtonPress {
-        ButtonPress{
+        ButtonPress {
             prev_frame_is_pressed: false,
             is_pressed: false,
-            lockout_frames: 0
+            lockout_frames: 0,
         }
     }
 
@@ -185,7 +184,7 @@ impl ButtonPress {
 
 impl ButtonPresses {
     pub fn default() -> ButtonPresses {
-        ButtonPresses{
+        ButtonPresses {
             a: ButtonPress::default(),
             b: ButtonPress::default(),
             zr: ButtonPress::default(),
@@ -193,20 +192,52 @@ impl ButtonPresses {
             left: ButtonPress::default(),
             right: ButtonPress::default(),
             up: ButtonPress::default(),
-            down: ButtonPress::default()
+            down: ButtonPress::default(),
         }
     }
 }
 
-pub static mut BUTTON_PRESSES : ButtonPresses = ButtonPresses{
-    a: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
-    b: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
-    zr: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
-    zl: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
-    left: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
-    right: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
-    up: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
-    down: ButtonPress{prev_frame_is_pressed: false, is_pressed: false, lockout_frames: 0},
+pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
+    a: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    b: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    zr: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    zl: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    left: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    right: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    up: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    down: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
 };
 
 pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
@@ -257,4 +288,3 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
         }
     }
 }
-

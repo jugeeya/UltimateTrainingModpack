@@ -5,8 +5,8 @@ use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::training::buff;
-use crate::training::reset;
 use crate::training::charge::{self, ChargeState};
+use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -234,14 +234,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             CameraModule::zoom_out(module_accessor, 0);
             // Remove blue effect (but does not remove darkened screen)
             EffectModule::kill_kind(
-                module_accessor, 
+                module_accessor,
                 Hash40::new("sys_bg_criticalhit"),
-                false, 
-                false
+                false,
+                false,
             );
             // Removes the darkened screen from special zooms
             // If there's a crit that doesn't get removed, it's likely bg_criticalhit2.
-            EffectModule::remove_screen(module_accessor,Hash40::new("bg_criticalhit"),0);
+            EffectModule::remove_screen(module_accessor, Hash40::new("bg_criticalhit"), 0);
             // Remove all quakes to prevent screen shake lingering through load.
             for quake_kind in *CAMERA_QUAKE_KIND_NONE..=*CAMERA_QUAKE_KIND_MAX {
                 CameraModule::stop_quake(module_accessor, quake_kind);
@@ -325,7 +325,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
             // Perform fighter specific loading actions
             save_state.steve_state.map(|load_steve| {
-                steve::load_steve_state(module_accessor,load_steve);
+                steve::load_steve_state(module_accessor, load_steve);
             });
             // Play Training Reset SFX, since silence is eerie
             // Only play for the CPU so we don't have 2 overlapping
