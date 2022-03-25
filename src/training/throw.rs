@@ -150,5 +150,5 @@ pub unsafe fn get_command_flag_throw_direction(
         return cmd;
     }
 
-    return 0;
+    0
 }

@@ -9,6 +9,7 @@ use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
 
 pub mod buff;
+pub mod charge;
 pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
@@ -17,7 +18,6 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod throw;
-pub mod charge;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -354,7 +354,7 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
             return 4294967295;
         }
     }
-    return ori;
+    ori
 }
 
 // Set Stale Moves to On
@@ -373,7 +373,7 @@ static STALE_MENU_OFFSET: usize = 0x013e88a0;
 #[skyline::hook(offset=STALE_MENU_OFFSET, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
-    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x42b215e as u64)) as u64;
+    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x42b215e)) as u64;
     let x1 = ctx.registers[1].x.as_mut();
     *x1 = on_text_ptr;
 }

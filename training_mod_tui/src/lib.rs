@@ -387,6 +387,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             f.render_stateful_widget(list, list_chunks[list_section], &mut state);
         }
 
+        // TODO: Add Save Defaults
         let help_paragraph = Paragraph::new(
             item_help.unwrap_or("").replace("\"", "") +
             "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab"
