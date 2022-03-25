@@ -97,11 +97,9 @@ jobs:
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
           mv static/libtraining_modpack_menu.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_menu.nro
-          mv static/shader_binaries shader_binaries
-          mv static/font font.ttf
           cp -r static/* ${{env.SMASH_WEB_DIR}}
           rm ${{env.SMASH_WEB_DIR}}/fonts -r
-          zip -r training_modpack_beta.zip atmosphere shader_binaries font.ttf
+          zip -r training_modpack_beta.zip atmosphere
       - name: Update Release
         uses: meeDamian/github-release@2.0
         with:
