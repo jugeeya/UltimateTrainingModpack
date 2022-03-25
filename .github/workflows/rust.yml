@@ -97,11 +97,9 @@ jobs:
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
           mv static/libtraining_modpack_menu.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_menu.nro
-          mv static/shader_binaries shader_binaries
-          mv static/font font.ttf
           cp -r static/* ${{env.SMASH_WEB_DIR}}
           rm ${{env.SMASH_WEB_DIR}}/fonts -r
-          zip -r training_modpack_beta.zip atmosphere shader_binaries font.ttf
+          zip -r training_modpack_beta.zip atmosphere
       - name: Update Release
         uses: meeDamian/github-release@2.0
         with:
@@ -114,7 +112,24 @@ jobs:
           body: >
             Beta built off of the latest code in the repository. 
             
+            
+            
             Install the same way you would install a full release.
+            
+            ## Installing on Ryujinx \n
+            
+            
+            
+            Instructions to get the beta working on Ryujinx.\n
+            
+            
+            1. Download a Skyline-tolerant build of Ryujinx, which can be found here: https://github.com/Ryujinx/Ryujinx/pull/2966#issuecomment-1003648371 \n
+            
+            2. Download the beta. https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta \n
+            
+            3. The atmosphere folder from the beta zip is everything that should be in Ryujinx's mod folder. This means `%AppData%/Ryujinx/mods/contents/01006a800016e000` should have what `atmosphere/contents/01006a800016e000` has. \n
+
+            4. You should be good to go after this. When in training mode, use Special+Uptaunt to bring up the menu. \n
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact

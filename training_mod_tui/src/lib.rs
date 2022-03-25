@@ -2,13 +2,13 @@ use training_mod_consts::{OnOffSelector, Slider, SubMenu, SubMenuType, Toggle};
 use tui::{
     backend::{Backend},
     layout::{Constraint, Corner, Direction, Layout},
-    style::{Color, Modifier, Style},
-    text::Spans,
+    style::{Modifier, Style},
+    text::{Span, Spans},
     widgets::{Tabs, Paragraph, Block, List, ListItem, ListState},
     Frame,
 };
 
-pub use tui::{backend::TestBackend, Terminal};
+pub use tui::{backend::TestBackend, Terminal, style::Color};
 use std::collections::HashMap;
 
 mod list;
@@ -322,8 +322,13 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             Spans::from("  ".to_owned() + tab)
         }
     }).collect();
+
     let tabs = Tabs::new(titles)
-        .block(Block::default().title("Ultimate Training Modpack Menu"))
+        .block(Block::default()
+            .title(
+                Spans::from(
+                    Span::styled("Ultimate Training Modpack Menu",
+                                Style::default().fg(Color::LightRed)))))
         .style(Style::default().fg(Color::White))
         .highlight_style(Style::default().fg(Color::Yellow))
         .divider("|")
@@ -359,15 +364,17 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
                         } else {
                             "   ".to_owned() + i.title
                         })];
-                    ListItem::new(lines).style(Style::default().fg(Color::Black).bg(Color::White))
+                    ListItem::new(lines).style(Style::default().fg(Color::White))
                 })
                 .collect();
 
             let list = List::new(items)
-                .block(Block::default().title(if list_section == 0 { "Options" } else { "" }))
+                .block(Block::default()
+                    .title(if list_section == 0 { "Options" } else { "" })
+                    .style(Style::default().fg(Color::LightRed)))
                 .highlight_style(
                     Style::default()
-                        .bg(Color::LightBlue)
+                        .fg(Color::Green)
                         .add_modifier(Modifier::BOLD),
                 )
                 .highlight_symbol(">> ");
@@ -384,7 +391,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         let help_paragraph = Paragraph::new(
             item_help.unwrap_or("").replace("\"", "") +
             "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab"
-        );
+        ).style(Style::default().fg(Color::Cyan));
         f.render_widget(help_paragraph, vertical_chunks[2]);
     } else {
         let (title, help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
@@ -404,7 +411,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
                 .start_corner(Corner::TopLeft)
                 .highlight_style(
                     Style::default()
-                        .bg(Color::LightGreen)
+                        .fg(Color::LightGreen)
                         .add_modifier(Modifier::BOLD),
                 )
                 .highlight_symbol(">> ");
@@ -414,7 +421,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         let help_paragraph = Paragraph::new(
             help_text.replace("\"", "") +
                 "\nA: Select toggle | B: Exit submenu"
-        );
+        ).style(Style::default().fg(Color::Cyan));
         f.render_widget(help_paragraph, vertical_chunks[2]);
     }
 

@@ -30,6 +30,7 @@ use std::fs;
 
 use owo_colors::OwoColorize;
 use training_mod_consts::OnOff;
+use training_mod_tui::Color;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -174,13 +175,15 @@ pub fn main() {
 
         unsafe {
             let mut has_slept_millis = 0;
+            let render_frames = 5;
             let mut url = String::new();
             let button_presses = &mut common::menu::BUTTON_PRESSES;
+            let mut received_input = true;
             loop {
-                button_presses.a.read_press().then(|| app.on_a());
+                button_presses.a.read_press().then(|| { app.on_a(); received_input = true; });
                 let b_press = &mut button_presses.b;
-                let b_prev_press = b_press.prev_frame_is_pressed;
                 b_press.read_press().then(|| {
+                    received_input = true;
                     if !app.outer_list {
                         app.on_b()
                     } else if !b_prev_press {
@@ -189,39 +192,54 @@ pub fn main() {
                         crate::menu::set_menu_from_url(url.as_str());
                     }
                 });
-                button_presses.zl.read_press().then(|| app.on_l());
-                button_presses.zr.read_press().then(|| app.on_r());
-                button_presses.left.read_press().then(|| app.on_left());
-                button_presses.right.read_press().then(|| app.on_right());
-                button_presses.up.read_press().then(|| app.on_up());
-                button_presses.down.read_press().then(|| app.on_down());
+                button_presses.zl.read_press().then(|| { app.on_l(); received_input = true; });
+                button_presses.zr.read_press().then(|| { app.on_r(); received_input = true; });
+                button_presses.left.read_press().then(|| { app.on_left(); received_input = true; });
+                button_presses.right.read_press().then(|| { app.on_right(); received_input = true; });
+                button_presses.up.read_press().then(|| { app.on_up(); received_input = true; });
+                button_presses.down.read_press().then(|| { app.on_down(); received_input = true; });
 
                 std::thread::sleep(std::time::Duration::from_millis(16));
                 has_slept_millis += 16;
-                let render_frames = 5;
-                if has_slept_millis > 16 * render_frames {
-                    has_slept_millis = 16;
-                    let mut view = String::new();
+                if has_slept_millis < 16 * render_frames { continue; }
+                has_slept_millis = 16;
+                if !menu::QUICK_MENU_ACTIVE {
+                    set_should_display_text_to_screen(false);
+                    continue;
+                }
+                if !received_input { continue; }
+                let mut view = String::new();
 
-                    let frame_res = terminal
-                        .draw(|f| url = training_mod_tui::ui(f, &mut app))
-                        .unwrap();
+                let frame_res = terminal
+                    .draw(|f| url = training_mod_tui::ui(f, &mut app))
+                    .unwrap();
 
-                    use std::fmt::Write;
-                    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
-                        write!(&mut view, "{}", cell.symbol).unwrap();
-                        if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
-                            writeln!(&mut view).unwrap();
-                        }
-                    }
-                    writeln!(&mut view).unwrap();
-
-                    if menu::QUICK_MENU_ACTIVE {
-                        render_text_to_screen(view.as_str());
-                    } else {
-                        set_should_display_text_to_screen(false);
+                use std::fmt::Write;
+                for (i, cell) in frame_res.buffer.content().iter().enumerate() {
+                    match cell.fg {
+                        Color::Black => write!(&mut view, "{}", &cell.symbol.black()),
+                        Color::Blue => write!(&mut view, "{}", &cell.symbol.blue()),
+                        Color::LightBlue => write!(&mut view, "{}", &cell.symbol.bright_blue()),
+                        Color::Cyan => write!(&mut view, "{}", &cell.symbol.cyan()),
+                        Color::LightCyan => write!(&mut view, "{}", &cell.symbol.cyan()),
+                        Color::Red => write!(&mut view, "{}", &cell.symbol.red()),
+                        Color::LightRed => write!(&mut view, "{}", &cell.symbol.bright_red()),
+                        Color::LightGreen => write!(&mut view, "{}", &cell.symbol.bright_green()),
+                        Color::Green => write!(&mut view, "{}", &cell.symbol.green()),
+                        Color::Yellow => write!(&mut view, "{}", &cell.symbol.yellow()),
+                        Color::LightYellow => write!(&mut view, "{}", &cell.symbol.bright_yellow()),
+                        Color::Magenta => write!(&mut view, "{}", &cell.symbol.magenta()),
+                        Color::LightMagenta => write!(&mut view, "{}", &cell.symbol.bright_magenta()),
+                        _  => write!(&mut view, "{}", &cell.symbol),
+                    }.unwrap();
+                    if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+                        writeln!(&mut view).unwrap();
                     }
                 }
+                writeln!(&mut view).unwrap();
+
+                render_text_to_screen(view.as_str());
+                received_input = false;
             }
         }
     });
