@@ -66,10 +66,10 @@ pub unsafe fn write_menu() {
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
-pub fn set_menu_from_url(orig_last_url: &str) {
-    let last_url = &orig_last_url.replace("&save_defaults=1", ""); // TODO fix this
+pub fn set_menu_from_url(last_url: &str) {
     unsafe {
-        MENU = get_menu_from_url(MENU, last_url);
+        MENU = get_menu_from_url(MENU, last_url, false);
+        DEFAULTS_MENU = get_menu_from_url(MENU, last_url, true);
 
         if MENU.quick_menu == OnOff::Off {
             if is_emulator() {
@@ -81,17 +81,6 @@ pub fn set_menu_from_url(orig_last_url: &str) {
                 MENU.quick_menu = OnOff::On;
             }
         }
-    }
-
-    if last_url.len() != orig_last_url.len() {
-        // Save as default
-        unsafe {
-            DEFAULT_MENU = MENU;
-            write_menu();
-        }
-        let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
-        std::fs::write(menu_defaults_conf_path, last_url)
-            .expect("Failed to write default menu conf file");
     }
 
     std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
@@ -115,13 +104,14 @@ pub fn spawn_menu() {
 
     if !quick_menu {
         let fname = "training_menu.html";
-        let params = unsafe { MENU.to_url_params() };
+        let params = MENU.to_url_params(false);
+        let default_params = DEFAULT_MENU.to_url_params(true);
         let page_response = Webpage::new()
             .background(Background::BlurredScreenshot)
             .htdocs_dir("training_modpack")
             .boot_display(BootDisplay::BlurredScreenshot)
             .boot_icon(true)
-            .start_page(&format!("{}{}", fname, params))
+            .start_page(&format!("{}?{}&{}", fname, params, default_params))
             .open()
             .unwrap();
 
