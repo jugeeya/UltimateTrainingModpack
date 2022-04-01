@@ -1,15 +1,5 @@
 **/target
-**/*.py
-**/*.pyc
 Cargo.lock
 
-TrainingModpackOverlay/build/
-
-*.ovl
-
-*.elf
-
-*.nacp
-
-*.nro
+.idea/
 release/

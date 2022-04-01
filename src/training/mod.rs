@@ -9,6 +9,7 @@ use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
 
 pub mod buff;
+pub mod charge;
 pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
@@ -17,14 +18,13 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod throw;
-pub mod charge;
 
 mod air_dodge_direction;
 mod attack_angle;
 mod character_specific;
 mod fast_fall;
 mod full_hop;
-mod input_delay;
+pub(crate) mod input_delay;
 mod input_record;
 mod mash;
 mod reset;
@@ -354,7 +354,7 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
             return 4294967295;
         }
     }
-    return ori;
+    ori
 }
 
 // Set Stale Moves to On
@@ -373,7 +373,7 @@ static STALE_MENU_OFFSET: usize = 0x013e88a0;
 #[skyline::hook(offset=STALE_MENU_OFFSET, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
-    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x42b215e as u64)) as u64;
+    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x42b215e)) as u64;
     let x1 = ctx.registers[1].x.as_mut();
     *x1 = on_text_ptr;
 }
@@ -465,6 +465,7 @@ pub fn training_mods() {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
+        add_nn_hid_hook(menu::handle_get_npad_state);
     }
 
     unsafe {

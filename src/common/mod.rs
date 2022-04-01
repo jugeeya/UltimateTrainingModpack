@@ -8,47 +8,9 @@ use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-pub static BASE_MENU: consts::TrainingModpackMenu = consts::TrainingModpackMenu {
-    // Mash Options
-    mash_state: Action::empty(),
-    follow_up: Action::empty(),
-    attack_angle: AttackAngle::empty(),
-    throw_state: ThrowOption::NONE,
-    throw_delay: MedDelay::empty(),
-    pummel_delay: MedDelay::empty(),
-    full_hop: BoolFlag::empty(),
-    falling_aerials: BoolFlag::empty(),
-    aerial_delay: Delay::empty(),
-    fast_fall: BoolFlag::empty(),
-    fast_fall_delay: Delay::empty(),
-    oos_offset: Delay::empty(),
-    mash_in_neutral: OnOff::Off,
-    reaction_time: Delay::empty(),
-    // Defensive Options
-    air_dodge_dir: Direction::empty(),
-    di_state: Direction::empty(),
-    sdi_state: Direction::empty(),
-    sdi_strength: SdiStrength::Normal,
-    ledge_state: LedgeOption::all(),
-    ledge_delay: LongDelay::empty(),
-    tech_state: TechFlags::all(),
-    miss_tech_state: MissTechFlags::all(),
-    shield_state: Shield::None,
-    defensive_state: Defensive::all(),
-    shield_tilt: Direction::empty(),
-    buff_state: BuffOption::empty(),
-    // Miscellaneous Options
-    save_state_mirroring: SaveStateMirroring::None,
-    save_damage: OnOff::On,
-    save_state_enable: OnOff::On,
-    frame_advantage: OnOff::Off,
-    hitbox_vis: OnOff::On,
-    input_delay: 0,
-    stage_hazards: OnOff::Off,
-};
-
-pub static mut DEFAULT_MENU: TrainingModpackMenu = BASE_MENU;
-pub static mut MENU: TrainingModpackMenu = BASE_MENU;
+pub use crate::common::consts::MENU;
+pub static mut DEFAULT_MENU: TrainingModpackMenu = crate::common::consts::DEFAULT_MENU;
+pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULT_MENU };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
@@ -65,6 +27,10 @@ pub fn is_training_mode() -> bool {
 
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
     (module_accessor.info >> 28) as u8 as i32
+}
+
+pub fn is_emulator() -> bool {
+    unsafe { skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as u64 == 0x8004000 }
 }
 
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {

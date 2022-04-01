@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
-use crate::common::{consts::*, *};
+use crate::common::consts::*;
 use skyline::error::show_error;
 use skyline::hook;
 use skyline::hooks::A64InlineHook;

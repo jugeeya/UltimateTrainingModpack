@@ -1,5 +1,4 @@
 use crate::common::consts::*;
-use crate::common::*;
 use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
@@ -40,7 +39,7 @@ pub unsafe fn is_buffing(module_accessor: &mut app::BattleObjectModuleAccessor) 
     if is_operation_cpu(module_accessor) {
         return IS_BUFFING_CPU;
     }
-    return IS_BUFFING_PLAYER;
+    IS_BUFFING_PLAYER
 }
 
 pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: i32) {
@@ -55,7 +54,7 @@ pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor
     if is_operation_cpu(module_accessor) {
         return BUFF_REMAINING_CPU;
     }
-    return BUFF_REMAINING_PLAYER;
+    BUFF_REMAINING_PLAYER
 }
 
 fn get_spell_vec() -> Vec<BuffOption> {
@@ -69,7 +68,7 @@ fn get_spell_vec() -> Vec<BuffOption> {
                 spell_buff.push(*buff);
             }
         }
-        return spell_buff;
+        spell_buff
     }
 }
 
@@ -100,7 +99,7 @@ pub unsafe fn handle_buffs(
         return buff_sepiroth(module_accessor, percent);
     }
 
-    return true;
+    true
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
@@ -116,7 +115,7 @@ unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, statu
         return true;
     }
     buff_hero_single(module_accessor, status, buff_vec);
-    return false;
+    false
 }
 
 unsafe fn buff_hero_single(
@@ -162,11 +161,11 @@ unsafe fn buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         start_buff(module_accessor);
         handle_add_limit(100.0, module_accessor, 0);
     }
-    if frame_counter::should_delay(2 as u32, BUFF_DELAY_COUNTER) {
+    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
         // Need to wait 2 frames to make sure we stop the limit SFX, since it's a bit delayed
         return false;
     }
-    return true;
+    true
 }
 
 unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -177,11 +176,11 @@ unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         // Strangely, this doesn't actually matter and works for both fighters
         app::FighterSpecializer_Jack::add_rebel_gauge(module_accessor, entry_id, 120.0);
     }
-    if frame_counter::should_delay(2 as u32, BUFF_DELAY_COUNTER) {
+    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
         // Need to wait 2 frames to make sure we stop the voice call, since it's a bit delayed
         return false;
     }
-    return true;
+    true
 }
 
 unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -193,7 +192,7 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
     // Trying to stop KO Punch from playing seems to make it play multiple times in rapid succession
     // Look at 0x7100c44b60 for the func that handles this
     // Need to figure out how to update the KO meter if this is fixed
-    return true;
+    true
 }
 
 unsafe fn buff_sepiroth(
@@ -218,12 +217,12 @@ unsafe fn buff_sepiroth(
         // if we're not in wing, add damage
         DamageModule::add_damage(module_accessor, 1000.0, 0);
     }
-    return false;
+    false
 }
 
 unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
     if is_buffing(module_accessor) {
-        if frame_counter::should_delay(2 as u32, BUFF_DELAY_COUNTER) {
+        if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
             // Need to wait 2 frames to make sure we stop breathing SFX
             return false;
         }
@@ -243,5 +242,5 @@ unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, sta
     } else {
         MotionModule::set_rate(module_accessor, 40.0);
     }
-    return false;
+    false
 }
