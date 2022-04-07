@@ -1,4 +1,4 @@
-use training_mod_consts::{OnOffSelector, Slider, SubMenu, SubMenuType, Toggle};
+use training_mod_consts::{Slider, SubMenu, SubMenuType, Toggle, UiMenu};
 use tui::{
     backend::{Backend},
     layout::{Constraint, Corner, Direction, Layout},
@@ -22,81 +22,26 @@ pub struct App<'a> {
     pub tabs: StatefulList<&'a str>,
     pub menu_items: HashMap<&'a str, MultiStatefulList<SubMenu<'a>>>,
     pub selected_sub_menu_toggles: MultiStatefulList<Toggle<'a>>,
-    pub selected_sub_menu_onoff_selectors: MultiStatefulList<OnOffSelector<'a>>,
     pub selected_sub_menu_sliders: MultiStatefulList<Slider>,
     pub outer_list: bool
 }
 
 impl<'a> App<'a> {
-    pub fn new(menu: training_mod_consts::Menu<'a>) -> App<'a> {
-        let tab_specifiers = vec![
-            ("Mash Settings", vec![
-                "Mash Toggles",
-                "Followup Toggles",
-                "Attack Angle",
-                "Ledge Options",
-                "Ledge Delay",
-                "Tech Options",
-                "Miss Tech Options",
-                "Defensive Options",
-                "Aerial Delay",
-                "OoS Offset",
-                "Reaction Time",
-            ]),
-            ("Defensive Settings", vec![
-                "Fast Fall",
-                "Fast Fall Delay",
-                "Falling Aerials",
-                "Full Hop",
-                "Shield Tilt",
-                "DI Direction",
-                "SDI Direction",
-                "Airdodge Direction",
-                "SDI Strength",
-                "Shield Toggles",
-                "Mirroring",
-                "Throw Options",
-                "Throw Delay",
-                "Pummel Delay",
-                "Buff Options",
-            ]),
-            ("Other Settings", vec![
-                "Input Delay",
-                "Save States",
-                "Save Damage",
-                "Hitbox Visualization",
-                "Stage Hazards",
-                "Frame Advantage",
-                "Mash In Neutral",
-                "Quick Menu"
-            ])
-        ];
-        let mut tabs: std::collections::HashMap<&str, Vec<SubMenu>> = std::collections::HashMap::new();
-        tabs.insert("Mash Settings", vec![]);
-        tabs.insert("Defensive Settings", vec![]);
-        tabs.insert("Other Settings", vec![]);
-
-        for sub_menu in menu.sub_menus.iter() {
-            for tab_spec in tab_specifiers.iter() {
-                if tab_spec.1.contains(&sub_menu.title) {
-                    tabs.get_mut(tab_spec.0).unwrap().push(sub_menu.clone());
-                }
-            }
-        };
+    pub fn new(menu: UiMenu<'a>) -> App<'a> {
         let num_lists = 3;
 
         let mut menu_items_stateful = HashMap::new();
-        tabs.keys().for_each(|k| {
+        menu.tabs.iter().for_each(|tab| {
             menu_items_stateful.insert(
-                k.clone(),
-                MultiStatefulList::with_items(tabs.get(k).unwrap().clone(), num_lists)
+                tab.tab_title,
+                MultiStatefulList::with_items(tab.tab_submenus.clone(), num_lists)
             );
         });
+
         let mut app = App {
-            tabs: StatefulList::with_items(tab_specifiers.iter().map(|(tab_title, _)| *tab_title).collect()),
+            tabs: StatefulList::with_items(menu.tabs.iter().map(|tab| tab.tab_title).collect()),
             menu_items: menu_items_stateful,
             selected_sub_menu_toggles: MultiStatefulList::with_items(vec![], 0),
-            selected_sub_menu_onoff_selectors: MultiStatefulList::with_items(vec![], 0),
             selected_sub_menu_sliders: MultiStatefulList::with_items(vec![], 0),
             outer_list: true
         };
@@ -109,8 +54,7 @@ impl<'a> App<'a> {
         let selected_sub_menu = &self.menu_items.get(self.tab_selected()).unwrap().lists[list_section].items.get(list_idx).unwrap();
 
         let toggles = selected_sub_menu.toggles.clone();
-        let sliders = selected_sub_menu.sliders.clone();
-        let onoffs = selected_sub_menu.onoffselector.clone();
+        // let sliders = selected_sub_menu.sliders.clone();
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles = MultiStatefulList::with_items(
@@ -118,14 +62,9 @@ impl<'a> App<'a> {
                     if selected_sub_menu.toggles.len() >= 3 { 3 } else { selected_sub_menu.toggles.len()} )
             },
             SubMenuType::SLIDER => {
-                self.selected_sub_menu_sliders = MultiStatefulList::with_items(
-                    sliders,
-                    if selected_sub_menu.sliders.len() >= 3 { 3 } else { selected_sub_menu.sliders.len()} )
-            },
-            SubMenuType::ONOFF => {
-                self.selected_sub_menu_onoff_selectors = MultiStatefulList::with_items(
-                    onoffs,
-                    if selected_sub_menu.onoffselector.len() >= 3 { 3 } else { selected_sub_menu.onoffselector.len()} )
+                // self.selected_sub_menu_sliders = MultiStatefulList::with_items(
+                //     sliders,
+                //     if selected_sub_menu.sliders.len() >= 3 { 3 } else { selected_sub_menu.sliders.len()} )
             },
         };
     }
@@ -136,14 +75,13 @@ impl<'a> App<'a> {
 
     fn sub_menu_selected(&self) -> &SubMenu {
         let (list_section, list_idx) = self.menu_items.get(self.tab_selected()).unwrap().idx_to_list_idx(self.menu_items.get(self.tab_selected()).unwrap().state);
-        &self.menu_items.get(self.tab_selected()).unwrap().lists[list_section].items.get(list_idx).unwrap()
+        self.menu_items.get(self.tab_selected()).unwrap().lists[list_section].items.get(list_idx).unwrap()
     }
 
     pub fn sub_menu_next(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next(),
             SubMenuType::SLIDER => self.selected_sub_menu_sliders.next(),
-            SubMenuType::ONOFF => self.selected_sub_menu_onoff_selectors.next(),
         }
     }
 
@@ -151,7 +89,6 @@ impl<'a> App<'a> {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next_list(),
             SubMenuType::SLIDER => self.selected_sub_menu_sliders.next_list(),
-            SubMenuType::ONOFF => self.selected_sub_menu_onoff_selectors.next_list(),
         }
     }
 
@@ -159,7 +96,6 @@ impl<'a> App<'a> {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous(),
             SubMenuType::SLIDER => self.selected_sub_menu_sliders.previous(),
-            SubMenuType::ONOFF => self.selected_sub_menu_onoff_selectors.previous(),
         }
     }
 
@@ -167,29 +103,21 @@ impl<'a> App<'a> {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous_list(),
             SubMenuType::SLIDER => self.selected_sub_menu_sliders.previous_list(),
-            SubMenuType::ONOFF => self.selected_sub_menu_onoff_selectors.previous_list(),
         }
     }
 
-    pub fn sub_menu_strs_and_states(&mut self) -> (&str, &str, Vec<(Vec<(&str, &str)>, ListState)>) {
-        (self.sub_menu_selected().title, self.sub_menu_selected().help_text,
+    pub fn sub_menu_strs_and_states(&mut self) -> (&str, &str, Vec<(Vec<(bool, &str)>, ListState)>) {
+        (self.sub_menu_selected().submenu_title, self.sub_menu_selected().help_text,
          match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles.lists.iter().map(|toggle_list| {
                     (toggle_list.items.iter().map(
-                        |toggle| (toggle.checked, toggle.title)
+                        |toggle| (toggle.checked, toggle.toggle_title)
                     ).collect(), toggle_list.state.clone())
                 }).collect()
             },
             SubMenuType::SLIDER => {
                 vec![(vec![], ListState::default())]
-            },
-            SubMenuType::ONOFF => {
-                self.selected_sub_menu_onoff_selectors.lists.iter().map(|onoff_list| {
-                    (onoff_list.items.iter().map(
-                        |onoff| (onoff.checked, onoff.title)
-                    ).collect(), onoff_list.state.clone())
-                }).collect()
             },
         })
     }
@@ -208,7 +136,7 @@ impl<'a> App<'a> {
                 .items.get_mut(list_idx).unwrap();
             match SubMenuType::from_str(selected_sub_menu._type) {
                 SubMenuType::TOGGLE => {
-                    let is_single_option = selected_sub_menu.is_single_option.is_some();
+                    let is_single_option = selected_sub_menu.is_single_option;
                     let state = self.selected_sub_menu_toggles.state;
                     self.selected_sub_menu_toggles.lists.iter_mut()
                         .map(|list| (list.state.selected(), &mut list.items))
@@ -216,42 +144,31 @@ impl<'a> App<'a> {
                             .enumerate()
                             .for_each(|(i, o)|
                             if state.is_some() && i == state.unwrap() {
-                               if o.checked != "is-appear" {
-                                   o.checked = "is-appear";
+                               if !o.checked {
+                                   o.checked = true;
                                } else {
-                                   o.checked = "is-hidden";
+                                   o.checked = false;
                                }
                             } else if is_single_option {
-                                o.checked = "is-hidden";
+                                o.checked = false;
                             }
                         ));
                     selected_sub_menu.toggles.iter_mut()
                         .enumerate()
                         .for_each(|(i, o)| {
                             if i == state  {
-                                if o.checked != "is-appear" {
-                                    o.checked = "is-appear";
+                                if !o.checked {
+                                    o.checked = true;
                                 } else {
-                                    o.checked = "is-hidden";
+                                    o.checked = false;
                                 }
                             } else if is_single_option {
-                                o.checked = "is-hidden";
+                                o.checked = false;
                             }
                         });
                 },
-                SubMenuType::ONOFF => {
-                    let onoff = self.selected_sub_menu_onoff_selectors.selected_list_item();
-                    if onoff.checked != "is-appear" {
-                        onoff.checked = "is-appear";
-                    } else {
-                        onoff.checked = "is-hidden";
-                    }
-                    selected_sub_menu.onoffselector.iter_mut()
-                        .filter(|o| o.title == onoff.title)
-                        .for_each(|o| o.checked = onoff.checked);
-                },
                 SubMenuType::SLIDER => {
-                    // self.selected_sub_menu_sliders.selected_list_item().checked = "is-appear";
+                    // self.selected_sub_menu_sliders.selected_list_item().checked = true;
                 }
             }
         }
@@ -352,17 +269,16 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
     if app.outer_list {
         let tab_selected = app.tab_selected();
         let mut item_help = None;
-        for list_section in 0..app.menu_items.get(tab_selected).unwrap().lists.len() {
-            let stateful_list = &app.menu_items.get(tab_selected).unwrap().lists[list_section];
+        for (list_section, stateful_list) in app.menu_items.get(tab_selected).unwrap().lists.iter().enumerate() {
             let items: Vec<ListItem> = stateful_list
                 .items
                 .iter()
                 .map(|i| {
                     let lines = vec![Spans::from(
                         if stateful_list.state.selected().is_some() {
-                            i.title.to_owned()
+                            i.submenu_title.to_owned()
                         } else {
-                            "   ".to_owned() + i.title
+                            "   ".to_owned() + i.submenu_title
                         })];
                     ListItem::new(lines).style(Style::default().fg(Color::White))
                 })
@@ -389,7 +305,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
 
         // TODO: Add Save Defaults
         let help_paragraph = Paragraph::new(
-            item_help.unwrap_or("").replace("\"", "") +
+            item_help.unwrap_or("").replace('\"', "") +
             "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab"
         ).style(Style::default().fg(Color::Cyan));
         f.render_widget(help_paragraph, vertical_chunks[2]);
@@ -401,7 +317,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             let values_items: Vec<ListItem> = sub_menu_str.iter().map(|s| {
                 ListItem::new(
                     vec![
-                        Spans::from((if s.0 == "is-appear" { "X " } else { "  " }).to_owned() + s.1)
+                        Spans::from((if s.0 { "X " } else { "  " }).to_owned() + s.1)
                     ]
                 )
             }).collect();
@@ -419,7 +335,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         }
 
         let help_paragraph = Paragraph::new(
-            help_text.replace("\"", "") +
+            help_text.replace('\"', "") +
                 "\nA: Select toggle | B: Exit submenu"
         ).style(Style::default().fg(Color::Cyan));
         f.render_widget(help_paragraph, vertical_chunks[2]);
@@ -433,22 +349,17 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
     for key in app.menu_items.keys() {
         for list in &app.menu_items.get(key).unwrap().lists {
             for sub_menu in &list.items {
-                let mut val = String::new();
-                sub_menu.toggles.iter()
-                    .filter(|t| t.checked == "is-appear")
-                    .for_each(|t| val.push_str(format!("{},", t.value).as_str()));
+                let val : usize = sub_menu.toggles.iter()
+                    .filter(|t| t.checked)
+                    .map(|t| t.toggle_value)
+                    .sum();
 
-                sub_menu.onoffselector.iter()
-                    .for_each(|o| {
-                        val.push_str(
-                            format!("{}", if o.checked == "is-appear" { 1 } else { 0 }).as_str())
-                    });
-                settings.insert(sub_menu.id, val);
+                settings.insert(sub_menu.submenu_id, val);
             }
         }
     }
 
-    url.push_str("?");
+    url.push('?');
     settings.iter()
         .for_each(|(section, val)| url.push_str(format!("{}={}&", section, val).as_str()));
     url

@@ -12,7 +12,8 @@ use std::path::Path;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
-pub static mut QUICK_MENU_ACTIVE: bool = false;
+// TODO: Revert
+pub static mut QUICK_MENU_ACTIVE: bool = true;
 
 pub fn init() {
     unsafe {
@@ -104,20 +105,22 @@ pub fn spawn_menu() {
 
     if !quick_menu {
         let fname = "training_menu.html";
-        let params = MENU.to_url_params(false);
-        let default_params = DEFAULT_MENU.to_url_params(true);
-        let page_response = Webpage::new()
-            .background(Background::BlurredScreenshot)
-            .htdocs_dir("training_modpack")
-            .boot_display(BootDisplay::BlurredScreenshot)
-            .boot_icon(true)
-            .start_page(&format!("{}?{}&{}", fname, params, default_params))
-            .open()
-            .unwrap();
+        unsafe {
+            let params = MENU.to_url_params(false);
+            let default_params = DEFAULTS_MENU.to_url_params(true);
+            let page_response = Webpage::new()
+                .background(Background::BlurredScreenshot)
+                .htdocs_dir("training_modpack")
+                .boot_display(BootDisplay::BlurredScreenshot)
+                .boot_icon(true)
+                .start_page(&format!("{}?{}&{}", fname, params, default_params))
+                .open()
+                .unwrap();
 
-        let orig_last_url = page_response.get_last_url().unwrap();
+            let orig_last_url = page_response.get_last_url().unwrap();
 
-        set_menu_from_url(orig_last_url);
+            set_menu_from_url(orig_last_url);
+        }
     } else {
         unsafe {
             QUICK_MENU_ACTIVE = true;

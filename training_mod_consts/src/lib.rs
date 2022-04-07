@@ -5,13 +5,13 @@ extern crate bitflags;
 extern crate num_derive;
 
 use core::f64::consts::PI;
+use std::collections::HashMap;
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use serde::{Serialize, Deserialize};
 use ramhorns::Content;
-use std::ops::BitOr;
 
 pub trait ToggleTrait {
     fn to_toggle_strs() -> Vec<&'static str>;
@@ -1056,7 +1056,6 @@ pub enum FighterId {
 pub enum SubMenuType {
     TOGGLE,
     SLIDER,
-    ONOFF,
 }
 
 impl SubMenuType {
@@ -1064,13 +1063,12 @@ impl SubMenuType {
         match s {
             "toggle" => SubMenuType::TOGGLE,
             "slider" => SubMenuType::SLIDER,
-            "onoff" => SubMenuType::ONOFF,
             _ => panic!("Unexpected SubMenuType!")
         }
     }
 }
 
-pub static DEFAULT_MENU: TrainingModpackMenu = TrainingModpackMenu {
+pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitbox_vis: OnOff::On,
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
@@ -1107,34 +1105,44 @@ pub static DEFAULT_MENU: TrainingModpackMenu = TrainingModpackMenu {
     quick_menu: OnOff::Off,
 };
 
-pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
+pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
 
-
-#[derive(Content)]
-pub struct Toggle<'a> {
-    toggle_value: usize,
-    toggle_title: &'a str,
+#[derive(Content, Clone)]
+pub struct Slider {
+    pub min: usize,
+    pub max: usize,
+    pub index: usize,
+    pub value: usize,
 }
 
-#[derive(Content)]
+#[derive(Content, Clone)]
+pub struct Toggle<'a> {
+    pub toggle_value: usize,
+    pub toggle_title: &'a str,
+    pub checked: bool,
+}
+
+#[derive(Content, Clone)]
 pub struct SubMenu<'a> {
-    submenu_title: &'a str,
-    submenu_id: &'a str,
-    help_text: &'a str,
-    is_single_option: bool,
-    toggles: Vec<Toggle<'a>>,
+    pub submenu_title: &'a str,
+    pub submenu_id: &'a str,
+    pub help_text: &'a str,
+    pub is_single_option: bool,
+    pub toggles: Vec<Toggle<'a>>,
+    pub _type: &'a str,
 }
 
 impl<'a> SubMenu<'a> {
     pub fn add_toggle(
         &mut self,
         toggle_value: usize,
-        toggle_title: &'a str,
+        toggle_title: &'a str
     ) {
         self.toggles.push(
             Toggle {
                 toggle_value: toggle_value,
                 toggle_title: toggle_title,
+                checked: false
             }
         );
     }
@@ -1150,6 +1158,7 @@ impl<'a> SubMenu<'a> {
                 help_text: help_text,
                 is_single_option: is_single_option,
                 toggles: Vec::new(),
+                _type: "toggle"
             };
     
             let values = T::to_toggle_vals();
@@ -1166,13 +1175,13 @@ impl<'a> SubMenu<'a> {
 
 #[derive(Content)]
 pub struct Tab<'a> {
-    tab_id: &'a str,
-    tab_title: &'a str,
-    tab_submenus: Vec<SubMenu<'a>>,
+    pub tab_id: &'a str,
+    pub tab_title: &'a str,
+    pub tab_submenus: Vec<SubMenu<'a>>,
 }
 
 impl<'a> Tab<'a> {
-    pub fn add_submenu_with_toggles<T:ToggleTrait>(
+    pub fn add_submenu_with_toggles<T: ToggleTrait>(
         &mut self,
         submenu_title: &'a str,
         submenu_id: &'a str,
@@ -1191,8 +1200,8 @@ impl<'a> Tab<'a> {
 }
 
 #[derive(Content)]
-pub struct Menu<'a> {
-    tabs: Vec<Tab<'a>>,
+pub struct UiMenu<'a> {
+    pub tabs: Vec<Tab<'a>>,
 }
 
 pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str, defaults: bool) -> TrainingModpackMenu {
@@ -1224,8 +1233,8 @@ pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str, defaults: bool)
 
 
 
-pub unsafe fn get_menu() -> Menu<'static> {
-    let mut overall_menu = Menu {
+pub unsafe fn get_menu() -> UiMenu<'static> {
+    let mut overall_menu = UiMenu {
         tabs: Vec::new(),
     };
 
@@ -1447,7 +1456,43 @@ pub unsafe fn get_menu() -> Menu<'static> {
         "Stage Hazards: Should stage hazards be present",
         true
     );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Quick Menu",
+        "quick_menu",
+        "Quick Menu: Should use quick or web menu",
+        true
+    );
     overall_menu.tabs.push(misc_tab);
+
+    let non_ui_menu = MENU;
+    let url_params = non_ui_menu.to_url_params(false);
+    let toggle_values_all = url_params.split("&");
+    let mut sub_menu_id_to_vals : HashMap<&str, Vec<u32>> = HashMap::new();
+    for toggle_values in toggle_values_all {
+        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
+        let mut sub_menu_id = toggle_value_split[0];
+        if sub_menu_id.is_empty() { continue }
+        sub_menu_id = sub_menu_id.strip_prefix("__").unwrap_or(sub_menu_id);
+
+        let bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
+        if sub_menu_id_to_vals.contains_key(sub_menu_id) {
+            sub_menu_id_to_vals.get_mut(sub_menu_id).unwrap().push(bits);
+        } else {
+            sub_menu_id_to_vals.insert(sub_menu_id, vec![bits]);
+        }
+    }
+    overall_menu.tabs.iter_mut()
+        .for_each(|tab| {
+            tab.tab_submenus.iter_mut().for_each(|sub_menu| {
+                let sub_menu_id = sub_menu.submenu_id;
+                sub_menu.toggles.iter_mut().for_each(|toggle| {
+                    if sub_menu_id_to_vals.contains_key(sub_menu_id) &&
+                        sub_menu_id_to_vals[sub_menu_id].contains(&(toggle.toggle_value as u32)) {
+                        toggle.checked = true
+                    }
+                })
+            })
+        });
 
     overall_menu
 }
