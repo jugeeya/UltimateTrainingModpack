@@ -12,8 +12,7 @@ use std::path::Path;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
-// TODO: Revert
-pub static mut QUICK_MENU_ACTIVE: bool = true;
+pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub fn init() {
     unsafe {
