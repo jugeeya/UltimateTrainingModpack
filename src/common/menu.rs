@@ -116,9 +116,9 @@ pub fn spawn_menu() {
                 .open()
                 .unwrap();
 
-            let orig_last_url = page_response.get_last_url().unwrap();
-
-            set_menu_from_url(orig_last_url);
+            let last_url = page_response.get_last_url().unwrap();
+            println!("Received URL from web menu: {}", last_url);
+            set_menu_from_url(last_url);
         }
     } else {
         unsafe {
