@@ -49,14 +49,14 @@ impl<T: Clone> MultiStatefulList<T> {
                 state.select(Some(0));
             }
             StatefulList {
-                state: state,
+                state,
                 items: items[list_section_min_idx..list_section_max_idx].to_vec(),
             }
         }).collect();
         let total_len = items.len();
         MultiStatefulList {
-            lists: lists,
-            total_len: total_len,
+            lists,
+            total_len,
             state: 0
         }
     }
@@ -68,12 +68,11 @@ impl<T: Clone> MultiStatefulList<T> {
         if list_section != next_list_section {
             self.lists[list_section].unselect();
         }
-        let state;
-        if self.state + 1 >= self.total_len {
-            state = (0, 0);
+        let state= if self.state + 1 >= self.total_len {
+            (0, 0)
         } else {
-            state = (next_list_section, next_list_idx);
-        }
+            (next_list_section, next_list_idx)
+        };
 
         self.lists[state.0].state.select(Some(state.1));
         self.state = self.list_idx_to_idx(state);
@@ -84,13 +83,12 @@ impl<T: Clone> MultiStatefulList<T> {
         let (last_list_section, last_list_idx) = (self.lists.len() - 1, self.lists[self.lists.len() - 1].items.len() - 1);
 
         self.lists[list_section].unselect();
-        let state;
-        if self.state == 0 {
-            state = (last_list_section, last_list_idx);
+        let state= if self.state == 0 {
+            (last_list_section, last_list_idx)
         } else {
             let (prev_list_section, prev_list_idx) = self.idx_to_list_idx(self.state - 1);
-            state = (prev_list_section, prev_list_idx);
-        }
+            (prev_list_section, prev_list_idx)
+        };
 
         self.lists[state.0].state.select(Some(state.1));
         self.state = self.list_idx_to_idx(state);
@@ -99,12 +97,11 @@ impl<T: Clone> MultiStatefulList<T> {
     pub fn next_list(&mut self) {
         let (list_section, list_idx) = self.idx_to_list_idx(self.state);
         let next_list_section = (list_section + 1) % self.lists.len();
-        let next_list_idx;
-        if list_idx > self.lists[next_list_section].items.len() - 1 {
-            next_list_idx = self.lists[next_list_section].items.len() - 1;
+        let next_list_idx = if list_idx > self.lists[next_list_section].items.len() - 1 {
+            self.lists[next_list_section].items.len() - 1
         } else {
-            next_list_idx = list_idx;
-        }
+            list_idx
+        };
 
         if list_section != next_list_section {
             self.lists[list_section].unselect();
@@ -117,19 +114,17 @@ impl<T: Clone> MultiStatefulList<T> {
 
     pub fn previous_list(&mut self) {
         let (list_section, list_idx) = self.idx_to_list_idx(self.state);
-        let prev_list_section;
-        if list_section == 0 {
-            prev_list_section = self.lists.len() - 1;
+        let prev_list_section = if list_section == 0 {
+            self.lists.len() - 1
         } else {
-            prev_list_section = list_section - 1;
-        }
+            list_section - 1
+        };
 
-        let prev_list_idx;
-        if list_idx > self.lists[prev_list_section].items.len() - 1 {
-            prev_list_idx = self.lists[prev_list_section].items.len() - 1;
+        let prev_list_idx= if list_idx > self.lists[prev_list_section].items.len() - 1 {
+            self.lists[prev_list_section].items.len() - 1
         } else {
-            prev_list_idx = list_idx;
-        }
+            list_idx
+        };
 
         if list_section != prev_list_section {
             self.lists[list_section].unselect();
@@ -152,7 +147,7 @@ impl<T> StatefulList<T> {
         // Enforce state as first of list
         state.select(Some(0));
         StatefulList {
-            state: state,
+            state,
             items,
         }
     }

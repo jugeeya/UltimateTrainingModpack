@@ -104,7 +104,7 @@ function toggleOption(e) {
 }
 
 function closestClass(elem, class_) {
-    // Returns the closest anscestor (including self) with the given class
+    // Returns the closest ancestor (including self) with the given class
     // TODO: Consider removing
     if (!elem) {
         // Reached the end of the DOM
