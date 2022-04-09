@@ -106,7 +106,11 @@ pub fn main() {
             log!("Previous menu found, loading from training_modpack_menu.conf");
             unsafe {
                 MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap(), false);
-                DEFAULTS_MENU = get_menu_from_url(DEFAULTS_MENU, std::str::from_utf8(&menu_conf).unwrap(), true);
+                DEFAULTS_MENU = get_menu_from_url(
+                    DEFAULTS_MENU,
+                    std::str::from_utf8(&menu_conf).unwrap(),
+                    true,
+                );
             }
         } else {
             log!("Previous menu found but is invalid.");
@@ -114,7 +118,7 @@ pub fn main() {
     } else {
         log!("No previous menu file found.");
     }
-    
+
     if is_emulator() {
         unsafe {
             DEFAULTS_MENU.quick_menu = OnOff::On;
