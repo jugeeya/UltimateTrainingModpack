@@ -20,337 +20,261 @@
     }
 }
 
-.answer-border-outer {
-    margin-top: 5px;
-}
-
-.button-icon {
-    height: 53px;
-    margin-left: 4px;
-    width: 53px;
-}
-
-.button-icon-wrapper {
-    align-items: center;
-    background: #000000;
+.tab-list-container {
+    overflow: hidden;
+    background-color: #555;
     display: flex;
-    height: 58px;
-    margin-left: -1px;
-    width: 80px;
+    justify-content: flex-start;
+    width: 100%;
+    align-items: center;
 }
 
-.button-msg-wrapper {
-    width: 259px;
+.tab-list-container p {
+    color: #fff;
+    width: 130px;
+    height: fit-content;
+    margin: 0px 10px 0px 10px;
+    padding: 0px;
 }
 
-.checkbox-display {
-    margin: 10px 70px;
-}
 
-.checkbox-display::after {
-    /* Displayed Checkbox (unchecked) */
-    color: white;
-    content: "\E14C";
-}
-
-.defaults-checkbox-container {
-    /* Save Defaults Container */
+.tab-list {
+    overflow: hidden;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-top: 10px;
-    position: fixed;
-    right: 50px;
+    justify-content: flex-start;
+    width: 100%;
 }
 
-.flex-button {
-    align-items: center;
-    display: inline-flex;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-    vertical-align: middle;
+.tab-list button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    color: #fff;
+    margin: 5px 0px 0px 8px;
+    border-radius: 8px 8px 0px 0px;
+    font-size: large;
 }
 
-.footer {
-    align-items: center;
-    background: #000000;
+.tab-list button:hover {
+    background: #797979;
+}
+
+.tab-list button.active {
+    color: #000;
+    background: #ccc;
+}
+
+.tab-content {
+    width: 100%;
     display: flex;
-    height: 73px;
-    justify-content: center;
-    position: fixed;
-    z-index: 10;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
 }
 
-.header {
-    align-items: center;
-    background: #000000;
-    border-bottom: 7px solid #000000;
+body {
+    background: none;
+    font-family: "nintendo_ext_003", "nintendo_udsgr_std_003";
+    margin: 0;
+}
+
+/* Overwrite padding from keyword stuff. */
+.l-main-content {
+    padding: 0px 0px 0px;
+}
+
+/* Handle alignment of items in the header */
+.l-header {
     display: flex;
-    height: 65px;
-}
-
-.header-decoration {
-    align-items: center;
-    background: #a80114;
-    display: inline-flex;
-    height: 65px;
-    padding-left: 21px;
-    width: 101px;
-}
-
-.header-desc {
-    color: white;
+    justify-content: space-between;
+    position: relative;
+    width: 100%;
+    height: 80px;
+    z-index: 100;
+    background: #000;
+    box-shadow: 0px 1px 1px #000;
 }
 
 .header-title {
     color: #f46264;
     font-size: 26px;
     line-height: 2.5;
+    margin: 0px;
+    padding: 0px;
+    word-break: normal;
 }
 
-.is-appear {
-    opacity: 1;
+.header-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: end;
+    margin-right: 15px;
 }
 
-.is-focused .question-border::before {
-    background: #000000;
-    box-shadow: none;
+.header-label > p {
+    color: #fff;
+    margin: 0;
+    padding: 0;
 }
 
-.is-focused .question-message {
-    color: #FFFFFF;
-    text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+.return-icon-container {
+    width: 101px;
+    height: 65px;
+    padding-left: 21px;
+    background: #a80114;
+    border-radius: 0px 0px 15px 0px;
 }
 
-.is-focused .question.scuffle-thema {
-    background: #df1624;
+.return-icon {
+    width: 58px;
+    height: 58px;
+    padding-left: 7px;
+    filter: drop-shadow(3px 5px 2px rgba(0, 0, 0, 0.8));
 }
 
-.is-focused .scuffle-thema {
-    background: #df1624;
+/* Center Icons */
+.question::before {
+    width: 70px;
 }
 
-.is-hidden {
-    display: none;
-}
-
-.is-opened .question {
-    bottom: 11px;
-}
-
-.is-opened .question-border::before {
-    background: #000000;
-    bottom: 5px;
-}
-
-.is-opened .question-outer {
-    height: 86px;
-    width: 100%;
-}
-
-.keyword-button {
-    background: #d9e4ea;
-    border: solid 4px #2e3c45;
-    box-shadow: 1px 1px 6px rgba(24, 24, 24, 0.6);
-    box-sizing: border-box;
-    height: 66px;
-    justify-content: flex-start;
-    position: relative;
-    z-index: 0;
-}
-
-.keyword-button-outer {
-    border: 5px solid transparent;
-    will-change: transform;
-}
-
-.keyword-message {
-    color: #2b3940;
-    font-size: 22px;
-    padding: 0px 5px;
-}
-
-.l-footer {
+/* Footer */
+.footer {
+    position: fixed;
     bottom: 0px;
     left: 0px;
-    width: 100%;
-}
-
-.l-grid {
+    background: #000;
     display: flex;
-    flex-wrap: wrap;
-}
-
-.l-header {
-    box-shadow: 0px 1px 1px #000000;
-    display: flex;
-    left: 0px;
-    position: absolute;
-    top: 0px;
+    justify-content: center;
+    align-items: center;
+    height: 73px;
     width: 100%;
+    color: #fff;
     z-index: 100;
 }
 
-.l-header-title {
-    align-items: center;
+/* Save Defaults Container */
+.defaults-checkbox-container {
+    position: fixed;
+    right: 50px;
+    margin-top: 10px;
     display: flex;
-    height: 100%;
     justify-content: center;
-    left: 0px;
-    position: absolute;
-    top: 0px;
-    width: 1280px;
+    flex-direction: column;
 }
 
-.l-item {
-    margin: 0px 13px;
-}
-
-.l-main-content {
-    /* Overwrite padding from keyword stuff. */
-    padding: 0px 0px 0px;
-}
-
-.l-qa {
-    /* Column size */
-    flex-basis: 33%;
-}
-
-.l-qa:last-child .qa {
-    /* Overwrite margin on the last child to avoid overlap with footer */
-    margin-bottom: 75px;
-}
-
-.l-qa:last-child .qa.is-opened {
-    margin-bottom: 0px;
-}
-
-.qa {
-    display: block;
-    will-change: scroll-position;
-}
-
-.is-focused {
-    background: linear-gradient(90deg, rgb(255, 109, 0) 0%, rgb(255, 255, 0) 65%, rgb(255, 109, 0) 70%);
-    will-change: animation;
-    animation: background-slide 650ms linear infinite normal;
-}
-
-.question {
-    align-items: center;
-    background: #d9e4ea;
-    bottom: 11px;
-    display: flex;
-    left: 11px;
-    padding: 0px 30px 0px 94px;
-    position: absolute;
-    right: 28px;
-    top: 11px;
-}
-
-.question-border::before {
-    background: #2e3c45;
-    bottom: 6px;
-    box-shadow: 3px 3px 3px rgba(24, 24, 24, 0.5);
-    content: '';
-    left: 6px;
-    position: absolute;
-    right: 6px;
-    top: 6px;
-}
-
-.question-icon {
-    bottom: 0px;
-    height: 60px;
-    left: 2px;
-    position: absolute;
-    top: 2px;
-    transition: opacity 0.2s ease;
-    width: 60px;
-}
-
-.question-message {
-    color: #2b3940;
-    font-size: 23px;
-    width: 100%;
-    z-index: 0;
-}
-
-.question-message span {
-    display: block;
-    letter-spacing: normal;
-}
-
-.question-outer {
-    height: 86px;
-    position: relative;
-}
-
-.question::before {
-    width: 70px;
-    background: #000000;
-    bottom: 0px;
-    content: '';
-    left: 0px;
-    position: absolute;
-    top: 0px;
-}
-
-.ret-icon {
-    display: inline-block;
-    height: 58px;
-    transition: opacity 0.2s ease;
-    width: 58px;
-}
-
-.ret-icon-wrapper {
-    margin-left: -4px;
-    position: relative;
-    will-change: transform;
-}
-
+/* Checkbox element (hidden) */
 #saveDefaults {
-    /* Checkbox element (hidden) */
-    left: -100vw;
     position: absolute;
+    left: -100vw;
 }
 
+.checkbox-display {
+    margin: 10px 70px;
+}
+
+/* Displayed Checkbox (unchecked) */
+.checkbox-display::after {
+    content: "\E14C";
+    color: white;
+}
+
+/* Displayed Checkbox (checked) */
 #saveDefaults:checked~.checkbox-display::after {
-    /* Displayed Checkbox (checked) */
     content: "\E14B";
 }
 
-a {
-    text-decoration: none;
+.menu-item {
+    /* Container div for menu link and menu list */
+    width: 30%;
+    margin: 6px;
 }
 
-body {
-    background: none;
-    width: 1280px;
-}
-
-body, div, th, td, p, ul, ol, dl, dt, dd, img, h1, h2, h3, h4, h5, h6, footer, header, nav, p, section, span, figure {
-    margin: 0px;
-    overflow-wrap: break-word;
+.menu-button, .menu-item > div button {
+    /* Item styling */
+    background-color: #d9e4ea;
+    border: solid black;
+    border-width: 3px 20px 3px 3px;
     padding: 0px;
-    word-break: normal;
-    font-family: "nintendo_ext_003", "nintendo_udsgr_std_003";
+    box-shadow: 3px 3px 3px #18181880;
+    display: flex;
+    height: 60px;
+    width: 100%;
+    align-items: center;
+    align-content: center;
+    user-select: none;
 }
 
-img, svg {
-    opacity: 0;
+.menu-item > div button {
+    z-index: 1;
+    width: 22%;
+    margin: 4px 17px;
 }
 
-img.question-icon:not(.toggle) {
-    /* Fade icons slightly */
-    opacity: 0.75;
+.modal p {
+    font-size: 18px !important;
 }
 
-span {
-    letter-spacing: 0.01px;
+.menu-icon {
+    background-color: black;
+    flex-basis: auto;
+    width: 60px;
+    height: 48px;
+    border: solid black;
+    border-right-width: 5px;
 }
 
-ul, ol {
-    list-style-type: none;
+.menu-icon img {
+    width: 100%;
+    height: 100%;
 }
+
+.menu-item p {
+    font-size: 23px;
+    color: #2b3940;
+    width: 100%;
+    margin: 10px 0px 0px 20px;
+}
+
+.hide {
+    display: none !important;
+}
+
+.menu-item > div {
+    display: flex;
+    flex-wrap: wrap;
+    position: fixed;
+    justify-content: flex-start;
+    align-content: flex-start;
+    top: 80px;
+    bottom: 73px;
+    left: 0px;
+    right: 0px;
+    margin-top: 0px;
+    background-color: rgba(100, 100, 100, 0.9);
+}
+
+:focus {
+    background: rgb(255,70,2);
+    background: linear-gradient(45deg, rgba(255,70,2,1) 20%, rgba(255,215,0,1) 46%, rgba(255,215,0,1) 54%, rgba(255,70,2,1) 80%); 
+    background-size: 500% 100%;
+    will-change: animation;
+    animation: translate-anim 5s infinite linear;
+}
+
+:focus > p {
+    color: #fff;
+    text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000;
+}
+
+@keyframes translate-anim {
+	0% {
+		background-position: 0% 0%;
+	}
+	100% {
+		background-position: 100% 0%;
+	}
+}
+

@@ -5,13 +5,18 @@ extern crate bitflags;
 extern crate num_derive;
 
 use core::f64::consts::PI;
+use std::collections::HashMap;
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
+use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use serde::{Serialize, Deserialize};
 use ramhorns::Content;
-use strum::IntoEnumIterator;
-use std::ops::BitOr;
+
+pub trait ToggleTrait {
+    fn to_toggle_strs() -> Vec<&'static str>;
+    fn to_toggle_vals() -> Vec<usize>;
+}
 
 // bitflag helper function macro
 macro_rules! extra_bitflag_impls {
@@ -56,22 +61,21 @@ macro_rules! extra_bitflag_impls {
                     }
                 }
             }
-
-            pub fn to_toggle_strs() -> Vec<&'static str> {
+        }
+        impl ToggleTrait for $e {
+            fn to_toggle_strs() -> Vec<&'static str> {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.as_str().unwrap_or("")).collect()
             }
 
-            pub fn to_toggle_vals() -> Vec<usize> {
+            fn to_toggle_vals() -> Vec<usize> {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.bits() as usize).collect()
             }
-            pub fn to_url_param(&self) -> String {
-                self.to_vec()
-                    .into_iter()
-                    .map(|field| field.bits().to_string())
-                    .collect::<Vec<_>>()
-                    .join(",")
+        }
+        impl ToUrlParam for $e {
+            fn to_url_param(&self) -> String {
+                self.bits().to_string()
             }
         }
     }
@@ -258,10 +262,10 @@ extra_bitflag_impls! {MissTechFlags}
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize, Deserialize)]
 pub enum Shield {
-    None = 0,
-    Infinite = 1,
-    Hold = 2,
-    Constant = 3,
+    None = 0x0,
+    Infinite = 0x1,
+    Hold = 0x2,
+    Constant = 0x4,
 }
 
 impl Shield {
@@ -279,13 +283,23 @@ impl Shield {
     }
 }
 
+impl ToggleTrait for Shield {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        Shield::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        Shield::iter().map(|i| i as usize).collect()
+    }
+}
+
 // Save State Mirroring
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize, Deserialize)]
 pub enum SaveStateMirroring {
-    None = 0,
-    Alternate = 1,
-    Random = 2,
+    None = 0x0,
+    Alternate = 0x1,
+    Random = 0x2,
 }
 
 impl SaveStateMirroring {
@@ -299,6 +313,16 @@ impl SaveStateMirroring {
 
     fn to_url_param(&self) -> String {
         (*self as i32).to_string()
+    }
+}
+
+impl ToggleTrait for SaveStateMirroring {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        SaveStateMirroring::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        SaveStateMirroring::iter().map(|i| i as usize).collect()
     }
 }
 
@@ -354,6 +378,15 @@ impl OnOff {
 
     pub fn to_url_param(&self) -> String {
         (*self as i32).to_string()
+    }
+}
+
+impl ToggleTrait for OnOff {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        vec!["Off", "On"]
+    }
+    fn to_toggle_vals() -> Vec<usize> {
+        vec![0, 1]
     }
 }
 
@@ -861,6 +894,16 @@ impl SdiStrength {
     }
 }
 
+impl ToggleTrait for SdiStrength {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        SdiStrength::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        SdiStrength::iter().map(|i| i as usize).collect()
+    }
+}
+
 // For input delay
 trait ToUrlParam {
     fn to_url_param(&self) -> String;
@@ -887,9 +930,14 @@ macro_rules! url_params {
             $(pub $field_name: $field_type,)*
         }
         impl $e {
-            pub fn to_url_params(&self) -> String {
-                let mut s = "?".to_string();
+            pub fn to_url_params(&self, defaults: bool) -> String {
+                let mut s = "".to_string();
+                let defaults_str = match defaults {
+                    true => &"__",  // Prefix field name with "__" if it is for the default menu
+                    false => &"",
+                };
                 $(
+                    s.push_str(defaults_str);
                     s.push_str(stringify!($field_name));
                     s.push_str(&"=");
                     s.push_str(&self.$field_name.to_url_param());
@@ -1004,35 +1052,10 @@ pub enum FighterId {
     CPU = 1,
 }
 
-#[derive(Content, Clone)]
-pub struct Slider {
-    pub min: usize,
-    pub max: usize,
-    pub index: usize,
-    pub value: usize,
-}
-
-#[derive(Content, Clone)]
-pub struct Toggle<'a> {
-    pub title: &'a str,
-    pub checked: &'a str,
-    pub index: usize,
-    pub value: usize,
-    pub default: &'a str,
-}
-
-#[derive(Content, Clone)]
-pub struct OnOffSelector<'a> {
-    pub title: &'a str,
-    pub checked: &'a str,
-    pub default: &'a str,
-}
-
 #[derive(Clone)]
 pub enum SubMenuType {
     TOGGLE,
     SLIDER,
-    ONOFF,
 }
 
 impl SubMenuType {
@@ -1040,67 +1063,12 @@ impl SubMenuType {
         match s {
             "toggle" => SubMenuType::TOGGLE,
             "slider" => SubMenuType::SLIDER,
-            "onoff" => SubMenuType::ONOFF,
             _ => panic!("Unexpected SubMenuType!")
         }
     }
 }
 
-#[derive(Content, Clone)]
-pub struct SubMenu<'a> {
-    pub title: &'a str,
-    pub id: &'a str,
-    pub _type: &'a str,
-    pub toggles: Vec<Toggle<'a>>,
-    pub sliders: Vec<Slider>,
-    pub onoffselector: Vec<OnOffSelector<'a>>,
-    pub index: usize,
-    pub check_against: usize,
-    pub is_single_option: Option<bool>,
-    pub help_text: &'a str,
-}
-
-impl<'a> SubMenu<'a> {
-    pub fn max_idx(&self) -> usize {
-        self.toggles
-            .iter()
-            .max_by(|t1, t2| t1.index.cmp(&t2.index))
-            .map(|t| t.index)
-            .unwrap_or(self.index)
-    }
-
-    pub fn add_toggle(&mut self, title: &'a str, checked: bool, value: usize, default: bool) {
-        self.toggles.push(Toggle {
-            title,
-            checked: if checked { "is-appear" } else { "is-hidden" },
-            index: self.max_idx() + 1,
-            value,
-            default: if default { "is-appear" } else { "is-hidden" },
-        });
-    }
-
-    pub fn add_slider(&mut self, min: usize, max: usize, value: usize) {
-        self.sliders.push(Slider {
-            min,
-            max,
-            index: self.max_idx() + 1,
-            value,
-        });
-    }
-
-    pub fn add_onoffselector(&mut self, title: &'a str, checked: bool, default: bool) {
-        // TODO: Is there a more elegant way to do this?
-        // The HTML only supports a single onoffselector but the SubMenu stores it as a Vec
-        self.onoffselector.push(OnOffSelector {
-            title,
-            checked: if checked { "is-appear" } else { "is-hidden" },
-            default: if default { "is-appear" } else { "is-hidden" },
-        });
-    }
-}
-
-
-pub static DEFAULT_MENU: TrainingModpackMenu = TrainingModpackMenu {
+pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitbox_vis: OnOff::On,
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
@@ -1137,452 +1105,106 @@ pub static DEFAULT_MENU: TrainingModpackMenu = TrainingModpackMenu {
     quick_menu: OnOff::Off,
 };
 
-pub static mut MENU: TrainingModpackMenu = DEFAULT_MENU;
+pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
 
 #[derive(Content, Clone)]
-pub struct Menu<'a> {
-    pub sub_menus: Vec<SubMenu<'a>>,
+pub struct Slider {
+    pub min: usize,
+    pub max: usize,
+    pub index: usize,
+    pub value: usize,
 }
 
-impl<'a> Menu<'a> {
-    pub fn max_idx(&self) -> usize {
-        self.sub_menus
-            .iter()
-            .max_by(|x, y| x.max_idx().cmp(&y.max_idx()))
-            .map(|sub_menu| sub_menu.max_idx())
-            .unwrap_or(0)
-    }
-
-    pub fn add_sub_menu(
-        &mut self,
-        title: &'a str,
-        id: &'a str,
-        _type: &'a str,
-        check_against: usize,
-        toggles: Vec<(&'a str, usize)>,
-        sliders: Vec<(usize, usize, usize)>,
-        defaults: usize,
-        help_text: &'a str,
-    ) {
-        let mut sub_menu = SubMenu {
-            title,
-            id,
-            _type,
-            toggles: Vec::new(),
-            sliders: Vec::new(),
-            onoffselector: Vec::new(),
-            index: self.max_idx() + 1,
-            check_against,
-            is_single_option: Some(true),
-            help_text,
-        };
-
-        for toggle in toggles {
-            sub_menu.add_toggle(
-                toggle.0,
-                (check_against & toggle.1) != 0,
-                toggle.1,
-                (defaults & toggle.1) != 0,
-            )
-        }
-
-        for slider in sliders {
-            sub_menu.add_slider(slider.0, slider.1, slider.2);
-        }
-
-        self.sub_menus.push(sub_menu);
-    }
-
-    pub fn add_sub_menu_sep(
-        &mut self,
-        title: &'a str,
-        id: &'a str,
-        _type: &'a str,
-        check_against: usize,
-        strs: Vec<&'a str>,
-        vals: Vec<usize>,
-        defaults: usize,
-        help_text: &'a str,
-    ) {
-        let mut sub_menu = SubMenu {
-            title,
-            id,
-            _type,
-            toggles: Vec::new(),
-            sliders: Vec::new(),
-            onoffselector: Vec::new(),
-            index: self.max_idx() + 1,
-            check_against,
-            is_single_option: None,
-            help_text,
-        };
-
-        for i in 0..strs.len() {
-            sub_menu.add_toggle(
-                strs[i],
-                (check_against & vals[i]) != 0,
-                vals[i],
-                (defaults & vals[i]) != 0,
-            )
-        }
-
-        // TODO: add sliders?
-
-        self.sub_menus.push(sub_menu);
-    }
-
-    pub fn add_sub_menu_onoff(
-        &mut self,
-        title: &'a str,
-        id: &'a str,
-        _type: &'a str,
-        check_against: usize,
-        checked: bool,
-        default: usize,
-        help_text: &'a str,
-    ) {
-        let mut sub_menu = SubMenu {
-            title,
-            id,
-            _type,
-            toggles: Vec::new(),
-            sliders: Vec::new(),
-            onoffselector: Vec::new(),
-            index: self.max_idx() + 1,
-            check_against,
-            is_single_option: None,
-            help_text,
-        };
-
-        sub_menu.add_onoffselector(title, checked, (default & OnOff::On as usize) != 0);
-        self.sub_menus.push(sub_menu);
-    }
+#[derive(Content, Clone)]
+pub struct Toggle<'a> {
+    pub toggle_value: usize,
+    pub toggle_title: &'a str,
+    pub checked: bool,
 }
 
-macro_rules! add_bitflag_submenu {
-    ($menu:ident, $title:literal, $id:ident, $e:ty, $help_text:literal) => {
-        paste::paste!{
-            let [<$id _strs>] = <$e>::to_toggle_strs();
-            let [<$id _vals>] = <$e>::to_toggle_vals();
-
-            $menu.add_sub_menu_sep(
-                $title,
-                stringify!($id),
-                "toggle",
-                MENU.$id.bits() as usize,
-                [<$id _strs>],
-                [<$id _vals>],
-                DEFAULT_MENU.$id.bits() as usize,
-                stringify!($help_text),
-            );
-        }
-    }
+#[derive(Content, Clone)]
+pub struct SubMenu<'a> {
+    pub submenu_title: &'a str,
+    pub submenu_id: &'a str,
+    pub help_text: &'a str,
+    pub is_single_option: bool,
+    pub toggles: Vec<Toggle<'a>>,
+    pub _type: &'a str,
 }
 
-macro_rules! add_single_option_submenu {
-    ($menu:ident, $title:literal, $id:ident, $e:ty, $help_text:literal) => {
-        paste::paste!{
-            let mut [<$id _toggles>] = Vec::new();
-            for val in [<$e>]::iter() {
-                [<$id _toggles>].push((val.as_str().unwrap_or(""), val as usize));
+impl<'a> SubMenu<'a> {
+    pub fn add_toggle(
+        &mut self,
+        toggle_value: usize,
+        toggle_title: &'a str
+    ) {
+        self.toggles.push(
+            Toggle {
+                toggle_value: toggle_value,
+                toggle_title: toggle_title,
+                checked: false
             }
-
-            $menu.add_sub_menu(
-                $title,
-                stringify!($id),
-                "toggle",
-                MENU.$id as usize,
-                [<$id _toggles>],
-                [].to_vec(),
-                DEFAULT_MENU.$id as usize,
-                stringify!($help_text),
-            );
-        }
+        );
+    }
+    pub fn new_with_toggles<T:ToggleTrait>(
+        submenu_title: &'a str,
+        submenu_id: &'a str,
+        help_text: &'a str,
+        is_single_option: bool,
+    ) -> SubMenu<'a> {
+            let mut instance = SubMenu {
+                submenu_title: submenu_title,
+                submenu_id: submenu_id,
+                help_text: help_text,
+                is_single_option: is_single_option,
+                toggles: Vec::new(),
+                _type: "toggle"
+            };
+    
+            let values = T::to_toggle_vals();
+            let titles = T::to_toggle_strs();
+            for i in 0..values.len() {
+                instance.add_toggle(
+                    values[i],
+                    titles[i],
+                );
+            }
+            instance
     }
 }
 
-macro_rules! add_onoff_submenu {
-    ($menu:ident, $title:literal, $id:ident, $help_text:literal) => {
-        paste::paste! {
-            $menu.add_sub_menu_onoff(
-                $title,
-                stringify!($id),
-                "onoff",
-                MENU.$id as usize,
-                (MENU.$id as usize & OnOff::On as usize) != 0,
-                DEFAULT_MENU.$id as usize,
-                stringify!($help_text),
-            );
-        }
-    };
+#[derive(Content)]
+pub struct Tab<'a> {
+    pub tab_id: &'a str,
+    pub tab_title: &'a str,
+    pub tab_submenus: Vec<SubMenu<'a>>,
 }
 
-pub unsafe fn get_menu() -> Menu<'static> {
-    let mut overall_menu = Menu {
-        sub_menus: Vec::new(),
-    };
-
-    // Toggle/bitflag menus
-    add_bitflag_submenu!(
-        overall_menu,
-        "Mash Toggles",
-        mash_state,
-        Action,
-        "Mash Toggles: Actions to be performed as soon as possible"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Followup Toggles",
-        follow_up,
-        Action,
-        "Followup Toggles: Actions to be performed after the Mash option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Attack Angle",
-        attack_angle,
-        AttackAngle,
-        "Attack Angle: For attacks that can be angled, such as some forward tilts"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Ledge Options",
-        ledge_state,
-        LedgeOption,
-        "Ledge Options: Actions to be taken when on the ledge"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Ledge Delay",
-        ledge_delay,
-        LongDelay,
-        "Ledge Delay: How many frames to delay the ledge option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Tech Options",
-        tech_state,
-        TechFlags,
-        "Tech Options: Actions to take when slammed into a hard surface"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Miss Tech Options",
-        miss_tech_state,
-        MissTechFlags,
-        "Miss Tech Options: Actions to take after missing a tech"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Defensive Options",
-        defensive_state,
-        Defensive,
-        "Defensive Options: Actions to take after a ledge option, tech option, or miss tech option"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Aerial Delay",
-        aerial_delay,
-        Delay,
-        "Aerial Delay: How long to delay a Mash aerial attack"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "OoS Offset",
-        oos_offset,
-        Delay,
-        "OoS Offset: How many times the CPU shield can be hit before performing a Mash option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Reaction Time",
-        reaction_time,
-        Delay,
-        "Reaction Time: How many frames to delay before performing an option out of shield"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Fast Fall",
-        fast_fall,
-        BoolFlag,
-        "Fast Fall: Should the CPU fastfall during a jump"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Fast Fall Delay",
-        fast_fall_delay,
-        Delay,
-        "Fast Fall Delay: How many frames the CPU should delay their fastfall"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Falling Aerials",
-        falling_aerials,
-        BoolFlag,
-        "Falling Aerials: Should aerials be performed when rising or when falling"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Full Hop",
-        full_hop,
-        BoolFlag,
-        "Full Hop: Should the CPU perform a full hop or a short hop"
-    );
-
-    add_bitflag_submenu!(
-        overall_menu,
-        "Shield Tilt",
-        shield_tilt,
-        Direction,
-        "Shield Tilt: Direction to tilt the shield"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "DI Direction",
-        di_state,
-        Direction,
-        "DI Direction: Direction to angle the directional influence during hitlag"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "SDI Direction",
-        sdi_state,
-        Direction,
-        "SDI Direction: Direction to angle the smash directional influence during hitlag"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Airdodge Direction",
-        air_dodge_dir,
-        Direction,
-        "Airdodge Direction: Direction to angle airdodges"
-    );
-
-    add_single_option_submenu!(
-        overall_menu,
-        "SDI Strength",
-        sdi_strength,
-        SdiStrength,
-        "SDI Strength: Relative strength of the smash directional influence inputs"
-    );
-    add_single_option_submenu!(
-        overall_menu,
-        "Shield Toggles",
-        shield_state,
-        Shield,
-        "Shield Toggles: CPU Shield Behavior"
-    );
-    add_single_option_submenu!(
-        overall_menu,
-        "Mirroring",
-        save_state_mirroring,
-        SaveStateMirroring,
-        "Mirroring: Flips save states in the left-right direction across the stage center"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Throw Options",
-        throw_state,
-        ThrowOption,
-        "Throw Options: Throw to be performed when a grab is landed"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Throw Delay",
-        throw_delay,
-        MedDelay,
-        "Throw Delay: How many frames to delay the throw option"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Pummel Delay",
-        pummel_delay,
-        MedDelay,
-        "Pummel Delay: How many frames after a grab to wait before starting to pummel"
-    );
-    add_bitflag_submenu!(
-        overall_menu,
-        "Buff Options",
-        buff_state,
-        BuffOption,
-        "Buff Options: Buff(s) to be applied to respective character when loading save states"
-    );
-
-    // Slider menus
-    overall_menu.add_sub_menu(
-        "Input Delay",
-        "input_delay",
-        // unnecessary for slider?
-        "toggle",
-        0,
-        [
-            ("0", 0),
-            ("1", 1),
-            ("2", 2),
-            ("3", 3),
-            ("4", 4),
-            ("5", 5),
-            ("6", 6),
-            ("7", 7),
-            ("8", 8),
-            ("9", 9),
-            ("10", 10),
-        ]
-            .to_vec(),
-        [].to_vec(), //(0, 10, MENU.input_delay as usize)
-        DEFAULT_MENU.input_delay as usize,
-        stringify!("Input Delay: Frames to delay player inputs by"),
-    );
-
-    add_onoff_submenu!(
-        overall_menu,
-        "Save States",
-        save_state_enable,
-        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt."
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Save Damage",
-        save_damage,
-        "Save Damage: Should save states retain player/CPU damage"
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Hitbox Visualization",
-        hitbox_vis,
-        "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects"
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Stage Hazards",
-        stage_hazards,
-        "Stage Hazards: Should stage hazards be present"
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Frame Advantage",
-        frame_advantage,
-        "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable");
-    add_onoff_submenu!(
-        overall_menu,
-        "Mash In Neutral",
-        mash_in_neutral,
-        "Mash In Neutral: Should Mash options be performed repeatedly or only when the CPU is hit"
-    );
-    add_onoff_submenu!(
-        overall_menu,
-        "Quick Menu",
-        quick_menu,
-        "Quick Menu: Whether to use Quick Menu or Web Menu"
-    );
-
-    overall_menu
+impl<'a> Tab<'a> {
+    pub fn add_submenu_with_toggles<T: ToggleTrait>(
+        &mut self,
+        submenu_title: &'a str,
+        submenu_id: &'a str,
+        help_text: &'a str,
+        is_single_option: bool,
+    ) {
+        self.tab_submenus.push(
+            SubMenu::new_with_toggles::<T>(
+                submenu_title,
+                submenu_id,
+                help_text,
+                is_single_option,
+            )
+        );
+    }
 }
 
-pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModpackMenu {
+#[derive(Content)]
+pub struct UiMenu<'a> {
+    pub tabs: Vec<Tab<'a>>,
+}
+
+pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str, defaults: bool) -> TrainingModpackMenu {
     let base_url_len = "http://localhost/?".len();
     let total_len = s.len();
 
@@ -1594,21 +1216,283 @@ pub fn get_menu_from_url(mut menu: TrainingModpackMenu, s: &str) -> TrainingModp
 
     for toggle_values in ss.split('&') {
         let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
-        let toggle = toggle_value_split[0];
-        if toggle.is_empty() {
-            continue;
-        }
+        let mut toggle = toggle_value_split[0];
+        if toggle.is_empty() | (
+            // Default menu settings begin with the prefix "__"
+            // So if skip toggles without the prefix if defaults is true
+            // And skip toggles with the prefix if defaults is false
+            defaults ^ toggle.starts_with("__")
+        ) { continue }
+        toggle = toggle.strip_prefix("__").unwrap_or(toggle);
 
-        let toggle_vals = toggle_value_split[1];
-
-        let bitwise_or = <u32 as BitOr<u32>>::bitor;
-        let bits = toggle_vals
-            .split(',')
-            .filter(|val| !val.is_empty())
-            .map(|val| val.parse().unwrap())
-            .fold(0, bitwise_or);
-
+        let bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
         menu.set(toggle, bits);
     }
     menu
+}
+
+
+
+pub unsafe fn get_menu() -> UiMenu<'static> {
+    let mut overall_menu = UiMenu {
+        tabs: Vec::new(),
+    };
+
+    let mut mash_tab = Tab {
+        tab_id: "mash",
+        tab_title: "Mash Settings",
+        tab_submenus: Vec::new(),
+    };
+    mash_tab.add_submenu_with_toggles::<Action>(
+        "Mash Toggles",
+        "mash_state",
+        "Mash Toggles: Actions to be performed as soon as possible",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<Action>(
+        "Followup Toggles",
+        "follow_up",
+        "Followup Toggles: Actions to be performed after the Mash option",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<AttackAngle>(
+        "Attack Angle",
+        "attack_angle",
+        "Attack Angle: For attacks that can be angled, such as some forward tilts",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<ThrowOption>(
+        "Throw Options",
+        "throw_state",
+        "Throw Options: Throw to be performed when a grab is landed",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<MedDelay>(
+        "Throw Delay",
+        "throw_delay",
+        "Throw Delay: How many frames to delay the throw option",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<MedDelay>(
+        "Pummel Delay",
+        "pummel_delay",
+        "Pummel Delay: How many frames after a grab to wait before starting to pummel",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<BoolFlag>(
+        "Falling Aerials",
+        "falling_aerials",
+        "Falling Aerials: Should aerials be performed when rising or when falling",
+        false, // TODO: Should this be a single option submenu?
+    );
+    mash_tab.add_submenu_with_toggles::<BoolFlag>(
+        "Full Hop",
+        "full_hop",
+        "Full Hop: Should the CPU perform a full hop or a short hop",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<Delay>(
+        "Aerial Delay",
+        "aerial_delay",
+        "Aerial Delay: How long to delay a Mash aerial attack",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<BoolFlag>(
+        "Fast Fall",
+        "fast_fall",
+        "Fast Fall: Should the CPU fastfall during a jump",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<Delay>(
+        "Fast Fall Delay",
+        "fast_fall_delay",
+        "Fast Fall Delay: How many frames the CPU should delay their fastfall",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<Delay>(
+        "OoS Offset",
+        "oos_offset",
+        "OoS Offset: How many times the CPU shield can be hit before performing a Mash option",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<Delay>(
+        "Reaction Time",
+        "reaction_time",
+        "Reaction Time: How many frames to delay before performing a mash option",
+        false,
+    );
+    mash_tab.add_submenu_with_toggles::<OnOff>(
+        "Mash in Neutral",
+        "mash_in_neutral",
+        "Mash In Neutral: Should Mash options be performed repeatedly or only when the CPU is hit",
+        true,
+    );
+    overall_menu.tabs.push(mash_tab);
+
+
+    let mut defensive_tab = Tab {
+        tab_id: "defensive",
+        tab_title: "Defensive Settings",
+        tab_submenus: Vec::new(),
+    };
+    defensive_tab.add_submenu_with_toggles::<Direction>(
+        "Airdodge Direction",
+        "air_dodge_dir",
+        "Airdodge Direction: Direction to angle airdodges",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<Direction>(
+        "DI Direction",
+        "di_state",
+        "DI Direction: Direction to angle the directional influence during hitlag",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<Direction>(
+        "SDI Direction",
+        "sdi_state",
+        "SDI Direction: Direction to angle the smash directional influence during hitlag",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<SdiStrength>(
+        "SDI Strength",
+        "sdi_strength",
+        "SDI Strength: Relative strength of the smash directional influence inputs",
+        true,
+    );
+    defensive_tab.add_submenu_with_toggles::<LedgeOption>(
+        "Ledge Options",
+        "ledge_state",
+        "Ledge Options: Actions to be taken when on the ledge",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<LongDelay>(
+        "Ledge Delay",
+        "ledge_delay",
+        "Ledge Delay: How many frames to delay the ledge option",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<TechFlags>(
+        "Tech Options",
+        "tech_state",
+        "Tech Options: Actions to take when slammed into a hard surface",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<MissTechFlags>(
+        "Mistech Options",
+        "miss_tech_state",
+        "Mistech Options: Actions to take after missing a tech",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<Shield>(
+        "Shield Toggles",
+        "shield_state",
+        "Shield Toggles: CPU Shield Behavior",
+        true,
+    );
+    defensive_tab.add_submenu_with_toggles::<Direction>(
+        "Shield Tilt",
+        "shield_tilt",
+        "Shield Tilt: Direction to tilt the shield",
+        false, // TODO: Should this be true?
+    );
+    defensive_tab.add_submenu_with_toggles::<Defensive>(
+        "Defensive Toggles",
+        "defensive_state",
+        "Defensive Options: Actions to take after a ledge option, tech option, or mistech option",
+        false,
+    );
+    defensive_tab.add_submenu_with_toggles::<BuffOption>(
+        "Buff Options",
+        "buff_state",
+        "Buff Options: Buff(s) to be applied to respective character when loading save states",
+        false,
+    );
+    overall_menu.tabs.push(defensive_tab);
+
+    let mut misc_tab = Tab {
+        tab_id: "misc",
+        tab_title: "Misc Settings",
+        tab_submenus: Vec::new(),
+    };
+    misc_tab.add_submenu_with_toggles::<SaveStateMirroring>(
+        "Mirroring",
+        "save_state_mirroring",
+        "Mirroring: Flips save states in the left-right direction across the stage center",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Save Damage",
+        "save_damage",
+        "Save Damage: Should save states retain player/CPU damage",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Enable Save States",
+        "save_state_enable",
+        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Frame Advantage",
+        "frame_advantage",
+        "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Hitbox Visualization",
+        "hitbox_vis",
+        "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<Delay>(
+        "Input Delay",
+        "input_delay",
+        "Input Delay: Frames to delay player inputs by",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Stage Hazards",
+        "stage_hazards",
+        "Stage Hazards: Should stage hazards be present",
+        true
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Quick Menu",
+        "quick_menu",
+        "Quick Menu: Should use quick or web menu",
+        true
+    );
+    overall_menu.tabs.push(misc_tab);
+
+    let non_ui_menu = MENU;
+    let url_params = non_ui_menu.to_url_params(false);
+    let toggle_values_all = url_params.split("&");
+    let mut sub_menu_id_to_vals : HashMap<&str, Vec<u32>> = HashMap::new();
+    for toggle_values in toggle_values_all {
+        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
+        let mut sub_menu_id = toggle_value_split[0];
+        if sub_menu_id.is_empty() { continue }
+        sub_menu_id = sub_menu_id.strip_prefix("__").unwrap_or(sub_menu_id);
+
+        let bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
+        if sub_menu_id_to_vals.contains_key(sub_menu_id) {
+            sub_menu_id_to_vals.get_mut(sub_menu_id).unwrap().push(bits);
+        } else {
+            sub_menu_id_to_vals.insert(sub_menu_id, vec![bits]);
+        }
+    }
+    overall_menu.tabs.iter_mut()
+        .for_each(|tab| {
+            tab.tab_submenus.iter_mut().for_each(|sub_menu| {
+                let sub_menu_id = sub_menu.submenu_id;
+                sub_menu.toggles.iter_mut().for_each(|toggle| {
+                    if sub_menu_id_to_vals.contains_key(sub_menu_id) &&
+                        sub_menu_id_to_vals[sub_menu_id].contains(&(toggle.toggle_value as u32)) {
+                        toggle.checked = true
+                    }
+                })
+            })
+        });
+
+    overall_menu
 }

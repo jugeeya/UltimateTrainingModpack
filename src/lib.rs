@@ -71,7 +71,7 @@ pub fn render_text_to_screen(s: &str) {
 pub fn main() {
     macro_rules! log {
         ($($arg:tt)*) => {
-            print!("{}{}", "[Training Modpack] ".green(), format!($($arg)*));
+            println!("{}{}", "[Training Modpack] ".green(), format!($($arg)*));
         };
     }
 
@@ -105,10 +105,8 @@ pub fn main() {
         if menu_conf.starts_with(b"http://localhost") {
             log!("Previous menu found, loading from training_modpack_menu.conf");
             unsafe {
-                MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap());
-                if is_emulator() {
-                    MENU.quick_menu = OnOff::On;
-                }
+                MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap(), false);
+                DEFAULTS_MENU = get_menu_from_url(DEFAULTS_MENU, std::str::from_utf8(&menu_conf).unwrap(), true);
             }
         } else {
             log!("Previous menu found but is invalid.");
@@ -116,32 +114,10 @@ pub fn main() {
     } else {
         log!("No previous menu file found.");
     }
-
-    let menu_defaults_conf_path = "sd:/TrainingModpack/training_modpack_menu_defaults.conf";
-    log!("Checking for previous menu defaults in training_modpack_menu_defaults.conf...");
-    if fs::metadata(menu_defaults_conf_path).is_ok() {
-        let menu_defaults_conf = fs::read(menu_defaults_conf_path).unwrap();
-        if menu_defaults_conf.starts_with(b"http://localhost") {
-            log!("Menu defaults found, loading from training_modpack_menu_defaults.conf");
-            unsafe {
-                DEFAULT_MENU = get_menu_from_url(
-                    DEFAULT_MENU,
-                    std::str::from_utf8(&menu_defaults_conf).unwrap(),
-                );
-                if is_emulator() {
-                    DEFAULT_MENU.quick_menu = OnOff::On;
-                }
-                crate::menu::write_menu();
-            }
-        } else {
-            log!("Previous menu defaults found but are invalid.");
-        }
-    } else {
-        log!("No previous menu defaults found.");
-    }
-
+    
     if is_emulator() {
         unsafe {
+            DEFAULTS_MENU.quick_menu = OnOff::On;
             MENU.quick_menu = OnOff::On;
         }
     }
@@ -195,6 +171,7 @@ pub fn main() {
                         // Leave menu.
                         menu::QUICK_MENU_ACTIVE = false;
                         crate::menu::set_menu_from_url(url.as_str());
+                        println!("URL: {}", url.as_str());
                     }
                 });
                 button_presses.zl.read_press().then(|| {

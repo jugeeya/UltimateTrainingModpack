@@ -1,117 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-        <title>Document</title>
-        <link rel="stylesheet" href="./css/training_modpack.css" />
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Modpack Menu</title>
+    <link rel="stylesheet" href="./css/training_modpack.css" />
+</head>
 
-    <body id="body">
-        <script defer src="./js/training_modpack.js"></script>
-        <div class="l-header">
-            <div class="l-header-title">
-                <div class="header-title"><span>Ultimate Training Modpack Menu</span></div>
-            </div>
-            <div class="header" style="flex-grow: 1;">
-                <a id="ret-button" tabindex="-1" class="header-decoration" href="javascript:goBackHook();">
-                    <div class="ret-icon-wrapper">
-                        <img class="ret-icon is-appear" src="./img/m_retnormal.svg">
-                    </div>
-                </a>
-            </div>
-            <div class="header" style="flex-direction: column; justify-content: center; align-items: end; padding-right: 10px;">
-                <p class="header-desc">Reset Current Menu: &#xE0A2;</p>
-                <p class="header-desc">Reset All Menus: &#xE0A4;</p>
-            </div>
+<body>
+    <script defer src="./js/training_modpack.js"></script>
+    <div class="l-header">
+        <a id="ret-button" tabindex="-1" class="return-icon-container" href="javascript:goBackHook();">
+                <img class="return-icon" src="./img/m_retnormal.svg">
+        </a>
+        <p class="header-title">Ultimate Training Modpack Menu</p>
+        <div class="header-label">
+            <p class="header-desc">Reset Current Menu: &#xE0A2;</p>
+            <p class="header-desc">Reset All Menus: &#xE0A4;</p>
+            <p class="header-desc">Save Defaults: &#xE0A5;</p>
         </div>
-        <br>
-        <br>
-        <br>
-        <br>
-
-        <div class="l-grid">
-
-            <!--
-    Script the part below via templating. Overall structure is perhaps
-    [
-        l-qa qa [id=qa-{{menuName}} tabindex="{{index}}"] {
-            // make question for {{menuName}}
-            // make answer with l-grid : l-item list for options
-        },
-        ...
-    ]
-
-
-    Remember to set make max keyword size greater than 23!
-    -->
-            {{#sub_menus}}
-                <div class="l-qa">
-                    {{^onoffselector}}
-                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="toggleAnswer(this)">
-                            <div class="question-outer">
-                                <div class="question-border">
-                                    <div id="question-{{id}}" class="question scuffle-thema">
-                                        <img class="question-icon" src="./img/{{id}}.svg" />
-                                        <p class="question-message">
-                                            <span>{{title}}</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                        <div id="answer-border-{{id}}" class="answer-border-outer is-hidden">
-                            <div class="l-main">
-                                <ul class="l-grid" id="{{id}}">
-                                    {{#toggles}}
-                                        <li class="l-item" val="{{value}}">
-                                            <div class="keyword-button-outer">
-                                                <a tabindex="{{index}}" class="flex-button keyword-button scuffle-thema" href="javascript:void(0)" onclick="clickToggle(this);">
-                                                    <div class="button-icon-wrapper">
-                                                        <img class="button-icon toggle {{checked}} {{#is_single_option}}is-single-option{{/is_single_option}}" src="./img/check.svg" default="{{default}}">
-                                                    </div>
-                                                    <div class="button-msg-wrapper">
-                                                        <div class="keyword-message">
-                                                            {{title}}
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                            </div>
-                                        </li>
-                                    {{/toggles}}
-                                </ul>
-                            </div>
-                        </div>
-                    {{/onoffselector}}
-                    {{#onoffselector}}
-                        <a id="qa-{{id}}" class="qa" tabindex="{{index}}" href="javascript:void(0);" onfocus="focusQA(this);setHelpText({{help_text}})" onblur="defocusQA(this)" onclick="clickToggle(this)">
-                            <div class="question-outer">
-                                <div class="question-border">
-                                    <div id="question-{{id}}" class="question scuffle-thema">
-                                        <div id="{{id}}" class="onoff">
-                                            <img class="question-icon" style="z-index: 1;" src="./img/{{id}}.svg" />
-                                            <div><img class="question-icon toggle {{checked}}" style="z-index: 2;" src="./img/check.svg" default="{{default}}"/></div>
-                                            <p class="question-message">
-                                                <span>{{title}}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    {{/onoffselector}}
+    </div>
+    <div class="tab-list-container">
+        <p>Prev Tab: &#xE0A6;</p>
+        <div class="tab-list">
+            {{#tabs}}
+            <button class="tab-button active" id="{{tab_id}}_button" onclick="openTab(this)" tabindex="-1">{{tab_title}}</button>
+            {{/tabs}}
+        </div>
+        <p>Next Tab: &#xE0A7;</p>
+    </div>
+    <div class="tab-content-container">
+        {{#tabs}}
+        <div id="{{tab_id}}_tab" class="tab-content">
+            {{#tab_submenus}}
+            <div class="menu-item" id="{{submenu_id}}">
+                <button class="menu-button" onfocus="setHelpText('{{help_text}}')" onclick="openItem(this)">
+                    <div class="menu-icon"><img src="./img/{{submenu_id}}.svg" /></div>
+                    <p>{{submenu_title}}</p>
+                </button>
+                <div class="hide modal{{#is_single_option}} single-option{{/is_single_option}}">
+                    {{#toggles}}
+                    <button class="menu-button" onclick="toggleOption(this)">
+                        <div class="menu-icon"><img class="hide" src="./img/check.svg" data-val="{{toggle_value}}"/></div>
+                        <p>{{toggle_title}}</p>
+                    </button>
+                    {{/toggles}}
                 </div>
-            {{/sub_menus}}
-        </div>
-        <footer id="footer" class="footer l-footer">
-            <p id="help-text" class="header-desc"></p>
-            <div class="defaults-checkbox-container">
-                <label class="header-desc" for="saveDefaults">Save defaults: &#xE0A5;</label>
-                <input type="checkbox" id="saveDefaults">
-                <div class="checkbox-display"></div>
             </div>
-        </footer>
-    </body>
-
+            {{/tab_submenus}}
+        </div>
+        {{/tabs}}
+    </div>
+    <footer id="footer" class="footer">
+        <p id="help-text" class="header-desc"></p>
+    </footer>
+</body>
 </html>

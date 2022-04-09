@@ -32,10 +32,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut url = String::new();
         let frame_res = terminal.draw(|f| url = training_mod_tui::ui(f, &mut app))?;
 
-        for (i, cell) in frame_res.buffer.content().into_iter().enumerate() {
+        for (i, cell) in frame_res.buffer.content().iter().enumerate() {
             print!("{}", cell.symbol);
             if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
-                print!("\n");
+                println!();
             }
         }
         println!();
