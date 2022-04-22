@@ -904,6 +904,49 @@ impl ToggleTrait for SdiStrength {
     }
 }
 
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter, Serialize, Deserialize)]
+pub enum ClatterStrength {
+    None = 0,
+    Normal = 1,
+    Medium = 2,
+    High = 4,
+}
+
+impl ClatterStrength {
+    pub fn into_u32(self) -> u32 {
+        match self {
+            ClatterStrength::None => u32::MAX,
+            ClatterStrength::Normal => 8,
+            ClatterStrength::Medium => 6,
+            ClatterStrength::High => 4,
+        }
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            ClatterStrength::None => "None",
+            ClatterStrength::Normal => "Normal",
+            ClatterStrength::Medium => "Medium",
+            ClatterStrength::High => "High",
+        })
+    }
+
+    pub fn to_url_param(&self) -> String {
+        (*self as u32).to_string()
+    }
+}
+
+impl ToggleTrait for ClatterStrength {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        ClatterStrength::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        ClatterStrength::iter().map(|i| i as usize).collect()
+    }
+}
+
 // For input delay
 trait ToUrlParam {
     fn to_url_param(&self) -> String;
@@ -959,6 +1002,7 @@ url_params! {
         pub di_state: Direction,
         pub sdi_state: Direction,
         pub sdi_strength: SdiStrength,
+        pub clatter_strength: ClatterStrength,
         pub air_dodge_dir: Direction,
         pub mash_state: Action,
         pub follow_up: Action,
@@ -1009,6 +1053,7 @@ impl TrainingModpackMenu {
             aerial_delay = Delay::from_bits(val),
             air_dodge_dir = Direction::from_bits(val),
             attack_angle = AttackAngle::from_bits(val),
+            clatter_strength = num::FromPrimitive::from_u32(val),
             defensive_state = Defensive::from_bits(val),
             di_state = Direction::from_bits(val),
             falling_aerials = BoolFlag::from_bits(val),
@@ -1074,6 +1119,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),
     sdi_strength: SdiStrength::Normal,
+    clatter_strength: ClatterStrength::None,
     air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
@@ -1357,6 +1403,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "SDI Strength",
         "sdi_strength",
         "SDI Strength: Relative strength of the smash directional influence inputs",
+        true,
+    );
+    defensive_tab.add_submenu_with_toggles::<ClatterStrength>(
+        "Clatter Strength",
+        "clatter_strength",
+        "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
         true,
     );
     defensive_tab.add_submenu_with_toggles::<LedgeOption>(

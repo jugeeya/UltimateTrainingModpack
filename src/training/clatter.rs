@@ -41,7 +41,7 @@ pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
         return;
     }
 
-    COUNTER = (COUNTER + 1) % MENU.sdi_strength.into_u32();
+    COUNTER = (COUNTER + 1) % MENU.clatter_strength.into_u32();
     if COUNTER == 1 {
         do_clatter_input(module_accessor);
     }
