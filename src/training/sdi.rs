@@ -2,9 +2,7 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::directional_influence;
 use core::f64::consts::PI;
-use smash::app::{self, lua_bind::*, sv_system};
-use smash::lib::L2CValue;
-use smash::lua2cpp::L2CFighterCommon;
+use smash::app::{self, lua_bind::*};
 use smash::Vector2f;
 
 static mut COUNTER: u32 = 0;
