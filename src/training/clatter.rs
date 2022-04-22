@@ -17,7 +17,7 @@ unsafe fn do_clatter_input(module_accessor: &mut BattleObjectModuleAccessor) {
     EffectModule::req_on_joint(
         module_accessor,
         Hash40::new("sys_clatter"),
-        Hash40::new("top"),
+        Hash40::new("hip"),
         &zeros,
         &zeros,
         1.0,
