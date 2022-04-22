@@ -2,9 +2,7 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::directional_influence;
 use core::f64::consts::PI;
-use smash::app::{self, lua_bind::*, sv_system};
-use smash::lib::L2CValue;
-use smash::lua2cpp::L2CFighterCommon;
+use smash::app::{self, lua_bind::*};
 use smash::Vector2f;
 
 static mut COUNTER: u32 = 0;
@@ -18,86 +16,37 @@ pub fn roll_direction() {
     }
 }
 
-#[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_FighterStatusUniqProcessDamage_hit_stop_delay)]
-pub unsafe fn process_hit_stop_delay(
-    fighter: &mut L2CFighterCommon,
-    arg1: L2CValue,
-    hit_stop_delay_flick_mul: L2CValue,
-    x: L2CValue,
-    y: L2CValue,
-) -> L2CValue {
-    let mut new_x: L2CValue = x;
-    let mut new_y: L2CValue = y;
-
-    if is_training_mode() {
-        let option = mod_sdi_direction(fighter);
-
-        if let Some(angle) = option {
-            new_x = (angle.cos() as f32).into();
-            new_y = (angle.sin() as f32).into();
+unsafe fn get_sdi_direction() -> Option<f64> {
+    DIRECTION.into_angle().map(|angle| {
+        if directional_influence::should_reverse_angle(&DIRECTION) {
+            PI - angle
+        } else {
+            angle
         }
-    }
-
-    original!()(fighter, arg1, hit_stop_delay_flick_mul, new_x, new_y)
-}
-
-fn mod_sdi_direction(fighter: &mut L2CFighterCommon) -> Option<f64> {
-    unsafe {
-        let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
-
-        if !is_operation_cpu(module_accessor) {
-            return None;
-        }
-
-        DIRECTION.into_angle().map(|angle| {
-            if directional_influence::should_reverse_angle(&DIRECTION) {
-                PI - angle
-            } else {
-                angle
-            }
-        })
-    }
+    })
 }
 
 #[skyline::hook(replace = FighterControlModuleImpl::check_hit_stop_delay_command)]
 pub unsafe fn check_hit_stop_delay_command(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    arg1: *mut Vector2f,
+    sdi_direction: *mut Vector2f,
 ) -> u64 {
-    let ori = original!()(module_accessor, arg1);
+    // Function returns 1 if there is an SDI input, 0 is there is not
 
-    if !is_training_mode() {
-        return ori;
+    if !is_training_mode() || !is_operation_cpu(module_accessor) {
+        return original!()(module_accessor, sdi_direction);
     }
 
-    mod_check_hit_stop_delay_command(module_accessor, arg1).unwrap_or(ori)
-}
-
-/**
- * Returning Some(1) here has the effect of enabling the call to process_hit_stop_delay()
- */
-fn mod_check_hit_stop_delay_command(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    _arg1: *mut Vector2f,
-) -> Option<u64> {
-    if !is_operation_cpu(module_accessor) {
-        return None;
-    }
-    unsafe {
-        if DIRECTION == Direction::empty() {
-            return None;
+    COUNTER = (COUNTER + 1) % MENU.sdi_strength.into_u32();
+    if COUNTER == 1 {
+        if let Some(angle) = get_sdi_direction() {
+            // If there is a non-neutral direction picked,
+            // modify the SDI angle Vector2f as a side-effect
+            // and return 1 so the CPU knows that an SDI input occurred
+            (*sdi_direction).x = (angle.cos() as f32).into();
+            (*sdi_direction).y = (angle.sin() as f32).into();
+            return 1;
         }
     }
-
-    unsafe {
-        COUNTER = (COUNTER + 1) % MENU.sdi_strength.into_u32();
-    }
-
-    unsafe {
-        if COUNTER != 1 {
-            return None;
-        }
-    }
-
-    Some(1)
+    0
 }
