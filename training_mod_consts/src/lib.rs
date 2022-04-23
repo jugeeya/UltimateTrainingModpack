@@ -1001,6 +1001,12 @@ macro_rules! set_by_str {
     }
 }
 
+const fn num_bits<T>() -> usize { std::mem::size_of::<T>() * 8 }
+
+fn log_2(x: u32) -> u32 {
+    num_bits::<u32>() as u32 - x.leading_zeros() - 1
+}
+
 impl TrainingModpackMenu {
     pub fn set(&mut self, s: &str, val: u32) {
         set_by_str!(
@@ -1017,7 +1023,7 @@ impl TrainingModpackMenu {
             follow_up = Action::from_bits(val),
             full_hop = BoolFlag::from_bits(val),
             hitbox_vis = OnOff::from_val(val),
-            input_delay = Some(val as i32),
+            input_delay = Some(log_2(val) as i32),
             ledge_delay = LongDelay::from_bits(val),
             ledge_state = LedgeOption::from_bits(val),
             mash_in_neutral = OnOff::from_val(val),
