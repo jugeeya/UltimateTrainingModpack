@@ -36,9 +36,10 @@ pub unsafe fn check_hit_stop_delay_command(
     if !is_training_mode() || !is_operation_cpu(module_accessor) {
         return original!()(module_accessor, sdi_direction);
     }
+    let repeat = MENU.sdi_strength.into_u32();
 
-    COUNTER = (COUNTER + 1) % MENU.sdi_strength.into_u32();
-    if COUNTER == 1 {
+    COUNTER = (COUNTER + 1) % repeat;
+    if COUNTER == repeat - 1 {
         if let Some(angle) = get_sdi_direction() {
             // If there is a non-neutral direction picked,
             // modify the SDI angle Vector2f as a side-effect

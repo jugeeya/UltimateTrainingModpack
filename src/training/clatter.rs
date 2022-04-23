@@ -40,9 +40,10 @@ pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
     if !is_in_clatter(module_accessor) {
         return;
     }
+    let repeat = MENU.clatter_strength.into_u32();
 
-    COUNTER = (COUNTER + 1) % MENU.clatter_strength.into_u32();
-    if COUNTER == 1 {
+    COUNTER = (COUNTER + 1) % repeat;
+    if COUNTER == repeat - 1 {
         do_clatter_input(module_accessor);
     }
 }
