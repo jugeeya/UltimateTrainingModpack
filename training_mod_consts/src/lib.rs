@@ -866,69 +866,29 @@ impl BoolFlag {
 
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter, Serialize, Deserialize)]
-pub enum SdiStrength {
-    Normal = 0,
-    Medium = 1,
-    High = 2,
-}
-
-impl SdiStrength {
-    pub fn into_u32(self) -> u32 {
-        match self {
-            SdiStrength::Normal => 8,
-            SdiStrength::Medium => 6,
-            SdiStrength::High => 4,
-        }
-    }
-
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            SdiStrength::Normal => "Normal",
-            SdiStrength::Medium => "Medium",
-            SdiStrength::High => "High",
-        })
-    }
-
-    pub fn to_url_param(&self) -> String {
-        (*self as u32).to_string()
-    }
-}
-
-impl ToggleTrait for SdiStrength {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        SdiStrength::iter().map(|i| i.as_str().unwrap_or("")).collect()
-    }
-
-    fn to_toggle_vals() -> Vec<usize> {
-        SdiStrength::iter().map(|i| i as usize).collect()
-    }
-}
-
-#[repr(u32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter, Serialize, Deserialize)]
-pub enum ClatterStrength {
+pub enum InputFrequency {
     None = 0,
     Normal = 1,
     Medium = 2,
     High = 4,
 }
 
-impl ClatterStrength {
+impl InputFrequency {
     pub fn into_u32(self) -> u32 {
         match self {
-            ClatterStrength::None => u32::MAX,
-            ClatterStrength::Normal => 8,
-            ClatterStrength::Medium => 6,
-            ClatterStrength::High => 4,
+            InputFrequency::None => u32::MAX,
+            InputFrequency::Normal => 8,
+            InputFrequency::Medium => 6,
+            InputFrequency::High => 4,
         }
     }
 
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
-            ClatterStrength::None => "None",
-            ClatterStrength::Normal => "Normal",
-            ClatterStrength::Medium => "Medium",
-            ClatterStrength::High => "High",
+            InputFrequency::None => "None",
+            InputFrequency::Normal => "Normal",
+            InputFrequency::Medium => "Medium",
+            InputFrequency::High => "High",
         })
     }
 
@@ -937,13 +897,13 @@ impl ClatterStrength {
     }
 }
 
-impl ToggleTrait for ClatterStrength {
+impl ToggleTrait for InputFrequency {
     fn to_toggle_strs() -> Vec<&'static str> {
-        ClatterStrength::iter().map(|i| i.as_str().unwrap_or("")).collect()
+        InputFrequency::iter().map(|i| i.as_str().unwrap_or("")).collect()
     }
 
     fn to_toggle_vals() -> Vec<usize> {
-        ClatterStrength::iter().map(|i| i as usize).collect()
+        InputFrequency::iter().map(|i| i as usize).collect()
     }
 }
 
@@ -1001,8 +961,8 @@ url_params! {
         pub stage_hazards: OnOff,
         pub di_state: Direction,
         pub sdi_state: Direction,
-        pub sdi_strength: SdiStrength,
-        pub clatter_strength: ClatterStrength,
+        pub sdi_strength: InputFrequency,
+        pub clatter_strength: InputFrequency,
         pub air_dodge_dir: Direction,
         pub mash_state: Action,
         pub follow_up: Action,
@@ -1118,8 +1078,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),
-    sdi_strength: SdiStrength::Normal,
-    clatter_strength: ClatterStrength::None,
+    sdi_strength: InputFrequency::None,
+    clatter_strength: InputFrequency::None,
     air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
@@ -1399,13 +1359,13 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "SDI Direction: Direction to angle the smash directional influence during hitlag",
         false,
     );
-    defensive_tab.add_submenu_with_toggles::<SdiStrength>(
+    defensive_tab.add_submenu_with_toggles::<InputFrequency>(
         "SDI Strength",
         "sdi_strength",
         "SDI Strength: Relative strength of the smash directional influence inputs",
         true,
     );
-    defensive_tab.add_submenu_with_toggles::<ClatterStrength>(
+    defensive_tab.add_submenu_with_toggles::<InputFrequency>(
         "Clatter Strength",
         "clatter_strength",
         "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
