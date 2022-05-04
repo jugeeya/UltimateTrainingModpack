@@ -111,7 +111,9 @@ jobs:
           body: >
             Beta built off of the latest code in the repository. 
             
-            
+
+            ## Installing on console
+
             
             Install the same way you would install a full release.
             
@@ -122,7 +124,7 @@ jobs:
             Instructions to get the beta working on Ryujinx.
             
             
-            1. Download a Skyline-tolerant build of Ryujinx, which can be found here: https://github.com/Ryujinx/Ryujinx/pull/2966#issuecomment-1003648371 
+            1. Download the latest build of Ryujinx, which can be found here:  https://ryujinx.org/download/
             
             2. Download the beta. https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta 
             
