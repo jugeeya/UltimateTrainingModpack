@@ -1004,7 +1004,10 @@ macro_rules! set_by_str {
 const fn num_bits<T>() -> usize { std::mem::size_of::<T>() * 8 }
 
 fn log_2(x: u32) -> u32 {
-    num_bits::<u32>() as u32 - x.leading_zeros() - 1
+    if x == 0 { 0 }
+    else {
+        num_bits::<u32>() as u32 - x.leading_zeros() - 1
+    }
 }
 
 impl TrainingModpackMenu {
