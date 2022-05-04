@@ -866,26 +866,29 @@ impl BoolFlag {
 
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter, Serialize, Deserialize)]
-pub enum SdiStrength {
-    Normal = 0,
-    Medium = 1,
-    High = 2,
+pub enum InputFrequency {
+    None = 0,
+    Normal = 1,
+    Medium = 2,
+    High = 4,
 }
 
-impl SdiStrength {
+impl InputFrequency {
     pub fn into_u32(self) -> u32 {
         match self {
-            SdiStrength::Normal => 8,
-            SdiStrength::Medium => 6,
-            SdiStrength::High => 4,
+            InputFrequency::None => u32::MAX,
+            InputFrequency::Normal => 8,
+            InputFrequency::Medium => 6,
+            InputFrequency::High => 4,
         }
     }
 
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
-            SdiStrength::Normal => "Normal",
-            SdiStrength::Medium => "Medium",
-            SdiStrength::High => "High",
+            InputFrequency::None => "None",
+            InputFrequency::Normal => "Normal",
+            InputFrequency::Medium => "Medium",
+            InputFrequency::High => "High",
         })
     }
 
@@ -894,13 +897,13 @@ impl SdiStrength {
     }
 }
 
-impl ToggleTrait for SdiStrength {
+impl ToggleTrait for InputFrequency {
     fn to_toggle_strs() -> Vec<&'static str> {
-        SdiStrength::iter().map(|i| i.as_str().unwrap_or("")).collect()
+        InputFrequency::iter().map(|i| i.as_str().unwrap_or("")).collect()
     }
 
     fn to_toggle_vals() -> Vec<usize> {
-        SdiStrength::iter().map(|i| i as usize).collect()
+        InputFrequency::iter().map(|i| i as usize).collect()
     }
 }
 
@@ -958,7 +961,8 @@ url_params! {
         pub stage_hazards: OnOff,
         pub di_state: Direction,
         pub sdi_state: Direction,
-        pub sdi_strength: SdiStrength,
+        pub sdi_strength: InputFrequency,
+        pub clatter_strength: InputFrequency,
         pub air_dodge_dir: Direction,
         pub mash_state: Action,
         pub follow_up: Action,
@@ -1018,6 +1022,7 @@ impl TrainingModpackMenu {
             aerial_delay = Delay::from_bits(val),
             air_dodge_dir = Direction::from_bits(val),
             attack_angle = AttackAngle::from_bits(val),
+            clatter_strength = num::FromPrimitive::from_u32(val),
             defensive_state = Defensive::from_bits(val),
             di_state = Direction::from_bits(val),
             falling_aerials = BoolFlag::from_bits(val),
@@ -1082,7 +1087,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     stage_hazards: OnOff::Off,
     di_state: Direction::empty(),
     sdi_state: Direction::empty(),
-    sdi_strength: SdiStrength::Normal,
+    sdi_strength: InputFrequency::None,
+    clatter_strength: InputFrequency::None,
     air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
@@ -1362,10 +1368,16 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "SDI Direction: Direction to angle the smash directional influence during hitlag",
         false,
     );
-    defensive_tab.add_submenu_with_toggles::<SdiStrength>(
+    defensive_tab.add_submenu_with_toggles::<InputFrequency>(
         "SDI Strength",
         "sdi_strength",
         "SDI Strength: Relative strength of the smash directional influence inputs",
+        true,
+    );
+    defensive_tab.add_submenu_with_toggles::<InputFrequency>(
+        "Clatter Strength",
+        "clatter_strength",
+        "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
         true,
     );
     defensive_tab.add_submenu_with_toggles::<LedgeOption>(

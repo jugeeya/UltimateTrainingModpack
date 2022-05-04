@@ -10,6 +10,7 @@ use smash::phx::{Hash40, Vector3f};
 
 pub mod buff;
 pub mod charge;
+pub mod clatter;
 pub mod combo;
 pub mod directional_influence;
 pub mod frame_counter;
@@ -114,6 +115,7 @@ fn once_per_frame_per_fighter(
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
         tech::get_command_flag_cat(module_accessor);
+        clatter::handle_clatter(module_accessor);
     }
 
     fast_fall::get_command_flag_cat(module_accessor);

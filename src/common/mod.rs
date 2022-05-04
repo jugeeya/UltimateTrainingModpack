@@ -136,3 +136,7 @@ pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
         [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
     }
 }
+
+pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    ControlModule::get_clatter_time(module_accessor, 0) > 0.0
+}
