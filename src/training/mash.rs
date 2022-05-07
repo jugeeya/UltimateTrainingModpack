@@ -152,7 +152,7 @@ fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool 
 }
 
 // Temp Translation
-pub fn buffer_menu_mash() -> Action {
+pub fn buffer_menu_mash() {
     unsafe {
         let action = MENU.mash_state.get_random();
         buffer_action(action);
@@ -160,8 +160,6 @@ pub fn buffer_menu_mash() -> Action {
         full_hop::roll_full_hop();
         fast_fall::roll_fast_fall();
         FALLING_AERIAL = MENU.falling_aerials.get_random().into_bool();
-
-        action
     }
 }
 

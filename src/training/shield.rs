@@ -218,7 +218,8 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    let action = mash::buffer_menu_mash();
+    mash::buffer_menu_mash();
+    let action = mash::get_current_buffer();
 
     if handle_escape_option(fighter, module_accessor) {
         return;
