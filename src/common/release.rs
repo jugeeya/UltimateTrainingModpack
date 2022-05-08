@@ -4,23 +4,24 @@ use std::fs;
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const VERSION_FILE_PATH: &str = "sd:/TrainingModpack/version.txt";
 
-fn is_current_version(fpath: &str) -> Option<bool> {
-    // Returns:
-    //     Some(true) if it is the current version
-    //     Some(false) if it is upgrading from a prior version
-    //     None if it is a fresh install (i.e. no prior version.txt exists)
+enum VersionCheck {
+    Current,
+    NoFile,
+    Update,
+}
 
+fn is_current_version(fpath: &str) -> VersionCheck {
     // Create a blank version file if it doesn't exists
     if fs::metadata(fpath).is_err() {
         fs::File::create(fpath).expect("Could not create version file!");
-        return None;
+        return VersionCheck::NoFile;
     }
 
-    Some(
-        fs::read_to_string(fpath)
-            .map(|content| content == CURRENT_VERSION)
-            .unwrap_or(false),
-    )
+    if fs::read_to_string(fpath).unwrap_or("".to_string()) == CURRENT_VERSION {
+        VersionCheck::Current
+    } else {
+        VersionCheck::Update
+    }
 }
 
 fn record_current_version(fpath: &str) {
@@ -30,10 +31,10 @@ fn record_current_version(fpath: &str) {
 
 pub fn version_check() {
     match is_current_version(VERSION_FILE_PATH) {
-        Some(true) => {
+        VersionCheck::Current => {
             // Version is current, no need to take any action
         }
-        Some(false) => {
+        VersionCheck::Update => {
             // Display dialog box on launch if changing versions
             DialogOk::ok(
                 format!(
@@ -49,7 +50,7 @@ pub fn version_check() {
                 .unwrap_or({});
             record_current_version(VERSION_FILE_PATH);
         }
-        None => {
+        VersionCheck::NoFile => {
             // Display dialog box on fresh installation
             DialogOk::ok(
                 format!(
