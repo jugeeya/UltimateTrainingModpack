@@ -220,7 +220,11 @@ unsafe fn buff_sepiroth(
     false
 }
 
-unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32, percent: f32) -> bool {
+unsafe fn buff_wiifit(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    status: i32,
+    percent: f32,
+) -> bool {
     if is_buffing(module_accessor) {
         if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
             // Need to wait 2 frames to make sure we stop breathing SFX
