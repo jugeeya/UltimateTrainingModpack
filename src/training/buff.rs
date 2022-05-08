@@ -90,7 +90,7 @@ pub unsafe fn handle_buffs(
     } else if fighter_kind == *FIGHTER_KIND_JACK && menu_vec.contains(&BuffOption::ARSENE) {
         return buff_joker(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_WIIFIT && menu_vec.contains(&BuffOption::BREATHING) {
-        return buff_wiifit(module_accessor, status);
+        return buff_wiifit(module_accessor, status, percent);
     } else if fighter_kind == *FIGHTER_KIND_CLOUD && menu_vec.contains(&BuffOption::LIMIT) {
         return buff_cloud(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_LITTLEMAC && menu_vec.contains(&BuffOption::KO) {
@@ -220,12 +220,19 @@ unsafe fn buff_sepiroth(
     false
 }
 
-unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
+unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32, percent: f32) -> bool {
     if is_buffing(module_accessor) {
         if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
             // Need to wait 2 frames to make sure we stop breathing SFX
             return false;
         }
+        // Deep Breathing can heal, so we need to reset the damage
+        DamageModule::heal(
+            module_accessor,
+            -1.0 * DamageModule::damage(module_accessor, 0),
+            0,
+        );
+        DamageModule::add_damage(module_accessor, percent, 0);
         return true;
     }
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
