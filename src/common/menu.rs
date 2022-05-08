@@ -156,6 +156,7 @@ impl ButtonPress {
     }
 
     pub fn read_press(&mut self) -> bool {
+        let is_pressed = self.is_pressed;
         if self.is_pressed {
             self.is_pressed = false;
             if !self.prev_frame_is_pressed && self.lockout_frames == 0 {
@@ -169,7 +170,7 @@ impl ButtonPress {
             self.lockout_frames -= 1;
         }
 
-        self.prev_frame_is_pressed = self.is_pressed;
+        self.prev_frame_is_pressed = is_pressed;
         false
     }
 }
