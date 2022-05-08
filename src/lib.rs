@@ -209,6 +209,7 @@ pub fn main() {
                 }
                 has_slept_millis = 16;
                 if !menu::QUICK_MENU_ACTIVE {
+                    app = training_mod_tui::App::new(menu);
                     set_should_display_text_to_screen(false);
                     continue;
                 }
