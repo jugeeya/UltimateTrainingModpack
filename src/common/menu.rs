@@ -11,17 +11,24 @@ use std::fs;
 use std::path::Path;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
+pub static mut QUICK_MENU_FRAME_COUNTER_INDEX: usize = 0;
 const MENU_LOCKOUT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub fn init() {
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
+        QUICK_MENU_FRAME_COUNTER_INDEX = frame_counter::register_counter();
         write_menu();
     }
 }
 
 pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
+    // also ensure quick menu is reset
+    if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) > 60 {
+        frame_counter::full_reset(QUICK_MENU_FRAME_COUNTER_INDEX);
+    }
+
     // Only check for button combination if the counter is 0 (not locked out)
     match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
         0 => {
@@ -93,6 +100,8 @@ pub fn spawn_menu() {
     unsafe {
         frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
         frame_counter::start_counting(FRAME_COUNTER_INDEX);
+        frame_counter::reset_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
     }
 
     let mut quick_menu = false;
@@ -159,9 +168,9 @@ impl ButtonPress {
         let is_pressed = self.is_pressed;
         if self.is_pressed {
             self.is_pressed = false;
-            if !self.prev_frame_is_pressed && self.lockout_frames == 0 {
-                self.lockout_frames = 10;
+            if self.lockout_frames == 0 {
                 self.prev_frame_is_pressed = true;
+                self.lockout_frames = 10;
                 return true;
             }
         }
@@ -172,21 +181,6 @@ impl ButtonPress {
 
         self.prev_frame_is_pressed = is_pressed;
         false
-    }
-}
-
-impl ButtonPresses {
-    pub fn default() -> ButtonPresses {
-        ButtonPresses {
-            a: ButtonPress::default(),
-            b: ButtonPress::default(),
-            zr: ButtonPress::default(),
-            zl: ButtonPress::default(),
-            left: ButtonPress::default(),
-            right: ButtonPress::default(),
-            up: ButtonPress::default(),
-            down: ButtonPress::default(),
-        }
     }
 }
 
