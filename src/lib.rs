@@ -28,6 +28,7 @@ use skyline::libc::{c_char, mkdir};
 use skyline::nro::{self, NroInfo};
 use std::fs;
 
+use crate::training::frame_counter;
 use owo_colors::OwoColorize;
 use training_mod_consts::OnOff;
 use training_mod_tui::Color;
@@ -170,7 +171,9 @@ pub fn main() {
                     received_input = true;
                     if !app.outer_list {
                         app.on_b()
-                    } else if !b_prev_press {
+                    } else if frame_counter::get_frame_count(menu::QUICK_MENU_FRAME_COUNTER_INDEX)
+                        == 0
+                    {
                         // Leave menu.
                         menu::QUICK_MENU_ACTIVE = false;
                         crate::menu::set_menu_from_url(url.as_str());
@@ -209,6 +212,7 @@ pub fn main() {
                 }
                 has_slept_millis = 16;
                 if !menu::QUICK_MENU_ACTIVE {
+                    app = training_mod_tui::App::new(crate::common::consts::get_menu());
                     set_should_display_text_to_screen(false);
                     continue;
                 }
