@@ -68,10 +68,9 @@
 }
 
 .tab-content {
-    width: 100%;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
+    margin-left: 3%; /* Workaround for "centering" menu items since justify-content: center doesn't work */
 }
 
 body {
@@ -80,13 +79,7 @@ body {
     margin: 0;
 }
 
-/* Overwrite padding from keyword stuff. */
-.l-main-content {
-    padding: 0px 0px 0px;
-}
-
-/* Handle alignment of items in the header */
-.l-header {
+.header {
     display: flex;
     justify-content: space-between;
     position: relative;
@@ -190,6 +183,7 @@ body {
     /* Container div for menu link and menu list */
     width: 30%;
     margin: 6px;
+    padding: 0px 8px 0px 8px;
 }
 
 .menu-button, .menu-item > div button {
