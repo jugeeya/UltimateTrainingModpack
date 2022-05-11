@@ -9,8 +9,9 @@ use crate::training::charge::{self, ChargeState};
 use crate::training::reset;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
-use smash::lib::lua_const::*;
+use smash::lib::lua_const::{self, *};
 use smash::phx::{Hash40, Vector3f};
+use training_mod_consts::CharacterItem;
 
 use crate::training::character_specific::steve;
 
@@ -95,6 +96,60 @@ pub unsafe fn should_mirror() -> f32 {
         SaveStateMirroring::None => 1.0,
         SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
         SaveStateMirroring::Random => ([-1.0, 1.0])[get_random_int(2) as usize],
+    }
+}
+
+unsafe fn character_item_kind(item: CharacterItem) -> (i32, Option<i32>) {
+    use CharacterItem::*;
+    match item {
+        NONE => (0, Option::None),
+        ITEM_KIND_BANANA=> (*lua_const::ITEM_KIND_BANANA, None),
+        ITEM_KIND_BOOK => (*lua_const::ITEM_KIND_BOOK, None), // TODO: Look at the lua const ITEM_BOOK_STATUS_KIND_BEFORE_BORN
+        ITEM_KIND_BUDDYBOMB => (*lua_const::ITEM_KIND_BUDDYBOMB, None),
+        ITEM_KIND_DAISYDAIKON_1 => (*lua_const::ITEM_KIND_DAISYDAIKON, Some(*lua_const::ITEM_VARIATION_DAISYDAIKON_1)), // Smile
+        ITEM_KIND_DAISYDAIKON_6 => (*lua_const::ITEM_KIND_DAISYDAIKON, Some(*lua_const::ITEM_VARIATION_DAISYDAIKON_6)), // Winky
+        ITEM_KIND_DAISYDAIKON_7 => (*lua_const::ITEM_KIND_DAISYDAIKON, Some(*lua_const::ITEM_VARIATION_DAISYDAIKON_7)), // Dot-Eyes
+        ITEM_KIND_DAISYDAIKON_8 => (*lua_const::ITEM_KIND_DAISYDAIKON, Some(*lua_const::ITEM_VARIATION_DAISYDAIKON_8)), // Stitch-face
+        ITEM_KIND_DOSEISAN => (*lua_const::ITEM_KIND_DOSEISAN, None),
+        ITEM_KIND_BOMBHEI => (*lua_const::ITEM_KIND_BOMBHEI, None),
+        ITEM_KIND_DIDDYPEANUTS => (*lua_const::ITEM_KIND_DIDDYPEANUTS, None),
+        ITEM_KIND_EXPLOSIONBOMB => (*lua_const::ITEM_KIND_EXPLOSIONBOMB, None),
+        ITEM_KIND_KROOLCROWN => (*lua_const::ITEM_KIND_KROOLCROWN, None),
+        ITEM_KIND_LINKARROW => (*lua_const::ITEM_KIND_LINKARROW, None),
+        ITEM_KIND_LINKBOMB => (*lua_const::ITEM_KIND_LINKBOMB, None),
+        ITEM_KIND_MECHAKOOPA => (*lua_const::ITEM_KIND_MECHAKOOPA, None),
+        ITEM_KIND_METALBLADE => (*lua_const::ITEM_KIND_METALBLADE, None),
+        ITEM_KIND_PACMANCHERRY => (*lua_const::ITEM_KIND_PACMANCHERRY, None),
+        ITEM_KIND_PACMANSTRAWBERRY => (*lua_const::ITEM_KIND_PACMANSTRAWBERRY, None),
+        ITEM_KIND_PACMANORANGE => (*lua_const::ITEM_KIND_PACMANORANGE, None),
+        ITEM_KIND_PACMANAPPLE => (*lua_const::ITEM_KIND_PACMANAPPLE, None),
+        ITEM_KIND_PACMANMELON => (*lua_const::ITEM_KIND_PACMANMELON, None),
+        ITEM_KIND_PACMANBOSS => (*lua_const::ITEM_KIND_PACMANBOSS, None),
+        ITEM_KIND_PACMANBELL => (*lua_const::ITEM_KIND_PACMANBELL, None),
+        ITEM_KIND_PACMANKEY => (*lua_const::ITEM_KIND_PACMANKEY, None),
+        ITEM_KIND_RICHTERHOLYWATER => (*lua_const::ITEM_KIND_RICHTERHOLYWATER, None),
+        ITEM_KIND_ROBOTGYRO_1P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_1P)),
+        ITEM_KIND_ROBOTGYRO_2P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_2P)),
+        ITEM_KIND_ROBOTGYRO_3P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_3P)),
+        ITEM_KIND_ROBOTGYRO_4P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_4P)),
+        ITEM_KIND_ROBOTGYRO_5P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_5P)),
+        ITEM_KIND_ROBOTGYRO_6P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_6P)),
+        ITEM_KIND_ROBOTGYRO_7P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_7P)),
+        ITEM_KIND_ROBOTGYRO_8P => (*lua_const::ITEM_KIND_ROBOTGYRO, Some(*lua_const::ITEM_VARIATION_ROBOTGYRO_8P)),
+        ITEM_KIND_SIMONHOLYWATER => (*lua_const::ITEM_KIND_SIMONHOLYWATER, None),
+        ITEM_KIND_SNAKEGRENADE => (*lua_const::ITEM_KIND_SNAKEGRENADE, None),
+        ITEM_KIND_SNAKECBOX => (*lua_const::ITEM_KIND_SNAKECBOX, None),
+        ITEM_KIND_THUNDERSWORD => (*lua_const::ITEM_KIND_THUNDERSWORD, None),
+        ITEM_KIND_TOONLINKBOMB => (*lua_const::ITEM_KIND_TOONLINKBOMB, None),
+        ITEM_KIND_WARIOBIKE=> (*lua_const::ITEM_KIND_WARIOBIKE, None),
+        // Pretty sure these other ones are just the bike parts
+        // ITEM_KIND_WARIOBIKEA,
+        // ITEM_KIND_WARIOBIKEB,
+        // ITEM_KIND_WARIOBIKEC,
+        // ITEM_KIND_WARIOBIKED,
+        // ITEM_KIND_WARIOBIKEE,
+        ITEM_KIND_WOOD => (*lua_const::ITEM_KIND_WOOD, None),
+        ITEM_KIND_YOUNGLINKBOMB => (*lua_const::ITEM_KIND_YOUNGLINKBOMB, None),
     }
 }
 
@@ -315,6 +370,17 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
+            // Set to held item
+            if MENU.character_item != CharacterItem::NONE {
+                let (item_kind, item_variation) = character_item_kind(MENU.character_item);
+                ItemModule::have_item(module_accessor,
+                                      smash::app::ItemKind(item_kind),
+                                      item_variation.unwrap_or(0),
+                                      0,
+                                      false,
+                                      false);
+            }
+
             // Set the charge of special moves if the fighter matches the kind in the save state
             if save_state.fighter_kind == fighter_kind {
                 charge::handle_charge(module_accessor, fighter_kind, save_state.charge);

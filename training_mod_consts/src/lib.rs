@@ -918,6 +918,83 @@ impl ToUrlParam for i32 {
     }
 }
 
+/// Item Selections
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize, Deserialize)]
+pub enum CharacterItem {
+    NONE = 0,
+    ITEM_KIND_BANANA = 1,
+    ITEM_KIND_BOOK = 2, // None, // TODO: Look at the lua const ITEM_BOOK_STATUS_KIND_BEFORE_BORN
+    ITEM_KIND_BUDDYBOMB = 3, // None,
+    ITEM_KIND_DAISYDAIKON_1 = 4, // Some(ITEM_VARIATION_DAISYDAIKON_1), // Smile
+    ITEM_KIND_DAISYDAIKON_6 = 5, // Some(ITEM_VARIATION_DAISYDAIKON_6), // Winky
+    ITEM_KIND_DAISYDAIKON_7 = 6, // Some(ITEM_VARIATION_DAISYDAIKON_7), // Dot-Eyes
+    ITEM_KIND_DAISYDAIKON_8 = 7, // Some(ITEM_VARIATION_DAISYDAIKON_8), // Stitch-face
+    ITEM_KIND_DOSEISAN = 8, // None,
+    ITEM_KIND_BOMBHEI = 9, // Some(ITEM_VARIATION_BOMBHEI_NORMAL),
+    ITEM_KIND_DIDDYPEANUTS = 10,
+    ITEM_KIND_EXPLOSIONBOMB = 11, // None,
+    ITEM_KIND_KROOLCROWN = 12,
+    ITEM_KIND_LINKARROW = 13, // None,
+    ITEM_KIND_LINKBOMB = 14, // None,
+    ITEM_KIND_MECHAKOOPA = 15, // None,
+    ITEM_KIND_METALBLADE = 16, // None,
+    ITEM_KIND_PACMANCHERRY = 17, // None,
+    ITEM_KIND_PACMANSTRAWBERRY = 18, // None,
+    ITEM_KIND_PACMANORANGE = 19, // None,
+    ITEM_KIND_PACMANAPPLE = 20, // None,
+    ITEM_KIND_PACMANMELON = 21, // None,
+    ITEM_KIND_PACMANBOSS = 22, // None,
+    ITEM_KIND_PACMANBELL = 23, // None,
+    ITEM_KIND_PACMANKEY = 24, // None,
+    ITEM_KIND_RICHTERHOLYWATER = 25, // None,
+    ITEM_KIND_ROBOTGYRO_1P = 26, // Some(ITEM_VARIATION_ROBOTGYRO_1P),
+    ITEM_KIND_ROBOTGYRO_2P = 27, // Some(ITEM_VARIATION_ROBOTGYRO_2P),
+    ITEM_KIND_ROBOTGYRO_3P = 28, // Some(ITEM_VARIATION_ROBOTGYRO_3P),
+    ITEM_KIND_ROBOTGYRO_4P = 29, // Some(ITEM_VARIATION_ROBOTGYRO_4P),
+    ITEM_KIND_ROBOTGYRO_5P = 30, // Some(ITEM_VARIATION_ROBOTGYRO_5P),
+    ITEM_KIND_ROBOTGYRO_6P = 31, // Some(ITEM_VARIATION_ROBOTGYRO_6P),
+    ITEM_KIND_ROBOTGYRO_7P = 32, // Some(ITEM_VARIATION_ROBOTGYRO_7P),
+    ITEM_KIND_ROBOTGYRO_8P = 33, // Some(ITEM_VARIATION_ROBOTGYRO_8P),
+    ITEM_KIND_SIMONHOLYWATER = 34, // None,
+    ITEM_KIND_SNAKEGRENADE = 35, // None,
+    ITEM_KIND_SNAKECBOX = 36, // None,
+    ITEM_KIND_THUNDERSWORD = 37, // None,
+    ITEM_KIND_TOONLINKBOMB = 38, // None,
+    ITEM_KIND_WARIOBIKE = 39,
+        // Pretty sure these other ones are just the bike parts
+        // ITEM_KIND_WARIOBIKEA,
+        // ITEM_KIND_WARIOBIKEB,
+        // ITEM_KIND_WARIOBIKEC,
+        // ITEM_KIND_WARIOBIKED,
+        // ITEM_KIND_WARIOBIKEE,
+    ITEM_KIND_WOOD = 41, // None,
+    ITEM_KIND_YOUNGLINKBOMB = 42, // None,
+}
+
+impl CharacterItem {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            CharacterItem::ITEM_KIND_DAISYDAIKON_1 => "Turnip (Smile)",
+            _ => "UNK"
+        })
+    }
+
+    pub fn to_url_param(&self) -> String {
+        (*self as i32).to_string()
+    }
+}
+
+impl ToggleTrait for CharacterItem {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        CharacterItem::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        CharacterItem::iter().map(|i| i as usize).collect()
+    }
+}
+
 // Macro to build the url parameter string
 macro_rules! url_params {
     (
@@ -991,6 +1068,7 @@ url_params! {
         pub throw_delay: MedDelay,
         pub pummel_delay: MedDelay,
         pub buff_state: BuffOption,
+        pub character_item: CharacterItem,
         pub quick_menu: OnOff,
     }
 }
@@ -1053,6 +1131,7 @@ impl TrainingModpackMenu {
             throw_delay = MedDelay::from_bits(val),
             pummel_delay = MedDelay::from_bits(val),
             buff_state = BuffOption::from_bits(val),
+            character_item = num::FromPrimitive::from_u32(val),
             quick_menu = OnOff::from_val(val),
         );
     }
@@ -1117,6 +1196,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
     buff_state: BuffOption::empty(),
+    character_item: CharacterItem::NONE,
     quick_menu: OnOff::Off,
 };
 
@@ -1427,6 +1507,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "buff_state",
         "Buff Options: Buff(s) to be applied to respective character when loading save states",
         false,
+    );
+    defensive_tab.add_submenu_with_toggles::<CharacterItem>(
+        "Character Item",
+        "character_item",
+        "Character Item: Item to hold when loading a save state",
+        true
     );
     overall_menu.tabs.push(defensive_tab);
 
