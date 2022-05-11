@@ -1,7 +1,6 @@
 use crate::common::consts::get_menu_from_url;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
-use crate::mkdir;
 use crate::training::frame_counter;
 use ramhorns::Template;
 use skyline::info::get_program_id;
@@ -58,13 +57,11 @@ pub unsafe fn write_menu() {
     // From skyline-web
     let program_id = get_program_id();
     let htdocs_dir = "training_modpack";
-    let menu_dir_path = Path::new("sd:/atmosphere/contents")
+    let menu_html_path = Path::new("sd:/atmosphere/contents")
         .join(&format!("{:016X}", program_id))
-        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir));
+        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
+        .join("training_menu.html");
 
-    let menu_html_path = menu_dir_path.join("training_menu.html");
-
-    mkdir(menu_dir_path.to_str().unwrap().as_bytes().as_ptr(), 777);
     let write_resp = fs::write(menu_html_path, data);
     if write_resp.is_err() {
         println!("Error!: {}", write_resp.err().unwrap());
