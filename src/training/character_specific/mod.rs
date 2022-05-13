@@ -2,6 +2,7 @@ use smash::app::{self};
 
 mod bowser;
 pub mod steve;
+pub mod items;
 
 /**
  * Checks if the current status matches the expected status
