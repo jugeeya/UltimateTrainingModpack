@@ -3,14 +3,14 @@ use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
+use crate::common::is_operation_cpu;
 use crate::common::MENU;
 use crate::training::buff;
 use crate::training::character_specific::{items, steve};
-use crate::training::items::apply_item;
 use crate::training::charge::{self, ChargeState};
+use crate::training::items::apply_item;
 use crate::training::reset;
 use smash::app::{self, lua_bind::*, utility};
-use crate::common::is_operation_cpu;
 use smash::hash40;
 use smash::lib::lua_const::{self, *};
 use smash::phx::{Hash40, Vector3f};
@@ -77,8 +77,8 @@ macro_rules! default_save_state {
     };
 }
 
-use SaveState::*;
 use crate::ITEM_MANAGER_ADDR;
+use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
 static mut SAVE_STATE_CPU: SavedState = default_save_state!();
@@ -194,10 +194,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
-    if (MENU.save_state_autoload == OnOff::On && save_state.state == NoAction && is_dead(module_accessor)) ||
-        (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI))
-        && !fighter_is_nana
+    if (MENU.save_state_autoload == OnOff::On
+        && save_state.state == NoAction
+        && is_dead(module_accessor))
+        || (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI))
+            && !fighter_is_nana
     {
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
@@ -232,7 +234,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             // TODO CHECK THIS
             let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
             let num_active_items = ItemManager::get_num_of_active_item_all(item_mgr);
-            println!("Number of active items: {}",num_active_items);
+            println!("Number of active items: {}", num_active_items);
             for i in 0..num_active_items {
                 ItemManager::remove_item_from_id(item_mgr, i as u32);
             }

@@ -1,13 +1,13 @@
 use crate::common::consts::*;
 use crate::common::*;
-use smash::app;
-use smash::app::lua_bind::*;
-use smash::app::{BattleObjectModuleAccessor, utility};
-use smash::cpp::l2c_value::LuaConst;
-use smash::lib::lua_const::*;
-use smash::app::ItemKind;
 use crate::training::save_states;
 use crate::training::save_states::save_states;
+use smash::app;
+use smash::app::lua_bind::*;
+use smash::app::ItemKind;
+use smash::app::{utility, BattleObjectModuleAccessor};
+use smash::cpp::l2c_value::LuaConst;
+use smash::lib::lua_const::*;
 
 pub struct CharItem {
     pub fighter_kind: LuaConst,
@@ -325,52 +325,59 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
     },
 ];
 
-pub static mut TURNIP_CHOSEN : Option<u32> = None;
+pub static mut TURNIP_CHOSEN: Option<u32> = None;
 
-pub unsafe fn apply_item(module_accessor: &mut BattleObjectModuleAccessor,
-                         fighter_kind: i32,
-                         character_item: CharacterItem) {
+pub unsafe fn apply_item(
+    module_accessor: &mut BattleObjectModuleAccessor,
+    fighter_kind: i32,
+    character_item: CharacterItem,
+) {
     let variation_idx = (character_item as i32 - 1) as usize;
-    ALL_CHAR_ITEMS.iter()
+    ALL_CHAR_ITEMS
+        .iter()
         .filter(|item| item.fighter_kind == fighter_kind)
         .nth(variation_idx)
         .map(|item| {
-            let variation = item.variation.as_ref()
-                .map(|v| **v)
-                .unwrap_or(0);
+            let variation = item.variation.as_ref().map(|v| **v).unwrap_or(0);
             item.item_kind.as_ref().map(|item_kind| {
                 let item_kind = **item_kind;
                 if item_kind == *ITEM_KIND_LINKBOMB {
                     WorkModule::on_flag(
                         module_accessor,
-                        *FIGHTER_LINK_STATUS_WORK_ID_FLAG_BOMB_GENERATE_LINKBOMB);
+                        *FIGHTER_LINK_STATUS_WORK_ID_FLAG_BOMB_GENERATE_LINKBOMB,
+                    );
                 } else {
-                    ItemModule::have_item(module_accessor,
-                                          smash::app::ItemKind(item_kind),
-                                          variation,
-                                          0,
-                                          false,
-                                          false);
+                    ItemModule::have_item(
+                        module_accessor,
+                        smash::app::ItemKind(item_kind),
+                        variation,
+                        0,
+                        false,
+                        false,
+                    );
                 }
             });
             item.article_kind.as_ref().map(|article_kind| {
                 TURNIP_CHOSEN = if [*ITEM_VARIATION_PEACHDAIKON_8, *ITEM_VARIATION_DAISYDAIKON_8]
-                    .contains(&variation) {
+                    .contains(&variation)
+                {
                     Some(8)
                 } else if [*ITEM_VARIATION_PEACHDAIKON_7, *ITEM_VARIATION_DAISYDAIKON_7]
-                    .contains(&variation) {
+                    .contains(&variation)
+                {
                     Some(7)
                 } else if [*ITEM_VARIATION_PEACHDAIKON_6, *ITEM_VARIATION_DAISYDAIKON_6]
-                    .contains(&variation) {
+                    .contains(&variation)
+                {
                     Some(6)
                 } else if [*ITEM_VARIATION_PEACHDAIKON_1, *ITEM_VARIATION_DAISYDAIKON_1]
-                    .contains(&variation) {
+                    .contains(&variation)
+                {
                     Some(1)
                 } else {
                     None
                 };
-                ArticleModule::generate_article(module_accessor,
-                                                **article_kind, false, 0);
+                ArticleModule::generate_article(module_accessor, **article_kind, false, 0);
                 TURNIP_CHOSEN = None;
             });
         });
@@ -419,9 +426,7 @@ daikon_replace!(DAISY, daisy, 2);
 daikon_replace!(DAISY, daisy, 1);
 
 #[skyline::hook(replace = smash::app::lua_bind::ItemManager::is_change_fighter_restart_position)]
-pub unsafe fn is_change_fighter_restart_position(
-    mgr: *mut smash::app::ItemManager
-) -> bool {
+pub unsafe fn is_change_fighter_restart_position(mgr: *mut smash::app::ItemManager) -> bool {
     let ori = original!()(mgr);
     // Remove all items when reverting to save state
     if is_training_mode() && save_states::is_killing() {
