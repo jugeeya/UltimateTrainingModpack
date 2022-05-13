@@ -923,60 +923,28 @@ impl ToUrlParam for i32 {
 #[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize, Deserialize)]
 pub enum CharacterItem {
     NONE = 0,
-    ITEM_KIND_BANANA = 1,
-    ITEM_KIND_BOOK = 2, // None, // TODO: Look at the lua const ITEM_BOOK_STATUS_KIND_BEFORE_BORN
-    ITEM_KIND_BUDDYBOMB = 3, // None,
-    ITEM_KIND_DAISYDAIKON_1 = 4, // Some(ITEM_VARIATION_DAISYDAIKON_1), // Smile
-    ITEM_KIND_DAISYDAIKON_6 = 5, // Some(ITEM_VARIATION_DAISYDAIKON_6), // Winky
-    ITEM_KIND_DAISYDAIKON_7 = 6, // Some(ITEM_VARIATION_DAISYDAIKON_7), // Dot-Eyes
-    ITEM_KIND_DAISYDAIKON_8 = 7, // Some(ITEM_VARIATION_DAISYDAIKON_8), // Stitch-face
-    ITEM_KIND_DOSEISAN = 8, // None,
-    ITEM_KIND_BOMBHEI = 9, // Some(ITEM_VARIATION_BOMBHEI_NORMAL),
-    ITEM_KIND_DIDDYPEANUTS = 10,
-    ITEM_KIND_EXPLOSIONBOMB = 11, // None,
-    ITEM_KIND_KROOLCROWN = 12,
-    ITEM_KIND_LINKARROW = 13, // None,
-    ITEM_KIND_LINKBOMB = 14, // None,
-    ITEM_KIND_MECHAKOOPA = 15, // None,
-    ITEM_KIND_METALBLADE = 16, // None,
-    ITEM_KIND_PACMANCHERRY = 17, // None,
-    ITEM_KIND_PACMANSTRAWBERRY = 18, // None,
-    ITEM_KIND_PACMANORANGE = 19, // None,
-    ITEM_KIND_PACMANAPPLE = 20, // None,
-    ITEM_KIND_PACMANMELON = 21, // None,
-    ITEM_KIND_PACMANBOSS = 22, // None,
-    ITEM_KIND_PACMANBELL = 23, // None,
-    ITEM_KIND_PACMANKEY = 24, // None,
-    ITEM_KIND_RICHTERHOLYWATER = 25, // None,
-    ITEM_KIND_ROBOTGYRO_1P = 26, // Some(ITEM_VARIATION_ROBOTGYRO_1P),
-    ITEM_KIND_ROBOTGYRO_2P = 27, // Some(ITEM_VARIATION_ROBOTGYRO_2P),
-    ITEM_KIND_ROBOTGYRO_3P = 28, // Some(ITEM_VARIATION_ROBOTGYRO_3P),
-    ITEM_KIND_ROBOTGYRO_4P = 29, // Some(ITEM_VARIATION_ROBOTGYRO_4P),
-    ITEM_KIND_ROBOTGYRO_5P = 30, // Some(ITEM_VARIATION_ROBOTGYRO_5P),
-    ITEM_KIND_ROBOTGYRO_6P = 31, // Some(ITEM_VARIATION_ROBOTGYRO_6P),
-    ITEM_KIND_ROBOTGYRO_7P = 32, // Some(ITEM_VARIATION_ROBOTGYRO_7P),
-    ITEM_KIND_ROBOTGYRO_8P = 33, // Some(ITEM_VARIATION_ROBOTGYRO_8P),
-    ITEM_KIND_SIMONHOLYWATER = 34, // None,
-    ITEM_KIND_SNAKEGRENADE = 35, // None,
-    ITEM_KIND_SNAKECBOX = 36, // None,
-    ITEM_KIND_THUNDERSWORD = 37, // None,
-    ITEM_KIND_TOONLINKBOMB = 38, // None,
-    ITEM_KIND_WARIOBIKE = 39,
-        // Pretty sure these other ones are just the bike parts
-        // ITEM_KIND_WARIOBIKEA,
-        // ITEM_KIND_WARIOBIKEB,
-        // ITEM_KIND_WARIOBIKEC,
-        // ITEM_KIND_WARIOBIKED,
-        // ITEM_KIND_WARIOBIKEE,
-    ITEM_KIND_WOOD = 41, // None,
-    ITEM_KIND_YOUNGLINKBOMB = 42, // None,
+    VARIATION_1 = 1,
+    VARIATION_2 = 2,
+    VARIATION_3 = 3,
+    VARIATION_4 = 4,
+    VARIATION_5 = 5,
+    VARIATION_6 = 6,
+    VARIATION_7 = 7,
+    VARIATION_8 = 8,
 }
 
 impl CharacterItem {
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
-            CharacterItem::ITEM_KIND_DAISYDAIKON_1 => "Turnip (Smile)",
-            _ => "UNK"
+            CharacterItem::VARIATION_1 => "1st Variation",
+            CharacterItem::VARIATION_2 => "2nd Variation",
+            CharacterItem::VARIATION_3 => "3rd Variation",
+            CharacterItem::VARIATION_4 => "4th Variation",
+            CharacterItem::VARIATION_5 => "5th Variation",
+            CharacterItem::VARIATION_6 => "6th Variation",
+            CharacterItem::VARIATION_7 => "7th Variation",
+            CharacterItem::VARIATION_8 => "8th Variation",
+            _ => "None",
         })
     }
 
@@ -1064,6 +1032,7 @@ url_params! {
         pub save_state_mirroring: SaveStateMirroring,
         pub frame_advantage: OnOff,
         pub save_state_enable: OnOff,
+        pub save_state_autoload: OnOff,
         pub throw_state: ThrowOption,
         pub throw_delay: MedDelay,
         pub pummel_delay: MedDelay,
@@ -1127,6 +1096,7 @@ impl TrainingModpackMenu {
             frame_advantage = OnOff::from_val(val),
             save_state_mirroring = num::FromPrimitive::from_u32(val),
             save_state_enable = OnOff::from_val(val),
+            save_state_autoload = OnOff::from_val(val),
             throw_state = ThrowOption::from_bits(val),
             throw_delay = MedDelay::from_bits(val),
             pummel_delay = MedDelay::from_bits(val),
@@ -1192,6 +1162,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_mirroring: SaveStateMirroring::None,
     frame_advantage: OnOff::Off,
     save_state_enable: OnOff::On,
+    save_state_autoload: OnOff::Off,
     throw_state: ThrowOption::NONE,
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
@@ -1497,9 +1468,9 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         false, // TODO: Should this be true?
     );
     defensive_tab.add_submenu_with_toggles::<Defensive>(
-        "Defensive Toggles",
+        "Escape Toggles",
         "defensive_state",
-        "Defensive Options: Actions to take after a ledge option, tech option, or mistech option",
+        "Escape Options: Actions to take after a ledge option, tech option, or mistech option",
         false,
     );
     defensive_tab.add_submenu_with_toggles::<BuffOption>(
@@ -1537,6 +1508,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Enable Save States",
         "save_state_enable",
         "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Save States Autoload",
+        "save_state_autoload",
+        "Save States Autoload: Load save state when any fighter dies",
         true,
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
