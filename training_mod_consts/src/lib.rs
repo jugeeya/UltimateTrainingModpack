@@ -987,6 +987,7 @@ url_params! {
         pub save_state_mirroring: SaveStateMirroring,
         pub frame_advantage: OnOff,
         pub save_state_enable: OnOff,
+        pub save_state_autoload: OnOff,
         pub throw_state: ThrowOption,
         pub throw_delay: MedDelay,
         pub pummel_delay: MedDelay,
@@ -1049,6 +1050,7 @@ impl TrainingModpackMenu {
             frame_advantage = OnOff::from_val(val),
             save_state_mirroring = num::FromPrimitive::from_u32(val),
             save_state_enable = OnOff::from_val(val),
+            save_state_autoload = OnOff::from_val(val),
             throw_state = ThrowOption::from_bits(val),
             throw_delay = MedDelay::from_bits(val),
             pummel_delay = MedDelay::from_bits(val),
@@ -1113,6 +1115,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_mirroring: SaveStateMirroring::None,
     frame_advantage: OnOff::Off,
     save_state_enable: OnOff::On,
+    save_state_autoload: OnOff::Off,
     throw_state: ThrowOption::NONE,
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
@@ -1451,6 +1454,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Enable Save States",
         "save_state_enable",
         "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
+        true,
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Autoload Save States",
+        "save_state_autoload",
+        "Save States Autoload: Load save state when any fighter dies",
         true,
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
