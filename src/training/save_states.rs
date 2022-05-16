@@ -192,6 +192,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // Grab + Dpad up: reset state
     if (MENU.save_state_autoload == OnOff::On
+        && !fighter_is_ptrainer
         && save_state.state == NoAction
         && is_dead(module_accessor))
         || (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
