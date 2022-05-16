@@ -1,8 +1,8 @@
 use smash::app::{self};
 
 mod bowser;
-pub mod steve;
 pub mod items;
+pub mod steve;
 
 /**
  * Checks if the current status matches the expected status
