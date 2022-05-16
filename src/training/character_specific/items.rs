@@ -395,7 +395,7 @@ pub unsafe fn apply_item(module_accessor: &mut BattleObjectModuleAccessor,
     let character_item_num = character_item as i32;
     let (item_fighter_kind, variation_idx) =
         if character_item_num <= CharacterItem::PlayerVariation8 as i32 {
-            (fighter_kind, (character_item_num - CharacterItem::PlayerVariation1) as usize)
+            (fighter_kind, (character_item_num - CharacterItem::PlayerVariation1 as i32) as usize)
         } else {
             (cpu_fighter_kind, (character_item_num - CharacterItem::CpuVariation1 as i32) as usize)
         };
