@@ -191,10 +191,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
-    if (MENU.save_state_autoload == OnOff::On && save_state.state == NoAction && is_dead(module_accessor)) ||
-        (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI))
-        && !fighter_is_nana
+    if (MENU.save_state_autoload == OnOff::On
+        && save_state.state == NoAction
+        && is_dead(module_accessor))
+        || (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI))
+            && !fighter_is_nana
     {
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
