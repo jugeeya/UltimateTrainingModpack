@@ -922,28 +922,44 @@ impl ToUrlParam for i32 {
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize, Deserialize)]
 pub enum CharacterItem {
-    NONE = 0,
-    VARIATION_1 = 1,
-    VARIATION_2 = 2,
-    VARIATION_3 = 3,
-    VARIATION_4 = 4,
-    VARIATION_5 = 5,
-    VARIATION_6 = 6,
-    VARIATION_7 = 7,
-    VARIATION_8 = 8,
+    None = 0,
+    PlayerVariation1 = 1,
+    PlayerVariation2 = 2,
+    PlayerVariation3 = 3,
+    PlayerVariation4 = 4,
+    PlayerVariation5 = 5,
+    PlayerVariation6 = 6,
+    PlayerVariation7 = 7,
+    PlayerVariation8 = 8,
+    CpuVariation1 = 9,
+    CpuVariation2 = 10,
+    CpuVariation3 = 11,
+    CpuVariation4 = 12,
+    CpuVariation5 = 13,
+    CpuVariation6 = 14,
+    CpuVariation7 = 15,
+    CpuVariation8 = 16,
 }
 
 impl CharacterItem {
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
-            CharacterItem::VARIATION_1 => "1st Variation",
-            CharacterItem::VARIATION_2 => "2nd Variation",
-            CharacterItem::VARIATION_3 => "3rd Variation",
-            CharacterItem::VARIATION_4 => "4th Variation",
-            CharacterItem::VARIATION_5 => "5th Variation",
-            CharacterItem::VARIATION_6 => "6th Variation",
-            CharacterItem::VARIATION_7 => "7th Variation",
-            CharacterItem::VARIATION_8 => "8th Variation",
+            CharacterItem::PlayerVariation1 => "Player 1st Var.",
+            CharacterItem::PlayerVariation2 => "Player 2nd Var.",
+            CharacterItem::PlayerVariation3 => "Player 3rd Var.",
+            CharacterItem::PlayerVariation4 => "Player 4th Var.",
+            CharacterItem::PlayerVariation5 => "Player 5th Var.",
+            CharacterItem::PlayerVariation6 => "Player 6th Var.",
+            CharacterItem::PlayerVariation7 => "Player 7th Var.",
+            CharacterItem::PlayerVariation8 => "Player 8th Var.",
+            CharacterItem::CpuVariation1 => "CPU 1st Var.",
+            CharacterItem::CpuVariation2 => "CPU 2nd Var.",
+            CharacterItem::CpuVariation3 => "CPU 3rd Var.",
+            CharacterItem::CpuVariation4 => "CPU 4th Var.",
+            CharacterItem::CpuVariation5 => "CPU 5th Var.",
+            CharacterItem::CpuVariation6 => "CPU 6th Var.",
+            CharacterItem::CpuVariation7 => "CPU 7th Var.",
+            CharacterItem::CpuVariation8 => "CPU 8th Var.",
             _ => "None",
         })
     }
@@ -1167,7 +1183,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
     buff_state: BuffOption::empty(),
-    character_item: CharacterItem::NONE,
+    character_item: CharacterItem::None,
     quick_menu: OnOff::Off,
 };
 
@@ -1482,7 +1498,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     defensive_tab.add_submenu_with_toggles::<CharacterItem>(
         "Character Item",
         "character_item",
-        "Character Item: Item to hold when loading a save state",
+        "Character Item: CPU/Player item to hold when loading a save state",
         true
     );
     overall_menu.tabs.push(defensive_tab);

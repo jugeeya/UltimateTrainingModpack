@@ -5,14 +5,13 @@ use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::training::buff;
-use crate::training::character_specific::{items, steve};
+use crate::training::character_specific::steve;
 use crate::training::items::apply_item;
 use crate::training::charge::{self, ChargeState};
 use crate::training::reset;
-use smash::app::{self, lua_bind::*, utility};
-use crate::common::is_operation_cpu;
+use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
-use smash::lib::lua_const::{self, *};
+use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use training_mod_consts::CharacterItem;
 
@@ -194,7 +193,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
-    if (MENU.save_state_autoload == OnOff::On && save_state.state == NoAction && is_dead(module_accessor)) ||
+    if (
+        MENU.save_state_autoload == OnOff::On &&
+            !fighter_is_ptrainer &&
+            save_state.state == NoAction &&
+            is_dead(module_accessor)
+    ) ||
         (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
         && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI))
         && !fighter_is_nana
@@ -229,13 +233,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             };
             PostureModule::set_pos(module_accessor, &pos);
 
-            // TODO CHECK THIS
             let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
-            let num_active_items = ItemManager::get_num_of_active_item_all(item_mgr);
-            println!("Number of active items: {}",num_active_items);
-            for i in 0..num_active_items {
-                ItemManager::remove_item_from_id(item_mgr, i as u32);
-            }
+            (0..ItemManager::get_num_of_active_item_all(item_mgr))
+                .for_each(|item_idx| {
+                let item = ItemManager::get_active_item(item_mgr, item_idx);
+                if item != 0 {
+                    let item = item as *mut Item;
+                    let item_battle_object_id = smash::app::lua_bind::Item::get_battle_object_id(item) as u32;
+                    ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
+                }
+            });
             MotionAnimcmdModule::set_sleep(module_accessor, true);
             SoundModule::pause_se_all(module_accessor, true);
             ControlModule::stop_rumble(module_accessor, true);
@@ -327,8 +334,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
             // Set to held item
-            if !is_cpu && MENU.character_item != CharacterItem::NONE {
-                apply_item(module_accessor, fighter_kind, MENU.character_item);
+            if !is_cpu && MENU.character_item != CharacterItem::None {
+                apply_item(module_accessor,
+                           fighter_kind,
+                           SAVE_STATE_CPU.fighter_kind,
+                           MENU.character_item);
             }
 
             // Set the charge of special moves if the fighter matches the kind in the save state
