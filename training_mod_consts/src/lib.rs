@@ -923,25 +923,29 @@ impl ToUrlParam for i32 {
 #[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize, Deserialize)]
 pub enum CharacterItem {
     None = 0,
-    PlayerVariation1 = 1,
-    PlayerVariation2 = 2,
-    PlayerVariation3 = 3,
-    PlayerVariation4 = 4,
-    PlayerVariation5 = 5,
-    PlayerVariation6 = 6,
-    PlayerVariation7 = 7,
-    PlayerVariation8 = 8,
-    CpuVariation1 = 9,
-    CpuVariation2 = 10,
-    CpuVariation3 = 11,
-    CpuVariation4 = 12,
-    CpuVariation5 = 13,
-    CpuVariation6 = 14,
-    CpuVariation7 = 15,
-    CpuVariation8 = 16,
+    PlayerVariation1 = 0x1,
+    PlayerVariation2 = 0x2,
+    PlayerVariation3 = 0x4,
+    PlayerVariation4 = 0x8,
+    PlayerVariation5 = 0x10,
+    PlayerVariation6 = 0x20,
+    PlayerVariation7 = 0x40,
+    PlayerVariation8 = 0x80,
+    CpuVariation1 = 0x100,
+    CpuVariation2 = 0x200,
+    CpuVariation3 = 0x400,
+    CpuVariation4 = 0x800,
+    CpuVariation5 = 0x1000,
+    CpuVariation6 = 0x2000,
+    CpuVariation7 = 0x4000,
+    CpuVariation8 = 0x8000,
 }
 
 impl CharacterItem {
+    pub fn as_idx(self) -> u32 {
+        log_2(self as i32 as u32)
+    }
+
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
             CharacterItem::PlayerVariation1 => "Player 1st Var.",

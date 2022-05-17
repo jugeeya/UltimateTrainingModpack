@@ -9,7 +9,7 @@ use crate::training::character_specific::steve;
 use crate::training::items::apply_item;
 use crate::training::charge::{self, ChargeState};
 use crate::training::reset;
-use smash::app::{self, lua_bind::*, Item};
+use smash::app::{self, lua_bind::*, Item, BattleObjectModuleAccessor};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
@@ -239,6 +239,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 let item = ItemManager::get_active_item(item_mgr, item_idx);
                 if item != 0 {
                     let item = item as *mut Item;
+                    let mut item_module_accessor = app::lua_bind::Item::item_module_accessor(item) as *mut BattleObjectModuleAccessor;
+                    let item_kind = app::utility::get_kind(&mut *item_module_accessor as &mut BattleObjectModuleAccessor);
+                    let item_category = app::utility::get_category(&mut *item_module_accessor as &mut BattleObjectModuleAccessor);
+                    println!("Item at index {}; Category: {}, Kind: {}; category_item: {}",
+                        item_idx, item_category, item_kind, *BATTLE_OBJECT_CATEGORY_ITEM
+                    );
                     let item_battle_object_id = smash::app::lua_bind::Item::get_battle_object_id(item) as u32;
                     ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
                 }

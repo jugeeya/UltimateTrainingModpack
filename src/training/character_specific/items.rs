@@ -392,13 +392,15 @@ pub unsafe fn apply_item(module_accessor: &mut BattleObjectModuleAccessor,
                          fighter_kind: i32,
                          cpu_fighter_kind: i32,
                          character_item: CharacterItem) {
-    let character_item_num = character_item as i32;
+    let character_item_num = character_item.as_idx();
     let (item_fighter_kind, variation_idx) =
-        if character_item_num <= CharacterItem::PlayerVariation8 as i32 {
-            (fighter_kind, (character_item_num - CharacterItem::PlayerVariation1) as usize)
+        if character_item_num <= CharacterItem::PlayerVariation8.as_idx() {
+            (fighter_kind, (character_item_num - CharacterItem::PlayerVariation1.as_idx()) as usize)
         } else {
-            (cpu_fighter_kind, (character_item_num - CharacterItem::CpuVariation1 as i32) as usize)
+            (cpu_fighter_kind, (character_item_num - CharacterItem::CpuVariation1.as_idx()) as usize)
         };
+    println!("Trying with item_fighter_kind: {}, variation_idx: {}",
+        item_fighter_kind, variation_idx);
     ALL_CHAR_ITEMS.iter()
         .filter(|item| item_fighter_kind == item.fighter_kind)
         .nth(variation_idx)
