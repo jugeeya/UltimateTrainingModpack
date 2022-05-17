@@ -340,7 +340,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
             // Set to held item
-            if !is_cpu && MENU.character_item != CharacterItem::None {
+            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
                 apply_item(MENU.character_item);
             }
 
