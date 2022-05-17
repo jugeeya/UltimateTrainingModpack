@@ -341,10 +341,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             set_damage(module_accessor, save_state.percent);
             // Set to held item
             if !is_cpu && MENU.character_item != CharacterItem::None {
-                apply_item(module_accessor,
-                           fighter_kind,
-                           SAVE_STATE_CPU.fighter_kind,
-                           MENU.character_item);
+                apply_item(MENU.character_item);
             }
 
             // Set the charge of special moves if the fighter matches the kind in the save state

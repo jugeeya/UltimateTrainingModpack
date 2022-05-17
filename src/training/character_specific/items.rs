@@ -1,3 +1,4 @@
+use smash::app;
 use crate::common::consts::*;
 use crate::common::*;
 use smash::app::lua_bind::*;
@@ -324,28 +325,36 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
 
 pub static mut TURNIP_CHOSEN : Option<u32> = None;
 
-unsafe fn apply_single_item(module_accessor: &mut BattleObjectModuleAccessor,
-                            fighter_kind: i32,
+unsafe fn apply_single_item(player_fighter_kind: i32,
+                            cpu_fighter_kind: i32,
                             item: &CharItem) {
     let variation = item.variation.as_ref()
         .map(|v| **v)
         .unwrap_or(0);
     item.item_kind.as_ref().map(|item_kind| {
+        let player_module_accessor = get_module_accessor(FighterId::Player);
+        let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+
         let item_kind = **item_kind;
         // For Link, use special article generation to link the bomb for detonation
-        if fighter_kind == *FIGHTER_KIND_LINK && item_kind == *ITEM_KIND_LINKBOMB {
+        if player_fighter_kind == *FIGHTER_KIND_LINK && item_kind == *ITEM_KIND_LINKBOMB {
             ArticleModule::generate_article_have_item(
-                module_accessor,
+                player_module_accessor,
                 *FIGHTER_LINK_GENERATE_ARTICLE_LINKBOMB,
                 *FIGHTER_HAVE_ITEM_WORK_MAIN,
                 smash::phx::Hash40::new("invalid")
             );
         } else {
-            ItemModule::have_item(module_accessor,ItemKind(item_kind),
-                                    variation,0,false,false);
+            ItemModule::have_item(player_module_accessor, ItemKind(item_kind),
+                                      variation, 0, false, false);
         }
     });
+
+
     item.article_kind.as_ref().map(|article_kind| {
+        let player_module_accessor = get_module_accessor(FighterId::Player);
+        let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+
         TURNIP_CHOSEN = if [*ITEM_VARIATION_PEACHDAIKON_8, *ITEM_VARIATION_DAISYDAIKON_8]
             .contains(&variation) {
             Some(8)
@@ -363,22 +372,22 @@ unsafe fn apply_single_item(module_accessor: &mut BattleObjectModuleAccessor,
         };
 
         let article_kind = **article_kind;
-        if fighter_kind == *FIGHTER_KIND_DIDDY &&
+        if player_fighter_kind == *FIGHTER_KIND_DIDDY &&
             article_kind == FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA {
             ArticleModule::generate_article(
-                module_accessor,
+                player_module_accessor,
                 *FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA,
                 false,
                 0
             );
-            WorkModule::on_flag(module_accessor,
+            WorkModule::on_flag(player_module_accessor,
                                 *FIGHTER_DIDDY_STATUS_SPECIAL_LW_FLAG_ITEM_THROW);
-            ArticleModule::shoot(module_accessor,
+            ArticleModule::shoot(player_module_accessor,
                                  *FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA,
                                  ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL),
                                  false);
         } else {
-            ArticleModule::generate_article(module_accessor,
+            ArticleModule::generate_article(player_module_accessor,
                                             article_kind,
                                             false,
                                             0
@@ -388,14 +397,15 @@ unsafe fn apply_single_item(module_accessor: &mut BattleObjectModuleAccessor,
     });
 }
 
-pub unsafe fn apply_item(module_accessor: &mut BattleObjectModuleAccessor,
-                         fighter_kind: i32,
-                         cpu_fighter_kind: i32,
-                         character_item: CharacterItem) {
+pub unsafe fn apply_item(character_item: CharacterItem) {
+    let player_module_accessor = get_module_accessor(FighterId::Player);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let player_fighter_kind = app::utility::get_kind(&mut *player_module_accessor);
+    let cpu_fighter_kind = app::utility::get_kind(&mut *cpu_module_accessor);
     let character_item_num = character_item.as_idx();
     let (item_fighter_kind, variation_idx) =
         if character_item_num <= CharacterItem::PlayerVariation8.as_idx() {
-            (fighter_kind, (character_item_num - CharacterItem::PlayerVariation1.as_idx()) as usize)
+            (player_fighter_kind, (character_item_num - CharacterItem::PlayerVariation1.as_idx()) as usize)
         } else {
             (cpu_fighter_kind, (character_item_num - CharacterItem::CpuVariation1.as_idx()) as usize)
         };
@@ -405,7 +415,7 @@ pub unsafe fn apply_item(module_accessor: &mut BattleObjectModuleAccessor,
         .filter(|item| item_fighter_kind == item.fighter_kind)
         .nth(variation_idx)
         .map(|item|
-            apply_single_item(module_accessor, fighter_kind, item));
+            apply_single_item(player_fighter_kind, cpu_fighter_kind, item));
 }
 
 macro_rules! daikon_replace {
