@@ -414,8 +414,7 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
     ALL_CHAR_ITEMS.iter()
         .filter(|item| item_fighter_kind == item.fighter_kind)
         .nth(variation_idx)
-        .map(|item|
-            apply_single_item(player_fighter_kind, cpu_fighter_kind, item));
+        .map(|item| apply_single_item(player_fighter_kind, cpu_fighter_kind, item));
 }
 
 macro_rules! daikon_replace {
