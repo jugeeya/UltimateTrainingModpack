@@ -9,7 +9,7 @@ use crate::training::character_specific::steve;
 use crate::training::charge::{self, ChargeState};
 use crate::training::items::apply_item;
 use crate::training::reset;
-use smash::app::{self, lua_bind::*, BattleObjectModuleAccessor, Item};
+use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
