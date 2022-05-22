@@ -6,6 +6,7 @@ use smash::app::ItemKind;
 use smash::app::{ArticleOperationTarget, BattleObjectModuleAccessor, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::lib::lua_const::*;
+use crate::training::mash;
 
 pub struct CharItem {
     pub fighter_kind: LuaConst,
@@ -326,7 +327,7 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
 pub static mut TURNIP_CHOSEN: Option<u32> = None;
 pub static mut TARGET_PLAYER: Option<*mut BattleObjectModuleAccessor> = None;
 
-unsafe fn apply_single_item(player_fighter_kind: i32, _cpu_fighter_kind: i32, item: &CharItem) {
+unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     // Now we make sure the module_accessor we use to generate the item/article is the correct character
@@ -456,15 +457,12 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
                 (character_item_num - CharacterItem::CpuVariation1.as_idx()) as usize,
             )
         };
-    println!(
-        "Trying with item_fighter_kind: {}, variation_idx: {}",
-        item_fighter_kind, variation_idx
-    );
     ALL_CHAR_ITEMS
         .iter()
         .filter(|item| item_fighter_kind == item.fighter_kind)
         .nth(variation_idx)
-        .map(|item| apply_single_item(player_fighter_kind, cpu_fighter_kind, item));
+        .map(|item| apply_single_item(player_fighter_kind, item));
+    mash::clear_queue();
 }
 
 macro_rules! daikon_replace {
@@ -520,7 +518,6 @@ pub unsafe fn handle_generate_article_for_target(
     int_2: i32,
 ) -> u64 {
     // unknown return value, gets cast to an (Article *)
-    println!("Custom Article Generation! Generating Article.");
     let target_module_accessor = TARGET_PLAYER.unwrap_or(module_accessor);
     let ori = original!()(
         article_module_accessor,
@@ -529,22 +526,6 @@ pub unsafe fn handle_generate_article_for_target(
         bool_1,
         int_2,
     );
-    println!("Article Generated!");
-    return ori;
-}
-
-// RegisterArticle for Peach/Diddy(/Link?) item creation
-static REG_ART_OFFSET: usize = 0x03d5e20;
-#[skyline::hook(offset = REG_ART_OFFSET)]
-pub unsafe fn handle_register_article(
-    article_module_accessor: *mut app::BattleObjectModuleAccessor,
-    article: *mut app::Article, // should this lua_bind? assume not but maybe?
-) -> u64 {
-    // unknown return value (if it has one)
-    println!("Registering Article!");
-    let ori = original!()(article_module_accessor, article);
-    println!("Article Registered! (or invalid)");
-    // check here if article invalid?
     return ori;
 }
 
@@ -568,6 +549,5 @@ pub fn init() {
         handle_daisydaikon_1_prob,
         // Items
         handle_generate_article_for_target,
-        handle_register_article,
     );
 }
