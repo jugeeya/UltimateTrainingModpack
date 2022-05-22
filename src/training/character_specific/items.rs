@@ -6,6 +6,7 @@ use smash::app::{ArticleOperationTarget, BattleObjectModuleAccessor, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::lib::lua_const::*;
 use smash::app::ItemKind;
+use crate::training::mash;
 
 pub struct CharItem {
     pub fighter_kind: LuaConst,
@@ -327,7 +328,6 @@ pub static mut TURNIP_CHOSEN : Option<u32> = None;
 pub static mut TARGET_PLAYER : Option<*mut BattleObjectModuleAccessor> = None;
 
 unsafe fn apply_single_item(player_fighter_kind: i32,
-                            _cpu_fighter_kind: i32,
                             item: &CharItem) {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
@@ -381,10 +381,10 @@ unsafe fn apply_single_item(player_fighter_kind: i32,
         let article_kind = **article_kind;
         if article_kind == FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA {
             ArticleModule::generate_article_have_item(
-            generator_module_accessor,
-            *FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA,
-            *FIGHTER_HAVE_ITEM_WORK_MAIN,
-            smash::phx::Hash40::new("invalid")
+                generator_module_accessor,
+                *FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA,
+                *FIGHTER_HAVE_ITEM_WORK_MAIN,
+                smash::phx::Hash40::new("invalid")
             );
             WorkModule::on_flag(generator_module_accessor,
                 *FIGHTER_DIDDY_STATUS_SPECIAL_LW_FLAG_ITEM_THROW);
@@ -399,7 +399,9 @@ unsafe fn apply_single_item(player_fighter_kind: i32,
             ItemModule::have_item_instance(player_module_accessor,
                 item as *mut Item, 0, false, false, false, false);
         } else {
-            TARGET_PLAYER = Some(player_module_accessor); // set so we generate CPU article on the player (in dittos, items always belong to player, even if cpu item is chosen)
+            // set so we generate CPU article on the player
+            // (in dittos, items always belong to player, even if cpu item is chosen)
+            TARGET_PLAYER = Some(player_module_accessor);
             ArticleModule::generate_article(generator_module_accessor, // we want CPU's article
                                             article_kind,
                                             false,
@@ -423,13 +425,12 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
         } else {
             (cpu_fighter_kind, (character_item_num - CharacterItem::CpuVariation1.as_idx()) as usize)
         };
-    println!("Trying with item_fighter_kind: {}, variation_idx: {}",
-        item_fighter_kind, variation_idx);
     ALL_CHAR_ITEMS.iter()
         .filter(|item| item_fighter_kind == item.fighter_kind)
         .nth(variation_idx)
         .map(|item|
-            apply_single_item(player_fighter_kind, cpu_fighter_kind, item));
+            apply_single_item(player_fighter_kind, item));
+    mash::clear_queue();
 }
 
 macro_rules! daikon_replace {
@@ -491,20 +492,6 @@ pub unsafe fn handle_generate_article_for_target(
     return ori;
 }
 
-// RegisterArticle for Peach/Diddy(/Link?) item creation
-static REG_ART_OFFSET: usize = 0x03d5e20;
-#[skyline::hook(offset = REG_ART_OFFSET)]
-pub unsafe fn handle_register_article(
-    article_module_accessor: *mut app::BattleObjectModuleAccessor,
-    article: *mut app::Article, // should this lua_bind? assume not but maybe?
-) -> u64 { // unknown return value (if it has one)
-    println!("Registering Article!");
-    let ori = original!()(article_module_accessor, article);
-    println!("Article Registered! (or invalid)");
-    // check here if article invalid?
-    return ori;
-}
-
 pub fn init() {
     skyline::install_hooks!(
         handle_peachdaikon_8_prob,
@@ -525,6 +512,5 @@ pub fn init() {
         handle_daisydaikon_1_prob,
         // Items
         handle_generate_article_for_target,
-        handle_register_article,
     );
 }

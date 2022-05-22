@@ -87,6 +87,12 @@ pub fn full_reset() {
     }
 }
 
+pub fn clear_queue() {
+    unsafe {
+        QUEUE.clear()
+    }
+}
+
 pub fn set_aerial(attack: Action) {
     unsafe {
         CURRENT_AERIAL = attack;
