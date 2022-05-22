@@ -21,7 +21,7 @@ impl CharItem {
             fighter_kind: *self.fighter_kind,
             item_kind: self.item_kind.as_ref().map(|x| **x),
             article_kind: self.article_kind.as_ref().map(|x| **x),
-            variation: self.variation.as_ref().map(|x| **x)
+            variation: self.variation.as_ref().map(|x| **x),
         }
     }
 }
@@ -30,7 +30,7 @@ struct CharItemValues {
     pub fighter_kind: i32,
     pub item_kind: Option<i32>,
     pub article_kind: Option<i32>,
-    pub variation: Option<i32>
+    pub variation: Option<i32>,
 }
 
 pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
