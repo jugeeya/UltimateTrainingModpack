@@ -1,4 +1,7 @@
-<img src="./photos/2021081718384700-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
+<p align="center">
+<!-- <img src="./photos/2021081718384700-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg"> -->
+<img src="./photos/ezgif-2-299a3e9b46.gif">
+</p>
 
 # Ultimate Training Modpack Plugin
 
