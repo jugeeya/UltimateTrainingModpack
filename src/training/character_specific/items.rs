@@ -1,12 +1,11 @@
-use smash::app;
 use crate::common::consts::*;
 use crate::common::*;
+use smash::app;
 use smash::app::lua_bind::*;
+use smash::app::ItemKind;
 use smash::app::{ArticleOperationTarget, BattleObjectModuleAccessor, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::lib::lua_const::*;
-use smash::app::ItemKind;
-use crate::training::mash;
 
 pub struct CharItem {
     pub fighter_kind: LuaConst,
@@ -324,18 +323,19 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
     },
 ];
 
-pub static mut TURNIP_CHOSEN : Option<u32> = None;
-pub static mut TARGET_PLAYER : Option<*mut BattleObjectModuleAccessor> = None;
+pub static mut TURNIP_CHOSEN: Option<u32> = None;
+pub static mut TARGET_PLAYER: Option<*mut BattleObjectModuleAccessor> = None;
 
-unsafe fn apply_single_item(player_fighter_kind: i32,
-                            item: &CharItem) {
+unsafe fn apply_single_item(player_fighter_kind: i32, _cpu_fighter_kind: i32, item: &CharItem) {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     // Now we make sure the module_accessor we use to generate the item/article is the correct character
-    let generator_module_accessor = if item.fighter_kind == player_fighter_kind { player_module_accessor } else { cpu_module_accessor };
-    let variation = item.variation.as_ref()
-        .map(|v| **v)
-        .unwrap_or(0);
+    let generator_module_accessor = if item.fighter_kind == player_fighter_kind {
+        player_module_accessor
+    } else {
+        cpu_module_accessor
+    };
+    let variation = item.variation.as_ref().map(|v| **v).unwrap_or(0);
     item.item_kind.as_ref().map(|item_kind| {
         let item_kind = **item_kind;
         // For Link, use special article generation to link the bomb for detonation
@@ -344,35 +344,51 @@ unsafe fn apply_single_item(player_fighter_kind: i32,
                 generator_module_accessor,
                 *FIGHTER_LINK_GENERATE_ARTICLE_LINKBOMB,
                 *FIGHTER_HAVE_ITEM_WORK_MAIN,
-                smash::phx::Hash40::new("invalid")
+                smash::phx::Hash40::new("invalid"),
             );
             if player_fighter_kind != *FIGHTER_KIND_LINK {
                 ItemModule::drop_item(cpu_module_accessor, 0.0, 0.0, 0);
                 //ItemModule::eject_have_item(cpu_module_accessor, 0, false, false);
                 let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
                 let item_ptr = ItemManager::get_active_item(item_mgr, 0);
-                ItemModule::have_item_instance(player_module_accessor,
-                    item_ptr as *mut smash::app::Item, 0, false, false, false, false);
-                
+                ItemModule::have_item_instance(
+                    player_module_accessor,
+                    item_ptr as *mut smash::app::Item,
+                    0,
+                    false,
+                    false,
+                    false,
+                    false,
+                );
             }
         } else {
-            ItemModule::have_item(player_module_accessor, ItemKind(item_kind),
-            variation, 0, false, false);
+            ItemModule::have_item(
+                player_module_accessor,
+                ItemKind(item_kind),
+                variation,
+                0,
+                false,
+                false,
+            );
         }
     });
 
     item.article_kind.as_ref().map(|article_kind| {
         TURNIP_CHOSEN = if [*ITEM_VARIATION_PEACHDAIKON_8, *ITEM_VARIATION_DAISYDAIKON_8]
-            .contains(&variation) {
+            .contains(&variation)
+        {
             Some(8)
         } else if [*ITEM_VARIATION_PEACHDAIKON_7, *ITEM_VARIATION_DAISYDAIKON_7]
-            .contains(&variation) {
+            .contains(&variation)
+        {
             Some(7)
         } else if [*ITEM_VARIATION_PEACHDAIKON_6, *ITEM_VARIATION_DAISYDAIKON_6]
-            .contains(&variation) {
+            .contains(&variation)
+        {
             Some(6)
         } else if [*ITEM_VARIATION_PEACHDAIKON_1, *ITEM_VARIATION_DAISYDAIKON_1]
-            .contains(&variation) {
+            .contains(&variation)
+        {
             Some(1)
         } else {
             None
@@ -384,28 +400,37 @@ unsafe fn apply_single_item(player_fighter_kind: i32,
                 generator_module_accessor,
                 *FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA,
                 *FIGHTER_HAVE_ITEM_WORK_MAIN,
-                smash::phx::Hash40::new("invalid")
+                smash::phx::Hash40::new("invalid"),
             );
-            WorkModule::on_flag(generator_module_accessor,
-                *FIGHTER_DIDDY_STATUS_SPECIAL_LW_FLAG_ITEM_THROW);
-            ArticleModule::shoot(generator_module_accessor,
+            WorkModule::on_flag(
+                generator_module_accessor,
+                *FIGHTER_DIDDY_STATUS_SPECIAL_LW_FLAG_ITEM_THROW,
+            );
+            ArticleModule::shoot(
+                generator_module_accessor,
                 *FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA,
                 ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL),
-                false
+                false,
             );
             // Grab item from the middle of the stage where it gets shot
             let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
             let item = ItemManager::get_active_item(item_mgr, 0);
-            ItemModule::have_item_instance(player_module_accessor,
-                item as *mut Item, 0, false, false, false, false);
+            ItemModule::have_item_instance(
+                player_module_accessor,
+                item as *mut Item,
+                0,
+                false,
+                false,
+                false,
+                false,
+            );
         } else {
-            // set so we generate CPU article on the player
-            // (in dittos, items always belong to player, even if cpu item is chosen)
-            TARGET_PLAYER = Some(player_module_accessor);
-            ArticleModule::generate_article(generator_module_accessor, // we want CPU's article
-                                            article_kind,
-                                            false,
-                                            0
+            TARGET_PLAYER = Some(player_module_accessor); // set so we generate CPU article on the player (in dittos, items always belong to player, even if cpu item is chosen)
+            ArticleModule::generate_article(
+                generator_module_accessor, // we want CPU's article
+                article_kind,
+                false,
+                0,
             );
             TARGET_PLAYER = None;
         }
@@ -421,16 +446,25 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
     let character_item_num = character_item.as_idx();
     let (item_fighter_kind, variation_idx) =
         if character_item_num <= CharacterItem::PlayerVariation8.as_idx() {
-            (player_fighter_kind, (character_item_num - CharacterItem::PlayerVariation1.as_idx()) as usize)
+            (
+                player_fighter_kind,
+                (character_item_num - CharacterItem::PlayerVariation1.as_idx()) as usize,
+            )
         } else {
-            (cpu_fighter_kind, (character_item_num - CharacterItem::CpuVariation1.as_idx()) as usize)
+            (
+                cpu_fighter_kind,
+                (character_item_num - CharacterItem::CpuVariation1.as_idx()) as usize,
+            )
         };
-    ALL_CHAR_ITEMS.iter()
+    println!(
+        "Trying with item_fighter_kind: {}, variation_idx: {}",
+        item_fighter_kind, variation_idx
+    );
+    ALL_CHAR_ITEMS
+        .iter()
         .filter(|item| item_fighter_kind == item.fighter_kind)
         .nth(variation_idx)
-        .map(|item|
-            apply_single_item(player_fighter_kind, item));
-    mash::clear_queue();
+        .map(|item| apply_single_item(player_fighter_kind, cpu_fighter_kind, item));
 }
 
 macro_rules! daikon_replace {
@@ -484,11 +518,33 @@ pub unsafe fn handle_generate_article_for_target(
     module_accessor: *mut app::BattleObjectModuleAccessor, // this is always 0x0 normally
     bool_1: bool,
     int_2: i32,
-) -> u64 { // unknown return value, gets cast to an (Article *)
+) -> u64 {
+    // unknown return value, gets cast to an (Article *)
     println!("Custom Article Generation! Generating Article.");
     let target_module_accessor = TARGET_PLAYER.unwrap_or(module_accessor);
-    let ori = original!()(article_module_accessor, int_1, target_module_accessor, bool_1, int_2);
+    let ori = original!()(
+        article_module_accessor,
+        int_1,
+        target_module_accessor,
+        bool_1,
+        int_2,
+    );
     println!("Article Generated!");
+    return ori;
+}
+
+// RegisterArticle for Peach/Diddy(/Link?) item creation
+static REG_ART_OFFSET: usize = 0x03d5e20;
+#[skyline::hook(offset = REG_ART_OFFSET)]
+pub unsafe fn handle_register_article(
+    article_module_accessor: *mut app::BattleObjectModuleAccessor,
+    article: *mut app::Article, // should this lua_bind? assume not but maybe?
+) -> u64 {
+    // unknown return value (if it has one)
+    println!("Registering Article!");
+    let ori = original!()(article_module_accessor, article);
+    println!("Article Registered! (or invalid)");
+    // check here if article invalid?
     return ori;
 }
 
@@ -512,5 +568,6 @@ pub fn init() {
         handle_daisydaikon_1_prob,
         // Items
         handle_generate_article_for_target,
+        handle_register_article,
     );
 }
