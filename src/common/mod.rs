@@ -12,6 +12,7 @@ pub use crate::common::consts::MENU;
 pub static mut DEFAULTS_MENU: TrainingModpackMenu = crate::common::consts::DEFAULTS_MENU;
 pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
+pub static mut ITEM_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
 
 #[cfg(not(feature = "outside_training_mode"))]

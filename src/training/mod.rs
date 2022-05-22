@@ -1,5 +1,8 @@
-use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
+use crate::common::{
+    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+};
 use crate::hitbox_visualizer;
+use crate::training::character_specific::items;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
@@ -485,6 +488,13 @@ pub fn training_mods() {
                 .as_ptr(),
         );
 
+        LookupSymbol(
+            &mut ITEM_MANAGER_ADDR,
+            "_ZN3lib9SingletonIN3app11ItemManagerEE9instance_E\0"
+                .as_bytes()
+                .as_ptr(),
+        );
+
         smash::params::add_hook(params_main).unwrap();
     }
 
@@ -536,4 +546,5 @@ pub fn training_mods() {
     throw::init();
     menu::init();
     buff::init();
+    items::init();
 }

@@ -918,6 +918,71 @@ impl ToUrlParam for i32 {
     }
 }
 
+/// Item Selections
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize, Deserialize)]
+pub enum CharacterItem {
+    None = 0,
+    PlayerVariation1 = 0x1,
+    PlayerVariation2 = 0x2,
+    PlayerVariation3 = 0x4,
+    PlayerVariation4 = 0x8,
+    PlayerVariation5 = 0x10,
+    PlayerVariation6 = 0x20,
+    PlayerVariation7 = 0x40,
+    PlayerVariation8 = 0x80,
+    CpuVariation1 = 0x100,
+    CpuVariation2 = 0x200,
+    CpuVariation3 = 0x400,
+    CpuVariation4 = 0x800,
+    CpuVariation5 = 0x1000,
+    CpuVariation6 = 0x2000,
+    CpuVariation7 = 0x4000,
+    CpuVariation8 = 0x8000,
+}
+
+impl CharacterItem {
+    pub fn as_idx(self) -> u32 {
+        log_2(self as i32 as u32)
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            CharacterItem::PlayerVariation1 => "Player 1st Var.",
+            CharacterItem::PlayerVariation2 => "Player 2nd Var.",
+            CharacterItem::PlayerVariation3 => "Player 3rd Var.",
+            CharacterItem::PlayerVariation4 => "Player 4th Var.",
+            CharacterItem::PlayerVariation5 => "Player 5th Var.",
+            CharacterItem::PlayerVariation6 => "Player 6th Var.",
+            CharacterItem::PlayerVariation7 => "Player 7th Var.",
+            CharacterItem::PlayerVariation8 => "Player 8th Var.",
+            CharacterItem::CpuVariation1 => "CPU 1st Var.",
+            CharacterItem::CpuVariation2 => "CPU 2nd Var.",
+            CharacterItem::CpuVariation3 => "CPU 3rd Var.",
+            CharacterItem::CpuVariation4 => "CPU 4th Var.",
+            CharacterItem::CpuVariation5 => "CPU 5th Var.",
+            CharacterItem::CpuVariation6 => "CPU 6th Var.",
+            CharacterItem::CpuVariation7 => "CPU 7th Var.",
+            CharacterItem::CpuVariation8 => "CPU 8th Var.",
+            _ => "None",
+        })
+    }
+
+    pub fn to_url_param(&self) -> String {
+        (*self as i32).to_string()
+    }
+}
+
+impl ToggleTrait for CharacterItem {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        CharacterItem::iter().map(|i| i.as_str().unwrap_or("")).collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        CharacterItem::iter().map(|i| i as usize).collect()
+    }
+}
+
 // Macro to build the url parameter string
 macro_rules! url_params {
     (
@@ -992,6 +1057,7 @@ url_params! {
         pub throw_delay: MedDelay,
         pub pummel_delay: MedDelay,
         pub buff_state: BuffOption,
+        pub character_item: CharacterItem,
         pub quick_menu: OnOff,
     }
 }
@@ -1055,6 +1121,7 @@ impl TrainingModpackMenu {
             throw_delay = MedDelay::from_bits(val),
             pummel_delay = MedDelay::from_bits(val),
             buff_state = BuffOption::from_bits(val),
+            character_item = num::FromPrimitive::from_u32(val),
             quick_menu = OnOff::from_val(val),
         );
     }
@@ -1120,6 +1187,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     throw_delay: MedDelay::empty(),
     pummel_delay: MedDelay::empty(),
     buff_state: BuffOption::empty(),
+    character_item: CharacterItem::None,
     quick_menu: OnOff::Off,
 };
 
@@ -1420,9 +1488,9 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         false, // TODO: Should this be true?
     );
     defensive_tab.add_submenu_with_toggles::<Defensive>(
-        "Defensive Toggles",
+        "Escape Toggles",
         "defensive_state",
-        "Defensive Options: Actions to take after a ledge option, tech option, or mistech option",
+        "Escape Options: Actions to take after a ledge option, tech option, or mistech option",
         false,
     );
     defensive_tab.add_submenu_with_toggles::<BuffOption>(
@@ -1430,6 +1498,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "buff_state",
         "Buff Options: Buff(s) to be applied to respective character when loading save states",
         false,
+    );
+    defensive_tab.add_submenu_with_toggles::<CharacterItem>(
+        "Character Item",
+        "character_item",
+        "Character Item: CPU/Player item to hold when loading a save state",
+        true
     );
     overall_menu.tabs.push(defensive_tab);
 
@@ -1457,7 +1531,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         true,
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Autoload Save States",
+        "Save States Autoload",
         "save_state_autoload",
         "Save States Autoload: Load save state when any fighter dies",
         true,

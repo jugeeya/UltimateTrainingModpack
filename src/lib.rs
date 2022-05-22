@@ -166,7 +166,6 @@ pub fn main() {
                     received_input = true;
                 });
                 let b_press = &mut button_presses.b;
-                let b_prev_press = b_press.prev_frame_is_pressed;
                 b_press.read_press().then(|| {
                     received_input = true;
                     if !app.outer_list {

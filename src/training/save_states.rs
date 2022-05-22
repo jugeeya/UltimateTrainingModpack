@@ -5,14 +5,15 @@ use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::training::buff;
+use crate::training::character_specific::steve;
 use crate::training::charge::{self, ChargeState};
+use crate::training::items::apply_item;
 use crate::training::reset;
-use smash::app::{self, lua_bind::*};
+use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-
-use crate::training::character_specific::steve;
+use training_mod_consts::CharacterItem;
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -75,6 +76,7 @@ macro_rules! default_save_state {
     };
 }
 
+use crate::ITEM_MANAGER_ADDR;
 use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
@@ -229,6 +231,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             };
             PostureModule::set_pos(module_accessor, &pos);
 
+            let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+            (0..ItemManager::get_num_of_active_item_all(item_mgr)).for_each(|item_idx| {
+                let item = ItemManager::get_active_item(item_mgr, item_idx);
+                if item != 0 {
+                    let item = item as *mut Item;
+                    let item_battle_object_id =
+                        smash::app::lua_bind::Item::get_battle_object_id(item) as u32;
+                    ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
+                }
+            });
             MotionAnimcmdModule::set_sleep(module_accessor, true);
             SoundModule::pause_se_all(module_accessor, true);
             ControlModule::stop_rumble(module_accessor, true);
@@ -319,6 +331,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             set_damage(module_accessor, save_state.percent);
+            // Set to held item
+            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
+                apply_item(MENU.character_item);
+            }
+
             // Set the charge of special moves if the fighter matches the kind in the save state
             if save_state.fighter_kind == fighter_kind {
                 charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
