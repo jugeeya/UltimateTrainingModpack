@@ -1,12 +1,12 @@
 use crate::common::consts::*;
 use crate::common::*;
+use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::ItemKind;
 use smash::app::{ArticleOperationTarget, BattleObjectModuleAccessor, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::lib::lua_const::*;
-use crate::training::mash;
 
 pub struct CharItem {
     pub fighter_kind: LuaConst,

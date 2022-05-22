@@ -88,9 +88,7 @@ pub fn full_reset() {
 }
 
 pub fn clear_queue() {
-    unsafe {
-        QUEUE.clear()
-    }
+    unsafe { QUEUE.clear() }
 }
 
 pub fn set_aerial(attack: Action) {
