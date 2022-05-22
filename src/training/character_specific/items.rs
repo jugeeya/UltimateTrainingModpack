@@ -15,6 +15,24 @@ pub struct CharItem {
     pub variation: Option<LuaConst>,
 }
 
+impl CharItem {
+    fn as_values(&self) -> CharItemValues {
+        CharItemValues {
+            fighter_kind: *self.fighter_kind,
+            item_kind: self.item_kind.as_ref().map(|x| **x),
+            article_kind: self.article_kind.as_ref().map(|x| **x),
+            variation: self.variation.as_ref().map(|x| **x)
+        }
+    }
+}
+
+struct CharItemValues {
+    pub fighter_kind: i32,
+    pub item_kind: Option<i32>,
+    pub article_kind: Option<i32>,
+    pub variation: Option<i32>
+}
+
 pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
     CharItem {
         fighter_kind: FIGHTER_KIND_DIDDY,
@@ -327,7 +345,7 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
 pub static mut TURNIP_CHOSEN: Option<u32> = None;
 pub static mut TARGET_PLAYER: Option<*mut BattleObjectModuleAccessor> = None;
 
-unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
+unsafe fn apply_single_item(player_fighter_kind: i32, item: CharItemValues) {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     // Now we make sure the module_accessor we use to generate the item/article is the correct character
@@ -336,9 +354,10 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
     } else {
         cpu_module_accessor
     };
-    let variation = item.variation.as_ref().map(|v| **v).unwrap_or(0);
+
+    let variation = item.variation.as_ref().map(|v| *v).unwrap_or(0);
     item.item_kind.as_ref().map(|item_kind| {
-        let item_kind = **item_kind;
+        let item_kind = *item_kind;
         // For Link, use special article generation to link the bomb for detonation
         if item_kind == *ITEM_KIND_LINKBOMB {
             ArticleModule::generate_article_have_item(
@@ -395,7 +414,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
             None
         };
 
-        let article_kind = **article_kind;
+        let article_kind = *article_kind;
         if article_kind == FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA {
             ArticleModule::generate_article_have_item(
                 generator_module_accessor,
@@ -459,7 +478,8 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
         };
     ALL_CHAR_ITEMS
         .iter()
-        .filter(|item| item_fighter_kind == item.fighter_kind)
+        .map(|item| item.as_values())
+        .filter(|item_vals| item_fighter_kind == item_vals.fighter_kind)
         .nth(variation_idx)
         .map(|item| apply_single_item(player_fighter_kind, item));
     mash::clear_queue();
