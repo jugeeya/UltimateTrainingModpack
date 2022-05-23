@@ -23,11 +23,24 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
         variation: None,
     },
     CharItem {
+        fighter_kind: FIGHTER_KIND_DIDDY,
+        item_kind: Some(ITEM_KIND_DIDDYPEANUTS),
+        article_kind: None,
+        variation: None,
+    },
+    CharItem {
         // Robin Tome
         fighter_kind: FIGHTER_KIND_REFLET,
         item_kind: Some(ITEM_KIND_BOOK),
         article_kind: None,
         variation: None, // TODO: Look at the lua const ITEM_BOOK_STATUS_KIND_BEFORE_BORN
+    },
+    CharItem {
+        // Robin Levin Sword
+        fighter_kind: FIGHTER_KIND_REFLET,
+        item_kind: Some(ITEM_KIND_THUNDERSWORD),
+        article_kind: None,
+        variation: None,
     },
     CharItem {
         // Banjo-Kazooie Grenade Egg
@@ -79,12 +92,6 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
         variation: Some(ITEM_VARIATION_BOMBHEI_NORMAL),
     },
     CharItem {
-        fighter_kind: FIGHTER_KIND_DIDDY,
-        item_kind: Some(ITEM_KIND_DIDDYPEANUTS),
-        article_kind: None,
-        variation: None,
-    },
-    CharItem {
         // Sheik Sideb Bomb
         fighter_kind: FIGHTER_KIND_SHEIK,
         item_kind: Some(ITEM_KIND_EXPLOSIONBOMB),
@@ -99,13 +106,13 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
     },
     CharItem {
         fighter_kind: FIGHTER_KIND_LINK,
-        item_kind: Some(ITEM_KIND_LINKARROW),
+        item_kind: Some(ITEM_KIND_LINKBOMB),
         article_kind: None,
         variation: None,
     },
     CharItem {
         fighter_kind: FIGHTER_KIND_LINK,
-        item_kind: Some(ITEM_KIND_LINKBOMB),
+        item_kind: Some(ITEM_KIND_LINKARROW),
         article_kind: None,
         variation: None,
     },
@@ -284,13 +291,6 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
     //     article_kind: None,
     //     variation: None,
     // },
-    CharItem {
-        // Robin Levin Sword
-        fighter_kind: FIGHTER_KIND_REFLET,
-        item_kind: Some(ITEM_KIND_THUNDERSWORD),
-        article_kind: None,
-        variation: None,
-    },
     CharItem {
         fighter_kind: FIGHTER_KIND_TOONLINK,
         item_kind: Some(ITEM_KIND_TOONLINKBOMB),
