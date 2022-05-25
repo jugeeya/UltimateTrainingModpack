@@ -34,7 +34,7 @@ macro_rules! actionable_statuses {
             FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
             FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
             FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
-        ];
+        ]
     };
 }
 
