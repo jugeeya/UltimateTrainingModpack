@@ -1,5 +1,4 @@
 #![feature(proc_macro_hygiene)]
-#![feature(with_options)]
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
 #![feature(once_cell)]
@@ -57,7 +56,7 @@ extern "C" {
 
 macro_rules! c_str {
     ($l:tt) => {
-        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr();
+        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr()
     };
 }
 
