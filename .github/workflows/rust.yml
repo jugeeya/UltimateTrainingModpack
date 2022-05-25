@@ -10,7 +10,7 @@ on:
 jobs:
   clippy_pr:
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:2.1.0-dkp
+    container: jugeeya/cargo-skyline:3.0.0-dkp-beta
     steps:
       - uses: actions/checkout@v2
       - name: Setup PATH
