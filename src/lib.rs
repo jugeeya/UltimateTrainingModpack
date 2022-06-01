@@ -145,7 +145,7 @@ pub fn main() {
         std::thread::sleep(std::time::Duration::from_secs(10));
         let menu;
         unsafe {
-            menu = crate::common::consts::get_menu();
+            menu = consts::get_menu();
         }
 
         let mut app = training_mod_tui::App::new(menu);
@@ -157,7 +157,7 @@ pub fn main() {
             let mut has_slept_millis = 0;
             let render_frames = 5;
             let mut url = String::new();
-            let button_presses = &mut common::menu::BUTTON_PRESSES;
+            let button_presses = &mut menu::BUTTON_PRESSES;
             let mut received_input = true;
             loop {
                 button_presses.a.read_press().then(|| {
@@ -174,7 +174,7 @@ pub fn main() {
                     {
                         // Leave menu.
                         menu::QUICK_MENU_ACTIVE = false;
-                        crate::menu::set_menu_from_url(url.as_str());
+                        menu::set_menu_from_url(url.as_str());
                         println!("URL: {}", url.as_str());
                     }
                 });
@@ -210,7 +210,7 @@ pub fn main() {
                 }
                 has_slept_millis = 16;
                 if !menu::QUICK_MENU_ACTIVE {
-                    app = training_mod_tui::App::new(crate::common::consts::get_menu());
+                    app = training_mod_tui::App::new(consts::get_menu());
                     set_should_display_text_to_screen(false);
                     continue;
                 }

@@ -1571,19 +1571,15 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     let non_ui_menu = MENU;
     let url_params = non_ui_menu.to_url_params(false);
     let toggle_values_all = url_params.split("&");
-    let mut sub_menu_id_to_vals : HashMap<&str, Vec<u32>> = HashMap::new();
+    let mut sub_menu_id_to_vals : HashMap<&str, u32> = HashMap::new();
     for toggle_values in toggle_values_all {
         let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
         let mut sub_menu_id = toggle_value_split[0];
         if sub_menu_id.is_empty() { continue }
         sub_menu_id = sub_menu_id.strip_prefix("__").unwrap_or(sub_menu_id);
 
-        let bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
-        if sub_menu_id_to_vals.contains_key(sub_menu_id) {
-            sub_menu_id_to_vals.get_mut(sub_menu_id).unwrap().push(bits);
-        } else {
-            sub_menu_id_to_vals.insert(sub_menu_id, vec![bits]);
-        }
+        let full_bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
+        sub_menu_id_to_vals.insert(sub_menu_id, full_bits);
     }
     overall_menu.tabs.iter_mut()
         .for_each(|tab| {
@@ -1591,7 +1587,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
                 let sub_menu_id = sub_menu.submenu_id;
                 sub_menu.toggles.iter_mut().for_each(|toggle| {
                     if sub_menu_id_to_vals.contains_key(sub_menu_id) &&
-                        sub_menu_id_to_vals[sub_menu_id].contains(&(toggle.toggle_value as u32)) {
+                        (sub_menu_id_to_vals[sub_menu_id] & (toggle.toggle_value as u32) != 0) {
                         toggle.checked = true
                     }
                 })
