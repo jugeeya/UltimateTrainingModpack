@@ -17,6 +17,39 @@ use tui::Terminal;
 
 use training_mod_consts::*;
 
+fn test_backend_setup(ui_menu: UiMenu) -> Result<
+    (Terminal<training_mod_tui::TestBackend>, training_mod_tui::App),
+    Box<dyn Error>> {
+    let app = training_mod_tui::App::new(ui_menu);
+    let backend = tui::backend::TestBackend::new(75, 15);
+    let terminal = Terminal::new(backend)?;
+    let mut state = tui::widgets::ListState::default();
+    state.select(Some(1));
+
+    Ok((terminal, app))
+}
+
+#[test]
+fn ensure_menu_retains_multi_selections() -> Result<(), Box<dyn Error>> {
+    let menu;
+    unsafe {
+        menu = get_menu();
+        println!("MENU.miss_tech_state: {}", MENU.miss_tech_state);
+    }
+
+    let (mut terminal, mut app) = test_backend_setup(menu)?;
+    let mut url = String::new();
+    let _frame_res = terminal.draw(|f| url = training_mod_tui::ui(f, &mut app))?;
+
+    unsafe {
+        // At this point, we didn't change the menu at all; we should still see all missed tech flags.
+        assert_eq!(get_menu_from_url(MENU, url.as_str(), false).miss_tech_state,
+                   MissTechFlags::all());
+    }
+
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let menu;
     unsafe {
@@ -24,11 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     #[cfg(not(feature = "has_terminal"))] {
-        let mut app = training_mod_tui::App::new(menu);
-        let backend = tui::backend::TestBackend::new(75, 15);
-        let mut terminal = Terminal::new(backend)?;
-        let mut state = tui::widgets::ListState::default();
-        state.select(Some(1));
+        let (mut terminal, mut app) = test_backend_setup(menu)?;
         let mut url = String::new();
         let frame_res = terminal.draw(|f| url = training_mod_tui::ui(f, &mut app))?;
 
