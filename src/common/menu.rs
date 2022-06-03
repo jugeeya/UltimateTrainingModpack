@@ -3,18 +3,18 @@ use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
 
+use owo_colors::OwoColorize;
 use parking_lot::Mutex;
 use ramhorns::Template;
 use skyline::info::get_program_id;
-use skyline_web::{Background, BootDisplay, Webpage, WebSession};
 use skyline::nn::hid::NpadGcState;
 use skyline::nn::web::WebSessionBootMode;
+use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 use training_mod_tui::Color;
-use owo_colors::OwoColorize;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 pub static mut QUICK_MENU_FRAME_COUNTER_INDEX: usize = 0;
@@ -276,7 +276,7 @@ pub fn render_text_to_screen(s: &str) {
 pub unsafe fn quick_menu_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
-        let menu= consts::get_menu();
+        let menu = consts::get_menu();
 
         let mut app = training_mod_tui::App::new(menu);
 
@@ -298,8 +298,7 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
                 if !app.outer_list {
                     app.on_b()
-                } else if frame_counter::get_frame_count(menu::QUICK_MENU_FRAME_COUNTER_INDEX)
-                    == 0
+                } else if frame_counter::get_frame_count(menu::QUICK_MENU_FRAME_COUNTER_INDEX) == 0
                 {
                     // Leave menu.
                     menu::QUICK_MENU_ACTIVE = false;
@@ -372,7 +371,7 @@ pub unsafe fn quick_menu_loop() {
                     }
                     _ => write!(&mut view, "{}", &cell.symbol),
                 }
-                    .unwrap();
+                .unwrap();
                 if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
                     writeln!(&mut view).unwrap();
                 }
@@ -388,7 +387,7 @@ pub unsafe fn quick_menu_loop() {
 static mut SHOULD_SHOW_MENU: bool = false;
 
 pub unsafe fn web_session_loop() {
-    let mut web_session : Option<WebSession> = None;
+    let mut web_session: Option<WebSession> = None;
     loop {
         std::thread::sleep(std::time::Duration::from_millis(100));
 
@@ -412,14 +411,16 @@ pub unsafe fn web_session_loop() {
                 default_params = DEFAULTS_MENU.to_url_params(true);
             }
 
-            web_session = Some(Webpage::new()
-                .background(Background::BlurredScreenshot)
-                .htdocs_dir("training_modpack")
-                .boot_display(BootDisplay::BlurredScreenshot)
-                .boot_icon(true)
-                .start_page(&format!("{}?{}&{}", "index.html", params, default_params))
-                .open_session(WebSessionBootMode::InitiallyHidden)
-                .unwrap());
+            web_session = Some(
+                Webpage::new()
+                    .background(Background::BlurredScreenshot)
+                    .htdocs_dir("training_modpack")
+                    .boot_display(BootDisplay::BlurredScreenshot)
+                    .boot_icon(true)
+                    .start_page(&format!("{}?{}&{}", "index.html", params, default_params))
+                    .open_session(WebSessionBootMode::InitiallyHidden)
+                    .unwrap(),
+            );
         }
     }
 }
