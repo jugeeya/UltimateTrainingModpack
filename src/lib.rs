@@ -27,11 +27,11 @@ use skyline::libc::{c_char, mkdir};
 use skyline::nro::{self, NroInfo};
 use std::fs;
 
+use crate::menu::{quick_menu_loop, web_session_loop};
 use crate::training::frame_counter;
 use owo_colors::OwoColorize;
 use training_mod_consts::OnOff;
 use training_mod_tui::Color;
-use crate::menu::{quick_menu_loop, web_session_loop};
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -128,15 +128,7 @@ pub fn main() {
         }
     });
 
-    std::thread::spawn(|| {
-        unsafe {
-            quick_menu_loop()
-        }
-    });
+    std::thread::spawn(|| unsafe { quick_menu_loop() });
 
-    std::thread::spawn(|| {
-        unsafe {
-            web_session_loop()
-        }
-    });
+    std::thread::spawn(|| unsafe { web_session_loop() });
 }
