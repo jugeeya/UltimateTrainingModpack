@@ -108,7 +108,7 @@ pub fn spawn_menu() {
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
         if MENU.quick_menu == OnOff::Off {
-            *SHOULD_SHOW_MENU.lock() = true;
+            SHOULD_SHOW_MENU = true;
         } else {
             QUICK_MENU_ACTIVE = true;
         }
@@ -385,15 +385,14 @@ pub unsafe fn quick_menu_loop() {
     }
 }
 
-static SHOULD_SHOW_MENU : Mutex<bool> = Mutex::new(false);
+static mut SHOULD_SHOW_MENU: bool = false;
 
-pub fn web_session_loop() {
+pub unsafe fn web_session_loop() {
     let mut web_session : Option<WebSession> = None;
     loop {
         std::thread::sleep(std::time::Duration::from_millis(100));
-        let mut show_menu = SHOULD_SHOW_MENU.lock();
 
-        if *show_menu && web_session.is_some() {
+        if SHOULD_SHOW_MENU && web_session.is_some() {
             let session = web_session.unwrap();
             session.show();
             let result = session.wait_for_exit();
@@ -403,26 +402,21 @@ pub fn web_session_loop() {
             session.exit();
 
             web_session = None;
-            *show_menu = false;
+            SHOULD_SHOW_MENU = false;
         }
 
         if web_session.is_none() {
-            let (params, default_params, tpl, overall_menu);
+            let (params, default_params);
             unsafe {
                 params = MENU.to_url_params(false);
                 default_params = DEFAULTS_MENU.to_url_params(true);
-                tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
-                overall_menu = get_menu();
             }
-
-            let index_data = tpl.render(&overall_menu);
 
             web_session = Some(Webpage::new()
                 .background(Background::BlurredScreenshot)
                 .htdocs_dir("training_modpack")
                 .boot_display(BootDisplay::BlurredScreenshot)
                 .boot_icon(true)
-                .file("index.html", &index_data)
                 .start_page(&format!("{}?{}&{}", "index.html", params, default_params))
                 .open_session(WebSessionBootMode::InitiallyHidden)
                 .unwrap());
