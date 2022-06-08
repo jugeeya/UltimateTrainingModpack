@@ -206,7 +206,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_CPU.state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
-        reset::on_reset();
         return;
     }
 
