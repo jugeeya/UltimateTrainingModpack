@@ -912,9 +912,11 @@ trait ToUrlParam {
     fn to_url_param(&self) -> String;
 }
 
+// The i32 is now in log form, need to exponentiate
+// back into 2^X when we pass back to the menu
 impl ToUrlParam for i32 {
     fn to_url_param(&self) -> String {
-        self.to_string()
+        2_i32.pow(*self as u32).to_string()
     }
 }
 
