@@ -206,7 +206,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_CPU.state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
-        reset::on_reset();
         return;
     }
 
@@ -291,6 +290,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         let lr = MIRROR_STATE * save_state.lr;
         PostureModule::set_pos(module_accessor, &pos);
         PostureModule::set_lr(module_accessor, lr);
+        reset::on_reset();
 
         if save_state.situation_kind == SITUATION_KIND_GROUND {
             if status != FIGHTER_STATUS_KIND_WAIT {
