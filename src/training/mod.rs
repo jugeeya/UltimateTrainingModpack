@@ -15,6 +15,7 @@ pub mod buff;
 pub mod charge;
 pub mod clatter;
 pub mod combo;
+pub mod crouch;
 pub mod directional_influence;
 pub mod frame_counter;
 pub mod ledge;
@@ -189,7 +190,9 @@ pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccesso
 }
 
 /**
- *
+ * Called when:
+ * Directional airdodge
+ * Crouching
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
 pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
@@ -198,7 +201,8 @@ pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor)
         return ori;
     }
 
-    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
+    air_dodge_direction::mod_get_stick_y(module_accessor)
+        .unwrap_or_else(|| crouch::mod_get_stick_y(module_accessor).unwrap_or(ori))
 }
 
 #[skyline::hook(replace = ControlModule::check_button_on)]
