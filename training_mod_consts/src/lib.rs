@@ -1049,6 +1049,7 @@ url_params! {
         pub falling_aerials: BoolFlag,
         pub aerial_delay: Delay,
         pub full_hop: BoolFlag,
+        pub crouch: OnOff,
         pub input_delay: i32,
         pub save_damage: OnOff,
         pub save_state_mirroring: SaveStateMirroring,
@@ -1092,6 +1093,7 @@ impl TrainingModpackMenu {
             air_dodge_dir = Direction::from_bits(val),
             attack_angle = AttackAngle::from_bits(val),
             clatter_strength = num::FromPrimitive::from_u32(val),
+            crouch = OnOff::from_val(val),
             defensive_state = Defensive::from_bits(val),
             di_state = Direction::from_bits(val),
             falling_aerials = BoolFlag::from_bits(val),
@@ -1179,6 +1181,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     falling_aerials: BoolFlag::empty(),
     aerial_delay: Delay::empty(),
     full_hop: BoolFlag::empty(),
+    crouch: OnOff::Off,
     input_delay: 0,
     save_damage: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
@@ -1505,6 +1508,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Character Item",
         "character_item",
         "Character Item: CPU/Player item to hold when loading a save state",
+        true
+    );
+    defensive_tab.add_submenu_with_toggles::<OnOff>(
+        "Crouch",
+        "crouch",
+        "Crouch: Should the CPU crouch when on the ground",
         true
     );
     overall_menu.tabs.push(defensive_tab);
