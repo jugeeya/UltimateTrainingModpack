@@ -1372,11 +1372,11 @@ AElFTkSuQmCC
        style="opacity:1;fill:#fffff8;fill-opacity:1;stroke:none;stroke-opacity:1;filter:url(#filter1754)"
        transform="matrix(0.73306005,0,0,0.73306005,1.355196,11.411482)" />
     <path
-       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
        d="M 70,10 V 65"
        id="path1756" />
     <path
-       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
        d="m 65,60 5,5 5,-5"
        id="path1758" />
   </g>

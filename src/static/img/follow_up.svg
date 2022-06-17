@@ -56,7 +56,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#c8c8c8;fill-opacity:1;stroke:#c8c8c8;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       style="fill:#858585;fill-opacity:1;stroke:#858585;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
        id="rect2014-9"
        width="35"
        height="25"
@@ -64,11 +64,11 @@
        y="-14.701198"
        transform="rotate(28.862086)" />
     <path
-       style="fill:#c8c8c8;stroke:#c8c8c8;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+       style="fill:#858585;stroke:#858585;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
        d="M 64,9 24,74"
        id="path2016-9" />
     <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:4;stroke-linecap:round;stroke-linejoin:round"
        id="rect2014"
        width="35"
        height="25"
@@ -76,7 +76,7 @@
        y="-8.8191442"
        transform="rotate(28.862086)" />
     <path
-       style="fill:none;stroke:#ffffff;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 50,8 10,73"
        id="path2016" />
   </g>
