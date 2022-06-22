@@ -67,10 +67,16 @@ fn handle_grnd_tech(
     }
 
     unsafe {
+        // prev_status_kind(module_accessor, 0) gets the 1st previous status,
+        // which is FIGHTER_STATUS_KIND_CATCHED_AIR_END_GANON for both aerial/grounded sideb
+        // prev_status_kind(module_accessor, 1) gets the 2nd previous status,
+        // which is FIGHTER_STATUS_KIND_CATCHED_GANON for grounded sideb
+        // and FIGHTER_STATUS_KIND_CATCHED_AIR_GANON for aerial sideb
+        let second_prev_status = StatusModule::prev_status_kind(module_accessor, 1);
         let can_tech = WorkModule::is_enable_transition_term(
             module_accessor,
             *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
-        );
+        ) && (second_prev_status != FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON);
 
         if !can_tech {
             return false;

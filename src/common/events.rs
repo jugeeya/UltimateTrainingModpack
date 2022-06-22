@@ -1,4 +1,4 @@
-use core::lazy::OnceCell;
+use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use skyline::libc::c_void;
 use skyline::nn::{account, crypto, oe, time};
