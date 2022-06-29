@@ -471,6 +471,7 @@ pub fn training_mods() {
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
         add_nn_hid_hook(menu::handle_get_npad_state);
+        add_nn_hid_hook(input_record::handle_get_npad_state);
     }
 
     unsafe {
