@@ -201,8 +201,7 @@ body {
 
 :focus > div {
     color: #fff;
-    text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000,
-        1px 1px 1px #000;
+    text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000;
 }
 
 @keyframes translate-anim {
@@ -232,6 +231,12 @@ body {
     flex-wrap: wrap;
     padding: 0 5%;
     height: 100%;
+}
+
+.modal {
+    position: fixed;
+    height: 513px;
+    width: 90%;
 }
 
 .menu-item,

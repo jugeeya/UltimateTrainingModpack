@@ -51,7 +51,13 @@ window.onload = onLoad;
 
 var settings = new Map();
 var lastFocusedItem = document.querySelector('.menu-item > button');
-var lastOpenedTab = () => document.querySelector('.tab-button.active');
+var currentTabContent = () => {
+    var currentActiveTab = document.querySelector('.tab-button.active');
+
+    var currentActiveTabContent = document.querySelector(`#${currentActiveTab.id.replace('button', 'tab')}`);
+
+    return currentActiveTabContent;
+};
 
 function onLoad() {
     // Activate the first tab
@@ -83,18 +89,22 @@ function openTab(eventTarget) {
     selected_tab.querySelector('button').focus();
 }
 
-function openItem(eventTarget) {
+function openMenuItem(eventTarget) {
     playSound('SeWebMenuListOpen');
-    var tabId = eventTarget.parentNode.id.replace('_state', '');
-    var modal = document.querySelector(`.modal[data-id=${tabId}]`);
+
+    var targetId = eventTarget.getAttribute('data-target');
+    var modal = document.querySelector(`.modal[data-id=${targetId}]`);
+
+    currentTabContent().classList.toggle('hide');
+
     modal.classList.toggle('hide');
     modal.querySelector('button').focus();
+
     lastFocusedItem = eventTarget;
-    document.querySelector('.tab-content#' + lastOpenedTab().id.replace('button', 'tab')).classList.add('hide');
 }
 
-function closeAllTabs() {
-    document.querySelectorAll('.modal').forEach((modal) => {
+function closeAllModals() {
+    document.querySelectorAll('.modal:not(.hide)').forEach((modal) => {
         modal.classList.add('hide');
     });
     lastFocusedItem.focus();
@@ -183,8 +193,9 @@ function close_or_exit() {
     if (document.querySelector('.modal:not(.hide)')) {
         // Close any open submenus
         console.log('Closing Items');
-        document.querySelector('.tab-content#' + lastOpenedTab().id.replace('button', 'tab')).classList.remove('hide');
-        closeAllTabs();
+        closeAllModals();
+        currentTabContent().classList.remove('hide');
+        lastFocusedItem.focus();
     } else {
         // If all submenus are closed, exit and return through localhost
         console.log('Exiting');

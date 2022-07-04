@@ -35,12 +35,12 @@
         <div id="{{tab_id}}_tab" class="tab-content hide">
             {{#tab_submenus}}
             <div class="menu-item" id="{{submenu_id}}">
-                <button class="menu-button" onfocus="setHelpText('{{help_text}}')" onclick="openItem(this)">
+                <button class="menu-button" onfocus="setHelpText('{{help_text}}')" onclick="openMenuItem(this)" data-target="{{submenu_id}}">
                     <img src="./img/{{submenu_id}}.svg" class="menu-icon" />
                     <p class="menu-title">{{submenu_title}}</p>
                 </button>
             </div>
-            <div class="hide modal{{#is_single_option}} single-option{{/is_single_option}}">
+            <div class="hide modal{{#is_single_option}} single-option{{/is_single_option}}" data-id="{{submenu_id}}">
                 {{#toggles}}
                 <button class="modal-button" onclick="toggleOption(this)">
                     <div class="modal-button-content">
