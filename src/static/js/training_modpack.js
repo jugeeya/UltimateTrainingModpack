@@ -110,13 +110,12 @@ function closeAllModals() {
     lastFocusedItem.focus();
 }
 
-function toggleOption(e) {
+function toggleOption(eventTarget) {
     playSound('SeSelectCheck');
-    if (e.parentElement.classList.contains('single-option')) {
-        selectSingleOption(e);
+    if (eventTarget.parentElement.classList.contains('single-option')) {
+        selectSingleOption(eventTarget);
     } else {
-        var img = e.querySelector('img');
-        img.classList.toggle('hidden');
+        eventTarget.querySelector('img').classList.toggle('hidden');
     }
 }
 
