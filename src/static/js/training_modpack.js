@@ -78,6 +78,8 @@ function openTab(eventTarget) {
         activeTabContent.classList.add('hide');
     }
 
+    closeAllActiveModals();
+
     // Remove "active" class from current active tab
     if (activeTab) {
         activeTab.classList.remove('active');
@@ -103,7 +105,7 @@ function openMenuItem(eventTarget) {
     lastFocusedItem = eventTarget;
 }
 
-function closeAllModals() {
+function closeAllActiveModals() {
     document.querySelectorAll('.modal:not(.hide)').forEach((modal) => {
         modal.classList.add('hide');
     });
@@ -119,18 +121,19 @@ function toggleOption(eventTarget) {
     }
 }
 
-function closestClass(elem, class_) {
+function closestClass(element, class_) {
     // Returns the closest ancestor (including self) with the given class
-    // TODO: Consider removing
-    if (!elem) {
+    if (!element) {
         // Reached the end of the DOM
         return null;
-    } else if (elem.classList.contains(class_)) {
+    }
+
+    if (element.classList.contains(class_)) {
         // Found it
-        return elem;
+        return element;
     } else {
         // Didn't find it, go up a level
-        return closestClass(elem.parentElement, class_);
+        return closestClass(element.parentElement, class_);
     }
 }
 function playSound(label) {
@@ -192,7 +195,7 @@ function close_or_exit() {
     if (document.querySelector('.modal:not(.hide)')) {
         // Close any open submenus
         console.log('Closing Items');
-        closeAllModals();
+        closeAllActiveModals();
         currentTabContent().classList.remove('hide');
         lastFocusedItem.focus();
     } else {
