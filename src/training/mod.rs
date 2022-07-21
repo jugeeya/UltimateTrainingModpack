@@ -548,4 +548,5 @@ pub fn training_mods() {
     menu::init();
     buff::init();
     items::init();
+    input_record::init();
 }
