@@ -3,9 +3,25 @@ use smash::app::{BattleObjectModuleAccessor, lua_bind::*};
 use smash::lib::lua_const::*;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use bitflags::bitflags;
 
 // Need to define necesary structures here. Probably should move to consts or something. Realistically, should be in skyline smash prob tho.
+
+// Final final controls used for controlmodule
+#[repr(C)]
+struct ControlModuleInternal {
+    vtable: *mut u8,
+    controller_index: i32,
+    buttons: Buttons,
+    stick_x: f32,
+    stick_y: f32,
+    padding: [f32; 2],
+    unk: [u32; 8],
+    clamped_lstick_x: f32,
+    clamped_lstick_y: f32,
+    padding2: [f32; 2],
+    clamped_rstick_x: f32,
+    clamped_rstick_y: f32,
+}
 
 // Re-ordered bitfield the game uses for buttons - TODO: Is this a problem? What's the original order?
 type ButtonBitfield = i32; // may need to actually implement? Not for now though
@@ -106,31 +122,8 @@ pub struct ControllerMapping {
     pub _34: [u8; 0x1C]
 }
 
-// Define struct used for mapping which buttons are pressed - is this needed?
-/*bitflags! {
-    pub struct Buttons: i32 {
-        const Attack      = 0x1;
-        const Special     = 0x2;
-        const Jump        = 0x4;
-        const Guard       = 0x8;
-        const Catch       = 0x10;
-        const Smash       = 0x20;
-        const JumpMini    = 0x40;
-        const CStickOn    = 0x80;
-        const StockShare  = 0x100;
-        const AttackRaw   = 0x200;
-        const AppealHi    = 0x400;
-        const SpecialRaw  = 0x800;
-        const AppealLw    = 0x1000;
-        const AppealSL    = 0x2000;
-        const AppealSR    = 0x4000;
-        const FlickJump   = 0x8000;
-        const GuardHold   = 0x10000;
-        const SpecialRaw2 = 0x20000;
-    }
-}*/
 
-type Buttons = i32; // may need to actually implement? Not for now though
+type Buttons = u32; // may need to actually implement (like label and such)? Not for now though
 
 // Controller class used internally by the game
 #[repr(C)]
@@ -199,7 +192,7 @@ pub struct MappedInputs {
 impl MappedInputs {
     pub fn default() -> MappedInputs {
         MappedInputs {
-            buttons: (0 as i32) as Buttons,
+            buttons: (0 as u32) as Buttons,
             lstick_x: 0,
             lstick_y: 0,
             rstick_x: 0,
@@ -308,18 +301,57 @@ unsafe fn handle_final_input_mapping(
 ) {
     // go through the original mapping function first
     let ret = original!()(mappings, player_idx, out, controller_struct, arg);
-    if player_idx == 0 { // if player 1
+    //println!("Player: {}, Out Addr: {:p}", player_idx, out);
+    if player_idx == 0 { // if player 1 (what is going on here? switching from handheld to docked seems to make this change to 1 and 2 instead of 0)
         if INPUT_RECORD == Record {
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
+            //*out = MappedInputs::default() // don't control player while recording TODO: Change this for later, want off during dev and testing
         }
-    } else if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+    } /*else if INPUT_RECORD == Record || INPUT_RECORD == Playback { // Shouldn't be needed, we take care of cpu elsewhere
         *out = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
         // updateCount gone now - what was this? Was this important?
-    }
+    }*/
+}
+
+#[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
+unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
+  call_original!(p_data);
+  let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
+  let controller_no  = controller_data.controller_index;
+  let input_type;
+  if INPUT_RECORD == Record {
+    input_type = "Record";
+  } else if INPUT_RECORD == Playback {
+    input_type = "Playback";
+  } else {
+    input_type = "Other";
+  }
+  if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+    //println!("Overriding Cpu Player: {}", controller_no); // cpu is normally 1, at least on handheld
+    let saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
+    *(controller_data as *mut u32).add(3) = saved_mapped_inputs.buttons;
+    *(controller_data.add(0x40) as *mut f32) = (saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32);
+    *(controller_data.add(0x44) as *mut f32) = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
+    /*println!("{} CPU, Frame: {}", input_type, INPUT_RECORD_FRAME); //debug
+    println!("Saved stick x: {}, new stick x: {}", saved_mapped_inputs.lstick_x, *(controller_data.add(0x40) as *mut f32));
+    println!("Saved stick y: {}, new stick y: {}", saved_mapped_inputs.lstick_y, *(controller_data.add(0x44) as *mut f32));
+    */
+    // Clamp stick inputs for separate part of structure
+    const NEUTRAL: f32 = 0.2;
+    const CLAMP_MAX: f32 = 120.0;
+    let clamp_mul = 1.0 / CLAMP_MAX;
+    let clamped_lstick_x = ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
+    let clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
+    clamped_lstick_x = if raw_lstick_x.abs() >= NEUTRAL { raw_lstick_x } else { 0.0 };
+    clamped_lstick_y = if raw_lstick_y.abs() >= NEUTRAL { raw_lstick_y } else { 0.0 };
+    controller_data.clamped_lstick_x = clamped_lstick_x;
+    controller_data.clamped_lstick_y = clamped_lstick_y;
+  } 
 }
 
 pub fn init() {
     skyline::install_hooks!(
         handle_final_input_mapping,
+        set_cpu_controls
     );
 }
