@@ -26,6 +26,7 @@ pub mod throw;
 mod air_dodge_direction;
 mod attack_angle;
 mod character_specific;
+mod input_recording;
 mod fast_fall;
 mod full_hop;
 pub(crate) mod input_delay;
