@@ -8,7 +8,7 @@ use parking_lot::Mutex;
 
 // Final final controls used for controlmodule
 #[repr(C)]
-struct ControlModuleInternal {
+pub struct ControlModuleInternal {
     vtable: *mut u8,
     controller_index: i32,
     buttons: Buttons,
@@ -210,6 +210,7 @@ lazy_static! {
 
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
+pub static mut CPU_CONTROL_ADDR: *mut ControlModuleInternal = 0 as *mut ControlModuleInternal;
 
 #[derive(PartialEq)]
 pub enum InputRecordState {
@@ -230,6 +231,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R) {
             crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
             playback();
+            println!("Playback Command Received!"); //debug
         }
         // Attack + Dpad Left: Record
         else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
@@ -237,15 +239,16 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         {
            crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
            record();
+           println!("Record Command Received!"); //debug
         }
 
 
-
+        // may need to move this to another func
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
             if INPUT_RECORD_FRAME >= P1_FINAL_MAPPING.lock().len() - 1 {
                 if INPUT_RECORD == Record {
-                    INPUT_RECORD = Playback; // shouldn't do this, causes it to play twice. TODO: replace with line below once other things tested
-                    //INPUT_RECORD = None;
+                    //INPUT_RECORD = Playback; // shouldn't do this, causes it to play twice. TODO: replace with line below once other things tested
+                    INPUT_RECORD = None;
                 } else if INPUT_RECORD == Playback {
                     INPUT_RECORD = None;
                 }
@@ -311,13 +314,24 @@ unsafe fn handle_final_input_mapping(
         *out = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
         // updateCount gone now - what was this? Was this important?
     }*/
+
+    // debug:
+    let input_type;
+    if INPUT_RECORD == Record {
+        input_type = "Record";
+    } else if INPUT_RECORD == Playback {
+        input_type = "Playback";
+    } else {
+        input_type = "Other";
+    }
+    println!("{} PLAYER, Frame: {}", input_type, INPUT_RECORD_FRAME); //debug
 }
 
 #[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
 unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
   call_original!(p_data);
   let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
-  let controller_no  = controller_data.controller_index;
+  let controller_no  = (*controller_data).controller_index;
   let input_type;
   if INPUT_RECORD == Record {
     input_type = "Record";
@@ -328,24 +342,29 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
   }
   if INPUT_RECORD == Record || INPUT_RECORD == Playback {
     //println!("Overriding Cpu Player: {}", controller_no); // cpu is normally 1, at least on handheld
-    let saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
-    *(controller_data as *mut u32).add(3) = saved_mapped_inputs.buttons;
-    *(controller_data.add(0x40) as *mut f32) = (saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32);
-    *(controller_data.add(0x44) as *mut f32) = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
-    /*println!("{} CPU, Frame: {}", input_type, INPUT_RECORD_FRAME); //debug
-    println!("Saved stick x: {}, new stick x: {}", saved_mapped_inputs.lstick_x, *(controller_data.add(0x40) as *mut f32));
-    println!("Saved stick y: {}, new stick y: {}", saved_mapped_inputs.lstick_y, *(controller_data.add(0x44) as *mut f32));
-    */
-    // Clamp stick inputs for separate part of structure
-    const NEUTRAL: f32 = 0.2;
-    const CLAMP_MAX: f32 = 120.0;
-    let clamp_mul = 1.0 / CLAMP_MAX;
-    let clamped_lstick_x = ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
-    let clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
-    clamped_lstick_x = if raw_lstick_x.abs() >= NEUTRAL { raw_lstick_x } else { 0.0 };
-    clamped_lstick_y = if raw_lstick_y.abs() >= NEUTRAL { raw_lstick_y } else { 0.0 };
-    controller_data.clamped_lstick_x = clamped_lstick_x;
-    controller_data.clamped_lstick_y = clamped_lstick_y;
+    if INPUT_RECORD_FRAME > 0 {
+        let saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1];
+        (*controller_data).buttons = saved_mapped_inputs.buttons;
+        (*controller_data).stick_x = (saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32);
+        (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
+        println!("{} CPU, Frame: {}", input_type, INPUT_RECORD_FRAME); //debug
+        /*println!("Saved stick x: {}, new stick x: {}", saved_mapped_inputs.lstick_x, *(controller_data.add(0x40) as *mut f32));
+        println!("Saved stick y: {}, new stick y: {}", saved_mapped_inputs.lstick_y, *(controller_data.add(0x44) as *mut f32));
+        */
+        // Clamp stick inputs for separate part of structure
+        const NEUTRAL: f32 = 0.2;
+        const CLAMP_MAX: f32 = 120.0;
+        let clamp_mul = 1.0 / CLAMP_MAX;
+        let mut clamped_lstick_x = ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
+        let mut clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
+        clamped_lstick_x = if clamped_lstick_x.abs() >= NEUTRAL { clamped_lstick_x } else { 0.0 };
+        clamped_lstick_y = if clamped_lstick_y.abs() >= NEUTRAL { clamped_lstick_y } else { 0.0 };
+        (*controller_data).clamped_lstick_x = clamped_lstick_x;
+        (*controller_data).clamped_lstick_y = clamped_lstick_y;
+    }
+    
+    CPU_CONTROL_ADDR = controller_data;
+    println!("Saving CPU Addr as {:p}", controller_data);
   } 
 }
 
