@@ -1,7 +1,6 @@
 // Polyfill for NodeList.forEach.
 // Allows forEach to be called directly on a node list (return type of doucment.querySelectorAll)
 if (window.NodeList && !NodeList.prototype.forEach) {
-    alert('Adding polyfill for NodeList.forEach');
     NodeList.prototype.forEach = Array.prototype.forEach;
 }
 
@@ -66,10 +65,17 @@ function onLoad() {
     // Extract URL params and set appropriate settings
     setSettingsFromURL();
     setSubmenusFromSettings();
+    logNX('running onLoad');
+}
+
+function logNX(message) {
+    if (isNx) {
+        window.nx.sendMessage(message);
+    }
 }
 
 function openTab(eventTarget) {
-    var selected_tab = document.getElementById(eventTarget.id.replace('button', 'tab'));
+    var selectedTab = document.getElementById(eventTarget.id.replace('button', 'tab'));
     var activeTabContent = document.querySelector('.tab-content:not(.hide)');
     var activeTab = document.querySelector('.tab-button.active');
 
@@ -87,15 +93,15 @@ function openTab(eventTarget) {
 
     // Show the new current tab, and add an "active" class to the button that opened the tab
     eventTarget.classList.add('active');
-    selected_tab.classList.remove('hide');
-    selected_tab.querySelector('button').focus();
+    selectedTab.classList.remove('hide');
+    selectedTab.querySelector('button').focus();
 }
 
 function openMenuItem(eventTarget) {
     playSound('SeWebMenuListOpen');
 
-    var targetId = eventTarget.getAttribute('data-target');
-    var modal = document.querySelector(`.modal[data-id=${targetId}]`);
+    var { target } = eventTarget.dataset;
+    var modal = document.querySelector(`.modal[data-id=${target}]`);
 
     currentTabContent().classList.toggle('hide');
 
@@ -206,6 +212,20 @@ function close_or_exit() {
 }
 
 function setSettingsFromURL() {
+    // var { search } = window.location;
+    // var settingsFromSearch = search
+    //     .replace('?', '')
+    //     .split('&')
+    //     .reduce((acc, cv) => {
+    //         var [key, value] = cv.split('=');
+    //         acc[key] = value;
+    //         return acc;
+    //     }, {});
+
+    // console.log({ settingsFromSearch, settings: new Map(Object.entries(settingsFromSearch)) });
+
+    // settings = new Map(Object.entries(settingsFromSearch));
+    alert(window.location.search);
     var regex = /[?&]([^=#]+)=([^&#]*)/g,
         match;
     while ((match = regex.exec(document.URL))) {
@@ -216,8 +236,9 @@ function setSettingsFromURL() {
 function setSettingsFromMenu() {
     var section;
     var mask;
-    [].forEach.call(document.querySelectorAll('.menu-item'), function (menuItem) {
+    document.querySelectorAll('.menu-item').forEach(function (menuItem) {
         section = menuItem.id;
+        console.log({ section, menuItem });
         mask = getMaskFromSubmenu(menuItem);
         settings.set(section, mask);
     });
@@ -229,54 +250,62 @@ function buildURLFromSettings() {
     settings.forEach((val, key) => {
         url += key + '=' + String(val) + '&';
     });
+
     return url;
 }
 
 function selectSingleOption(e) {
     // Deselect all options in the submenu
     parent = closestClass(e, 'single-option');
-    siblings = parent.querySelectorAll('.menu-icon img');
-    [].forEach.call(siblings, function (sibling) {
-        sibling.classList.add('hide');
+    parent.querySelectorAll('.menu-icon:not(.hidden)').forEach((sibling) => {
+        sibling.classList.add('hidden');
     });
-    e.querySelector('.menu-icon img').classList.remove('hide');
+
+    e.querySelector('.menu-icon').classList.remove('hidden');
 }
 
 function setSubmenusFromSettings() {
-    [].forEach.call(document.querySelectorAll('.menu-item'), function (menuItem) {
+    document.querySelectorAll('.menu-item').forEach(function (menuItem, index) {
         var section = menuItem.id;
         var section_mask = decodeURIComponent(settings.get(section));
+        // console.log({ menuItem, section_mask });
         setSubmenuByMask(menuItem, section_mask);
     });
 }
 
 function setSubmenuByMask(menuItem, mask) {
-    [].forEach.call(menuItem.querySelectorAll('.modal .menu-icon img'), function (toggle) {
+    const modal = document.querySelector(`.modal[data-id="${menuItem.id}"]`);
+
+    modal.querySelectorAll('.menu-icon').forEach(function (toggle) {
         if (isInBitmask(toggle.dataset.val, mask)) {
-            toggle.classList.remove('hide');
+            toggle.classList.remove('hidden');
         } else {
-            toggle.classList.add('hide');
+            toggle.classList.add('hidden');
         }
     });
 
     // If no setting for a Single Option is set, select the first one
-    var isSingleOption = menuItem.querySelectorAll('.modal.single-option').length != 0;
-    var isAllDeselected = menuItem.querySelectorAll('.modal .menu-icon img:not(.hide)').length == 0;
-    if (isSingleOption & isAllDeselected) {
-        selectSingleOption(menuItem.querySelector('.modal button'));
+    var isSingleOption = modal.classList.contains('single-option');
+    var isAllDeselected = modal.querySelectorAll('.menu-icon:not(.hidden)').length === 0;
+    if (isSingleOption && isAllDeselected) {
+        selectSingleOption(modal.querySelector('button'));
     }
 }
 
 function getMaskFromSubmenu(menuItem) {
     var val = 0;
-    [].forEach.call(menuItem.querySelectorAll('.modal img:not(.hide)'), function (toggle) {
+    var modal = document.querySelector(`.modal[data-id='${menuItem.id}']`);
+    var items = modal.querySelectorAll('img:not(.hidden)');
+
+    items.forEach(function (toggle) {
         val += parseInt(toggle.dataset.val);
     });
+
     return val;
 }
 
 function resetCurrentSubmenu() {
-    var focus = document.querySelector('.menu-item .modal:not(.hide)');
+    var focus = document.querySelector('.modal:not(.hide)');
     if (!focus) {
         focus = document.querySelector(':focus');
     }
@@ -290,7 +319,7 @@ function resetCurrentSubmenu() {
 function resetAllSubmenus() {
     // Resets all submenus to the default values
     if (confirm('Are you sure that you want to reset all menu settings to the default?')) {
-        [].forEach.call(document.querySelectorAll('.menu-item'), function (menuItem) {
+        document.querySelectorAll('.menu-item').forEach(function (menuItem) {
             var key = defaults_prefix + menuItem.id;
             var mask = decodeURIComponent(settings.get(key));
             setSubmenuByMask(menuItem, mask);
@@ -307,7 +336,7 @@ function saveDefaults() {
     if (confirm('Are you sure that you want to change the default menu settings to the current selections?')) {
         var key;
         var mask;
-        [].forEach.call(document.querySelectorAll('.menu-item'), function (menuItem) {
+        document.querySelectorAll('.menu-item').forEach(function (menuItem) {
             key = defaults_prefix + menuItem.id;
             mask = getMaskFromSubmenu(menuItem);
             settings.set(key, mask);
