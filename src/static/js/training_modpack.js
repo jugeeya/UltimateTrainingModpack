@@ -126,14 +126,28 @@ function closeAllActiveModals() {
     lastFocusedItem.focus();
 }
 
-function toggleOption(eventTarget) {
+function toggleOption(element) {
     playSound('SeSelectCheck');
-    if (eventTarget.parentElement.classList.contains('single-option')) {
-        selectSingleOption(eventTarget);
-    } else {
-        eventTarget.querySelector('img').classList.toggle('hidden');
+
+    if (element.parentElement.classList.contains('single-option')) {
+        selectSingleOption(element);
+        return;
     }
+
+    var img = element.querySelector('img');
+    var previouslySelected = !img.classList.contains('hidden');
+    var menuId = element.parentElement.dataset.id;
+    var toggleValue = parseInt(img.dataset.val);
+
+    settings[menuId] = previouslySelected ? settings[menuId] - toggleValue : settings[menuId] + toggleValue;
+
+    element.querySelector('img').classList.toggle('hidden');
 }
+
+// Add this later
+// function toggleSingleOption(element) {
+//     selectSingleOption(element);
+// }
 
 function closestClass(element, class_) {
     // Returns the closest ancestor (including self) with the given class
@@ -224,21 +238,13 @@ function setSettingsFromURL() {
     var settingsFromSearch = search
         .replace('?', '')
         .split('&')
-        .reduce((acc, cv) => {
-            var [key, value] = cv.split('=');
-            acc[key] = value;
-            return acc;
+        .reduce((accumulator, currentValue) => {
+            var [key, value] = currentValue.split('=');
+            accumulator[key] = parseInt(value);
+            return accumulator;
         }, {});
 
-    console.log({ settingsFromSearch });
-
     settings = settingsFromSearch;
-    // alert(window.location.search);
-    // var regex = /[?&]([^=#]+)=([^&#]*)/g,
-    //     match;
-    // while ((match = regex.exec(document.URL))) {
-    //     settings.set(match[1], match[2]);
-    // }
 }
 
 function setSettingsFromMenu() {
@@ -257,14 +263,20 @@ function buildURLFromSettings() {
     return url + urlParams.join('&');
 }
 
-function selectSingleOption(e) {
+function selectSingleOption(eventTarget) {
     // Deselect all options in the submenu
-    parent = closestClass(e, 'single-option');
+    var parent = eventTarget.parentElement;
+
     parent.querySelectorAll('.menu-icon:not(.hidden)').forEach((sibling) => {
         sibling.classList.add('hidden');
+        settings[parent.dataset.id] = settings[parent.dataset.id] - parseInt(sibling.dataset.val);
     });
 
-    e.querySelector('.menu-icon').classList.remove('hidden');
+    eventTarget.querySelector('.menu-icon').classList.remove('hidden');
+
+    var value = parseInt(eventTarget.querySelector('.menu-icon').dataset.val);
+
+    settings[parent.dataset.id] = settings[parent.dataset.id] + value;
 }
 
 function populateMenuFromSettings() {
