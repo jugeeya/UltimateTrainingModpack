@@ -164,6 +164,7 @@ function closestClass(element, class_) {
         return closestClass(element.parentElement, class_);
     }
 }
+
 function playSound(label) {
     // Valid labels:
     // SeToggleBtnFocus
@@ -206,7 +207,7 @@ function playSound(label) {
 
 function exit() {
     playSound('SeFooterDecideBack');
-    setSettingsFromMenu();
+
     var url = buildURLFromSettings();
 
     if (isNx) {
@@ -245,12 +246,6 @@ function setSettingsFromURL() {
         }, {});
 
     settings = settingsFromSearch;
-}
-
-function setSettingsFromMenu() {
-    document.querySelectorAll('.menu-item').forEach((item) => {
-        settings[item.id] = getMaskFromMenuID(item.id);
-    });
 }
 
 function buildURLFromSettings() {
