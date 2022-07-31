@@ -274,14 +274,6 @@ function populateMenuFromSettings() {
 function setOptionsForMenu(menuId) {
     const modal = document.querySelector(`.modal[data-id="${menuId}"]`);
 
-    if (modal.classList.contains('single-option')) {
-        // If no option is selected default to the first option
-        if (modal.querySelectorAll('.menu-icon:not(.hidden)').length === 0) {
-            selectSingleOption(modal.querySelector('button'));
-        }
-        return;
-    }
-
     modal.querySelectorAll('.menu-icon').forEach(function (toggle) {
         if (isInBitmask(toggle.dataset.val, settings[menuId])) {
             toggle.classList.remove('hidden');
@@ -289,6 +281,13 @@ function setOptionsForMenu(menuId) {
             toggle.classList.add('hidden');
         }
     });
+
+    if (modal.classList.contains('single-option')) {
+        // If no option is selected default to the first option
+        if (modal.querySelectorAll('.menu-icon:not(.hidden)').length === 0) {
+            selectSingleOption(modal.querySelector('button'));
+        }
+    }
 }
 
 function getMaskFromMenuID(id) {
