@@ -166,38 +166,14 @@ function closestClass(element, class_) {
 }
 
 function playSound(label) {
-    // Valid labels:
-    // SeToggleBtnFocus
-    // SeToggleBtnOn
-    // SeToggleBtnOff
-    // SeCheckboxFocus
-    // SeCheckboxOn
-    // SeCheckboxOff
-    // SeRadioBtnFocus
-    // SeRadioBtnOn
-    // SeSelectCheck
-    // SeSelectUncheck
-    // SeBtnDecide
-    // SeTouchUnfocus
-    // SeBtnFocus
-    // SeKeyError
-    // SeDialogOpen
-    // SeWebZoomOut
-    // SeWebZoomIn
-    // SeWebNaviFocus
-    // SeWebPointerFocus
-    // SeFooterFocus
-    // SeFooterDecideBack
-    // SeFooterDecideFinish
-    // SeWebChangeCursorPointer
-    // SeWebTouchFocus
-    // SeWebLinkDecide
-    // SeWebTextboxStartEdit
-    // SeWebButtonDecide
-    // SeWebRadioBtnOn
-    // SeWebCheckboxUncheck
-    // SeWebCheckboxCheck
-    // SeWebMenuListOpen
+    //** Valid labels **//
+    // SeToggleBtnFocus, SeToggleBtnOn, SeToggleBtnOff, SeCheckboxFocus, SeCheckboxOn
+    // SeCheckboxOff, SeRadioBtnFocus, SeRadioBtnOn, SeSelectCheck, SeSelectUncheck, SeBtnDecide
+    // SeTouchUnfocus, SeBtnFocus, SeKeyError, SeDialogOpen, SeWebZoomOut, SeWebZoomIn, SeWebNaviFocus
+    // SeWebPointerFocus, SeFooterFocus, SeFooterDecideBack, SeFooterDecideFinish, SeWebChangeCursorPointer
+    // SeWebTouchFocus, SeWebLinkDecide, SeWebTextboxStartEdit, SeWebButtonDecide, SeWebRadioBtnOn
+    // SeWebCheckboxUncheck, SeWebCheckboxCheck, SeWebMenuListOpen
+
     if (isNx) {
         window.nx.playSystemSe(label);
     } else {
