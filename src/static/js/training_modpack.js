@@ -18,14 +18,14 @@ if (!Object.entries) {
     };
 }
 
-var isNx = typeof window.nx !== 'undefined';
-var defaults_prefix = '__';
+const isNx = typeof window.nx !== 'undefined';
+var DEFAULTS_PREFIX = '__';
 
 // Set input handlers
 if (isNx) {
-    window.nx.footer.setAssign('B', '', close_or_exit, { se: '' });
-    window.nx.footer.setAssign('X', '', resetCurrentSubmenu, { se: '' });
-    window.nx.footer.setAssign('L', '', resetAllSubmenus, { se: '' });
+    window.nx.footer.setAssign('B', '', closeOrExit, { se: '' });
+    window.nx.footer.setAssign('X', '', resetCurrentMenu, { se: '' });
+    window.nx.footer.setAssign('L', '', resetAllMenus, { se: '' });
     window.nx.footer.setAssign('R', '', saveDefaults, { se: '' });
     window.nx.footer.setAssign('ZR', '', cycleNextTab, { se: '' });
     window.nx.footer.setAssign('ZL', '', cyclePrevTab, { se: '' });
@@ -34,11 +34,11 @@ if (isNx) {
         switch (event.key) {
             case 'b':
                 console.log('b');
-                close_or_exit();
+                closeOrExit();
                 break;
             case 'x':
                 console.log('x');
-                resetCurrentSubmenu();
+                resetCurrentMenu();
                 break;
             case 'l':
                 console.log('l');
@@ -60,32 +60,32 @@ if (isNx) {
     });
 }
 
-window.onload = onLoad;
-
-var settings;
-
-var lastFocusedItem = document.querySelector('.menu-item > button');
-var currentTabContent = () => {
-    var currentActiveTab = document.querySelector('.tab-button.active');
-
-    var currentActiveTabContent = document.querySelector(`#${currentActiveTab.id.replace('button', 'tab')}`);
-
-    return currentActiveTabContent;
-};
-
-function onLoad() {
+const onLoad = () => {
     // Activate the first tab
     openTab(document.querySelector('button.tab-button'));
 
     // Extract URL params and set appropriate settings
     setSettingsFromURL();
     populateMenuFromSettings();
-}
+};
 
-function openTab(eventTarget) {
-    var selectedTab = document.getElementById(eventTarget.id.replace('button', 'tab'));
-    var activeTabContent = document.querySelector('.tab-content:not(.hide)');
-    var activeTab = document.querySelector('.tab-button.active');
+window.onload = onLoad;
+
+var settings;
+
+var lastFocusedItem = document.querySelector('.menu-item > button');
+const currentTabContent = () => {
+    const currentActiveTab = document.querySelector('.tab-button.active');
+
+    var currentActiveTabContent = document.querySelector(`#${currentActiveTab.id.replace('button', 'tab')}`);
+
+    return currentActiveTabContent;
+};
+
+const openTab = (eventTarget) => {
+    const selectedTab = document.getElementById(eventTarget.id.replace('button', 'tab'));
+    const activeTabContent = document.querySelector('.tab-content:not(.hide)');
+    const activeTab = document.querySelector('.tab-button.active');
 
     // Hide content of current active tab
     if (activeTabContent) {
@@ -103,13 +103,13 @@ function openTab(eventTarget) {
     eventTarget.classList.add('active');
     selectedTab.classList.remove('hide');
     selectedTab.querySelector('button').focus();
-}
+};
 
-function openMenuItem(eventTarget) {
+const openMenuItem = (eventTarget) => {
     playSound('SeWebMenuListOpen');
 
     var { target } = eventTarget.dataset;
-    var modal = document.querySelector(`.modal[data-id=${target}]`);
+    const modal = document.querySelector(`.modal[data-id=${target}]`);
 
     currentTabContent().classList.toggle('hide');
 
@@ -117,16 +117,16 @@ function openMenuItem(eventTarget) {
     modal.querySelector('button').focus();
 
     lastFocusedItem = eventTarget;
-}
+};
 
-function closeAllActiveModals() {
+const closeAllActiveModals = () => {
     document.querySelectorAll('.modal:not(.hide)').forEach((modal) => {
         modal.classList.add('hide');
     });
     lastFocusedItem.focus();
-}
+};
 
-function toggleOption(element) {
+const toggleOption = (element) => {
     playSound('SeSelectCheck');
 
     if (element.parentElement.classList.contains('single-option')) {
@@ -134,36 +134,33 @@ function toggleOption(element) {
         return;
     }
 
-    var img = element.querySelector('img');
-    var previouslySelected = !img.classList.contains('hidden');
-    var menuId = element.parentElement.dataset.id;
-    var toggleValue = parseInt(img.dataset.val);
+    const img = element.querySelector('img');
+    const previouslySelected = !img.classList.contains('hidden');
+    const menuId = element.parentElement.dataset.id;
+    const toggleValue = parseInt(img.dataset.val);
 
     settings[menuId] = previouslySelected ? settings[menuId] - toggleValue : settings[menuId] + toggleValue;
 
     element.querySelector('img').classList.toggle('hidden');
-}
+};
 
 // Add this later
 // function toggleSingleOption(element) {
 //     selectSingleOption(element);
 // }
 
-function closestClass(element, class_) {
-    // Returns the closest ancestor (including self) with the given class
+const closestClass = (element, class_) => {
     if (!element) {
-        // Reached the end of the DOM
         return null;
     }
 
     if (element.classList.contains(class_)) {
-        // Found it
         return element;
-    } else {
-        // Didn't find it, go up a level
-        return closestClass(element.parentElement, class_);
     }
-}
+
+    // Didn't find it, go up a level
+    return closestClass(element.parentElement, class_);
+};
 
 function playSound(label) {
     //** Valid labels **//
@@ -181,38 +178,35 @@ function playSound(label) {
     }
 }
 
-function exit() {
+const exit = () => {
     playSound('SeFooterDecideBack');
 
-    var url = buildURLFromSettings();
+    const url = buildURLFromSettings();
 
     if (isNx) {
         window.location.href = url;
     } else {
         console.log(url);
     }
-}
+};
 
-function close_or_exit() {
-    // If any submenus are open, close them
-    // Otherwise if all submenus are closed, exit the menu and return to the game
-
+function closeOrExit() {
+    // Close any open menus
     if (document.querySelector('.modal:not(.hide)')) {
-        // Close any open submenus
         console.log('Closing Items');
         closeAllActiveModals();
         currentTabContent().classList.remove('hide');
         lastFocusedItem.focus();
-    } else {
-        // If all submenus are closed, exit and return through localhost
-        console.log('Exiting');
-        exit();
+        return;
     }
+
+    console.log('Exiting');
+    exit();
 }
 
 function setSettingsFromURL() {
     var { search } = window.location;
-    var settingsFromSearch = search
+    const settingsFromSearch = search
         .replace('?', '')
         .split('&')
         .reduce((accumulator, currentValue) => {
@@ -225,9 +219,9 @@ function setSettingsFromURL() {
 }
 
 function buildURLFromSettings() {
-    var url = 'http://localhost/?';
+    const url = 'http://localhost/?';
 
-    var urlParams = Object.entries(settings).map((setting) => {
+    const urlParams = Object.entries(settings).map((setting) => {
         return `${setting[0]}=${setting[1]}`;
     });
 
@@ -236,7 +230,7 @@ function buildURLFromSettings() {
 
 function selectSingleOption(eventTarget) {
     // Deselect all options in the submenu
-    var parent = eventTarget.parentElement;
+    const parent = eventTarget.parentElement;
 
     parent.querySelectorAll('.menu-icon:not(.hidden)').forEach((sibling) => {
         sibling.classList.add('hidden');
@@ -245,20 +239,18 @@ function selectSingleOption(eventTarget) {
 
     eventTarget.querySelector('.menu-icon').classList.remove('hidden');
 
-    var value = parseInt(eventTarget.querySelector('.menu-icon').dataset.val);
+    const value = parseInt(eventTarget.querySelector('.menu-icon').dataset.val);
 
     settings[parent.dataset.id] = settings[parent.dataset.id] + value;
 }
 
-function populateMenuFromSettings() {
-    document.querySelectorAll('.menu-item').forEach((item) => setOptionsForMenu(item.id));
-}
+const isValueInBitmask = (value, mask) => (mask & value) != 0;
 
-function setOptionsForMenu(menuId) {
+const setOptionsForMenu = (menuId) => {
     const modal = document.querySelector(`.modal[data-id="${menuId}"]`);
 
     modal.querySelectorAll('.menu-icon').forEach(function (toggle) {
-        if (isInBitmask(toggle.dataset.val, settings[menuId])) {
+        if (isValueInBitmask(toggle.dataset.val, settings[menuId])) {
             toggle.classList.remove('hidden');
         } else {
             toggle.classList.add('hidden');
@@ -271,13 +263,17 @@ function setOptionsForMenu(menuId) {
             selectSingleOption(modal.querySelector('button'));
         }
     }
+};
+
+function populateMenuFromSettings() {
+    document.querySelectorAll('.menu-item').forEach((item) => setOptionsForMenu(item.id));
 }
 
 function getMaskFromMenuID(id) {
     var value = 0;
-    var modal = document.querySelector(`.modal[data-id='${id}']`);
+    const modal = document.querySelector(`.modal[data-id='${id}']`);
 
-    var options = modal.querySelectorAll('img:not(.hidden)');
+    const options = modal.querySelectorAll('img:not(.hidden)');
 
     options.forEach(function (toggle) {
         value += parseInt(toggle.dataset.val);
@@ -286,52 +282,48 @@ function getMaskFromMenuID(id) {
     return value;
 }
 
-function resetCurrentSubmenu() {
-    var focus = document.querySelector('.modal:not(.hide)');
-    if (!focus) {
-        focus = document.querySelector(':focus');
-    }
-    var menuItem = closestClass(focus, 'menu-item');
+function resetCurrentMenu() {
+    const menu = document.querySelector('.modal:not(.hide)');
 
-    var key = defaults_prefix + menuItem.id;
-    var section_mask = decodeURIComponent(settings.get(key));
-    setSubmenuByMask(menuItem, section_mask);
+    const menuId = menu.dataset.id;
+    const defaultSectionMask = settings[DEFAULTS_PREFIX + menuId];
+
+    settings[menuId] = defaultSectionMask;
+
+    populateMenuFromSettings();
 }
 
-function resetAllSubmenus() {
+function resetAllMenus() {
     // Resets all submenus to the default values
     if (confirm('Are you sure that you want to reset all menu settings to the default?')) {
-        document.querySelectorAll('.menu-item').forEach(function (menuItem) {
-            var key = defaults_prefix + menuItem.id;
-            var mask = decodeURIComponent(settings.get(key));
-            setSubmenuByMask(menuItem, mask);
+        document.querySelectorAll('.menu-item').forEach(function (item) {
+            const defaultMenuId = DEFAULTS_PREFIX + item.id;
+            const defaultMask = settings[defaultMenuId];
+
+            settings[item.id] = defaultMask;
+
+            populateMenuFromSettings();
         });
     }
 }
 
 function setHelpText(text) {
-    // Modify the help text in the footer
     document.getElementById('help-text').innerText = text;
 }
 
 function saveDefaults() {
     if (confirm('Are you sure that you want to change the default menu settings to the current selections?')) {
-        document.querySelectorAll('.menu-item').forEach(function (menuItem) {
-            var key = defaults_prefix + menuItem.id;
+        document.querySelectorAll('.menu-item').forEach((item) => {
+            const menu = DEFAULTS_PREFIX + item.id;
 
-            settings[key] = getMaskFromMenuID(menuItem.id);
+            settings[menu] = getMaskFromMenuID(item.id);
         });
     }
 }
 
-function isInBitmask(val, mask) {
-    // Return true if the value is in the bitmask
-    return (mask & val) != 0;
-}
-
 function cycleNextTab() {
     // Cycle to the next tab
-    var activeTab = document.querySelector('.tab-button.active');
+    const activeTab = document.querySelector('.tab-button.active');
     var nextTab = activeTab.nextElementSibling;
     if (!nextTab) {
         // On the last tab - set the next tab as the first tab in the list
@@ -342,12 +334,12 @@ function cycleNextTab() {
 
 function cyclePrevTab() {
     // Cycle to the previous tab
-    var activeTab = document.querySelector('.tab-button.active');
-    var prevTab = activeTab.previousElementSibling;
-    if (!prevTab) {
+    const activeTab = document.querySelector('.tab-button.active');
+    var previousTab = activeTab.previousElementSibling;
+    if (!previousTab) {
         // On the first tab - set the next tab as the last tab in the list
         tabs = document.querySelectorAll('.tab-button');
-        prevTab = tabs[tabs.length - 1];
+        previousTab = tabs[tabs.length - 1];
     }
-    openTab(prevTab);
+    openTab(previousTab);
 }
