@@ -49,8 +49,10 @@
                     {{#tab_submenus}}
                     <div class="menu-item" id="{{submenu_id}}">
                         <button class="menu-button" onfocus="setHelpText('{{help_text}}')" onclick="openMenuItem(this)" data-target="{{submenu_id}}">
-                            <img src="./img/{{submenu_id}}.svg" class="menu-icon" />
-                            <p class="menu-title">{{submenu_title}}</p>
+                            <div class="menu-button-content">
+                                <img src="./img/{{submenu_id}}.svg" class="menu-icon" />
+                                <p class="menu-title">{{submenu_title}}</p>
+                            </div>
                         </button>
                     </div>
                     {{/tab_submenus}}

@@ -229,19 +229,18 @@ body {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    padding: 0 5%;
     height: 100%;
 }
 
 .modal {
     position: fixed;
     height: 513px;
-    width: 90%;
+    width: 100%;
 }
 
 .menu-item,
 .modal-button {
-    flex-basis: 22%;
+    flex-basis: 23%;
     margin: 0 1%;
     height: 84px;
     display: flex;
@@ -250,8 +249,8 @@ body {
 }
 
 .modal-button {
-    flex-basis: 15%;
-    height: 3rem;
+    flex-basis: 20%;
+    height: 50px;
     border-color: black;
     border-radius: 0.5rem;
     border-style: solid;
@@ -262,8 +261,10 @@ body {
 
 .modal-button-title {
     margin: 0 auto;
+    font-size: large;
 }
 
+.menu-button-content,
 .modal-button-content {
     display: flex;
     justify-content: flex-start;
@@ -298,6 +299,6 @@ body {
 .menu-title {
     padding: 0 0.025rem;
     margin: 0 auto;
-    font-size: 1.125rem;
     text-align: center;
+    font-size: large;
 }
