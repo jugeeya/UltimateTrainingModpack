@@ -4,6 +4,8 @@ use smash::lib::lua_const::*;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use crate::training::input_recording::structures::*;
+use crate::common::consts::*;
+use crate::common::*;
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; 90]> =
@@ -112,13 +114,9 @@ unsafe fn handle_final_input_mapping(
     if player_idx == 0 { // if player 1 (what is going on here? switching from handheld to docked seems to make this change to 1 and 2 instead of 0)
         if INPUT_RECORD == Record {
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
-            //*out = MappedInputs::default() // don't control player while recording TODO: Change this for later, want off during dev and testing
+            *out = MappedInputs::default() // don't control player while recording TODO: Change this for later, want off during dev and testing
         }
-    } /*else if INPUT_RECORD == Record || INPUT_RECORD == Playback { // Shouldn't be needed, we take care of cpu elsewhere
-        *out = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
-        // updateCount gone now - what was this? Was this important?
-    }*/
-
+    } 
     // debug:
     let input_type;
     if INPUT_RECORD == Record {
@@ -165,10 +163,18 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         clamped_lstick_y = if clamped_lstick_y.abs() >= NEUTRAL { clamped_lstick_y } else { 0.0 };
         (*controller_data).clamped_lstick_x = clamped_lstick_x;
         (*controller_data).clamped_lstick_y = clamped_lstick_y;
+        println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
     }
     
     CPU_CONTROL_ADDR = controller_data;
-    println!("Saving CPU Addr as {:p}", controller_data);
+    //println!("Saving CPU Addr as {:p}", controller_data);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_control_module_reference_location = (cpu_module_accessor as  *mut *mut u64).add(0x48 / 8); // boma + 72, value here points to controlmodule
+    let cpu_control_module = *(cpu_control_module_reference_location); // we're saying the value at this address is the address of the controlmodule
+    // We dereference once to go from the pointer to the address that points to the control module, to the pointer to the control module
+    // IMPORTANT! Above should not be u64, it should be ControlModule. But ControlModule is a module, not a type, so it doesn't work for now. ControlModule is size 4096.
+    // println!("CPU BOMA: {:p}, CM_Ref: {:p}, ControlModule: {:p}, ControlModuleInternal: {:p}", cpu_module_accessor, cpu_control_module_reference_location, cpu_control_module, controller_data);
+
   } 
 }
 

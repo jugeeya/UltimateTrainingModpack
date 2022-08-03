@@ -1,5 +1,6 @@
 #![allow(unused_variables)]
 #![allow(dead_code)] // TODO: Yeah don't do this
+use bitflags::bitflags;
 
 // Need to define necesary structures here. Probably should move to consts or something. Realistically, should be in skyline smash prob tho.
 
@@ -120,7 +121,30 @@ pub struct ControllerMapping {
 }
 
 
-type Buttons = u32; // may need to actually implement (like label and such)? Not for now though
+//type Buttons = u32; // may need to actually implement (like label and such)? Not for now though
+bitflags! {
+    pub struct Buttons: u32 {
+        const NONE        = 0x0; // does adding this cause problems?
+        const ATTACK      = 0x1;
+        const SPECIAL     = 0x2;
+        const JUMP        = 0x4;
+        const GUARD       = 0x8;
+        const CATCH       = 0x10;
+        const SMASH       = 0x20;
+        const JUMP_MINI    = 0x40;
+        const CSTICK_ON    = 0x80;
+        const STOCK_SHARE  = 0x100;
+        const ATTACK_RAW   = 0x200;
+        const APPEAL_HI    = 0x400;
+        const SPECIAL_RAW  = 0x800;
+        const APPEAL_LW    = 0x1000;
+        const APPEAL_SL    = 0x2000;
+        const APPEAL_SR    = 0x4000;
+        const FLICK_JUMP   = 0x8000;
+        const GUARD_HOLD   = 0x10000;
+        const SPECIAL_RAW2 = 0x20000;
+    }
+}
 
 // Controller class used internally by the game
 #[repr(C)]
@@ -189,7 +213,7 @@ pub struct MappedInputs {
 impl MappedInputs { // pub needed?
     pub fn default() -> MappedInputs {
         MappedInputs {
-            buttons: (0 as u32) as Buttons,
+            buttons: Buttons::NONE,
             lstick_x: 0,
             lstick_y: 0,
             rstick_x: 0,
