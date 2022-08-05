@@ -624,7 +624,7 @@ impl BuffOption {
             BuffOption::ARSENE => "Arsene",
             BuffOption::LIMIT => "Limit Break",
             BuffOption::KO => "KO Punch",
-            BuffOption::WING => "One-Winged Angel",
+            BuffOption::WING => "1-Winged Angel",
             _ => return None,
         })
     }
