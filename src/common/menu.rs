@@ -4,7 +4,6 @@ use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
 
 use owo_colors::OwoColorize;
-use parking_lot::Mutex;
 use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline::nn::hid::NpadGcState;
@@ -13,7 +12,6 @@ use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
-use std::time::{SystemTime, UNIX_EPOCH};
 use training_mod_tui::Color;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -390,37 +388,41 @@ pub unsafe fn web_session_loop() {
     let mut web_session: Option<WebSession> = None;
     loop {
         std::thread::sleep(std::time::Duration::from_millis(100));
-
-        if SHOULD_SHOW_MENU && web_session.is_some() {
-            let session = web_session.unwrap();
-            session.show();
-            let result = session.wait_for_exit();
-            let last_url = result.get_last_url().unwrap();
-            println!("Received URL from web menu: {}", last_url);
-            set_menu_from_url(last_url);
-            session.exit();
-
-            web_session = None;
-            SHOULD_SHOW_MENU = false;
-        }
-
-        if web_session.is_none() {
-            let (params, default_params);
-            unsafe {
+        if is_training_mode() {
+            if SHOULD_SHOW_MENU && web_session.is_some() {
+                println!("[Training Modpack] Opening session...");
+                let session = web_session.unwrap();
+                session.show();
+                let message = session.recv();
+                println!("[Training Modpack] Received menu from web:\n{}", message);
+                set_menu_from_url(&message);
+                session.wait_for_exit();
+                session.exit();
+                web_session = None;
+                SHOULD_SHOW_MENU = false;
+            }
+            if web_session.is_none() {
+                println!("[Training Modpack] Starting new session...");
+                let (params, default_params);
                 params = MENU.to_url_params(false);
                 default_params = DEFAULTS_MENU.to_url_params(true);
+                web_session = Some(
+                    Webpage::new()
+                        .background(Background::BlurredScreenshot)
+                        .htdocs_dir("training_modpack")
+                        .boot_display(BootDisplay::BlurredScreenshot)
+                        .boot_icon(true)
+                        .start_page(&format!("{}?{}&{}", "index.html", params, default_params))
+                        .open_session(WebSessionBootMode::InitiallyHidden)
+                        .unwrap(),
+                );
             }
-
-            web_session = Some(
-                Webpage::new()
-                    .background(Background::BlurredScreenshot)
-                    .htdocs_dir("training_modpack")
-                    .boot_display(BootDisplay::BlurredScreenshot)
-                    .boot_icon(true)
-                    .start_page(&format!("{}?{}&{}", "index.html", params, default_params))
-                    .open_session(WebSessionBootMode::InitiallyHidden)
-                    .unwrap(),
-            );
+        } else {
+            if web_session.is_some() {
+                println!("[Training Modpack] Tearing down Training Modpack menu session");
+                web_session.unwrap().exit();
+            }
+            web_session = None;
         }
     }
 }

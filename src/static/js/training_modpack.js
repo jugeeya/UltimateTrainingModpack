@@ -184,7 +184,9 @@ const exit = () => {
 
     const url = buildURLFromSettings();
 
+
     if (isNx) {
+        window.nx.sendMessage(url);
         window.location.href = url;
     } else {
         console.log(url);
