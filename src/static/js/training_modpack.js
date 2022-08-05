@@ -83,6 +83,7 @@ const currentTabContent = () => {
 };
 
 const openTab = (eventTarget) => {
+    playSound('SeWebZoomIn');
     const selectedTab = document.getElementById(eventTarget.id.replace('button', 'tab'));
     const activeTabContent = document.querySelector('.tab-content:not(.hide)');
     const activeTab = document.querySelector('.tab-button.active');
@@ -283,6 +284,7 @@ function getMaskFromMenuID(id) {
 }
 
 function resetCurrentMenu() {
+    playSound('SeWebTextboxStartEdit');
     const menu = document.querySelector('.modal:not(.hide)');
 
     const menuId = menu.dataset.id;
