@@ -57,7 +57,7 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40.227px;line-height:1.25;font-family:sans-serif;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.00567;"
+       style="font-style:normal;font-weight:normal;font-size:40.227px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.00567;"
        x="40.134941"
        y="52.558258"
        id="text1981"><tspan
@@ -65,6 +65,6 @@
          id="tspan1979"
          x="40.134941"
          y="52.558258"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;stroke-width:1.00567;fill:#ffffff;fill-opacity:1;">-13</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;stroke-width:1.00567;fill:#000000;fill-opacity:1;">-13</tspan></text>
   </g>
 </svg>
