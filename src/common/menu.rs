@@ -389,20 +389,21 @@ pub unsafe fn web_session_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_millis(100));
         if is_training_mode() {
-            if SHOULD_SHOW_MENU && web_session.is_some() {
-                println!("[Training Modpack] Opening session...");
-                let session = web_session.unwrap();
-                session.show();
-                let message = session.recv();
-                println!("[Training Modpack] Received menu from web:\n{}", message);
-                set_menu_from_url(&message);
-                session.wait_for_exit();
-                session.exit();
-                web_session = None;
-                SHOULD_SHOW_MENU = false;
-            }
-            if web_session.is_none() {
-                println!("[Training Modpack] Starting new session...");
+            if web_session.is_some() {
+                if SHOULD_SHOW_MENU {
+                    println!("[Training Modpack] Opening menu session...");
+                    let session = web_session.unwrap();
+                    session.show();
+                    let message = session.recv();
+                    println!("[Training Modpack] Received menu from web:\n{}", message);
+                    set_menu_from_url(&message);
+                    session.wait_for_exit();
+                    session.exit();
+                    web_session = None;
+                    SHOULD_SHOW_MENU = false;
+                }
+            } else {
+                println!("[Training Modpack] Starting new menu session...");
                 let (params, default_params);
                 params = MENU.to_url_params(false);
                 default_params = DEFAULTS_MENU.to_url_params(true);
