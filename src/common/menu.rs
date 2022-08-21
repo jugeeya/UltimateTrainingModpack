@@ -428,7 +428,7 @@ pub unsafe fn web_session_loop() {
                         .htdocs_dir("training_modpack")
                         .boot_display(BootDisplay::BlurredScreenshot)
                         .boot_icon(true)
-                        .start_page(&format!("{}?{}&{}", "index.html", params, default_params))
+                        .start_page(&format!("{}?{}&{}", "training_menu.html", params, default_params))
                         .open_session(WebSessionBootMode::InitiallyHidden)
                         .unwrap(),
                 );
