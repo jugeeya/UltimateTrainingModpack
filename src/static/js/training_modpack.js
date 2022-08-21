@@ -42,7 +42,7 @@ if (isNx) {
                 break;
             case 'l':
                 console.log('l');
-                resetAllSubmenus();
+                resetAllMenus();
                 break;
             case 'r':
                 console.log('r');
@@ -182,8 +182,6 @@ function playSound(label) {
 const exit = () => {
     playSound('SeFooterDecideBack');
 
-    const url = buildURLFromSettings();
-
 
     if (isNx) {
         window.nx.sendMessage(
@@ -191,7 +189,7 @@ const exit = () => {
         );
         window.nx.endApplet()
     } else {
-        console.log(url);
+        console.log(JSON.stringify(settings));
     }
 };
 
