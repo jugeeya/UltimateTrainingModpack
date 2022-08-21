@@ -76,6 +76,8 @@ pub unsafe fn write_menu() {
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
 pub fn set_menu_from_url(last_url: &str) {
+    // TODO: Remove this function
+    // Or maybe keep it in for compatibility with existing settings files upon upgrade?
     unsafe {
         MENU = get_menu_from_url(MENU, last_url, false);
         DEFAULTS_MENU = get_menu_from_url(MENU, last_url, true);
@@ -96,6 +98,10 @@ pub fn set_menu_from_url(last_url: &str) {
     unsafe {
         EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
     }
+}
+
+pub fn set_menu_from_json(message: &str) {
+    // stub
 }
 
 pub fn spawn_menu() {
@@ -300,7 +306,7 @@ pub unsafe fn quick_menu_loop() {
                 {
                     // Leave menu.
                     menu::QUICK_MENU_ACTIVE = false;
-                    menu::set_menu_from_url(url.as_str());
+                    menu::set_menu_from_url(url.as_str()); // TODO update to json
                     println!("URL: {}", url.as_str());
                 }
             });
@@ -394,9 +400,9 @@ pub unsafe fn web_session_loop() {
                     println!("[Training Modpack] Opening menu session...");
                     let session = web_session.unwrap();
                     session.show();
-                    let message = session.recv();
+                    let message = session.recv_json();
                     println!("[Training Modpack] Received menu from web:\n{}", message);
-                    set_menu_from_url(&message);
+                    set_menu_from_json(&message);
                     session.wait_for_exit();
                     session.exit();
                     web_session = None;

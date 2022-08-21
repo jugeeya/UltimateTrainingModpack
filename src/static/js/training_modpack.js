@@ -186,8 +186,10 @@ const exit = () => {
 
 
     if (isNx) {
-        window.nx.sendMessage(url);
-        window.location.href = url;
+        window.nx.sendMessage(
+            JSON.stringify(settings)
+        );
+        window.nx.endApplet()
     } else {
         console.log(url);
     }
