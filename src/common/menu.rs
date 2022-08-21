@@ -408,8 +408,8 @@ pub unsafe fn web_session_loop() {
                     let message = session.recv();
                     println!("[Training Modpack] Received menu from web:\n{}", &message);
                     set_menu_from_json(&message);
-                    session.wait_for_exit();
                     session.exit();
+                    session.wait_for_exit();
                     web_session = None;
                     SHOULD_SHOW_MENU = false;
                 }

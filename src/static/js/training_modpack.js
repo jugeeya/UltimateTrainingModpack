@@ -182,12 +182,10 @@ function playSound(label) {
 const exit = () => {
     playSound('SeFooterDecideBack');
 
-
     if (isNx) {
         window.nx.sendMessage(
             JSON.stringify(settings)
         );
-        window.nx.endApplet()
     } else {
         console.log(JSON.stringify(settings));
     }
