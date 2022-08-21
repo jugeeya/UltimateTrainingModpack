@@ -407,10 +407,10 @@ pub unsafe fn web_session_loop() {
                     session.show();
                     let message = session.recv();
                     println!("[Training Modpack] Received menu from web:\n{}", &message);
-                    set_menu_from_json(&message);
                     session.exit();
                     session.wait_for_exit();
                     web_session = None;
+                    set_menu_from_json(&message);
                     SHOULD_SHOW_MENU = false;
                 }
             } else {

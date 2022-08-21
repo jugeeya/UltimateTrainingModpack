@@ -72,6 +72,7 @@ const onLoad = () => {
 window.onload = onLoad;
 
 var settings;
+var defaultSettings;
 
 var lastFocusedItem = document.querySelector('.menu-item > button');
 const currentTabContent = () => {
@@ -181,13 +182,17 @@ function playSound(label) {
 
 const exit = () => {
     playSound('SeFooterDecideBack');
+    const messageObject = {
+        menu: settings,
+        defaults_menu: defaultSettings
+    }
 
     if (isNx) {
         window.nx.sendMessage(
-            JSON.stringify(settings)
+            JSON.stringify(messageObject)
         );
     } else {
-        console.log(JSON.stringify(settings));
+        console.log(JSON.stringify(messageObject));
     }
 };
 
@@ -207,16 +212,31 @@ function closeOrExit() {
 
 function setSettingsFromURL() {
     var { search } = window.location;
+    // Actual settings
     const settingsFromSearch = search
         .replace('?', '')
         .split('&')
         .reduce((accumulator, currentValue) => {
             var [key, value] = currentValue.split('=');
-            accumulator[key] = parseInt(value);
+            if (!key.startsWith('__')) {
+                accumulator[key] = parseInt(value);
+            }
             return accumulator;
         }, {});
-
     settings = settingsFromSearch;
+    
+    // Default settings
+    const defaultSettingsFromSearch = search
+    .replace('?', '')
+    .split('&')
+    .reduce((accumulator, currentValue) => {
+        var [key, value] = currentValue.split('=');
+        if (key.startsWith('__')) {
+            accumulator[key.replace('__','')] = parseInt(value);
+        }
+        return accumulator;
+    }, {});
+    defaultSettings = defaultSettingsFromSearch;
 }
 
 function buildURLFromSettings() {
@@ -288,7 +308,7 @@ function resetCurrentMenu() {
     const menu = document.querySelector('.modal:not(.hide)');
 
     const menuId = menu.dataset.id;
-    const defaultSectionMask = settings[DEFAULTS_PREFIX + menuId];
+    const defaultSectionMask = defaultSettings[menuId];
 
     settings[menuId] = defaultSectionMask;
 
@@ -299,8 +319,8 @@ function resetAllMenus() {
     // Resets all submenus to the default values
     if (confirm('Are you sure that you want to reset all menu settings to the default?')) {
         document.querySelectorAll('.menu-item').forEach(function (item) {
-            const defaultMenuId = DEFAULTS_PREFIX + item.id;
-            const defaultMask = settings[defaultMenuId];
+            const defaultMenuId = item.id;
+            const defaultMask = defaultSettings[defaultMenuId];
 
             settings[item.id] = defaultMask;
 
@@ -316,9 +336,9 @@ function setHelpText(text) {
 function saveDefaults() {
     if (confirm('Are you sure that you want to change the default menu settings to the current selections?')) {
         document.querySelectorAll('.menu-item').forEach((item) => {
-            const menu = DEFAULTS_PREFIX + item.id;
+            const menu = item.id;
 
-            settings[menu] = getMaskFromMenuID(item.id);
+            defaultSettings[menu] = getMaskFromMenuID(item.id);
         });
     }
 }
