@@ -12,6 +12,7 @@ use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
+use training_mod_consts::WebAppletResponse;
 use training_mod_tui::Color;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -75,33 +76,37 @@ pub unsafe fn write_menu() {
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
-pub fn set_menu_from_url(last_url: &str) {
+pub unsafe fn set_menu_from_url(last_url: &str) {
     // TODO: Remove this function
     // Or maybe keep it in for compatibility with existing settings files upon upgrade?
-    unsafe {
-        MENU = get_menu_from_url(MENU, last_url, false);
-        DEFAULTS_MENU = get_menu_from_url(MENU, last_url, true);
+    MENU = get_menu_from_url(MENU, last_url, false);
+    DEFAULTS_MENU = get_menu_from_url(MENU, last_url, true);
 
-        if MENU.quick_menu == OnOff::Off {
-            if is_emulator() {
-                skyline::error::show_error(
-                    0x69,
-                    "Cannot use web menu on emulator.\n\0",
-                    "Only the quick menu is runnable via emulator currently.\n\0",
-                );
-                MENU.quick_menu = OnOff::On;
-            }
+    if MENU.quick_menu == OnOff::Off {
+        if is_emulator() {
+            skyline::error::show_error(
+                0x69,
+                "Cannot use web menu on emulator.\n\0",
+                "Only the quick menu is runnable via emulator currently.\n\0",
+            );
+            MENU.quick_menu = OnOff::On;
         }
     }
-
+    println!(
+        "serialized menu:\n{}",
+        serde_json::to_string_pretty(&MENU).unwrap()
+    );
     std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
-    unsafe {
-        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-    }
+    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
 }
 
-pub fn set_menu_from_json(message: &str) {
-    // stub
+pub unsafe fn set_menu_from_json(message: &str) {
+    if let Ok(message_json) = serde_json::from_str::<WebAppletResponse>(message) {
+        MENU = message_json.menu;
+        DEFAULTS_MENU = message_json.defaults_menu;
+    } else {
+        panic!("Could not read the menu response!\n{}", message);
+    };
 }
 
 pub fn spawn_menu() {
@@ -400,8 +405,8 @@ pub unsafe fn web_session_loop() {
                     println!("[Training Modpack] Opening menu session...");
                     let session = web_session.unwrap();
                     session.show();
-                    let message = session.recv_json();
-                    println!("[Training Modpack] Received menu from web:\n{}", message);
+                    let message = session.recv();
+                    println!("[Training Modpack] Received menu from web:\n{}", &message);
                     set_menu_from_json(&message);
                     session.wait_for_exit();
                     session.exit();
@@ -413,6 +418,10 @@ pub unsafe fn web_session_loop() {
                 let (params, default_params);
                 params = MENU.to_url_params(false);
                 default_params = DEFAULTS_MENU.to_url_params(true);
+                println!(
+                    "serialized menu:\n{}",
+                    serde_json::to_string_pretty(&MENU).unwrap()
+                );
                 web_session = Some(
                     Webpage::new()
                         .background(Background::BlurredScreenshot)
