@@ -17,6 +17,24 @@ static mut FALLING_AERIAL: bool = false;
 static mut AERIAL_DELAY_COUNTER: usize = 0;
 static mut AERIAL_DELAY: u32 = 0;
 
+fn get_num_followups_toggled() -> i32 {
+    unsafe {
+        if MENU.follow_up.is_empty() {
+            0
+        }  else if MENU.second_follow_up.is_empty() {
+            1
+        }/* else if MENU.third_follow_up.is_empty() {
+            2
+        } else if MENU.fourth_follow_up.is_empty() {
+            3
+        } else if MENU.fifth_follow_up.is_empty() {
+            4
+        } */ else {
+            5
+        }
+    }
+}
+
 pub fn buffer_action(action: Action) {
     unsafe {
         if !QUEUE.is_empty() {
@@ -34,15 +52,22 @@ pub fn buffer_action(action: Action) {
 
     unsafe {
         QUEUE.insert(0, action);
-        buffer_follow_up();
+        buffer_follow_up(1);
     }
 }
 
-pub fn buffer_follow_up() {
+pub fn buffer_follow_up(followup_number: i32) {
     let action;
 
     unsafe {
-        action = MENU.follow_up.get_random();
+        match followup_number {
+            1 => action = MENU.follow_up.get_random(),
+            2 => action = MENU.second_follow_up.get_random(),
+            // 3 => action = MENU.third_follow_up.get_random(),
+            // 4 => action = MENU.fourth_follow_up.get_random(),
+            // 5 => action = MENU.fifth_follow_up.get_random(),
+            _ => action = Action::empty()
+        }
     }
 
     if action == Action::empty() {
@@ -53,6 +78,10 @@ pub fn buffer_follow_up() {
 
     unsafe {
         QUEUE.insert(0, action);
+
+        if followup_number < get_num_followups_toggled() {
+            buffer_follow_up(followup_number + 1)
+        }
     }
 }
 

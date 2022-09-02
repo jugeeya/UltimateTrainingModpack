@@ -1033,6 +1033,10 @@ url_params! {
         pub air_dodge_dir: Direction,
         pub mash_state: Action,
         pub follow_up: Action,
+        pub second_follow_up: Action,
+        // pub third_follow_up: Action,
+        // pub fourth_follow_up: Action,
+        // pub fifth_follow_up: Action,
         pub attack_angle: AttackAngle,
         pub ledge_state: LedgeOption,
         pub ledge_delay: LongDelay,
@@ -1100,6 +1104,10 @@ impl TrainingModpackMenu {
             fast_fall_delay = Delay::from_bits(val),
             fast_fall = BoolFlag::from_bits(val),
             follow_up = Action::from_bits(val),
+            second_follow_up = Action::from_bits(val),
+            // third_follow_up = Action::from_bits(val),
+            // fourth_follow_up = Action::from_bits(val),
+            // fifth_follow_up = Action::from_bits(val),
             full_hop = BoolFlag::from_bits(val),
             hitbox_vis = OnOff::from_val(val),
             input_delay = Some(log_2(val) as i32),
@@ -1165,6 +1173,10 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     air_dodge_dir: Direction::empty(),
     mash_state: Action::empty(),
     follow_up: Action::empty(),
+    second_follow_up: Action::empty(),
+    // third_follow_up: Action::empty(),
+    // fourth_follow_up: Action::empty(),
+    // fifth_follow_up: Action::empty(),
     attack_angle: AttackAngle::empty(),
     ledge_state: LedgeOption::all(),
     ledge_delay: LongDelay::empty(),
@@ -1346,6 +1358,43 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Followup Toggles: Actions to be performed after the Mash option",
         false,
     );
+
+    // if !MENU.follow_up.is_empty() {
+        mash_tab.add_submenu_with_toggles::<Action>(
+            "Second Followup Toggles",
+            "follow_up",
+            "Second Followup Toggles: Actions to be performed after the followup option",
+            false,
+        );
+    // }
+
+    // if !MENU.second_follow_up.is_empty() {
+    //     mash_tab.add_submenu_with_toggles::<Action>(
+    //         "Third Followup Toggles",
+    //         "third_follow_up",
+    //         "Third Followup Toggles: Actions to be performed after the followup option",
+    //         false,
+    //     );
+    // }
+
+    // if !MENU.third_follow_up.is_empty() {
+    //     mash_tab.add_submenu_with_toggles::<Action>(
+    //         "Fourth Followup Toggles",
+    //         "fourth_follow_up",
+    //         "Fourth Followup Toggles: Actions to be performed after the followup option",
+    //         false,
+    //     );
+    // }
+
+    // if !MENU.fourth_follow_up.is_empty() {
+    //     mash_tab.add_submenu_with_toggles::<Action>(
+    //         "Fifth Followup Toggles",
+    //         "fifth_follow_up",
+    //         "Fifth Followup Toggles: Actions to be performed after the followup option",
+    //         false,
+    //     );
+    // }
+
     mash_tab.add_submenu_with_toggles::<AttackAngle>(
         "Attack Angle",
         "attack_angle",
