@@ -29,6 +29,7 @@ if (isNx) {
     window.nx.footer.setAssign('R', '', saveDefaults, { se: '' });
     window.nx.footer.setAssign('ZR', '', cycleNextTab, { se: '' });
     window.nx.footer.setAssign('ZL', '', cyclePrevTab, { se: '' });
+    window.nx.addEventListener("message", function(msg) { setSettingsFromJSON(msg)});
 } else {
     document.addEventListener('keypress', (event) => {
         switch (event.key) {
@@ -63,10 +64,6 @@ if (isNx) {
 const onLoad = () => {
     // Activate the first tab
     openTab(document.querySelector('button.tab-button'));
-
-    // Extract URL params and set appropriate settings
-    setSettingsFromURL();
-    populateMenuFromSettings();
 };
 
 window.onload = onLoad;
@@ -210,6 +207,14 @@ function closeOrExit() {
     exit();
 }
 
+function setSettingsFromJSON(msg) {
+    // Receive a menu message and set settings
+    var msg_json = JSON.parse(msg.data);
+    settings = msg_json["menu"];
+    defaultSettings = msg_json["defaults_menu"];
+    populateMenuFromSettings();
+}
+
 function setSettingsFromURL() {
     var { search } = window.location;
     // Actual settings
@@ -237,6 +242,7 @@ function setSettingsFromURL() {
         return accumulator;
     }, {});
     defaultSettings = defaultSettingsFromSearch;
+    populateMenuFromSettings()
 }
 
 function buildURLFromSettings() {

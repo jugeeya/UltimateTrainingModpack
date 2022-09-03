@@ -404,36 +404,36 @@ pub unsafe fn web_session_loop() {
                 if SHOULD_SHOW_MENU {
                     println!("[Training Modpack] Opening menu session...");
                     let session = web_session.unwrap();
+                    let message_send = WebAppletResponse {
+                        menu: MENU,
+                        defaults_menu: DEFAULTS_MENU
+                    };
+                    session.send_json(&message_send);
+                    println!("[Training Modpack] Sending message:\n{}", serde_json::to_string_pretty(&message_send).unwrap());
                     session.show();
-                    let message = session.recv();
-                    println!("[Training Modpack] Received menu from web:\n{}", &message);
+                    let message_recv = session.recv();
+                    println!("[Training Modpack] Received menu from web:\n{}", &message_recv);
+                    println!("[Training Modpack] Tearing down Training Modpack menu session");
                     session.exit();
                     session.wait_for_exit();
                     web_session = None;
-                    set_menu_from_json(&message);
+                    set_menu_from_json(&message_recv);
                     SHOULD_SHOW_MENU = false;
                 }
             } else {
                 println!("[Training Modpack] Starting new menu session...");
-                let (params, default_params);
-                params = MENU.to_url_params(false);
-                default_params = DEFAULTS_MENU.to_url_params(true);
-                println!(
-                    "serialized menu:\n{}",
-                    serde_json::to_string_pretty(&MENU).unwrap()
-                );
                 web_session = Some(
                     Webpage::new()
                         .background(Background::BlurredScreenshot)
                         .htdocs_dir("training_modpack")
-                        .boot_display(BootDisplay::BlurredScreenshot)
-                        .boot_icon(true)
-                        .start_page(&format!("{}?{}&{}", "training_menu.html", params, default_params))
+                        .start_page("training_menu.html")
                         .open_session(WebSessionBootMode::InitiallyHidden)
                         .unwrap(),
                 );
+
             }
         } else {
+            // This isn't working...I think that is_training_mode() isn't becoming false once the training match exits.
             if web_session.is_some() {
                 println!("[Training Modpack] Tearing down Training Modpack menu session");
                 web_session.unwrap().exit();
