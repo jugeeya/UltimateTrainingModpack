@@ -19,19 +19,16 @@ mod training;
 #[cfg(test)]
 mod test;
 
-use crate::common::consts::get_menu_from_url;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 
-use skyline::libc::{c_char, mkdir};
+use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
 use std::fs;
 
 use crate::menu::{quick_menu_loop, web_session_loop};
-use crate::training::frame_counter;
 use owo_colors::OwoColorize;
-use training_mod_consts::OnOff;
-use training_mod_tui::Color;
+use training_mod_consts::{OnOff, WebAppletResponse};
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -87,19 +84,19 @@ pub fn main() {
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
     log!("Checking for previous menu in training_modpack_menu.conf...");
     if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read(menu_conf_path).unwrap();
-        if menu_conf.starts_with(b"http://localhost") {
-            log!("Previous menu found, loading from training_modpack_menu.conf");
+        let menu_conf = fs::read_to_string(&menu_conf_path).unwrap();
+        if let Ok(menu_conf_json) = serde_json::from_str::<WebAppletResponse>(&menu_conf) {
             unsafe {
-                MENU = get_menu_from_url(MENU, std::str::from_utf8(&menu_conf).unwrap(), false);
-                DEFAULTS_MENU = get_menu_from_url(
-                    DEFAULTS_MENU,
-                    std::str::from_utf8(&menu_conf).unwrap(),
-                    true,
-                );
+                MENU = menu_conf_json.menu;
+                DEFAULTS_MENU = menu_conf_json.defaults_menu;
+                log!("Previous menu found. Loading...");
             }
+        } else if menu_conf.starts_with("http://localhost") {
+            log!("Previous menu found, with URL schema. Deleting...");
+            fs::remove_file(menu_conf_path).expect("Could not delete conf file!");
         } else {
-            log!("Previous menu found but is invalid.");
+            log!("Previous menu found but is invalid. Deleting...");
+            fs::remove_file(menu_conf_path).expect("Could not delete conf file!");
         }
     } else {
         log!("No previous menu file found.");

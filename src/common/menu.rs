@@ -8,7 +8,7 @@ use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline::nn::hid::NpadGcState;
 use skyline::nn::web::WebSessionBootMode;
-use skyline_web::{Background, BootDisplay, WebSession, Webpage};
+use skyline_web::{Background, WebSession, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
@@ -104,6 +104,8 @@ pub unsafe fn set_menu_from_json(message: &str) {
     if let Ok(message_json) = serde_json::from_str::<WebAppletResponse>(message) {
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
+        std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&message_json).unwrap()).expect("Failed to write menu conf file");
+        // EVENT_QUEUE.push(Event::menu_open(menus_json.to_string())); // TODO
     } else {
         panic!("Could not read the menu response!\n{}", message);
     };
