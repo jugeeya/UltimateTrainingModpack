@@ -141,3 +141,8 @@ pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
 pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     ControlModule::get_clatter_time(module_accessor, 0) > 0.0
 }
+
+pub unsafe fn is_ready_go() -> bool {
+    let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+    FighterManager::is_ready_go(fighter_manager)
+}

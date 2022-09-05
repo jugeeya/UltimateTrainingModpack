@@ -398,10 +398,12 @@ pub unsafe fn quick_menu_loop() {
 static mut SHOULD_SHOW_MENU: bool = false;
 
 pub unsafe fn web_session_loop() {
+    // Don't query the fightermanager too early otherwise it will crash...
+    std::thread::sleep(std::time::Duration::new(30, 0)); // sleep for 30 secs on bootup
     let mut web_session: Option<WebSession> = None;
     loop {
         std::thread::sleep(std::time::Duration::from_millis(100));
-        if is_training_mode() {
+        if is_ready_go() & is_training_mode() {
             if web_session.is_some() {
                 if SHOULD_SHOW_MENU {
                     println!("[Training Modpack] Opening menu session...");
@@ -435,7 +437,8 @@ pub unsafe fn web_session_loop() {
 
             }
         } else {
-            // This isn't working...I think that is_training_mode() isn't becoming false once the training match exits.
+            // No longer in training mode, tear down the session to avoid conflicts with other web plugins
+            // Having the session open too long, especially if the switch has been put to sleep, can cause freezes
             if web_session.is_some() {
                 println!("[Training Modpack] Tearing down Training Modpack menu session");
                 web_session.unwrap().exit();
