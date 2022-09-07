@@ -142,6 +142,7 @@ pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccesso
     ControlModule::get_clatter_time(module_accessor, 0) > 0.0
 }
 
+// Returns true if a match is currently active
 pub unsafe fn is_ready_go() -> bool {
     let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
     FighterManager::is_ready_go(fighter_manager)

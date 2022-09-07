@@ -13,7 +13,6 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
-use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -75,11 +74,6 @@ macro_rules! extra_bitflag_impls {
             fn to_toggle_vals() -> Vec<usize> {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.bits() as usize).collect()
-            }
-        }
-        impl ToUrlParam for $e {
-            fn to_url_param(&self) -> String {
-                self.bits().to_string()
             }
         }
     }
@@ -286,10 +280,6 @@ impl Shield {
             Shield::Constant => "Constant",
         })
     }
-
-    pub fn to_url_param(&self) -> String {
-        (*self as i32).to_string()
-    }
 }
 
 impl ToggleTrait for Shield {
@@ -320,10 +310,6 @@ impl SaveStateMirroring {
             SaveStateMirroring::Alternate => "Alternate",
             SaveStateMirroring::Random => "Random",
         })
-    }
-
-    fn to_url_param(&self) -> String {
-        (*self as i32).to_string()
     }
 }
 
@@ -387,10 +373,6 @@ impl OnOff {
             OnOff::Off => "Off",
             OnOff::On => "On",
         })
-    }
-
-    pub fn to_url_param(&self) -> String {
-        (*self as i32).to_string()
     }
 }
 
@@ -909,10 +891,6 @@ impl InputFrequency {
             InputFrequency::High => "High",
         })
     }
-
-    pub fn to_url_param(&self) -> String {
-        (*self as u32).to_string()
-    }
 }
 
 impl ToggleTrait for InputFrequency {
@@ -924,19 +902,6 @@ impl ToggleTrait for InputFrequency {
 
     fn to_toggle_vals() -> Vec<usize> {
         InputFrequency::iter().map(|i| i as usize).collect()
-    }
-}
-
-// For input delay
-trait ToUrlParam {
-    fn to_url_param(&self) -> String;
-}
-
-// The i32 is now in log form, need to exponentiate
-// back into 2^X when we pass back to the menu
-impl ToUrlParam for i32 {
-    fn to_url_param(&self) -> String {
-        2_i32.pow(*self as u32).to_string()
     }
 }
 
@@ -991,10 +956,6 @@ impl CharacterItem {
             _ => "None",
         })
     }
-
-    pub fn to_url_param(&self) -> String {
-        (*self as i32).to_string()
-    }
 }
 
 impl ToggleTrait for CharacterItem {
@@ -1009,85 +970,49 @@ impl ToggleTrait for CharacterItem {
     }
 }
 
-// Macro to build the url parameter string
-macro_rules! url_params {
-    (
-        #[repr(C)]
-        #[derive($($trait_name:ident, )*)]
-        pub struct $e:ident {
-            $(pub $field_name:ident: $field_type:ty,)*
-        }
-    ) => {
-        #[repr(C)]
-        #[derive($($trait_name, )*)]
-        pub struct $e {
-            $(pub $field_name: $field_type,)*
-        }
-        impl $e {
-            pub fn to_url_params(&self, defaults: bool) -> String {
-                let mut s = "".to_string();
-                let defaults_str = match defaults {
-                    true => &"__",  // Prefix field name with "__" if it is for the default menu
-                    false => &"",
-                };
-                $(
-                    s.push_str(defaults_str);
-                    s.push_str(stringify!($field_name));
-                    s.push_str(&"=");
-                    s.push_str(&self.$field_name.to_url_param());
-                    s.push_str(&"&");
-                )*
-                s.pop();
-                s
-            }
-        }
-    }
+#[repr(C)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, )]
+pub struct TrainingModpackMenu {
+    pub hitbox_vis: OnOff,
+    pub stage_hazards: OnOff,
+    pub di_state: Direction,
+    pub sdi_state: Direction,
+    pub sdi_strength: InputFrequency,
+    pub clatter_strength: InputFrequency,
+    pub air_dodge_dir: Direction,
+    pub mash_state: Action,
+    pub follow_up: Action,
+    pub attack_angle: AttackAngle,
+    pub ledge_state: LedgeOption,
+    pub ledge_delay: LongDelay,
+    pub tech_state: TechFlags,
+    pub miss_tech_state: MissTechFlags,
+    pub shield_state: Shield,
+    pub defensive_state: Defensive,
+    pub oos_offset: Delay,
+    pub reaction_time: Delay,
+    pub shield_tilt: Direction,
+    pub mash_in_neutral: OnOff,
+    pub fast_fall: BoolFlag,
+    pub fast_fall_delay: Delay,
+    pub falling_aerials: BoolFlag,
+    pub aerial_delay: Delay,
+    pub full_hop: BoolFlag,
+    pub crouch: OnOff,
+    pub input_delay: i32,
+    pub save_damage: OnOff,
+    pub save_state_mirroring: SaveStateMirroring,
+    pub frame_advantage: OnOff,
+    pub save_state_enable: OnOff,
+    pub save_state_autoload: OnOff,
+    pub throw_state: ThrowOption,
+    pub throw_delay: MedDelay,
+    pub pummel_delay: MedDelay,
+    pub buff_state: BuffOption,
+    pub character_item: CharacterItem,
+    pub quick_menu: OnOff,
 }
 
-url_params! {
-    #[repr(C)]
-    #[derive(Clone, Copy, Serialize, Deserialize, Debug, )]
-    pub struct TrainingModpackMenu {
-        pub hitbox_vis: OnOff,
-        pub stage_hazards: OnOff,
-        pub di_state: Direction,
-        pub sdi_state: Direction,
-        pub sdi_strength: InputFrequency,
-        pub clatter_strength: InputFrequency,
-        pub air_dodge_dir: Direction,
-        pub mash_state: Action,
-        pub follow_up: Action,
-        pub attack_angle: AttackAngle,
-        pub ledge_state: LedgeOption,
-        pub ledge_delay: LongDelay,
-        pub tech_state: TechFlags,
-        pub miss_tech_state: MissTechFlags,
-        pub shield_state: Shield,
-        pub defensive_state: Defensive,
-        pub oos_offset: Delay,
-        pub reaction_time: Delay,
-        pub shield_tilt: Direction,
-        pub mash_in_neutral: OnOff,
-        pub fast_fall: BoolFlag,
-        pub fast_fall_delay: Delay,
-        pub falling_aerials: BoolFlag,
-        pub aerial_delay: Delay,
-        pub full_hop: BoolFlag,
-        pub crouch: OnOff,
-        pub input_delay: i32,
-        pub save_damage: OnOff,
-        pub save_state_mirroring: SaveStateMirroring,
-        pub frame_advantage: OnOff,
-        pub save_state_enable: OnOff,
-        pub save_state_autoload: OnOff,
-        pub throw_state: ThrowOption,
-        pub throw_delay: MedDelay,
-        pub pummel_delay: MedDelay,
-        pub buff_state: BuffOption,
-        pub character_item: CharacterItem,
-        pub quick_menu: OnOff,
-    }
-}
 
 macro_rules! set_by_str {
     ($obj:ident, $s:ident, $($field:ident = $rhs:expr,)*) => {
@@ -1160,7 +1085,7 @@ impl TrainingModpackMenu {
 
 #[repr(C)]
 #[derive(Debug, Serialize, Deserialize)]
-pub struct WebAppletResponse {
+pub struct MenuJsonStruct {
     pub menu: TrainingModpackMenu,
     pub defaults_menu: TrainingModpackMenu,
      // pub last_focused_submenu: &str
@@ -1317,41 +1242,6 @@ impl<'a> Tab<'a> {
 #[derive(Content)]
 pub struct UiMenu<'a> {
     pub tabs: Vec<Tab<'a>>,
-}
-
-pub fn get_menu_from_url(
-    mut menu: TrainingModpackMenu,
-    s: &str,
-    defaults: bool,
-) -> TrainingModpackMenu {
-    let base_url_len = "http://localhost/?".len();
-    let total_len = s.len();
-
-    let ss: String = s
-        .chars()
-        .skip(base_url_len)
-        .take(total_len - base_url_len)
-        .collect();
-
-    for toggle_values in ss.split('&') {
-        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
-        let mut toggle = toggle_value_split[0];
-        if toggle.is_empty()
-            | (
-                // Default menu settings begin with the prefix "__"
-                // So if skip toggles without the prefix if defaults is true
-                // And skip toggles with the prefix if defaults is false
-                defaults ^ toggle.starts_with("__")
-            )
-        {
-            continue;
-        }
-        toggle = toggle.strip_prefix("__").unwrap_or(toggle);
-
-        let bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
-        menu.set(toggle, bits);
-    }
-    menu
 }
 
 pub unsafe fn get_menu() -> UiMenu<'static> {
@@ -1605,34 +1495,6 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         true,
     );
     overall_menu.tabs.push(misc_tab);
-
-    let non_ui_menu = MENU;
-    let url_params = non_ui_menu.to_url_params(false);
-    let toggle_values_all = url_params.split("&");
-    let mut sub_menu_id_to_vals: HashMap<&str, u32> = HashMap::new();
-    for toggle_values in toggle_values_all {
-        let toggle_value_split = toggle_values.split('=').collect::<Vec<&str>>();
-        let mut sub_menu_id = toggle_value_split[0];
-        if sub_menu_id.is_empty() {
-            continue;
-        }
-        sub_menu_id = sub_menu_id.strip_prefix("__").unwrap_or(sub_menu_id);
-
-        let full_bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
-        sub_menu_id_to_vals.insert(sub_menu_id, full_bits);
-    }
-    overall_menu.tabs.iter_mut().for_each(|tab| {
-        tab.tab_submenus.iter_mut().for_each(|sub_menu| {
-            let sub_menu_id = sub_menu.submenu_id;
-            sub_menu.toggles.iter_mut().for_each(|toggle| {
-                if sub_menu_id_to_vals.contains_key(sub_menu_id)
-                    && (sub_menu_id_to_vals[sub_menu_id] & (toggle.toggle_value as u32) != 0)
-                {
-                    toggle.checked = true
-                }
-            })
-        })
-    });
 
     overall_menu
 }

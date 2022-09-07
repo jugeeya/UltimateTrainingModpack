@@ -28,7 +28,7 @@ use std::fs;
 
 use crate::menu::{quick_menu_loop, web_session_loop};
 use owo_colors::OwoColorize;
-use training_mod_consts::{OnOff, WebAppletResponse};
+use training_mod_consts::{OnOff, MenuJsonStruct};
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -85,7 +85,7 @@ pub fn main() {
     log!("Checking for previous menu in training_modpack_menu.conf...");
     if fs::metadata(menu_conf_path).is_ok() {
         let menu_conf = fs::read_to_string(&menu_conf_path).unwrap();
-        if let Ok(menu_conf_json) = serde_json::from_str::<WebAppletResponse>(&menu_conf) {
+        if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
                 DEFAULTS_MENU = menu_conf_json.defaults_menu;

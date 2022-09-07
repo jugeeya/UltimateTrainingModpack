@@ -1,4 +1,3 @@
-use crate::common::consts::get_menu_from_url;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
@@ -12,7 +11,7 @@ use skyline_web::{Background, WebSession, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
-use training_mod_consts::WebAppletResponse;
+use training_mod_consts::MenuJsonStruct;
 use training_mod_tui::Color;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -76,12 +75,7 @@ pub unsafe fn write_menu() {
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
-pub unsafe fn set_menu_from_url(last_url: &str) {
-    // TODO: Remove this function
-    // Or maybe keep it in for compatibility with existing settings files upon upgrade?
-    MENU = get_menu_from_url(MENU, last_url, false);
-    DEFAULTS_MENU = get_menu_from_url(MENU, last_url, true);
-
+pub unsafe fn set_menu_from_json(message: &str) {
     if MENU.quick_menu == OnOff::Off {
         if is_emulator() {
             skyline::error::show_error(
@@ -92,22 +86,21 @@ pub unsafe fn set_menu_from_url(last_url: &str) {
             MENU.quick_menu = OnOff::On;
         }
     }
-    println!(
-        "serialized menu:\n{}",
-        serde_json::to_string_pretty(&MENU).unwrap()
-    );
-    std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
-    EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-}
-
-pub unsafe fn set_menu_from_json(message: &str) {
-    if let Ok(message_json) = serde_json::from_str::<WebAppletResponse>(message) {
+    if let Ok(message_json) = serde_json::from_str::<MenuJsonStruct>(message) {
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
-        std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&message_json).unwrap()).expect("Failed to write menu conf file");
-        // EVENT_QUEUE.push(Event::menu_open(menus_json.to_string())); // TODO
+        std::fs::write(
+            MENU_CONF_PATH,
+            serde_json::to_string_pretty(&message_json).unwrap(),
+        )
+        .expect("Failed to write menu conf file");
+        // EVENT_QUEUE.push(Event::menu_open(message_json)); // TODO
     } else {
-        panic!("Could not read the menu response!\n{}", message);
+        skyline::error::show_error(
+            0x70,
+            "Could not parse the menu response!\nPlease send a screenshot of the details page to the developers.\n\0",
+            message
+        );
     };
 }
 
@@ -296,7 +289,7 @@ pub unsafe fn quick_menu_loop() {
 
         let mut has_slept_millis = 0;
         let render_frames = 5;
-        let mut url = String::new();
+        let mut json_response = String::new();
         let button_presses = &mut menu::BUTTON_PRESSES;
         let mut received_input = true;
         loop {
@@ -313,8 +306,7 @@ pub unsafe fn quick_menu_loop() {
                 {
                     // Leave menu.
                     menu::QUICK_MENU_ACTIVE = false;
-                    menu::set_menu_from_url(url.as_str()); // TODO update to json
-                    println!("URL: {}", url.as_str());
+                    menu::set_menu_from_json(&json_response);
                 }
             });
             button_presses.zl.read_press().then(|| {
@@ -359,7 +351,7 @@ pub unsafe fn quick_menu_loop() {
             let mut view = String::new();
 
             let frame_res = terminal
-                .draw(|f| url = training_mod_tui::ui(f, &mut app))
+                .draw(|f| json_response = training_mod_tui::ui(f, &mut app)) // Ensure this gets updated to JSON
                 .unwrap();
 
             use std::fmt::Write;
@@ -408,15 +400,21 @@ pub unsafe fn web_session_loop() {
                 if SHOULD_SHOW_MENU {
                     println!("[Training Modpack] Opening menu session...");
                     let session = web_session.unwrap();
-                    let message_send = WebAppletResponse {
+                    let message_send = MenuJsonStruct {
                         menu: MENU,
-                        defaults_menu: DEFAULTS_MENU
+                        defaults_menu: DEFAULTS_MENU,
                     };
                     session.send_json(&message_send);
-                    println!("[Training Modpack] Sending message:\n{}", serde_json::to_string_pretty(&message_send).unwrap());
+                    println!(
+                        "[Training Modpack] Sending message:\n{}",
+                        serde_json::to_string_pretty(&message_send).unwrap()
+                    );
                     session.show();
                     let message_recv = session.recv();
-                    println!("[Training Modpack] Received menu from web:\n{}", &message_recv);
+                    println!(
+                        "[Training Modpack] Received menu from web:\n{}",
+                        &message_recv
+                    );
                     println!("[Training Modpack] Tearing down Training Modpack menu session");
                     session.exit();
                     session.wait_for_exit();
@@ -425,6 +423,10 @@ pub unsafe fn web_session_loop() {
                     SHOULD_SHOW_MENU = false;
                 }
             } else {
+                // TODO
+                // Starting a new session causes some ingame lag.
+                // Investigate whether we can minimize this lag by
+                // waiting until the player is idle or using CPU boost mode
                 println!("[Training Modpack] Starting new menu session...");
                 web_session = Some(
                     Webpage::new()
@@ -434,10 +436,10 @@ pub unsafe fn web_session_loop() {
                         .open_session(WebSessionBootMode::InitiallyHidden)
                         .unwrap(),
                 );
-
             }
         } else {
-            // No longer in training mode, tear down the session to avoid conflicts with other web plugins
+            // No longer in training mode, tear down the session.
+            // This will avoid conflicts with other web plugins, and helps with stability.
             // Having the session open too long, especially if the switch has been put to sleep, can cause freezes
             if web_session.is_some() {
                 println!("[Training Modpack] Tearing down Training Modpack menu session");
