@@ -28,7 +28,7 @@ use std::fs;
 
 use crate::menu::{quick_menu_loop, web_session_loop};
 use owo_colors::OwoColorize;
-use training_mod_consts::{OnOff, MenuJsonStruct};
+use training_mod_consts::{MenuJsonStruct, OnOff};
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {

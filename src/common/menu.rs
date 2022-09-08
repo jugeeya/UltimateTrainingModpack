@@ -11,7 +11,7 @@ use skyline_web::{Background, WebSession, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
-use training_mod_consts::{TrainingModpackMenu, MenuJsonStruct};
+use training_mod_consts::{MenuJsonStruct, TrainingModpackMenu};
 use training_mod_tui::Color;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -93,7 +93,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
         DEFAULTS_MENU = message_json.defaults_menu;
         std::fs::write(
             MENU_CONF_PATH,
-            serde_json::to_string_pretty(&message_json).unwrap()
+            serde_json::to_string_pretty(&message_json).unwrap(),
         )
         .expect("Failed to write menu conf file");
     } else if let Ok(message_json) = serde_json::from_str::<TrainingModpackMenu>(message) {
@@ -105,11 +105,8 @@ pub unsafe fn set_menu_from_json(message: &str) {
             menu: MENU,
             defaults_menu: DEFAULTS_MENU,
         };
-        std::fs::write(
-            MENU_CONF_PATH,
-            serde_json::to_string_pretty(&conf).unwrap()
-        )
-        .expect("Failed to write menu conf file");
+        std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
+            .expect("Failed to write menu conf file");
     } else {
         skyline::error::show_error(
             0x70,
