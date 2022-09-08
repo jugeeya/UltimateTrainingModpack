@@ -29,6 +29,7 @@ if (isNx) {
     window.nx.footer.setAssign('R', '', saveDefaults, { se: '' });
     window.nx.footer.setAssign('ZR', '', cycleNextTab, { se: '' });
     window.nx.footer.setAssign('ZL', '', cyclePrevTab, { se: '' });
+    window.nx.addEventListener("message", function(msg) { setSettingsFromJSON(msg)});
 } else {
     document.addEventListener('keypress', (event) => {
         switch (event.key) {
@@ -42,7 +43,7 @@ if (isNx) {
                 break;
             case 'l':
                 console.log('l');
-                resetAllSubmenus();
+                resetAllMenus();
                 break;
             case 'r':
                 console.log('r');
@@ -63,15 +64,12 @@ if (isNx) {
 const onLoad = () => {
     // Activate the first tab
     openTab(document.querySelector('button.tab-button'));
-
-    // Extract URL params and set appropriate settings
-    setSettingsFromURL();
-    populateMenuFromSettings();
 };
 
 window.onload = onLoad;
 
 var settings;
+var defaultSettings;
 
 var lastFocusedItem = document.querySelector('.menu-item > button');
 const currentTabContent = () => {
@@ -181,13 +179,17 @@ function playSound(label) {
 
 const exit = () => {
     playSound('SeFooterDecideBack');
-
-    const url = buildURLFromSettings();
+    const messageObject = {
+        menu: settings,
+        defaults_menu: defaultSettings
+    }
 
     if (isNx) {
-        window.location.href = url;
+        window.nx.sendMessage(
+            JSON.stringify(messageObject)
+        );
     } else {
-        console.log(url);
+        console.log(JSON.stringify(messageObject));
     }
 };
 
@@ -205,18 +207,42 @@ function closeOrExit() {
     exit();
 }
 
+function setSettingsFromJSON(msg) {
+    // Receive a menu message and set settings
+    var msg_json = JSON.parse(msg.data);
+    settings = msg_json["menu"];
+    defaultSettings = msg_json["defaults_menu"];
+    populateMenuFromSettings();
+}
+
 function setSettingsFromURL() {
     var { search } = window.location;
+    // Actual settings
     const settingsFromSearch = search
         .replace('?', '')
         .split('&')
         .reduce((accumulator, currentValue) => {
             var [key, value] = currentValue.split('=');
-            accumulator[key] = parseInt(value);
+            if (!key.startsWith('__')) {
+                accumulator[key] = parseInt(value);
+            }
             return accumulator;
         }, {});
-
     settings = settingsFromSearch;
+    
+    // Default settings
+    const defaultSettingsFromSearch = search
+    .replace('?', '')
+    .split('&')
+    .reduce((accumulator, currentValue) => {
+        var [key, value] = currentValue.split('=');
+        if (key.startsWith('__')) {
+            accumulator[key.replace('__','')] = parseInt(value);
+        }
+        return accumulator;
+    }, {});
+    defaultSettings = defaultSettingsFromSearch;
+    populateMenuFromSettings()
 }
 
 function buildURLFromSettings() {
@@ -288,7 +314,7 @@ function resetCurrentMenu() {
     const menu = document.querySelector('.modal:not(.hide)');
 
     const menuId = menu.dataset.id;
-    const defaultSectionMask = settings[DEFAULTS_PREFIX + menuId];
+    const defaultSectionMask = defaultSettings[menuId];
 
     settings[menuId] = defaultSectionMask;
 
@@ -299,8 +325,8 @@ function resetAllMenus() {
     // Resets all submenus to the default values
     if (confirm('Are you sure that you want to reset all menu settings to the default?')) {
         document.querySelectorAll('.menu-item').forEach(function (item) {
-            const defaultMenuId = DEFAULTS_PREFIX + item.id;
-            const defaultMask = settings[defaultMenuId];
+            const defaultMenuId = item.id;
+            const defaultMask = defaultSettings[defaultMenuId];
 
             settings[item.id] = defaultMask;
 
@@ -316,9 +342,9 @@ function setHelpText(text) {
 function saveDefaults() {
     if (confirm('Are you sure that you want to change the default menu settings to the current selections?')) {
         document.querySelectorAll('.menu-item').forEach((item) => {
-            const menu = DEFAULTS_PREFIX + item.id;
+            const menu = item.id;
 
-            settings[menu] = getMaskFromMenuID(item.id);
+            defaultSettings[menu] = getMaskFromMenuID(item.id);
         });
     }
 }

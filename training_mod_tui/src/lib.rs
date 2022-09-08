@@ -341,8 +341,6 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         f.render_widget(help_paragraph, vertical_chunks[2]);
     }
 
-
-    let mut url = "http://localhost/".to_owned();
     let mut settings = HashMap::new();
 
     // Collect settings for toggles
@@ -358,11 +356,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             }
         }
     }
-
-    url.push('?');
-    settings.iter()
-        .for_each(|(section, val)| url.push_str(format!("{}={}&", section, val).as_str()));
-    url
+    serde_json::to_string(&settings).unwrap()
 
     // TODO: Add saveDefaults
     // if (document.getElementById("saveDefaults").checked) {
