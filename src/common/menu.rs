@@ -11,7 +11,7 @@ use skyline_web::{Background, WebSession, Webpage};
 use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
-use training_mod_consts::MenuJsonStruct;
+use training_mod_consts::{TrainingModpackMenu, MenuJsonStruct};
 use training_mod_tui::Color;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -87,14 +87,29 @@ pub unsafe fn set_menu_from_json(message: &str) {
         }
     }
     if let Ok(message_json) = serde_json::from_str::<MenuJsonStruct>(message) {
+        // Includes both MENU and DEFAULTS_MENU
+        // From Web Applet
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
         std::fs::write(
             MENU_CONF_PATH,
-            serde_json::to_string_pretty(&message_json).unwrap(),
+            serde_json::to_string_pretty(&message_json).unwrap()
         )
         .expect("Failed to write menu conf file");
-        // EVENT_QUEUE.push(Event::menu_open(message_json)); // TODO
+    } else if let Ok(message_json) = serde_json::from_str::<TrainingModpackMenu>(message) {
+        // Only includes MENU
+        // From TUI
+        MENU = message_json;
+
+        let conf = MenuJsonStruct {
+            menu: MENU,
+            defaults_menu: DEFAULTS_MENU,
+        };
+        std::fs::write(
+            MENU_CONF_PATH,
+            serde_json::to_string_pretty(&conf).unwrap()
+        )
+        .expect("Failed to write menu conf file");
     } else {
         skyline::error::show_error(
             0x70,
@@ -102,6 +117,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             message
         );
     };
+    EVENT_QUEUE.push(Event::menu_open(message.to_string()));
 }
 
 pub fn spawn_menu() {
@@ -112,7 +128,7 @@ pub fn spawn_menu() {
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
         if MENU.quick_menu == OnOff::Off {
-            SHOULD_SHOW_MENU = true;
+            WEB_MENU_ACTIVE = true;
         } else {
             QUICK_MENU_ACTIVE = true;
         }
@@ -351,7 +367,7 @@ pub unsafe fn quick_menu_loop() {
             let mut view = String::new();
 
             let frame_res = terminal
-                .draw(|f| json_response = training_mod_tui::ui(f, &mut app)) // Ensure this gets updated to JSON
+                .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
                 .unwrap();
 
             use std::fmt::Write;
@@ -387,7 +403,7 @@ pub unsafe fn quick_menu_loop() {
     }
 }
 
-static mut SHOULD_SHOW_MENU: bool = false;
+static mut WEB_MENU_ACTIVE: bool = false;
 
 pub unsafe fn web_session_loop() {
     // Don't query the fightermanager too early otherwise it will crash...
@@ -397,7 +413,7 @@ pub unsafe fn web_session_loop() {
         std::thread::sleep(std::time::Duration::from_millis(100));
         if is_ready_go() & is_training_mode() {
             if web_session.is_some() {
-                if SHOULD_SHOW_MENU {
+                if WEB_MENU_ACTIVE {
                     println!("[Training Modpack] Opening menu session...");
                     let session = web_session.unwrap();
                     let message_send = MenuJsonStruct {
@@ -420,7 +436,7 @@ pub unsafe fn web_session_loop() {
                     session.wait_for_exit();
                     web_session = None;
                     set_menu_from_json(&message_recv);
-                    SHOULD_SHOW_MENU = false;
+                    WEB_MENU_ACTIVE = false;
                 }
             } else {
                 // TODO

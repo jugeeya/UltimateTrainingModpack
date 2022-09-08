@@ -15,6 +15,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use smash::lib::lua_const::*;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use std::collections::HashMap;
 
 pub trait ToggleTrait {
     fn to_toggle_strs() -> Vec<&'static str>;
@@ -1495,6 +1496,33 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         true,
     );
     overall_menu.tabs.push(misc_tab);
+
+    let non_ui_menu = serde_json::to_string(&MENU).unwrap().replace("\"", "");
+    let toggle_values_all = non_ui_menu.split(',').collect::<Vec<&str>>();
+    let mut sub_menu_id_to_vals: HashMap<&str, u32> = HashMap::new();
+    for toggle_values in toggle_values_all {
+        let toggle_value_split = toggle_values.split(':').collect::<Vec<&str>>();
+        let sub_menu_id = toggle_value_split[0];
+        if sub_menu_id.is_empty() {
+            continue;
+        }
+
+        let full_bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
+        sub_menu_id_to_vals.insert(&sub_menu_id, full_bits);
+    }
+
+    overall_menu.tabs.iter_mut().for_each(|tab| {
+        tab.tab_submenus.iter_mut().for_each(|sub_menu| {
+            let sub_menu_id = sub_menu.submenu_id;
+            sub_menu.toggles.iter_mut().for_each(|toggle| {
+                if sub_menu_id_to_vals.contains_key(sub_menu_id)
+                    && (sub_menu_id_to_vals[sub_menu_id] & (toggle.toggle_value as u32) != 0)
+                {
+                    toggle.checked = true
+                }
+            })
+        })
+    });
 
     overall_menu
 }

@@ -38,12 +38,12 @@ fn ensure_menu_retains_multi_selections() -> Result<(), Box<dyn Error>> {
     }
 
     let (mut terminal, mut app) = test_backend_setup(menu)?;
-    let mut url = String::new();
-    let _frame_res = terminal.draw(|f| url = training_mod_tui::ui(f, &mut app))?;
-
+    let mut json_response = String::new();
+    let _frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
+    set_menu_from_json(json_response);
     unsafe {
         // At this point, we didn't change the menu at all; we should still see all missed tech flags.
-        assert_eq!(get_menu_from_url(MENU, url.as_str(), false).miss_tech_state,
+        assert_eq!(MENU.miss_tech_state,
                    MissTechFlags::all());
     }
 
@@ -58,8 +58,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     #[cfg(not(feature = "has_terminal"))] {
         let (mut terminal, mut app) = test_backend_setup(menu)?;
-        let mut url = String::new();
-        let frame_res = terminal.draw(|f| url = training_mod_tui::ui(f, &mut app))?;
+        let mut json_response = String::new();
+        let frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
 
         for (i, cell) in frame_res.buffer.content().iter().enumerate() {
             print!("{}", cell.symbol);
@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         println!();
 
-        println!("URL: {}", url);
+        println!("json_response:\n{}", json_response);
     }
 
     #[cfg(feature = "has_terminal")] {
@@ -111,9 +111,9 @@ fn run_app<B: tui::backend::Backend>(
     tick_rate: Duration,
 ) -> io::Result<String> {
     let mut last_tick = Instant::now();
-    let mut url = String::new();
+    let mut json_response = String::new();
     loop {
-        terminal.draw(|f| url = training_mod_tui::ui(f, &mut app).clone())?;
+        terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app).clone())?;
 
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
@@ -122,7 +122,7 @@ fn run_app<B: tui::backend::Backend>(
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Char('q') => return Ok(url),
+                    KeyCode::Char('q') => return Ok(json_response),
                     KeyCode::Char('r') => app.on_r(),
                     KeyCode::Char('l') => app.on_l(),
                     KeyCode::Left => app.on_left(),
