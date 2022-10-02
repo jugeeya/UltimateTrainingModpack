@@ -147,3 +147,9 @@ pub unsafe fn is_ready_go() -> bool {
     let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
     FighterManager::is_ready_go(fighter_manager)
 }
+
+// Returns true if a match is currently active
+pub unsafe fn entry_count() -> i32 {
+    let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+    FighterManager::entry_count(fighter_manager)
+}

@@ -403,12 +403,12 @@ pub unsafe fn quick_menu_loop() {
 static mut WEB_MENU_ACTIVE: bool = false;
 
 pub unsafe fn web_session_loop() {
-    // Don't query the fightermanager too early otherwise it will crash...
+    // Don't query the FighterManager too early otherwise it will crash...
     std::thread::sleep(std::time::Duration::new(30, 0)); // sleep for 30 secs on bootup
     let mut web_session: Option<WebSession> = None;
     loop {
         std::thread::sleep(std::time::Duration::from_millis(100));
-        if is_ready_go() & is_training_mode() {
+        if (is_ready_go() || entry_count() > 0) && is_training_mode() {
             if web_session.is_some() {
                 if WEB_MENU_ACTIVE {
                     println!("[Training Modpack] Opening menu session...");
@@ -454,9 +454,10 @@ pub unsafe fn web_session_loop() {
             // No longer in training mode, tear down the session.
             // This will avoid conflicts with other web plugins, and helps with stability.
             // Having the session open too long, especially if the switch has been put to sleep, can cause freezes
-            if web_session.is_some() {
+            if let Some(web_session_to_kill) = web_session {
                 println!("[Training Modpack] Tearing down Training Modpack menu session");
-                web_session.unwrap().exit();
+                web_session_to_kill.exit();
+                web_session_to_kill.wait_for_exit();
             }
             web_session = None;
         }
