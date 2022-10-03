@@ -127,7 +127,7 @@ pub fn main() {
 
     std::thread::spawn(|| unsafe { quick_menu_loop() });
 
-    if is_emulator() {
+    if !is_emulator() {
         std::thread::spawn(|| unsafe { web_session_loop() });
     }
 }
