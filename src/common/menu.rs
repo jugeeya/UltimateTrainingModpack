@@ -315,8 +315,7 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
                 if !app.outer_list {
                     app.on_b()
-                } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0
-                {
+                } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0 {
                     // Leave menu.
                     QUICK_MENU_ACTIVE = false;
                     set_menu_from_json(&json_response);
