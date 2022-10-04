@@ -1497,7 +1497,10 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     );
     overall_menu.tabs.push(misc_tab);
 
-    let non_ui_menu = serde_json::to_string(&MENU).unwrap().replace("\"", "");
+    let non_ui_menu = serde_json::to_string(&MENU).unwrap()
+        .replace("\"", "")
+        .replace("{", "")
+        .replace("}", "");
     let toggle_values_all = non_ui_menu.split(',').collect::<Vec<&str>>();
     let mut sub_menu_id_to_vals: HashMap<&str, u32> = HashMap::new();
     for toggle_values in toggle_values_all {

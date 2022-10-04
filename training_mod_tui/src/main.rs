@@ -30,21 +30,24 @@ fn test_backend_setup(ui_menu: UiMenu) -> Result<
 }
 
 #[test]
-fn ensure_menu_retains_multi_selections() -> Result<(), Box<dyn Error>> {
+fn ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
     let menu;
+    let prev_menu;
     unsafe {
+        prev_menu = MENU;
         menu = get_menu();
-        println!("MENU.miss_tech_state: {}", MENU.miss_tech_state);
     }
 
     let (mut terminal, mut app) = test_backend_setup(menu)?;
     let mut json_response = String::new();
     let _frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
-    set_menu_from_json(json_response);
     unsafe {
-        // At this point, we didn't change the menu at all; we should still see all missed tech flags.
-        assert_eq!(MENU.miss_tech_state,
-                   MissTechFlags::all());
+        MENU = serde_json::from_str::<TrainingModpackMenu>(&json_response).unwrap();
+        // At this point, we didn't change the menu at all; we should still see all the same options.
+        assert_eq!(
+            serde_json::to_string(&prev_menu).unwrap(),
+            serde_json::to_string(&MENU).unwrap()
+        );
     }
 
     Ok(())
@@ -97,7 +100,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Err(err) = res {
             println!("{:?}", err)
         } else {
-            println!("URL: {}", res.as_ref().unwrap());
+            println!("JSON: {}", res.as_ref().unwrap());
+            unsafe {
+                MENU = serde_json::from_str::<TrainingModpackMenu>(&res.as_ref().unwrap()).unwrap();
+                println!("MENU: {:#?}", MENU);
+            }
         }
     }
 

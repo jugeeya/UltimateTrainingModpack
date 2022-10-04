@@ -76,16 +76,6 @@ pub unsafe fn write_menu() {
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
 
 pub unsafe fn set_menu_from_json(message: &str) {
-    if MENU.quick_menu == OnOff::Off {
-        if is_emulator() {
-            skyline::error::show_error(
-                0x69,
-                "Cannot use web menu on emulator.\n\0",
-                "Only the quick menu is runnable via emulator currently.\n\0",
-            );
-            MENU.quick_menu = OnOff::On;
-        }
-    }
     if let Ok(message_json) = serde_json::from_str::<MenuJsonStruct>(message) {
         // Includes both MENU and DEFAULTS_MENU
         // From Web Applet
@@ -114,6 +104,16 @@ pub unsafe fn set_menu_from_json(message: &str) {
             message
         );
     };
+    if MENU.quick_menu == OnOff::Off {
+        if is_emulator() {
+            skyline::error::show_error(
+                0x69,
+                "Cannot use web menu on emulator.\n\0",
+                "Only the quick menu is runnable via emulator currently.\n\0",
+            );
+            MENU.quick_menu = OnOff::On;
+        }
+    }
     EVENT_QUEUE.push(Event::menu_open(message.to_string()));
 }
 
@@ -223,7 +223,7 @@ pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
 
 pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
     unsafe {
-        if menu::QUICK_MENU_ACTIVE {
+        if QUICK_MENU_ACTIVE {
             // TODO: This should make more sense, look into.
             // BUTTON_PRESSES.a.is_pressed = (*state).Buttons & (1 << 0) > 0;
             // BUTTON_PRESSES.b.is_pressed = (*state).Buttons & (1 << 1) > 0;
@@ -293,7 +293,7 @@ pub fn render_text_to_screen(s: &str) {
 pub unsafe fn quick_menu_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
-        let menu = consts::get_menu();
+        let menu = get_menu();
 
         let mut app = training_mod_tui::App::new(menu);
 
@@ -303,7 +303,7 @@ pub unsafe fn quick_menu_loop() {
         let mut has_slept_millis = 0;
         let render_frames = 5;
         let mut json_response = String::new();
-        let button_presses = &mut menu::BUTTON_PRESSES;
+        let button_presses = &mut BUTTON_PRESSES;
         let mut received_input = true;
         loop {
             button_presses.a.read_press().then(|| {
@@ -315,11 +315,11 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
                 if !app.outer_list {
                     app.on_b()
-                } else if frame_counter::get_frame_count(menu::QUICK_MENU_FRAME_COUNTER_INDEX) == 0
+                } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0
                 {
                     // Leave menu.
-                    menu::QUICK_MENU_ACTIVE = false;
-                    menu::set_menu_from_json(&json_response);
+                    QUICK_MENU_ACTIVE = false;
+                    set_menu_from_json(&json_response);
                 }
             });
             button_presses.zl.read_press().then(|| {
@@ -352,9 +352,10 @@ pub unsafe fn quick_menu_loop() {
             if has_slept_millis < 16 * render_frames {
                 continue;
             }
+
             has_slept_millis = 16;
-            if !menu::QUICK_MENU_ACTIVE {
-                app = training_mod_tui::App::new(consts::get_menu());
+            if !QUICK_MENU_ACTIVE {
+                app = training_mod_tui::App::new(get_menu());
                 set_should_display_text_to_screen(false);
                 continue;
             }

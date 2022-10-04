@@ -106,6 +106,7 @@ pub fn main() {
         unsafe {
             DEFAULTS_MENU.quick_menu = OnOff::On;
             MENU.quick_menu = OnOff::On;
+            BASE_MENU.quick_menu = OnOff::On;
         }
     }
 
@@ -127,7 +128,7 @@ pub fn main() {
 
     std::thread::spawn(|| unsafe { quick_menu_loop() });
 
-    if is_emulator() {
+    if !is_emulator() {
         std::thread::spawn(|| unsafe { web_session_loop() });
     }
 }
