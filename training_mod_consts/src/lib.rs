@@ -993,7 +993,7 @@ impl MashTrigger {
 
     const fn default() -> MashTrigger {
         // Hit, block, clatter
-        MashTrigger::from_bits(0b0000_0000_0000_1000_0011).unwrap()
+        MashTrigger::HIT.union(MashTrigger::BLOCK).union(MashTrigger::CLATTER)
     }
 }
 
