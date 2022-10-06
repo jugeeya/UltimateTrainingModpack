@@ -124,7 +124,7 @@ pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_PFUSHIGISOU,
         *FIGHTER_KIND_PLIZARDON,
     ]
-        .contains(&app::utility::get_kind(module_accessor))
+    .contains(&app::utility::get_kind(module_accessor))
 }
 
 pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {

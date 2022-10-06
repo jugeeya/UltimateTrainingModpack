@@ -167,8 +167,11 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
     }
 }
 
-unsafe fn get_ptrainer_module_accessor(module_accessor: &mut app::BattleObjectModuleAccessor) -> &mut app::BattleObjectModuleAccessor {
-    let ptrainer_object_id = LinkModule::get_parent_object_id(module_accessor, *FIGHTER_POKEMON_LINK_NO_PTRAINER);
+unsafe fn get_ptrainer_module_accessor(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> &mut app::BattleObjectModuleAccessor {
+    let ptrainer_object_id =
+        LinkModule::get_parent_object_id(module_accessor, *FIGHTER_POKEMON_LINK_NO_PTRAINER);
     &mut *app::sv_battle_object::module_accessor(ptrainer_object_id as u32)
 }
 
@@ -178,12 +181,20 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
     }
     WorkModule::off_flag(
         get_ptrainer_module_accessor(module_accessor),
-        *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON);
-    let ptrainer_module_accessor= get_ptrainer_module_accessor(module_accessor);
+        *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
+    );
+    let ptrainer_module_accessor = get_ptrainer_module_accessor(module_accessor);
     MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
-    if ArticleModule::is_exist(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL) {
-        let ptrainer_masterball: u64 = ArticleModule::get_article(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL);
-        let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
+    if ArticleModule::is_exist(
+        ptrainer_module_accessor,
+        *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+    ) {
+        let ptrainer_masterball: u64 = ArticleModule::get_article(
+            ptrainer_module_accessor,
+            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+        );
+        let ptrainer_masterball_id =
+            Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
         let ptrainer_masterball_module_accessor =
             &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
@@ -224,9 +235,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && is_dead(module_accessor);
     let triggered_reset =
         ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI);
-    if (autoload_reset || triggered_reset) && !fighter_is_nana
-    {
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI);
+    if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
@@ -382,7 +392,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             if fighter_is_ptrainer {
                 WorkModule::on_flag(
                     get_ptrainer_module_accessor(module_accessor),
-                    *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON);
+                    *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
+                );
             }
         }
 
