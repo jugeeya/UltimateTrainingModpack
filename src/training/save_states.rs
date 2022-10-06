@@ -76,7 +76,7 @@ macro_rules! default_save_state {
     };
 }
 
-use crate::{get_module_accessor, ITEM_MANAGER_ADDR};
+use crate::{get_module_accessor, is_ptrainer, ITEM_MANAGER_ADDR};
 use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
