@@ -6,8 +6,8 @@ pub mod release;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
-use smash::lib::lua_const::*;
 use smash::hash40;
+use smash::lib::lua_const::*;
 
 pub use crate::common::consts::MENU;
 pub static mut DEFAULTS_MENU: TrainingModpackMenu = crate::common::consts::DEFAULTS_MENU;
@@ -190,6 +190,6 @@ pub unsafe fn get_fighter_distance() -> f32 {
         player_pos.z,
         cpu_pos.x,
         cpu_pos.y,
-        cpu_pos.z
+        cpu_pos.z,
     )
 }
