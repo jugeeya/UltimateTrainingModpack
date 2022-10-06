@@ -180,3 +180,18 @@ pub unsafe fn entry_count() -> i32 {
     let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
     FighterManager::entry_count(fighter_manager)
 }
+
+pub unsafe fn get_fighter_distance() -> f32 {
+    let player_module_accessor = get_module_accessor(FighterId::Player);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let player_pos = *PostureModule::pos(player_module_accessor);
+    let cpu_pos = *PostureModule::pos(cpu_module_accessor);
+    app::sv_math::vec3_distance(
+        player_pos.x,
+        player_pos.y,
+        player_pos.z,
+        cpu_pos.x,
+        cpu_pos.y,
+        cpu_pos.z,
+    )
+}
