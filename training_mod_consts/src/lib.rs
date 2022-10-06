@@ -947,22 +947,23 @@ impl ToggleTrait for CharacterItem {
 
 bitflags! {
     pub struct MashTrigger : u32 {
-        const HIT =            0b0000_0000_0000_0001;
-        const BLOCK =          0b0000_0000_0000_0010;
-        const PARRY =          0b0000_0000_0000_0100;
-        const TUMBLE =         0b0000_0000_0000_1000;
-        const TRUMP =          0b0000_0000_0001_0000;
-        const FOOTSTOOL =      0b0000_0000_0010_0000;
-        const CLATTER =        0b0000_0000_0100_0000;
-        const LEDGE =          0b0000_0000_1000_0000;
-        const TECH =           0b0000_0001_0000_0000;
-        const MISTECH =        0b0000_0010_0000_0000;
-        const GROUNDED =       0b0000_0100_0000_0000;
-        const AIRBORNE =       0b0000_1000_0000_0000;
-        const DISTANCE_CLOSE = 0b0001_0000_0000_0000;
-        const DISTANCE_MID =   0b0010_0000_0000_0000;
-        const DISTANCE_FAR =   0b0100_0000_0000_0000;
-        const ALWAYS =         0b1000_0000_0000_0000;
+        const HIT =            0b0000_0000_0000_0000_0001;
+        const BLOCK =          0b0000_0000_0000_0000_0010;
+        const PARRY =          0b0000_0000_0000_0000_0100;
+        const TUMBLE =         0b0000_0000_0000_0000_1000;
+        const LANDING =        0b0000_0000_0000_0001_0000;
+        const TRUMP =          0b0000_0000_0000_0010_0000;
+        const FOOTSTOOL =      0b0000_0000_0000_0100_0000;
+        const CLATTER =        0b0000_0000_0000_1000_0000;
+        const LEDGE =          0b0000_0000_0001_0000_0000;
+        const TECH =           0b0000_0000_0010_0000_0000;
+        const MISTECH =        0b0000_0000_0100_0000_0000;
+        const GROUNDED =       0b0000_0000_1000_0000_0000;
+        const AIRBORNE =       0b0000_0001_0000_0000_0000;
+        const DISTANCE_CLOSE = 0b0000_0010_0000_0000_0000;
+        const DISTANCE_MID =   0b0000_0100_0000_0000_0000;
+        const DISTANCE_FAR =   0b0000_1000_0000_0000_0000;
+        const ALWAYS =         0b0001_0000_0000_0000_0000;
     }
 }
 
@@ -973,6 +974,7 @@ impl MashTrigger {
             MashTrigger::BLOCK => "Shieldstun",
             MashTrigger::PARRY => "Parry",
             MashTrigger::TUMBLE => "Tumble",
+            MashTrigger::LANDING => "Landing",
             MashTrigger::TRUMP => "Ledge Trump",
             MashTrigger::FOOTSTOOL => "Footstool",
             MashTrigger::CLATTER => "Clatter",
@@ -991,7 +993,7 @@ impl MashTrigger {
 
     const fn default() -> MashTrigger {
         // Hit, block, clatter
-        MashTrigger::from_bits(0b0000_0000_0100_0011).unwrap()
+        MashTrigger::from_bits(0b0000_0000_0000_1000_0011).unwrap()
     }
 }
 

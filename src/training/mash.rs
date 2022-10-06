@@ -148,6 +148,7 @@ unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -
         // BLOCK handled in shield.rs
         || (MENU.mash_triggers.contains(MashTrigger::PARRY) && is_in_parry(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::TUMBLE) && is_in_tumble(module_accessor))
+        || (MENU.mash_triggers.contains(MashTrigger::LANDING) && is_in_landing(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::TRUMP) && is_in_ledgetrump(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::FOOTSTOOL) && is_in_footstool(module_accessor))
         // CLATTER handled in clatter.rs

@@ -161,6 +161,12 @@ pub unsafe fn is_in_tumble(module_accessor: &mut app::BattleObjectModuleAccessor
     (*FIGHTER_STATUS_KIND_DAMAGE_FLY..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 
+pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+
+    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_LIGHT).contains(&status_kind)
+}
+
 // Returns true if a match is currently active
 pub unsafe fn is_ready_go() -> bool {
     let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
