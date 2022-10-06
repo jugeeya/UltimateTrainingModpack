@@ -1,5 +1,5 @@
 use crate::common::{
-    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR
 };
 use crate::hitbox_visualizer;
 use crate::training::character_specific::items;

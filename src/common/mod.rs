@@ -7,6 +7,7 @@ pub mod release;
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+use smash::hash40;
 
 pub use crate::common::consts::MENU;
 pub static mut DEFAULTS_MENU: TrainingModpackMenu = crate::common::consts::DEFAULTS_MENU;
@@ -92,7 +93,7 @@ pub fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
 
 pub fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
-
+    // TODO: Should this be *FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_AIR ?
     (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -142,6 +143,24 @@ pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccesso
     ControlModule::get_clatter_time(module_accessor, 0) > 0.0
 }
 
+pub unsafe fn is_in_ledgetrump(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+
+    status_kind == FIGHTER_STATUS_KIND_CLIFF_ROBBED
+}
+
+pub unsafe fn is_in_parry(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let motion_kind = MotionModule::motion_kind(module_accessor);
+
+    motion_kind == hash40("just_shield_off")
+}
+
+pub unsafe fn is_in_tumble(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+
+    (*FIGHTER_STATUS_KIND_DAMAGE_FLY..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
+}
+
 // Returns true if a match is currently active
 pub unsafe fn is_ready_go() -> bool {
     let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
@@ -152,4 +171,19 @@ pub unsafe fn is_ready_go() -> bool {
 pub unsafe fn entry_count() -> i32 {
     let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
     FighterManager::entry_count(fighter_manager)
+}
+
+pub unsafe fn get_fighter_distance() -> f32 {
+    let player_module_accessor = get_module_accessor(FighterId::Player);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let player_pos = *PostureModule::pos(player_module_accessor);
+    let cpu_pos = *PostureModule::pos(cpu_module_accessor);
+    app::sv_math::vec3_distance(
+        player_pos.x,
+        player_pos.y,
+        player_pos.z,
+        cpu_pos.x,
+        cpu_pos.y,
+        cpu_pos.z
+    )
 }

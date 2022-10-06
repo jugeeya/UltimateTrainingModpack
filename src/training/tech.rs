@@ -53,7 +53,8 @@ unsafe fn mod_handle_change_status(
 
     handle_ceil_tech(module_accessor, status_kind, unk, status_kind_int, state);
 }
-fn handle_grnd_tech(
+
+unsafe fn handle_grnd_tech(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
@@ -66,135 +67,123 @@ fn handle_grnd_tech(
         return false;
     }
 
-    unsafe {
-        // prev_status_kind(module_accessor, 0) gets the 1st previous status,
-        // which is FIGHTER_STATUS_KIND_CATCHED_AIR_END_GANON for both aerial/grounded sideb
-        // prev_status_kind(module_accessor, 1) gets the 2nd previous status,
-        // which is FIGHTER_STATUS_KIND_CATCHED_GANON for grounded sideb
-        // and FIGHTER_STATUS_KIND_CATCHED_AIR_GANON for aerial sideb
-        let second_prev_status = StatusModule::prev_status_kind(module_accessor, 1);
-        let can_tech = WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
-        ) && (second_prev_status != FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON);
+    // prev_status_kind(module_accessor, 0) gets the 1st previous status,
+    // which is FIGHTER_STATUS_KIND_CATCHED_AIR_END_GANON for both aerial/grounded sideb
+    // prev_status_kind(module_accessor, 1) gets the 2nd previous status,
+    // which is FIGHTER_STATUS_KIND_CATCHED_GANON for grounded sideb
+    // and FIGHTER_STATUS_KIND_CATCHED_AIR_GANON for aerial sideb
+    let second_prev_status = StatusModule::prev_status_kind(module_accessor, 1);
+    let can_tech = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
+    ) && (second_prev_status != FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON);
 
-        if !can_tech {
-            return false;
-        }
+    if !can_tech {
+        return false;
     }
 
-    match state {
+    let do_tech: bool = match state {
         TechFlags::IN_PLACE => {
             *status_kind = FIGHTER_STATUS_KIND_PASSIVE.as_lua_int();
             *unk = LUA_TRUE;
-            unsafe {
-                mash::perform_defensive_option();
-            }
+            true
         }
         TechFlags::ROLL_F => {
             *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
             *unk = LUA_TRUE;
-            unsafe {
-                TECH_ROLL_DIRECTION = Direction::IN; // = In
-                mash::perform_defensive_option();
-            }
+            TECH_ROLL_DIRECTION = Direction::IN; // = In
+            true
         }
         TechFlags::ROLL_B => {
             *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
             *unk = LUA_TRUE;
-            unsafe {
-                TECH_ROLL_DIRECTION = Direction::OUT; // = Away
-                mash::perform_defensive_option();
-            }
+            TECH_ROLL_DIRECTION = Direction::OUT; // = Away
+            true
         }
-        _ => (),
+        _ => false,
+    };
+    if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
+        mash::buffer_menu_mash();
     }
 
     true
 }
 
-fn handle_wall_tech(
+unsafe fn handle_wall_tech(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
     state: TechFlags,
 ) -> bool {
-    if status_kind_int != *FIGHTER_STATUS_KIND_STOP_WALL
-        && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR
+    let can_tech = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
+    );
+
+    if ![
+        *FIGHTER_STATUS_KIND_STOP_WALL,
+        *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_LR,
+    ]
+    .contains(&status_kind_int)
+        || state == TechFlags::NO_TECH
+        || !can_tech
     {
         return false;
     }
 
-    if state == TechFlags::NO_TECH {
-        return false;
-    }
-
-    unsafe {
-        let can_tech = WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
-        );
-
-        if !can_tech {
-            return false;
-        }
-    }
-
-    match state {
+    let do_tech: bool = match state {
         TechFlags::IN_PLACE => {
             *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL.as_lua_int();
             *unk = LUA_TRUE;
+            true
         }
         TechFlags::ROLL_F => {
             *status_kind = FIGHTER_STATUS_KIND_PASSIVE_WALL_JUMP.as_lua_int();
             *unk = LUA_TRUE;
+            true
         }
-        _ => (),
+        _ => false,
+    };
+    if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
+        mash::buffer_menu_mash();
     }
-
     true
 }
 
-fn handle_ceil_tech(
+unsafe fn handle_ceil_tech(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
     state: TechFlags,
 ) -> bool {
-    if status_kind_int != *FIGHTER_STATUS_KIND_STOP_CEIL
-        && status_kind_int != *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U
+    let can_tech = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
+    );
+
+    if ![
+        *FIGHTER_STATUS_KIND_STOP_CEIL,
+        *FIGHTER_STATUS_KIND_DAMAGE_FLY_REFLECT_U,
+    ]
+    .contains(&status_kind_int)
+        || state == TechFlags::NO_TECH
+        || !can_tech
     {
         return false;
     }
 
-    if state == TechFlags::NO_TECH {
-        return false;
-    }
-
-    unsafe {
-        let can_tech = WorkModule::is_enable_transition_term(
-            module_accessor,
-            *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
-        );
-
-        if !can_tech {
-            return false;
-        }
-    }
-
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
+    if MENU.mash_triggers.contains(MashTrigger::TECH) {
+        mash::buffer_menu_mash();
+    }
     true
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if !is_operation_cpu(module_accessor) {
-        return;
-    }
-
-    if MENU.tech_state == TechFlags::empty() {
+    if !is_operation_cpu(module_accessor) || MENU.tech_state == TechFlags::empty() {
         return;
     }
 
@@ -221,8 +210,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
             _ => return,
         };
         StatusModule::change_status_request_from_script(module_accessor, status, false);
-
-        mash::perform_defensive_option();
+        if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
+            mash::buffer_menu_mash();
+        }
     } else if [
         // Handle slips (like Diddy banana)
         *FIGHTER_STATUS_KIND_SLIP_WAIT,
@@ -237,8 +227,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
             _ => return,
         };
         StatusModule::change_status_request_from_script(module_accessor, status, false);
-
-        mash::perform_defensive_option();
+        if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
+            mash::buffer_menu_mash();
+        }
     };
 }
 
