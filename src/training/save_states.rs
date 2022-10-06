@@ -137,6 +137,11 @@ pub unsafe fn get_param_int(
             return Some(0);
         }
     }
+    if param_type == hash40("param_mball") {
+        if param_hash == hash40("change_fly_frame") {
+            return Some(0);
+        }
+    }
 
     None
 }
@@ -167,6 +172,24 @@ unsafe fn get_ptrainer_module_accessor(module_accessor: &mut app::BattleObjectMo
     &mut *app::sv_battle_object::module_accessor(ptrainer_object_id as u32)
 }
 
+unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if !is_ptrainer(module_accessor) {
+        return;
+    }
+    WorkModule::off_flag(
+        get_ptrainer_module_accessor(module_accessor),
+        *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON);
+    let ptrainer_module_accessor= get_ptrainer_module_accessor(module_accessor);
+    MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
+    if ArticleModule::is_exist(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL) {
+        let ptrainer_masterball: u64 = ArticleModule::get_article(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL);
+        let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
+        let ptrainer_masterball_module_accessor =
+            &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
+        MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
+    }
+}
+
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if MENU.save_state_enable == OnOff::Off {
         return;
@@ -182,12 +205,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     };
 
     let fighter_kind = app::utility::get_kind(module_accessor);
-    let fighter_is_ptrainer = [
-        *FIGHTER_KIND_PZENIGAME,
-        *FIGHTER_KIND_PFUSHIGISOU,
-        *FIGHTER_KIND_PLIZARDON,
-    ]
-    .contains(&fighter_kind);
+    let fighter_is_ptrainer = is_ptrainer(module_accessor);
     let fighter_is_popo = fighter_kind == *FIGHTER_KIND_POPO; // For making sure Popo doesn't steal Nana's PosMove
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen save states etc.
     let fighter_is_buffable = [
@@ -200,52 +218,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     ]
     .contains(&fighter_kind);
 
-    // also try to help speed up
-    if save_state.state != NoAction {
-        let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
-        if [
-            *FIGHTER_KIND_PZENIGAME,
-            *FIGHTER_KIND_PFUSHIGISOU,
-            *FIGHTER_KIND_PLIZARDON,
-        ]
-            .contains(&app::utility::get_kind(player_module_accessor)) {
-            if fighter_is_ptrainer {
-                WorkModule::off_flag(player_module_accessor, *FIGHTER_POKEMON_INSTANCE_WORK_ID_FLAG_RESTART_FROM_MBALL);
-            }
-            let ptrainer_module_accessor= get_ptrainer_module_accessor(player_module_accessor);
-            MotionModule::set_rate(module_accessor, 1000.0);
-            println!("Speeding up pokemon animation: {}; rate: {}; rate 2nd: {}, rate partial 0: {}",
-                     MotionModule::motion_kind(ptrainer_module_accessor),
-                     MotionModule::rate(ptrainer_module_accessor),
-                     MotionModule::rate_2nd(ptrainer_module_accessor),
-                     MotionModule::rate_partial(ptrainer_module_accessor, 0),
-            );
-            MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
-            println!("Speeding up ptrainer animation: {}; rate: {}; rate 2nd: {}, rate partial 0: {}",
-                     MotionModule::motion_kind(ptrainer_module_accessor),
-                     MotionModule::rate(ptrainer_module_accessor),
-                     MotionModule::rate_2nd(ptrainer_module_accessor),
-                     MotionModule::rate_partial(ptrainer_module_accessor, 0),
-            );
-            // reminder: this should return u64
-            let ptrainer_masterball: u64 = ArticleModule::get_article(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL);
-            if ptrainer_masterball != 0 {
-                let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
-                let ptrainer_masterball_module_accessor =
-                    &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
-                MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
-                println!("Speeding up masterball animations for player...");
-            }
-        }
-    }
-
     // Grab + Dpad up: reset state
-    if (MENU.save_state_autoload == OnOff::On
+    let autoload_reset = MENU.save_state_autoload == OnOff::On
         && save_state.state == NoAction
-        && is_dead(module_accessor))
-        || (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI))
-            && !fighter_is_nana
+        && is_dead(module_accessor);
+    let triggered_reset =
+        ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI);
+    if (autoload_reset || triggered_reset) && !fighter_is_nana
     {
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
@@ -257,25 +237,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to camera bounds
     if save_state.state == KillPlayer {
-        if fighter_is_ptrainer {
-            WorkModule::off_flag(
-                get_ptrainer_module_accessor(module_accessor),
-                *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON);
-        }
-        if fighter_is_ptrainer {
-            let ptrainer_module_accessor= get_ptrainer_module_accessor(module_accessor);
-            MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
-            println!("Speeding up ptrainer animations...");
-            if ArticleModule::is_exist(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL) {
-                // reminder: this should return u64
-                let ptrainer_masterball: u64 = ArticleModule::get_article(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL);
-                let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
-                let ptrainer_masterball_module_accessor =
-                    &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
-                MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
-                println!("Speeding up masterball animations...");
-            }
-        }
+        on_ptrainer_death(module_accessor);
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
             save_state.state = PosMove;
@@ -295,7 +257,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 if item != 0 {
                     let item = item as *mut Item;
                     let item_battle_object_id =
-                        smash::app::lua_bind::Item::get_battle_object_id(item) as u32;
+                        app::lua_bind::Item::get_battle_object_id(item) as u32;
                     ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
                 }
             });
