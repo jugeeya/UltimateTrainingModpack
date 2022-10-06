@@ -139,17 +139,16 @@ The CPU can be instructed to perform a wide array of different actions in respon
 - Ledge: To be performed when hanging on the ledge
 - Tech: To be performed when slammed into the ground or wall
 - Miss Tech: To be performed after failing to tech
-- Defensive: To be performed after the ledge, tech, or miss tech option
 
 The timing of the CPU option can be influenced by the following settings:
 
+- Mash Triggers
 - Aerial Delay
 - Ledge Delay
 - OoS Offset
 - Reaction Time
 - Fast Fall Delay
 - Falling Aerials
-- Mash in Neutral
 
 -----
 
@@ -162,6 +161,7 @@ When multiple options are selected, one of the selected options will be chosen a
 |:---:|:---:|:---|:---|
 | Mash Settings | Mash Toggles | Actions to be performed as soon as possible out of hitstun or shieldstun | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
 | Mash Settings | Followup Toggles | Actions to be performed after the Mash option | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
+| Mash Settings | Mash Triggers | Conditions which will cause the CPU to perform their mash action | Hitstun, shieldstun, parry, tumble, landing, ledge trump, footstool, clatter, ledge option, tech option, grounded, airborne, distance: close, distance: mid, distance: far, always |
 | Mash Settings | Attack Angles | For attacks that can be angled, such as some forward tilts | Neutral, up, down |
 | Mash Settings | Throw Options | Throw to be performed when a grab is landed | None, Forward Throw, Back Throw, Up Throw, Down Throw |
 | Mash Settings | Throw Delay | How many frames to delay the throw option | 0 to 150 frames (2.5 seconds) in increments of 5 frames |
@@ -173,7 +173,6 @@ When multiple options are selected, one of the selected options will be chosen a
 | Mash Settings | Fast Fall Delay | How many frames the CPU should delay their fastfall | 0 to 30 frames (0.5 seconds) |
 | Mash Settings | OoS Offset | How many times the CPU shield can be hit before performing a Mash option | 0 to 30 hits |
 | Mash Settings | Reaction Time | How many frames to delay before performing an option out of shield | 0 to 30 frames (0.5 seconds) |
-| Mash Settings | Mash in Neutral | Should Mash options be performed repeatedly or only when the CPU is hit | Yes, No |
 | ----- | ----- | ----- | ----- |
 | Defensive Settings | Airdodge Direction | Direction to angle airdodges | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
 | Defensive Settings | DI Direction | Direction to angle the directional influence during hitlag | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
@@ -186,7 +185,6 @@ When multiple options are selected, one of the selected options will be chosen a
 | Defensive Settings | Mistech Options | Actions to take after missing a tech | Neutral getup, getup attack, roll in, roll out |
 | Defensive Settings | Shield Toggles | CPU Shield Behavior | None, Infinite (no shield damage or decay), Hold (no shield decay until the shield is hit for the first time), Constant (no shield decay) |
 | Defensive Settings | Shield Tilt | Direction to tilt the shield | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
-| Defensive Settings | Defensive Options | Actions to take after a ledge option, tech option, or miss tech option | Spotdodge, roll in, roll out, jab, shield |
 | Defensive Settings | Buff Options | Buff(s) to be applied to respective character when loading save states | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
 | Defensive Settings | Character Item | CPU/Player item to hold when loading a save state | None, Player 1st Variation througher 8th variation, CPU 1st variation through 8th variation |
 | ----- | ----- | ----- | ----- |
@@ -228,7 +226,6 @@ SD Card Root
             │           │   ├── buff_state.svg
             │           │   ├── check.svg
             │           │   ├── clatter_strength.svg
-            │           │   ├── defensive_state.svg
             │           │   ├── di_state.svg
             │           │   ├── falling_aerials.svg
             │           │   ├── fast_fall.svg
@@ -239,8 +236,8 @@ SD Card Root
             │           │   ├── input_delay.svg
             │           │   ├── ledge_delay.svg
             │           │   ├── ledge_state.svg
-            │           │   ├── mash_in_neutral.svg
             │           │   ├── mash_state.svg
+            │           │   ├── mash_triggers.svg
             │           │   ├── miss_tech_state.svg
             │           │   ├── oos_offset.svg
             │           │   ├── pummel_delay.svg
