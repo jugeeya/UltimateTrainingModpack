@@ -76,7 +76,7 @@ macro_rules! default_save_state {
     };
 }
 
-use crate::ITEM_MANAGER_ADDR;
+use crate::{get_module_accessor, is_ptrainer, ITEM_MANAGER_ADDR};
 use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
@@ -124,6 +124,9 @@ pub unsafe fn get_param_int(
         if param_hash == hash40("rebirth_move_frame") {
             return Some(0);
         }
+        if param_hash == hash40("rebirth_move_frame_trainer") {
+            return Some(0);
+        }
         if param_hash == hash40("rebirth_wait_frame") {
             return Some(0);
         }
@@ -131,6 +134,11 @@ pub unsafe fn get_param_int(
             return Some(0);
         }
         if param_hash == hash40("rebirth_invincible_add_frame") {
+            return Some(0);
+        }
+    }
+    if param_type == hash40("param_mball") {
+        if param_hash == hash40("change_fly_frame") {
             return Some(0);
         }
     }
@@ -159,6 +167,40 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
     }
 }
 
+unsafe fn get_ptrainer_module_accessor(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> &mut app::BattleObjectModuleAccessor {
+    let ptrainer_object_id =
+        LinkModule::get_parent_object_id(module_accessor, *FIGHTER_POKEMON_LINK_NO_PTRAINER);
+    &mut *app::sv_battle_object::module_accessor(ptrainer_object_id as u32)
+}
+
+unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if !is_ptrainer(module_accessor) {
+        return;
+    }
+    WorkModule::off_flag(
+        get_ptrainer_module_accessor(module_accessor),
+        *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
+    );
+    let ptrainer_module_accessor = get_ptrainer_module_accessor(module_accessor);
+    MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
+    if ArticleModule::is_exist(
+        ptrainer_module_accessor,
+        *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+    ) {
+        let ptrainer_masterball: u64 = ArticleModule::get_article(
+            ptrainer_module_accessor,
+            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+        );
+        let ptrainer_masterball_id =
+            Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
+        let ptrainer_masterball_module_accessor =
+            &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
+        MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
+    }
+}
+
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if MENU.save_state_enable == OnOff::Off {
         return;
@@ -174,14 +216,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     };
 
     let fighter_kind = app::utility::get_kind(module_accessor);
-    let fighter_is_ptrainer = [
-        *FIGHTER_KIND_PZENIGAME,
-        *FIGHTER_KIND_PFUSHIGISOU,
-        *FIGHTER_KIND_PLIZARDON,
-    ]
-    .contains(&fighter_kind);
+    let fighter_is_ptrainer = is_ptrainer(module_accessor);
     let fighter_is_popo = fighter_kind == *FIGHTER_KIND_POPO; // For making sure Popo doesn't steal Nana's PosMove
-    let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen savestates etc.
+    let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen save states etc.
     let fighter_is_buffable = [
         *FIGHTER_KIND_BRAVE,
         *FIGHTER_KIND_CLOUD,
@@ -193,14 +230,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
-    if (MENU.save_state_autoload == OnOff::On
-        && !fighter_is_ptrainer
+    let autoload_reset = MENU.save_state_autoload == OnOff::On
         && save_state.state == NoAction
-        && is_dead(module_accessor))
-        || (ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI))
-            && !fighter_is_nana
-    {
+        && is_dead(module_accessor);
+    let triggered_reset =
+        ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI);
+    if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
@@ -211,15 +247,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to camera bounds
     if save_state.state == KillPlayer {
+        on_ptrainer_death(module_accessor);
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            if !(fighter_is_ptrainer
-                && save_state.fighter_kind > 0
-                && fighter_kind != save_state.fighter_kind)
-            {
-                // For ptrainer, don't move on unless we're cycled back to the right pokemon
-                save_state.state = PosMove;
-            }
+            save_state.state = PosMove;
         } else if !is_dead(module_accessor) && !fighter_is_nana {
             // Don't kill Nana again, since she already gets killed by the game from Popo's death
             // Try moving off-screen so we don't see effects.
@@ -236,7 +267,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 if item != 0 {
                     let item = item as *mut Item;
                     let item_battle_object_id =
-                        smash::app::lua_bind::Item::get_battle_object_id(item) as u32;
+                        app::lua_bind::Item::get_battle_object_id(item) as u32;
                     ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
                 }
             });
@@ -356,6 +387,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     Hash40::new("se_system_position_reset"),
                     true,
                     true,
+                );
+            }
+            if fighter_is_ptrainer {
+                WorkModule::on_flag(
+                    get_ptrainer_module_accessor(module_accessor),
+                    *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
                 );
             }
         }

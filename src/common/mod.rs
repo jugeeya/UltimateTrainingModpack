@@ -118,19 +118,21 @@ pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -
             && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF)
 }
 
-pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let fighter_kind = app::utility::get_kind(module_accessor);
-    let fighter_is_ptrainer = [
+pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    [
         *FIGHTER_KIND_PZENIGAME,
         *FIGHTER_KIND_PFUSHIGISOU,
         *FIGHTER_KIND_PLIZARDON,
     ]
-    .contains(&fighter_kind);
+    .contains(&app::utility::get_kind(module_accessor))
+}
+
+pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
     // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
     // And the previous status is FIGHTER_STATUS_NONE
-    if fighter_is_ptrainer {
+    if is_ptrainer(module_accessor) {
         [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
             || (status_kind == FIGHTER_STATUS_KIND_WAIT
                 && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
