@@ -1,3 +1,4 @@
+#![feature(const_option)]
 #[macro_use]
 extern crate bitflags;
 
@@ -13,9 +14,9 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
+use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-use std::collections::HashMap;
 
 pub trait ToggleTrait {
     fn to_toggle_strs() -> Vec<&'static str>;
@@ -325,33 +326,6 @@ impl ToggleTrait for SaveStateMirroring {
         SaveStateMirroring::iter().map(|i| i as usize).collect()
     }
 }
-
-// Defensive States
-bitflags! {
-    pub struct Defensive : u32 {
-        const SPOT_DODGE = 0x1;
-        const ROLL_F = 0x2;
-        const ROLL_B = 0x4;
-        const JAB = 0x8;
-        const SHIELD = 0x10;
-    }
-}
-
-impl Defensive {
-    fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            Defensive::SPOT_DODGE => "Spotdodge",
-            Defensive::ROLL_F => "Roll Forwards",
-            Defensive::ROLL_B => "Roll Backwards",
-            Defensive::JAB => "Jab",
-            Defensive::SHIELD => "Shield",
-            _ => return None,
-        })
-    }
-}
-
-extra_bitflag_impls! {Defensive}
-impl_serde_for_bitflags!(Defensive);
 
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Serialize_repr, Deserialize_repr)]
@@ -971,49 +945,103 @@ impl ToggleTrait for CharacterItem {
     }
 }
 
-#[repr(C)]
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, )]
-pub struct TrainingModpackMenu {
-    pub hitbox_vis: OnOff,
-    pub stage_hazards: OnOff,
-    pub di_state: Direction,
-    pub sdi_state: Direction,
-    pub sdi_strength: InputFrequency,
-    pub clatter_strength: InputFrequency,
-    pub air_dodge_dir: Direction,
-    pub mash_state: Action,
-    pub follow_up: Action,
-    pub attack_angle: AttackAngle,
-    pub ledge_state: LedgeOption,
-    pub ledge_delay: LongDelay,
-    pub tech_state: TechFlags,
-    pub miss_tech_state: MissTechFlags,
-    pub shield_state: Shield,
-    pub defensive_state: Defensive,
-    pub oos_offset: Delay,
-    pub reaction_time: Delay,
-    pub shield_tilt: Direction,
-    pub mash_in_neutral: OnOff,
-    pub fast_fall: BoolFlag,
-    pub fast_fall_delay: Delay,
-    pub falling_aerials: BoolFlag,
-    pub aerial_delay: Delay,
-    pub full_hop: BoolFlag,
-    pub crouch: OnOff,
-    pub input_delay: i32,
-    pub save_damage: OnOff,
-    pub save_state_mirroring: SaveStateMirroring,
-    pub frame_advantage: OnOff,
-    pub save_state_enable: OnOff,
-    pub save_state_autoload: OnOff,
-    pub throw_state: ThrowOption,
-    pub throw_delay: MedDelay,
-    pub pummel_delay: MedDelay,
-    pub buff_state: BuffOption,
-    pub character_item: CharacterItem,
-    pub quick_menu: OnOff,
+bitflags! {
+    pub struct MashTrigger : u32 {
+        const HIT =            0b0000_0000_0000_0000_0001;
+        const BLOCK =          0b0000_0000_0000_0000_0010;
+        const PARRY =          0b0000_0000_0000_0000_0100;
+        const TUMBLE =         0b0000_0000_0000_0000_1000;
+        const LANDING =        0b0000_0000_0000_0001_0000;
+        const TRUMP =          0b0000_0000_0000_0010_0000;
+        const FOOTSTOOL =      0b0000_0000_0000_0100_0000;
+        const CLATTER =        0b0000_0000_0000_1000_0000;
+        const LEDGE =          0b0000_0000_0001_0000_0000;
+        const TECH =           0b0000_0000_0010_0000_0000;
+        const MISTECH =        0b0000_0000_0100_0000_0000;
+        const GROUNDED =       0b0000_0000_1000_0000_0000;
+        const AIRBORNE =       0b0000_0001_0000_0000_0000;
+        const DISTANCE_CLOSE = 0b0000_0010_0000_0000_0000;
+        const DISTANCE_MID =   0b0000_0100_0000_0000_0000;
+        const DISTANCE_FAR =   0b0000_1000_0000_0000_0000;
+        const ALWAYS =         0b0001_0000_0000_0000_0000;
+    }
 }
 
+impl MashTrigger {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            MashTrigger::HIT => "Hitstun",
+            MashTrigger::BLOCK => "Shieldstun",
+            MashTrigger::PARRY => "Parry",
+            MashTrigger::TUMBLE => "Tumble",
+            MashTrigger::LANDING => "Landing",
+            MashTrigger::TRUMP => "Ledge Trump",
+            MashTrigger::FOOTSTOOL => "Footstool",
+            MashTrigger::CLATTER => "Clatter",
+            MashTrigger::LEDGE => "Ledge Option",
+            MashTrigger::TECH => "Tech Option",
+            MashTrigger::MISTECH => "Mistech Option",
+            MashTrigger::GROUNDED => "Grounded",
+            MashTrigger::AIRBORNE => "Airborne",
+            MashTrigger::DISTANCE_CLOSE => "Distance: Close",
+            MashTrigger::DISTANCE_MID => "Distance: Mid",
+            MashTrigger::DISTANCE_FAR => "Distance: Far",
+            MashTrigger::ALWAYS => "Always",
+            _ => return None,
+        })
+    }
+
+    const fn default() -> MashTrigger {
+        // Hit, block, clatter
+        MashTrigger::HIT.union(MashTrigger::BLOCK).union(MashTrigger::CLATTER)
+    }
+}
+
+extra_bitflag_impls! {MashTrigger}
+impl_serde_for_bitflags!(MashTrigger);
+
+#[repr(C)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
+pub struct TrainingModpackMenu {
+    // Mash Tab
+    pub aerial_delay: Delay,
+    pub air_dodge_dir: Direction,
+    pub attack_angle: AttackAngle,
+    pub buff_state: BuffOption,
+    pub character_item: CharacterItem,
+    pub clatter_strength: InputFrequency,
+    pub crouch: OnOff,
+    pub di_state: Direction,
+    pub falling_aerials: BoolFlag,
+    pub fast_fall_delay: Delay,
+    pub fast_fall: BoolFlag,
+    pub follow_up: Action,
+    pub frame_advantage: OnOff,
+    pub full_hop: BoolFlag,
+    pub hitbox_vis: OnOff,
+    pub input_delay: i32,
+    pub ledge_delay: LongDelay,
+    pub ledge_state: LedgeOption,
+    pub mash_state: Action,
+    pub mash_triggers: MashTrigger,
+    pub miss_tech_state: MissTechFlags,
+    pub oos_offset: Delay,
+    pub pummel_delay: MedDelay,
+    pub quick_menu: OnOff,
+    pub reaction_time: Delay,
+    pub save_damage: OnOff,
+    pub save_state_autoload: OnOff,
+    pub save_state_enable: OnOff,
+    pub save_state_mirroring: SaveStateMirroring,
+    pub sdi_state: Direction,
+    pub sdi_strength: InputFrequency,
+    pub shield_state: Shield,
+    pub shield_tilt: Direction,
+    pub stage_hazards: OnOff,
+    pub tech_state: TechFlags,
+    pub throw_delay: MedDelay,
+    pub throw_state: ThrowOption,
+}
 
 macro_rules! set_by_str {
     ($obj:ident, $s:ident, $($field:ident = $rhs:expr,)*) => {
@@ -1047,7 +1075,6 @@ impl TrainingModpackMenu {
             attack_angle = AttackAngle::from_bits(val),
             clatter_strength = num::FromPrimitive::from_u32(val),
             crouch = OnOff::from_val(val),
-            defensive_state = Defensive::from_bits(val),
             di_state = Direction::from_bits(val),
             falling_aerials = BoolFlag::from_bits(val),
             fast_fall_delay = Delay::from_bits(val),
@@ -1058,8 +1085,8 @@ impl TrainingModpackMenu {
             input_delay = Some(log_2(val) as i32),
             ledge_delay = LongDelay::from_bits(val),
             ledge_state = LedgeOption::from_bits(val),
-            mash_in_neutral = OnOff::from_val(val),
             mash_state = Action::from_bits(val),
+            mash_triggers = MashTrigger::from_bits(val),
             miss_tech_state = MissTechFlags::from_bits(val),
             oos_offset = Delay::from_bits(val),
             reaction_time = Delay::from_bits(val),
@@ -1089,7 +1116,7 @@ impl TrainingModpackMenu {
 pub struct MenuJsonStruct {
     pub menu: TrainingModpackMenu,
     pub defaults_menu: TrainingModpackMenu,
-     // pub last_focused_submenu: &str
+    // pub last_focused_submenu: &str
 }
 
 // Fighter Ids
@@ -1117,44 +1144,43 @@ impl SubMenuType {
 }
 
 pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
-    hitbox_vis: OnOff::On,
-    stage_hazards: OnOff::Off,
-    di_state: Direction::empty(),
-    sdi_state: Direction::empty(),
-    sdi_strength: InputFrequency::None,
-    clatter_strength: InputFrequency::None,
-    air_dodge_dir: Direction::empty(),
-    mash_state: Action::empty(),
-    follow_up: Action::empty(),
-    attack_angle: AttackAngle::empty(),
-    ledge_state: LedgeOption::all(),
-    ledge_delay: LongDelay::empty(),
-    tech_state: TechFlags::all(),
-    miss_tech_state: MissTechFlags::all(),
-    shield_state: Shield::None,
-    defensive_state: Defensive::all(),
-    oos_offset: Delay::empty(),
-    shield_tilt: Direction::empty(),
-    reaction_time: Delay::empty(),
-    mash_in_neutral: OnOff::Off,
-    fast_fall: BoolFlag::empty(),
-    fast_fall_delay: Delay::empty(),
-    falling_aerials: BoolFlag::empty(),
     aerial_delay: Delay::empty(),
-    full_hop: BoolFlag::empty(),
-    crouch: OnOff::Off,
-    input_delay: 0,
-    save_damage: OnOff::On,
-    save_state_mirroring: SaveStateMirroring::None,
-    frame_advantage: OnOff::Off,
-    save_state_enable: OnOff::On,
-    save_state_autoload: OnOff::Off,
-    throw_state: ThrowOption::NONE,
-    throw_delay: MedDelay::empty(),
-    pummel_delay: MedDelay::empty(),
+    air_dodge_dir: Direction::empty(),
+    attack_angle: AttackAngle::empty(),
     buff_state: BuffOption::empty(),
     character_item: CharacterItem::None,
+    clatter_strength: InputFrequency::None,
+    crouch: OnOff::Off,
+    di_state: Direction::empty(),
+    falling_aerials: BoolFlag::empty(),
+    fast_fall_delay: Delay::empty(),
+    fast_fall: BoolFlag::empty(),
+    follow_up: Action::empty(),
+    frame_advantage: OnOff::Off,
+    full_hop: BoolFlag::empty(),
+    hitbox_vis: OnOff::On,
+    input_delay: 0,
+    ledge_delay: LongDelay::empty(),
+    ledge_state: LedgeOption::all(),
+    mash_state: Action::empty(),
+    mash_triggers: MashTrigger::default(),
+    miss_tech_state: MissTechFlags::all(),
+    oos_offset: Delay::empty(),
+    pummel_delay: MedDelay::empty(),
     quick_menu: OnOff::Off,
+    reaction_time: Delay::empty(),
+    save_damage: OnOff::On,
+    save_state_autoload: OnOff::Off,
+    save_state_enable: OnOff::On,
+    save_state_mirroring: SaveStateMirroring::None,
+    sdi_state: Direction::empty(),
+    sdi_strength: InputFrequency::None,
+    shield_state: Shield::None,
+    shield_tilt: Direction::empty(),
+    stage_hazards: OnOff::Off,
+    tech_state: TechFlags::all(),
+    throw_delay: MedDelay::empty(),
+    throw_state: ThrowOption::NONE,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -1265,6 +1291,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Followup Toggles: Actions to be performed after the Mash option",
         false,
     );
+    mash_tab.add_submenu_with_toggles::<MashTrigger>(
+        "Mash Triggers",
+        "mash_triggers",
+        "Mash triggers: When the Mash Option will be performed",
+        false,
+    );
     mash_tab.add_submenu_with_toggles::<AttackAngle>(
         "Attack Angle",
         "attack_angle",
@@ -1330,12 +1362,6 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "reaction_time",
         "Reaction Time: How many frames to delay before performing a mash option",
         false,
-    );
-    mash_tab.add_submenu_with_toggles::<OnOff>(
-        "Mash in Neutral",
-        "mash_in_neutral",
-        "Mash In Neutral: Should Mash options be performed repeatedly or only when the CPU is hit",
-        true,
     );
     overall_menu.tabs.push(mash_tab);
 
@@ -1409,12 +1435,6 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "shield_tilt",
         "Shield Tilt: Direction to tilt the shield",
         false, // TODO: Should this be true?
-    );
-    defensive_tab.add_submenu_with_toggles::<Defensive>(
-        "Escape Toggles",
-        "defensive_state",
-        "Escape Options: Actions to take after a ledge option, tech option, or mistech option",
-        false,
     );
     defensive_tab.add_submenu_with_toggles::<BuffOption>(
         "Buff Options",
@@ -1497,7 +1517,8 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     );
     overall_menu.tabs.push(misc_tab);
 
-    let non_ui_menu = serde_json::to_string(&MENU).unwrap()
+    let non_ui_menu = serde_json::to_string(&MENU)
+        .unwrap()
         .replace("\"", "")
         .replace("{", "")
         .replace("}", "");

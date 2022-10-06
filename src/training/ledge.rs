@@ -100,11 +100,8 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
     StatusModule::change_status_request_from_script(module_accessor, status, true);
 
-    match LEDGE_CASE {
-        LedgeOption::JUMP => {
-            mash::buffer_menu_mash();
-        }
-        _ => mash::perform_defensive_option(),
+    if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
+        mash::buffer_menu_mash();
     }
 }
 

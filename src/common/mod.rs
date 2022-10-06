@@ -6,6 +6,7 @@ pub mod release;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
+use smash::hash40;
 use smash::lib::lua_const::*;
 
 pub use crate::common::consts::MENU;
@@ -92,7 +93,7 @@ pub fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
 
 pub fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
-
+    // TODO: Should this be *FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_AIR ?
     (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -142,6 +143,30 @@ pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
 
 pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     ControlModule::get_clatter_time(module_accessor, 0) > 0.0
+}
+
+pub unsafe fn is_in_ledgetrump(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+
+    status_kind == FIGHTER_STATUS_KIND_CLIFF_ROBBED
+}
+
+pub unsafe fn is_in_parry(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let motion_kind = MotionModule::motion_kind(module_accessor);
+
+    motion_kind == hash40("just_shield_off")
+}
+
+pub unsafe fn is_in_tumble(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+
+    (*FIGHTER_STATUS_KIND_DAMAGE_FLY..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
+}
+
+pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+
+    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_LIGHT).contains(&status_kind)
 }
 
 // Returns true if a match is currently active
