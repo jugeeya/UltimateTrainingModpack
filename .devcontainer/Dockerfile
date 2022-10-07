@@ -1,4 +1,4 @@
-FROM jugeeya/cargo-skyline:2.1.0
+FROM jugeeya/cargo-skyline:3.0.0-dkp-beta
 
 ENV HOME /root
 
