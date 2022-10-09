@@ -1,3 +1,4 @@
+pub mod button_config;
 pub mod consts;
 pub mod events;
 pub mod menu;

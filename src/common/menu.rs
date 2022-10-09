@@ -36,11 +36,15 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
     // Only check for button combination if the counter is 0 (not locked out)
     match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
         0 => {
-            ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL)
-                && ControlModule::check_button_on_trriger(
-                    module_accessor,
-                    *CONTROL_PAD_BUTTON_APPEAL_HI,
-                )
+            let open_menu_btn_hold = button_config::OPEN_MENU_BTN_HOLD.lock();
+            let open_menu_btn_press = button_config::OPEN_MENU_BTN_PRESS.lock();
+            let return_value: bool = open_menu_btn_hold
+                .iter()
+                .all(|btn| ControlModule::check_button_on(module_accessor, *btn))
+                && open_menu_btn_press
+                    .iter()
+                    .all(|btn| ControlModule::check_button_trigger(module_accessor, *btn));
+            return_value
         }
         1..MENU_LOCKOUT_FRAMES => false,
         _ => {
@@ -73,7 +77,7 @@ pub unsafe fn write_menu() {
     }
 }
 
-const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
+const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 
 pub unsafe fn set_menu_from_json(message: &str) {
     if let Ok(message_json) = serde_json::from_str::<MenuJsonStruct>(message) {
@@ -85,7 +89,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             MENU_CONF_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
-        .expect("Failed to write menu conf file");
+        .expect("Failed to write menu settings file");
     } else if let Ok(message_json) = serde_json::from_str::<TrainingModpackMenu>(message) {
         // Only includes MENU
         // From TUI
@@ -96,7 +100,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             defaults_menu: DEFAULTS_MENU,
         };
         std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
-            .expect("Failed to write menu conf file");
+            .expect("Failed to write menu settings file");
     } else {
         skyline::error::show_error(
             0x70,

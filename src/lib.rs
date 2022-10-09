@@ -81,8 +81,8 @@ pub fn main() {
     log!("Performing version check...");
     release::version_check();
 
-    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.conf";
-    log!("Checking for previous menu in training_modpack_menu.conf...");
+    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
+    log!("Checking for previous menu in training_modpack_menu.json...");
     if fs::metadata(menu_conf_path).is_ok() {
         let menu_conf = fs::read_to_string(&menu_conf_path).unwrap();
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
@@ -93,13 +93,27 @@ pub fn main() {
             }
         } else if menu_conf.starts_with("http://localhost") {
             log!("Previous menu found, with URL schema. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete conf file!");
+            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
         } else {
             log!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete conf file!");
+            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
         }
     } else {
         log!("No previous menu file found.");
+    }
+
+    let combo_path = "sd:/TrainingModpack/training_modpack.toml";
+    log!("Checking for previous button combo settings in training_modpack.toml...");
+    if fs::metadata(combo_path).is_ok() {
+        log!("Previous button combo settings found. Loading...");
+        let combo_conf = fs::read_to_string(&combo_path).unwrap();
+        button_config::save_all_btn_config_from_toml(&combo_conf);
+    } else {
+        log!("No previous button combo file found. Creating...");
+        std::fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
+            .expect("Failed to write button config conf file");
+        // No need to run save_all_btn_config_from_toml()
+        // since the statics are preloaded with the defaults
     }
 
     if is_emulator() {

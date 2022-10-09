@@ -1,3 +1,5 @@
+use crate::is_operation_cpu;
+use crate::common::button_config;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
@@ -233,9 +235,17 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     let autoload_reset = MENU.save_state_autoload == OnOff::On
         && save_state.state == NoAction
         && is_dead(module_accessor);
-    let triggered_reset =
-        ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI);
+    let mut triggered_reset: bool = false;
+    if !is_operation_cpu(module_accessor) {
+        let load_state_btn_hold = button_config::LOAD_STATE_BTN_HOLD.lock();
+        let load_state_btn_press = button_config::LOAD_STATE_BTN_PRESS.lock();
+        triggered_reset = load_state_btn_hold
+            .iter()
+            .all(|btn| ControlModule::check_button_on(module_accessor, *btn))
+            && load_state_btn_press
+                .iter()
+                .all(|btn| ControlModule::check_button_trigger(module_accessor, *btn));
+    }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
@@ -420,11 +430,17 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Grab + Dpad down: Save state
-    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
-        && !fighter_is_nana
-    // Don't begin saving state if Nana's delayed input is captured
-    {
+    let save_state_btn_hold = button_config::SAVE_STATE_BTN_HOLD.lock();
+    let save_state_btn_press = button_config::SAVE_STATE_BTN_PRESS.lock();
+    let save_state_condition: bool = save_state_btn_hold
+        .iter()
+        .all(|btn| ControlModule::check_button_on(module_accessor, *btn))
+        && save_state_btn_press
+            .iter()
+            .all(|btn| ControlModule::check_button_trigger(module_accessor, *btn))
+        && !fighter_is_nana;
+    if save_state_condition {
+        // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;
