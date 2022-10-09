@@ -46,7 +46,9 @@ struct TopLevelBtnComboConfig {
 }
 
 fn save_btn_config(btnlist: BtnList, mutex_hold: &Mutex<Vec<i32>>, mutex_press: &Mutex<Vec<i32>>) {
-    let bad_keys: Vec<&String> = btnlist.hold.iter()
+    let bad_keys: Vec<&String> = btnlist
+        .hold
+        .iter()
         .chain(btnlist.press.iter())
         .filter(|x| !BUTTON_MAPPING.contains_key(x.as_str()))
         .collect();
