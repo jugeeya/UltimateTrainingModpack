@@ -93,14 +93,60 @@ pub fn main() {
             }
         } else if menu_conf.starts_with("http://localhost") {
             log!("Previous menu found, with URL schema. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete conf file!");
+            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
         } else {
             log!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete conf file!");
+            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
         }
     } else {
         log!("No previous menu file found.");
     }
+
+    log!("Before loading config:");
+    log!(
+        "Open menu combo:\nHOLD: {:?}\nPRESS: {:?}",
+        &button_config::OPEN_MENU_BTN_HOLD.lock(),
+        &button_config::OPEN_MENU_BTN_PRESS.lock()
+    );
+    log!(
+        "Save state combo:\nHOLD: {:?}\nPRESS: {:?}",
+        &button_config::SAVE_STATE_BTN_HOLD.lock(),
+        &button_config::SAVE_STATE_BTN_PRESS.lock()
+    );
+    log!(
+        "Load state combo:\nHOLD: {:?}\nPRESS: {:?}",
+        &button_config::LOAD_STATE_BTN_HOLD.lock(),
+        &button_config::LOAD_STATE_BTN_PRESS.lock()
+    );
+    let combo_path = "sd:/TrainingModpack/training_modpack_combo.conf";
+    log!("Checking for previous button combo settings in training_modpack_combo.conf...");
+    if fs::metadata(combo_path).is_ok() {
+        log!("Previous button combo settings found. Loading...");
+        let combo_conf = fs::read_to_string(&combo_path).unwrap();
+        button_config::save_all_btn_config_from_toml(&combo_conf);
+    } else {
+        log!("No previous button combo file found. Creating...");
+        std::fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
+            .expect("Failed to write button config conf file");
+        // No need to run save_all_btn_config_from_toml()
+        // since the statics are preloaded with the defaults
+    }
+    log!("After loading config:");
+    log!(
+        "Open menu combo:\nHOLD: {:?}\nPRESS: {:?}",
+        &button_config::OPEN_MENU_BTN_HOLD.lock(),
+        &button_config::OPEN_MENU_BTN_PRESS.lock()
+    );
+    log!(
+        "Save state combo:\nHOLD: {:?}\nPRESS: {:?}",
+        &button_config::SAVE_STATE_BTN_HOLD.lock(),
+        &button_config::SAVE_STATE_BTN_PRESS.lock()
+    );
+    log!(
+        "Load state combo:\nHOLD: {:?}\nPRESS: {:?}",
+        &button_config::LOAD_STATE_BTN_HOLD.lock(),
+        &button_config::LOAD_STATE_BTN_PRESS.lock()
+    );
 
     if is_emulator() {
         unsafe {
