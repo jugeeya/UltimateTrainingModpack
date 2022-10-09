@@ -77,7 +77,7 @@ pub unsafe fn write_menu() {
     }
 }
 
-const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
+const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 
 pub unsafe fn set_menu_from_json(message: &str) {
     if let Ok(message_json) = serde_json::from_str::<MenuJsonStruct>(message) {
@@ -89,7 +89,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             MENU_CONF_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
-        .expect("Failed to write menu conf file");
+        .expect("Failed to write menu settings file");
     } else if let Ok(message_json) = serde_json::from_str::<TrainingModpackMenu>(message) {
         // Only includes MENU
         // From TUI
@@ -100,7 +100,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             defaults_menu: DEFAULTS_MENU,
         };
         std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
-            .expect("Failed to write menu conf file");
+            .expect("Failed to write menu settings file");
     } else {
         skyline::error::show_error(
             0x70,

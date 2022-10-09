@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use serde::Deserialize;
+use skyline::error::show_error;
 use smash::lib::lua_const::*;
 use std::collections::HashMap;
 use toml;
@@ -64,8 +65,11 @@ fn save_btn_config(btnlist: BtnList, mutex_hold: &Mutex<Vec<i32>>, mutex_press: 
                 .collect::<Vec<i32>>(),
         );
     } else {
-        // Invalid config. Sticking with default.
-        // TODO: Should we panic here instead of silently continuing?
+        skyline::error::show_error(
+            0x71,
+            "Button config is invalid!",
+            "Please either edit or delete sd:/TrainingModpack/training_modpack.toml",
+        );
     }
 
     // PRESS
@@ -85,8 +89,11 @@ fn save_btn_config(btnlist: BtnList, mutex_hold: &Mutex<Vec<i32>>, mutex_press: 
                 .collect::<Vec<i32>>(),
         );
     } else {
-        // Invalid config. Sticking with default.
-        // TODO: Should we panic here instead of silently continuing?
+        skyline::error::show_error(
+            0x71,
+            "Button config is invalid!",
+            "Please either edit or delete sd:/TrainingModpack/training_modpack.toml",
+        );
     }
 }
 
