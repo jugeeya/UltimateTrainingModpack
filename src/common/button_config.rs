@@ -1,8 +1,6 @@
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use serde::Deserialize;
-use skyline::error::show_error;
-use smash::lib::lua_const::*;
 use std::collections::HashMap;
 use toml;
 
@@ -48,11 +46,23 @@ struct TopLevelBtnComboConfig {
 }
 
 fn save_btn_config(btnlist: BtnList, mutex_hold: &Mutex<Vec<i32>>, mutex_press: &Mutex<Vec<i32>>) {
+    let bad_keys: Vec<&String> = btnlist.hold.iter()
+        .chain(btnlist.press.iter())
+        .filter(|x| !BUTTON_MAPPING.contains_key(x.as_str()))
+        .collect();
+    if !bad_keys.is_empty() {
+        skyline::error::show_error(
+            0x71,
+            "Training Modpack custom button\nconfiguration is invalid!",
+            &format!("The following keys are invalid in\nsd:/TrainingModpack/training_modpack.toml:\n{:?}", &bad_keys)
+        );
+    }
+
     // HOLD
     let mut global_hold = mutex_hold.lock();
     let vecopt_hold: Vec<Option<&i32>> = btnlist
         .hold
-        .into_iter()
+        .iter()
         .map(|x| BUTTON_MAPPING.get(x.as_str()))
         .collect();
     if vecopt_hold.iter().all(|x| x.is_some()) {
@@ -63,12 +73,6 @@ fn save_btn_config(btnlist: BtnList, mutex_hold: &Mutex<Vec<i32>>, mutex_press: 
                 .into_iter()
                 .map(|x| *x.unwrap())
                 .collect::<Vec<i32>>(),
-        );
-    } else {
-        skyline::error::show_error(
-            0x71,
-            "Button config is invalid!",
-            "Please either edit or delete sd:/TrainingModpack/training_modpack.toml",
         );
     }
 
@@ -87,12 +91,6 @@ fn save_btn_config(btnlist: BtnList, mutex_hold: &Mutex<Vec<i32>>, mutex_press: 
                 .into_iter()
                 .map(|x| *x.unwrap())
                 .collect::<Vec<i32>>(),
-        );
-    } else {
-        skyline::error::show_error(
-            0x71,
-            "Button config is invalid!",
-            "Please either edit or delete sd:/TrainingModpack/training_modpack.toml",
         );
     }
 }
