@@ -118,11 +118,13 @@ pub fn spawn_menu() {
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
         if MENU.quick_menu == OnOff::Off {
-            #[cfg(feature = "web_session")] {
+            #[cfg(feature = "web_session")]
+            {
                 WEB_MENU_ACTIVE = true;
             }
 
-            #[cfg(not(feature = "web_session"))] {
+            #[cfg(not(feature = "web_session"))]
+            {
                 spawn_web_session(new_web_session(false));
             }
         } else {
@@ -429,7 +431,11 @@ unsafe fn new_web_session(hidden: bool) -> WebSession {
         .background(Background::BlurredScreenshot)
         .htdocs_dir("training_modpack")
         .start_page("training_menu.html")
-        .open_session(if hidden { WebSessionBootMode::InitiallyHidden } else { WebSessionBootMode::Default })
+        .open_session(if hidden {
+            WebSessionBootMode::InitiallyHidden
+        } else {
+            WebSessionBootMode::Default
+        })
         .unwrap()
 }
 

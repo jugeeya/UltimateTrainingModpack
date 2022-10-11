@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
-use smash::app::lua_bind::ControlModule;
 use serde::Deserialize;
+use smash::app::lua_bind::ControlModule;
 use std::collections::HashMap;
 use toml;
 
