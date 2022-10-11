@@ -20,17 +20,26 @@ lazy_static! {
         ("JUMPMINI", 0xA), // *CONTROL_PAD_BUTTON_JUMP_MINI
     ]);
 }
-static mut BUTTON_COMBO_CONFIG: BtnComboConfig = BtnComboConfig{
-    open_menu: BtnList{ hold: vec![], press: vec![] },
-    save_state: BtnList{ hold: vec![], press: vec![] },
-    load_state: BtnList{ hold: vec![], press: vec![] },
+static mut BUTTON_COMBO_CONFIG: BtnComboConfig = BtnComboConfig {
+    open_menu: BtnList {
+        hold: vec![],
+        press: vec![],
+    },
+    save_state: BtnList {
+        hold: vec![],
+        press: vec![],
+    },
+    load_state: BtnList {
+        hold: vec![],
+        press: vec![],
+    },
 };
 
 #[derive(Debug)]
 pub enum ButtonCombo {
     OpenMenu,
     SaveState,
-    LoadState
+    LoadState,
 }
 
 #[derive(Deserialize, Default)]
@@ -55,11 +64,16 @@ pub fn validate_config(data: &str) -> bool {
     let conf: TopLevelBtnComboConfig = toml::from_str(data).unwrap();
     let conf = conf.button_config;
     let configs = [conf.open_menu, conf.save_state, conf.load_state];
-    let bad_keys = configs.iter().flat_map(|btn_list| {
-        btn_list.hold.iter()
-            .chain(btn_list.press.iter())
-            .filter(|x| !BUTTON_MAPPING.contains_key(x.to_uppercase().as_str()))
-    }).collect::<Vec<&String>>();
+    let bad_keys = configs
+        .iter()
+        .flat_map(|btn_list| {
+            btn_list
+                .hold
+                .iter()
+                .chain(btn_list.press.iter())
+                .filter(|x| !BUTTON_MAPPING.contains_key(x.to_uppercase().as_str()))
+        })
+        .collect::<Vec<&String>>();
 
     if !bad_keys.is_empty() {
         skyline::error::show_error(
@@ -67,7 +81,10 @@ pub fn validate_config(data: &str) -> bool {
             "Training Modpack custom button\nconfiguration is invalid!\0",
             &format!(
                 "The following keys are invalid in\nsd:/TrainingModpack/training_modpack.toml:\n\
-                {:?}\n\nPossible Keys: {:#?}\0", &bad_keys, BUTTON_MAPPING.keys())
+                {:?}\n\nPossible Keys: {:#?}\0",
+                &bad_keys,
+                BUTTON_MAPPING.keys()
+            ),
         );
         false
     } else {
@@ -78,10 +95,19 @@ pub fn validate_config(data: &str) -> bool {
 pub fn save_all_btn_config_from_defaults() {
     let conf = TopLevelBtnComboConfig {
         button_config: BtnComboConfig {
-            open_menu: BtnList { hold: vec!["SPECIAL".to_string()], press: vec!["UPTAUNT".to_string()] },
-            save_state: BtnList { hold: vec!["GRAB".to_string()], press: vec!["DOWNTAUNT".to_string()] },
-            load_state: BtnList { hold: vec!["GRAB".to_string()], press: vec!["UPTAUNT".to_string()] },
-        }
+            open_menu: BtnList {
+                hold: vec!["SPECIAL".to_string()],
+                press: vec!["UPTAUNT".to_string()],
+            },
+            save_state: BtnList {
+                hold: vec!["GRAB".to_string()],
+                press: vec!["DOWNTAUNT".to_string()],
+            },
+            load_state: BtnList {
+                hold: vec!["GRAB".to_string()],
+                press: vec!["UPTAUNT".to_string()],
+            },
+        },
     };
     unsafe {
         // This println is necessary. Why?.......
@@ -99,19 +125,32 @@ pub fn save_all_btn_config_from_toml(data: &str) {
     }
 }
 
-pub fn combo_passes(module_accessor: *mut smash::app::BattleObjectModuleAccessor, combo: ButtonCombo) -> bool{
+pub fn combo_passes(
+    module_accessor: *mut smash::app::BattleObjectModuleAccessor,
+    combo: ButtonCombo,
+) -> bool {
     unsafe {
         let (hold, press) = match combo {
-            ButtonCombo::OpenMenu => (&BUTTON_COMBO_CONFIG.open_menu.hold, &BUTTON_COMBO_CONFIG.open_menu.press),
-            ButtonCombo::SaveState => (&BUTTON_COMBO_CONFIG.save_state.hold, &BUTTON_COMBO_CONFIG.save_state.press),
-            ButtonCombo::LoadState => (&BUTTON_COMBO_CONFIG.load_state.hold, &BUTTON_COMBO_CONFIG.load_state.press),
+            ButtonCombo::OpenMenu => (
+                &BUTTON_COMBO_CONFIG.open_menu.hold,
+                &BUTTON_COMBO_CONFIG.open_menu.press,
+            ),
+            ButtonCombo::SaveState => (
+                &BUTTON_COMBO_CONFIG.save_state.hold,
+                &BUTTON_COMBO_CONFIG.save_state.press,
+            ),
+            ButtonCombo::LoadState => (
+                &BUTTON_COMBO_CONFIG.load_state.hold,
+                &BUTTON_COMBO_CONFIG.load_state.press,
+            ),
         };
         hold.iter()
             .map(|hold| *BUTTON_MAPPING.get(&*hold.to_uppercase()).unwrap())
             .all(|hold| ControlModule::check_button_on(module_accessor, hold))
-        && press.iter()
-            .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
-            .all(|press| ControlModule::check_button_trigger(module_accessor, press))
+            && press
+                .iter()
+                .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
+                .all(|press| ControlModule::check_button_trigger(module_accessor, press))
     }
 }
 
