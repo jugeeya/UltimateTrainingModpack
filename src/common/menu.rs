@@ -36,15 +36,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
     // Only check for button combination if the counter is 0 (not locked out)
     match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
         0 => {
-            let open_menu_btn_hold = button_config::OPEN_MENU_BTN_HOLD.lock();
-            let open_menu_btn_press = button_config::OPEN_MENU_BTN_PRESS.lock();
-            let return_value: bool = open_menu_btn_hold
-                .iter()
-                .all(|btn| ControlModule::check_button_on(module_accessor, *btn))
-                && open_menu_btn_press
-                    .iter()
-                    .all(|btn| ControlModule::check_button_trigger(module_accessor, *btn));
-            return_value
+            button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu)
         }
         1..MENU_LOCKOUT_FRAMES => false,
         _ => {

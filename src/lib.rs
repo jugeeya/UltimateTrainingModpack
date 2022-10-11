@@ -107,13 +107,16 @@ pub fn main() {
     if fs::metadata(combo_path).is_ok() {
         log!("Previous button combo settings found. Loading...");
         let combo_conf = fs::read_to_string(&combo_path).unwrap();
-        button_config::save_all_btn_config_from_toml(&combo_conf);
+        if button_config::validate_config(&combo_conf) {
+            button_config::save_all_btn_config_from_toml(&combo_conf);
+        } else {
+            button_config::save_all_btn_config_from_defaults();
+        }
     } else {
         log!("No previous button combo file found. Creating...");
-        std::fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
+        fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
             .expect("Failed to write button config conf file");
-        // No need to run save_all_btn_config_from_toml()
-        // since the statics are preloaded with the defaults
+        button_config::save_all_btn_config_from_defaults();
     }
 
     if is_emulator() {

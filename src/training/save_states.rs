@@ -237,14 +237,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
     if !is_operation_cpu(module_accessor) {
-        let load_state_btn_hold = button_config::LOAD_STATE_BTN_HOLD.lock();
-        let load_state_btn_press = button_config::LOAD_STATE_BTN_PRESS.lock();
-        triggered_reset = load_state_btn_hold
-            .iter()
-            .all(|btn| ControlModule::check_button_on(module_accessor, *btn))
-            && load_state_btn_press
-                .iter()
-                .all(|btn| ControlModule::check_button_trigger(module_accessor, *btn));
+        triggered_reset = button_config::combo_passes(module_accessor, button_config::ButtonCombo::LoadState);
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
@@ -430,16 +423,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Grab + Dpad down: Save state
-    let save_state_btn_hold = button_config::SAVE_STATE_BTN_HOLD.lock();
-    let save_state_btn_press = button_config::SAVE_STATE_BTN_PRESS.lock();
-    let save_state_condition: bool = save_state_btn_hold
-        .iter()
-        .all(|btn| ControlModule::check_button_on(module_accessor, *btn))
-        && save_state_btn_press
-            .iter()
-            .all(|btn| ControlModule::check_button_trigger(module_accessor, *btn))
-        && !fighter_is_nana;
-    if save_state_condition {
+    if button_config::combo_passes(module_accessor, button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
         SAVE_STATE_PLAYER.state = Save;
