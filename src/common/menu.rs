@@ -35,9 +35,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
 
     // Only check for button combination if the counter is 0 (not locked out)
     match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
-        0 => {
-            button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu)
-        }
+        0 => button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu),
         1..MENU_LOCKOUT_FRAMES => false,
         _ => {
             // Waited longer than the lockout time, reset the counter so the menu can be opened again
