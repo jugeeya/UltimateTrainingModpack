@@ -1,7 +1,5 @@
 use lazy_static::lazy_static;
-use parking_lot::Mutex;
 use smash::app::lua_bind::ControlModule;
-use smash::lib::lua_const::*;
 use serde::Deserialize;
 use std::collections::HashMap;
 use toml;

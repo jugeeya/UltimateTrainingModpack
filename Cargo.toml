@@ -52,3 +52,4 @@ plugin-dependencies = [
 
 [features]
 outside_training_mode = []
+web_session = []

@@ -8,7 +8,6 @@ use skyline::info::get_program_id;
 use skyline::nn::hid::NpadGcState;
 use skyline::nn::web::WebSessionBootMode;
 use skyline_web::{Background, WebSession, Webpage};
-use smash::lib::lua_const::*;
 use std::fs;
 use std::path::Path;
 use training_mod_consts::{MenuJsonStruct, TrainingModpackMenu};
@@ -121,7 +120,13 @@ pub fn spawn_menu() {
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
         if MENU.quick_menu == OnOff::Off {
-            WEB_MENU_ACTIVE = true;
+            #[cfg(feature = "web_session")] {
+                WEB_MENU_ACTIVE = true;
+            }
+
+            #[cfg(not(feature = "web_session"))] {
+                spawn_web_session(new_web_session(false));
+            }
         } else {
             QUICK_MENU_ACTIVE = true;
         }
@@ -398,6 +403,38 @@ pub unsafe fn quick_menu_loop() {
 
 static mut WEB_MENU_ACTIVE: bool = false;
 
+unsafe fn spawn_web_session(session: WebSession) {
+    println!("[Training Modpack] Opening menu session...");
+    let message_send = MenuJsonStruct {
+        menu: MENU,
+        defaults_menu: DEFAULTS_MENU,
+    };
+    session.send_json(&message_send);
+    println!(
+        "[Training Modpack] Sending message:\n{}",
+        serde_json::to_string_pretty(&message_send).unwrap()
+    );
+    session.show();
+    let message_recv = session.recv();
+    println!(
+        "[Training Modpack] Received menu from web:\n{}",
+        &message_recv
+    );
+    println!("[Training Modpack] Tearing down Training Modpack menu session");
+    session.exit();
+    session.wait_for_exit();
+    set_menu_from_json(&message_recv);
+}
+
+unsafe fn new_web_session(hidden: bool) -> WebSession {
+    Webpage::new()
+        .background(Background::BlurredScreenshot)
+        .htdocs_dir("training_modpack")
+        .start_page("training_menu.html")
+        .open_session(if hidden { WebSessionBootMode::InitiallyHidden } else { WebSessionBootMode::Default })
+        .unwrap()
+}
+
 pub unsafe fn web_session_loop() {
     // Don't query the FighterManager too early otherwise it will crash...
     std::thread::sleep(std::time::Duration::new(30, 0)); // sleep for 30 secs on bootup
@@ -407,28 +444,8 @@ pub unsafe fn web_session_loop() {
         if (is_ready_go() || entry_count() > 0) && is_training_mode() {
             if web_session.is_some() {
                 if WEB_MENU_ACTIVE {
-                    println!("[Training Modpack] Opening menu session...");
-                    let session = web_session.unwrap();
-                    let message_send = MenuJsonStruct {
-                        menu: MENU,
-                        defaults_menu: DEFAULTS_MENU,
-                    };
-                    session.send_json(&message_send);
-                    println!(
-                        "[Training Modpack] Sending message:\n{}",
-                        serde_json::to_string_pretty(&message_send).unwrap()
-                    );
-                    session.show();
-                    let message_recv = session.recv();
-                    println!(
-                        "[Training Modpack] Received menu from web:\n{}",
-                        &message_recv
-                    );
-                    println!("[Training Modpack] Tearing down Training Modpack menu session");
-                    session.exit();
-                    session.wait_for_exit();
+                    spawn_web_session(web_session.unwrap());
                     web_session = None;
-                    set_menu_from_json(&message_recv);
                     WEB_MENU_ACTIVE = false;
                 }
             } else {
@@ -437,14 +454,7 @@ pub unsafe fn web_session_loop() {
                 // Investigate whether we can minimize this lag by
                 // waiting until the player is idle or using CPU boost mode
                 println!("[Training Modpack] Starting new menu session...");
-                web_session = Some(
-                    Webpage::new()
-                        .background(Background::BlurredScreenshot)
-                        .htdocs_dir("training_modpack")
-                        .start_page("training_menu.html")
-                        .open_session(WebSessionBootMode::InitiallyHidden)
-                        .unwrap(),
-                );
+                web_session = Some(new_web_session(true));
             }
         } else {
             // No longer in training mode, tear down the session.
