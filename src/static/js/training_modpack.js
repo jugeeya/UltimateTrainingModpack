@@ -30,6 +30,7 @@ if (isNx) {
     window.nx.footer.setAssign('ZR', '', cycleNextTab, { se: '' });
     window.nx.footer.setAssign('ZL', '', cyclePrevTab, { se: '' });
     window.nx.addEventListener("message", function(msg) { setSettingsFromJSON(msg)});
+    window.nx.sendMessage("loaded");
 } else {
     document.addEventListener('keypress', (event) => {
         switch (event.key) {

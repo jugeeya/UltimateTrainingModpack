@@ -145,7 +145,7 @@ pub fn main() {
 
     std::thread::spawn(|| unsafe { quick_menu_loop() });
 
-    #[cfg(feature = "web_session")]
+    #[cfg(not(feature = "web_session_single_thread"))]
     if !is_emulator() {
         std::thread::spawn(|| unsafe { web_session_loop() });
     }

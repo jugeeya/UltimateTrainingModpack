@@ -69,7 +69,9 @@ pub unsafe fn write_menu() {
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 
 pub unsafe fn set_menu_from_json(message: &str) {
-    if let Ok(message_json) = serde_json::from_str::<MenuJsonStruct>(message) {
+    let web_response = serde_json::from_str::<MenuJsonStruct>(message);
+    let tui_response = serde_json::from_str::<TrainingModpackMenu>(message);
+    if let Ok(message_json) = web_response {
         // Includes both MENU and DEFAULTS_MENU
         // From Web Applet
         MENU = message_json.menu;
@@ -79,7 +81,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
         .expect("Failed to write menu settings file");
-    } else if let Ok(message_json) = serde_json::from_str::<TrainingModpackMenu>(message) {
+    } else if let Ok(message_json) = tui_response {
         // Only includes MENU
         // From TUI
         MENU = message_json;
@@ -94,7 +96,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
         skyline::error::show_error(
             0x70,
             "Could not parse the menu response!\nPlease send a screenshot of the details page to the developers.\n\0",
-            message
+            &*format!("{:#?}\0", web_response.err().unwrap())
         );
     };
     if MENU.quick_menu == OnOff::Off {
@@ -118,12 +120,12 @@ pub fn spawn_menu() {
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
         if MENU.quick_menu == OnOff::Off {
-            #[cfg(feature = "web_session")]
+            #[cfg(not(feature = "web_session_single_thread"))]
             {
                 WEB_MENU_ACTIVE = true;
             }
 
-            #[cfg(not(feature = "web_session"))]
+            #[cfg(feature = "web_session_single_thread")]
             {
                 spawn_web_session(new_web_session(false));
             }
@@ -415,6 +417,11 @@ unsafe fn spawn_web_session(session: WebSession) {
         serde_json::to_string_pretty(&message_send).unwrap()
     );
     session.show();
+    let loaded_msg = session.recv();
+    println!(
+        "[Training Modpack] Received loaded message from web:\n{}",
+        &loaded_msg
+    );
     let message_recv = session.recv();
     println!(
         "[Training Modpack] Received menu from web:\n{}",
