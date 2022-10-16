@@ -5,6 +5,8 @@ use bitflags::bitflags;
 // Need to define necesary structures here. Probably should move to consts or something. Realistically, should be in skyline smash prob tho.
 
 // Final final controls used for controlmodule
+// can I actually derive these?
+#[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct ControlModuleInternal {
     pub vtable: *mut u8,
@@ -19,6 +21,80 @@ pub struct ControlModuleInternal {
     pub padding2: [f32; 2],
     pub clamped_rstick_x: f32,
     pub clamped_rstick_y: f32,
+}
+
+impl ControlModuleInternal {
+    pub fn clear(&mut self) { // Try to nullify controls so we can't control player 1 during recording
+        self.stick_x = 0.0;
+        self.stick_y = 0.0;
+        self.buttons = Buttons::NONE;
+        self.clamped_lstick_x = 0.0;
+        self.clamped_lstick_y = 0.0;
+        self.clamped_rstick_x = 0.0;
+        self.clamped_rstick_y = 0.0;
+    }
+    pub fn construct_stored(& self) -> ControlModuleStored { // Try to nullify controls so we can't control player 1 during recording
+        ControlModuleStored {    
+            buttons: self.buttons,
+            stick_x: self.stick_x,
+            stick_y: self.stick_y,
+            padding: self.padding,
+            unk: self.unk,
+            clamped_lstick_x: self.clamped_lstick_x,
+            clamped_lstick_y: self.clamped_lstick_y,
+            padding2: self.padding2,
+            clamped_rstick_x: self.clamped_rstick_x,
+            clamped_rstick_y: self.clamped_rstick_y
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+#[repr(C)]
+pub struct ControlModuleStored { // Custom type for saving only necessary controls/not saving vtable
+    pub buttons: Buttons,
+    pub stick_x: f32,
+    pub stick_y: f32,
+    pub padding: [f32; 2],
+    pub unk: [u32; 8],
+    pub clamped_lstick_x: f32,
+    pub clamped_lstick_y: f32,
+    pub padding2: [f32; 2],
+    pub clamped_rstick_x: f32,
+    pub clamped_rstick_y: f32,
+}
+
+impl ControlModuleStored {
+    pub fn construct_internal(& self, curr_vtable: *mut u8, curr_index: i32) -> ControlModuleInternal { // Try to nullify controls so we can't control player 1 during recording
+        ControlModuleInternal {    
+            vtable: curr_vtable,
+            controller_index: curr_index,
+            buttons: self.buttons,
+            stick_x: self.stick_x,
+            stick_y: self.stick_y,
+            padding: self.padding,
+            unk: self.unk,
+            clamped_lstick_x: self.clamped_lstick_x,
+            clamped_lstick_y: self.clamped_lstick_y,
+            padding2: self.padding2,
+            clamped_rstick_x: self.clamped_rstick_x,
+            clamped_rstick_y: self.clamped_rstick_y
+        }
+    }
+    pub fn default() -> ControlModuleStored {
+        ControlModuleStored {
+            buttons: Buttons::NONE,
+            stick_x: 0.0,
+            stick_y: 0.0,
+            padding: [0.0; 2],
+            unk: [0; 8],
+            clamped_lstick_x: 0.0,
+            clamped_lstick_y: 0.0,
+            padding2: [0.0; 2],
+            clamped_rstick_x: 0.0,
+            clamped_rstick_y: 0.0
+        }
+    }
 }
 
 // Re-ordered bitfield the game uses for buttons - TODO: Is this a problem? What's the original order?

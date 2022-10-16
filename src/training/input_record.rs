@@ -8,15 +8,14 @@ use crate::common::consts::*;
 use crate::common::*;
 
 lazy_static! {
-    static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; 90]> =
+    static ref P1_FINAL_MAPPING: Mutex<[ControlModuleStored; 90]> =
         Mutex::new([{
-            MappedInputs::default()
+            ControlModuleStored::default()
         }; 90]);
 }
 
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
-pub static mut CPU_CONTROL_ADDR: *mut ControlModuleInternal = 0 as *mut ControlModuleInternal;
 
 #[derive(PartialEq)]
 pub enum InputRecordState {
@@ -70,7 +69,7 @@ pub unsafe fn record() {
     INPUT_RECORD = Record;
     // Reset mappings to nothing, and then start recording. Maybe this resetting is unnecessary? Unsure
     P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
-        *mapped_input = MappedInputs::default();
+        *mapped_input = ControlModuleStored::default();
     });
     INPUT_RECORD_FRAME = 0;
 }
@@ -80,43 +79,44 @@ pub unsafe fn playback() {
     INPUT_RECORD_FRAME = 0;
 }
 
-pub fn handle_get_npad_state( // Shouldn't need this hook anymore, keeping for reference for now
-    _state: *mut NpadGcState,
-    _controller_id: *const u32,
-) {
-    /*unsafe {
-        if *controller_id == p1_controller_id() {
-            if INPUT_RECORD == Record {
-                P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME] = *state;
-            }
-        } else if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-            let update_count = (*state).updateCount;
-            *state = P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME];
-            (*state).updateCount = update_count;
-        }
-    }*/
+#[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
+unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
+  call_original!(p_data);
+  let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
+  let controller_no  = (*controller_data).controller_index;
+
+  if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+    //println!("Overriding Cpu Player: {}", controller_no); // cpu is normally 1, at least on handheld
+    if INPUT_RECORD_FRAME > 0 {
+        let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1];
+        let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
+        *controller_data = saved_internal_inputs;
+    }
+  }
 }
 
-// TODO: Explain
-static FIM_OFFSET: usize = 0x17504a0; 
-// TODO: Should we define all of our offsets in one file, like HDR? Should at least be a good start for changing to be based on ASM instructions
-#[skyline::hook(offset = FIM_OFFSET)]
-unsafe fn handle_final_input_mapping(
-    mappings: *mut ControllerMapping,
-    player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
-    out: *mut MappedInputs,
-    controller_struct: &mut SomeControllerStruct,
-    arg: bool
-) {
-    // go through the original mapping function first
-    let _ret = original!()(mappings, player_idx, out, controller_struct, arg);
-    //println!("Player: {}, Out Addr: {:p}", player_idx, out);
-    if player_idx == 0 { // if player 1 (what is going on here? switching from handheld to docked seems to make this change to 1 and 2 instead of 0)
+#[skyline::hook(offset = 0x3f7220)] // Used by HDR to implement some of their control changes
+unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleInternal) {
+    let control_index = current_control_internal.controller_index;
+    // go through the original parsing function first (this may be wrong?)
+    call_original!(current_control_internal);
+
+    if control_index == 0 { // if player 1 (need to check if it works this way docked)
         if INPUT_RECORD == Record {
-            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
-            *out = MappedInputs::default() // don't control player while recording TODO: Change this for later, want off during dev and testing
+            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored(); // am I hard copying this correctly?
+            //current_control_internal.clear() // don't control player while recording TODO: uncomment
         }
     } 
+}
+
+pub fn init() {
+    skyline::install_hooks!(
+        set_cpu_controls,
+        parse_internal_controls,
+    );
+}
+
+/*
     // debug:
     let input_type;
     if INPUT_RECORD == Record {
@@ -127,60 +127,4 @@ unsafe fn handle_final_input_mapping(
         input_type = "Other";
     }
     //println!("{} PLAYER, Frame: {}", input_type, INPUT_RECORD_FRAME); //debug
-}
-
-#[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
-unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
-  call_original!(p_data);
-  let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
-  let _controller_no  = (*controller_data).controller_index;
-  let input_type;
-  if INPUT_RECORD == Record {
-    input_type = "Record";
-  } else if INPUT_RECORD == Playback {
-    input_type = "Playback";
-  } else {
-    input_type = "Other";
-  }
-  if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-    //println!("Overriding Cpu Player: {}", controller_no); // cpu is normally 1, at least on handheld
-    if INPUT_RECORD_FRAME > 0 {
-        let saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1];
-        (*controller_data).buttons = saved_mapped_inputs.buttons;
-        (*controller_data).stick_x = (saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32);
-        (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
-        println!("{} CPU, Frame: {}", input_type, INPUT_RECORD_FRAME); //debug
-        /*println!("Saved stick x: {}, new stick x: {}", saved_mapped_inputs.lstick_x, *(controller_data.add(0x40) as *mut f32));
-        println!("Saved stick y: {}, new stick y: {}", saved_mapped_inputs.lstick_y, *(controller_data.add(0x44) as *mut f32));
-        */
-        // Clamp stick inputs for separate part of structure
-        const NEUTRAL: f32 = 0.2;
-        const CLAMP_MAX: f32 = 120.0;
-        let clamp_mul = 1.0 / CLAMP_MAX;
-        let mut clamped_lstick_x = ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
-        let mut clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
-        clamped_lstick_x = if clamped_lstick_x.abs() >= NEUTRAL { clamped_lstick_x } else { 0.0 };
-        clamped_lstick_y = if clamped_lstick_y.abs() >= NEUTRAL { clamped_lstick_y } else { 0.0 };
-        (*controller_data).clamped_lstick_x = clamped_lstick_x;
-        (*controller_data).clamped_lstick_y = clamped_lstick_y;
-        println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
-    }
-    
-    CPU_CONTROL_ADDR = controller_data;
-    //println!("Saving CPU Addr as {:p}", controller_data);
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-    let cpu_control_module_reference_location = (cpu_module_accessor as  *mut *mut u64).add(0x48 / 8); // boma + 72, value here points to controlmodule
-    let cpu_control_module = *(cpu_control_module_reference_location); // we're saying the value at this address is the address of the controlmodule
-    // We dereference once to go from the pointer to the address that points to the control module, to the pointer to the control module
-    // IMPORTANT! Above should not be u64, it should be ControlModule. But ControlModule is a module, not a type, so it doesn't work for now. ControlModule is size 4096.
-    // println!("CPU BOMA: {:p}, CM_Ref: {:p}, ControlModule: {:p}, ControlModuleInternal: {:p}", cpu_module_accessor, cpu_control_module_reference_location, cpu_control_module, controller_data);
-
-  } 
-}
-
-pub fn init() {
-    skyline::install_hooks!(
-        handle_final_input_mapping,
-        set_cpu_controls
-    );
-}
+*/
