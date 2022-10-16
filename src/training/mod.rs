@@ -460,6 +460,19 @@ pub unsafe fn handle_effect(
     )
 }
 
+static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, checks if stage allows for star KOs
+#[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
+pub unsafe fn handle_star_ko(
+    my_long_ptr: &mut u64,
+) -> bool {
+    let ori = original!()(my_long_ptr);
+    if !is_training_mode() {
+        return ori;
+    } else {
+        return false;
+    }
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -540,6 +553,8 @@ pub fn training_mods() {
         handle_se,
         // Death GFX
         handle_effect,
+        // Star KO turn off
+        handle_star_ko,
     );
 
     combo::init();
