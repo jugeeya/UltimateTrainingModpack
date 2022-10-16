@@ -460,13 +460,12 @@ pub unsafe fn handle_effect(
     )
 }
 
-static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, I think this is a stage function and not a fighter function
+static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, checks if stage allows for star KOs
 #[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
 pub unsafe fn handle_star_ko(
     my_long_ptr: &mut u64,
 ) -> bool {
     let ori = original!()(my_long_ptr);
-    println!("can_futtobi_back! val: {}",ori);
     if !is_training_mode() {
         return ori;
     } else {
