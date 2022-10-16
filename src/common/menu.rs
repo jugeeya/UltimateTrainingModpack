@@ -7,7 +7,7 @@ use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline::nn::hid::NpadGcState;
 use skyline::nn::web::WebSessionBootMode;
-use skyline_web::{Background, WebSession, Webpage};
+use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use std::fs;
 use std::path::Path;
 use training_mod_consts::{MenuJsonStruct, TrainingModpackMenu};
@@ -120,12 +120,12 @@ pub fn spawn_menu() {
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
         if MENU.quick_menu == OnOff::Off {
-            #[cfg(not(feature = "web_session_single_thread"))]
+            #[cfg(feature = "web_session_preload")]
             {
                 WEB_MENU_ACTIVE = true;
             }
 
-            #[cfg(feature = "web_session_single_thread")]
+            #[cfg(not(feature = "web_session_preload"))]
             {
                 spawn_web_session(new_web_session(false));
             }
@@ -407,6 +407,11 @@ static mut WEB_MENU_ACTIVE: bool = false;
 
 unsafe fn spawn_web_session(session: WebSession) {
     println!("[Training Modpack] Opening menu session...");
+    let loaded_msg = session.recv();
+    println!(
+        "[Training Modpack] Received loaded message from web: {}",
+        &loaded_msg
+    );
     let message_send = MenuJsonStruct {
         menu: MENU,
         defaults_menu: DEFAULTS_MENU,
@@ -415,12 +420,6 @@ unsafe fn spawn_web_session(session: WebSession) {
     println!(
         "[Training Modpack] Sending message:\n{}",
         serde_json::to_string_pretty(&message_send).unwrap()
-    );
-    session.show();
-    let loaded_msg = session.recv();
-    println!(
-        "[Training Modpack] Received loaded message from web:\n{}",
-        &loaded_msg
     );
     let message_recv = session.recv();
     println!(
@@ -436,6 +435,8 @@ unsafe fn spawn_web_session(session: WebSession) {
 unsafe fn new_web_session(hidden: bool) -> WebSession {
     Webpage::new()
         .background(Background::BlurredScreenshot)
+        .boot_icon(true)
+        .boot_display(BootDisplay::BlurredScreenshot)
         .htdocs_dir("training_modpack")
         .start_page("training_menu.html")
         .open_session(if hidden {

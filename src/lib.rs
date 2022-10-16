@@ -26,7 +26,9 @@ use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
 use std::fs;
 
-use crate::menu::{quick_menu_loop, web_session_loop};
+use crate::menu::quick_menu_loop;
+#[cfg(feature = "web_session_preload")]
+use crate::menu::web_session_loop;
 use owo_colors::OwoColorize;
 use training_mod_consts::{MenuJsonStruct, OnOff};
 
@@ -145,7 +147,7 @@ pub fn main() {
 
     std::thread::spawn(|| unsafe { quick_menu_loop() });
 
-    #[cfg(not(feature = "web_session_single_thread"))]
+    #[cfg(feature = "web_session_preload")]
     if !is_emulator() {
         std::thread::spawn(|| unsafe { web_session_loop() });
     }
