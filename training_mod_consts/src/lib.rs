@@ -1003,7 +1003,6 @@ impl_serde_for_bitflags!(MashTrigger);
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct TrainingModpackMenu {
-    // Mash Tab
     pub aerial_delay: Delay,
     pub air_dodge_dir: Direction,
     pub attack_angle: AttackAngle,
@@ -1325,7 +1324,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Falling Aerials",
         "falling_aerials",
         "Falling Aerials: Should aerials be performed when rising or when falling",
-        false, // TODO: Should this be a single option submenu?
+        false,
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
         "Full Hop",
@@ -1436,18 +1435,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Shield Tilt: Direction to tilt the shield",
         false, // TODO: Should this be true?
     );
-    defensive_tab.add_submenu_with_toggles::<BuffOption>(
-        "Buff Options",
-        "buff_state",
-        "Buff Options: Buff(s) to be applied to respective character when loading save states",
-        false,
-    );
-    defensive_tab.add_submenu_with_toggles::<CharacterItem>(
-        "Character Item",
-        "character_item",
-        "Character Item: CPU/Player item to hold when loading a save state",
-        true,
-    );
+
     defensive_tab.add_submenu_with_toggles::<OnOff>(
         "Crouch",
         "crouch",
@@ -1456,35 +1444,54 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     );
     overall_menu.tabs.push(defensive_tab);
 
-    let mut misc_tab = Tab {
-        tab_id: "misc",
-        tab_title: "Misc Settings",
+    let mut save_state_tab = Tab {
+        tab_id: "save_state",
+        tab_title: "Save States",
         tab_submenus: Vec::new(),
     };
-    misc_tab.add_submenu_with_toggles::<SaveStateMirroring>(
+    save_state_tab.add_submenu_with_toggles::<SaveStateMirroring>(
         "Mirroring",
         "save_state_mirroring",
         "Mirroring: Flips save states in the left-right direction across the stage center",
         true,
     );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Save Damage",
-        "save_damage",
-        "Save Damage: Should save states retain player/CPU damage",
-        true,
-    );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Enable Save States",
-        "save_state_enable",
-        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
-        true,
-    );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
         "Save States Autoload",
         "save_state_autoload",
         "Save States Autoload: Load save state when any fighter dies",
         true,
     );
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
+        "Save Damage",
+        "save_damage",
+        "Save Damage: Should save states retain player/CPU damage",
+        true,
+    );
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
+        "Enable Save States",
+        "save_state_enable",
+        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
+        true,
+    );
+    save_state_tab.add_submenu_with_toggles::<CharacterItem>(
+        "Character Item",
+        "character_item",
+        "Character Item: CPU/Player item to hold when loading a save state",
+        true,
+    );
+    save_state_tab.add_submenu_with_toggles::<BuffOption>(
+        "Buff Options",
+        "buff_state",
+        "Buff Options: Buff(s) to be applied to respective character when loading save states",
+        false,
+    );
+    overall_menu.tabs.push(save_state_tab);
+
+    let mut misc_tab = Tab {
+        tab_id: "misc",
+        tab_title: "Misc Settings",
+        tab_submenus: Vec::new(),
+    };
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Frame Advantage",
         "frame_advantage",
