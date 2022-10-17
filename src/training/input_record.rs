@@ -59,7 +59,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
                 }
                 INPUT_RECORD_FRAME = 0;
             } else {
-                INPUT_RECORD_FRAME += 1;
+                //INPUT_RECORD_FRAME += 1;
             }
         }
     }
@@ -92,19 +92,22 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
         *controller_data = saved_internal_inputs;
     }
+    if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 {
+        INPUT_RECORD_FRAME += 1;
+    }
   }
 }
 
 #[skyline::hook(offset = 0x3f7220)] // Used by HDR to implement some of their control changes
 unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleInternal) {
-    let control_index = current_control_internal.controller_index;
+    let control_index = (*current_control_internal).controller_index;
     // go through the original parsing function first (this may be wrong?)
     call_original!(current_control_internal);
 
     if control_index == 0 { // if player 1 (need to check if it works this way docked)
         if INPUT_RECORD == Record {
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored(); // am I hard copying this correctly?
-            //current_control_internal.clear() // don't control player while recording TODO: uncomment
+            current_control_internal.clear() // don't control player while recording TODO: uncomment
         }
     } 
 }
