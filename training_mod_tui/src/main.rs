@@ -54,6 +54,8 @@ fn ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let args: Vec<String> = std::env::args().collect();
+    let inputs = args.get(1);
     let menu;
     unsafe {
         menu = get_menu();
@@ -61,6 +63,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     #[cfg(not(feature = "has_terminal"))] {
         let (mut terminal, mut app) = test_backend_setup(menu)?;
+        if inputs.is_some() {
+            inputs.unwrap().split(",").for_each(|input| {
+                match input.to_uppercase().as_str() {
+                    "L" => app.on_l(),
+                    "R" => app.on_r(),
+                    "A" => app.on_a(),
+                    "B" => app.on_b(),
+                    "UP" => app.on_up(),
+                    "DOWN" => app.on_down(),
+                    "LEFT" => app.on_left(),
+                    "RIGHT" => app.on_right(),
+                    _ => {}
+                }
+            })
+        }
         let mut json_response = String::new();
         let frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
 

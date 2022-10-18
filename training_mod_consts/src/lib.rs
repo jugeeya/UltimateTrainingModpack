@@ -23,6 +23,11 @@ pub trait ToggleTrait {
     fn to_toggle_vals() -> Vec<usize>;
 }
 
+pub trait SliderTrait {
+    fn to_slider_strs() -> Vec<&'static str>;
+    fn to_slider_vals() -> (usize, usize, usize, usize);
+}
+
 // bitflag helper function macro
 macro_rules! extra_bitflag_impls {
     ($e:ty) => {
@@ -1000,6 +1005,29 @@ impl MashTrigger {
 extra_bitflag_impls! {MashTrigger}
 impl_serde_for_bitflags!(MashTrigger);
 
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+pub struct DamagePercent {
+    val: usize,
+}
+
+impl SliderTrait for DamagePercent {
+    fn to_slider_strs() -> Vec<&'static str> {
+        vec!["0", "150"]
+    }
+
+    fn to_slider_vals() -> (usize, usize, usize, usize) {
+        (0, 150, 0, 150)
+    }
+}
+
+impl DamagePercent {
+    fn from_u32(v: u32) -> Option<DamagePercent> {
+        Some(DamagePercent{
+            val: v as usize
+        })
+    }
+}
+
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct TrainingModpackMenu {
@@ -1033,6 +1061,8 @@ pub struct TrainingModpackMenu {
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
+    pub save_state_percent_min: DamagePercent,
+    pub save_state_percent_max: DamagePercent,
     pub sdi_state: Direction,
     pub sdi_strength: InputFrequency,
     pub shield_state: Shield,
@@ -1068,45 +1098,47 @@ fn log_2(x: u32) -> u32 {
 impl TrainingModpackMenu {
     pub fn set(&mut self, s: &str, val: u32) {
         set_by_str!(
-            self,
-            s,
-            aerial_delay = Delay::from_bits(val),
-            air_dodge_dir = Direction::from_bits(val),
-            attack_angle = AttackAngle::from_bits(val),
-            clatter_strength = num::FromPrimitive::from_u32(val),
-            crouch = OnOff::from_val(val),
-            di_state = Direction::from_bits(val),
-            falling_aerials = BoolFlag::from_bits(val),
-            fast_fall_delay = Delay::from_bits(val),
-            fast_fall = BoolFlag::from_bits(val),
-            follow_up = Action::from_bits(val),
-            full_hop = BoolFlag::from_bits(val),
-            hitbox_vis = OnOff::from_val(val),
-            input_delay = Delay::from_bits(val),
-            ledge_delay = LongDelay::from_bits(val),
-            ledge_state = LedgeOption::from_bits(val),
-            mash_state = Action::from_bits(val),
-            mash_triggers = MashTrigger::from_bits(val),
-            miss_tech_state = MissTechFlags::from_bits(val),
-            oos_offset = Delay::from_bits(val),
-            reaction_time = Delay::from_bits(val),
-            sdi_state = Direction::from_bits(val),
-            sdi_strength = num::FromPrimitive::from_u32(val),
-            shield_state = num::FromPrimitive::from_u32(val),
-            shield_tilt = Direction::from_bits(val),
-            stage_hazards = OnOff::from_val(val),
-            tech_state = TechFlags::from_bits(val),
-            save_damage = OnOff::from_val(val),
-            frame_advantage = OnOff::from_val(val),
-            save_state_mirroring = num::FromPrimitive::from_u32(val),
-            save_state_enable = OnOff::from_val(val),
-            save_state_autoload = OnOff::from_val(val),
-            throw_state = ThrowOption::from_bits(val),
-            throw_delay = MedDelay::from_bits(val),
-            pummel_delay = MedDelay::from_bits(val),
-            buff_state = BuffOption::from_bits(val),
-            character_item = num::FromPrimitive::from_u32(val),
-            quick_menu = OnOff::from_val(val),
+                self,
+        s,
+        aerial_delay = Delay::from_bits(val),
+        air_dodge_dir = Direction::from_bits(val),
+        attack_angle = AttackAngle::from_bits(val),
+        clatter_strength = num::FromPrimitive::from_u32(val),
+        crouch = OnOff::from_val(val),
+        di_state = Direction::from_bits(val),
+        falling_aerials = BoolFlag::from_bits(val),
+        fast_fall_delay = Delay::from_bits(val),
+        fast_fall = BoolFlag::from_bits(val),
+        follow_up = Action::from_bits(val),
+        full_hop = BoolFlag::from_bits(val),
+        hitbox_vis = OnOff::from_val(val),
+        input_delay = Delay::from_bits(val),
+        ledge_delay = LongDelay::from_bits(val),
+        ledge_state = LedgeOption::from_bits(val),
+        mash_state = Action::from_bits(val),
+        mash_triggers = MashTrigger::from_bits(val),
+        miss_tech_state = MissTechFlags::from_bits(val),
+        oos_offset = Delay::from_bits(val),
+        reaction_time = Delay::from_bits(val),
+        sdi_state = Direction::from_bits(val),
+        sdi_strength = num::FromPrimitive::from_u32(val),
+        shield_state = num::FromPrimitive::from_u32(val),
+        shield_tilt = Direction::from_bits(val),
+        stage_hazards = OnOff::from_val(val),
+        tech_state = TechFlags::from_bits(val),
+        save_damage = OnOff::from_val(val),
+        frame_advantage = OnOff::from_val(val),
+        save_state_mirroring = num::FromPrimitive::from_u32(val),
+        save_state_percent_min = DamagePercent::from_u32(val),
+        save_state_percent_max = DamagePercent::from_u32(val),
+        save_state_enable = OnOff::from_val(val),
+        save_state_autoload = OnOff::from_val(val),
+        throw_state = ThrowOption::from_bits(val),
+        throw_delay = MedDelay::from_bits(val),
+        pummel_delay = MedDelay::from_bits(val),
+        buff_state = BuffOption::from_bits(val),
+        character_item = num::FromPrimitive::from_u32(val),
+        quick_menu = OnOff::from_val(val),
         );
     }
 }
@@ -1173,6 +1205,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
+    save_state_percent_min: DamagePercent { val: 0 },
+    save_state_percent_max: DamagePercent { val: 150 },
     sdi_state: Direction::empty(),
     sdi_strength: InputFrequency::None,
     shield_state: Shield::None,
@@ -1189,8 +1223,8 @@ pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
 pub struct Slider {
     pub min: usize,
     pub max: usize,
-    pub index: usize,
-    pub value: usize,
+    pub abs_min: usize,
+    pub abs_max: usize,
 }
 
 #[derive(Content, Clone)]
@@ -1207,6 +1241,7 @@ pub struct SubMenu<'a> {
     pub help_text: &'a str,
     pub is_single_option: bool,
     pub toggles: Vec<Toggle<'a>>,
+    pub slider: Option<Slider>,
     pub _type: &'a str,
 }
 
@@ -1231,6 +1266,7 @@ impl<'a> SubMenu<'a> {
             is_single_option: is_single_option,
             toggles: Vec::new(),
             _type: "toggle",
+            slider: None
         };
 
         let values = T::to_toggle_vals();
@@ -1239,6 +1275,28 @@ impl<'a> SubMenu<'a> {
             instance.add_toggle(values[i], titles[i]);
         }
         instance
+    }
+
+    pub fn new_with_slider<S: SliderTrait>(
+            submenu_title: &'a str,
+            submenu_id: &'a str,
+            help_text: &'a str,
+            ) -> SubMenu<'a> {
+        let min_max = S::to_slider_vals();
+        SubMenu {
+            submenu_title: submenu_title,
+            submenu_id: submenu_id,
+            help_text: help_text,
+            is_single_option: false,
+            toggles: Vec::new(),
+            slider: Some(Slider{
+                min: min_max.0,
+                max: min_max.1,
+                abs_min: min_max.2,
+                abs_max: min_max.3
+            }),
+            _type: "slider",
+        }
     }
 }
 
@@ -1262,6 +1320,19 @@ impl<'a> Tab<'a> {
             submenu_id,
             help_text,
             is_single_option,
+        ));
+    }
+
+    pub fn add_submenu_with_slider<S: SliderTrait>(
+            &mut self,
+            submenu_title: &'a str,
+            submenu_id: &'a str,
+            help_text: &'a str,
+            ) {
+        self.tab_submenus.push(SubMenu::new_with_slider::<S>(
+            submenu_title,
+            submenu_id,
+            help_text,
         ));
     }
 }
@@ -1466,6 +1537,11 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "save_state_mirroring",
         "Mirroring: Flips save states in the left-right direction across the stage center",
         true,
+    );
+    misc_tab.add_submenu_with_slider::<DamagePercent>(
+        "Save State Percent",
+        "save_state_percent",
+        "Save State Percent: Range to which reset CPU damage on load state",
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Save Damage",

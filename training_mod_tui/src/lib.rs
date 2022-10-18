@@ -4,16 +4,19 @@ use tui::{
     layout::{Constraint, Corner, Direction, Layout},
     style::{Modifier, Style},
     text::{Span, Spans},
-    widgets::{Tabs, Paragraph, Block, List, ListItem, ListState},
+    widgets::{Tabs, Paragraph, Block, List, ListItem, ListState, LineGauge},
     Frame,
+    symbols::line::Set
 };
 
 pub use tui::{backend::TestBackend, Terminal, style::Color};
 use std::collections::HashMap;
 
 mod list;
+mod gauge;
 
 use crate::list::{StatefulList, MultiStatefulList};
+use crate::gauge::{GaugeState, DoubleEndedGauge};
 
 /// We should hold a list of SubMenus.
 /// The currently selected SubMenu should also have an associated list with necessary information.
@@ -22,7 +25,7 @@ pub struct App<'a> {
     pub tabs: StatefulList<&'a str>,
     pub menu_items: HashMap<&'a str, MultiStatefulList<SubMenu<'a>>>,
     pub selected_sub_menu_toggles: MultiStatefulList<Toggle<'a>>,
-    pub selected_sub_menu_sliders: MultiStatefulList<Slider>,
+    pub selected_sub_menu_slider: DoubleEndedGauge,
     pub outer_list: bool
 }
 
@@ -42,7 +45,7 @@ impl<'a> App<'a> {
             tabs: StatefulList::with_items(menu.tabs.iter().map(|tab| tab.tab_title).collect()),
             menu_items: menu_items_stateful,
             selected_sub_menu_toggles: MultiStatefulList::with_items(vec![], 0),
-            selected_sub_menu_sliders: MultiStatefulList::with_items(vec![], 0),
+            selected_sub_menu_slider: DoubleEndedGauge::new(),
             outer_list: true
         };
         app.set_sub_menu_items();
@@ -54,7 +57,7 @@ impl<'a> App<'a> {
         let selected_sub_menu = &self.menu_items.get(self.tab_selected()).unwrap().lists[list_section].items.get(list_idx).unwrap();
 
         let toggles = selected_sub_menu.toggles.clone();
-        // let sliders = selected_sub_menu.sliders.clone();
+        let slider = selected_sub_menu.slider.clone();
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles = MultiStatefulList::with_items(
@@ -62,9 +65,9 @@ impl<'a> App<'a> {
                     if selected_sub_menu.toggles.len() >= 3 { 3 } else { selected_sub_menu.toggles.len()} )
             },
             SubMenuType::SLIDER => {
-                // self.selected_sub_menu_sliders = MultiStatefulList::with_items(
-                //     sliders,
-                //     if selected_sub_menu.sliders.len() >= 3 { 3 } else { selected_sub_menu.sliders.len()} )
+                self.selected_sub_menu_slider = slider.map(|s| DoubleEndedGauge::from(
+                    s.abs_min, s.abs_max, s.min, s.max
+                )).unwrap();
             },
         };
     }
@@ -81,28 +84,72 @@ impl<'a> App<'a> {
     pub fn sub_menu_next(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next(),
-            SubMenuType::SLIDER => self.selected_sub_menu_sliders.next(),
+            SubMenuType::SLIDER => {
+                match self.selected_sub_menu_slider.state {
+                    GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
+                    GaugeState::MaxHover => self.selected_sub_menu_slider.state = GaugeState::MinHover,
+                    _ => {}
+                }
+            },
         }
     }
 
     pub fn sub_menu_next_list(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next_list(),
-            SubMenuType::SLIDER => self.selected_sub_menu_sliders.next_list(),
+            SubMenuType::SLIDER => {
+                match self.selected_sub_menu_slider.state {
+                    GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
+                    GaugeState::MaxHover => self.selected_sub_menu_slider.state = GaugeState::MinHover,
+                    GaugeState::MinSelected => {
+                        if self.selected_sub_menu_slider.min_selected < self.selected_sub_menu_slider.max_selected {
+                            self.selected_sub_menu_slider.min_selected += 1;
+                        }
+                    },
+                    GaugeState::MaxSelected => {
+                        if self.selected_sub_menu_slider.max_selected < self.selected_sub_menu_slider.abs_max {
+                            self.selected_sub_menu_slider.max_selected += 1;
+                        }
+                    },
+                    _ => {}
+                }
+            },
         }
     }
 
     pub fn sub_menu_previous(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous(),
-            SubMenuType::SLIDER => self.selected_sub_menu_sliders.previous(),
+            SubMenuType::SLIDER => {
+                match self.selected_sub_menu_slider.state {
+                    GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
+                    GaugeState::MaxHover => self.selected_sub_menu_slider.state = GaugeState::MinHover,
+                    _ => {}
+                }
+            },
         }
     }
 
     pub fn sub_menu_previous_list(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous_list(),
-            SubMenuType::SLIDER => self.selected_sub_menu_sliders.previous_list(),
+            SubMenuType::SLIDER => {
+                match self.selected_sub_menu_slider.state {
+                    GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
+                    GaugeState::MaxHover => self.selected_sub_menu_slider.state = GaugeState::MinHover,
+                    GaugeState::MinSelected => {
+                        if self.selected_sub_menu_slider.min_selected > self.selected_sub_menu_slider.abs_min {
+                            self.selected_sub_menu_slider.min_selected -= 1;
+                        }
+                    },
+                    GaugeState::MaxSelected => {
+                        if self.selected_sub_menu_slider.max_selected > self.selected_sub_menu_slider.min_selected {
+                            self.selected_sub_menu_slider.max_selected -= 1;
+                        }
+                    },
+                    _ => {}
+                }
+            },
         }
     }
 
@@ -120,6 +167,18 @@ impl<'a> App<'a> {
                 vec![(vec![], ListState::default())]
             },
         })
+    }
+
+    pub fn sub_menu_strs_for_slider(&mut self) -> (&str, &str, &DoubleEndedGauge) {
+        let slider = match SubMenuType::from_str(self.sub_menu_selected()._type) {
+            SubMenuType::SLIDER => {
+                &self.selected_sub_menu_slider
+            },
+            _ => {
+                panic!("Slider not selected!");
+            }
+        };
+        (self.sub_menu_selected().submenu_title, self.sub_menu_selected().help_text, slider)
     }
 
     pub fn on_a(&mut self) {
@@ -168,13 +227,41 @@ impl<'a> App<'a> {
                         });
                 },
                 SubMenuType::SLIDER => {
-                    // self.selected_sub_menu_sliders.selected_list_item().checked = true;
+                    match self.selected_sub_menu_slider.state {
+                        GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MinSelected,
+                        GaugeState::MaxHover => self.selected_sub_menu_slider.state = GaugeState::MaxSelected,
+                        _ => {}
+                    }
                 }
             }
         }
     }
 
     pub fn on_b(&mut self) {
+        let tab_selected = self.tabs.items.get(self.tabs.state.selected().unwrap()).unwrap();
+        let (list_section, list_idx) = self.menu_items.get(tab_selected)
+            .unwrap()
+            .idx_to_list_idx(self.menu_items.get(tab_selected).unwrap().state);
+        let selected_sub_menu = self.menu_items.get_mut(tab_selected)
+            .unwrap()
+            .lists[list_section]
+            .items.get_mut(list_idx).unwrap();
+        match SubMenuType::from_str(selected_sub_menu._type) {
+            SubMenuType::SLIDER => {
+                match self.selected_sub_menu_slider.state {
+                    GaugeState::MinSelected => {
+                        self.selected_sub_menu_slider.state = GaugeState::MinHover;
+                        return;
+                    },
+                    GaugeState::MaxSelected => {
+                        self.selected_sub_menu_slider.state = GaugeState::MaxHover;
+                        return;
+                    },
+                    _ => {}
+                }
+            },
+            _ => {}
+        }
         self.outer_list = true;
     }
 
@@ -310,35 +397,87 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         ).style(Style::default().fg(Color::Cyan));
         f.render_widget(help_paragraph, vertical_chunks[2]);
     } else {
-        let (title, help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
-        for list_section in 0..sub_menu_str_lists.len() {
-            let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
-            let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
-            let values_items: Vec<ListItem> = sub_menu_str.iter().map(|s| {
-                ListItem::new(
-                    vec![
-                        Spans::from((if s.0 { "X " } else { "  " }).to_owned() + s.1)
-                    ]
-                )
-            }).collect();
+        if matches!(app.selected_sub_menu_slider.state, GaugeState::None) {
+            let (title, help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
+            for list_section in 0..sub_menu_str_lists.len() {
+                let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
+                let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
+                let values_items: Vec<ListItem> = sub_menu_str.iter().map(|s| {
+                    ListItem::new(
+                        vec![
+                            Spans::from((if s.0 { "X " } else { "  " }).to_owned() + s.1)
+                        ]
+                    )
+                }).collect();
 
-            let values_list = List::new(values_items)
-                .block(Block::default().title(if list_section == 0 { title } else { "" }))
-                .start_corner(Corner::TopLeft)
-                .highlight_style(
-                    Style::default()
-                        .fg(Color::LightGreen)
-                        .add_modifier(Modifier::BOLD),
-                )
-                .highlight_symbol(">> ");
-            f.render_stateful_widget(values_list, list_chunks[list_section], sub_menu_state);
+                let values_list = List::new(values_items)
+                    .block(Block::default().title(if list_section == 0 { title } else { "" }))
+                    .start_corner(Corner::TopLeft)
+                    .highlight_style(
+                        Style::default()
+                            .fg(Color::LightGreen)
+                            .add_modifier(Modifier::BOLD),
+                    )
+                    .highlight_symbol(">> ");
+                f.render_stateful_widget(values_list, list_chunks[list_section], sub_menu_state);
+            }
+            let help_paragraph = Paragraph::new(
+                help_text.replace('\"', "") +
+                    "\nA: Select toggle | B: Exit submenu"
+            ).style(Style::default().fg(Color::Cyan));
+            f.render_widget(help_paragraph, vertical_chunks[2]);
+        } else {
+            let (title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
+            let min_allowed = gauge_vals.abs_min;
+            let max_allowed = gauge_vals.abs_max;
+            let min_selected = gauge_vals.min_selected;
+            let max_selected = gauge_vals.max_selected;
+
+            let pre_start_val = (min_allowed, min_selected);
+            let start_val = (min_selected, max_selected);
+            let end_val = (max_selected, max_allowed);
+
+            let vals = [pre_start_val, start_val, end_val];
+            let pctages = vals.iter()
+                .map(|(val1, val2)| Constraint::Percentage((100.0f32 * ((*val2 as f32 - *val1 as f32) / max_allowed as f32)) as u16))
+                .collect::<Vec<Constraint>>();
+            let gauge_chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints(pctages)
+                .split(vertical_chunks[1]);
+            for (idx, (val1, val2)) in vals.iter().enumerate() {
+                let mut line_set = tui::symbols::line::NORMAL;
+                line_set.horizontal = "-";
+                let mut gauge = LineGauge::default()
+                    .ratio(1.0)
+                    .label(format!("{}", val1))
+                    .style(Style::default().fg(Color::White))
+                    .line_set(line_set)
+                    .gauge_style(
+                        Style::default().fg(Color::White).bg(Color::Black));
+                if idx == 1 {
+                    match gauge_vals.state {
+                        GaugeState::MinHover => gauge = gauge.style(Style::default().fg(Color::Red)),
+                        GaugeState::MinSelected => gauge = gauge.style(Style::default().fg(Color::Green)),
+                        _ => {}
+                    }
+                    gauge = gauge.gauge_style(Style::default().fg(Color::Yellow).bg(Color::Black));
+                } else if idx == 2 {
+                    match gauge_vals.state {
+                        GaugeState::MaxHover => gauge = gauge.style(Style::default().fg(Color::Red)),
+                        GaugeState::MaxSelected => gauge = gauge.style(Style::default().fg(Color::Green)),
+                        _ => {}
+                    }
+                }
+
+                f.render_widget(gauge, gauge_chunks[idx]);
+            }
+            let help_paragraph = Paragraph::new(
+                help_text.replace('\"', "") +
+                    "\nA: Select toggle | B: Exit submenu"
+            ).style(Style::default().fg(Color::Cyan));
+            f.render_widget(help_paragraph, vertical_chunks[2]);
         }
-
-        let help_paragraph = Paragraph::new(
-            help_text.replace('\"', "") +
-                "\nA: Select toggle | B: Exit submenu"
-        ).style(Style::default().fg(Color::Cyan));
-        f.render_widget(help_paragraph, vertical_chunks[2]);
     }
 
     let mut settings = HashMap::new();
