@@ -297,3 +297,27 @@ impl MappedInputs { // pub needed?
         }
     }
 }
+
+/*
+#[repr(C)]
+pub struct BattleObjectModuleAccessor2 { // why do I need to make these fields public?
+    vtable: u64, // oop
+    battle_object_id: u32,
+    padding: u32,
+    pub module_accessor: ModuleAccessor2,
+}
+
+#[repr(C)]
+//#[derive(TypeAssert)]
+#[size = 0x190]
+pub struct ModuleAccessor2 {
+    #[offset = 0x038] pub control_module: *mut ControlModule2,
+}
+
+#[repr(C)]
+#[size = 0xAF0]
+pub struct ControlModule2 {
+    #[offset = 0x0] vtable: u64,
+    #[offset = 624] pub atk_air_kind: i32,
+}
+*/
