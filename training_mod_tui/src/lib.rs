@@ -77,10 +77,14 @@ impl<'a> App<'a> {
                 )
             }
             SubMenuType::SLIDER => {
-                // TODO
-                self.selected_sub_menu_slider = slider
-                    .map(|s| DoubleEndedGauge::from(s.abs_min, s.abs_max, s.min, s.max))
-                    .unwrap();
+                let slider = self.sub_menu_selected().slider.as_ref().unwrap();
+                self.selected_sub_menu_slider = DoubleEndedGauge {
+                    state: GaugeState::None,
+                    selected_min: slider.selected_min,
+                    selected_max: slider.selected_max,
+                    abs_min: slider.abs_min,
+                    abs_max: slider.abs_max,
+                }
             }
         };
     }
@@ -122,17 +126,17 @@ impl<'a> App<'a> {
                 GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
                 GaugeState::MaxHover => self.selected_sub_menu_slider.state = GaugeState::MinHover,
                 GaugeState::MinSelected => {
-                    if self.selected_sub_menu_slider.min_selected
-                        < self.selected_sub_menu_slider.max_selected
+                    if self.selected_sub_menu_slider.selected_min
+                        < self.selected_sub_menu_slider.selected_max
                     {
-                        self.selected_sub_menu_slider.min_selected += 1;
+                        self.selected_sub_menu_slider.selected_min += 1;
                     }
                 }
                 GaugeState::MaxSelected => {
-                    if self.selected_sub_menu_slider.max_selected
+                    if self.selected_sub_menu_slider.selected_max
                         < self.selected_sub_menu_slider.abs_max
                     {
-                        self.selected_sub_menu_slider.max_selected += 1;
+                        self.selected_sub_menu_slider.selected_max += 1;
                     }
                 }
                 _ => {}
@@ -158,17 +162,17 @@ impl<'a> App<'a> {
                 GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
                 GaugeState::MaxHover => self.selected_sub_menu_slider.state = GaugeState::MinHover,
                 GaugeState::MinSelected => {
-                    if self.selected_sub_menu_slider.min_selected
+                    if self.selected_sub_menu_slider.selected_min
                         > self.selected_sub_menu_slider.abs_min
                     {
-                        self.selected_sub_menu_slider.min_selected -= 1;
+                        self.selected_sub_menu_slider.selected_min -= 1;
                     }
                 }
                 GaugeState::MaxSelected => {
-                    if self.selected_sub_menu_slider.max_selected
-                        > self.selected_sub_menu_slider.min_selected
+                    if self.selected_sub_menu_slider.selected_max
+                        > self.selected_sub_menu_slider.selected_min
                     {
-                        self.selected_sub_menu_slider.max_selected -= 1;
+                        self.selected_sub_menu_slider.selected_max -= 1;
                     }
                 }
                 _ => {}
@@ -543,12 +547,12 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             let (title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
             let min_allowed = gauge_vals.abs_min;
             let max_allowed = gauge_vals.abs_max;
-            let min_selected = gauge_vals.min_selected;
-            let max_selected = gauge_vals.max_selected;
+            let selected_min = gauge_vals.selected_min;
+            let selected_max = gauge_vals.selected_max;
 
-            let pre_start_val = (min_allowed, min_selected);
-            let start_val = (min_selected, max_selected);
-            let end_val = (max_selected, max_allowed);
+            let pre_start_val = (min_allowed, selected_min);
+            let start_val = (selected_min, selected_max);
+            let end_val = (selected_max, max_allowed);
 
             let vals = [pre_start_val, start_val, end_val];
             let pctages = vals

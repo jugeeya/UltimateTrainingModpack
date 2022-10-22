@@ -1183,8 +1183,8 @@ pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
 
 #[derive(Content, Clone)]
 pub struct Slider {
-    pub min: u32,
-    pub max: u32,
+    pub selected_min: u32,
+    pub selected_max: u32,
     pub abs_min: u32,
     pub abs_max: u32,
 }
@@ -1256,8 +1256,8 @@ impl<'a> SubMenu<'a> {
             is_single_option: false,
             toggles: Vec::new(),
             slider: Some(Slider {
-                min: *initial_lower_value,
-                max: *initial_upper_value,
+                selected_min: *initial_lower_value,
+                selected_max: *initial_upper_value,
                 abs_min: min_max.0,
                 abs_max: min_max.1,
             }),
