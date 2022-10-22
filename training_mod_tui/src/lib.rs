@@ -611,7 +611,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
     for key in app.menu_items.keys() {
         for list in &app.menu_items.get(key).unwrap().lists {
             for sub_menu in &list.items {
-                let val: usize = sub_menu
+                let val: u32 = sub_menu
                     .toggles
                     .iter()
                     .filter(|t| t.checked)
