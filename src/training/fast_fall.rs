@@ -1,4 +1,5 @@
 use crate::common::*;
+use crate::training::input_record;
 use crate::training::frame_counter;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
@@ -82,6 +83,9 @@ fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 
     unsafe {
         status = StatusModule::status_kind(module_accessor);
+        if input_record::is_playback() {
+            return false;
+        }
     }
 
     // Allow fast fall when falling

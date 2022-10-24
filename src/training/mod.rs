@@ -74,6 +74,9 @@ pub unsafe fn handle_get_attack_air_kind(
         return ori;
     }
 
+    if input_record::is_playback() {
+        return ori;
+    }
     mash::get_attack_air_kind(module_accessor).unwrap_or(ori)
 }
 
