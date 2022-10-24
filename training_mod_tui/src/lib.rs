@@ -9,6 +9,7 @@ use tui::{
 };
 
 use std::collections::HashMap;
+use serde_json::{Map, json};
 pub use tui::{backend::TestBackend, style::Color, Terminal};
 
 mod gauge;
@@ -64,7 +65,7 @@ impl<'a> App<'a> {
             .unwrap();
 
         let toggles = selected_sub_menu.toggles.clone();
-        let slider = selected_sub_menu.slider.clone();
+        let _slider = selected_sub_menu.slider.clone();
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles = MultiStatefulList::with_items(
@@ -77,9 +78,9 @@ impl<'a> App<'a> {
                 )
             }
             SubMenuType::SLIDER => {
-                let slider = self.sub_menu_selected().slider.as_ref().unwrap();
+                let slider = _slider.unwrap();
                 self.selected_sub_menu_slider = DoubleEndedGauge {
-                    state: GaugeState::None,
+                    state: GaugeState::MinHover,
                     selected_min: slider.selected_min,
                     selected_max: slider.selected_max,
                     abs_min: slider.abs_min,
@@ -284,6 +285,12 @@ impl<'a> App<'a> {
                         self.selected_sub_menu_slider.state = GaugeState::MinSelected
                     }
                     GaugeState::MaxHover => {
+                        self.selected_sub_menu_slider.state = GaugeState::MaxSelected
+                    }
+                    GaugeState::MinSelected => {
+                        self.selected_sub_menu_slider.state = GaugeState::MinHover
+                    }
+                    GaugeState::MaxSelected => {
                         self.selected_sub_menu_slider.state = GaugeState::MaxHover
                     }
                     _ => {}
@@ -419,7 +426,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             if idx == tab_selected {
                 Spans::from(">> ".to_owned() + tab)
             } else {
-                Spans::from("  ".to_owned() + tab)
+                Spans::from("   ".to_owned() + tab)
             }
         })
         .collect();
@@ -544,7 +551,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             .style(Style::default().fg(Color::Cyan));
             f.render_widget(help_paragraph, vertical_chunks[2]);
         } else {
-            let (title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
+            let (_title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
             let min_allowed = gauge_vals.abs_min;
             let max_allowed = gauge_vals.abs_max;
             let selected_min = gauge_vals.selected_min;
@@ -567,7 +574,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
                 .direction(Direction::Horizontal)
                 .constraints(pctages)
                 .split(vertical_chunks[1]);
-            for (idx, (val1, val2)) in vals.iter().enumerate() {
+            for (idx, (val1, _val2)) in vals.iter().enumerate() {
                 let mut line_set = tui::symbols::line::NORMAL;
                 line_set.horizontal = "-";
                 let mut gauge = LineGauge::default()
@@ -609,29 +616,32 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         }
     }
 
-    let mut settings = HashMap::new();
-
     // Collect settings for toggles
+    let mut settings = Map::new();
     for key in app.menu_items.keys() {
         for list in &app.menu_items.get(key).unwrap().lists {
             for sub_menu in &list.items {
-                let val: u32 = sub_menu
+                if !sub_menu.toggles.is_empty() {
+                    let val: u32 = sub_menu
                     .toggles
                     .iter()
                     .filter(|t| t.checked)
                     .map(|t| t.toggle_value)
                     .sum();
+                    settings.insert(sub_menu.submenu_id.to_string(), json!(val));
+                } else if sub_menu.slider.is_some() {
+                    let s: &Slider = sub_menu.slider.as_ref().unwrap();
+                    let val: Vec<u32> = vec![s.selected_min, s.selected_max];
+                    settings.insert(sub_menu.submenu_id.to_string(), json!(val));
+                } else {
+                    panic!("Could not collect settings for {:?}", sub_menu.submenu_id);
+                }
 
-                settings.insert(sub_menu.submenu_id, val);
+
             }
         }
     }
     serde_json::to_string(&settings).unwrap()
 
     // TODO: Add saveDefaults
-    // if (document.getElementById("saveDefaults").checked) {
-    //     url += "save_defaults=1";
-    // } else {
-    //     url = url.slice(0, -1);
-    // }
 }

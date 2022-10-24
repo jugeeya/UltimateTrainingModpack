@@ -96,7 +96,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
         skyline::error::show_error(
             0x70,
             "Could not parse the menu response!\nPlease send a screenshot of the details page to the developers.\n\0",
-            &*format!("{:#?}\0", web_response.err().unwrap())
+            &*format!("{:#?}\0", message)
         );
     };
     if MENU.quick_menu == OnOff::Off {

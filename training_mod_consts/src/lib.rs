@@ -1548,7 +1548,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         &(MENU.save_state_pct.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
-        "Random Damage",
+        "Random Damage Enable",
         "save_state_pct_rand_enable",
         "Should save states apply a random damage to the CPU",
         true,
