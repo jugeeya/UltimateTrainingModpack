@@ -52,6 +52,8 @@ impl<'a> App<'a> {
         app
     }
 
+    /// Takes the currently selected tab/submenu and clones the options into
+    /// self.selected_sub_menu_toggles and self.selected_sub_menu_slider
     pub fn set_sub_menu_items(&mut self) {
         let (list_section, list_idx) = self
             .menu_items
@@ -90,6 +92,7 @@ impl<'a> App<'a> {
         };
     }
 
+    /// Returns the id of the currently selected tab
     fn tab_selected(&self) -> &str {
         self.tabs
             .items
@@ -97,6 +100,17 @@ impl<'a> App<'a> {
             .unwrap()
     }
 
+    /// Returns the currently selected SubMenu struct
+    ///
+    /// {
+    ///   submenu_title: &'a str,
+    ///   submenu_id: &'a str,
+    ///   help_text: &'a str,
+    ///   is_single_option: bool,
+    ///   toggles: Vec<Toggle<'a>>,
+    ///   slider: Option<Slider>,
+    ///   _type: &'a str,
+    /// }
     fn sub_menu_selected(&self) -> &SubMenu {
         let (list_section, list_idx) = self
             .menu_items
@@ -109,6 +123,9 @@ impl<'a> App<'a> {
             .unwrap()
     }
 
+    /// A "next()" function which differs per submenu type
+    /// Toggles: calls next()
+    /// Slider: Swaps between MinHover and MaxHover
     pub fn sub_menu_next(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next(),
@@ -120,6 +137,11 @@ impl<'a> App<'a> {
         }
     }
 
+    /// A "next_list()" function which differs per submenu type
+    /// Toggles: Calls next_list()
+    /// Slider:
+    ///     * Swaps between MinHover and MaxHover
+    ///     * Increments the selected_min/max if possible
     pub fn sub_menu_next_list(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next_list(),
@@ -145,6 +167,9 @@ impl<'a> App<'a> {
         }
     }
 
+    /// A "previous()" function which differs per submenu type
+    /// Toggles: calls previous()
+    /// Slider: Swaps between MinHover and MaxHover
     pub fn sub_menu_previous(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous(),
@@ -156,6 +181,11 @@ impl<'a> App<'a> {
         }
     }
 
+    /// A "previous_list()" function which differs per submenu type
+    /// Toggles: Calls previous_list()
+    /// Slider:
+    ///     * Swaps between MinHover and MaxHover
+    ///     * Decrements the selected_min/max if possible
     pub fn sub_menu_previous_list(&mut self) {
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous_list(),
@@ -181,6 +211,12 @@ impl<'a> App<'a> {
         }
     }
 
+    /// Returns information about the currently selected submenu
+    /// 
+    /// 0: Submenu Title
+    /// 1: Submenu Help Text
+    /// 2: Vec(toggle checked, title) for toggles, Vec(nothing) for slider
+    /// 3: ListState for toggles, ListState::new() for slider
     pub fn sub_menu_strs_and_states(
         &mut self,
     ) -> (&str, &str, Vec<(Vec<(bool, &str)>, ListState)>) {
@@ -210,6 +246,10 @@ impl<'a> App<'a> {
         )
     }
 
+    /// Returns information about the currently selected slider
+    /// 0: Title
+    /// 1: Help text
+    /// 2: Reference to self.selected_sub_menu_slider
     pub fn sub_menu_strs_for_slider(&mut self) -> (&str, &str, &DoubleEndedGauge) {
         let slider = match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::SLIDER => &self.selected_sub_menu_slider,
@@ -224,6 +264,10 @@ impl<'a> App<'a> {
         )
     }
 
+    /// Different behavior depending on the current menu location
+    /// Outer list: Sets self.outer_list to false
+    /// Toggle submenu: Toggles the selected submenu toggle in self.selected_sub_menu_toggles and in the actual SubMenu struct
+    /// Slider submenu: Swaps hover/selected state. Updates the actual SubMenu struct if going from Selected -> Hover
     pub fn on_a(&mut self) {
         let tab_selected = self
             .tabs
@@ -254,6 +298,7 @@ impl<'a> App<'a> {
                 SubMenuType::TOGGLE => {
                     let is_single_option = selected_sub_menu.is_single_option;
                     let state = self.selected_sub_menu_toggles.state;
+                    // Change the toggles in self.selected_sub_menu_toggles (for display)
                     self.selected_sub_menu_toggles
                         .lists
                         .iter_mut()
@@ -271,6 +316,7 @@ impl<'a> App<'a> {
                                 }
                             })
                         });
+                    // Actually change the toggle values in the SubMenu struct
                     selected_sub_menu
                         .toggles
                         .iter_mut()
@@ -320,6 +366,10 @@ impl<'a> App<'a> {
         }
     }
 
+    /// Different behavior depending on the current menu location
+    /// Outer list: None
+    /// Toggle submenu: Sets self.outer_list to true
+    /// Slider submenu: If in a selected state, then commit changes and change to hover. Else set self.outer_list to true
     pub fn on_b(&mut self) {
         let tab_selected = self
             .tabs
@@ -652,7 +702,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         }
     }
 
-    // Collect settings for toggles
+    // Collect settings
     let mut settings = Map::new();
     for key in app.menu_items.keys() {
         for list in &app.menu_items.get(key).unwrap().lists {
