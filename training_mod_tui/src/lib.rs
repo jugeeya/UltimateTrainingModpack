@@ -80,7 +80,7 @@ impl<'a> App<'a> {
             SubMenuType::SLIDER => {
                 let slider = _slider.unwrap();
                 self.selected_sub_menu_slider = DoubleEndedGauge {
-                    state: GaugeState::MinHover,
+                    state: GaugeState::None,
                     selected_min: slider.selected_min,
                     selected_max: slider.selected_max,
                     abs_min: slider.abs_min,
@@ -140,7 +140,7 @@ impl<'a> App<'a> {
                         self.selected_sub_menu_slider.selected_max += 1;
                     }
                 }
-                _ => {}
+                GaugeState::None => {}
             },
         }
     }
@@ -176,7 +176,7 @@ impl<'a> App<'a> {
                         self.selected_sub_menu_slider.selected_max -= 1;
                     }
                 }
-                _ => {}
+                GaugeState::None => {}
             },
         }
     }
@@ -225,24 +225,31 @@ impl<'a> App<'a> {
     }
 
     pub fn on_a(&mut self) {
+        let tab_selected = self
+            .tabs
+            .items
+            .get(self.tabs.state.selected().unwrap())
+            .unwrap();
+        let (list_section, list_idx) = self
+            .menu_items
+            .get(tab_selected)
+            .unwrap()
+            .idx_to_list_idx(self.menu_items.get(tab_selected).unwrap().state);
+        let selected_sub_menu = self.menu_items.get_mut(tab_selected).unwrap().lists
+            [list_section]
+            .items
+            .get_mut(list_idx)
+            .unwrap();
         if self.outer_list {
             self.outer_list = false;
+            match SubMenuType::from_str(selected_sub_menu._type) {
+                // Need to change the slider state to MinHover so the slider shows up initially
+                SubMenuType::SLIDER => {
+                    self.selected_sub_menu_slider.state = GaugeState::MinHover;
+                }
+                _ => {}
+            }
         } else {
-            let tab_selected = self
-                .tabs
-                .items
-                .get(self.tabs.state.selected().unwrap())
-                .unwrap();
-            let (list_section, list_idx) = self
-                .menu_items
-                .get(tab_selected)
-                .unwrap()
-                .idx_to_list_idx(self.menu_items.get(tab_selected).unwrap().state);
-            let selected_sub_menu = self.menu_items.get_mut(tab_selected).unwrap().lists
-                [list_section]
-                .items
-                .get_mut(list_idx)
-                .unwrap();
             match SubMenuType::from_str(selected_sub_menu._type) {
                 SubMenuType::TOGGLE => {
                     let is_single_option = selected_sub_menu.is_single_option;
@@ -282,18 +289,32 @@ impl<'a> App<'a> {
                 }
                 SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                     GaugeState::MinHover => {
-                        self.selected_sub_menu_slider.state = GaugeState::MinSelected
+                        self.selected_sub_menu_slider.state = GaugeState::MinSelected;
                     }
                     GaugeState::MaxHover => {
-                        self.selected_sub_menu_slider.state = GaugeState::MaxSelected
+                        self.selected_sub_menu_slider.state = GaugeState::MaxSelected;
                     }
                     GaugeState::MinSelected => {
-                        self.selected_sub_menu_slider.state = GaugeState::MinHover
+                        self.selected_sub_menu_slider.state = GaugeState::MinHover;
+                        selected_sub_menu.slider = Some(Slider{
+                            selected_min: self.selected_sub_menu_slider.selected_min,
+                            selected_max: self.selected_sub_menu_slider.selected_max,
+                            abs_min: self.selected_sub_menu_slider.abs_min,
+                            abs_max: self.selected_sub_menu_slider.abs_max,
+                        });
                     }
                     GaugeState::MaxSelected => {
-                        self.selected_sub_menu_slider.state = GaugeState::MaxHover
+                        self.selected_sub_menu_slider.state = GaugeState::MaxHover;
+                        selected_sub_menu.slider = Some(Slider{
+                            selected_min: self.selected_sub_menu_slider.selected_min,
+                            selected_max: self.selected_sub_menu_slider.selected_max,
+                            abs_min: self.selected_sub_menu_slider.abs_min,
+                            abs_max: self.selected_sub_menu_slider.abs_max,
+                        });
                     }
-                    _ => {}
+                    GaugeState::None => {
+                        self.selected_sub_menu_slider.state = GaugeState::MinHover;
+                    }
                 },
             }
         }
@@ -318,10 +339,24 @@ impl<'a> App<'a> {
             SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                 GaugeState::MinSelected => {
                     self.selected_sub_menu_slider.state = GaugeState::MinHover;
+                    selected_sub_menu.slider = Some(Slider{
+                        selected_min: self.selected_sub_menu_slider.selected_min,
+                        selected_max: self.selected_sub_menu_slider.selected_max,
+                        abs_min: self.selected_sub_menu_slider.abs_min,
+                        abs_max: self.selected_sub_menu_slider.abs_max,
+                    });
+                    // Don't go back to the outer list
                     return;
                 }
                 GaugeState::MaxSelected => {
                     self.selected_sub_menu_slider.state = GaugeState::MaxHover;
+                    selected_sub_menu.slider = Some(Slider{
+                        selected_min: self.selected_sub_menu_slider.selected_min,
+                        selected_max: self.selected_sub_menu_slider.selected_max,
+                        abs_min: self.selected_sub_menu_slider.abs_min,
+                        abs_max: self.selected_sub_menu_slider.abs_max,
+                    });
+                    // Don't go back to the outer list
                     return;
                 }
                 _ => {}
@@ -329,6 +364,7 @@ impl<'a> App<'a> {
             _ => {}
         }
         self.outer_list = true;
+        self.set_sub_menu_items();
     }
 
     pub fn on_l(&mut self) {
@@ -623,11 +659,11 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             for sub_menu in &list.items {
                 if !sub_menu.toggles.is_empty() {
                     let val: u32 = sub_menu
-                    .toggles
-                    .iter()
-                    .filter(|t| t.checked)
-                    .map(|t| t.toggle_value)
-                    .sum();
+                        .toggles
+                        .iter()
+                        .filter(|t| t.checked)
+                        .map(|t| t.toggle_value)
+                        .sum();
                     settings.insert(sub_menu.submenu_id.to_string(), json!(val));
                 } else if sub_menu.slider.is_some() {
                     let s: &Slider = sub_menu.slider.as_ref().unwrap();
@@ -636,8 +672,6 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
                 } else {
                     panic!("Could not collect settings for {:?}", sub_menu.submenu_id);
                 }
-
-
             }
         }
     }
