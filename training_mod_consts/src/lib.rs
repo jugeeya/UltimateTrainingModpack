@@ -1028,26 +1028,33 @@ impl SliderTrait for DamagePercent {
 }
 
 impl DamagePercent {
-    fn lower_val(self) -> u32 {
-        std::cmp::max(self.0, DamagePercent::get_limits().0)
-    }
-
-    fn upper_val(self) -> u32 {
-        std::cmp::min(self.1, DamagePercent::get_limits().1)
-    }
-
-    /// Checks lower limit <= lower value <= upper value <= upper limit
-    fn is_valid(self) -> bool {
-        let limits = DamagePercent::get_limits();
-        self.0 >= limits.0
-        && self.1 >= self.0
-        && self.1 >= limits.1
-    }
-
     const fn default() -> DamagePercent {
         DamagePercent(0, 150)
     }
 }
+
+bitflags! {
+    pub struct SaveDamage : u32
+    {
+        const DEFAULT = 0b001;
+        const SAVED =   0b010;
+        const RANDOM =  0b100;
+    }
+}
+
+impl SaveDamage {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            SaveDamage::DEFAULT => "Default",
+            SaveDamage::SAVED => "Save State",
+            SaveDamage::RANDOM => "Random Value",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {SaveDamage}
+impl_serde_for_bitflags!(SaveDamage);
 
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
@@ -1077,11 +1084,10 @@ pub struct TrainingModpackMenu {
     pub pummel_delay: MedDelay,
     pub quick_menu: OnOff,
     pub reaction_time: Delay,
-    pub save_damage: OnOff,
+    pub save_damage: SaveDamage,
+    pub save_damage_limits: DamagePercent,
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
-    pub save_state_pct: DamagePercent,
-    pub save_state_pct_rand_enable: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
     pub sdi_state: Direction,
     pub sdi_strength: InputFrequency,
@@ -1163,12 +1169,11 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     pummel_delay: MedDelay::empty(),
     quick_menu: OnOff::Off,
     reaction_time: Delay::empty(),
-    save_damage: OnOff::On,
+    save_damage: SaveDamage::DEFAULT,
+    save_damage_limits: DamagePercent::default(),
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
-    save_state_pct: DamagePercent::default(),
-    save_state_pct_rand_enable: OnOff::Off,
     sdi_state: Direction::empty(),
     sdi_strength: InputFrequency::None,
     shield_state: Shield::None,
@@ -1533,26 +1538,19 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         true,
         &(MENU.save_state_autoload as u32),
     );
-    save_state_tab.add_submenu_with_toggles::<OnOff>(
+    save_state_tab.add_submenu_with_toggles::<SaveDamage>(
         "Save Damage",
         "save_damage",
         "Save Damage: Should save states retain player/CPU damage",
         true,
-        &(MENU.save_damage as u32),
+        &(MENU.save_damage.bits as u32),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
-        "Random Damage",
-        "save_state_pct",
-        "Damage when loading save states",
-        &(MENU.save_state_pct.0 as u32),
-        &(MENU.save_state_pct.1 as u32),
-    );
-    save_state_tab.add_submenu_with_toggles::<OnOff>(
-        "Random Damage Enable",
-        "save_state_pct_rand_enable",
-        "Should save states apply a random damage to the CPU",
-        true,
-        &(MENU.save_state_pct_rand_enable as u32),
+        "Random Damage Range",
+        "save_damage_limits",
+        "Limits on random damage to apply to the CPU when loading a save state",
+        &(MENU.save_damage_limits.0 as u32),
+        &(MENU.save_damage_limits.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
         "Enable Save States",

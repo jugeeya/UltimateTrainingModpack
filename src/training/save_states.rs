@@ -16,7 +16,7 @@ use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use training_mod_consts::CharacterItem;
+use training_mod_consts::{CharacterItem, SaveDamage};
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -357,19 +357,24 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             // Set damage of the save state
-            if MENU.save_damage == OnOff::On {
-                set_damage(module_accessor, save_state.percent);
+            match MENU.save_damage {
+                SaveDamage::SAVED => {
+                    set_damage(module_accessor, save_state.percent);
+                }
+                SaveDamage::RANDOM => {
+                    if is_cpu {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits.0 as f32,
+                            MENU.save_damage_limits.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                }
+                SaveDamage::DEFAULT => {}
+                _ => {}
             }
 
-            // Set the CPU to a random damage
-            if is_cpu && MENU.save_state_pct_rand_enable == OnOff::On {
-                // Gen random value
-                let pct: f32 = get_random_float(
-                    MENU.save_state_pct.0 as f32,
-                    MENU.save_state_pct.1 as f32,
-                );
-                set_damage(module_accessor, pct);
-            }
             // Set to held item
             if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
                 apply_item(MENU.character_item);
