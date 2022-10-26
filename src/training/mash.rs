@@ -134,14 +134,18 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
         return;
     }
 
-    if !should_buffer(module_accessor) {
-        return;
+    let buffered_action = should_buffer(module_accessor);
+    match buffered_action {
+        Some(action) => buffer_menu_mash(action),
+        None => return,
     }
-
-    buffer_menu_mash();
 }
 
-unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<Action> {
+    // TODO: Need to reference a MENU.mash_state_hit MENU.mash_state_always etc. for each of these, instead of always grabbing mash_state
+    // Want to choose explicit menu option, if it exists, over regular mash
+
+    // TODO: For mashes handled in their own files, make sure they do the same as above, checking their menu, and if none, checking general menu
     let fighter_distance = get_fighter_distance();
     if MENU.mash_triggers.contains(MashTrigger::ALWAYS)
         || (MENU.mash_triggers.contains(MashTrigger::HIT) && is_in_hitstun(module_accessor))
@@ -151,7 +155,7 @@ unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -
         || (MENU.mash_triggers.contains(MashTrigger::LANDING) && is_in_landing(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::TRUMP) && is_in_ledgetrump(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::FOOTSTOOL) && is_in_footstool(module_accessor))
-        // CLATTER handled in clatter.rs
+        || (MENU.mash_triggers.contains(MashTrigger::CLATTER) && is_in_clatter(module_accessor))
         // LEDGE handled in ledge.rs
         // TECH handled in tech.rs
         // MISTECH handled in tech.rs
@@ -161,16 +165,15 @@ unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -
         || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID) && fighter_distance < DISTANCE_MID_THRESHOLD)
         || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR) && fighter_distance < DISTANCE_FAR_THRESHOLD)
     {
-        true
+        Some(MENU.mash_state.get_random())
     } else {
-        false
+        None
     }
 }
 
 // Temp Translation
-pub fn buffer_menu_mash() {
+pub fn buffer_menu_mash(action: Action) {
     unsafe {
-        let action = MENU.mash_state.get_random();
         buffer_action(action);
         full_hop::roll_full_hop();
         fast_fall::roll_fast_fall();

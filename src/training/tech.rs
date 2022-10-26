@@ -103,7 +103,7 @@ unsafe fn handle_grnd_tech(
         _ => false,
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
-        mash::buffer_menu_mash();
+        mash::buffer_menu_mash(MENU.mash_state.get_random());
     }
 
     true
@@ -146,7 +146,7 @@ unsafe fn handle_wall_tech(
         _ => false,
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
-        mash::buffer_menu_mash();
+        mash::buffer_menu_mash(MENU.mash_state.get_random());
     }
     true
 }
@@ -177,7 +177,7 @@ unsafe fn handle_ceil_tech(
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
     if MENU.mash_triggers.contains(MashTrigger::TECH) {
-        mash::buffer_menu_mash();
+        mash::buffer_menu_mash(MENU.mash_state.get_random());
     }
     true
 }
@@ -211,7 +211,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         };
         StatusModule::change_status_request_from_script(module_accessor, status, false);
         if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
-            mash::buffer_menu_mash();
+            mash::buffer_menu_mash(MENU.mash_state.get_random());
         }
     } else if [
         // Handle slips (like Diddy banana)
@@ -228,7 +228,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         };
         StatusModule::change_status_request_from_script(module_accessor, status, false);
         if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
-            mash::buffer_menu_mash();
+            mash::buffer_menu_mash(MENU.mash_state.get_random());
         }
     };
 }

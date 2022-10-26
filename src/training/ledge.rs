@@ -101,7 +101,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     StatusModule::change_status_request_from_script(module_accessor, status, true);
 
     if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
-        mash::buffer_menu_mash();
+        mash::buffer_menu_mash(MENU.mash_state.get_random());
     }
 }
 

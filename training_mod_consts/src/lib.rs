@@ -993,7 +993,8 @@ impl MashTrigger {
 
     const fn default() -> MashTrigger {
         // Hit, block, clatter
-        MashTrigger::HIT.union(MashTrigger::BLOCK).union(MashTrigger::CLATTER)
+        MashTrigger::HIT.union(MashTrigger::BLOCK)//.union(MashTrigger::CLATTER)
+        // Clatter currently broken, turning off by default for now
     }
 }
 

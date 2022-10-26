@@ -219,7 +219,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     if MENU.mash_triggers.contains(MashTrigger::BLOCK) {
-        mash::buffer_menu_mash();
+        mash::buffer_menu_mash(MENU.mash_state.get_random());
     }
     let action = mash::get_current_buffer();
 
