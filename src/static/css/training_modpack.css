@@ -302,3 +302,13 @@ body {
     text-align: center;
     font-size: large;
 }
+
+.modal-slider {
+    width: 70%;
+}
+
+.modal-slider-label {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}

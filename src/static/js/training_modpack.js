@@ -23,17 +23,22 @@ var DEFAULTS_PREFIX = '__';
 
 // Set input handlers
 if (isNx) {
+    window.nx.footer.setAssign('A', '', function() {document.activeElement.click()}, { se: '' });
     window.nx.footer.setAssign('B', '', closeOrExit, { se: '' });
     window.nx.footer.setAssign('X', '', resetCurrentMenu, { se: '' });
     window.nx.footer.setAssign('L', '', resetAllMenus, { se: '' });
     window.nx.footer.setAssign('R', '', saveDefaults, { se: '' });
     window.nx.footer.setAssign('ZR', '', cycleNextTab, { se: '' });
     window.nx.footer.setAssign('ZL', '', cyclePrevTab, { se: '' });
-    window.nx.addEventListener("message", function(msg) { setSettingsFromJSON(msg)});
+    window.nx.addEventListener("message", function(msg) { setSettingsFromJSON(msg.data)});
     window.nx.sendMessage("loaded");
 } else {
     document.addEventListener('keypress', (event) => {
         switch (event.key) {
+            case 'a':
+                console.log('a');
+                document.activeElement.click();
+                break;
             case 'b':
                 console.log('b');
                 closeOrExit();
@@ -65,6 +70,11 @@ if (isNx) {
 const onLoad = () => {
     // Activate the first tab
     openTab(document.querySelector('button.tab-button'));
+    initializeAllSliders();
+    if (!isNx) {
+        settings = {};
+        setSettingsFromJSON("{\"menu\":{\"aerial_delay\":0,\"air_dodge_dir\":0,\"attack_angle\":0,\"buff_state\":0,\"character_item\":0,\"clatter_strength\":0,\"crouch\":0,\"di_state\":0,\"falling_aerials\":0,\"fast_fall_delay\":0,\"fast_fall\":0,\"follow_up\":0,\"frame_advantage\":0,\"full_hop\":0,\"hitbox_vis\":1,\"input_delay\":1,\"ledge_delay\":0,\"ledge_state\":31,\"mash_state\":0,\"mash_triggers\":131,\"miss_tech_state\":15,\"oos_offset\":0,\"pummel_delay\":0,\"quick_menu\":0,\"reaction_time\":0,\"save_damage\":4,\"save_damage_limits\":[63,106],\"save_state_autoload\":1,\"save_state_enable\":1,\"save_state_mirroring\":1,\"sdi_state\":0,\"sdi_strength\":0,\"shield_state\":0,\"shield_tilt\":0,\"stage_hazards\":0,\"tech_state\":15,\"throw_delay\":0,\"throw_state\":1},\"defaults_menu\":{\"aerial_delay\":0,\"air_dodge_dir\":0,\"attack_angle\":0,\"buff_state\":0,\"character_item\":0,\"clatter_strength\":0,\"crouch\":0,\"di_state\":0,\"falling_aerials\":0,\"fast_fall_delay\":0,\"fast_fall\":0,\"follow_up\":0,\"frame_advantage\":0,\"full_hop\":0,\"hitbox_vis\":1,\"input_delay\":1,\"ledge_delay\":0,\"ledge_state\":31,\"mash_state\":0,\"mash_triggers\":131,\"miss_tech_state\":15,\"oos_offset\":0,\"pummel_delay\":0,\"quick_menu\":0,\"reaction_time\":0,\"save_damage\":4,\"save_damage_limits\":[41,118],\"save_state_autoload\":1,\"save_state_enable\":1,\"save_state_mirroring\":1,\"sdi_state\":0,\"sdi_strength\":0,\"shield_state\":0,\"shield_tilt\":0,\"stage_hazards\":0,\"tech_state\":15,\"throw_delay\":0,\"throw_state\":1}}");
+    }
 };
 
 window.onload = onLoad;
@@ -114,7 +124,11 @@ const openMenuItem = (eventTarget) => {
     currentTabContent().classList.toggle('hide');
 
     modal.classList.toggle('hide');
-    modal.querySelector('button').focus();
+    elem = modal.querySelector('button');
+    if (!elem) {
+        elem = modal.querySelector('.noUi-handle-lower')
+    }
+    elem.focus();
 
     lastFocusedItem = eventTarget;
 };
@@ -210,50 +224,10 @@ function closeOrExit() {
 
 function setSettingsFromJSON(msg) {
     // Receive a menu message and set settings
-    var msg_json = JSON.parse(msg.data);
+    var msg_json = JSON.parse(msg);
     settings = msg_json["menu"];
     defaultSettings = msg_json["defaults_menu"];
     populateMenuFromSettings();
-}
-
-function setSettingsFromURL() {
-    var { search } = window.location;
-    // Actual settings
-    const settingsFromSearch = search
-        .replace('?', '')
-        .split('&')
-        .reduce((accumulator, currentValue) => {
-            var [key, value] = currentValue.split('=');
-            if (!key.startsWith('__')) {
-                accumulator[key] = parseInt(value);
-            }
-            return accumulator;
-        }, {});
-    settings = settingsFromSearch;
-    
-    // Default settings
-    const defaultSettingsFromSearch = search
-    .replace('?', '')
-    .split('&')
-    .reduce((accumulator, currentValue) => {
-        var [key, value] = currentValue.split('=');
-        if (key.startsWith('__')) {
-            accumulator[key.replace('__','')] = parseInt(value);
-        }
-        return accumulator;
-    }, {});
-    defaultSettings = defaultSettingsFromSearch;
-    populateMenuFromSettings()
-}
-
-function buildURLFromSettings() {
-    const url = 'http://localhost/?';
-
-    const urlParams = Object.entries(settings).map((setting) => {
-        return `${setting[0]}=${setting[1]}`;
-    });
-
-    return url + urlParams.join('&');
 }
 
 function selectSingleOption(eventTarget) {
@@ -277,19 +251,26 @@ const isValueInBitmask = (value, mask) => (mask & value) != 0;
 const setOptionsForMenu = (menuId) => {
     const modal = document.querySelector(`.modal[data-id="${menuId}"]`);
 
-    modal.querySelectorAll('.menu-icon').forEach(function (toggle) {
-        if (isValueInBitmask(toggle.dataset.val, settings[menuId])) {
-            toggle.classList.remove('hidden');
-        } else {
-            toggle.classList.add('hidden');
+    if (modal.querySelector('.modal-button')) {
+        // Toggle menu
+        modal.querySelectorAll('.menu-icon').forEach(function (toggle) {
+            if (isValueInBitmask(toggle.dataset.val, settings[menuId])) {
+                toggle.classList.remove('hidden');
+            } else {
+                toggle.classList.add('hidden');
+            }
+        });
+    
+        if (modal.classList.contains('single-option')) {
+            // If no option is selected default to the first option
+            if (modal.querySelectorAll('.menu-icon:not(.hidden)').length === 0) {
+                selectSingleOption(modal.querySelector('button'));
+            }
         }
-    });
-
-    if (modal.classList.contains('single-option')) {
-        // If no option is selected default to the first option
-        if (modal.querySelectorAll('.menu-icon:not(.hidden)').length === 0) {
-            selectSingleOption(modal.querySelector('button'));
-        }
+    } else {
+        // Slider menu
+        slider = modal.querySelector('.modal-slider');
+        setSliderVals(slider, settings[menuId]);
     }
 };
 
@@ -297,17 +278,25 @@ function populateMenuFromSettings() {
     document.querySelectorAll('.menu-item').forEach((item) => setOptionsForMenu(item.id));
 }
 
-function getMaskFromMenuID(id) {
-    var value = 0;
+function getSettingsValFromMenuID(id) {
     const modal = document.querySelector(`.modal[data-id='${id}']`);
 
-    const options = modal.querySelectorAll('img:not(.hidden)');
-
-    options.forEach(function (toggle) {
-        value += parseInt(toggle.dataset.val);
-    });
-
-    return value;
+    if (modal.querySelector('.modal-button')) {
+        // Toggle menu
+        // Return value is a bitmask
+        var value = 0;
+        const options = modal.querySelectorAll('img:not(.hidden)');
+    
+        options.forEach(function (toggle) {
+            value += parseInt(toggle.dataset.val);
+        });
+        return value;
+    } else {
+        // Slider menu
+        // Return value is a [lower,upper] array
+        slider = modal.querySelector('.modal-slider');
+        return getSliderVals(slider);
+    }
 }
 
 function resetCurrentMenu() {
@@ -315,9 +304,9 @@ function resetCurrentMenu() {
     const menu = document.querySelector('.modal:not(.hide)');
 
     const menuId = menu.dataset.id;
-    const defaultSectionMask = defaultSettings[menuId];
+    const defaultSubmenuSetting = defaultSettings[menuId];
 
-    settings[menuId] = defaultSectionMask;
+    settings[menuId] = defaultSubmenuSetting;
 
     populateMenuFromSettings();
 }
@@ -327,9 +316,9 @@ function resetAllMenus() {
     if (confirm('Are you sure that you want to reset all menu settings to the default?')) {
         document.querySelectorAll('.menu-item').forEach(function (item) {
             const defaultMenuId = item.id;
-            const defaultMask = defaultSettings[defaultMenuId];
+            const defaultSubmenuSetting = defaultSettings[defaultMenuId];
 
-            settings[item.id] = defaultMask;
+            settings[item.id] = defaultSubmenuSetting;
 
             populateMenuFromSettings();
         });
@@ -344,8 +333,7 @@ function saveDefaults() {
     if (confirm('Are you sure that you want to change the default menu settings to the current selections?')) {
         document.querySelectorAll('.menu-item').forEach((item) => {
             const menu = item.id;
-
-            defaultSettings[menu] = getMaskFromMenuID(item.id);
+            defaultSettings[menu] = getSettingsValFromMenuID(item.id);
         });
     }
 }
@@ -371,4 +359,51 @@ function cyclePrevTab() {
         previousTab = tabs[tabs.length - 1];
     }
     openTab(previousTab);
+}
+
+function getSliderVals(slider) {
+    var arr = slider.noUiSlider.get();
+    return [parseFloat(arr[0]), parseFloat(arr[1])]
+}
+
+function setSliderVals(slider, vals) {
+    slider.noUiSlider.set(vals);
+}
+
+function setSettingsFromSlider(slider) {
+    menuId = closestClass(slider, "modal").dataset.id;
+    settings[menuId] = getSliderVals(slider)
+}
+
+function initializeSlider(slider) {
+    noUiSlider.create(
+        slider,
+        {
+            start: [
+                parseFloat(slider.dataset.selectedMin),
+                parseFloat(slider.dataset.selectedMax),
+            ],
+            connect: true,
+            range: {
+                'min': parseFloat(slider.dataset.absMin),
+                'max': parseFloat(slider.dataset.absMax),
+            },
+            step: 1,
+            tooltips: [
+                {to: function (value) {return value.toFixed(0) + '%';}},
+                {to: function (value) {return value.toFixed(0) + '%';}},
+            ],
+            pips: {
+                mode: 'range',
+                density: 10,
+            }
+        }
+    );
+    slider.noUiSlider.on('set', function() {setSettingsFromSlider(slider)});
+}
+
+function initializeAllSliders() {
+    document.querySelectorAll(".modal-slider").forEach((item) => {
+        initializeSlider(item);
+    });
 }
