@@ -101,7 +101,17 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     StatusModule::change_status_request_from_script(module_accessor, status, true);
 
     if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
-        mash::buffer_menu_mash(MENU.mash_state.get_random());
+        if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_state != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_neutral_state.get_random());
+        } else if LEDGE_CASE == LedgeOption::ROLL && MENU.ledge_roll_state != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_roll_state.get_random());
+        } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_state != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_jump_state.get_random());
+        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_state != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_attack_state.get_random());
+        } else {
+            mash::buffer_menu_mash(MENU.mash_state.get_random());
+        }
     }
 }
 

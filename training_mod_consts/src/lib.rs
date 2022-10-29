@@ -1042,6 +1042,19 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub throw_delay: MedDelay,
     pub throw_state: ThrowOption,
+    pub block_state: Action,
+    pub hitstun_state: Action,
+    pub parry_state: Action,
+    pub footstool_state: Action,
+    pub trump_state: Action,
+    pub landing_state: Action,
+    pub ledge_neutral_state: Action,
+    pub ledge_jump_state: Action,
+    pub ledge_roll_state: Action,
+    pub ledge_attack_state: Action,
+    pub tumble_state: Action,
+    pub tech_action_state: Action,
+    pub clatter_state: Action,
 }
 
 macro_rules! set_by_str {
@@ -1182,6 +1195,19 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tech_state: TechFlags::all(),
     throw_delay: MedDelay::empty(),
     throw_state: ThrowOption::NONE,
+    block_state: Action::empty(),
+    hitstun_state: Action::empty(),
+    parry_state: Action::empty(),
+    footstool_state: Action::empty(),
+    trump_state: Action::empty(),
+    landing_state: Action::empty(),
+    ledge_neutral_state: Action::empty(),
+    ledge_jump_state: Action::empty(),
+    ledge_roll_state: Action::empty(),
+    ledge_attack_state: Action::empty(),
+    tumble_state: Action::empty(),
+    tech_action_state: Action::empty(),
+    clatter_state: Action::empty(),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -1517,6 +1543,92 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         true,
     );
     overall_menu.tabs.push(misc_tab);
+
+    let mut override_tab = Tab {
+        tab_id: "override",
+        tab_title: "Override Settings",
+        tab_submenus: Vec::new(),
+    };
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Hitstun",
+        "hitstun_state",
+        "Hitstun: Mash overrides to be performed after hit",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Block",
+        "block_state",
+        "Block: Mash overrides to be performed after shieldstun",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Parry",
+        "parry_state",
+        "Parry: Mash overrides to be performed after parry",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Landing",
+        "landing_state",
+        "Landing: Mash overrides to be performed after landing",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Trump",
+        "trump_state",
+        "Trump: Mash overrides to be performed after ledge trump",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Footstool",
+        "footstool_state",
+        "Footstool: Mash overrides to be performed after footstool",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Tumble",
+        "tumble_state",
+        "Tumble: Mash overrides to be performed when in tumble",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Clatter",
+        "clatter_state",
+        "Clatter: Mash overrides to be performed when escaping a clatter situation",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Getup",
+        "ledge_neutral_state",
+        "Ledge Getup: Mash overrides to be performed after neutral getup from ledge",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Jump",
+        "ledge_jump_state",
+        "Ledge Jump: Mash overrides to be performed after jump from ledge",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Roll",
+        "ledge_roll_state",
+        "Ledge Roll: Mash overrides to be performed after roll from ledge",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Attack",
+        "ledge_attack_state",
+        "Ledge Attack: Mash overrides to be performed after getup attack from ledge",
+        false,
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Tech",
+        "tech_action_state",
+        "Tumble: Mash overrides to be performed teching",
+        false,
+    );
+    
+    overall_menu.tabs.push(override_tab);
 
     let non_ui_menu = serde_json::to_string(&MENU)
         .unwrap()
