@@ -23,21 +23,30 @@ var DEFAULTS_PREFIX = '__';
 
 // Set input handlers
 if (isNx) {
-    window.nx.footer.setAssign('A', '', function() {document.activeElement.click()}, { se: '' });
+    window.nx.footer.setAssign('A', '', function () { select(document.activeElement) }, { se: '' });
     window.nx.footer.setAssign('B', '', closeOrExit, { se: '' });
     window.nx.footer.setAssign('X', '', resetCurrentMenu, { se: '' });
     window.nx.footer.setAssign('L', '', resetAllMenus, { se: '' });
     window.nx.footer.setAssign('R', '', saveDefaults, { se: '' });
     window.nx.footer.setAssign('ZR', '', cycleNextTab, { se: '' });
     window.nx.footer.setAssign('ZL', '', cyclePrevTab, { se: '' });
-    window.nx.addEventListener("message", function(msg) { setSettingsFromJSON(msg.data)});
-    window.nx.sendMessage("loaded");
+    window.nx.addEventListener("message", function (msg) { setSettingsFromJSON(msg.data) });
+    document.addEventListener('keydown', (event) => {
+        switch (event.keyCode) {
+            case 37: // Control stick left
+                decreaseSelectedHandle();
+                break;
+            case 39: // Control stick right
+                increaseSelectedHandle();
+                break;
+        }
+    })
 } else {
-    document.addEventListener('keypress', (event) => {
+    document.addEventListener('keydown', (event) => {
         switch (event.key) {
             case 'a':
                 console.log('a');
-                document.activeElement.click();
+                select(document.activeElement);
                 break;
             case 'b':
                 console.log('b');
@@ -63,6 +72,14 @@ if (isNx) {
                 console.log('o');
                 cyclePrevTab();
                 break;
+            case 'ArrowLeft':
+                console.log('ArrowLeft');
+                decreaseSelectedHandle();
+                break;
+            case 'ArrowRight':
+                console.log('ArrowRight');
+                increaseSelectedHandle();
+                break;
         }
     });
 }
@@ -71,7 +88,9 @@ const onLoad = () => {
     // Activate the first tab
     openTab(document.querySelector('button.tab-button'));
     initializeAllSliders();
-    if (!isNx) {
+    if (isNx) {
+        window.nx.sendMessage("loaded");
+    } else {
         settings = {};
         setSettingsFromJSON("{\"menu\":{\"aerial_delay\":0,\"air_dodge_dir\":0,\"attack_angle\":0,\"buff_state\":0,\"character_item\":0,\"clatter_strength\":0,\"crouch\":0,\"di_state\":0,\"falling_aerials\":0,\"fast_fall_delay\":0,\"fast_fall\":0,\"follow_up\":0,\"frame_advantage\":0,\"full_hop\":0,\"hitbox_vis\":1,\"input_delay\":1,\"ledge_delay\":0,\"ledge_state\":31,\"mash_state\":0,\"mash_triggers\":131,\"miss_tech_state\":15,\"oos_offset\":0,\"pummel_delay\":0,\"quick_menu\":0,\"reaction_time\":0,\"save_damage\":4,\"save_damage_limits\":[63,106],\"save_state_autoload\":1,\"save_state_enable\":1,\"save_state_mirroring\":1,\"sdi_state\":0,\"sdi_strength\":0,\"shield_state\":0,\"shield_tilt\":0,\"stage_hazards\":0,\"tech_state\":15,\"throw_delay\":0,\"throw_state\":1},\"defaults_menu\":{\"aerial_delay\":0,\"air_dodge_dir\":0,\"attack_angle\":0,\"buff_state\":0,\"character_item\":0,\"clatter_strength\":0,\"crouch\":0,\"di_state\":0,\"falling_aerials\":0,\"fast_fall_delay\":0,\"fast_fall\":0,\"follow_up\":0,\"frame_advantage\":0,\"full_hop\":0,\"hitbox_vis\":1,\"input_delay\":1,\"ledge_delay\":0,\"ledge_state\":31,\"mash_state\":0,\"mash_triggers\":131,\"miss_tech_state\":15,\"oos_offset\":0,\"pummel_delay\":0,\"quick_menu\":0,\"reaction_time\":0,\"save_damage\":4,\"save_damage_limits\":[41,118],\"save_state_autoload\":1,\"save_state_enable\":1,\"save_state_mirroring\":1,\"sdi_state\":0,\"sdi_strength\":0,\"shield_state\":0,\"shield_tilt\":0,\"stage_hazards\":0,\"tech_state\":15,\"throw_delay\":0,\"throw_state\":1}}");
     }
@@ -83,6 +102,8 @@ var settings;
 var defaultSettings;
 
 var lastFocusedItem = document.querySelector('.menu-item > button');
+var selectedSliderHandle = -1;
+
 const currentTabContent = () => {
     const currentActiveTab = document.querySelector('.tab-button.active');
 
@@ -209,6 +230,19 @@ const exit = () => {
 };
 
 function closeOrExit() {
+    // Deselect any sliders
+    handlesWereSelected = deselectSliderHandles();
+    if (handlesWereSelected) {return}
+
+    selectedHandles = document.querySelectorAll(".handleSelected");
+    if (selectedHandles.length) {
+        console.log("Found selected handles");
+        selectedHandles.forEach((handle) => {
+            handle.classList.remove("handleSelected");
+        });
+        return;
+    }
+
     // Close any open menus
     if (document.querySelector('.modal:not(.hide)')) {
         console.log('Closing Items');
@@ -260,7 +294,7 @@ const setOptionsForMenu = (menuId) => {
                 toggle.classList.add('hidden');
             }
         });
-    
+
         if (modal.classList.contains('single-option')) {
             // If no option is selected default to the first option
             if (modal.querySelectorAll('.menu-icon:not(.hidden)').length === 0) {
@@ -286,7 +320,7 @@ function getSettingsValFromMenuID(id) {
         // Return value is a bitmask
         var value = 0;
         const options = modal.querySelectorAll('img:not(.hidden)');
-    
+
         options.forEach(function (toggle) {
             value += parseInt(toggle.dataset.val);
         });
@@ -308,6 +342,7 @@ function resetCurrentMenu() {
 
     settings[menuId] = defaultSubmenuSetting;
 
+    deselectSliderHandles();
     populateMenuFromSettings();
 }
 
@@ -320,6 +355,7 @@ function resetAllMenus() {
 
             settings[item.id] = defaultSubmenuSetting;
 
+            deselectSliderHandles();
             populateMenuFromSettings();
         });
     }
@@ -339,6 +375,7 @@ function saveDefaults() {
 }
 
 function cycleNextTab() {
+    deselectSliderHandles();
     // Cycle to the next tab
     const activeTab = document.querySelector('.tab-button.active');
     var nextTab = activeTab.nextElementSibling;
@@ -350,6 +387,7 @@ function cycleNextTab() {
 }
 
 function cyclePrevTab() {
+    deselectSliderHandles();
     // Cycle to the previous tab
     const activeTab = document.querySelector('.tab-button.active');
     var previousTab = activeTab.previousElementSibling;
@@ -390,20 +428,94 @@ function initializeSlider(slider) {
             },
             step: 1,
             tooltips: [
-                {to: function (value) {return value.toFixed(0) + '%';}},
-                {to: function (value) {return value.toFixed(0) + '%';}},
+                { to: function (value) { return value.toFixed(0) + '%'; } },
+                { to: function (value) { return value.toFixed(0) + '%'; } },
             ],
             pips: {
                 mode: 'range',
                 density: 10,
-            }
+            },
+            keyboardMultiplier: 0, // Prevents doublestepping with custom implementation
         }
     );
-    slider.noUiSlider.on('set', function() {setSettingsFromSlider(slider)});
+    slider.noUiSlider.on('set', function () { setSettingsFromSlider(slider) });
 }
 
 function initializeAllSliders() {
     document.querySelectorAll(".modal-slider").forEach((item) => {
         initializeSlider(item);
     });
+}
+
+function select(element) {
+    if (element.classList.contains("noUi-handle")) {
+        element.classList.toggle("handleSelected");
+    }
+    element.click();
+}
+
+function increaseSelectedHandle() {
+    // Increments the selected slider handle, if one is selected
+    // Won't go past the slider limit
+    handle = document.querySelector(".noUi-handle.handleSelected");
+    if (handle) {
+        slider = closestClass(handle, "modal-slider");
+        isLowerHandle = handle.classList.contains("noUi-handle-lower");
+        step = slider.noUiSlider.options.step;
+        currentVals = getSliderVals(slider);
+        if (isLowerHandle) {
+            setSliderVals(
+                slider,
+                [currentVals[0] + step, null]
+            );
+        } else {
+            setSliderVals(
+                slider,
+                [null, currentVals[1] + step]
+            );
+        }
+        // Refocus the handle, since the native navigation might focus the other handle
+        // TODO: Is there a more elegant way to do this?
+        setTimeout( function() {handle.focus() }, 15);
+    }
+}
+
+function decreaseSelectedHandle() {
+    // Decrements the selected slider handle, if one is selected
+    // Won't go past the slider limit
+    handle = document.querySelector(".noUi-handle.handleSelected");
+    if (handle) {
+        slider = closestClass(handle, "modal-slider");
+        isLowerHandle = handle.classList.contains("noUi-handle-lower");
+        step = slider.noUiSlider.options.step;
+        currentVals = getSliderVals(slider);
+        if (isLowerHandle) {
+            setSliderVals(
+                slider,
+                [currentVals[0] - step, null]
+            );
+        } else {
+            setSliderVals(
+                slider,
+                [null, currentVals[1] - step]
+            );
+        }
+        // Refocus the handle, since the native navigation might focus the other handle
+        // TODO: Is there a more elegant way to do this?
+        setTimeout( function() {handle.focus() }, 15);
+    }
+}
+
+function deselectSliderHandles() {
+    /// Returns true if any slider handles were changed from selected -> deselected
+    /// Returns false if there were no selected slider handles to begin with
+    selectedHandles = document.querySelectorAll(".handleSelected");
+    if (selectedHandles.length) {
+        selectedHandles.forEach((handle) => {
+            handle.classList.remove("handleSelected");
+        });
+        return true;
+    } else {
+        return false;
+    }
 }
