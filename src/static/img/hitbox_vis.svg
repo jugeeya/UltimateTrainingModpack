@@ -57,24 +57,24 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:#ffffff;fill-opacity:1;stroke:#fffffe;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 80,49.594555 C 71.240211,34.223174 63.071429,20.251699 40.5,21.38027 19.195563,22.400274 3.068856,38.027037 1,49.594555 11.691775,42.560284 22.442857,32.665984 34.857143,32.665984 c 23.7,0 24.828571,12.414286 32.728571,22.571428 L 80,49.594555"
        id="path7856"
        sodipodi:nodetypes="cccccc" />
     <circle
-       style="opacity:1;fill:#c8c8c8;fill-opacity:0.9;stroke:#c8c8c8;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.8;stroke-opacity:1;paint-order:fill markers stroke"
+       style="opacity:1;fill:#ffffff;fill-opacity:0.9;stroke:#ffffff;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.8;stroke-opacity:1;paint-order:fill markers stroke"
        id="path7952"
        cx="67.659851"
        cy="42.306633"
        r="9.5928574" />
     <circle
-       style="opacity:1;fill:#c8c8c8;fill-opacity:0.9;stroke:#c8c8c8;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.8;stroke-opacity:1;paint-order:fill markers stroke"
+       style="opacity:1;fill:#ffffff;fill-opacity:0.9;stroke:#ffffff;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.8;stroke-opacity:1;paint-order:fill markers stroke"
        id="path7952-8"
        cx="45.088421"
        cy="27.635202"
        r="9.5928574" />
     <circle
-       style="opacity:1;fill:#c8c8c8;fill-opacity:0.9;stroke:#c8c8c8;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.8;stroke-opacity:1;paint-order:fill markers stroke"
+       style="opacity:1;fill:#ffffff;fill-opacity:0.9;stroke:#ffffff;stroke-width:1.12857;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.8;stroke-opacity:1;paint-order:fill markers stroke"
        id="path7952-8-5"
        cx="20.25985"
        cy="32.14949"

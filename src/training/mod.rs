@@ -15,6 +15,7 @@ pub mod buff;
 pub mod charge;
 pub mod clatter;
 pub mod combo;
+pub mod crouch;
 pub mod directional_influence;
 pub mod frame_counter;
 pub mod ledge;
@@ -193,7 +194,9 @@ pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccesso
 }
 
 /**
- *
+ * Called when:
+ * Directional airdodge
+ * Crouching
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
 pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
@@ -202,7 +205,8 @@ pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor)
         return ori;
     }
 
-    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
+    air_dodge_direction::mod_get_stick_y(module_accessor)
+        .unwrap_or_else(|| crouch::mod_get_stick_y(module_accessor).unwrap_or(ori))
 }
 
 #[skyline::hook(replace = ControlModule::check_button_on)]
@@ -460,6 +464,17 @@ pub unsafe fn handle_effect(
     )
 }
 
+static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, checks if stage allows for star KOs
+#[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
+pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
+    let ori = original!()(my_long_ptr);
+    if !is_training_mode() {
+        return ori;
+    } else {
+        return false;
+    }
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -540,6 +555,8 @@ pub fn training_mods() {
         handle_se,
         // Death GFX
         handle_effect,
+        // Star KO turn off
+        handle_star_ko,
     );
 
     combo::init();

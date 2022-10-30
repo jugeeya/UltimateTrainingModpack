@@ -19,14 +19,14 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2021-06-01
+          toolchain: nightly
           components: rustfmt, clippy
           default: true
           target: x86_64-unknown-linux-gnu
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          toolchain: nightly-2021-06-01
+          toolchain: nightly
           args: --all-features --target=x86_64-unknown-linux-gnu
       - uses: mbrobbel/rustfmt-check@master
         with:
@@ -34,7 +34,7 @@ jobs:
   plugin:
     runs-on: ubuntu-latest
     container:
-      image: jugeeya/cargo-skyline:2.1.0-dkp
+      image: jugeeya/cargo-skyline:3.0.0-dkp-beta
     steps:
       - uses: actions/checkout@v2
       - name: Build release NRO
@@ -56,7 +56,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     container:
-      image: jugeeya/cargo-skyline:2.1.0-dkp
+      image: jugeeya/cargo-skyline:3.0.0-dkp-beta
     steps:
       - uses: actions/checkout@v2
       - name: Build outside_training_mode NRO
@@ -90,7 +90,7 @@ jobs:
           unzip skyline.zip
           mv exefs ${{env.SKYLINE_DIR}}
           cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
-          wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro
+          wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.1/libparam_hook.nro
           wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.3.0/libnro_hook.nro
           wget https://github.com/jugeeya/nn-hid-hook/releases/download/beta/libnn_hid_hook.nro
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
