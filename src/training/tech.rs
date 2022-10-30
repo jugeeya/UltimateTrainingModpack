@@ -103,7 +103,11 @@ unsafe fn handle_grnd_tech(
         _ => false,
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
-        mash::buffer_menu_mash();
+        if MENU.tech_action_state == Action::empty() {
+            mash::buffer_menu_mash(MENU.mash_state.get_random())
+        } else {
+            mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+        }
     }
 
     true
@@ -146,7 +150,11 @@ unsafe fn handle_wall_tech(
         _ => false,
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
-        mash::buffer_menu_mash();
+        if MENU.tech_action_state == Action::empty() {
+            mash::buffer_menu_mash(MENU.mash_state.get_random())
+        } else {
+            mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+        }
     }
     true
 }
@@ -177,7 +185,11 @@ unsafe fn handle_ceil_tech(
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
     if MENU.mash_triggers.contains(MashTrigger::TECH) {
-        mash::buffer_menu_mash();
+        if MENU.tech_action_state == Action::empty() {
+            mash::buffer_menu_mash(MENU.mash_state.get_random())
+        } else {
+            mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+        }
     }
     true
 }
@@ -209,9 +221,15 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
             }
             _ => return,
         };
+        // To fix snake's down throw issue, need to make sure FIGHTER_STATUS_DOWN_WORK_INT_NO_ACTION_FRAME is <=0 before we change status
+        // Hooking in here though this hasn't been set yet so we can't check that here; need to investigate solution
         StatusModule::change_status_request_from_script(module_accessor, status, false);
         if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
-            mash::buffer_menu_mash();
+            if MENU.tech_action_state == Action::empty() {
+                mash::buffer_menu_mash(MENU.mash_state.get_random())
+            } else {
+                mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+            }
         }
     } else if [
         // Handle slips (like Diddy banana)
@@ -228,7 +246,11 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         };
         StatusModule::change_status_request_from_script(module_accessor, status, false);
         if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
-            mash::buffer_menu_mash();
+            if MENU.tech_action_state == Action::empty() {
+                mash::buffer_menu_mash(MENU.mash_state.get_random())
+            } else {
+                mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+            }
         }
     };
 }
