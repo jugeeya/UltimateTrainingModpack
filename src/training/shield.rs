@@ -1,6 +1,7 @@
 use crate::common::consts::*;
 use crate::common::*;
 use crate::training::frame_counter;
+use crate::training::input_record;
 use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
@@ -159,6 +160,12 @@ pub unsafe fn param_installer() {
 }
 
 pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    // Don't let shield override input recording playback
+    unsafe {
+        if input_record::is_playback() {
+            return false;
+        }
+    }
     // Mash shield
     if mash::request_shield(module_accessor) {
         return true;

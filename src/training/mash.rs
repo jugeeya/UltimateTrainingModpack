@@ -37,7 +37,7 @@ pub fn buffer_action(action: Action) {
     // We want to allow for triggering a mash to end playback for neutral playbacks, but not for SDI/disadv playbacks
     unsafe { 
          // exit playback if we want to perform mash actions out of it
-        if MENU.playback_mash == OnOff::On {
+        if MENU.playback_mash == OnOff::On && !input_record::is_recording() {
             input_record::stop_playback();
         }
         // if we don't want to leave playback on mash actions, then don't perform the mash

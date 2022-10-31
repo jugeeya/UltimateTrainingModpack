@@ -37,8 +37,10 @@ lazy_static! {
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
     let entry_id_int =
             WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+    let fighter_kind = app::utility::get_kind(module_accessor);
+    let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
 
-    if entry_id_int == 0 {
+    if entry_id_int == 0 && !fighter_is_nana {
         // Attack + Dpad Right: Playback
         if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R) {
@@ -59,7 +61,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         // may need to move this to another func
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
             if INPUT_RECORD_FRAME >= P1_FINAL_MAPPING.lock().len() - 1 { // FINAL_RECORD_FRAME - 1 { 
-                // Above alternative causes crash, need to figure out since we want to be able to have shorter playbacks
+                // Above alternative causes us to stay on last input forever, need to figure out since we want to be able to have shorter playbacks
                 if INPUT_RECORD == Record {
                     //INPUT_RECORD = Playback; // shouldn't do this, causes it to play twice. TODO: replace with line below once other things tested
                     INPUT_RECORD = None;
@@ -133,6 +135,14 @@ unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleIn
 
 pub unsafe fn is_playback() -> bool {
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+        true
+    } else {
+        false
+    }
+}
+
+pub unsafe fn is_recording() -> bool {
+    if INPUT_RECORD == Record {
         true
     } else {
         false
