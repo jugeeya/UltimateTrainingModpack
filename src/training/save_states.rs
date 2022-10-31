@@ -357,22 +357,38 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             // Set damage of the save state
-            match MENU.save_damage {
-                SaveDamage::SAVED => {
-                    set_damage(module_accessor, save_state.percent);
-                }
-                SaveDamage::RANDOM => {
-                    if is_cpu {
+            if !is_cpu {
+                match MENU.save_damage_player {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
                         // Gen random value
                         let pct: f32 = get_random_float(
-                            MENU.save_damage_limits.0 as f32,
-                            MENU.save_damage_limits.1 as f32,
+                            MENU.save_damage_limits_player.0 as f32,
+                            MENU.save_damage_limits_player.1 as f32,
                         );
                         set_damage(module_accessor, pct);
                     }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
                 }
-                SaveDamage::DEFAULT => {}
-                _ => {}
+            } else {
+                match MENU.save_damage_cpu {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits_cpu.0 as f32,
+                            MENU.save_damage_limits_cpu.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
+                }
             }
 
             // Set to held item

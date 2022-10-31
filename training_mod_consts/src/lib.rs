@@ -1084,8 +1084,10 @@ pub struct TrainingModpackMenu {
     pub pummel_delay: MedDelay,
     pub quick_menu: OnOff,
     pub reaction_time: Delay,
-    pub save_damage: SaveDamage,
-    pub save_damage_limits: DamagePercent,
+    pub save_damage_cpu: SaveDamage,
+    pub save_damage_limits_cpu: DamagePercent,
+    pub save_damage_player: SaveDamage,
+    pub save_damage_limits_player: DamagePercent,
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
@@ -1169,8 +1171,10 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     pummel_delay: MedDelay::empty(),
     quick_menu: OnOff::Off,
     reaction_time: Delay::empty(),
-    save_damage: SaveDamage::DEFAULT,
-    save_damage_limits: DamagePercent::default(),
+    save_damage_cpu: SaveDamage::DEFAULT,
+    save_damage_limits_cpu: DamagePercent::default(),
+    save_damage_player: SaveDamage::DEFAULT,
+    save_damage_limits_player: DamagePercent::default(),
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
@@ -1539,18 +1543,32 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         &(MENU.save_state_autoload as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveDamage>(
-        "Save Damage",
-        "save_damage",
-        "Save Damage: Should save states retain player/CPU damage",
+        "Save Damage (CPU)",
+        "save_damage_cpu",
+        "Save Damage: Should save states retain CPU damage",
         true,
-        &(MENU.save_damage.bits as u32),
+        &(MENU.save_damage_cpu.bits as u32),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
         "Random Damage Range",
-        "save_damage_limits",
+        "save_damage_limits_cpu",
         "Limits on random damage to apply to the CPU when loading a save state",
-        &(MENU.save_damage_limits.0 as u32),
-        &(MENU.save_damage_limits.1 as u32),
+        &(MENU.save_damage_limits_cpu.0 as u32),
+        &(MENU.save_damage_limits_cpu.1 as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<SaveDamage>(
+        "Save Damage (Player)",
+        "save_damage_player",
+        "Save Damage: Should save states retain player damage",
+        true,
+        &(MENU.save_damage_player.bits as u32),
+    );
+    save_state_tab.add_submenu_with_slider::<DamagePercent>(
+        "Random Damage Range",
+        "save_damage_limits_player",
+        "Limits on random damage to apply to the player when loading a save state",
+        &(MENU.save_damage_limits_player.0 as u32),
+        &(MENU.save_damage_limits_player.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
         "Enable Save States",
