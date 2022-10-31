@@ -1001,6 +1001,104 @@ impl MashTrigger {
 extra_bitflag_impls! {MashTrigger}
 impl_serde_for_bitflags!(MashTrigger);
 
+// Input Recording Slot
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum RecordSlot {
+    S1 = 0,
+    S2 = 0x1,
+    S3 = 0x2,
+    S4 = 0x4,
+    S5 = 0x8,
+}
+
+impl RecordSlot {
+    pub fn into_int(self) -> Option<u32> { // TODO: Do I need an into_int here?
+        #[cfg(feature = "smash")]
+        {
+            Some(match self {
+                RecordSlot::S1 => 1,
+                RecordSlot::S2 => 2,
+                RecordSlot::S3 => 3,
+                RecordSlot::S4 => 4,
+                RecordSlot::S5 => 5,
+            })
+        }
+
+        #[cfg(not(feature = "smash"))]
+        None
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            RecordSlot::S1 => "Slot One",
+            RecordSlot::S2 => "Slot Two",
+            RecordSlot::S3 => "Slot Three",
+            RecordSlot::S4 => "Slot Four",
+            RecordSlot::S5 => "Slot Five",
+        })
+    }
+}
+
+impl ToggleTrait for RecordSlot {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        RecordSlot::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        RecordSlot::iter().map(|i| i as usize).collect()
+    }
+}
+
+// Input Playback Slot
+bitflags! {
+    pub struct PlaybackSlot : u32
+    {
+        const S1 = 0x1;
+        const S2 = 0x2;
+        const S3 = 0x4;
+        const S4 = 0x8;
+        const S5 = 0x10;
+    }
+}
+
+impl PlaybackSlot {
+    pub fn into_int(self) -> Option<u32> {
+        #[cfg(feature = "smash")]
+        {
+            Some(match self {
+                PlaybackSlot::S1 => 1,
+                PlaybackSlot::S2 => 2,
+                PlaybackSlot::S3 => 3,
+                PlaybackSlot::S4 => 4,
+                PlaybackSlot::S5 => 5,
+                _ => return None,
+            })
+        }
+
+        #[cfg(not(feature = "smash"))]
+        None
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            PlaybackSlot::S1 => "Slot One",
+            PlaybackSlot::S2 => "Slot Two",
+            PlaybackSlot::S3 => "Slot Three",
+            PlaybackSlot::S4 => "Slot Four",
+            PlaybackSlot::S5 => "Slot Five",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {PlaybackSlot}
+impl_serde_for_bitflags!(PlaybackSlot);
+
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct TrainingModpackMenu {
@@ -1055,6 +1153,10 @@ pub struct TrainingModpackMenu {
     pub tumble_state: Action,
     pub tech_action_state: Action,
     pub clatter_state: Action,
+    pub save_state_playback: OnOff,
+    pub recording_slot: RecordSlot,
+    pub playback_slot: PlaybackSlot,
+    pub playback_mash: OnOff,
 }
 
 macro_rules! set_by_str {
@@ -1121,6 +1223,23 @@ impl TrainingModpackMenu {
             buff_state = BuffOption::from_bits(val),
             character_item = num::FromPrimitive::from_u32(val),
             quick_menu = OnOff::from_val(val),
+            block_state = Action::from_bits(val),
+            hitstun_state = Action::from_bits(val),
+            parry_state = Action::from_bits(val),
+            footstool_state = Action::from_bits(val),
+            trump_state = Action::from_bits(val),
+            landing_state = Action::from_bits(val),
+            ledge_neutral_state = Action::from_bits(val),
+            ledge_jump_state = Action::from_bits(val),
+            ledge_roll_state = Action::from_bits(val),
+            ledge_attack_state = Action::from_bits(val),
+            tumble_state = Action::from_bits(val),
+            tech_action_state = Action::from_bits(val),
+            clatter_state = Action::from_bits(val),
+            save_state_playback = OnOff::from_val(val),
+            recording_slot = num::FromPrimitive::from_u32(val),
+            playback_slot = PlaybackSlot::from_bits(val),
+            playback_mash = OnOff::from_val(val),
         );
     }
 }
@@ -1208,6 +1327,11 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tumble_state: Action::empty(),
     tech_action_state: Action::empty(),
     clatter_state: Action::empty(),
+    save_state_playback: OnOff::Off,
+    recording_slot: RecordSlot::S1, // TODO: this is not being set up correctly and is empty on setup
+    playback_slot: PlaybackSlot::S1,
+    playback_mash: OnOff::On,
+    // TODO: alphabetize
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -1461,7 +1585,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Shield Tilt",
         "shield_tilt",
         "Shield Tilt: Direction to tilt the shield",
-        false, // TODO: Should this be true?
+        false,
     );
     defensive_tab.add_submenu_with_toggles::<BuffOption>(
         "Buff Options",
@@ -1629,6 +1753,38 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     );
     
     overall_menu.tabs.push(override_tab);
+
+    let mut input_tab = Tab {
+        tab_id: "input",
+        tab_title: "Input Recording",
+        tab_submenus: Vec::new(),
+    };
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Save State Playback",
+        "save_state_playback",
+        "Save State Playback: Begin recorded input playback upon loading a save state",
+        true,
+    );
+    input_tab.add_submenu_with_toggles::<RecordSlot>(
+        "Recording Slot",
+        "recording_slot",
+        "Recording Slot: Choose which slot to record into",
+        false,
+    );
+    input_tab.add_submenu_with_toggles::<PlaybackSlot>( // TODO: This menu should really be a submenu inside Action menus, probably want to be able to customize for each action
+        "Playback Slots",
+        "playback_slot",
+        "Playback Slots: Choose which slots to choose between for playback when this action is triggered",
+        false,
+    );
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Mash Ends Playback",
+        "playback_mash",
+        "Mash Ends Playback: End input recording playback when a mash trigger occurs",
+        true,
+    );
+
+    overall_menu.tabs.push(input_tab);
 
     let non_ui_menu = serde_json::to_string(&MENU)
         .unwrap()

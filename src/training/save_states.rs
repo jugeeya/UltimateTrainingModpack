@@ -6,6 +6,7 @@ use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
+use crate::training::input_record;
 use crate::training::buff;
 use crate::training::character_specific::steve;
 use crate::training::charge::{self, ChargeState};
@@ -246,6 +247,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             SAVE_STATE_CPU.state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
+        // end input recording playback
+        input_record::stop_playback();
         return;
     }
 
@@ -408,6 +411,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
         if prev_status_kind == FIGHTER_STATUS_KIND_REBIRTH && fighter_is_popo {
             save_state.state = NanaPosMove;
+        }
+
+        // begin input recording playback if selected
+        if MENU.save_state_playback == OnOff::On {
+            input_record::playback();
         }
 
         return;

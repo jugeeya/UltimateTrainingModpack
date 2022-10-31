@@ -1,3 +1,4 @@
+use crate::common::consts::OnOff;
 use crate::common::consts::*;
 use crate::common::*;
 use crate::training::attack_angle;
@@ -5,6 +6,7 @@ use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::frame_counter;
 use crate::training::full_hop;
+use crate::training::input_record;
 use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
@@ -30,6 +32,18 @@ pub fn buffer_action(action: Action) {
 
     if action == Action::empty() {
         return;
+    }
+   
+    // We want to allow for triggering a mash to end playback for neutral playbacks, but not for SDI/disadv playbacks
+    unsafe { 
+         // exit playback if we want to perform mash actions out of it
+        if MENU.playback_mash == OnOff::On {
+            input_record::stop_playback();
+        }
+        // if we don't want to leave playback on mash actions, then don't perform the mash
+        if input_record::is_playback() {
+            return;
+        }
     }
 
     attack_angle::roll_direction();
@@ -137,7 +151,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
             full_reset(); 
             // we need to clear the queue when adding a mash to the queue, but not necessarily a follow-up.
             // We need to clear the queue since it'll be trying to buffer that action until it's completed, but now we want
-            //  different things to happen.     
+            //  different things to happen.
             buffer_menu_mash(action);
         },
         None => return,

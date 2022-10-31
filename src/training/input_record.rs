@@ -1,22 +1,9 @@
-//use skyline::nn::hid::NpadGcState;
 use smash::app::{BattleObjectModuleAccessor, lua_bind::*};
 use smash::lib::lua_const::*;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 //use skyline::logging::print_stack_trace;
 use crate::training::input_recording::structures::*;
-//use crate::common::consts::*;
-//use crate::common::*;
-
-lazy_static! {
-    static ref P1_FINAL_MAPPING: Mutex<[ControlModuleStored; 90]> =
-        Mutex::new([{
-            ControlModuleStored::default()
-        }; 90]);
-}
-
-pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
-pub static mut INPUT_RECORD_FRAME: usize = 0;
 
 #[derive(PartialEq)]
 pub enum InputRecordState {
@@ -25,14 +12,29 @@ pub enum InputRecordState {
     Playback,
 }
 
+#[derive(PartialEq)]
+pub enum PossessionState {
+    Player,
+    Cpu,
+}
+
 use InputRecordState::*;
+use PossessionState::*;
+
+const FINAL_RECORD_MAX: usize = 150; // Maximum length for input recording sequences (capacity)
+pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
+pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
+pub static mut INPUT_RECORD_FRAME: usize = 0;
+pub static mut POSSESSION: PossessionState = PossessionState::Player;
+
+lazy_static! {
+    static ref P1_FINAL_MAPPING: Mutex<[ControlModuleStored; FINAL_RECORD_MAX]> =
+        Mutex::new([{
+            ControlModuleStored::default()
+        }; FINAL_RECORD_MAX]);
+}
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
-    //debug: // TODO: comment call to see if impl always is running (shouldn't be)
-    ControlModule::get_attack_air_kind(module_accessor);
-    // is this too early? maybe try moving this later on; get attack is probably used to go from small structure to bigger?
-    // no; above is untrue; it checks the same spot in controlmodule we're trying to get to
-
     let entry_id_int =
             WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
 
@@ -56,12 +58,15 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
         // may need to move this to another func
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-            if INPUT_RECORD_FRAME >= P1_FINAL_MAPPING.lock().len() - 1 {
+            if INPUT_RECORD_FRAME >= P1_FINAL_MAPPING.lock().len() - 1 { // FINAL_RECORD_FRAME - 1 { 
+                // Above alternative causes crash, need to figure out since we want to be able to have shorter playbacks
                 if INPUT_RECORD == Record {
                     //INPUT_RECORD = Playback; // shouldn't do this, causes it to play twice. TODO: replace with line below once other things tested
                     INPUT_RECORD = None;
+                    POSSESSION = Player;
                 } else if INPUT_RECORD == Playback {
                     INPUT_RECORD = None;
+                    POSSESSION = Player;
                 }
                 INPUT_RECORD_FRAME = 0;
             } else {
@@ -73,6 +78,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
 pub unsafe fn record() {
     INPUT_RECORD = Record;
+    POSSESSION = Cpu;
     // Reset mappings to nothing, and then start recording. Maybe this resetting is unnecessary? Unsure
     P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
         *mapped_input = ControlModuleStored::default();
@@ -82,6 +88,12 @@ pub unsafe fn record() {
 
 pub unsafe fn playback() {
     INPUT_RECORD = Playback;
+    // TODO: Should I make possession Player here?
+    INPUT_RECORD_FRAME = 0;
+}
+
+pub unsafe fn stop_playback() {
+    INPUT_RECORD = None;
     INPUT_RECORD_FRAME = 0;
 }
 
@@ -105,15 +117,15 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
   }
 }
 
-#[skyline::hook(offset = 0x3f7220)] // Used by HDR to implement some of their control changes - TODO: Actually look at this func in GHIDRA
+#[skyline::hook(offset = 0x3f7220)] // Used by HDR to implement some of their control changes
 unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleInternal) {
     let control_index = (*current_control_internal).controller_index;
-    // go through the original parsing function first (this may be wrong?)
+    // go through the original parsing function first
     call_original!(current_control_internal);
 
     if control_index == 0 { // if player 1 (need to check if it works this way docked)
         if INPUT_RECORD == Record {
-            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored(); // am I hard copying this correctly?
+            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored();
             current_control_internal.clear() // don't control player while recording
         }
     } 
