@@ -123,7 +123,7 @@ pub unsafe fn is_enable_transition_term(
     if !is_operation_cpu(&mut *_module_accessor) {
         return None;
     }
-    // Enable cliff drop for input recording - useless
+    // Enable cliff drop for input recording - TODO: useless
     if input_record::is_playback() && term == (0x1E00004A as i32) || term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB { //*FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_FALL {
         return Some(true);
     }
