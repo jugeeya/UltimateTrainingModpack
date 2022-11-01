@@ -505,36 +505,61 @@ impl<'a> App<'a> {
 pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
     let app_tabs = &app.tabs;
     let tab_selected = app_tabs.state.selected().unwrap();
-    let titles = app_tabs
+    let mut span_selected = Spans::default();
+
+    let titles: Vec<Spans> = app_tabs
         .items
         .iter()
         .cloned()
         .enumerate()
         .map(|(idx, tab)| {
             if idx == tab_selected {
-                Spans::from(">> ".to_owned() + tab)
+                span_selected = Spans::from("> ".to_owned() + tab);
+                Spans::from("> ".to_owned() + tab)
             } else {
-                Spans::from("   ".to_owned() + tab)
+                Spans::from("  ".to_owned() + tab)
             }
         })
         .collect();
+    // There is only enough room to display 3 tabs of text
+    // So lets replace tabs not near the selected with "..."
+    let all_windows: Vec<&[Spans]> = titles
+        .windows(3)
+        .filter(|w| w.contains(&titles[tab_selected]))
+        .collect();
+    let first_window = all_windows[0];
+    let mut titles: Vec<Spans> = titles
+        .iter()
+        .cloned()
+        .map(
+            // Converts all tabs not in the window to "..."
+            |t| {
+                if first_window.contains(&t) {
+                    t
+                } else {
+                    Spans::from("...".to_owned())
+                }
+            },
+        )
+        .collect();
+    // Don't keep consecutive "..." tabs
+    titles.dedup();
+    // Now that the size of the titles vector has changed, need to re-locate the selected tab
+    let tab_selected_deduped: usize = titles
+        .iter()
+        .cloned()
+        .position(|span| span == span_selected)
+        .unwrap_or(0);
 
     let tabs = Tabs::new(titles)
-        .block(
-            Block::default()
-            .title(
-                Spans::from(
-                    Span::styled(
-                        "Ultimate Training Modpack Menu",
-                        Style::default().fg(Color::LightRed),
-                    )
-                )
-            )
-        )
+        .block(Block::default().title(Spans::from(Span::styled(
+            "Ultimate Training Modpack Menu",
+            Style::default().fg(Color::LightRed),
+        ))))
         .style(Style::default().fg(Color::White))
         .highlight_style(Style::default().fg(Color::Yellow))
         .divider("|")
-        .select(tab_selected);
+        .select(tab_selected_deduped);
 
     let vertical_chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -734,13 +759,11 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
                     // So we need to change the abs_max slider styling to match
                     // If the selected_max is close enough to the abs_max
                     if (selected_max as f32 / abs_max as f32) > 0.95 {
-                        gauge = gauge.style(
-                            match gauge_vals.state {
-                                GaugeState::MaxHover => {Style::default().fg(Color::Red)}
-                                GaugeState::MaxSelected => {Style::default().fg(Color::Green)}
-                                _ => {Style::default()}
-                            }
-                        )
+                        gauge = gauge.style(match gauge_vals.state {
+                            GaugeState::MaxHover => Style::default().fg(Color::Red),
+                            GaugeState::MaxSelected => Style::default().fg(Color::Green),
+                            _ => Style::default(),
+                        })
                     }
                 }
                 f.render_widget(gauge, gauge_chunks[idx]);
