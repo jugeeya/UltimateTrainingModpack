@@ -69,7 +69,7 @@ impl<'a> App<'a> {
             .unwrap();
 
         let toggles = selected_sub_menu.toggles.clone();
-        let _slider = selected_sub_menu.slider.clone();
+        let slider = selected_sub_menu.slider.clone();
         match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles = MultiStatefulList::with_items(
@@ -82,7 +82,7 @@ impl<'a> App<'a> {
                 )
             }
             SubMenuType::SLIDER => {
-                let slider = _slider.unwrap();
+                let slider = slider.unwrap();
                 self.selected_sub_menu_slider = DoubleEndedGauge {
                     state: GaugeState::None,
                     selected_min: slider.selected_min,
@@ -219,6 +219,7 @@ impl<'a> App<'a> {
     /// 1: Submenu Help Text
     /// 2: Vec(toggle checked, title) for toggles, Vec(nothing) for slider
     /// 3: ListState for toggles, ListState::new() for slider
+    /// TODO: Refactor return type into a nice struct
     pub fn sub_menu_strs_and_states(
         &mut self,
     ) -> (&str, &str, Vec<(Vec<(bool, &str)>, ListState)>) {
@@ -252,6 +253,7 @@ impl<'a> App<'a> {
     /// 0: Title
     /// 1: Help text
     /// 2: Reference to self.selected_sub_menu_slider
+    /// TODO: Refactor return type into a nice struct
     pub fn sub_menu_strs_for_slider(&mut self) -> (&str, &str, &DoubleEndedGauge) {
         let slider = match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::SLIDER => &self.selected_sub_menu_slider,
