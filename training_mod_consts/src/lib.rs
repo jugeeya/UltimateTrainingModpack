@@ -1,4 +1,3 @@
-#![feature(const_option)]
 #[macro_use]
 extern crate bitflags;
 
@@ -14,7 +13,6 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
-use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -1190,7 +1188,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
 
-#[derive(Content, Clone)]
+#[derive(Content, Clone, Serialize)]
 pub struct Slider {
     pub selected_min: u32,
     pub selected_max: u32,
@@ -1198,14 +1196,14 @@ pub struct Slider {
     pub abs_max: u32,
 }
 
-#[derive(Content, Clone)]
+#[derive(Content, Clone, Serialize)]
 pub struct Toggle<'a> {
     pub toggle_value: u32,
     pub toggle_title: &'a str,
     pub checked: bool,
 }
 
-#[derive(Content, Clone)]
+#[derive(Content, Clone, Serialize)]
 pub struct SubMenu<'a> {
     pub submenu_title: &'a str,
     pub submenu_id: &'a str,
@@ -1275,7 +1273,7 @@ impl<'a> SubMenu<'a> {
     }
 }
 
-#[derive(Content)]
+#[derive(Content, Serialize)]
 pub struct Tab<'a> {
     pub tab_id: &'a str,
     pub tab_title: &'a str,
@@ -1318,7 +1316,7 @@ impl<'a> Tab<'a> {
     }
 }
 
-#[derive(Content)]
+#[derive(Content, Serialize)]
 pub struct UiMenu<'a> {
     pub tabs: Vec<Tab<'a>>,
 }
@@ -1536,35 +1534,35 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         &(MENU.save_state_mirroring as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
-        "Save States Autoload",
+        "Auto Save States",
         "save_state_autoload",
-        "Save States Autoload: Load save state when any fighter dies",
+        "Auto Save States: Load save state when any fighter dies",
         true,
         &(MENU.save_state_autoload as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveDamage>(
-        "Save Damage (CPU)",
+        "Save Dmg (CPU)",
         "save_damage_cpu",
         "Save Damage: Should save states retain CPU damage",
         true,
         &(MENU.save_damage_cpu.bits as u32),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
-        "Random Damage Range",
+        "Dmg Range (CPU)",
         "save_damage_limits_cpu",
         "Limits on random damage to apply to the CPU when loading a save state",
         &(MENU.save_damage_limits_cpu.0 as u32),
         &(MENU.save_damage_limits_cpu.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveDamage>(
-        "Save Damage (Player)",
+        "Save Dmg (Player)",
         "save_damage_player",
         "Save Damage: Should save states retain player damage",
         true,
         &(MENU.save_damage_player.bits as u32),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
-        "Random Damage Range",
+        "Dmg Range (Player)",
         "save_damage_limits_player",
         "Limits on random damage to apply to the player when loading a save state",
         &(MENU.save_damage_limits_player.0 as u32),

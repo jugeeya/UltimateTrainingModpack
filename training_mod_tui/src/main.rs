@@ -54,7 +54,7 @@ fn ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let args: Vec<String> = std:env::args().collect();
+    let args: Vec<String> = std::env::args().collect();
     let inputs = args.get(1);
     let menu;
     unsafe {

@@ -1,7 +1,7 @@
 use training_mod_consts::{Slider, SubMenu, SubMenuType, Toggle, UiMenu};
 use tui::{
     backend::Backend,
-    layout::{Constraint, Corner, Direction, Layout},
+    layout::{Constraint, Corner, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, LineGauge, List, ListItem, ListState, Paragraph, Tabs},
@@ -17,6 +17,8 @@ mod list;
 
 use crate::gauge::{DoubleEndedGauge, GaugeState};
 use crate::list::{MultiStatefulList, StatefulList};
+
+static NX_TUI_WIDTH: u16 = 66;
 
 /// We should hold a list of SubMenus.
 /// The currently selected SubMenu should also have an associated list with necessary information.
@@ -518,10 +520,17 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         .collect();
 
     let tabs = Tabs::new(titles)
-        .block(Block::default().title(Spans::from(Span::styled(
-            "Ultimate Training Modpack Menu",
-            Style::default().fg(Color::LightRed),
-        ))))
+        .block(
+            Block::default()
+            .title(
+                Spans::from(
+                    Span::styled(
+                        "Ultimate Training Modpack Menu",
+                        Style::default().fg(Color::LightRed),
+                    )
+                )
+            )
+        )
         .style(Style::default().fg(Color::White))
         .highlight_style(Style::default().fg(Color::Yellow))
         .divider("|")
@@ -539,12 +548,34 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         )
         .split(f.size());
 
+    // Prevent overflow by adding a length constraint of NX_TUI_WIDTH
+    // Need to add a second constraint since the .expand_to_fill() method
+    // is not publicly exposed, and the attribute defaults to true.
+    // https://github.com/fdehau/tui-rs/blob/v0.19.0/src/layout.rs#L121
+    let vertical_chunks: Vec<Rect> = vertical_chunks
+    .iter()
+    .map(|chunk| {
+        Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(
+                [
+                    Constraint::Length(NX_TUI_WIDTH), // Width of the TUI terminal
+                    Constraint::Min(0), // Fill the remainder margin
+                ]
+                .as_ref(),
+            )
+            .split(*chunk)[0]
+        }
+    )
+    .collect();
+
+
     let list_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(
             [
                 Constraint::Percentage(33),
-                Constraint::Percentage(32),
+                Constraint::Percentage(33),
                 Constraint::Percentage(33),
             ]
             .as_ref(),
@@ -638,38 +669,39 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             f.render_widget(help_paragraph, vertical_chunks[2]);
         } else {
             let (_title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
-            let min_allowed = gauge_vals.abs_min;
-            let max_allowed = gauge_vals.abs_max;
+            let abs_min = gauge_vals.abs_min;
+            let abs_max = gauge_vals.abs_max;
             let selected_min = gauge_vals.selected_min;
             let selected_max = gauge_vals.selected_max;
-
-            let pre_start_val = (min_allowed, selected_min);
-            let start_val = (selected_min, selected_max);
-            let end_val = (selected_max, max_allowed);
-
-            let vals = [pre_start_val, start_val, end_val];
-            let pctages = vals
-                .iter()
-                .map(|(val1, val2)| {
-                    Constraint::Percentage(
-                        (100.0f32 * ((*val2 as f32 - *val1 as f32) / max_allowed as f32)) as u16,
-                    )
-                })
-                .collect::<Vec<Constraint>>();
+            let lbl_ratio = 0.95; // Needed so that the upper limit label is visible
+            let constraints = [
+                Constraint::Ratio((lbl_ratio * (selected_min-abs_min) as f32) as u32, abs_max-abs_min),
+                Constraint::Ratio((lbl_ratio * (selected_max-selected_min) as f32) as u32, abs_max-abs_min),
+                Constraint::Ratio((lbl_ratio * (abs_max-selected_max) as f32) as u32, abs_max-abs_min),
+                Constraint::Min(3), // For upper limit label
+            ];
             let gauge_chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints(pctages)
+                .constraints(constraints)
                 .split(vertical_chunks[1]);
-            for (idx, (val1, _val2)) in vals.iter().enumerate() {
+
+            let slider_lbls = [
+                abs_min,
+                selected_min,
+                selected_max,
+                abs_max,
+            ];
+            for (idx, lbl) in slider_lbls.iter().enumerate() {
                 let mut line_set = tui::symbols::line::NORMAL;
                 line_set.horizontal = "-";
                 let mut gauge = LineGauge::default()
                     .ratio(1.0)
-                    .label(format!("{}", val1))
+                    .label(format!("{}", lbl))
                     .style(Style::default().fg(Color::White))
                     .line_set(line_set)
                     .gauge_style(Style::default().fg(Color::White).bg(Color::Black));
                 if idx == 1 {
+                    // Slider between selected_min and selected_max
                     match gauge_vals.state {
                         GaugeState::MinHover => {
                             gauge = gauge.style(Style::default().fg(Color::Red))
@@ -681,6 +713,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
                     }
                     gauge = gauge.gauge_style(Style::default().fg(Color::Yellow).bg(Color::Black));
                 } else if idx == 2 {
+                    // Slider between selected_max and abs_max
                     match gauge_vals.state {
                         GaugeState::MaxHover => {
                             gauge = gauge.style(Style::default().fg(Color::Red))
@@ -690,10 +723,29 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
                         }
                         _ => {}
                     }
-                }
+                } else if idx == 3 {
+                    // Slider for abs_max
+                    // We only want the label to show, so set the line character to " "
+                    let mut line_set = tui::symbols::line::NORMAL;
+                    line_set.horizontal = " ";
+                    gauge = gauge.line_set(line_set);
 
+                    // For some reason, the selected_max slider displays on top
+                    // So we need to change the abs_max slider styling to match
+                    // If the selected_max is close enough to the abs_max
+                    if (selected_max as f32 / abs_max as f32) > 0.95 {
+                        gauge = gauge.style(
+                            match gauge_vals.state {
+                                GaugeState::MaxHover => {Style::default().fg(Color::Red)}
+                                GaugeState::MaxSelected => {Style::default().fg(Color::Green)}
+                                _ => {Style::default()}
+                            }
+                        )
+                    }
+                }
                 f.render_widget(gauge, gauge_chunks[idx]);
             }
+
             let help_paragraph = Paragraph::new(
                 help_text.replace('\"', "") + "\nA: Select toggle | B: Exit submenu",
             )
