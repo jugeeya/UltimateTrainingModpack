@@ -21,7 +21,6 @@ impl<T: Clone> MultiStatefulList<T> {
                 (self.total_len as f32 / self.lists.len() as f32).ceil() as usize * (list_section + 1),
                 self.total_len);
             if (list_section_min_idx..list_section_max_idx).contains(&idx) {
-                // println!("\n{}: ({}, {})", idx, list_section_min_idx, list_section_max_idx);
                 return (list_section, idx - list_section_min_idx)
             }
         }

@@ -1,4 +1,5 @@
 use crate::common::button_config;
+use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
@@ -15,7 +16,7 @@ use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use training_mod_consts::CharacterItem;
+use training_mod_consts::{CharacterItem, SaveDamage};
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -149,16 +150,6 @@ pub unsafe fn get_param_int(
 }
 
 fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32) {
-    let overwrite_damage;
-
-    unsafe {
-        overwrite_damage = MENU.save_damage == OnOff::On;
-    }
-
-    if !overwrite_damage {
-        return;
-    }
-
     unsafe {
         DamageModule::heal(
             module_accessor,
@@ -365,7 +356,41 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
-            set_damage(module_accessor, save_state.percent);
+            // Set damage of the save state
+            if !is_cpu {
+                match MENU.save_damage_player {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits_player.0 as f32,
+                            MENU.save_damage_limits_player.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
+                }
+            } else {
+                match MENU.save_damage_cpu {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits_cpu.0 as f32,
+                            MENU.save_damage_limits_cpu.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
+                }
+            }
+
             // Set to held item
             if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
                 apply_item(MENU.character_item);

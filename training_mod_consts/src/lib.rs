@@ -1,4 +1,3 @@
-#![feature(const_option)]
 #[macro_use]
 extern crate bitflags;
 
@@ -14,13 +13,16 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
-use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 pub trait ToggleTrait {
     fn to_toggle_strs() -> Vec<&'static str>;
-    fn to_toggle_vals() -> Vec<usize>;
+    fn to_toggle_vals() -> Vec<u32>;
+}
+
+pub trait SliderTrait {
+    fn get_limits() -> (u32, u32);
 }
 
 // bitflag helper function macro
@@ -73,9 +75,9 @@ macro_rules! extra_bitflag_impls {
                 all_options.iter().map(|i| i.as_str().unwrap_or("")).collect()
             }
 
-            fn to_toggle_vals() -> Vec<usize> {
+            fn to_toggle_vals() -> Vec<u32> {
                 let all_options = <$e>::all().to_vec();
-                all_options.iter().map(|i| i.bits() as usize).collect()
+                all_options.iter().map(|i| i.bits() as u32).collect()
             }
         }
     }
@@ -89,6 +91,18 @@ pub fn get_random_int(_max: i32) -> i32 {
 
     #[cfg(not(feature = "smash"))]
     0
+}
+
+/// Generate a random float between _min and _max.
+/// Note that (_min <= _max) is not enforced.
+pub fn get_random_float(_min: f32, _max: f32) -> f32 {
+    #[cfg(feature = "smash")]
+    unsafe {
+        _min + smash::app::sv_math::randf(smash::hash40("fighter"), _max - _min)
+    }
+
+    #[cfg(not(feature = "smash"))]
+    _min
 }
 
 pub fn random_option<T>(arg: &[T]) -> &T {
@@ -289,8 +303,8 @@ impl ToggleTrait for Shield {
         Shield::iter().map(|i| i.as_str().unwrap_or("")).collect()
     }
 
-    fn to_toggle_vals() -> Vec<usize> {
-        Shield::iter().map(|i| i as usize).collect()
+    fn to_toggle_vals() -> Vec<u32> {
+        Shield::iter().map(|i| i as u32).collect()
     }
 }
 
@@ -322,8 +336,8 @@ impl ToggleTrait for SaveStateMirroring {
             .collect()
     }
 
-    fn to_toggle_vals() -> Vec<usize> {
-        SaveStateMirroring::iter().map(|i| i as usize).collect()
+    fn to_toggle_vals() -> Vec<u32> {
+        SaveStateMirroring::iter().map(|i| i as u32).collect()
     }
 }
 
@@ -355,7 +369,7 @@ impl ToggleTrait for OnOff {
     fn to_toggle_strs() -> Vec<&'static str> {
         vec!["Off", "On"]
     }
-    fn to_toggle_vals() -> Vec<usize> {
+    fn to_toggle_vals() -> Vec<u32> {
         vec![0, 1]
     }
 }
@@ -875,8 +889,8 @@ impl ToggleTrait for InputFrequency {
             .collect()
     }
 
-    fn to_toggle_vals() -> Vec<usize> {
-        InputFrequency::iter().map(|i| i as usize).collect()
+    fn to_toggle_vals() -> Vec<u32> {
+        InputFrequency::iter().map(|i| i as u32).collect()
     }
 }
 
@@ -940,8 +954,8 @@ impl ToggleTrait for CharacterItem {
             .collect()
     }
 
-    fn to_toggle_vals() -> Vec<usize> {
-        CharacterItem::iter().map(|i| i as usize).collect()
+    fn to_toggle_vals() -> Vec<u32> {
+        CharacterItem::iter().map(|i| i as u32).collect()
     }
 }
 
@@ -993,17 +1007,56 @@ impl MashTrigger {
 
     const fn default() -> MashTrigger {
         // Hit, block, clatter
-        MashTrigger::HIT.union(MashTrigger::BLOCK).union(MashTrigger::CLATTER)
+        MashTrigger::HIT
+            .union(MashTrigger::BLOCK)
+            .union(MashTrigger::CLATTER)
     }
 }
 
 extra_bitflag_impls! {MashTrigger}
 impl_serde_for_bitflags!(MashTrigger);
 
+#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
+pub struct DamagePercent(pub u32, pub u32);
+
+impl SliderTrait for DamagePercent {
+    fn get_limits() -> (u32, u32) {
+        (0, 150)
+    }
+}
+
+impl DamagePercent {
+    const fn default() -> DamagePercent {
+        DamagePercent(0, 150)
+    }
+}
+
+bitflags! {
+    pub struct SaveDamage : u32
+    {
+        const DEFAULT = 0b001;
+        const SAVED =   0b010;
+        const RANDOM =  0b100;
+    }
+}
+
+impl SaveDamage {
+    fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            SaveDamage::DEFAULT => "Default",
+            SaveDamage::SAVED => "Save State",
+            SaveDamage::RANDOM => "Random Value",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {SaveDamage}
+impl_serde_for_bitflags!(SaveDamage);
+
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct TrainingModpackMenu {
-    // Mash Tab
     pub aerial_delay: Delay,
     pub air_dodge_dir: Direction,
     pub attack_angle: AttackAngle,
@@ -1029,7 +1082,10 @@ pub struct TrainingModpackMenu {
     pub pummel_delay: MedDelay,
     pub quick_menu: OnOff,
     pub reaction_time: Delay,
-    pub save_damage: OnOff,
+    pub save_damage_cpu: SaveDamage,
+    pub save_damage_limits_cpu: DamagePercent,
+    pub save_damage_player: SaveDamage,
+    pub save_damage_limits_player: DamagePercent,
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
@@ -1043,71 +1099,15 @@ pub struct TrainingModpackMenu {
     pub throw_state: ThrowOption,
 }
 
-macro_rules! set_by_str {
-    ($obj:ident, $s:ident, $($field:ident = $rhs:expr,)*) => {
-        $(
-            if $s == stringify!($field) {
-                $obj.$field = $rhs.unwrap();
-            }
-        )*
-    }
-}
-
-const fn num_bits<T>() -> usize {
-    std::mem::size_of::<T>() * 8
+const fn num_bits<T>() -> u32 {
+    (std::mem::size_of::<T>() * 8) as u32
 }
 
 fn log_2(x: u32) -> u32 {
     if x == 0 {
         0
     } else {
-        num_bits::<u32>() as u32 - x.leading_zeros() - 1
-    }
-}
-
-impl TrainingModpackMenu {
-    pub fn set(&mut self, s: &str, val: u32) {
-        set_by_str!(
-            self,
-            s,
-            aerial_delay = Delay::from_bits(val),
-            air_dodge_dir = Direction::from_bits(val),
-            attack_angle = AttackAngle::from_bits(val),
-            clatter_strength = num::FromPrimitive::from_u32(val),
-            crouch = OnOff::from_val(val),
-            di_state = Direction::from_bits(val),
-            falling_aerials = BoolFlag::from_bits(val),
-            fast_fall_delay = Delay::from_bits(val),
-            fast_fall = BoolFlag::from_bits(val),
-            follow_up = Action::from_bits(val),
-            full_hop = BoolFlag::from_bits(val),
-            hitbox_vis = OnOff::from_val(val),
-            input_delay = Delay::from_bits(val),
-            ledge_delay = LongDelay::from_bits(val),
-            ledge_state = LedgeOption::from_bits(val),
-            mash_state = Action::from_bits(val),
-            mash_triggers = MashTrigger::from_bits(val),
-            miss_tech_state = MissTechFlags::from_bits(val),
-            oos_offset = Delay::from_bits(val),
-            reaction_time = Delay::from_bits(val),
-            sdi_state = Direction::from_bits(val),
-            sdi_strength = num::FromPrimitive::from_u32(val),
-            shield_state = num::FromPrimitive::from_u32(val),
-            shield_tilt = Direction::from_bits(val),
-            stage_hazards = OnOff::from_val(val),
-            tech_state = TechFlags::from_bits(val),
-            save_damage = OnOff::from_val(val),
-            frame_advantage = OnOff::from_val(val),
-            save_state_mirroring = num::FromPrimitive::from_u32(val),
-            save_state_enable = OnOff::from_val(val),
-            save_state_autoload = OnOff::from_val(val),
-            throw_state = ThrowOption::from_bits(val),
-            throw_delay = MedDelay::from_bits(val),
-            pummel_delay = MedDelay::from_bits(val),
-            buff_state = BuffOption::from_bits(val),
-            character_item = num::FromPrimitive::from_u32(val),
-            quick_menu = OnOff::from_val(val),
-        );
+        num_bits::<u32>() - x.leading_zeros() - 1
     }
 }
 
@@ -1169,7 +1169,10 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     pummel_delay: MedDelay::empty(),
     quick_menu: OnOff::Off,
     reaction_time: Delay::empty(),
-    save_damage: OnOff::On,
+    save_damage_cpu: SaveDamage::DEFAULT,
+    save_damage_limits_cpu: DamagePercent::default(),
+    save_damage_player: SaveDamage::DEFAULT,
+    save_damage_limits_player: DamagePercent::default(),
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
@@ -1185,37 +1188,38 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
 
-#[derive(Content, Clone)]
+#[derive(Content, Clone, Serialize)]
 pub struct Slider {
-    pub min: usize,
-    pub max: usize,
-    pub index: usize,
-    pub value: usize,
+    pub selected_min: u32,
+    pub selected_max: u32,
+    pub abs_min: u32,
+    pub abs_max: u32,
 }
 
-#[derive(Content, Clone)]
+#[derive(Content, Clone, Serialize)]
 pub struct Toggle<'a> {
-    pub toggle_value: usize,
+    pub toggle_value: u32,
     pub toggle_title: &'a str,
     pub checked: bool,
 }
 
-#[derive(Content, Clone)]
+#[derive(Content, Clone, Serialize)]
 pub struct SubMenu<'a> {
     pub submenu_title: &'a str,
     pub submenu_id: &'a str,
     pub help_text: &'a str,
     pub is_single_option: bool,
     pub toggles: Vec<Toggle<'a>>,
+    pub slider: Option<Slider>,
     pub _type: &'a str,
 }
 
 impl<'a> SubMenu<'a> {
-    pub fn add_toggle(&mut self, toggle_value: usize, toggle_title: &'a str) {
+    pub fn add_toggle(&mut self, toggle_value: u32, toggle_title: &'a str, checked: bool) {
         self.toggles.push(Toggle {
-            toggle_value: toggle_value,
-            toggle_title: toggle_title,
-            checked: false,
+            toggle_value,
+            toggle_title,
+            checked,
         });
     }
     pub fn new_with_toggles<T: ToggleTrait>(
@@ -1223,6 +1227,7 @@ impl<'a> SubMenu<'a> {
         submenu_id: &'a str,
         help_text: &'a str,
         is_single_option: bool,
+        initial_value: &u32
     ) -> SubMenu<'a> {
         let mut instance = SubMenu {
             submenu_title: submenu_title,
@@ -1230,19 +1235,45 @@ impl<'a> SubMenu<'a> {
             help_text: help_text,
             is_single_option: is_single_option,
             toggles: Vec::new(),
+            slider: None,
             _type: "toggle",
         };
 
         let values = T::to_toggle_vals();
         let titles = T::to_toggle_strs();
         for i in 0..values.len() {
-            instance.add_toggle(values[i], titles[i]);
+            let checked: bool  = (values[i] & initial_value) > 0
+             || (!values[i] == 0 && initial_value == &0);
+            instance.add_toggle(values[i], titles[i], checked);
         }
         instance
     }
+    pub fn new_with_slider<S: SliderTrait>(
+        submenu_title: &'a str,
+        submenu_id: &'a str,
+        help_text: &'a str,
+        initial_lower_value: &u32,
+        initial_upper_value: &u32,
+    ) -> SubMenu<'a> {
+        let min_max = S::get_limits();
+        SubMenu {
+            submenu_title: submenu_title,
+            submenu_id: submenu_id,
+            help_text: help_text,
+            is_single_option: false,
+            toggles: Vec::new(),
+            slider: Some(Slider {
+                selected_min: *initial_lower_value,
+                selected_max: *initial_upper_value,
+                abs_min: min_max.0,
+                abs_max: min_max.1,
+            }),
+            _type: "slider",
+        }
+    }
 }
 
-#[derive(Content)]
+#[derive(Content, Serialize)]
 pub struct Tab<'a> {
     pub tab_id: &'a str,
     pub tab_title: &'a str,
@@ -1256,17 +1287,36 @@ impl<'a> Tab<'a> {
         submenu_id: &'a str,
         help_text: &'a str,
         is_single_option: bool,
+        initial_value: &u32,
     ) {
         self.tab_submenus.push(SubMenu::new_with_toggles::<T>(
             submenu_title,
             submenu_id,
             help_text,
             is_single_option,
+            initial_value,
         ));
+    }
+
+    pub fn add_submenu_with_slider<S: SliderTrait>(
+        &mut self,
+        submenu_title: &'a str,
+        submenu_id: &'a str,
+        help_text: &'a str,
+        initial_lower_value: &u32,
+        initial_upper_value: &u32,
+    ) {
+        self.tab_submenus.push(SubMenu::new_with_slider::<S>(
+            submenu_title,
+            submenu_id,
+            help_text,
+            initial_lower_value,
+            initial_upper_value,
+        ))
     }
 }
 
-#[derive(Content)]
+#[derive(Content, Serialize)]
 pub struct UiMenu<'a> {
     pub tabs: Vec<Tab<'a>>,
 }
@@ -1284,84 +1334,98 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "mash_state",
         "Mash Toggles: Actions to be performed as soon as possible",
         false,
+        &(MENU.mash_state.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Action>(
         "Followup Toggles",
         "follow_up",
         "Followup Toggles: Actions to be performed after the Mash option",
         false,
+        &(MENU.follow_up.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<MashTrigger>(
         "Mash Triggers",
         "mash_triggers",
         "Mash triggers: When the Mash Option will be performed",
         false,
+        &(MENU.mash_triggers.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<AttackAngle>(
         "Attack Angle",
         "attack_angle",
         "Attack Angle: For attacks that can be angled, such as some forward tilts",
         false,
+        &(MENU.attack_angle.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<ThrowOption>(
         "Throw Options",
         "throw_state",
         "Throw Options: Throw to be performed when a grab is landed",
         false,
+        &(MENU.throw_state.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<MedDelay>(
         "Throw Delay",
         "throw_delay",
         "Throw Delay: How many frames to delay the throw option",
         false,
+        &(MENU.throw_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<MedDelay>(
         "Pummel Delay",
         "pummel_delay",
         "Pummel Delay: How many frames after a grab to wait before starting to pummel",
         false,
+        &(MENU.pummel_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
         "Falling Aerials",
         "falling_aerials",
         "Falling Aerials: Should aerials be performed when rising or when falling",
-        false, // TODO: Should this be a single option submenu?
+        false,
+        &(MENU.falling_aerials.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
         "Full Hop",
         "full_hop",
         "Full Hop: Should the CPU perform a full hop or a short hop",
         false,
+        &(MENU.full_hop.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "Aerial Delay",
         "aerial_delay",
         "Aerial Delay: How long to delay a Mash aerial attack",
         false,
+        &(MENU.aerial_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
         "Fast Fall",
         "fast_fall",
         "Fast Fall: Should the CPU fastfall during a jump",
         false,
+        &(MENU.fast_fall.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "Fast Fall Delay",
         "fast_fall_delay",
         "Fast Fall Delay: How many frames the CPU should delay their fastfall",
         false,
+        &(MENU.fast_fall_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "OoS Offset",
         "oos_offset",
         "OoS Offset: How many times the CPU shield can be hit before performing a Mash option",
         false,
+        &(MENU.oos_offset.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "Reaction Time",
         "reaction_time",
         "Reaction Time: How many frames to delay before performing a mash option",
         false,
+        &(MENU.reaction_time.bits as u32),
     );
     overall_menu.tabs.push(mash_tab);
 
@@ -1375,178 +1439,199 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "air_dodge_dir",
         "Airdodge Direction: Direction to angle airdodges",
         false,
+        &(MENU.air_dodge_dir.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
         "DI Direction",
         "di_state",
         "DI Direction: Direction to angle the directional influence during hitlag",
         false,
+        &(MENU.di_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
         "SDI Direction",
         "sdi_state",
         "SDI Direction: Direction to angle the smash directional influence during hitlag",
         false,
+        &(MENU.sdi_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<InputFrequency>(
         "SDI Strength",
         "sdi_strength",
         "SDI Strength: Relative strength of the smash directional influence inputs",
         true,
+        &(MENU.sdi_strength as u32),
     );
     defensive_tab.add_submenu_with_toggles::<InputFrequency>(
         "Clatter Strength",
         "clatter_strength",
         "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
         true,
+        &(MENU.clatter_strength as u32),
     );
     defensive_tab.add_submenu_with_toggles::<LedgeOption>(
         "Ledge Options",
         "ledge_state",
         "Ledge Options: Actions to be taken when on the ledge",
         false,
+        &(MENU.ledge_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<LongDelay>(
         "Ledge Delay",
         "ledge_delay",
         "Ledge Delay: How many frames to delay the ledge option",
         false,
+        &(MENU.ledge_delay.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<TechFlags>(
         "Tech Options",
         "tech_state",
         "Tech Options: Actions to take when slammed into a hard surface",
         false,
+        &(MENU.tech_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<MissTechFlags>(
         "Mistech Options",
         "miss_tech_state",
         "Mistech Options: Actions to take after missing a tech",
         false,
+        &(MENU.miss_tech_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Shield>(
         "Shield Toggles",
         "shield_state",
         "Shield Toggles: CPU Shield Behavior",
         true,
+        &(MENU.shield_state as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
         "Shield Tilt",
         "shield_tilt",
         "Shield Tilt: Direction to tilt the shield",
         false, // TODO: Should this be true?
+        &(MENU.shield_tilt.bits as u32),
     );
-    defensive_tab.add_submenu_with_toggles::<BuffOption>(
-        "Buff Options",
-        "buff_state",
-        "Buff Options: Buff(s) to be applied to respective character when loading save states",
-        false,
-    );
-    defensive_tab.add_submenu_with_toggles::<CharacterItem>(
-        "Character Item",
-        "character_item",
-        "Character Item: CPU/Player item to hold when loading a save state",
-        true,
-    );
+
     defensive_tab.add_submenu_with_toggles::<OnOff>(
         "Crouch",
         "crouch",
         "Crouch: Should the CPU crouch when on the ground",
         true,
+        &(MENU.crouch as u32),
     );
     overall_menu.tabs.push(defensive_tab);
+
+    let mut save_state_tab = Tab {
+        tab_id: "save_state",
+        tab_title: "Save States",
+        tab_submenus: Vec::new(),
+    };
+    save_state_tab.add_submenu_with_toggles::<SaveStateMirroring>(
+        "Mirroring",
+        "save_state_mirroring",
+        "Mirroring: Flips save states in the left-right direction across the stage center",
+        true,
+        &(MENU.save_state_mirroring as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
+        "Auto Save States",
+        "save_state_autoload",
+        "Auto Save States: Load save state when any fighter dies",
+        true,
+        &(MENU.save_state_autoload as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<SaveDamage>(
+        "Save Dmg (CPU)",
+        "save_damage_cpu",
+        "Save Damage: Should save states retain CPU damage",
+        true,
+        &(MENU.save_damage_cpu.bits as u32),
+    );
+    save_state_tab.add_submenu_with_slider::<DamagePercent>(
+        "Dmg Range (CPU)",
+        "save_damage_limits_cpu",
+        "Limits on random damage to apply to the CPU when loading a save state",
+        &(MENU.save_damage_limits_cpu.0 as u32),
+        &(MENU.save_damage_limits_cpu.1 as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<SaveDamage>(
+        "Save Dmg (Player)",
+        "save_damage_player",
+        "Save Damage: Should save states retain player damage",
+        true,
+        &(MENU.save_damage_player.bits as u32),
+    );
+    save_state_tab.add_submenu_with_slider::<DamagePercent>(
+        "Dmg Range (Player)",
+        "save_damage_limits_player",
+        "Limits on random damage to apply to the player when loading a save state",
+        &(MENU.save_damage_limits_player.0 as u32),
+        &(MENU.save_damage_limits_player.1 as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
+        "Enable Save States",
+        "save_state_enable",
+        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
+        true,
+        &(MENU.save_state_enable as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<CharacterItem>(
+        "Character Item",
+        "character_item",
+        "Character Item: CPU/Player item to hold when loading a save state",
+        true,
+        &(MENU.character_item as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<BuffOption>(
+        "Buff Options",
+        "buff_state",
+        "Buff Options: Buff(s) to be applied to respective character when loading save states",
+        false,
+        &(MENU.buff_state.bits as u32),
+    );
+    overall_menu.tabs.push(save_state_tab);
 
     let mut misc_tab = Tab {
         tab_id: "misc",
         tab_title: "Misc Settings",
         tab_submenus: Vec::new(),
     };
-    misc_tab.add_submenu_with_toggles::<SaveStateMirroring>(
-        "Mirroring",
-        "save_state_mirroring",
-        "Mirroring: Flips save states in the left-right direction across the stage center",
-        true,
-    );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Save Damage",
-        "save_damage",
-        "Save Damage: Should save states retain player/CPU damage",
-        true,
-    );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Enable Save States",
-        "save_state_enable",
-        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
-        true,
-    );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Save States Autoload",
-        "save_state_autoload",
-        "Save States Autoload: Load save state when any fighter dies",
-        true,
-    );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Frame Advantage",
         "frame_advantage",
         "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable",
         true,
+        &(MENU.frame_advantage as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Hitbox Visualization",
         "hitbox_vis",
         "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects",
         true,
+        &(MENU.hitbox_vis as u32),
     );
     misc_tab.add_submenu_with_toggles::<Delay>(
         "Input Delay",
         "input_delay",
         "Input Delay: Frames to delay player inputs by",
         true,
+        &(MENU.input_delay.bits as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Stage Hazards",
         "stage_hazards",
         "Stage Hazards: Should stage hazards be present",
         true,
+        &(MENU.stage_hazards as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Quick Menu",
         "quick_menu",
         "Quick Menu: Should use quick or web menu",
         true,
+        &(MENU.quick_menu as u32),
     );
     overall_menu.tabs.push(misc_tab);
-
-    let non_ui_menu = serde_json::to_string(&MENU)
-        .unwrap()
-        .replace("\"", "")
-        .replace("{", "")
-        .replace("}", "");
-    let toggle_values_all = non_ui_menu.split(',').collect::<Vec<&str>>();
-    let mut sub_menu_id_to_vals: HashMap<&str, u32> = HashMap::new();
-    for toggle_values in toggle_values_all {
-        let toggle_value_split = toggle_values.split(':').collect::<Vec<&str>>();
-        let sub_menu_id = toggle_value_split[0];
-        if sub_menu_id.is_empty() {
-            continue;
-        }
-
-        let full_bits: u32 = toggle_value_split[1].parse().unwrap_or(0);
-        sub_menu_id_to_vals.insert(&sub_menu_id, full_bits);
-    }
-
-    overall_menu.tabs.iter_mut().for_each(|tab| {
-        tab.tab_submenus.iter_mut().for_each(|sub_menu| {
-            let sub_menu_id = sub_menu.submenu_id;
-            sub_menu.toggles.iter_mut().for_each(|toggle| {
-                if sub_menu_id_to_vals.contains_key(sub_menu_id)
-                    && (sub_menu_id_to_vals[sub_menu_id] & (toggle.toggle_value as u32) != 0)
-                {
-                    toggle.checked = true
-                }
-            })
-        })
-    });
 
     overall_menu
 }
