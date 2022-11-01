@@ -3,6 +3,8 @@ use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
+use crate::common::consts::RecordTrigger;
+//TODO: Cleanup above
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
@@ -413,8 +415,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state.state = NanaPosMove;
         }
 
-        // begin input recording playback if selected
-        if MENU.save_state_playback == OnOff::On {
+        // if we're recording on state load, record
+        if MENU.record_trigger == RecordTrigger::SAVE_STATE {
+            input_record::record();
+        }
+        // otherwise, begin input recording playback if selected
+        else if MENU.save_state_playback == OnOff::On {
             input_record::playback();
         }
 

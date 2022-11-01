@@ -1007,11 +1007,11 @@ impl_serde_for_bitflags!(MashTrigger);
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
 pub enum RecordSlot {
-    S1 = 0,
-    S2 = 0x1,
-    S3 = 0x2,
-    S4 = 0x4,
-    S5 = 0x8,
+    S1 = 0x1,
+    S2 = 0x2,
+    S3 = 0x4,
+    S4 = 0x8,
+    S5 = 0x10,
 }
 
 impl RecordSlot {
@@ -1099,6 +1099,39 @@ impl PlaybackSlot {
 extra_bitflag_impls! {PlaybackSlot}
 impl_serde_for_bitflags!(PlaybackSlot);
 
+// Input Recording Trigger Type
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum RecordTrigger {
+    COMMAND = 0x1,
+    SAVE_STATE = 0x2,
+    LEDGE = 0x4,
+}
+
+impl RecordTrigger {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            RecordTrigger::COMMAND => "Button Combination",
+            RecordTrigger::SAVE_STATE => "Save State Load",
+            RecordTrigger::LEDGE => "Ledge Grab",
+        })
+    }
+}
+
+impl ToggleTrait for RecordTrigger {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        RecordTrigger::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<usize> {
+        RecordTrigger::iter().map(|i| i as usize).collect()
+    }
+}
+
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct TrainingModpackMenu {
@@ -1157,6 +1190,7 @@ pub struct TrainingModpackMenu {
     pub recording_slot: RecordSlot,
     pub playback_slot: PlaybackSlot,
     pub playback_mash: OnOff,
+    pub record_trigger: RecordTrigger,
 }
 
 macro_rules! set_by_str {
@@ -1240,6 +1274,7 @@ impl TrainingModpackMenu {
             recording_slot = num::FromPrimitive::from_u32(val),
             playback_slot = PlaybackSlot::from_bits(val),
             playback_mash = OnOff::from_val(val),
+            record_trigger = num::FromPrimitive::from_u32(val),
         );
     }
 }
@@ -1331,6 +1366,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     recording_slot: RecordSlot::S1, // TODO: this is not being set up correctly and is empty on setup
     playback_slot: PlaybackSlot::S1,
     playback_mash: OnOff::On,
+    record_trigger: RecordTrigger::COMMAND,
     // TODO: alphabetize
 };
 
@@ -1781,6 +1817,12 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Mash Ends Playback",
         "playback_mash",
         "Mash Ends Playback: End input recording playback when a mash trigger occurs",
+        true,
+    );
+    input_tab.add_submenu_with_toggles::<RecordTrigger>(
+        "Recording Trigger",
+        "record_trigger",
+        "Recording Trigger: What condition is required to begin recording input",
         true,
     );
 

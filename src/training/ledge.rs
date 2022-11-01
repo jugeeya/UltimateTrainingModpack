@@ -2,6 +2,7 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::frame_counter;
 use crate::training::mash;
+use crate::training::input_record;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
@@ -122,6 +123,16 @@ pub unsafe fn is_enable_transition_term(
     if !is_operation_cpu(&mut *_module_accessor) {
         return None;
     }
+    // Enable cliff drop for input recording - useless
+    if input_record::is_playback() && term == (0x1E00004A as i32) || term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB { //*FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_FALL {
+        return Some(true);
+    }
+    
+    // Behave normally we're playing back recorded inputs or controlling the cpu
+    if input_record::is_playback() {
+        return None;
+    }
+
     // Only handle ledge scenarios from menu
     if StatusModule::status_kind(_module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT
         || MENU.ledge_state == LedgeOption::empty()
@@ -143,8 +154,22 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     if !is_operation_cpu(module_accessor) {
         return;
     }
-
+    
+    // Set up check for beginning of ledge grab
     unsafe {
+        let current_frame = MotionModule::frame(module_accessor) as i32;
+        // Frame 6 arbitrary, probably should be 18 or something
+        let just_grabbed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_CATCH) && current_frame == 6;
+        // Begin recording on ledge if this is the recording trigger
+        if just_grabbed_ledge && MENU.record_trigger == RecordTrigger::LEDGE {
+            input_record::record();
+            return;
+        }
+        // Behave normally if we're playing back recorded inputs or controlling the cpu
+        if input_record::is_playback() {
+            return;
+        }
+
         if MENU.ledge_state == LedgeOption::empty() {
             return;
         }

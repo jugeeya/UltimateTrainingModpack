@@ -1,9 +1,12 @@
-use smash::app::{BattleObjectModuleAccessor, lua_bind::*};
+use smash::app::{BattleObjectModuleAccessor, lua_bind::*, utility};
 use smash::lib::lua_const::*;
+use smash::phx::{Hash40};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 //use skyline::logging::print_stack_trace;
 use crate::training::input_recording::structures::*;
+use crate::common::consts::RecordTrigger;
+use crate::common::MENU;
 
 #[derive(PartialEq)]
 pub enum InputRecordState {
@@ -37,22 +40,23 @@ lazy_static! {
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
     let entry_id_int =
             WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
-    let fighter_kind = app::utility::get_kind(module_accessor);
+    let fighter_kind = utility::get_kind(module_accessor);
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
 
     if entry_id_int == 0 && !fighter_is_nana {
         // Attack + Dpad Right: Playback
         if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R) {
-            crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
+            //crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
             playback();
             println!("Playback Command Received!"); //debug
         }
         // Attack + Dpad Left: Record
         else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
+            && MENU.record_trigger == RecordTrigger::COMMAND
         {
-           crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
+           //crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
            record();
            println!("Record Command Received!"); //debug
         }
@@ -76,12 +80,29 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             }
         }
     }
+
+    // Handle Possession Effects
+    //let highlight_hash = Hash40::new("cloud_limitbreak"); // blue
+    //let highlight_hash = Hash40::new("demon_rage"); // red slight blink
+    //let highlight_hash = Hash40::new("demon_rage2"); // red faster blink
+    let highlight_hash = Hash40::new("demon_rage");
+    let is_highlighted = EffectModule::is_exist_common(module_accessor,highlight_hash);
+    if entry_id_int == 1 && POSSESSION == Cpu {
+        // if we're controlling the Cpu and we don't have an effect, call the effect
+        if !is_highlighted {
+            EffectModule::req_common(module_accessor,highlight_hash,0.0);
+        }
+    } else if entry_id_int == 1 && POSSESSION == Player {
+        if is_highlighted {
+            EffectModule::remove_common(module_accessor,highlight_hash);
+        }
+    }
 }
 
 pub unsafe fn record() {
     INPUT_RECORD = Record;
     POSSESSION = Cpu;
-    // Reset mappings to nothing, and then start recording. Maybe this resetting is unnecessary? Unsure
+    // Reset mappings to nothing, and then start recording. Likely want to reset in case we cut off recording early.
     P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
         *mapped_input = ControlModuleStored::default();
     });
