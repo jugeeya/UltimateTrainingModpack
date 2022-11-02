@@ -855,42 +855,85 @@ impl BoolFlag {
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
-pub enum InputFrequency {
+pub enum SdiFrequency {
     None = 0,
     Normal = 1,
     Medium = 2,
     High = 4,
 }
 
-impl InputFrequency {
+impl SdiFrequency {
     pub fn into_u32(self) -> u32 {
         match self {
-            InputFrequency::None => u32::MAX,
-            InputFrequency::Normal => 8,
-            InputFrequency::Medium => 6,
-            InputFrequency::High => 4,
+            SdiFrequency::None => u32::MAX,
+            SdiFrequency::Normal => 8,
+            SdiFrequency::Medium => 6,
+            SdiFrequency::High => 4,
         }
     }
 
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
-            InputFrequency::None => "None",
-            InputFrequency::Normal => "Normal",
-            InputFrequency::Medium => "Medium",
-            InputFrequency::High => "High",
+            SdiFrequency::None => "None",
+            SdiFrequency::Normal => "Normal",
+            SdiFrequency::Medium => "Medium",
+            SdiFrequency::High => "High",
         })
     }
 }
 
-impl ToggleTrait for InputFrequency {
+impl ToggleTrait for SdiFrequency {
     fn to_toggle_strs() -> Vec<&'static str> {
-        InputFrequency::iter()
+        SdiFrequency::iter()
             .map(|i| i.as_str().unwrap_or(""))
             .collect()
     }
 
     fn to_toggle_vals() -> Vec<u32> {
-        InputFrequency::iter().map(|i| i as u32).collect()
+        SdiFrequency::iter().map(|i| i as u32).collect()
+    }
+}
+
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum ClatterFrequency {
+    None = 0,
+    Normal = 1,
+    Medium = 2,
+    High = 4,
+}
+
+impl ClatterFrequency {
+    pub fn into_u32(self) -> u32 {
+        match self {
+            ClatterFrequency::None => u32::MAX,
+            ClatterFrequency::Normal => 8,
+            ClatterFrequency::Medium => 5,
+            ClatterFrequency::High => 2,
+        }
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            ClatterFrequency::None => "None",
+            ClatterFrequency::Normal => "Normal",
+            ClatterFrequency::Medium => "Medium",
+            ClatterFrequency::High => "High",
+        })
+    }
+}
+
+impl ToggleTrait for ClatterFrequency {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        ClatterFrequency::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        ClatterFrequency::iter().map(|i| i as u32).collect()
     }
 }
 
@@ -1062,7 +1105,7 @@ pub struct TrainingModpackMenu {
     pub attack_angle: AttackAngle,
     pub buff_state: BuffOption,
     pub character_item: CharacterItem,
-    pub clatter_strength: InputFrequency,
+    pub clatter_strength: ClatterFrequency,
     pub crouch: OnOff,
     pub di_state: Direction,
     pub falling_aerials: BoolFlag,
@@ -1090,7 +1133,7 @@ pub struct TrainingModpackMenu {
     pub save_state_enable: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
     pub sdi_state: Direction,
-    pub sdi_strength: InputFrequency,
+    pub sdi_strength: SdiFrequency,
     pub shield_state: Shield,
     pub shield_tilt: Direction,
     pub stage_hazards: OnOff,
@@ -1149,7 +1192,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     attack_angle: AttackAngle::empty(),
     buff_state: BuffOption::empty(),
     character_item: CharacterItem::None,
-    clatter_strength: InputFrequency::None,
+    clatter_strength: ClatterFrequency::None,
     crouch: OnOff::Off,
     di_state: Direction::empty(),
     falling_aerials: BoolFlag::empty(),
@@ -1177,7 +1220,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_enable: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
     sdi_state: Direction::empty(),
-    sdi_strength: InputFrequency::None,
+    sdi_strength: SdiFrequency::None,
     shield_state: Shield::None,
     shield_tilt: Direction::empty(),
     stage_hazards: OnOff::Off,
@@ -1455,14 +1498,14 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         false,
         &(MENU.sdi_state.bits as u32),
     );
-    defensive_tab.add_submenu_with_toggles::<InputFrequency>(
+    defensive_tab.add_submenu_with_toggles::<SdiFrequency>(
         "SDI Strength",
         "sdi_strength",
         "SDI Strength: Relative strength of the smash directional influence inputs",
         true,
         &(MENU.sdi_strength as u32),
     );
-    defensive_tab.add_submenu_with_toggles::<InputFrequency>(
+    defensive_tab.add_submenu_with_toggles::<ClatterFrequency>(
         "Clatter Strength",
         "clatter_strength",
         "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
