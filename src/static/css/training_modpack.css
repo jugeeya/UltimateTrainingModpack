@@ -1,12 +1,17 @@
+button {
+    padding: unset;
+    margin: unset;
+}
+
 @-moz-document url-prefix() {
     @font-face {
-        font-family: "nintendo_udsgr_std_003";
-        src: url("../fonts/nintendo_udsgr_std_003.ttf");
+        font-family: 'nintendo_udsgr_std_003';
+        src: url('../fonts/nintendo_udsgr_std_003.ttf');
     }
 
     @font-face {
-        font-family: "nintendo_ext_003";
-        src: url("../fonts/nintendo_ext_003.ttf");
+        font-family: 'nintendo_ext_003';
+        src: url('../fonts/nintendo_ext_003.ttf');
     }
 }
 
@@ -37,7 +42,6 @@
     padding: 0px;
 }
 
-
 .tab-list {
     overflow: hidden;
     display: flex;
@@ -67,26 +71,13 @@
     background: #ccc;
 }
 
-.tab-content {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-}
-
 body {
     background: none;
-    font-family: "nintendo_ext_003", "nintendo_udsgr_std_003";
+    font-family: 'nintendo_ext_003', 'nintendo_udsgr_std_003';
     margin: 0;
 }
 
-/* Overwrite padding from keyword stuff. */
-.l-main-content {
-    padding: 0px 0px 0px;
-}
-
-/* Handle alignment of items in the header */
-.l-header {
+.header {
     display: flex;
     justify-content: space-between;
     position: relative;
@@ -177,53 +168,130 @@ body {
 
 /* Displayed Checkbox (unchecked) */
 .checkbox-display::after {
-    content: "\E14C";
+    content: '\E14C';
     color: white;
 }
 
 /* Displayed Checkbox (checked) */
-#saveDefaults:checked~.checkbox-display::after {
-    content: "\E14B";
+#saveDefaults:checked ~ .checkbox-display::after {
+    content: '\E14B';
 }
 
-.menu-item {
-    /* Container div for menu link and menu list */
-    width: 30%;
-    margin: 6px;
+.hide {
+    display: none !important;
 }
 
-.menu-button, .menu-item > div button {
-    /* Item styling */
-    background-color: #d9e4ea;
-    border: solid black;
-    border-width: 3px 20px 3px 3px;
-    padding: 0px;
-    box-shadow: 3px 3px 3px #18181880;
+.hidden {
+    visibility: hidden;
+}
+
+:focus:not(.noUi-handle),
+.handleSelected,
+.noUi-connect
+{
+    background: rgb(255, 70, 2);
+    background: linear-gradient(
+        45deg,
+        rgba(255, 70, 2, 1) 20%,
+        rgba(255, 215, 0, 1) 46%,
+        rgba(255, 215, 0, 1) 54%,
+        rgba(255, 70, 2, 1) 80%
+    );
+    background-size: 500% 100%;
+    will-change: animation;
+    animation: translate-anim 5s infinite linear;
+}
+
+:focus > div {
+    color: #fff;
+    text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000;
+}
+
+@keyframes translate-anim {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 100% 0%;
+    }
+}
+
+.tab-content-container {
+    height: 513px;
+}
+
+.tab-content {
     display: flex;
-    height: 60px;
-    width: 100%;
+    flex-wrap: wrap;
+    height: 100%;
+}
+
+.tab-content-wrapper,
+.modal {
+    display: flex;
+    justify-content: center;
     align-items: center;
-    align-content: center;
-    user-select: none;
+    flex-wrap: wrap;
+    height: 100%;
 }
 
-.menu-item > div button {
-    z-index: 1;
-    width: 22%;
-    margin: 4px 17px;
+.modal {
+    position: fixed;
+    height: 513px;
+    width: 100%;
 }
 
-.modal p {
-    font-size: 18px !important;
+.menu-item,
+.modal-button {
+    flex-basis: 23%;
+    margin: 0 1%;
+    height: 84px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-button {
+    flex-basis: 20%;
+    height: 50px;
+    border-color: black;
+    border-radius: 0.5rem;
+    border-style: solid;
+    border-width: 0.25rem 0.75rem;
+    justify-content: flex-start;
+    padding: 0 0.5rem;
+}
+
+.modal-button-title {
+    margin: 0 auto;
+    font-size: large;
+}
+
+.menu-button-content,
+.modal-button-content {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.menu-button {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding: 0.5rem;
+    border-color: black;
+    border-radius: 0.5rem;
+    border-style: solid;
+    border-width: 0.25rem 1.25rem;
 }
 
 .menu-icon {
-    background-color: black;
-    flex-basis: auto;
-    width: 60px;
-    height: 48px;
-    border: solid black;
-    border-right-width: 5px;
+    width: 25%;
+    height: 100%;
 }
 
 .menu-icon img {
@@ -231,50 +299,44 @@ body {
     height: 100%;
 }
 
-.menu-item p {
-    font-size: 23px;
-    color: #2b3940;
+.menu-title {
+    padding: 0 0.025rem;
+    margin: 0 auto;
+    text-align: center;
+    font-size: large;
+}
+
+.modal-slider {
+    width: 70%;
+    margin-bottom: 170px;
+}
+
+.modal-slider-label {
     width: 100%;
-    margin: 10px 0px 0px 20px;
-}
-
-.hide {
-    display: none !important;
-}
-
-.menu-item > div {
     display: flex;
-    flex-wrap: wrap;
-    position: fixed;
-    justify-content: flex-start;
-    align-content: flex-start;
-    top: 80px;
-    bottom: 73px;
-    left: 0px;
-    right: 0px;
-    margin-top: 0px;
-    background-color: rgba(100, 100, 100, 0.9);
+    justify-content: center;
 }
 
-:focus {
-    background: rgb(255,70,2);
-    background: linear-gradient(45deg, rgba(255,70,2,1) 20%, rgba(255,215,0,1) 46%, rgba(255,215,0,1) 54%, rgba(255,70,2,1) 80%); 
-    background-size: 500% 100%;
-    will-change: animation;
-    animation: translate-anim 5s infinite linear;
+.modal-slider-label > p {
+    font-size: 26px;
+    padding: 0.5rem;
+    background: #ccc;
+    border-color: black;
+    border-radius: 0.5rem;
+    border-style: solid;
+    border-width: 0.25rem;
 }
 
-:focus > p {
-    color: #fff;
-    text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000;
+.noUi-value, .noUi-pips {
+    margin-top: 12px;
+    color: #000;
 }
 
-@keyframes translate-anim {
-	0% {
-		background-position: 0% 0%;
-	}
-	100% {
-		background-position: 100% 0%;
-	}
+.noUi-marker, .noUi-marker-large {
+    background: #000;
 }
 
+.noUi-tooltip {
+    padding: 12px;
+    font-size: 1.5rem;
+}

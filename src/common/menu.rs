@@ -1,14 +1,17 @@
-use crate::common::consts::get_menu_from_url;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
-use crate::mkdir;
 use crate::training::frame_counter;
+
+use owo_colors::OwoColorize;
 use ramhorns::Template;
 use skyline::info::get_program_id;
-use skyline_web::{Background, BootDisplay, Webpage};
-use smash::lib::lua_const::*;
+use skyline::nn::hid::NpadGcState;
+use skyline::nn::web::WebSessionBootMode;
+use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use std::fs;
 use std::path::Path;
+use training_mod_consts::{MenuJsonStruct, TrainingModpackMenu};
+use training_mod_tui::Color;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 pub static mut QUICK_MENU_FRAME_COUNTER_INDEX: usize = 0;
@@ -31,13 +34,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
 
     // Only check for button combination if the counter is 0 (not locked out)
     match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
-        0 => {
-            ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_SPECIAL)
-                && ControlModule::check_button_on_trriger(
-                    module_accessor,
-                    *CONTROL_PAD_BUTTON_APPEAL_HI,
-                )
-        }
+        0 => button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu),
         1..MENU_LOCKOUT_FRAMES => false,
         _ => {
             // Waited longer than the lockout time, reset the counter so the menu can be opened again
@@ -58,42 +55,61 @@ pub unsafe fn write_menu() {
     // From skyline-web
     let program_id = get_program_id();
     let htdocs_dir = "training_modpack";
-    let menu_dir_path = Path::new("sd:/atmosphere/contents")
+    let menu_html_path = Path::new("sd:/atmosphere/contents")
         .join(&format!("{:016X}", program_id))
-        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir));
+        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
+        .join("training_menu.html");
 
-    let menu_html_path = menu_dir_path.join("training_menu.html");
-
-    mkdir(menu_dir_path.to_str().unwrap().as_bytes().as_ptr(), 777);
     let write_resp = fs::write(menu_html_path, data);
     if write_resp.is_err() {
         println!("Error!: {}", write_resp.err().unwrap());
     }
 }
 
-const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.conf";
+const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 
-pub fn set_menu_from_url(last_url: &str) {
-    unsafe {
-        MENU = get_menu_from_url(MENU, last_url, false);
-        DEFAULTS_MENU = get_menu_from_url(MENU, last_url, true);
+pub unsafe fn set_menu_from_json(message: &str) {
+    let web_response = serde_json::from_str::<MenuJsonStruct>(message);
+    let tui_response = serde_json::from_str::<TrainingModpackMenu>(message);
+    if let Ok(message_json) = web_response {
+        // Includes both MENU and DEFAULTS_MENU
+        // From Web Applet
+        MENU = message_json.menu;
+        DEFAULTS_MENU = message_json.defaults_menu;
+        std::fs::write(
+            MENU_CONF_PATH,
+            serde_json::to_string_pretty(&message_json).unwrap(),
+        )
+        .expect("Failed to write menu settings file");
+    } else if let Ok(message_json) = tui_response {
+        // Only includes MENU
+        // From TUI
+        MENU = message_json;
 
-        if MENU.quick_menu == OnOff::Off {
-            if is_emulator() {
-                skyline::error::show_error(
-                    0x69,
-                    "Cannot use web menu on emulator.\n\0",
-                    "Only the quick menu is runnable via emulator currently.\n\0",
-                );
-                MENU.quick_menu = OnOff::On;
-            }
+        let conf = MenuJsonStruct {
+            menu: MENU,
+            defaults_menu: DEFAULTS_MENU,
+        };
+        std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
+            .expect("Failed to write menu settings file");
+    } else {
+        skyline::error::show_error(
+            0x70,
+            "Could not parse the menu response!\nPlease send a screenshot of the details page to the developers.\n\0",
+            &*format!("{:#?}\0", message)
+        );
+    };
+    if MENU.quick_menu == OnOff::Off {
+        if is_emulator() {
+            skyline::error::show_error(
+                0x69,
+                "Cannot use web menu on emulator.\n\0",
+                "Only the quick menu is runnable via emulator currently.\n\0",
+            );
+            MENU.quick_menu = OnOff::On;
         }
     }
-
-    std::fs::write(MENU_CONF_PATH, last_url).expect("Failed to write menu conf file");
-    unsafe {
-        EVENT_QUEUE.push(Event::menu_open(last_url.to_string()));
-    }
+    EVENT_QUEUE.push(Event::menu_open(message.to_string()));
 }
 
 pub fn spawn_menu() {
@@ -102,41 +118,22 @@ pub fn spawn_menu() {
         frame_counter::start_counting(FRAME_COUNTER_INDEX);
         frame_counter::reset_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX);
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
-    }
 
-    let mut quick_menu = false;
-    unsafe {
-        if MENU.quick_menu == OnOff::On {
-            quick_menu = true;
-        }
-    }
+        if MENU.quick_menu == OnOff::Off {
+            #[cfg(feature = "web_session_preload")]
+            {
+                WEB_MENU_ACTIVE = true;
+            }
 
-    if !quick_menu {
-        let fname = "training_menu.html";
-        unsafe {
-            let params = MENU.to_url_params(false);
-            let default_params = DEFAULTS_MENU.to_url_params(true);
-            let page_response = Webpage::new()
-                .background(Background::BlurredScreenshot)
-                .htdocs_dir("training_modpack")
-                .boot_display(BootDisplay::BlurredScreenshot)
-                .boot_icon(true)
-                .start_page(&format!("{}?{}&{}", fname, params, default_params))
-                .open()
-                .unwrap();
-
-            let last_url = page_response.get_last_url().unwrap();
-            println!("Received URL from web menu: {}", last_url);
-            set_menu_from_url(last_url);
-        }
-    } else {
-        unsafe {
+            #[cfg(not(feature = "web_session_preload"))]
+            {
+                spawn_web_session(new_web_session(false));
+            }
+        } else {
             QUICK_MENU_ACTIVE = true;
         }
     }
 }
-
-use skyline::nn::hid::NpadGcState;
 
 pub struct ButtonPresses {
     pub a: ButtonPress,
@@ -229,7 +226,7 @@ pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
 
 pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
     unsafe {
-        if menu::QUICK_MENU_ACTIVE {
+        if QUICK_MENU_ACTIVE {
             // TODO: This should make more sense, look into.
             // BUTTON_PRESSES.a.is_pressed = (*state).Buttons & (1 << 0) > 0;
             // BUTTON_PRESSES.b.is_pressed = (*state).Buttons & (1 << 1) > 0;
@@ -272,6 +269,215 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             // If we're here, remove all other Npad presses...
             // Should we exclude the home button?
             (*state) = NpadGcState::default();
+        }
+    }
+}
+
+extern "C" {
+    #[link_name = "render_text_to_screen"]
+    pub fn render_text_to_screen_cstr(str: *const skyline::libc::c_char);
+
+    #[link_name = "set_should_display_text_to_screen"]
+    pub fn set_should_display_text_to_screen(toggle: bool);
+}
+
+macro_rules! c_str {
+    ($l:tt) => {
+        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr()
+    };
+}
+
+pub fn render_text_to_screen(s: &str) {
+    unsafe {
+        render_text_to_screen_cstr(c_str!(s));
+    }
+}
+
+pub unsafe fn quick_menu_loop() {
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(10));
+        let menu = get_menu();
+
+        let mut app = training_mod_tui::App::new(menu);
+
+        let backend = training_mod_tui::TestBackend::new(75, 15);
+        let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
+
+        let mut has_slept_millis = 0;
+        let render_frames = 5;
+        let mut json_response = String::new();
+        let button_presses = &mut BUTTON_PRESSES;
+        let mut received_input = true;
+        loop {
+            button_presses.a.read_press().then(|| {
+                app.on_a();
+                received_input = true;
+            });
+            let b_press = &mut button_presses.b;
+            b_press.read_press().then(|| {
+                received_input = true;
+                if !app.outer_list {
+                    app.on_b()
+                } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0 {
+                    // Leave menu.
+                    QUICK_MENU_ACTIVE = false;
+                    set_menu_from_json(&json_response);
+                }
+            });
+            button_presses.zl.read_press().then(|| {
+                app.on_l();
+                received_input = true;
+            });
+            button_presses.zr.read_press().then(|| {
+                app.on_r();
+                received_input = true;
+            });
+            button_presses.left.read_press().then(|| {
+                app.on_left();
+                received_input = true;
+            });
+            button_presses.right.read_press().then(|| {
+                app.on_right();
+                received_input = true;
+            });
+            button_presses.up.read_press().then(|| {
+                app.on_up();
+                received_input = true;
+            });
+            button_presses.down.read_press().then(|| {
+                app.on_down();
+                received_input = true;
+            });
+
+            std::thread::sleep(std::time::Duration::from_millis(16));
+            has_slept_millis += 16;
+            if has_slept_millis < 16 * render_frames {
+                continue;
+            }
+
+            has_slept_millis = 16;
+            if !QUICK_MENU_ACTIVE {
+                app = training_mod_tui::App::new(get_menu());
+                set_should_display_text_to_screen(false);
+                continue;
+            }
+            if !received_input {
+                continue;
+            }
+            let mut view = String::new();
+
+            let frame_res = terminal
+                .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
+                .unwrap();
+
+            use std::fmt::Write;
+            for (i, cell) in frame_res.buffer.content().iter().enumerate() {
+                match cell.fg {
+                    Color::Black => write!(&mut view, "{}", &cell.symbol.black()),
+                    Color::Blue => write!(&mut view, "{}", &cell.symbol.blue()),
+                    Color::LightBlue => write!(&mut view, "{}", &cell.symbol.bright_blue()),
+                    Color::Cyan => write!(&mut view, "{}", &cell.symbol.cyan()),
+                    Color::LightCyan => write!(&mut view, "{}", &cell.symbol.cyan()),
+                    Color::Red => write!(&mut view, "{}", &cell.symbol.red()),
+                    Color::LightRed => write!(&mut view, "{}", &cell.symbol.bright_red()),
+                    Color::LightGreen => write!(&mut view, "{}", &cell.symbol.bright_green()),
+                    Color::Green => write!(&mut view, "{}", &cell.symbol.green()),
+                    Color::Yellow => write!(&mut view, "{}", &cell.symbol.yellow()),
+                    Color::LightYellow => write!(&mut view, "{}", &cell.symbol.bright_yellow()),
+                    Color::Magenta => write!(&mut view, "{}", &cell.symbol.magenta()),
+                    Color::LightMagenta => {
+                        write!(&mut view, "{}", &cell.symbol.bright_magenta())
+                    }
+                    _ => write!(&mut view, "{}", &cell.symbol),
+                }
+                .unwrap();
+                if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+                    writeln!(&mut view).unwrap();
+                }
+            }
+            writeln!(&mut view).unwrap();
+
+            render_text_to_screen(view.as_str());
+            received_input = false;
+        }
+    }
+}
+
+static mut WEB_MENU_ACTIVE: bool = false;
+
+unsafe fn spawn_web_session(session: WebSession) {
+    println!("[Training Modpack] Opening menu session...");
+    let loaded_msg = session.recv();
+    println!(
+        "[Training Modpack] Received loaded message from web: {}",
+        &loaded_msg
+    );
+    let message_send = MenuJsonStruct {
+        menu: MENU,
+        defaults_menu: DEFAULTS_MENU,
+    };
+    session.send_json(&message_send);
+    println!(
+        "[Training Modpack] Sending message:\n{}",
+        serde_json::to_string_pretty(&message_send).unwrap()
+    );
+    let message_recv = session.recv();
+    println!(
+        "[Training Modpack] Received menu from web:\n{}",
+        &message_recv
+    );
+    println!("[Training Modpack] Tearing down Training Modpack menu session");
+    session.exit();
+    session.wait_for_exit();
+    set_menu_from_json(&message_recv);
+}
+
+unsafe fn new_web_session(hidden: bool) -> WebSession {
+    Webpage::new()
+        .background(Background::BlurredScreenshot)
+        .boot_icon(true)
+        .boot_display(BootDisplay::BlurredScreenshot)
+        .htdocs_dir("training_modpack")
+        .start_page("training_menu.html")
+        .open_session(if hidden {
+            WebSessionBootMode::InitiallyHidden
+        } else {
+            WebSessionBootMode::Default
+        })
+        .unwrap()
+}
+
+pub unsafe fn web_session_loop() {
+    // Don't query the FighterManager too early otherwise it will crash...
+    std::thread::sleep(std::time::Duration::new(30, 0)); // sleep for 30 secs on bootup
+    let mut web_session: Option<WebSession> = None;
+    loop {
+        std::thread::sleep(std::time::Duration::from_millis(100));
+        if (is_ready_go() || entry_count() > 0) && is_training_mode() {
+            if web_session.is_some() {
+                if WEB_MENU_ACTIVE {
+                    spawn_web_session(web_session.unwrap());
+                    web_session = None;
+                    WEB_MENU_ACTIVE = false;
+                }
+            } else {
+                // TODO
+                // Starting a new session causes some ingame lag.
+                // Investigate whether we can minimize this lag by
+                // waiting until the player is idle or using CPU boost mode
+                println!("[Training Modpack] Starting new menu session...");
+                web_session = Some(new_web_session(true));
+            }
+        } else {
+            // No longer in training mode, tear down the session.
+            // This will avoid conflicts with other web plugins, and helps with stability.
+            // Having the session open too long, especially if the switch has been put to sleep, can cause freezes
+            if let Some(web_session_to_kill) = web_session {
+                println!("[Training Modpack] Tearing down Training Modpack menu session");
+                web_session_to_kill.exit();
+                web_session_to_kill.wait_for_exit();
+            }
+            web_session = None;
         }
     }
 }

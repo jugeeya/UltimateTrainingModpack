@@ -29,18 +29,22 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32)
                 let mut delayed_states = P1_DELAYED_NPAD_STATES.lock();
                 let actual_state = *state;
 
-                if delayed_states.len() < MENU.input_delay as usize {
+                if delayed_states.len() < MENU.input_delay.into_delay() as usize {
                     let update_count = (*state).updateCount;
+                    let attributes = (*state).Flags;
                     *state = NpadGcState::default();
                     (*state).updateCount = update_count;
+                    (*state).Flags = attributes;
                 } else if let Some(delayed_state) = delayed_states.back() {
                     let update_count = (*state).updateCount;
+                    let attributes = (*state).Flags;
                     *state = *delayed_state;
                     (*state).updateCount = update_count;
+                    (*state).Flags = attributes;
                 }
 
                 delayed_states.push_front(actual_state);
-                delayed_states.truncate(MENU.input_delay as usize);
+                delayed_states.truncate(MENU.input_delay.into_delay() as usize);
             }
         }
     }

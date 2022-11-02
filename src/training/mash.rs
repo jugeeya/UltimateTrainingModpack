@@ -9,6 +9,10 @@ use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
+const DISTANCE_CLOSE_THRESHOLD: f32 = 10.0;
+const DISTANCE_MID_THRESHOLD: f32 = 50.0;
+const DISTANCE_FAR_THRESHOLD: f32 = 100.0;
+
 static mut CURRENT_AERIAL: Action = Action::NAIR;
 static mut QUEUE: Vec<Action> = vec![];
 
@@ -87,6 +91,10 @@ pub fn full_reset() {
     }
 }
 
+pub fn clear_queue() {
+    unsafe { QUEUE.clear() }
+}
+
 pub fn set_aerial(attack: Action) {
     unsafe {
         CURRENT_AERIAL = attack;
@@ -133,22 +141,30 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     buffer_menu_mash();
 }
 
-fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe {
-        if MENU.mash_in_neutral == OnOff::On {
-            return true;
-        }
+unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let fighter_distance = get_fighter_distance();
+    if MENU.mash_triggers.contains(MashTrigger::ALWAYS)
+        || (MENU.mash_triggers.contains(MashTrigger::HIT) && is_in_hitstun(module_accessor))
+        // BLOCK handled in shield.rs
+        || (MENU.mash_triggers.contains(MashTrigger::PARRY) && is_in_parry(module_accessor))
+        || (MENU.mash_triggers.contains(MashTrigger::TUMBLE) && is_in_tumble(module_accessor))
+        || (MENU.mash_triggers.contains(MashTrigger::LANDING) && is_in_landing(module_accessor))
+        || (MENU.mash_triggers.contains(MashTrigger::TRUMP) && is_in_ledgetrump(module_accessor))
+        || (MENU.mash_triggers.contains(MashTrigger::FOOTSTOOL) && is_in_footstool(module_accessor))
+        // CLATTER handled in clatter.rs
+        // LEDGE handled in ledge.rs
+        // TECH handled in tech.rs
+        // MISTECH handled in tech.rs
+        || (MENU.mash_triggers.contains(MashTrigger::GROUNDED) && is_grounded(module_accessor))
+        || (MENU.mash_triggers.contains(MashTrigger::AIRBORNE) && is_airborne(module_accessor))
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_CLOSE) && fighter_distance < DISTANCE_CLOSE_THRESHOLD)
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID) && fighter_distance < DISTANCE_MID_THRESHOLD)
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR) && fighter_distance < DISTANCE_FAR_THRESHOLD)
+    {
+        true
+    } else {
+        false
     }
-
-    if is_in_hitstun(module_accessor) {
-        return true;
-    }
-
-    if is_in_footstool(module_accessor) {
-        return true;
-    }
-
-    false
 }
 
 // Temp Translation
@@ -156,7 +172,6 @@ pub fn buffer_menu_mash() {
     unsafe {
         let action = MENU.mash_state.get_random();
         buffer_action(action);
-
         full_hop::roll_full_hop();
         fast_fall::roll_fast_fall();
         FALLING_AERIAL = MENU.falling_aerials.get_random().into_bool();
@@ -165,7 +180,6 @@ pub fn buffer_menu_mash() {
 
 unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
     let action = get_current_buffer();
-
     match action {
         Action::AIR_DODGE => {
             let (expected_status, command_flag) = if is_grounded(module_accessor) {
@@ -476,22 +490,4 @@ fn try_change_status(
     }
 
     true
-}
-
-pub unsafe fn perform_defensive_option() {
-    full_reset();
-
-    let action = match MENU.defensive_state.get_random() {
-        Defensive::ROLL_F => Action::ROLL_F,
-        Defensive::ROLL_B => Action::ROLL_B,
-        Defensive::SPOT_DODGE => Action::SPOT_DODGE,
-        Defensive::JAB => Action::JAB,
-        Defensive::SHIELD => Action::SHIELD,
-        _ => Action::empty(),
-    };
-
-    buffer_action(action);
-
-    // Suspend shield hold to allow for other defensive options
-    shield::suspend_shield(action);
 }

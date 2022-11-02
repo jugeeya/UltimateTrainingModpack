@@ -17,20 +17,69 @@ use tui::Terminal;
 
 use training_mod_consts::*;
 
+fn test_backend_setup(ui_menu: UiMenu) -> Result<
+    (Terminal<training_mod_tui::TestBackend>, training_mod_tui::App),
+    Box<dyn Error>> {
+    let app = training_mod_tui::App::new(ui_menu);
+    let backend = tui::backend::TestBackend::new(75, 15);
+    let terminal = Terminal::new(backend)?;
+    let mut state = tui::widgets::ListState::default();
+    state.select(Some(1));
+
+    Ok((terminal, app))
+}
+
+#[test]
+fn ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
+    let menu;
+    let prev_menu;
+    unsafe {
+        prev_menu = MENU;
+        menu = get_menu();
+    }
+
+    let (mut terminal, mut app) = test_backend_setup(menu)?;
+    let mut json_response = String::new();
+    let _frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
+    unsafe {
+        MENU = serde_json::from_str::<TrainingModpackMenu>(&json_response).unwrap();
+        // At this point, we didn't change the menu at all; we should still see all the same options.
+        assert_eq!(
+            serde_json::to_string(&prev_menu).unwrap(),
+            serde_json::to_string(&MENU).unwrap()
+        );
+    }
+
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
+    let args: Vec<String> = std::env::args().collect();
+    let inputs = args.get(1);
     let menu;
     unsafe {
         menu = get_menu();
     }
 
     #[cfg(not(feature = "has_terminal"))] {
-        let mut app = training_mod_tui::App::new(menu);
-        let backend = tui::backend::TestBackend::new(75, 15);
-        let mut terminal = Terminal::new(backend)?;
-        let mut state = tui::widgets::ListState::default();
-        state.select(Some(1));
-        let mut url = String::new();
-        let frame_res = terminal.draw(|f| url = training_mod_tui::ui(f, &mut app))?;
+        let (mut terminal, mut app) = test_backend_setup(menu)?;
+        if inputs.is_some() {
+            inputs.unwrap().split(",").for_each(|input| {
+                match input.to_uppercase().as_str() {
+                    "L" => app.on_l(),
+                    "R" => app.on_r(),
+                    "A" => app.on_a(),
+                    "B" => app.on_b(),
+                    "UP" => app.on_up(),
+                    "DOWN" => app.on_down(),
+                    "LEFT" => app.on_left(),
+                    "RIGHT" => app.on_right(),
+                    _ => {}
+                }
+            })
+        }
+        let mut json_response = String::new();
+        let frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
 
         for (i, cell) in frame_res.buffer.content().iter().enumerate() {
             print!("{}", cell.symbol);
@@ -40,7 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         println!();
 
-        println!("URL: {}", url);
+        println!("json_response:\n{}", json_response);
     }
 
     #[cfg(feature = "has_terminal")] {
@@ -68,7 +117,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Err(err) = res {
             println!("{:?}", err)
         } else {
-            println!("URL: {}", res.as_ref().unwrap());
+            println!("JSON: {}", res.as_ref().unwrap());
+            unsafe {
+                MENU = serde_json::from_str::<TrainingModpackMenu>(&res.as_ref().unwrap()).unwrap();
+                println!("MENU: {:#?}", MENU);
+            }
         }
     }
 
@@ -82,9 +135,9 @@ fn run_app<B: tui::backend::Backend>(
     tick_rate: Duration,
 ) -> io::Result<String> {
     let mut last_tick = Instant::now();
-    let mut url = String::new();
+    let mut json_response = String::new();
     loop {
-        terminal.draw(|f| url = training_mod_tui::ui(f, &mut app).clone())?;
+        terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app).clone())?;
 
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
@@ -93,7 +146,7 @@ fn run_app<B: tui::backend::Backend>(
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Char('q') => return Ok(url),
+                    KeyCode::Char('q') => return Ok(json_response),
                     KeyCode::Char('r') => app.on_r(),
                     KeyCode::Char('l') => app.on_l(),
                     KeyCode::Left => app.on_left(),

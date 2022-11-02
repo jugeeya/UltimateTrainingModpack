@@ -5,13 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Modpack Menu</title>
+    <link rel="stylesheet" href="./css/nouislider.min.css">
     <link rel="stylesheet" href="./css/training_modpack.css" />
 </head>
 
 <body>
+    <script defer src="./js/nouislider.min.js"></script>
     <script defer src="./js/training_modpack.js"></script>
-    <div class="l-header">
-        <a id="ret-button" tabindex="-1" class="return-icon-container" href="javascript:goBackHook();">
+    <div class="header">
+        <a id="ret-button" tabindex="-1" class="return-icon-container" onclick="closeOrExit()">
                 <img class="return-icon" src="./img/m_retnormal.svg">
         </a>
         <p class="header-title">Ultimate Training Modpack Menu</p>
@@ -25,31 +27,53 @@
         <p>Prev Tab: &#xE0A6;</p>
         <div class="tab-list">
             {{#tabs}}
-            <button class="tab-button active" id="{{tab_id}}_button" onclick="openTab(this)" tabindex="-1">{{tab_title}}</button>
+            <button class="tab-button" id="{{tab_id}}_button" onclick="openTab(this)" tabindex="-1">{{tab_title}}</button>
             {{/tabs}}
         </div>
         <p>Next Tab: &#xE0A7;</p>
     </div>
     <div class="tab-content-container">
         {{#tabs}}
-        <div id="{{tab_id}}_tab" class="tab-content">
             {{#tab_submenus}}
-            <div class="menu-item" id="{{submenu_id}}">
-                <button class="menu-button" onfocus="setHelpText('{{help_text}}')" onclick="openItem(this)">
-                    <div class="menu-icon"><img src="./img/{{submenu_id}}.svg" /></div>
-                    <p>{{submenu_title}}</p>
-                </button>
-                <div class="hide modal{{#is_single_option}} single-option{{/is_single_option}}">
+                <div class="hide modal{{#is_single_option}} single-option{{/is_single_option}}" data-id="{{submenu_id}}">
                     {{#toggles}}
-                    <button class="menu-button" onclick="toggleOption(this)">
-                        <div class="menu-icon"><img class="hide" src="./img/check.svg" data-val="{{toggle_value}}"/></div>
-                        <p>{{toggle_title}}</p>
+                    <button class="modal-button" onclick="toggleOption(this)">
+                        <div class="modal-button-content">
+                            <img class="hidden menu-icon" src="./img/check.svg" data-val="{{toggle_value}}" />
+                            <p class="modal-button-title">{{toggle_title}}</p>
+                        </div>
                     </button>
                     {{/toggles}}
+                    {{#slider}}
+                    <div class="modal-slider-label">
+                        <p>{{submenu_title}}</p>
+                    </div>
+                    <div
+                        id="{{submenu_id}}-slider"
+                        data-selected-min="{{selected_min}}"
+                        data-selected-max="{{selected_max}}"
+                        data-abs-min="{{abs_min}}"
+                        data-abs-max="{{abs_max}}"
+                        class="modal-slider"
+                    >
+                    </div>
+                    {{/slider}}
+                </div>
+            {{/tab_submenus}}
+            <div id="{{tab_id}}_tab" class="tab-content hide">
+                <div class="tab-content-wrapper">
+                    {{#tab_submenus}}
+                    <div class="menu-item" id="{{submenu_id}}">
+                        <button class="menu-button" onfocus="setHelpText('{{help_text}}')" onclick="openMenuItem(this)" data-target="{{submenu_id}}">
+                            <div class="menu-button-content">
+                                <img src="./img/{{submenu_id}}.svg" class="menu-icon" />
+                                <p class="menu-title">{{submenu_title}}</p>
+                            </div>
+                        </button>
+                    </div>
+                    {{/tab_submenus}}
                 </div>
             </div>
-            {{/tab_submenus}}
-        </div>
         {{/tabs}}
     </div>
     <footer id="footer" class="footer">

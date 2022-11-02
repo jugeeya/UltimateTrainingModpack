@@ -46,6 +46,7 @@ pub fn version_check() {
             );
             // Remove old menu selections, silently ignoring errors (i.e. if the file doesn't exist)
             fs::remove_file("sd:/TrainingModpack/training_modpack_menu.conf").unwrap_or({});
+            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.json").unwrap_or({});
             fs::remove_file("sd:/TrainingModpack/training_modpack_menu_defaults.conf")
                 .unwrap_or({});
             record_current_version(VERSION_FILE_PATH);

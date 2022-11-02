@@ -1,18 +1,22 @@
+use crate::common::button_config;
+use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
 use crate::common::MENU;
+use crate::is_operation_cpu;
 use crate::training::buff;
+use crate::training::character_specific::steve;
 use crate::training::charge::{self, ChargeState};
+use crate::training::items::apply_item;
 use crate::training::reset;
-use smash::app::{self, lua_bind::*};
+use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-
-use crate::training::character_specific::steve;
+use training_mod_consts::{CharacterItem, SaveDamage};
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -75,6 +79,7 @@ macro_rules! default_save_state {
     };
 }
 
+use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 use SaveState::*;
 
 static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
@@ -122,6 +127,9 @@ pub unsafe fn get_param_int(
         if param_hash == hash40("rebirth_move_frame") {
             return Some(0);
         }
+        if param_hash == hash40("rebirth_move_frame_trainer") {
+            return Some(0);
+        }
         if param_hash == hash40("rebirth_wait_frame") {
             return Some(0);
         }
@@ -132,21 +140,16 @@ pub unsafe fn get_param_int(
             return Some(0);
         }
     }
+    if param_type == hash40("param_mball") {
+        if param_hash == hash40("change_fly_frame") {
+            return Some(0);
+        }
+    }
 
     None
 }
 
 fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32) {
-    let overwrite_damage;
-
-    unsafe {
-        overwrite_damage = MENU.save_damage == OnOff::On;
-    }
-
-    if !overwrite_damage {
-        return;
-    }
-
     unsafe {
         DamageModule::heal(
             module_accessor,
@@ -154,6 +157,40 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
             0,
         );
         DamageModule::add_damage(module_accessor, damage, 0);
+    }
+}
+
+unsafe fn get_ptrainer_module_accessor(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> &mut app::BattleObjectModuleAccessor {
+    let ptrainer_object_id =
+        LinkModule::get_parent_object_id(module_accessor, *FIGHTER_POKEMON_LINK_NO_PTRAINER);
+    &mut *app::sv_battle_object::module_accessor(ptrainer_object_id as u32)
+}
+
+unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if !is_ptrainer(module_accessor) {
+        return;
+    }
+    WorkModule::off_flag(
+        get_ptrainer_module_accessor(module_accessor),
+        *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
+    );
+    let ptrainer_module_accessor = get_ptrainer_module_accessor(module_accessor);
+    MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
+    if ArticleModule::is_exist(
+        ptrainer_module_accessor,
+        *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+    ) {
+        let ptrainer_masterball: u64 = ArticleModule::get_article(
+            ptrainer_module_accessor,
+            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+        );
+        let ptrainer_masterball_id =
+            Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
+        let ptrainer_masterball_module_accessor =
+            &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
+        MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
     }
 }
 
@@ -172,14 +209,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     };
 
     let fighter_kind = app::utility::get_kind(module_accessor);
-    let fighter_is_ptrainer = [
-        *FIGHTER_KIND_PZENIGAME,
-        *FIGHTER_KIND_PFUSHIGISOU,
-        *FIGHTER_KIND_PLIZARDON,
-    ]
-    .contains(&fighter_kind);
+    let fighter_is_ptrainer = is_ptrainer(module_accessor);
     let fighter_is_popo = fighter_kind == *FIGHTER_KIND_POPO; // For making sure Popo doesn't steal Nana's PosMove
-    let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen savestates etc.
+    let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA; // Don't want Nana to reopen save states etc.
     let fighter_is_buffable = [
         *FIGHTER_KIND_BRAVE,
         *FIGHTER_KIND_CLOUD,
@@ -191,30 +223,29 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Grab + Dpad up: reset state
-    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_HI)
-        && !fighter_is_nana
-    {
+    let autoload_reset = MENU.save_state_autoload == OnOff::On
+        && save_state.state == NoAction
+        && is_dead(module_accessor);
+    let mut triggered_reset: bool = false;
+    if !is_operation_cpu(module_accessor) {
+        triggered_reset =
+            button_config::combo_passes(module_accessor, button_config::ButtonCombo::LoadState);
+    }
+    if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
             SAVE_STATE_PLAYER.state = KillPlayer;
             SAVE_STATE_CPU.state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
-        reset::on_reset();
         return;
     }
 
     // move to camera bounds
     if save_state.state == KillPlayer {
+        on_ptrainer_death(module_accessor);
         SoundModule::stop_all_sound(module_accessor);
         if status == FIGHTER_STATUS_KIND_REBIRTH {
-            if !(fighter_is_ptrainer
-                && save_state.fighter_kind > 0
-                && fighter_kind != save_state.fighter_kind)
-            {
-                // For ptrainer, don't move on unless we're cycled back to the right pokemon
-                save_state.state = PosMove;
-            }
+            save_state.state = PosMove;
         } else if !is_dead(module_accessor) && !fighter_is_nana {
             // Don't kill Nana again, since she already gets killed by the game from Popo's death
             // Try moving off-screen so we don't see effects.
@@ -225,6 +256,16 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             };
             PostureModule::set_pos(module_accessor, &pos);
 
+            let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+            (0..ItemManager::get_num_of_active_item_all(item_mgr)).for_each(|item_idx| {
+                let item = ItemManager::get_active_item(item_mgr, item_idx);
+                if item != 0 {
+                    let item = item as *mut Item;
+                    let item_battle_object_id =
+                        app::lua_bind::Item::get_battle_object_id(item) as u32;
+                    ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
+                }
+            });
             MotionAnimcmdModule::set_sleep(module_accessor, true);
             SoundModule::pause_se_all(module_accessor, true);
             ControlModule::stop_rumble(module_accessor, true);
@@ -275,6 +316,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         let lr = MIRROR_STATE * save_state.lr;
         PostureModule::set_pos(module_accessor, &pos);
         PostureModule::set_lr(module_accessor, lr);
+        reset::on_reset();
 
         if save_state.situation_kind == SITUATION_KIND_GROUND {
             if status != FIGHTER_STATUS_KIND_WAIT {
@@ -314,7 +356,46 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
-            set_damage(module_accessor, save_state.percent);
+            // Set damage of the save state
+            if !is_cpu {
+                match MENU.save_damage_player {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits_player.0 as f32,
+                            MENU.save_damage_limits_player.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
+                }
+            } else {
+                match MENU.save_damage_cpu {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits_cpu.0 as f32,
+                            MENU.save_damage_limits_cpu.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
+                }
+            }
+
+            // Set to held item
+            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
+                apply_item(MENU.character_item);
+            }
+
             // Set the charge of special moves if the fighter matches the kind in the save state
             if save_state.fighter_kind == fighter_kind {
                 charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
@@ -335,6 +416,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     Hash40::new("se_system_position_reset"),
                     true,
                     true,
+                );
+            }
+            if fighter_is_ptrainer {
+                WorkModule::on_flag(
+                    get_ptrainer_module_accessor(module_accessor),
+                    *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
                 );
             }
         }
@@ -362,11 +449,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Grab + Dpad down: Save state
-    if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_CATCH)
-        && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_LW)
-        && !fighter_is_nana
-    // Don't begin saving state if Nana's delayed input is captured
-    {
+    if button_config::combo_passes(module_accessor, button_config::ButtonCombo::SaveState) {
+        // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
         SAVE_STATE_PLAYER.state = Save;
         SAVE_STATE_CPU.state = Save;

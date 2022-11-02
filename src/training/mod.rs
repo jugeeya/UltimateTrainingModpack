@@ -1,5 +1,8 @@
-use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, STAGE_MANAGER_ADDR};
+use crate::common::{
+    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+};
 use crate::hitbox_visualizer;
+use crate::training::character_specific::items;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
@@ -12,6 +15,7 @@ pub mod buff;
 pub mod charge;
 pub mod clatter;
 pub mod combo;
+pub mod crouch;
 pub mod directional_influence;
 pub mod frame_counter;
 pub mod ledge;
@@ -106,8 +110,8 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
-        if crate::common::menu::menu_condition(module_accessor) {
-            crate::common::menu::spawn_menu();
+        if menu::menu_condition(module_accessor) {
+            menu::spawn_menu();
         }
 
         input_record::get_command_flag_cat(module_accessor);
@@ -186,7 +190,9 @@ pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccesso
 }
 
 /**
- *
+ * Called when:
+ * Directional airdodge
+ * Crouching
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
 pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
@@ -195,7 +201,8 @@ pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor)
         return ori;
     }
 
-    air_dodge_direction::mod_get_stick_y(module_accessor).unwrap_or(ori)
+    air_dodge_direction::mod_get_stick_y(module_accessor)
+        .unwrap_or_else(|| crouch::mod_get_stick_y(module_accessor).unwrap_or(ori))
 }
 
 #[skyline::hook(replace = ControlModule::check_button_on)]
@@ -453,6 +460,17 @@ pub unsafe fn handle_effect(
     )
 }
 
+static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, checks if stage allows for star KOs
+#[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
+pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
+    let ori = original!()(my_long_ptr);
+    if !is_training_mode() {
+        return ori;
+    } else {
+        return false;
+    }
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -481,6 +499,13 @@ pub fn training_mods() {
         LookupSymbol(
             &mut STAGE_MANAGER_ADDR,
             "_ZN3lib9SingletonIN3app12StageManagerEE9instance_E\u{0}"
+                .as_bytes()
+                .as_ptr(),
+        );
+
+        LookupSymbol(
+            &mut ITEM_MANAGER_ADDR,
+            "_ZN3lib9SingletonIN3app11ItemManagerEE9instance_E\0"
                 .as_bytes()
                 .as_ptr(),
         );
@@ -526,6 +551,8 @@ pub fn training_mods() {
         handle_se,
         // Death GFX
         handle_effect,
+        // Star KO turn off
+        handle_star_ko,
     );
 
     combo::init();
@@ -536,4 +563,5 @@ pub fn training_mods() {
     throw::init();
     menu::init();
     buff::init();
+    items::init();
 }

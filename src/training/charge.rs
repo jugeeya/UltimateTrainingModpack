@@ -187,11 +187,11 @@ pub unsafe fn get_charge(
     // Pac-Man Bonus Fruit
     else if fighter_kind == FIGHTER_KIND_PACMAN {
         let my_charge = WorkModule::get_int(module_accessor, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
-        let max_have = WorkModule::is_flag(
+        let fruit_have = WorkModule::is_flag(
             module_accessor,
-            *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM,
+            *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_PULL_THROW,
         );
-        charge_state.int_x(my_charge).has_charge(max_have)
+        charge_state.int_x(my_charge).has_charge(fruit_have)
     }
     // Robin Thunder Tome Spells
     else if fighter_kind == FIGHTER_KIND_REFLET {
@@ -652,19 +652,28 @@ pub unsafe fn handle_charge(
     }
     // Pac-Man Bonus Fruit - 0 to 12
     else if fighter_kind == FIGHTER_KIND_PACMAN {
+        let mut has_key = false;
         charge.int_x.map(|charge_rank| {
             WorkModule::set_int(module_accessor, charge_rank, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
 
             if charge_rank == 12 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                has_key = true;
             }
         });
         charge.has_charge.map(|has_fruit| {
             WorkModule::set_flag(
                 module_accessor,
                 has_fruit,
-                *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM,
+                *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_PULL_THROW,
             );
+            if has_key {
+                WorkModule::set_flag(
+                    module_accessor,
+                    has_key,
+                    *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM,
+                );
+            }
         });
     }
     // Robin Thunder Tome Spells - 0 to 3
