@@ -175,6 +175,7 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
         const WAIT = 0x10;
+        const RECORD = 0x20;
     }
 }
 
@@ -188,6 +189,7 @@ impl LedgeOption {
                 LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
                 LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
+                LedgeOption::RECORD => *FIGHTER_STATUS_KIND_NONE,
                 _ => return None,
             })
         }
@@ -203,6 +205,7 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
+            LedgeOption::RECORD => "Playback",
             _ => return None,
         })
     }
@@ -1329,7 +1332,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitbox_vis: OnOff::On,
     input_delay: Delay::D0,
     ledge_delay: LongDelay::empty(),
-    ledge_state: LedgeOption::all(),
+    ledge_state: LedgeOption::NEUTRAL.union(LedgeOption::ROLL).union(LedgeOption::JUMP).union(LedgeOption::ATTACK), // don't want wait/record as defaults
     mash_state: Action::empty(),
     mash_triggers: MashTrigger::default(),
     miss_tech_state: MissTechFlags::all(),

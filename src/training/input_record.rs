@@ -19,6 +19,8 @@ pub enum InputRecordState {
 pub enum PossessionState {
     Player,
     Cpu,
+    Lockout,
+    Standby,
 }
 
 use InputRecordState::*;
@@ -82,19 +84,34 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     }
 
     // Handle Possession Effects
-    //let highlight_hash = Hash40::new("cloud_limitbreak"); // blue
-    //let highlight_hash = Hash40::new("demon_rage"); // red slight blink
     //let highlight_hash = Hash40::new("demon_rage2"); // red faster blink
-    let highlight_hash = Hash40::new("demon_rage");
-    let is_highlighted = EffectModule::is_exist_common(module_accessor,highlight_hash);
-    if entry_id_int == 1 && POSSESSION == Cpu {
+    let blue_hash = Hash40::new("cloud_limitbreak"); // blue
+    let purple_hash = Hash40::new("reflet_special_lw_damage"); // red slight blink
+    let red_hash = Hash40::new("demon_rage");
+    let is_red = EffectModule::is_exist_common(module_accessor,red_hash);
+    let is_blue = EffectModule::is_exist_common(module_accessor,blue_hash);
+    let is_purple = EffectModule::is_exist_common(module_accessor,purple_hash);
+    if entry_id_int == 1 && POSSESSION == Lockout {
+        if !is_blue {
+            EffectModule::req_common(module_accessor,blue_hash,0.0);
+        }
+    } else if entry_id_int == 1 && POSSESSION == Standby {
+        if !is_purple {
+            EffectModule::req_common(module_accessor,purple_hash,0.0);
+        }
+    } else if entry_id_int == 1 && POSSESSION == Cpu {
         // if we're controlling the Cpu and we don't have an effect, call the effect
-        if !is_highlighted {
-            EffectModule::req_common(module_accessor,highlight_hash,0.0);
+        if !is_red {
+            EffectModule::req_common(module_accessor,red_hash,0.0);
         }
     } else if entry_id_int == 1 && POSSESSION == Player {
-        if is_highlighted {
-            EffectModule::remove_common(module_accessor,highlight_hash);
+        // Remove effects since we're controlling the player
+        if is_red {
+            EffectModule::remove_common(module_accessor,red_hash);
+        } else if is_blue {
+            EffectModule::remove_common(module_accessor,blue_hash);
+        } else if is_purple {
+            EffectModule::remove_common(module_accessor,purple_hash);
         }
     }
 }
@@ -111,7 +128,6 @@ pub unsafe fn record() {
 
 pub unsafe fn playback() {
     INPUT_RECORD = Playback;
-    // TODO: Should I make possession Player here?
     INPUT_RECORD_FRAME = 0;
 }
 
@@ -127,7 +143,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
   let controller_no  = (*controller_data).controller_index;
 
   if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-    //println!("Overriding Cpu Player: {}", controller_no); // cpu is normally 1, at least on handheld
     if INPUT_RECORD_FRAME > 0 {
         let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1]; // don't think we can start at 0 since this happens before input is set up by player? unsure; like this it seems synced up
         // maybe test if it's actually synced up by not clearing inputs and seeing if one frame moves clank?
@@ -146,7 +161,7 @@ unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleIn
     // go through the original parsing function first
     call_original!(current_control_internal);
 
-    if control_index == 0 { // if player 1 (need to check if it works this way docked)
+    if control_index == 0 {
         if INPUT_RECORD == Record {
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored();
             current_control_internal.clear() // don't control player while recording

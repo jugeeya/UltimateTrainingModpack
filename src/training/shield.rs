@@ -108,7 +108,7 @@ pub unsafe fn get_param_float(
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
-    if !is_operation_cpu(module_accessor) {
+    if !is_operation_cpu(module_accessor) || input_record::is_playback() { // shield normally during playback
         return None;
     }
 

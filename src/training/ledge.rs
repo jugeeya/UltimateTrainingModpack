@@ -59,6 +59,7 @@ fn roll_ledge_case() {
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    print!("Situation: {}, ", StatusModule::situation_kind(module_accessor) as i32);
     if StatusModule::situation_kind(module_accessor) as i32 != *SITUATION_KIND_CLIFF {
         // No longer on ledge, so re-roll the ledge case and reset the delay counter for next time
         reset_ledge_case();
@@ -74,13 +75,26 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let flag_cliff =
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
-    let should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
+    let status_kind = StatusModule::situation_kind(module_accessor) as i32;
+    let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 17);
+    let should_buffer;
+    if (status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH) { // For regular ledge grabs, we're in catch and want to buffer on this frame
+        should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
+    } else { // otherwise we're in lasso, so we want to change this frame
+        should_buffer = (LEDGE_DELAY == 0) && (current_frame == 18) && (flag_cliff);
+    }
+
+    println!("Status: {}, Frame: {}, flag_cliff: {}", StatusModule::status_kind(module_accessor),current_frame, flag_cliff);
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
     ) {
         // Not able to take any action yet
+        // We buffer playback on frame 17 because then we're on input frame 0 of the array on frame 18, which is skipped, resulting in our first button coming out frame 19
+        if should_buffer_playback && LEDGE_CASE == LedgeOption::RECORD && MENU.record_trigger != RecordTrigger::LEDGE {
+            input_record::playback();
+        }
         // This check isn't reliable for buffered options in time, so don't return if we need to buffer an option this frame
         if !should_buffer {
             return;
@@ -99,7 +113,13 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
     let status = LEDGE_CASE.into_status().unwrap_or(0);
 
-    StatusModule::change_status_request_from_script(module_accessor, status, true);
+    if LEDGE_CASE == LedgeOption::RECORD {
+        if MENU.record_trigger != RecordTrigger::LEDGE {
+            input_record::playback();
+        }
+    } else {
+        StatusModule::change_status_request_from_script(module_accessor, status, true);
+    }
 
     if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
         if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_state != Action::empty() {
@@ -117,32 +137,29 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 }
 
 pub unsafe fn is_enable_transition_term(
-    _module_accessor: *mut app::BattleObjectModuleAccessor,
+    module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
 ) -> Option<bool> {
-    if !is_operation_cpu(&mut *_module_accessor) {
+    if !is_operation_cpu(&mut *module_accessor) {
         return None;
     }
-    // Enable cliff drop for input recording - TODO: useless
-    if input_record::is_playback() && term == (0x1E00004A as i32) || term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB { //*FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_FALL {
-        return Some(true);
-    }
-    
-    // Behave normally we're playing back recorded inputs or controlling the cpu
-    if input_record::is_playback() {
-        return None;
-    }
+    // TODO: Delete when neutral getup fixed
+    //println!("Cliff Wait Frame: {}",WorkModule::get_int(module_accessor,*FIGHTER_STATUS_CLIFF_WORK_INT_WAIT_FRAME));
+
+    // Behave normally if we're playing back recorded inputs or controlling the cpu
+    // if input_record::is_playback() {
+    //     return None;
+    // }
 
     // Only handle ledge scenarios from menu
-    if StatusModule::status_kind(_module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT
+    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT
         || MENU.ledge_state == LedgeOption::empty()
     {
         return None;
     }
 
-    // Disallow the default cliff-climb if we are waiting
-    if (LEDGE_CASE == LedgeOption::WAIT
-        || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
+    // Disallow the default cliff-climb if we are waiting or we wait as part of a recording
+    if (LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
         && term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
     {
         return Some(false);
@@ -158,10 +175,12 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     // Set up check for beginning of ledge grab
     unsafe {
         let current_frame = MotionModule::frame(module_accessor) as i32;
-        // Frame 6 arbitrary, probably should be 18 or something
-        let just_grabbed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_CATCH) && current_frame == 6;
+        // Frame 18 is right before actionability for cliff catch
+        let just_grabbed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_CATCH) && current_frame == 18;
+        // Needs to be a frame earlier for lasso grabs
+        let just_lassoed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_WAIT) && current_frame == 17;
         // Begin recording on ledge if this is the recording trigger
-        if just_grabbed_ledge && MENU.record_trigger == RecordTrigger::LEDGE {
+        if (just_grabbed_ledge || just_lassoed_ledge) && MENU.record_trigger == RecordTrigger::LEDGE {
             input_record::record();
             return;
         }
