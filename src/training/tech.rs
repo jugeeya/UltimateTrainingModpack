@@ -1,6 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::mash;
+use crate::training::{ frame_counter, mash };
 use smash::app::sv_system;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
@@ -8,8 +8,16 @@ use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
 
+
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
+static mut FRAME_COUNTER: usize = 0;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER = frame_counter::register_counter();
+    }
+}
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterBase_change_status)]
 pub unsafe fn handle_change_status(
@@ -187,16 +195,17 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         return;
     }
 
-    let status = StatusModule::status_kind(module_accessor) as i32;
 
+    let status = StatusModule::status_kind(module_accessor) as i32;
+    let mut requested_status: i32 = 0;
     if [
-        *FIGHTER_STATUS_KIND_DOWN_WAIT,          // Mistech
-        *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE, // Mistech
-        *FIGHTER_STATUS_KIND_LAY_DOWN,           // Snake down throw
+        *FIGHTER_STATUS_KIND_DOWN_WAIT,
+        *FIGHTER_STATUS_KIND_DOWN_WAIT_CONTINUE,
     ]
     .contains(&status)
     {
-        let status: i32 = match MENU.miss_tech_state.get_random() {
+        // Mistech
+        requested_status = match MENU.miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
             MissTechFlags::ROLL_F => {
@@ -209,28 +218,43 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
             }
             _ => return,
         };
-        StatusModule::change_status_request_from_script(module_accessor, status, false);
-        if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
-            mash::buffer_menu_mash();
-        }
-    } else if [
+    } else if status == *FIGHTER_STATUS_KIND_LAY_DOWN {
+        // Snake down throw
+        let lockout_time = get_snake_laydown_lockout_time(module_accessor);
+        if frame_counter::should_delay(lockout_time, FRAME_COUNTER) { return; };
+        requested_status = match MENU.miss_tech_state.get_random() {
+            MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
+            MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
+            MissTechFlags::ROLL_F => {
+                MISS_TECH_ROLL_DIRECTION = Direction::IN; // = In
+                *FIGHTER_STATUS_KIND_DOWN_STAND_FB
+            }
+            MissTechFlags::ROLL_B => {
+                MISS_TECH_ROLL_DIRECTION = Direction::OUT; // = Away
+                *FIGHTER_STATUS_KIND_DOWN_STAND_FB
+            }
+            _ => return,
+        };
+    } else if status == *FIGHTER_STATUS_KIND_SLIP_WAIT {
         // Handle slips (like Diddy banana)
-        *FIGHTER_STATUS_KIND_SLIP_WAIT,
-    ]
-    .contains(&status)
-    {
-        let status: i32 = match MENU.miss_tech_state.get_random() {
+        requested_status = match MENU.miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_SLIP_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_SLIP_STAND_ATTACK,
             MissTechFlags::ROLL_F => *FIGHTER_STATUS_KIND_SLIP_STAND_F,
             MissTechFlags::ROLL_B => *FIGHTER_STATUS_KIND_SLIP_STAND_B,
             _ => return,
         };
-        StatusModule::change_status_request_from_script(module_accessor, status, false);
+    } else {
+        // Not in a tech situation, make sure the snake dthrow counter is fully reset.
+        frame_counter::full_reset(FRAME_COUNTER);
+    };
+
+    if requested_status != 0 {
+        StatusModule::change_status_request_from_script(module_accessor, requested_status, false);
         if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
             mash::buffer_menu_mash();
         }
-    };
+    }
 }
 
 pub unsafe fn change_motion(
@@ -266,4 +290,29 @@ pub unsafe fn change_motion(
     }
 
     None
+}
+
+unsafe fn get_snake_laydown_lockout_time(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> u32 {
+    let base_lockout_time: f32 = WorkModule::get_param_float(
+        module_accessor,
+        hash40("common"),
+        hash40("laydown_no_action_frame"),
+    );
+    let max_lockout_time: f32 = WorkModule::get_param_float(
+        module_accessor,
+        hash40("common"),
+        hash40("laydown_no_action_frame_max"),
+    );
+    let max_lockout_damage: f32 = WorkModule::get_param_float(
+        module_accessor,
+        hash40("common"),
+        hash40("laydown_damage_max"),
+    );
+    let damage: f32 = DamageModule::damage(module_accessor, 0);
+    std::cmp::min(
+        (base_lockout_time + (damage / max_lockout_damage) * (max_lockout_time - base_lockout_time)) as u32,
+        max_lockout_time as u32
+    )
 }
