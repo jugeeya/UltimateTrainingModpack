@@ -59,7 +59,6 @@ fn roll_ledge_case() {
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    print!("Situation: {}, ", StatusModule::situation_kind(module_accessor) as i32);
     if StatusModule::situation_kind(module_accessor) as i32 != *SITUATION_KIND_CLIFF {
         // No longer on ledge, so re-roll the ledge case and reset the delay counter for next time
         reset_ledge_case();
@@ -78,13 +77,11 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let status_kind = StatusModule::situation_kind(module_accessor) as i32;
     let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 17);
     let should_buffer;
-    if (status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH) { // For regular ledge grabs, we're in catch and want to buffer on this frame
+    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH { // For regular ledge grabs, we're in catch and want to buffer on this frame
         should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
     } else { // otherwise we're in lasso, so we want to change this frame
         should_buffer = (LEDGE_DELAY == 0) && (current_frame == 18) && (flag_cliff);
     }
-
-    println!("Status: {}, Frame: {}, flag_cliff: {}", StatusModule::status_kind(module_accessor),current_frame, flag_cliff);
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
@@ -143,13 +140,6 @@ pub unsafe fn is_enable_transition_term(
     if !is_operation_cpu(&mut *module_accessor) {
         return None;
     }
-    // TODO: Delete when neutral getup fixed
-    //println!("Cliff Wait Frame: {}",WorkModule::get_int(module_accessor,*FIGHTER_STATUS_CLIFF_WORK_INT_WAIT_FRAME));
-
-    // Behave normally if we're playing back recorded inputs or controlling the cpu
-    // if input_record::is_playback() {
-    //     return None;
-    // }
 
     // Only handle ledge scenarios from menu
     if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT

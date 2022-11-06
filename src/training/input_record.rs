@@ -71,17 +71,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
             if INPUT_RECORD_FRAME >= P1_FINAL_MAPPING.lock().len() - 1 { // FINAL_RECORD_FRAME - 1 { 
                 // Above alternative causes us to stay on last input forever, need to figure out since we want to be able to have shorter playbacks
-                if INPUT_RECORD == Record {
-                    //INPUT_RECORD = Playback; // shouldn't do this, causes it to play twice. TODO: replace with line below once other things tested
-                    INPUT_RECORD = None;
-                    POSSESSION = Player;
-                } else if INPUT_RECORD == Playback {
-                    INPUT_RECORD = None;
-                    POSSESSION = Player;
-                }
+                INPUT_RECORD = None;
+                POSSESSION = Player;
                 INPUT_RECORD_FRAME = 0;
-            } else {
-                //INPUT_RECORD_FRAME += 1;
             }
         }
     }
@@ -181,17 +173,11 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     }
 
     if INPUT_RECORD == Record || INPUT_RECORD == Playback || INPUT_RECORD == Pause {
-        if INPUT_RECORD_FRAME == 0 {
-            let empty_input = ControlModuleStored::default().construct_internal((*controller_data).vtable, controller_no);
-            *controller_data = empty_input; // prob don't need clear
-        }
-        if INPUT_RECORD_FRAME > 0 { // we wait a frame to start playback, and then play the previous frame's inputs from the recording - if this is needed, it's because player/cpu frames are out of sync
-            let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1]; // don't think we can start at 0 since this happens before input is set up by player? unsure; like this it seems synced up
-            // TODO: maybe test if it's actually synced up by not clearing inputs and seeing if one frame moves clank?
-            let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
-            *controller_data = saved_internal_inputs;
-        }
-        if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 && INPUT_RECORD != Pause {
+        let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME]; 
+        let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
+        *controller_data = saved_internal_inputs;
+        println!("Overrode CPU Input! Frame: {}",INPUT_RECORD_FRAME);
+        if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 {
             INPUT_RECORD_FRAME += 1;
         }
     }
@@ -206,7 +192,8 @@ unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleIn
     if control_index == 0 {
         if INPUT_RECORD == Record || INPUT_RECORD == Pause {
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored();
-            //current_control_internal.clear() // don't control player while recording or waiting to record TODO: uncomment
+            println!("Stored Player Input! Frame: {}",INPUT_RECORD_FRAME);
+            current_control_internal.clear() // don't control player while recording or waiting to record
         }
     } 
 }
