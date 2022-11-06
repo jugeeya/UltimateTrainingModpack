@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
           name: static
           path: src/static
   plugin_outside_training_mode:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     container:
       image: jugeeya/cargo-skyline:3.0.0-dkp-beta
@@ -71,7 +71,7 @@ jobs:
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
   upload:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     needs:
       - plugin
     steps:
