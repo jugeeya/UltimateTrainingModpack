@@ -5,8 +5,9 @@ use lazy_static::lazy_static;
 use parking_lot::Mutex;
 //use skyline::logging::print_stack_trace;
 use crate::training::input_recording::structures::*;
-use crate::common::consts::RecordTrigger;
-use crate::common::MENU;
+use crate::common::consts::{RecordTrigger, FighterId};
+use crate::common::{MENU, get_module_accessor};
+
 
 #[derive(PartialEq)]
 pub enum InputRecordState {
@@ -118,10 +119,10 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     }
 }
 
-pub unsafe fn lockout_record(situation_kind: i32) {
+pub unsafe fn lockout_record() {
     INPUT_RECORD = Pause;
-    INPUT_RECORD_FRAME = 0;
-    POSSESSION = Cpu;
+    //INPUT_RECORD_FRAME = 0;
+    POSSESSION = Lockout;
     LOCKOUT_FRAME = 5;
 }
 
@@ -145,27 +146,55 @@ pub unsafe fn stop_playback() {
     INPUT_RECORD_FRAME = 0;
 }
 
+pub unsafe fn is_end_standby() -> bool {
+    // Returns whether we should be done with standby this frame (if the fighter is no longer in a waiting status)
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+    ![
+        *FIGHTER_STATUS_KIND_WAIT,
+        *FIGHTER_STATUS_KIND_CLIFF_WAIT,
+    ]
+    .contains(&status_kind)
+}
+
 #[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
 unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
-  call_original!(p_data);
-  let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
-  let controller_no  = (*controller_data).controller_index;
+    call_original!(p_data);
+    let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
+    let controller_no  = (*controller_data).controller_index;
 
-  if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-    if INPUT_RECORD_FRAME == 0 {
-        let empty_input = ControlModuleStored::default().construct_internal((*controller_data).vtable, controller_no);
-        *controller_data = empty_input; // prob don't need clear
+    if LOCKOUT_FRAME > 1 { // Tick down lockout while we're waiting
+        LOCKOUT_FRAME -= 1;
+        return;
+    } else if LOCKOUT_FRAME == 1 { // But if it's time to exit lockout, enter standby
+        LOCKOUT_FRAME = 0;
+        POSSESSION = Standby;
+        INPUT_RECORD_FRAME = 0;
     }
-    if INPUT_RECORD_FRAME > 0 {
-        let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1]; // don't think we can start at 0 since this happens before input is set up by player? unsure; like this it seems synced up
-        // TODO: maybe test if it's actually synced up by not clearing inputs and seeing if one frame moves clank?
-        let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
-        *controller_data = saved_internal_inputs;
+    if POSSESSION == Standby && is_end_standby() { // We're not in a wait status, so keep last frame's input 
+        // we should always be in a wait status on the frame the lockout frames end
+        INPUT_RECORD = Record;
+        POSSESSION = Cpu;
+        // previous frame caused us to wait and was saved as 1, so go ahead and move onto 2 and save the current frame to the slot on this run of the func
+        INPUT_RECORD_FRAME = 2;
+        // TODO: broken because we keep reading our empty Vec[0] input frame when inp_rec_frame is set to 1
     }
-    if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 {
-        INPUT_RECORD_FRAME += 1;
+
+    if INPUT_RECORD == Record || INPUT_RECORD == Playback || INPUT_RECORD == Pause {
+        if INPUT_RECORD_FRAME == 0 {
+            let empty_input = ControlModuleStored::default().construct_internal((*controller_data).vtable, controller_no);
+            *controller_data = empty_input; // prob don't need clear
+        }
+        if INPUT_RECORD_FRAME > 0 { // we wait a frame to start playback, and then play the previous frame's inputs from the recording - if this is needed, it's because player/cpu frames are out of sync
+            let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1]; // don't think we can start at 0 since this happens before input is set up by player? unsure; like this it seems synced up
+            // TODO: maybe test if it's actually synced up by not clearing inputs and seeing if one frame moves clank?
+            let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
+            *controller_data = saved_internal_inputs;
+        }
+        if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 && INPUT_RECORD != Pause {
+            INPUT_RECORD_FRAME += 1;
+        }
     }
-  }
 }
 
 #[skyline::hook(offset = 0x3f7220)] // Used by HDR to implement some of their control changes
@@ -177,7 +206,7 @@ unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleIn
     if control_index == 0 {
         if INPUT_RECORD == Record || INPUT_RECORD == Pause {
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored();
-            current_control_internal.clear() // don't control player while recording or waiting to record
+            //current_control_internal.clear() // don't control player while recording or waiting to record TODO: uncomment
         }
     } 
 }
