@@ -221,7 +221,6 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     } else if status == *FIGHTER_STATUS_KIND_LAY_DOWN {
         // Snake down throw
         let lockout_time = get_snake_laydown_lockout_time(module_accessor);
-        println!("{}", &lockout_time);
         if frame_counter::should_delay(lockout_time, FRAME_COUNTER) { return; };
         requested_status = match MENU.miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
