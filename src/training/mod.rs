@@ -564,4 +564,5 @@ pub fn training_mods() {
     menu::init();
     buff::init();
     items::init();
+    tech::init();
 }
