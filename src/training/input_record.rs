@@ -36,9 +36,9 @@ pub static mut POSSESSION: PossessionState = PossessionState::Player;
 pub static mut LOCKOUT_FRAME: usize = 0;
 
 lazy_static! {
-    static ref P1_FINAL_MAPPING: Mutex<[ControlModuleStored; FINAL_RECORD_MAX]> =
+    static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; FINAL_RECORD_MAX]> =
         Mutex::new([{
-            ControlModuleStored::default()
+            MappedInputs::default()
         }; FINAL_RECORD_MAX]);
 }
 
@@ -123,7 +123,7 @@ pub unsafe fn record() {
     POSSESSION = Cpu;
     // Reset mappings to nothing, and then start recording. Likely want to reset in case we cut off recording early.
     P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
-        *mapped_input = ControlModuleStored::default();
+        *mapped_input = MappedInputs::default();
     });
     INPUT_RECORD_FRAME = 0;
 }
@@ -149,51 +149,52 @@ pub unsafe fn is_end_standby() -> bool {
     .contains(&status_kind)
 }
 
+static FIM_OFFSET: usize = 0x17504a0; 
+// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
+#[skyline::hook(offset = FIM_OFFSET)]
+unsafe fn handle_final_input_mapping(
+    mappings: *mut ControllerMapping,
+    player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
+    out: *mut MappedInputs,
+    controller_struct: &mut SomeControllerStruct,
+    arg: bool
+) {
+    // go through the original mapping function first
+    let _ret = original!()(mappings, player_idx, out, controller_struct, arg);
+    if player_idx == 0 { // if player 1
+        if INPUT_RECORD == Record {
+            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
+            *out = MappedInputs::default(); // don't control player while recording
+            println!("Stored Player Input! Frame: {}",INPUT_RECORD_FRAME);
+        }
+    } 
+}
+
 #[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
 unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     call_original!(p_data);
     let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
     let controller_no  = (*controller_data).controller_index;
-
-    if LOCKOUT_FRAME > 1 { // Tick down lockout while we're waiting
-        LOCKOUT_FRAME -= 1;
-        return;
-    } else if LOCKOUT_FRAME == 1 { // But if it's time to exit lockout, enter standby
-        LOCKOUT_FRAME = 0;
-        POSSESSION = Standby;
-        INPUT_RECORD_FRAME = 0;
-    }
-    if POSSESSION == Standby && is_end_standby() { // We're not in a wait status, so keep last frame's input 
-        // we should always be in a wait status on the frame the lockout frames end
-        INPUT_RECORD = Record;
-        POSSESSION = Cpu;
-        // previous frame caused us to wait and was saved as 1, so go ahead and move onto 2 and save the current frame to the slot on this run of the func
-        INPUT_RECORD_FRAME = 2;
-        // TODO: broken because we keep reading our empty Vec[0] input frame when inp_rec_frame is set to 1
-    }
-
-    if INPUT_RECORD == Record || INPUT_RECORD == Playback || INPUT_RECORD == Pause {
-        let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME]; 
-        let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
-        *controller_data = saved_internal_inputs;
-        println!("Overrode CPU Input! Frame: {}",INPUT_RECORD_FRAME);
+    if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+        println!("Overriding Cpu Player: {}, Frame: {}", controller_no, INPUT_RECORD_FRAME);
+        let saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
+        (*controller_data).buttons = saved_mapped_inputs.buttons;
+        (*controller_data).stick_x = (saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32);
+        (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
+        // Clamp stick inputs for separate part of structure
+        const NEUTRAL: f32 = 0.2;
+        const CLAMP_MAX: f32 = 120.0;
+        let clamp_mul = 1.0 / CLAMP_MAX;
+        let mut clamped_lstick_x = ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
+        let mut clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
+        clamped_lstick_x = if clamped_lstick_x.abs() >= NEUTRAL { clamped_lstick_x } else { 0.0 };
+        clamped_lstick_y = if clamped_lstick_y.abs() >= NEUTRAL { clamped_lstick_y } else { 0.0 };
+        (*controller_data).clamped_lstick_x = clamped_lstick_x;
+        (*controller_data).clamped_lstick_y = clamped_lstick_y;
+        //println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
+        //let cpu_module_accessor = get_module_accessor(FighterId::CPU);
         if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 {
             INPUT_RECORD_FRAME += 1;
-        }
-    }
-}
-
-#[skyline::hook(offset = 0x3f7220)] // Used by HDR to implement some of their control changes
-unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleInternal) {
-    let control_index = (*current_control_internal).controller_index;
-    // go through the original parsing function first
-    call_original!(current_control_internal);
-
-    if control_index == 0 {
-        if INPUT_RECORD == Record || INPUT_RECORD == Pause {
-            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored();
-            println!("Stored Player Input! Frame: {}",INPUT_RECORD_FRAME);
-            current_control_internal.clear() // don't control player while recording or waiting to record
         }
     } 
 }
@@ -217,6 +218,6 @@ pub unsafe fn is_recording() -> bool {
 pub fn init() {
     skyline::install_hooks!(
         set_cpu_controls,
-        parse_internal_controls,
+        handle_final_input_mapping,
     );
 }
