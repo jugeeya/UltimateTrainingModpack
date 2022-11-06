@@ -11,6 +11,7 @@ use crate::common::MENU;
 #[derive(PartialEq)]
 pub enum InputRecordState {
     None,
+    Pause,
     Record,
     Playback,
 }
@@ -31,6 +32,7 @@ pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame 
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
 pub static mut POSSESSION: PossessionState = PossessionState::Player;
+pub static mut LOCKOUT_FRAME: usize = 0;
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[ControlModuleStored; FINAL_RECORD_MAX]> =
@@ -116,6 +118,13 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     }
 }
 
+pub unsafe fn lockout_record(situation_kind: i32) {
+    INPUT_RECORD = Pause;
+    INPUT_RECORD_FRAME = 0;
+    POSSESSION = Cpu;
+    LOCKOUT_FRAME = 5;
+}
+
 pub unsafe fn record() {
     INPUT_RECORD = Record;
     POSSESSION = Cpu;
@@ -143,9 +152,13 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
   let controller_no  = (*controller_data).controller_index;
 
   if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+    if INPUT_RECORD_FRAME == 0 {
+        let empty_input = ControlModuleStored::default().construct_internal((*controller_data).vtable, controller_no);
+        *controller_data = empty_input; // prob don't need clear
+    }
     if INPUT_RECORD_FRAME > 0 {
         let saved_stored_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME-1]; // don't think we can start at 0 since this happens before input is set up by player? unsure; like this it seems synced up
-        // maybe test if it's actually synced up by not clearing inputs and seeing if one frame moves clank?
+        // TODO: maybe test if it's actually synced up by not clearing inputs and seeing if one frame moves clank?
         let saved_internal_inputs = saved_stored_inputs.construct_internal((*controller_data).vtable, controller_no);
         *controller_data = saved_internal_inputs;
     }
@@ -162,9 +175,9 @@ unsafe fn parse_internal_controls(current_control_internal: &mut ControlModuleIn
     call_original!(current_control_internal);
 
     if control_index == 0 {
-        if INPUT_RECORD == Record {
+        if INPUT_RECORD == Record || INPUT_RECORD == Pause {
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = (*current_control_internal).construct_stored();
-            current_control_internal.clear() // don't control player while recording
+            current_control_internal.clear() // don't control player while recording or waiting to record
         }
     } 
 }
