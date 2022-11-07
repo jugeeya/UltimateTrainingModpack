@@ -220,6 +220,13 @@ impl LedgeOption {
             _ => return None,
         })
     }
+    const fn default() -> LedgeOption {
+        // Neutral,Roll,Jump,Attack (everything except wait)
+        LedgeOption::NEUTRAL
+            .union(LedgeOption::ROLL)
+            .union(LedgeOption::JUMP)
+            .union(LedgeOption::ATTACK)
+    }
 }
 
 extra_bitflag_impls! {LedgeOption}
@@ -1195,16 +1202,16 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     clatter_strength: ClatterFrequency::None,
     crouch: OnOff::Off,
     di_state: Direction::empty(),
-    falling_aerials: BoolFlag::empty(),
+    falling_aerials: BoolFlag::FALSE,
     fast_fall_delay: Delay::empty(),
-    fast_fall: BoolFlag::empty(),
+    fast_fall: BoolFlag::FALSE,
     follow_up: Action::empty(),
     frame_advantage: OnOff::Off,
-    full_hop: BoolFlag::empty(),
+    full_hop: BoolFlag::TRUE,
     hitbox_vis: OnOff::On,
     input_delay: Delay::D0,
     ledge_delay: LongDelay::empty(),
-    ledge_state: LedgeOption::all(),
+    ledge_state: LedgeOption::default(),
     mash_state: Action::empty(),
     mash_triggers: MashTrigger::default(),
     miss_tech_state: MissTechFlags::all(),
