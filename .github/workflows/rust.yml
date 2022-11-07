@@ -137,4 +137,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: full_build
-          path: training_modpack_beta.zip
+          path: training_modpack_beta.zip 
