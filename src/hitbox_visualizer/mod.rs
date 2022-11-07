@@ -173,8 +173,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     // Pause Effect AnimCMD if hitbox visualization is active
     // Keep effects on for missed tech effect
     MotionAnimcmdModule::set_sleep_effect(module_accessor, 
-        !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL)
-                    .contains(&StatusModule::status_kind(module_accessor)
+        !(*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind)
         && status_kind != FIGHTER_STATUS_KIND_DOWN);
 
     EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_shield"), false);
