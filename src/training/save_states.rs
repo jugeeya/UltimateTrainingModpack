@@ -258,17 +258,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
             // All articles have ID <= 0x25
             (0..=0x25).for_each(|article_idx| {
-                if ArticleModule::is_exist(
-                    module_accessor,
-                    article_idx,
-                ) {
-                    let article: u64 = ArticleModule::get_article(
-                        module_accessor,
-                        article_idx,
-                    );
+                if ArticleModule::is_exist(module_accessor, article_idx) {
+                    let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
                     let article_object_id =
                         Article::get_battle_object_id(article as *mut app::Article);
-                    ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
+                    ArticleModule::remove_exist_object_id(
+                        module_accessor,
+                        article_object_id as u32,
+                    );
                 }
             });
             let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
