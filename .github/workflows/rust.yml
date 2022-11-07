@@ -107,6 +107,7 @@ jobs:
           allow_override: true
           gzip: false
           tag: beta
+          commitish: main
           name: beta
           body: >
             Beta built off of the latest code in the repository. 
