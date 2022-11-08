@@ -1,13 +1,12 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::{ frame_counter, mash };
+use crate::training::{frame_counter, mash};
 use smash::app::sv_system;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
-
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
@@ -195,7 +194,6 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         return;
     }
 
-
     let status = StatusModule::status_kind(module_accessor) as i32;
     let mut requested_status: i32 = 0;
     if [
@@ -221,7 +219,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     } else if status == *FIGHTER_STATUS_KIND_LAY_DOWN {
         // Snake down throw
         let lockout_time = get_snake_laydown_lockout_time(module_accessor);
-        if frame_counter::should_delay(lockout_time, FRAME_COUNTER) { return; };
+        if frame_counter::should_delay(lockout_time, FRAME_COUNTER) {
+            return;
+        };
         requested_status = match MENU.miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
@@ -312,7 +312,8 @@ unsafe fn get_snake_laydown_lockout_time(
     );
     let damage: f32 = DamageModule::damage(module_accessor, 0);
     std::cmp::min(
-        (base_lockout_time + (damage / max_lockout_damage) * (max_lockout_time - base_lockout_time)) as u32,
-        max_lockout_time as u32
+        (base_lockout_time + (damage / max_lockout_damage) * (max_lockout_time - base_lockout_time))
+            as u32,
+        max_lockout_time as u32,
     )
 }

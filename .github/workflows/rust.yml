@@ -107,6 +107,7 @@ jobs:
           allow_override: true
           gzip: false
           tag: beta
+          commitish: main
           name: beta
           body: >
             Beta built off of the latest code in the repository. 
@@ -137,4 +138,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: full_build
-          path: training_modpack_beta.zip
+          path: training_modpack_beta.zip 
