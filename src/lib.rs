@@ -25,6 +25,7 @@ use crate::events::{Event, EVENT_QUEUE};
 use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
 use std::fs;
+use std::collections::VecDeque;
 
 use crate::menu::quick_menu_loop;
 #[cfg(feature = "web_session_preload")]

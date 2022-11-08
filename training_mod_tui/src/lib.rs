@@ -1,7 +1,7 @@
 use training_mod_consts::{Slider, SubMenu, SubMenuType, Toggle, UiMenu};
 use tui::{
     backend::Backend,
-    layout::{Constraint, Corner, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Corner, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, LineGauge, List, ListItem, ListState, Paragraph, Tabs},
@@ -10,7 +10,7 @@ use tui::{
 
 use std::collections::HashMap;
 use serde_json::{Map, json};
-pub use tui::{backend::TestBackend, style::Color, Terminal};
+pub use tui::{backend::TestBackend, style::Color, Terminal, terminal::CompletedFrame};
 
 mod gauge;
 mod list;
@@ -805,4 +805,40 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
     serde_json::to_string(&settings).unwrap()
 
     // TODO: Add saveDefaults
+}
+
+
+pub struct NotificationUiApp<'a> {
+    pub message: &'a str,
+}
+
+impl<'a> NotificationUiApp<'a> {
+    pub fn new(msg: &'a str) -> NotificationUiApp<'a> {
+        NotificationUiApp {
+            message: msg
+        }
+    }
+}
+
+pub fn notification_ui<B: Backend>(f: &mut Frame<B>, app: &mut NotificationUiApp) {
+    let vertical_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+            ]
+            .as_ref(),
+        )
+        .split(f.size());
+
+    let header_text = Paragraph::new("Training Modpack")
+        .alignment(Alignment::Left)
+        .style(Style::default().fg(Color::LightRed));
+    f.render_widget(header_text, vertical_chunks[0]);
+    
+    let main_text = Paragraph::new(app.message)
+        .alignment(Alignment::Center);
+    f.render_widget(main_text, vertical_chunks[1]);
 }

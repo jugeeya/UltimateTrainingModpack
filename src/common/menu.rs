@@ -273,29 +273,83 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
     }
 }
 
-extern "C" {
-    #[link_name = "render_text_to_screen"]
-    pub fn render_text_to_screen_cstr(str: *const skyline::libc::c_char);
-
-    #[link_name = "set_should_display_text_to_screen"]
-    pub fn set_should_display_text_to_screen(toggle: bool);
+fn terminal_frame_to_string<'a>(frame_res: &'a training_mod_tui::CompletedFrame) -> String {
+    let mut view = String::new();
+    use std::fmt::Write;
+    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
+        match cell.fg {
+            Color::Black => write!(&mut view, "{}", &cell.symbol.black()),
+            Color::Blue => write!(&mut view, "{}", &cell.symbol.blue()),
+            Color::LightBlue => write!(&mut view, "{}", &cell.symbol.bright_blue()),
+            Color::Cyan => write!(&mut view, "{}", &cell.symbol.cyan()),
+            Color::LightCyan => write!(&mut view, "{}", &cell.symbol.cyan()),
+            Color::Red => write!(&mut view, "{}", &cell.symbol.red()),
+            Color::LightRed => write!(&mut view, "{}", &cell.symbol.bright_red()),
+            Color::LightGreen => write!(&mut view, "{}", &cell.symbol.bright_green()),
+            Color::Green => write!(&mut view, "{}", &cell.symbol.green()),
+            Color::Yellow => write!(&mut view, "{}", &cell.symbol.yellow()),
+            Color::LightYellow => write!(&mut view, "{}", &cell.symbol.bright_yellow()),
+            Color::Magenta => write!(&mut view, "{}", &cell.symbol.magenta()),
+            Color::LightMagenta => {
+                write!(&mut view, "{}", &cell.symbol.bright_magenta())
+            }
+            _ => write!(&mut view, "{}", &cell.symbol),
+        }
+        .unwrap();
+        if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+            writeln!(&mut view).unwrap();
+        }
+    }
+    writeln!(&mut view).unwrap();
+    view
 }
 
-macro_rules! c_str {
-    ($l:tt) => {
-        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr()
-    };
-}
+fn handle_quick_menu(terminal: &mut training_mod_tui::Terminal<training_mod_tui::TestBackend>, mut app: &mut training_mod_tui::App) -> String {
+    let mut json_response = String::new();
+    let frame_res = terminal
+        .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
+        .unwrap();
 
-pub fn render_text_to_screen(s: &str) {
     unsafe {
-        render_text_to_screen_cstr(c_str!(s));
+        set_window_size(1920 / 2, 540);
+        render_text_to_screen(terminal_frame_to_string(&frame_res).as_str());
+    }
+
+    json_response
+}
+
+fn handle_notifications() {
+    unsafe {
+        let mut queue = &mut crate::notifications::QUEUE;
+        let notification = queue.first_mut();
+        if notification.is_none() {
+            set_should_display_text_to_screen(false);
+            return;
+        }
+
+        let notification = notification.unwrap();
+        let message = notification.message();
+        let has_completed = notification.tick();
+        if has_completed {
+            queue.remove(0);
+        }
+
+        let mut app = training_mod_tui::NotificationUiApp::new(message);
+        let backend = training_mod_tui::TestBackend::new(75, 15 / 4);
+        let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
+        let frame_res = terminal.draw(|f| training_mod_tui::notification_ui(f, &mut app)).unwrap();
+
+        set_window_size(1920 / 2, 1080 / 8);
+        render_text_to_screen(terminal_frame_to_string(&frame_res).as_str());
     }
 }
 
 pub unsafe fn quick_menu_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
+        // TODO: remove
+        crate::notifications::new_notification("Hello!! This is a longer test....", 120);
+
         let menu = get_menu();
 
         let mut app = training_mod_tui::App::new(menu);
@@ -358,46 +412,17 @@ pub unsafe fn quick_menu_loop() {
             has_slept_millis = 16;
             if !QUICK_MENU_ACTIVE {
                 app = training_mod_tui::App::new(get_menu());
-                set_should_display_text_to_screen(false);
+                handle_notifications();
                 continue;
             }
+
+            // Don't re-render unless we receive new input
             if !received_input {
                 continue;
             }
-            let mut view = String::new();
+            
+            json_response = handle_quick_menu(&mut terminal, &mut app);
 
-            let frame_res = terminal
-                .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
-                .unwrap();
-
-            use std::fmt::Write;
-            for (i, cell) in frame_res.buffer.content().iter().enumerate() {
-                match cell.fg {
-                    Color::Black => write!(&mut view, "{}", &cell.symbol.black()),
-                    Color::Blue => write!(&mut view, "{}", &cell.symbol.blue()),
-                    Color::LightBlue => write!(&mut view, "{}", &cell.symbol.bright_blue()),
-                    Color::Cyan => write!(&mut view, "{}", &cell.symbol.cyan()),
-                    Color::LightCyan => write!(&mut view, "{}", &cell.symbol.cyan()),
-                    Color::Red => write!(&mut view, "{}", &cell.symbol.red()),
-                    Color::LightRed => write!(&mut view, "{}", &cell.symbol.bright_red()),
-                    Color::LightGreen => write!(&mut view, "{}", &cell.symbol.bright_green()),
-                    Color::Green => write!(&mut view, "{}", &cell.symbol.green()),
-                    Color::Yellow => write!(&mut view, "{}", &cell.symbol.yellow()),
-                    Color::LightYellow => write!(&mut view, "{}", &cell.symbol.bright_yellow()),
-                    Color::Magenta => write!(&mut view, "{}", &cell.symbol.magenta()),
-                    Color::LightMagenta => {
-                        write!(&mut view, "{}", &cell.symbol.bright_magenta())
-                    }
-                    _ => write!(&mut view, "{}", &cell.symbol),
-                }
-                .unwrap();
-                if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
-                    writeln!(&mut view).unwrap();
-                }
-            }
-            writeln!(&mut view).unwrap();
-
-            render_text_to_screen(view.as_str());
             received_input = false;
         }
     }

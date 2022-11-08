@@ -2,6 +2,7 @@ pub mod button_config;
 pub mod consts;
 pub mod events;
 pub mod menu;
+pub mod notifications;
 pub mod raygun_printer;
 pub mod release;
 
@@ -16,6 +17,29 @@ pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut ITEM_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
+
+extern "C" {
+    #[link_name = "render_text_to_screen"]
+    pub fn render_text_to_screen_cstr(str: *const skyline::libc::c_char);
+
+    #[link_name = "set_window_size"]
+    pub fn set_window_size(width: u32, height: u32);
+
+    #[link_name = "set_should_display_text_to_screen"]
+    pub fn set_should_display_text_to_screen(toggle: bool);
+}
+
+macro_rules! c_str {
+    ($l:tt) => {
+        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr()
+    };
+}
+
+pub fn render_text_to_screen(s: &str) {
+    unsafe {
+        render_text_to_screen_cstr(c_str!(s));
+    }
+}
 
 #[cfg(not(feature = "outside_training_mode"))]
 extern "C" {

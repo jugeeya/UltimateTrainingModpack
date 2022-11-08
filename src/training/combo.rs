@@ -3,6 +3,7 @@ use crate::common::*;
 use crate::training::*;
 
 pub static mut FRAME_ADVANTAGE: i32 = 0;
+static mut FRAME_ADVANTAGE_STR: String = String::new();
 static mut PLAYER_ACTIONABLE: bool = false;
 static mut CPU_ACTIONABLE: bool = false;
 static mut PLAYER_ACTIVE_FRAME: u32 = 0;
@@ -51,7 +52,11 @@ fn update_frame_advantage(
     unsafe {
         FRAME_ADVANTAGE = new_frame_adv;
         if MENU.frame_advantage == consts::OnOff::On {
-            raygun_printer::print_string(&mut *module_accessor, &format!("{}", FRAME_ADVANTAGE));
+            // raygun_printer::print_string(&mut *module_accessor, &format!("{}", FRAME_ADVANTAGE));
+            FRAME_ADVANTAGE_STR = String::new();
+            FRAME_ADVANTAGE_STR.push_str(&format!("Frame Advantage: {}", FRAME_ADVANTAGE));
+            crate::notifications::new_notification(&FRAME_ADVANTAGE_STR, 120);
+
         }
     }
 }

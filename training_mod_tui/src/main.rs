@@ -53,6 +53,24 @@ fn ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// Run with `cargo test -- -nocapture` to view output
+#[test]
+fn notification_ui() -> Result<(), Box<dyn Error>> {
+    let mut app = training_mod_tui::NotificationUiApp::new("Test Message!");
+    let backend = tui::backend::TestBackend::new(75, 15 / 4);
+    let mut terminal = Terminal::new(backend)?;
+    let frame_res = terminal.draw(|f| training_mod_tui::notification_ui(f, &mut app))?;
+    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
+        print!("{}", cell.symbol);
+        if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+            println!();
+        }
+    }
+    println!();
+
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
     let inputs = args.get(1);
