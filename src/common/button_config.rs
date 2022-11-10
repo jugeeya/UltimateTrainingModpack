@@ -7,8 +7,8 @@ use toml;
 lazy_static! {
     // Using the LuaConst names wasn't working for some reason...
     static ref BUTTON_MAPPING: HashMap<&'static str, i32> = HashMap::from([
-        ("ATTACK", 0xE),  // *CONTROL_PAD_BUTTON_ATTACK_RAW
-        ("SPECIAL", 0xF), // *CONTROL_PAD_BUTTON_SPECIAL_RAW
+        ("ATTACK", 1),  // *CONTROL_PAD_BUTTON_ATTACK
+        ("SPECIAL", 2), // *CONTROL_PAD_BUTTON_SPECIAL
         ("SHIELD", 3), // *CONTROL_PAD_BUTTON_GUARD
         ("GRAB", 9), // *CONTROL_PAD_BUTTON_CATCH
         ("JUMP", 2), // *CONTROL_PAD_BUTTON_JUMP
