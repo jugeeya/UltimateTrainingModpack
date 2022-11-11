@@ -9,14 +9,14 @@ pub static mut QUEUE: Vec<Notification<'static>> = vec![];
 #[derive(Copy, Clone)]
 pub struct Notification<'a> {
     message: &'a str,
-    length: u32
+    length: u32,
 }
 
 impl<'a> Notification<'a> {
     pub fn new(msg: &'a str, len: u32) -> Notification {
         Notification {
             message: msg,
-            length: len
+            length: len,
         }
     }
 

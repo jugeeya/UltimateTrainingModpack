@@ -305,7 +305,10 @@ fn terminal_frame_to_string<'a>(frame_res: &'a training_mod_tui::CompletedFrame)
     view
 }
 
-fn handle_quick_menu(terminal: &mut training_mod_tui::Terminal<training_mod_tui::TestBackend>, mut app: &mut training_mod_tui::App) -> String {
+fn handle_quick_menu(
+    terminal: &mut training_mod_tui::Terminal<training_mod_tui::TestBackend>,
+    mut app: &mut training_mod_tui::App,
+) -> String {
     let mut json_response = String::new();
     let frame_res = terminal
         .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
@@ -338,7 +341,9 @@ fn handle_notifications() {
         let mut app = training_mod_tui::NotificationUiApp::new(message);
         let backend = training_mod_tui::TestBackend::new(75, 15 / 4);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
-        let frame_res = terminal.draw(|f| training_mod_tui::notification_ui(f, &mut app)).unwrap();
+        let frame_res = terminal
+            .draw(|f| training_mod_tui::notification_ui(f, &mut app))
+            .unwrap();
 
         set_window_size(1920 / 2, 1080 / 8);
         render_text_to_screen(terminal_frame_to_string(&frame_res).as_str());
@@ -421,7 +426,7 @@ pub unsafe fn quick_menu_loop() {
             if !received_input {
                 continue;
             }
-            
+
             json_response = handle_quick_menu(&mut terminal, &mut app);
 
             received_input = false;
