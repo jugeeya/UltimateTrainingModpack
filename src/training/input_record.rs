@@ -1,9 +1,7 @@
-use smash::app::{BattleObjectModuleAccessor, lua_bind::*, utility};
+use smash::app::{BattleObjectModuleAccessor, lua_bind::*, MODEL_COLOR_TYPE, utility};
 use smash::lib::lua_const::*;
-use smash::phx::{Hash40};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-//use skyline::logging::print_stack_trace;
 use crate::training::input_recording::structures::*;
 use crate::common::consts::{RecordTrigger, FighterId};
 use crate::common::{MENU, get_module_accessor};
@@ -34,6 +32,7 @@ pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
 pub static mut POSSESSION: PossessionState = PossessionState::Player;
 pub static mut LOCKOUT_FRAME: usize = 0;
+pub static mut BUFFER_FRAME: usize = 0;
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; FINAL_RECORD_MAX]> =
@@ -78,44 +77,26 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         }
     }
 
-    // Handle Possession Effects
-    //let highlight_hash = Hash40::new("demon_rage2"); // red faster blink
-    let blue_hash = Hash40::new("cloud_limitbreak"); // blue
-    let purple_hash = Hash40::new("reflet_special_lw_damage"); // red slight blink
-    let red_hash = Hash40::new("demon_rage");
-    let is_red = EffectModule::is_exist_common(module_accessor,red_hash);
-    let is_blue = EffectModule::is_exist_common(module_accessor,blue_hash);
-    let is_purple = EffectModule::is_exist_common(module_accessor,purple_hash);
+    // Handle Possession Coloring
+    let model_color_type = *MODEL_COLOR_TYPE_COLOR_BLEND;
     if entry_id_int == 1 && POSSESSION == Lockout {
-        if !is_blue {
-            EffectModule::req_common(module_accessor,blue_hash,0.0);
-        }
+        set_color_rgb_2(module_accessor,0.0,0.0,1.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
     } else if entry_id_int == 1 && POSSESSION == Standby {
-        if !is_purple {
-            EffectModule::req_common(module_accessor,purple_hash,0.0);
-        }
+        set_color_rgb_2(module_accessor,1.0,0.0,1.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
     } else if entry_id_int == 1 && POSSESSION == Cpu {
-        // if we're controlling the Cpu and we don't have an effect, call the effect
-        if !is_red {
-            EffectModule::req_common(module_accessor,red_hash,0.0);
-        }
-    } else if entry_id_int == 1 && POSSESSION == Player {
-        // Remove effects since we're controlling the player
-        if is_red {
-            EffectModule::remove_common(module_accessor,red_hash);
-        } else if is_blue {
-            EffectModule::remove_common(module_accessor,blue_hash);
-        } else if is_purple {
-            EffectModule::remove_common(module_accessor,purple_hash);
-        }
+        set_color_rgb_2(module_accessor,1.0,0.0,0.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
     }
 }
 
 pub unsafe fn lockout_record() {
     INPUT_RECORD = Pause;
-    //INPUT_RECORD_FRAME = 0;
+    INPUT_RECORD_FRAME = 0;
     POSSESSION = Lockout;
-    LOCKOUT_FRAME = 5;
+    P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
+        *mapped_input = MappedInputs::default();
+    });
+    LOCKOUT_FRAME = 10;
+    BUFFER_FRAME = 0;
 }
 
 pub unsafe fn record() {
@@ -126,11 +107,27 @@ pub unsafe fn record() {
         *mapped_input = MappedInputs::default();
     });
     INPUT_RECORD_FRAME = 0;
+    LOCKOUT_FRAME = 0;
+    BUFFER_FRAME = 0;
 }
 
 pub unsafe fn playback() {
     INPUT_RECORD = Playback;
     INPUT_RECORD_FRAME = 0;
+    BUFFER_FRAME = 0;
+}
+
+pub unsafe fn playback_ledge() {
+    INPUT_RECORD = Playback;
+    INPUT_RECORD_FRAME = 0;
+    BUFFER_FRAME = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
+    // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
+    // Need to buffer 1 less frame for non-lassos
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
+        BUFFER_FRAME -= 1;
+    }
 }
 
 pub unsafe fn stop_playback() {
@@ -163,6 +160,13 @@ unsafe fn handle_final_input_mapping(
     let _ret = original!()(mappings, player_idx, out, controller_struct, arg);
     if player_idx == 0 { // if player 1
         if INPUT_RECORD == Record {
+            // check for standby before starting action:
+            if POSSESSION == Standby && is_end_standby() {
+                // last input made us start an action, so start recording and end standby.
+                INPUT_RECORD_FRAME += 1;
+                POSSESSION = Cpu;
+            }
+
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::default(); // don't control player while recording
             println!("Stored Player Input! Frame: {}",INPUT_RECORD_FRAME);
@@ -175,9 +179,24 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     call_original!(p_data);
     let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
     let controller_no  = (*controller_data).controller_index;
+    if INPUT_RECORD == Pause {
+        if LOCKOUT_FRAME > 0 {
+            LOCKOUT_FRAME -= 1;
+        } else if LOCKOUT_FRAME == 0 {
+            INPUT_RECORD = Record;
+            POSSESSION = Standby;
+        } else {
+            println!("LOCKOUT_FRAME OUT OF BOUNDS");
+        }
+    }
+
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-        println!("Overriding Cpu Player: {}, Frame: {}", controller_no, INPUT_RECORD_FRAME);
-        let saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
+        println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME);
+        let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
+        if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
+            // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
+            saved_mapped_inputs = MappedInputs::default();
+        }
         (*controller_data).buttons = saved_mapped_inputs.buttons;
         (*controller_data).stick_x = (saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32);
         (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
@@ -192,27 +211,38 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         (*controller_data).clamped_lstick_x = clamped_lstick_x;
         (*controller_data).clamped_lstick_y = clamped_lstick_y;
         //println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
-        //let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-        if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 {
+        
+        // Keep counting frames, unless we're in standby waiting for an input, or are buffering an option
+        // When buffering an option, we keep inputting the first frame of input during the buffer window
+        if BUFFER_FRAME > 0 {
+            BUFFER_FRAME -= 1;
+        } else if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 && POSSESSION != Standby {
             INPUT_RECORD_FRAME += 1;
         }
     } 
 }
 
 pub unsafe fn is_playback() -> bool {
-    if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-        true
-    } else {
-        false
-    }
+    INPUT_RECORD == Record || INPUT_RECORD == Playback
 }
 
 pub unsafe fn is_recording() -> bool {
-    if INPUT_RECORD == Record {
-        true
-    } else {
-        false
-    }
+    INPUT_RECORD == Record
+}
+
+pub unsafe fn is_standby() -> bool {
+    POSSESSION == Standby || POSSESSION == Lockout
+}
+
+extern "C" { // TODO: we should be using this from skyline
+    #[link_name = "\u{1}_ZN3app8lua_bind31ModelModule__set_color_rgb_implEPNS_26BattleObjectModuleAccessorEfffNS_16MODEL_COLOR_TYPEE"]
+    pub fn set_color_rgb_2(
+        arg1: *mut BattleObjectModuleAccessor,
+        arg2: f32,
+        arg3: f32,
+        arg4: f32,
+        arg5: i32,
+    );
 }
 
 pub fn init() {

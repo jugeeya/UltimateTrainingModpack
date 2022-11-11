@@ -75,7 +75,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
     let status_kind = StatusModule::situation_kind(module_accessor) as i32;
-    let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 17);
+    let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
     let should_buffer;
     if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH { // For regular ledge grabs, we're in catch and want to buffer on this frame
         should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
@@ -88,9 +88,10 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
     ) {
         // Not able to take any action yet
-        // We buffer playback on frame 17 because then we're on input frame 0 of the array on frame 18, which is skipped, resulting in our first button coming out frame 19
-        if should_buffer_playback && LEDGE_CASE == LedgeOption::RECORD && MENU.record_trigger != RecordTrigger::LEDGE {
-            input_record::playback();
+        // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
+        if should_buffer_playback && LEDGE_CASE == LedgeOption::RECORD && MENU.record_trigger != RecordTrigger::LEDGE && MENU.ledge_delay != LongDelay::empty() {
+            input_record::playback_ledge();
+            return;
         }
         // This check isn't reliable for buffered options in time, so don't return if we need to buffer an option this frame
         if !should_buffer {
@@ -170,8 +171,8 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         // Needs to be a frame earlier for lasso grabs
         let just_lassoed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_WAIT) && current_frame == 17;
         // Begin recording on ledge if this is the recording trigger
-        if (just_grabbed_ledge || just_lassoed_ledge) && MENU.record_trigger == RecordTrigger::LEDGE {
-            input_record::record();
+        if (just_grabbed_ledge || just_lassoed_ledge) && MENU.record_trigger == RecordTrigger::LEDGE && !input_record::is_standby() { // TODO: Make sure we're not in standby/lockout as well
+            input_record::lockout_record();
             return;
         }
         // Behave normally if we're playing back recorded inputs or controlling the cpu

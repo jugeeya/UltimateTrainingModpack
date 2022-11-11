@@ -417,7 +417,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
         // if we're recording on state load, record
         if MENU.record_trigger == RecordTrigger::SAVE_STATE {
-            input_record::record();
+            input_record::lockout_record();
         }
         // otherwise, begin input recording playback if selected
         else if MENU.save_state_playback == OnOff::On {
