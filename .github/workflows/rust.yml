@@ -78,6 +78,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v2
       - name: Prepare zip
+        id: prepare_zip
         env:
           SKYLINE_DIR: atmosphere/contents/01006A800016E000
           SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
@@ -99,6 +100,11 @@ jobs:
           mv static/libtraining_modpack_menu.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_menu.nro
           cp -r static/* ${{env.SMASH_WEB_DIR}}
           zip -r training_modpack_beta.zip atmosphere
+          # Grab latest tag, grab log vs. main, replace newlines with two newlines and a list marker
+          git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...main | sed -z 's/\n/\n\n- /g' > changelog.txt
+          # Initial list marker
+          echo "changelog=- " >> $GITHUB_OUTPUT
+          cat changelog.txt >> $GITHUB_OUTPUT
       - name: Update Release
         uses: meeDamian/github-release@2.0
         with:
@@ -111,14 +117,20 @@ jobs:
           name: beta
           body: >
             Beta built off of the latest code in the repository. 
+
+            ## Changelog
+
+            ${{steps.prepare_zip.outputs.changelog}}
             
 
-            ## Installing on console
+            ## Installation
+
+            ### Installing on console
 
             
             Install the same way you would install a full release.
             
-            ## Installing on Ryujinx 
+            ### Installing on Ryujinx 
             
             
             
