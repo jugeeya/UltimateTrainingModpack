@@ -19,6 +19,7 @@ const MENU_LOCKOUT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub fn init() {
+    notifications::init();
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
         QUICK_MENU_FRAME_COUNTER_INDEX = frame_counter::register_counter();

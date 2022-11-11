@@ -56,7 +56,6 @@ fn update_frame_advantage(
             FRAME_ADVANTAGE_STR = String::new();
             FRAME_ADVANTAGE_STR.push_str(&format!("Frame Advantage: {}", FRAME_ADVANTAGE));
             crate::notifications::new_notification(&FRAME_ADVANTAGE_STR, 120);
-
         }
     }
 }

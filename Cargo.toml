@@ -22,6 +22,7 @@ num = "0.4.0"
 num-derive = "0.3"
 num-traits = "0.2"
 wsl = "0.1.0"
+phf = { version = "0.11.1", features = ["macros"] }
 strum = "0.21.0"
 strum_macros = "0.21.0"
 minreq = { version = "=2.2.1", features = ["https", "json-using-serde"] }
