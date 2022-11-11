@@ -103,8 +103,7 @@ jobs:
           # Grab latest tag, grab log vs. main, replace newlines with two newlines and a list marker
           git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...main | sed -z 's/\n/\n\n- /g' > changelog.txt
           # Initial list marker
-          echo "changelog=- " >> $GITHUB_OUTPUT
-          cat changelog.txt >> $GITHUB_OUTPUT
+          echo "changelog=- $(cat changelog.txt)" >> $GITHUB_OUTPUT
       - name: Update Release
         uses: meeDamian/github-release@2.0
         with:
