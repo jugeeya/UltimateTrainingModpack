@@ -1,8 +1,7 @@
-use std::collections::{VecDeque, HashMap};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use skyline::hooks::{InlineCtx};
-
+use skyline::hooks::InlineCtx;
+use std::collections::{HashMap, VecDeque};
 
 pub static mut QUEUE: Vec<Notification<'static>> = vec![];
 
@@ -46,7 +45,7 @@ pub fn new_notification(msg: &'static str, len: u32) {
     }
 }
 
-use phf::{phf_map};
+use phf::phf_map;
 
 static MSBT_LABEL_REPLACE: phf::Map<&'static str, &'static str> = phf_map! {
     "mel_training_dmg_sum" => "Save State",
@@ -58,8 +57,8 @@ static MSBT_LABEL_REPLACE: phf::Map<&'static str, &'static str> = phf_map! {
 #[skyline::hook(offset = 0x3778bf4, inline)]
 unsafe fn handle_msbt_get_by_label(ctx: &mut InlineCtx) {
     // Label is in SP+0xE0
-    let msbt_label = skyline::from_c_str(
-        (ctx as *const InlineCtx as *const u8).add(0x100).add(0xE0));
+    let msbt_label =
+        skyline::from_c_str((ctx as *const InlineCtx as *const u8).add(0x100).add(0xE0));
 
     println!("MSBT Label: {msbt_label}");
     if MSBT_LABEL_REPLACE.contains_key(&msbt_label) {
@@ -76,13 +75,13 @@ unsafe fn handle_msbt_get_by_label(ctx: &mut InlineCtx) {
 unsafe fn handle_msbt_get_by_label_with_arguments(ctx: &mut InlineCtx) {
     let msbt_label = skyline::from_c_str(*ctx.registers[22].x.as_ref() as *const u8);
     let frame_advantage = format!("{}", crate::training::combo::FRAME_ADVANTAGE);
-    let new_text = match msbt_label.as_str()  {
+    let new_text = match msbt_label.as_str() {
         "mel_training_dmg_sum_n" => Some("I used to be Total Damage!"),
         "mel_training_dmg_sum_decimal_n" => Some(""),
         "mel_training_hit_n" => Some("I used to be Combo!"),
         "mel_training_dmg_n" => Some(frame_advantage.as_str()),
         "mel_training_dmg_decimal_n" => Some(""),
-        _ => None
+        _ => None,
     };
 
     if let Some(text) = new_text {
@@ -98,7 +97,6 @@ unsafe fn handle_msbt_get_by_label_with_arguments(ctx: &mut InlineCtx) {
         *ctx.registers[2].w.as_mut() = bytes.len() as u32;
     }
 }
-
 
 pub fn init() {
     skyline::install_hooks!(
