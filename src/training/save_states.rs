@@ -18,6 +18,11 @@ use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use training_mod_consts::{CharacterItem, SaveDamage};
 
+extern "C" {
+    #[link_name = "\u{1}_ZN3app14sv_information8stage_idEv"]
+    pub fn stage_id() -> i32;
+}
+
 #[derive(PartialEq)]
 enum SaveState {
     Save,
@@ -151,6 +156,17 @@ pub unsafe fn get_param_int(
     }
 
     None
+}
+
+fn get_stage_offset(stage_id: i32) -> f32{
+    let stage_offset = match stage_id {
+        StageID::Animal_Village => 1.195,
+        StageID::Animal_City => 1.448,
+        StageID::Yoshi_Island => -1.053,
+        _ => 0.0
+    };
+
+    return stage_offset;
 }
 
 fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32) {
@@ -325,7 +341,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         KineticModule::clear_speed_all(module_accessor);
 
         let pos = Vector3f {
-            x: MIRROR_STATE * save_state.x,
+            x: MIRROR_STATE * (save_state.x - get_stage_offset(stage_id())),
             y: save_state.y,
             z: 0.0,
         };
