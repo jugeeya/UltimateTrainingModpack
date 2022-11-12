@@ -10,7 +10,7 @@ on:
 jobs:
   clippy_pr:
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:3.0.0-dkp-beta
+    container: jugeeya/cargo-skyline:3.2.0
     steps:
       - uses: actions/checkout@v2
       - name: Setup PATH
@@ -36,17 +36,25 @@ jobs:
     outputs:
       changelog: ${{ steps.build_release.outputs.changelog }}
     container:
-      image: jugeeya/cargo-skyline:3.0.0-dkp-beta
+      image: jugeeya/cargo-skyline:3.2.0
     steps:
       - uses: actions/checkout@v2
       - name: Build release NRO
         id: build_release
         run: |
-          # Grab changelog
+          # Grab changelog for beta description later
           # Grab latest tag, grab log vs. main, replace newlines with two newlines and a list marker
-          git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...main | sed -z 's/\n/\n\n- /g' > changelog.txt
-          # Initial list marker
-          echo "changelog=- $(cat changelog.txt)" >> $GITHUB_OUTPUT
+          changelog="- $(git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...main | sed -z 's/\n/\n\n- /g')"
+          # GH actions hate multiline strings. https://trstringer.com/github-actions-multiline-strings/
+          changelog="${changelog//'%'/'%25'}"
+          changelog="${changelog//$'\n'/'%0A'}"
+          changelog="${changelog//$'\r'/'%0D'}"
+          echo "changelog<<EOF" >> $GITHUB_ENV
+          echo "$changelog" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "::set-output name=changelog::$changelog"
+
+          # Actually build plugin
           PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
         env:
           HOME: /root
@@ -64,7 +72,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     container:
-      image: jugeeya/cargo-skyline:3.0.0-dkp-beta
+      image: jugeeya/cargo-skyline:3.2.0
     steps:
       - uses: actions/checkout@v2
       - name: Build outside_training_mode NRO

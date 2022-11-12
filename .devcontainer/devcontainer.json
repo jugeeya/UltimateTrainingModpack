@@ -2,7 +2,7 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/docker-from-docker
 {
 	"name": "Cargo Skyline",
-	"image": "jugeeya/cargo-skyline:3.0.0-dkp-beta",
+	"image": "jugeeya/cargo-skyline:3.2.0",
 	"mounts": [
 		"source=ultimatetrainingmodpack-bashhistory,target=/commandhistory,type=volume"
 	],
