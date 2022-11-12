@@ -42,17 +42,17 @@ jobs:
       - name: Build release NRO
         id: build_release
         run: |
-          # Grab changelog for beta description later
-          # Grab latest tag, grab log vs. main, replace newlines with two newlines and a list marker
-          changelog="- $(git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...main | sed -z 's/\n/\n\n- /g')"
-          # GH actions hate multiline strings. https://trstringer.com/github-actions-multiline-strings/
-          changelog="${changelog//'%'/'%25'}"
-          changelog="${changelog//$'\n'/'%0A'}"
-          changelog="${changelog//$'\r'/'%0D'}"
-          echo "changelog<<EOF" >> $GITHUB_ENV
-          echo "$changelog" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          echo "::set-output name=changelog::$changelog"
+          # # Grab changelog for beta description later
+          # # Grab latest tag, grab log vs. main, replace newlines with two newlines and a list marker
+          # changelog="- $(git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...main | sed -z 's/\n/\n\n- /g')"
+          # # GH actions hate multiline strings. https://trstringer.com/github-actions-multiline-strings/
+          # changelog="${changelog//'%'/'%25'}"
+          # changelog="${changelog//$'\n'/'%0A'}"
+          # changelog="${changelog//$'\r'/'%0D'}"
+          # echo "changelog<<EOF" >> $GITHUB_ENV
+          # echo "$changelog" >> $GITHUB_ENV
+          # echo "EOF" >> $GITHUB_ENV
+          # echo "::set-output name=changelog::$changelog"
 
           # Actually build plugin
           PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
