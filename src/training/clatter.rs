@@ -8,9 +8,10 @@ use smash::phx::{Hash40, Vector3f};
 
 static mut COUNTER: u32 = 0;
 static mut WAS_IN_CLATTER_FLAG: bool = false;
+static mut CLATTER_STEP: f32 = 8.0;
 
 unsafe fn do_clatter_input(module_accessor: &mut BattleObjectModuleAccessor) {
-    ControlModule::add_clatter_time(module_accessor, -8.0, 0);
+    ControlModule::add_clatter_time(module_accessor, -1.0 * CLATTER_STEP, 0);
     let zeros = Vector3f {
         x: 0.0,
         y: 0.0,
@@ -36,6 +37,8 @@ unsafe fn do_clatter_input(module_accessor: &mut BattleObjectModuleAccessor) {
 }
 
 pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
+    // TODO: handle swallowed and cargo carry statuses.
+    // Look at set_dec_time/set_dec_time_recovery functions
     if !is_training_mode() || !is_operation_cpu(module_accessor) {
         return;
     }
@@ -53,4 +56,36 @@ pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
     if COUNTER == repeat - 1 {
         do_clatter_input(module_accessor);
     }
+}
+
+#[skyline::hook(replace = ControlModule::start_clatter)]
+pub unsafe fn hook_start_clatter(
+    module_accessor: &mut BattleObjectModuleAccessor,
+    initial_clatter_time: f32,
+    auto_recovery_rate: f32,
+    manual_recovery_rate: f32,
+    arg5: i8,
+    arg6: i32,
+    arg7: bool,
+    arg8: bool,
+) -> u64 {
+    // This function is called at the beginning of every clatter situation
+    // Grab the manual recovery rate and set that as the amount to reduce
+    // the clatter time during each simulated input.
+    //
+    // Most of the time this is 8 frames, but could be less depending on
+    // the status (e.g. freeze is 4 frames / input)
+    if is_training_mode() && is_operation_cpu(module_accessor) {
+        CLATTER_STEP = manual_recovery_rate.clone();
+    }
+    original!()(
+        module_accessor,
+        initial_clatter_time,
+        auto_recovery_rate,
+        manual_recovery_rate,
+        arg5,
+        arg6,
+        arg7,
+        arg8,
+    )
 }

@@ -128,7 +128,9 @@ pub unsafe fn get_param_int(
             return Some(0);
         }
         if param_hash == hash40("rebirth_move_frame_trainer") {
-            return Some(0);
+            if is_killing() {
+                return Some(0);
+            }
         }
         if param_hash == hash40("rebirth_wait_frame") {
             return Some(0);
@@ -142,7 +144,9 @@ pub unsafe fn get_param_int(
     }
     if param_type == hash40("param_mball") {
         if param_hash == hash40("change_fly_frame") {
-            return Some(0);
+            if is_killing() {
+                return Some(0);
+            }
         }
     }
 

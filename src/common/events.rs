@@ -1,7 +1,7 @@
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use skyline::libc::c_void;
-use skyline::nn::{account, crypto, oe, time};
+use skyline::nn::{account, oe, time};
 use std::convert::TryInto;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -50,6 +50,11 @@ struct Sha256Hash {
     hash: [u8; 0x20],
 }
 
+extern "C" {
+    #[link_name = "\u{1}_ZN2nn6crypto18GenerateSha256HashEPvmPKvm"]
+    pub fn GenerateSha256Hash(arg1: *mut c_void, arg2: u64, arg3: *const c_void, arg4: u64);
+}
+
 impl Event {
     pub fn new() -> Event {
         let mut device_uuid = Uuid {
@@ -74,7 +79,7 @@ impl Event {
                 account::GetLastOpenedUser(&mut user_uid);
 
                 let mut user_id_hash = Sha256Hash { hash: [0; 0x20] };
-                crypto::GenerateSha256Hash(
+                GenerateSha256Hash(
                     &mut user_id_hash as *mut _ as *mut c_void,
                     0x20 * 8,
                     user_uid.id.as_ptr() as *const c_void,
@@ -93,7 +98,7 @@ impl Event {
                     .unwrap();
 
                 let mut device_id_hash = Sha256Hash { hash: [0; 0x20] };
-                crypto::GenerateSha256Hash(
+                GenerateSha256Hash(
                     &mut device_id_hash as *mut _ as *mut c_void,
                     0x20 * 8,
                     device_uuid.data.as_ptr() as *const c_void,
@@ -121,7 +126,7 @@ impl Event {
                     .try_into()
                     .unwrap();
 
-                crypto::GenerateSha256Hash(
+                GenerateSha256Hash(
                     &mut session_id_hash as *mut _ as *mut c_void,
                     0x20 * 8,
                     session_id_bytes.as_ptr() as *const c_void,
