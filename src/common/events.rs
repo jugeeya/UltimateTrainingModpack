@@ -52,12 +52,7 @@ struct Sha256Hash {
 
 extern "C" {
     #[link_name = "\u{1}_ZN2nn6crypto18GenerateSha256HashEPvmPKvm"]
-    pub fn GenerateSha256Hash(
-        arg1: *mut c_void,
-        arg2: u64,
-        arg3: *const c_void,
-        arg4: u64,
-    );
+    pub fn GenerateSha256Hash(arg1: *mut c_void, arg2: u64, arg3: *const c_void, arg4: u64);
 }
 
 impl Event {
