@@ -17,6 +17,7 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use training_mod_consts::{CharacterItem, SaveDamage};
+use std::collections::HashMap;
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app14sv_information8stage_idEv"]
@@ -159,14 +160,13 @@ pub unsafe fn get_param_int(
 }
 
 fn get_stage_offset(stage_id: i32) -> f32{
-    let stage_offset = match stage_id {
-        StageID::Animal_Village => 1.195,
-        StageID::Animal_City => 1.448,
-        StageID::Yoshi_Island => -1.053,
-        _ => 0.0
-    };
+    let offsetse: HashMap<f32, i32> = HashMap.from([
+        (*StageID::Animal_Village, 1.195),
+        (*StageID::Animal_City, 1.448),
+        (*StageID::Yoshi_Island, -1.053),
+    ]);
 
-    return stage_offset;
+    *offsets.get(&stage_id).unwrap_or(&0.0)
 }
 
 fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32) {
