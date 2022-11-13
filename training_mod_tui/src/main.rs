@@ -53,10 +53,6 @@ fn ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// Temporary for testing fetching stage ID.
-//mod smush_info;
-//use conversions::stage_id_to_stage;
-
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
     let inputs = args.get(1);
