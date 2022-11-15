@@ -1808,7 +1808,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Recording Slot",
         "recording_slot",
         "Recording Slot: Choose which slot to record into",
-        false,
+        true,
     );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>( // TODO: This menu should really be a submenu inside Action menus, probably want to be able to customize for each action
         "Playback Slots",

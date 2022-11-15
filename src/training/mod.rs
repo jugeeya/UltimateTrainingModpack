@@ -484,22 +484,6 @@ pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     }
 }
 
-// TODO: Delete hook when neutral getup sorted
-#[skyline::hook(replace = WorkModule::count_down_int)]
-pub unsafe fn handle_cd_int(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    int_to_cd: i32,
-    dummy: i32,
-) -> u64 {
-    let ori = original!()(module_accessor,int_to_cd,dummy);
-
-    if int_to_cd == *FIGHTER_STATUS_CLIFF_WORK_INT_WAIT_FRAME {
-        println!("CDing! Cliff Wait Frame: {}", WorkModule::get_int(module_accessor,*FIGHTER_STATUS_CLIFF_WORK_INT_WAIT_FRAME));
-    }
-    
-    ori
-}
-
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -582,9 +566,6 @@ pub fn training_mods() {
         handle_effect,
         // Star KO turn off
         handle_star_ko,
-
-        //debug
-        handle_cd_int,
     );
 
     combo::init();

@@ -1,4 +1,4 @@
-use smash::app::{BattleObjectModuleAccessor, lua_bind::*, MODEL_COLOR_TYPE, utility};
+use smash::app::{BattleObjectModuleAccessor, lua_bind::*, utility};
 use smash::lib::lua_const::*;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -27,7 +27,7 @@ use InputRecordState::*;
 use PossessionState::*;
 
 const FINAL_RECORD_MAX: usize = 150; // Maximum length for input recording sequences (capacity)
-pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
+//pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
 pub static mut POSSESSION: PossessionState = PossessionState::Player;
@@ -78,7 +78,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     }
 
     // Handle Possession Coloring
-    let model_color_type = *MODEL_COLOR_TYPE_COLOR_BLEND;
+    //let model_color_type = *MODEL_COLOR_TYPE_COLOR_BLEND;
     if entry_id_int == 1 && POSSESSION == Lockout {
         set_color_rgb_2(module_accessor,0.0,0.0,1.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
     } else if entry_id_int == 1 && POSSESSION == Standby {

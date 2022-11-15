@@ -171,7 +171,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         // Needs to be a frame earlier for lasso grabs
         let just_lassoed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_WAIT) && current_frame == 17;
         // Begin recording on ledge if this is the recording trigger
-        if (just_grabbed_ledge || just_lassoed_ledge) && MENU.record_trigger == RecordTrigger::LEDGE && !input_record::is_standby() { // TODO: Make sure we're not in standby/lockout as well
+        if (just_grabbed_ledge || just_lassoed_ledge) && MENU.record_trigger == RecordTrigger::LEDGE && !input_record::is_standby() {
             input_record::lockout_record();
             return;
         }
