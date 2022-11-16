@@ -340,10 +340,18 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
 
-        let pos = Vector3f {
-            x: MIRROR_STATE * (save_state.x - get_stage_offset(stage_id())),
-            y: save_state.y,
-            z: 0.0,
+        let pos = if MIRROR_STATE == -1.0 {
+            Vector3f {
+                x: MIRROR_STATE * (save_state.x - get_stage_offset(stage_id())),
+                y: save_state.y,
+                z: 0.0,
+            }
+        } else {
+            Vector3f {
+                x: save_state.x,
+                y: save_state.y,
+                z: 0.0,
+            }
         };
         let lr = MIRROR_STATE * save_state.lr;
         PostureModule::set_pos(module_accessor, &pos);
