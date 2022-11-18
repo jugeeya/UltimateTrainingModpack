@@ -46,7 +46,7 @@ unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -
 }
 
 fn update_frame_advantage(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
+    _module_accessor: *mut app::BattleObjectModuleAccessor,
     new_frame_adv: i32,
 ) {
     unsafe {
@@ -56,6 +56,7 @@ fn update_frame_advantage(
             FRAME_ADVANTAGE_STR = String::new();
             FRAME_ADVANTAGE_STR.push_str(&format!("Frame Advantage: {}", FRAME_ADVANTAGE));
             crate::notifications::new_notification(&FRAME_ADVANTAGE_STR, 120);
+            crate::notifications::update_combo_counters();
         }
     }
 }

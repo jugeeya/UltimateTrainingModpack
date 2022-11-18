@@ -24,7 +24,6 @@ use crate::events::{Event, EVENT_QUEUE};
 
 use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
-use std::collections::VecDeque;
 use std::fs;
 
 use crate::menu::quick_menu_loop;

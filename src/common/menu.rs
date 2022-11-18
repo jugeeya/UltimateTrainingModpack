@@ -324,7 +324,7 @@ fn handle_quick_menu(
 
 fn handle_notifications() {
     unsafe {
-        let mut queue = &mut crate::notifications::QUEUE;
+        let queue = &mut crate::notifications::QUEUE;
         let notification = queue.first_mut();
         if notification.is_none() {
             set_should_display_text_to_screen(false);
