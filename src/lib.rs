@@ -54,6 +54,25 @@ macro_rules! c_str {
 
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
+    std::panic::set_hook(Box::new(|info| {
+        let location = info.location().unwrap();
+
+        let msg = match info.payload().downcast_ref::<&'static str>() {
+            Some(s) => *s,
+            None => match info.payload().downcast_ref::<String>() {
+                Some(s) => &s[..],
+                None => "Box<Any>",
+            },
+        };
+
+        let err_msg = format!("thread has panicked at '{}', {}", msg, location);
+        skyline::error::show_error(
+            69,
+            "Skyline plugin has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
+            err_msg.as_str(),
+        );
+    }));
+
     macro_rules! log {
         ($($arg:tt)*) => {
             println!("{}{}", "[Training Modpack] ".green(), format!($($arg)*));

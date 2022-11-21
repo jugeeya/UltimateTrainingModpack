@@ -1,4 +1,5 @@
 use crate::common::button_config;
+use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
@@ -18,7 +19,7 @@ use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use training_mod_consts::CharacterItem;
+use training_mod_consts::{CharacterItem, SaveDamage};
 
 #[derive(PartialEq)]
 enum SaveState {
@@ -130,7 +131,9 @@ pub unsafe fn get_param_int(
             return Some(0);
         }
         if param_hash == hash40("rebirth_move_frame_trainer") {
-            return Some(0);
+            if is_killing() {
+                return Some(0);
+            }
         }
         if param_hash == hash40("rebirth_wait_frame") {
             return Some(0);
@@ -144,7 +147,9 @@ pub unsafe fn get_param_int(
     }
     if param_type == hash40("param_mball") {
         if param_hash == hash40("change_fly_frame") {
-            return Some(0);
+            if is_killing() {
+                return Some(0);
+            }
         }
     }
 
@@ -152,16 +157,6 @@ pub unsafe fn get_param_int(
 }
 
 fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32) {
-    let overwrite_damage;
-
-    unsafe {
-        overwrite_damage = MENU.save_damage == OnOff::On;
-    }
-
-    if !overwrite_damage {
-        return;
-    }
-
     unsafe {
         DamageModule::heal(
             module_accessor,
@@ -270,6 +265,18 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             };
             PostureModule::set_pos(module_accessor, &pos);
 
+            // All articles have ID <= 0x25
+            (0..=0x25).for_each(|article_idx| {
+                if ArticleModule::is_exist(module_accessor, article_idx) {
+                    let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
+                    let article_object_id =
+                        Article::get_battle_object_id(article as *mut app::Article);
+                    ArticleModule::remove_exist_object_id(
+                        module_accessor,
+                        article_object_id as u32,
+                    );
+                }
+            });
             let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
             (0..ItemManager::get_num_of_active_item_all(item_mgr)).for_each(|item_idx| {
                 let item = ItemManager::get_active_item(item_mgr, item_idx);
@@ -370,7 +377,41 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
-            set_damage(module_accessor, save_state.percent);
+            // Set damage of the save state
+            if !is_cpu {
+                match MENU.save_damage_player {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits_player.0 as f32,
+                            MENU.save_damage_limits_player.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
+                }
+            } else {
+                match MENU.save_damage_cpu {
+                    SaveDamage::SAVED => {
+                        set_damage(module_accessor, save_state.percent);
+                    }
+                    SaveDamage::RANDOM => {
+                        // Gen random value
+                        let pct: f32 = get_random_float(
+                            MENU.save_damage_limits_cpu.0 as f32,
+                            MENU.save_damage_limits_cpu.1 as f32,
+                        );
+                        set_damage(module_accessor, pct);
+                    }
+                    SaveDamage::DEFAULT => {}
+                    _ => {}
+                }
+            }
+
             // Set to held item
             if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
                 apply_item(MENU.character_item);
@@ -416,7 +457,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // if we're recording on state load, record
-        if MENU.record_trigger == RecordTrigger::SAVE_STATE {
+        if MENU.record_trigger == RecordTrigger::SaveState {
             input_record::lockout_record();
         }
         // otherwise, begin input recording playback if selected

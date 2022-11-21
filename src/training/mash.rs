@@ -11,9 +11,9 @@ use crate::training::shield;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-const DISTANCE_CLOSE_THRESHOLD: f32 = 10.0;
-const DISTANCE_MID_THRESHOLD: f32 = 50.0;
-const DISTANCE_FAR_THRESHOLD: f32 = 100.0;
+const DISTANCE_CLOSE_THRESHOLD: f32 = 16.0;
+const DISTANCE_MID_THRESHOLD: f32 = 37.0;
+const DISTANCE_FAR_THRESHOLD: f32 = 64.0;
 
 static mut CURRENT_AERIAL: Action = Action::NAIR;
 static mut QUEUE: Vec<Action> = vec![];

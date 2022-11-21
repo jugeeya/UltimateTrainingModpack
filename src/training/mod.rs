@@ -566,6 +566,8 @@ pub fn training_mods() {
         handle_effect,
         // Star KO turn off
         handle_star_ko,
+        // Clatter
+        clatter::hook_start_clatter,
     );
 
     combo::init();
@@ -577,5 +579,6 @@ pub fn training_mods() {
     menu::init();
     buff::init();
     items::init();
+    tech::init();
     input_record::init();
 }

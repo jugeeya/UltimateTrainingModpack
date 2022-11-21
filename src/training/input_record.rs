@@ -58,7 +58,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         // Attack + Dpad Left: Record
         else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
-            && MENU.record_trigger == RecordTrigger::COMMAND
+            && MENU.record_trigger == RecordTrigger::Command
         {
            //crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
            record();

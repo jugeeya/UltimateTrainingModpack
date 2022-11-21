@@ -144,6 +144,8 @@ pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
 }
 
 pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    // TODO: this function can give false positives if the clatter status ends for some reason
+    // other than a mash out (e.g. the fighter was thrown, or was hit hard enough)
     ControlModule::get_clatter_time(module_accessor, 0) > 0.0
 }
 
