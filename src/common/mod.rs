@@ -160,15 +160,15 @@ pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccesso
         *FIGHTER_STATUS_KIND_SWALLOWED_CAPTURE,
         *FIGHTER_STATUS_KIND_CATCHED_AIR_GANON,
         *FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON,
-        *FIGHTER_STATUS_KIND_BIND, // Mewtwo disable
+        *FIGHTER_STATUS_KIND_BIND,        // Mewtwo disable
         *FIGHTER_STATUS_KIND_DAMAGE_SONG, // Jigglypuff sing
         // FIGHTER_STATUS_KIND_DAMAGE_SONG_FALL, // Jigglypuff sing. Not sure when this is called?
         *FIGHTER_STATUS_KIND_BITTEN_WARIO,
         *FIGHTER_STATUS_KIND_CLUNG_DIDDY,
         *FIGHTER_STATUS_KIND_CLUNG_DAMAGE_DIDDY,
         *FIGHTER_STATUS_KIND_ICE,
-        *FIGHTER_STATUS_KIND_CATCHED_REFLET, // Nosferatu
-        *FIGHTER_STATUS_KIND_KAMUI_PIERCE, // Corrin pin
+        *FIGHTER_STATUS_KIND_CATCHED_REFLET,        // Nosferatu
+        *FIGHTER_STATUS_KIND_KAMUI_PIERCE,          // Corrin pin
         *FIGHTER_STATUS_KIND_SWING_GAOGAEN_CATCHED, // Incin sideb
         *FIGHTER_STATUS_KIND_DRAGGED_RIDLEY,
         *FIGHTER_STATUS_KIND_CATCHED_PICKEL_TROLLEY, // Steve minecart
@@ -188,7 +188,8 @@ pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccesso
         *FIGHTER_STATUS_KIND_CAPTURE_NABBIT,
         *FIGHTER_STATUS_KIND_CAPTURE_MASTERCORE,
         *FIGHTER_STATUS_KIND_CAPTURE_WAIT_OCTOPUS,
-    ].contains(&StatusModule::status_kind(module_accessor))
+    ]
+    .contains(&StatusModule::status_kind(module_accessor))
 }
 
 pub unsafe fn is_in_ledgetrump(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
