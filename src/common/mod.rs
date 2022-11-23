@@ -143,9 +143,53 @@ pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
 }
 
 pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    // TODO: this function can give false positives if the clatter status ends for some reason
-    // other than a mash out (e.g. the fighter was thrown, or was hit hard enough)
-    ControlModule::get_clatter_time(module_accessor, 0) > 0.0
+    [
+        *FIGHTER_STATUS_KIND_CAPTURE_PULLED,
+        *FIGHTER_STATUS_KIND_CAPTURE_WAIT,
+        *FIGHTER_STATUS_KIND_CAPTURE_DAMAGE,
+        *FIGHTER_STATUS_KIND_SHOULDERED_DONKEY_START,
+        *FIGHTER_STATUS_KIND_SHOULDERED_DONKEY,
+        *FIGHTER_STATUS_KIND_BURY,
+        *FIGHTER_STATUS_KIND_BURY_WAIT,
+        *FIGHTER_STATUS_KIND_CAPTURE_YOSHI,
+        *FIGHTER_STATUS_KIND_YOSHI_EGG,
+        *FIGHTER_STATUS_KIND_CAPTURE_PULLED_YOSHI,
+        *FIGHTER_STATUS_KIND_CAPTURE_WAIT_YOSHI,
+        *FIGHTER_STATUS_KIND_CAPTURE_DAMAGE_YOSHI,
+        *FIGHTER_STATUS_KIND_SWALLOWED,
+        *FIGHTER_STATUS_KIND_SWALLOWED_CAPTURE,
+        *FIGHTER_STATUS_KIND_CATCHED_AIR_GANON,
+        *FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON,
+        *FIGHTER_STATUS_KIND_BIND,        // Mewtwo disable
+        *FIGHTER_STATUS_KIND_DAMAGE_SONG, // Jigglypuff sing
+        // FIGHTER_STATUS_KIND_DAMAGE_SONG_FALL, // Jigglypuff sing. Not sure when this is called?
+        *FIGHTER_STATUS_KIND_BITTEN_WARIO,
+        *FIGHTER_STATUS_KIND_CLUNG_DIDDY,
+        *FIGHTER_STATUS_KIND_CLUNG_DAMAGE_DIDDY,
+        *FIGHTER_STATUS_KIND_ICE,
+        *FIGHTER_STATUS_KIND_CATCHED_REFLET,        // Nosferatu
+        *FIGHTER_STATUS_KIND_KAMUI_PIERCE,          // Corrin pin
+        *FIGHTER_STATUS_KIND_SWING_GAOGAEN_CATCHED, // Incin sideb
+        *FIGHTER_STATUS_KIND_DRAGGED_RIDLEY,
+        *FIGHTER_STATUS_KIND_CATCHED_PICKEL_TROLLEY, // Steve minecart
+        *FIGHTER_STATUS_KIND_SLEEP,
+        *FIGHTER_STATUS_KIND_FURAFURA,
+        *FIGHTER_STATUS_KIND_GIMMICK_FISH_CAPTURE,
+        *FIGHTER_STATUS_KIND_CAPTURE_MASTERHAND,
+        *FIGHTER_STATUS_KIND_CAPTURE_ITEM,
+        *FIGHTER_STATUS_KIND_CAPTURE_BEETLE,
+        *FIGHTER_STATUS_KIND_CAPTURE_BLACKHOLE,
+        *FIGHTER_STATUS_KIND_CAPTURE_BEITCRANE,
+        *FIGHTER_STATUS_KIND_CAPTURE_KAWASAKI,
+        *FIGHTER_STATUS_KIND_CAPTURE_DRIVER,
+        *FIGHTER_STATUS_KIND_CAPTURE_MIMIKKYU,
+        *FIGHTER_STATUS_KIND_CAPTURE_CLAPTRAP,
+        *FIGHTER_STATUS_KIND_CAPTURE_BOSSGALAGA,
+        *FIGHTER_STATUS_KIND_CAPTURE_NABBIT,
+        *FIGHTER_STATUS_KIND_CAPTURE_MASTERCORE,
+        *FIGHTER_STATUS_KIND_CAPTURE_WAIT_OCTOPUS,
+    ]
+    .contains(&StatusModule::status_kind(module_accessor))
 }
 
 pub unsafe fn is_in_ledgetrump(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
