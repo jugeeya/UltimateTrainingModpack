@@ -24,7 +24,7 @@ num-traits = "0.2"
 wsl = "0.1.0"
 strum = "0.21.0"
 strum_macros = "0.21.0"
-minreq = { version = "=2.2.1", features = ["https", "json-using-serde"] }
+minreq = { version = "2", features = ["https-native", "json-using-serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.5.9"
@@ -32,8 +32,7 @@ training_mod_consts = { path = "training_mod_consts" }
 training_mod_tui = { path = "training_mod_tui" }
 
 [patch.crates-io]
-ring = { git = "https://github.com/skyline-rs/ring", branch = "0.16.20" }
-webpki = { git = "https://github.com/skyline-rs/webpki" }
+native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", branch="switch" }
 
 [profile.dev]
 panic = "abort"
