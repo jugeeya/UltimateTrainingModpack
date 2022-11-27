@@ -231,20 +231,23 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             // (*anim_transform).enabled = false;
 
             // Past the header kind bytes
-            let res_animation_block_data_start = (*anim_transform).res_animation_block as u64 + std::mem::size_of::<ResAnimationBlock>() as u64;
+            let res_animation_block_data_start = (*anim_transform).res_animation_block as u64;
             let res_animation_block = &*(*anim_transform).res_animation_block;
-            let mut anim_cont_offsets = (res_animation_block_data_start + res_animation_block.anim_cont_offsets_offset as u64) as *const ResAnimationContent;
+            let mut anim_cont_offsets = (res_animation_block_data_start + res_animation_block.anim_cont_offsets_offset as u64) as *const u32;
             for anim_cont_idx in 0..res_animation_block.anim_count_count {
-                let name = skyline::try_from_c_str((*anim_cont_offsets).name.as_ptr()).unwrap_or("UNKNOWN".to_string());
+                let anim_cont_offset = *anim_cont_offsets;
+                let res_animation_cont = (res_animation_block_data_start + anim_cont_offset as u64) as *const ResAnimationContent;
+
+                let name = skyline::try_from_c_str((*res_animation_cont).name.as_ptr()).unwrap_or("UNKNOWN".to_string());
                 println!("{layout_name}/animTransform_{anim_idx}/resAnimationContent_{anim_cont_idx}: {}; sizeof ResAnimationBlock: {}; sizeof AnimContOffsets: {}", 
                     name, std::mem::size_of::<ResAnimationBlock>(), std::mem::size_of::<ResAnimationContent>());
-                if true {
+                if name == "UNKNOWN" {
                     println!("Failed to get name of {layout_name}/animTransform_{anim_idx}/resAnimationContent_{anim_cont_idx}");
                     println!("Curr Node:\n{}", HexDump(unsafe { &*(curr as *const u8) }));
                     println!("Anim Transform:\n{}", HexDump(unsafe { &*(anim_transform as *const u8) }));
                     println!("Res Animation Block:\n{}", HexDump(unsafe { &*((*anim_transform).res_animation_block as *const u8) }));
                     println!("Res Animation Block Values:\n{:#X?}", res_animation_block);
-                    println!("Curr Res Animation Content:\n{}", HexDump(unsafe { &*(anim_cont_offsets as *const u8) }));
+                    println!("Curr Res Animation Content:\n{}", HexDump(unsafe { &*(res_animation_cont as *const u8) }));
 
                     skyline::error::show_error(0x70, "Failed to read animation block", "Read println logs for details");
                 }
