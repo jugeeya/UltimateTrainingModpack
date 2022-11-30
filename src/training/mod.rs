@@ -366,6 +366,26 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
     ori
 }
 
+//Copy pasted from Stale moves hooks and changed addresses
+// Set Show Invincibility to On
+static SHOW_INVINCIBILTY_OFFSET: usize = 0x013e8834;
+#[skyline::hook(offset=SHOW_INVINCIBILTY_OFFSET, inline)]
+unsafe fn show_invincibility_handle(ctx: &mut InlineCtx) {
+    let x23 = ctx.registers[23].x.as_mut();
+    let training_structure_address = (*x23 + 0xb58) as *mut u8;
+    *training_structure_address = 1;
+}
+
+// Set Show Invincibility to On in the menu text
+static SHOW_INVINCIBILTY_MENU_OFFSET: usize = 0x013e8830;
+#[skyline::hook(offset=SHOW_INVINCIBILTY_MENU_OFFSET, inline)]
+unsafe fn show_invincibility_menu_handle(ctx: &mut InlineCtx) {
+    // Set the text pointer to where "mel_training_invincible1" is located
+    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x4337fd8)) as u64;
+    let x1 = ctx.registers[1].x.as_mut();
+    *x1 = on_text_ptr;
+}
+
 // Set Stale Moves to On
 static STALE_OFFSET: usize = 0x013e88a4;
 // One instruction after stale moves toggle register is set to 0
@@ -544,6 +564,9 @@ pub fn training_mods() {
         handle_add_limit,
         handle_check_doyle_summon_dispatch,
         handle_req_screen,
+        // Show Invincibility
+        show_invincibility_handle,
+        show_invincibility_menu_handle,
         // Stale Moves
         stale_handle,
         stale_menu_handle,
