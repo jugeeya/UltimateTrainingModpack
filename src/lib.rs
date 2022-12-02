@@ -85,7 +85,7 @@ pub fn main() {
         EVENT_QUEUE.push(Event::smash_open());
     }
 
-    training::ui::install_hooks();
+    training::ui_hacks::install_hooks();
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
