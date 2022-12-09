@@ -397,4 +397,3 @@ To build the entire modpack including supporting files, use the steps in [`full_
 
 ## Prerequisites
 - Stable Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
-- [DEVKITPRO](https://devkitpro.org/wiki/Getting_Started) `switch-dev` installation
