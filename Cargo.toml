@@ -33,7 +33,7 @@ training_mod_tui = { path = "training_mod_tui" }
 native-tls = { version = "0.2.11", features = ["vendored"] }
 
 [patch.crates-io]
-native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", branch="switch" }
+native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", rev = "f202fca"  }
 
 [profile.dev]
 panic = "abort"
