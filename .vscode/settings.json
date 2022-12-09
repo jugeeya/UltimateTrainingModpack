@@ -1,7 +1,8 @@
 {
     "rust-analyzer.checkOnSave.overrideCommand": [
-        "xargo",
-        "clippy",
+        "cargo",
+        "+nightly",
+        "check",
         "--workspace",
         "--message-format=json",
         "--all-features",
@@ -10,9 +11,6 @@
         "clippy::borrow_interior_mutable_const"
     ],
     "rust-analyzer.updates.channel": "nightly",
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
     "prettier.printWidth": 120,
     "prettier.singleQuote": true,
     "prettier.tabWidth": 4

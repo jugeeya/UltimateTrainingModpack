@@ -1,4 +1,7 @@
-use skyline::{hooks::InlineCtx, logging::hex_dump_ptr, logging::HexDump};
+#![allow(dead_code)]
+
+mod resources;
+pub use resources::*;
 
 macro_rules! c_str {
     ($l:tt) => {
@@ -88,7 +91,7 @@ pub struct AnimTransformNode {
 impl AnimTransformNode {
     pub unsafe fn iterate_anim_list(&mut self) {
         let mut curr = self as *mut AnimTransformNode;
-        let mut anim_idx = 0;
+        let mut _anim_idx = 0;
         while !curr.is_null() {
             // Only if valid
             if curr != (*curr).next {
@@ -97,7 +100,7 @@ impl AnimTransformNode {
             }
     
             curr = (*curr).next;
-            anim_idx += 1;
+            _anim_idx += 1;
             if curr == self as *mut AnimTransformNode || curr == (*curr).next {
                 break;
             }
@@ -112,13 +115,13 @@ pub struct AnimTransformList {
 
 
 #[repr(C, align(8))]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Pane {
     vtable: u64,
-    unk_addresses: [u64; 2],
-    parent: *mut Pane,
-    children_list: PaneNode,
-    pos_x: f32,
+    pub link: PaneNode,
+    pub parent: *mut Pane,
+    pub children_list: PaneNode,
+    pub pos_x: f32,
     pub pos_y: f32,
     pos_z: f32,
     rot_x: f32,
@@ -138,7 +141,7 @@ pub struct Pane {
     global_matrix: [[f32; 3]; 4],
     user_matrix: *const u64,
     ext_user_data_list: *const u64,
-    name: [skyline::libc::c_char; 25],
+    pub name: [skyline::libc::c_char; 25],
     user_data: [skyline::libc::c_char; 9],
 }
 
@@ -166,6 +169,10 @@ impl Pane {
         pane_remove_child(self, child as *const Pane);
     }
 
+    pub unsafe fn append_child(&self, child: &Pane) {
+        pane_append_child(self, child as *const Pane);
+    }
+
     pub unsafe fn as_parts(&mut self) -> *mut Parts {
         self as *mut Pane as *mut Parts
     }
@@ -178,6 +185,15 @@ pub struct Parts {
     // Some IntrusiveList
     link: PaneNode,
     pub layout: *mut Layout,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct Picture {
+    pub pane: Pane,
+    material: *mut u8,
+    vertex_colors: [[u8; 4]; 4],
+    shared_memory: *mut u8,
 }
 
 #[repr(C)]
@@ -199,10 +215,10 @@ pub struct RawLayout {
     pub layout_name: *const skyline::libc::c_char,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct PaneNode {
-    prev: *mut PaneNode,
-    next: *mut PaneNode,
+    pub prev: *mut PaneNode,
+    pub next: *mut PaneNode,
 }
 
 #[repr(C)]
@@ -239,6 +255,9 @@ pub unsafe fn pane_set_text_string(pane: *const Pane, s: *const skyline::libc::c
 
 #[skyline::from_offset(0x58290)]
 pub unsafe fn pane_remove_child(pane: *const Pane, child: *const Pane);
+
+#[skyline::from_offset(0x58250)]
+pub unsafe fn pane_append_child(pane: *const Pane, child: *const Pane);
 
 pub unsafe fn get_typeinfo_name(cls_vtable: u64) -> String {
     let typeinfo_ptr_addr = (cls_vtable - 8) as *const u64;
