@@ -6,6 +6,24 @@ pub struct ResVec2 {
     y: f32
 }
 
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResVec3 {
+    x: f32,
+    y: f32,
+    z: f32
+}
+
+impl ResVec3 {
+    pub fn default() -> ResVec3 {
+        ResVec3 { x: 0.0, y: 0.0, z: 0.0 }
+    }
+
+    pub fn new(x: f32, y: f32, z: f32) -> ResVec3 {
+        ResVec3 { x, y, z }
+    }
+}
+
 // Maybe needs a vtable.
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -27,9 +45,7 @@ pub struct ResPane {
     flag_ex: u8,
     pub name: [skyline::libc::c_char; 24],
     pub user_data: [skyline::libc::c_char; 8],
-    pub pos_x: f32,
-    pub pos_y: f32,
-    pos_z: f32,
+    pub pos: ResVec3,
     rot_x: f32,
     rot_y: f32,
     rot_z: f32,
@@ -52,9 +68,7 @@ impl ResPane {
             flag_ex: 0,
             name: [0; 24],
             user_data: [0; 8],
-            pos_x: 0.0,
-            pos_y: 0.0,
-            pos_z: 0.0,
+            pos: ResVec3{x: 0.0, y: 0.0, z: 0.0},
             rot_x: 0.0,
             rot_y: 0.0,
             rot_z: 0.0,
@@ -63,10 +77,23 @@ impl ResPane {
             size_x: 30.0,
             size_y: 40.0,
         };
-        unsafe {
-            std::ptr::copy_nonoverlapping(name.as_ptr(), pane.name.as_mut_ptr(), name.len());
-        }
+        pane.set_name(name);
         pane
+    }
+
+    pub fn set_name(&mut self, name: &str) {
+        assert!(name.len() <= 24, "Name of pane must be at most 24 characters");
+        unsafe {
+            std::ptr::copy_nonoverlapping(name.as_ptr(), self.name.as_mut_ptr(), name.len());
+        }
+    }
+
+    pub fn set_pos(&mut self, pos: ResVec3) {
+        self.pos = pos;
+    }
+
+    pub fn name_matches(&self, other: &str) -> bool {
+        self.name.iter().take_while(|b| **b != 0).map(|b| *b as char).collect::<String>() == other
     }
 }
 
