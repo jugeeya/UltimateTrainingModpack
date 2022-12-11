@@ -77,8 +77,6 @@ pub unsafe fn handle_find_animation_by_name(
         if !ret.is_null() {
             ret.as_mut().unwrap().parse_anim_transform();
         }
-
-        println!("get_pane_animation(changedig) -> {:#x?}", ret);
     }
 
     ret
@@ -103,17 +101,36 @@ pub unsafe fn layout_build_parts_impl(
     let kind_str : String = kind.to_le_bytes().map(|b| b as char).iter().collect();
     let block = data as *mut ResTextBox;
     if (*block).pane.name[0..=13].eq("set_txt_num_01".as_bytes()) {
-        println!("Found set_txt_num_01!");
         let mut new_block = (*block).clone();
         new_block.pane.name[0] = b'Q' as u8;
-        new_block.pane.pos_x -= 600.0;
+        new_block.pane.pos_x -= 300.0;
         let new_pane = original!()(
             layout, out_build_result_information, device, &mut new_block as *mut ResTextBox as *mut u8, parts_build_data_set, build_arg_set, build_res_set, kind);    
-        println!("New Pane: {:#?}", *new_pane);
         (*new_pane).set_text_string("New Pane?");
     }
-    if kind_str == "txt1" {
-        (*block).textBoxFlag = 0x4;
+
+    let block = data as *mut ResPicture;
+    if (*block).pane.name[0..=13].eq("pic_numbase_01".as_bytes()) {
+        let block = block as *mut ResPictureWithTex::<1>;
+        let mut new_block = (*block).clone();
+        new_block.picture.pane.name[0] = b'Q' as u8;
+        new_block.picture.pane.pos_x -= 300.0;
+        let new_pane = original!()(
+            layout, out_build_result_information, device, &mut new_block as *mut ResPictureWithTex::<1> as *mut u8, parts_build_data_set, build_arg_set, build_res_set, kind);
+        (*(*new_pane).parent).remove_child(&*new_pane);
+        let root_pane = (*layout).raw_layout.root_pane;
+        let disp_pane = (*root_pane).find_pane_by_name("trMod_disp_1", false);
+        if let Some(disp_pane) = disp_pane {
+            (*disp_pane).append_child(&*new_pane);
+        } else {
+            let null_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
+            let mut null_pane_block = ResPane::new("trMod_disp_1");
+            let disp_pane = original!()(
+                layout, out_build_result_information, device, &mut null_pane_block as *mut ResPane as *mut u8, parts_build_data_set, build_arg_set, build_res_set, null_pane_kind);
+            (*(*disp_pane).parent).remove_child(&*disp_pane);
+            (*root_pane).append_child(&*disp_pane);
+            (*disp_pane).append_child(&*new_pane);
+        }
     }
     let pane = original!()(
         layout, out_build_result_information, device, data, parts_build_data_set, build_arg_set, build_res_set, kind);
@@ -121,9 +138,9 @@ pub unsafe fn layout_build_parts_impl(
     if layout_name == "info_training" {
         let pane_name = skyline::from_c_str(&(*pane).name as *const u8);
 
-        if kind_str == "txt1" && ["set_txt_num_01", "T_text"].contains(&pane_name.as_str()) {
+        if ["numbers_01"].contains(&pane_name.as_str()) {
             println!("Layout BuildPartsImpl(Layout: {layout_name}, Kind: {kind_str}) -> Pane: {pane_name}\n");
-            println!("{:#X?}", *block);
+            println!("{:#X?}", *(block as *mut ResPane));
         }
     }
 
