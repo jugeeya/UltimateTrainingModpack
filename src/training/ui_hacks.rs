@@ -10,8 +10,10 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
     if layout_name == "info_training" {
         for s in ["txt_cap_00", "set_txt_num_00", "set_txt_num_01"] {
-            let txt_pane = layout_root_pane.find_pane_by_name_recursive(s).unwrap();
-            txt_pane.set_text_string("Hello!");
+            let txt_pane = layout_root_pane.find_pane_by_name_recursive(s);
+            if let Some(txt_pane) = txt_pane {
+                txt_pane.set_text_string("Hello!");
+            }
         }
 
         if let Some(parent_pane) = layout_root_pane.find_pane_by_name_recursive("N_null") {
@@ -97,41 +99,64 @@ pub unsafe fn layout_build_parts_impl(
     kind: u32
 ) -> *mut Pane {
     let layout_name = skyline::from_c_str((*layout).raw_layout.layout_name);
-    
     let kind_str : String = kind.to_le_bytes().map(|b| b as char).iter().collect();
-    let block = data as *mut ResTextBox;
-    if (*block).pane.name[0..=13].eq("set_txt_num_01".as_bytes()) {
-        let mut new_block = (*block).clone();
-        new_block.pane.name[0] = b'Q' as u8;
-        new_block.pane.pos_x -= 300.0;
-        let new_pane = original!()(
-            layout, out_build_result_information, device, &mut new_block as *mut ResTextBox as *mut u8, parts_build_data_set, build_arg_set, build_res_set, kind);    
-        (*new_pane).set_text_string("New Pane?");
-    }
-
-    let block = data as *mut ResPicture;
-    if (*block).pane.name[0..=13].eq("pic_numbase_01".as_bytes()) {
-        let block = block as *mut ResPictureWithTex::<1>;
-        let mut new_block = (*block).clone();
-        new_block.picture.pane.name[0] = b'Q' as u8;
-        new_block.picture.pane.pos_x -= 300.0;
-        let new_pane = original!()(
-            layout, out_build_result_information, device, &mut new_block as *mut ResPictureWithTex::<1> as *mut u8, parts_build_data_set, build_arg_set, build_res_set, kind);
-        (*(*new_pane).parent).remove_child(&*new_pane);
+    
+    if layout_name == "info_training" {
         let root_pane = (*layout).raw_layout.root_pane;
-        let disp_pane = (*root_pane).find_pane_by_name("trMod_disp_1", false);
-        if let Some(disp_pane) = disp_pane {
-            (*disp_pane).append_child(&*new_pane);
-        } else {
-            let null_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
-            let mut null_pane_block = ResPane::new("trMod_disp_1");
-            let disp_pane = original!()(
-                layout, out_build_result_information, device, &mut null_pane_block as *mut ResPane as *mut u8, parts_build_data_set, build_arg_set, build_res_set, null_pane_kind);
-            (*(*disp_pane).parent).remove_child(&*disp_pane);
-            (*root_pane).append_child(&*disp_pane);
-            (*disp_pane).append_child(&*new_pane);
+
+        let block = data as *mut ResPicture;
+        if (*block).pane.name[0..=13].eq("pic_numbase_01".as_bytes()) {
+            let block = block as *mut ResPictureWithTex::<1>;
+            let mut pic_block = (*block).clone();
+            pic_block.picture.pane.name[0] = b'Q' as u8;
+            pic_block.picture.pane.pos_x -= 300.0;
+            let pic_pane = original!()(
+                layout, out_build_result_information, device, &mut pic_block as *mut ResPictureWithTex::<1> as *mut u8, parts_build_data_set, build_arg_set, build_res_set, kind);
+            (*(*pic_pane).parent).remove_child(&*pic_pane);
+
+            let disp_pane = (*root_pane).find_pane_by_name("trMod_disp_1", true);
+            if let Some(disp_pane) = disp_pane {
+                (*disp_pane).append_child(&*pic_pane);
+            } else {
+                let disp_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
+                let mut disp_pane_block = ResPane::new("trMod_disp_1");
+                let disp_pane = original!()(
+                    layout, out_build_result_information, device, &mut disp_pane_block as *mut ResPane as *mut u8, parts_build_data_set, build_arg_set, build_res_set, disp_pane_kind);
+                (*(*disp_pane).parent).remove_child(&*disp_pane);
+                (*root_pane).append_child(&*disp_pane);
+                (*disp_pane).append_child(&*pic_pane);
+            };
+        }
+
+        let block = data as *mut ResTextBox;
+        if (*block).pane.name[0..=13].eq("set_txt_num_01".as_bytes()) {
+            let disp_pane = (*root_pane).find_pane_by_name("trMod_disp_1", true).unwrap();
+
+            let mut text_block = (*block).clone();
+            text_block.pane.name[0] = b'Q' as u8;
+            text_block.pane.pos_x -= 300.0;
+            let text_pane = original!()(
+                layout, out_build_result_information, device, &mut text_block as *mut ResTextBox as *mut u8, parts_build_data_set, build_arg_set, build_res_set, kind);    
+            (*text_pane).set_text_string("New Pane!");
+            (*(*text_pane).parent).remove_child(&*text_pane);
+            (*disp_pane).append_child(&*text_pane);
+        }
+
+        let block = data as *mut ResTextBox;
+        if (*block).pane.name[0..=9].eq("txt_cap_01".as_bytes()) {
+            let disp_pane = (*root_pane).find_pane_by_name("trMod_disp_1", true).unwrap();
+
+            let mut header_block = (*block).clone();
+            header_block.pane.name[0] = b'Q' as u8;
+            header_block.pane.pos_x -= 300.0;
+            let header_pane = original!()(
+                layout, out_build_result_information, device, &mut header_block as *mut ResTextBox as *mut u8, parts_build_data_set, build_arg_set, build_res_set, kind);    
+            (*header_pane).set_text_string("New Header");
+            (*(*header_pane).parent).remove_child(&*header_pane);
+            (*disp_pane).append_child(&*header_pane);
         }
     }
+    
     let pane = original!()(
         layout, out_build_result_information, device, data, parts_build_data_set, build_arg_set, build_res_set, kind);
 
@@ -140,12 +165,12 @@ pub unsafe fn layout_build_parts_impl(
 
         if ["numbers_01"].contains(&pane_name.as_str()) {
             println!("Layout BuildPartsImpl(Layout: {layout_name}, Kind: {kind_str}) -> Pane: {pane_name}\n");
-            println!("{:#X?}", *(block as *mut ResPane));
         }
     }
 
     pane
 }
+
 
 #[skyline::hook(offset = 0x47db0, inline)]
 pub unsafe fn layout_build_pane_obj(ctx: &mut InlineCtx) {
