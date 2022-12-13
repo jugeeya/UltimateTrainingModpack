@@ -20,14 +20,12 @@ pub fn init() {
 }
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_is_enable_passive)]
-pub unsafe fn mod_is_enable_passive(
-    fighter: &mut L2CFighterCommon,
-) -> L2CValue {
+pub unsafe fn mod_is_enable_passive(fighter: &mut L2CFighterCommon) -> L2CValue {
     let ori = original!()(fighter);
     let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     if is_training_mode() && is_operation_cpu(module_accessor) {
-            CAN_TECH = ori.get_bool();
-        }
+        CAN_TECH = ori.get_bool();
+    }
     ori
 }
 
@@ -96,8 +94,7 @@ unsafe fn handle_grnd_tech(
     let can_tech = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
-    )
-        && (second_prev_status != FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON)
+    ) && (second_prev_status != FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON)
         && CAN_TECH;
 
     if !can_tech {
