@@ -326,6 +326,22 @@ fn needs_oos_handling_drop_shield() -> bool {
         return true;
     }
 
+    // Make sure we only flicker shield when Airdodge and Shield mash options are selected
+    if action == Action::AIR_DODGE {
+        return true;
+    }
+    
+    if action == Action::SHIELD {
+        let shield_state;
+        unsafe {
+            shield_state = &MENU.shield_state;
+        }
+        // Don't drop shield on shield hit if we're supposed to be holding shield
+        if ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+            return false;
+        }
+        return true;
+    }
     false
 }
 

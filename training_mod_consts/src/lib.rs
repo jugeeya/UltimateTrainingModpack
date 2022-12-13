@@ -189,7 +189,7 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
         const WAIT = 0x10;
-        const RECORD = 0x20;
+        //const RECORD = 0x20;
     }
 }
 
@@ -203,7 +203,7 @@ impl LedgeOption {
                 LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
                 LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
-                LedgeOption::RECORD => *FIGHTER_STATUS_KIND_NONE,
+                //LedgeOption::RECORD => *FIGHTER_STATUS_KIND_NONE,
                 _ => return None,
             })
         }
@@ -219,7 +219,7 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
-            LedgeOption::RECORD => "Playback",
+            //LedgeOption::RECORD => "Playback",
             _ => return None,
         })
     }
@@ -1171,6 +1171,7 @@ impl_serde_for_bitflags!(PlaybackSlot);
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
 pub enum RecordTrigger {
+    None = 0,
     Command = 0x1,
     SaveState = 0x2,
     Ledge = 0x4,
@@ -1179,6 +1180,7 @@ pub enum RecordTrigger {
 impl RecordTrigger {
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
+            RecordTrigger::None => "None",
             RecordTrigger::Command => "Button Combination",
             RecordTrigger::SaveState => "Save State Load",
             RecordTrigger::Ledge => "Ledge Grab",
@@ -1401,7 +1403,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     recording_slot: RecordSlot::S1, // TODO: this is not being set up correctly and is empty on setup
     playback_slot: PlaybackSlot::S1,
     playback_mash: OnOff::On,
-    record_trigger: RecordTrigger::Command,
+    record_trigger: RecordTrigger::None, //Command?
     // TODO: alphabetize
 };
 
@@ -1951,7 +1953,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     
     overall_menu.tabs.push(override_tab);
 
-    let mut input_tab = Tab {
+    /*let mut input_tab = Tab {
         tab_id: "input",
         tab_title: "Input Recording",
         tab_submenus: Vec::new(),
@@ -1991,7 +1993,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         true,
         &(MENU.record_trigger as u32),
     );
-    overall_menu.tabs.push(input_tab);
+    overall_menu.tabs.push(input_tab);*/
 
     overall_menu
 }

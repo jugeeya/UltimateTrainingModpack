@@ -74,14 +74,19 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let flag_cliff =
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
-    let status_kind = StatusModule::situation_kind(module_accessor) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor) as i32;
     let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
     let should_buffer;
-    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH { // For regular ledge grabs, we're in catch and want to buffer on this frame
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+
+    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT && prev_status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH { // For regular ledge grabs, we were just in catch and want to buffer on this frame
         should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
-    } else { // otherwise we're in lasso, so we want to change this frame
+    } else if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT { // otherwise we're in "wait" from grabbing with lasso, so we want to buffer on frame
         should_buffer = (LEDGE_DELAY == 0) && (current_frame == 18) && (flag_cliff);
+    } else {
+        should_buffer = false;
     }
+    println!("Status: {}, Frame: {}, flag_cliff: {}, buffer: {}",status_kind,current_frame,flag_cliff, should_buffer);
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
@@ -89,7 +94,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     ) {
         // Not able to take any action yet
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
-        if should_buffer_playback && LEDGE_CASE == LedgeOption::RECORD && MENU.record_trigger != RecordTrigger::Ledge && MENU.ledge_delay != LongDelay::empty() {
+        if false { //should_buffer_playback && LEDGE_CASE == LedgeOption::RECORD && MENU.record_trigger != RecordTrigger::Ledge && MENU.ledge_delay != LongDelay::empty() {
             input_record::playback_ledge();
             return;
         }
@@ -111,7 +116,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
     let status = LEDGE_CASE.into_status().unwrap_or(0);
 
-    if LEDGE_CASE == LedgeOption::RECORD {
+    if false { //LEDGE_CASE == LedgeOption::RECORD {
         if MENU.record_trigger != RecordTrigger::Ledge {
             input_record::playback();
         }
