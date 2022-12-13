@@ -197,12 +197,93 @@ pub struct Picture {
 }
 
 #[repr(C)]
-#[derive(Debug)]
-pub struct LayoutPane {
-    layout_pane_ui2d: *mut Pane,
-    picture: u64,
-    sub_layout_pane_user_data_unk: u64,
-    sub_layout_pane: *mut LayoutPane,
+#[derive(Debug, Copy, Clone)]
+pub struct TextBoxBits {
+    textAlignment_x: u8,
+    textAlignment_y: u8,
+    isPTDirty: u8,
+    shadowEnabled: u8,
+    invisibleBorderEnabled: bool,
+    doubleDrawnBorderEnabled: bool,
+    widthLimitEnabled: bool,
+    perCharacterTransformEnabled: bool,
+    centerCeilingEnabled: bool,
+    perCharacterTransformSplitByCharWidth: bool,
+    perCharacterTransformAutoShadowAlpha: bool,
+    drawFromRightToLeft : bool,
+    perCharacterTransformOriginToCenter : bool,
+    perCharacterTransformFixSpace: bool,
+    linefeedByCharacterHeightEnabled : bool,
+    perCharacterTransformSplitByCharWidthInsertSpaceEnabled: bool
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct TextBox {
+    pub pane: Pane,
+    // union
+    // {
+    //     uint16_t* utf16;
+    //     char* utf8;
+    //     void* neutral; // Used when conducting a process common to UTF-16 and UTF-8.
+    // } 
+    m_TextBuf: *const skyline::libc::c_char,
+    m_pTextId: *const skyline::libc::c_char,
+    m_TextColors: [[u8; 4]; 2],
+    m_pFont: *const skyline::libc::c_void,
+    m_FontSize_x: f32,
+    m_FontSize_y: f32,
+    m_LineSpace: f32,
+    m_CharSpace: f32,
+
+    // union
+    // {
+    //     TagProcessor* utf16;
+    //     TagProcessorUtf8* utf8;
+    //     void* neutral; // Used when conducting a process common to UTF-16 and UTF-8.
+    // } m_pTagProcessor;,
+    m_pTagProcessor: *const skyline::libc::c_char,
+
+    m_TextBufLen: u16,
+    m_TextLen: u16,
+
+    m_Bits: TextBoxBits,
+    m_TextPosition: u8,
+
+    m_IsUtf8: bool,
+
+    m_ItalicRatio: f32,
+
+    m_ShadowOffset_x: f32,
+    m_ShadowOffset_y: f32,
+    m_ShadowScale_x: f32,
+    m_ShadowScale_y: f32,
+    m_ShadowTopColor: [u8; 4],
+    m_ShadowBottomColor: [u8; 4],
+    m_ShadowItalicRatio: f32,
+
+    m_pLineWidthOffset: *const skyline::libc::c_void,
+
+    m_pMaterial: *const skyline::libc::c_void,
+    m_pDispStringBuf: *const skyline::libc::c_void,
+
+    m_pPerCharacterTransform: *const skyline::libc::c_void,
+}
+
+impl TextBox {
+    pub fn set_color(&mut self, r: u8, g: u8, b: u8, a: u8) {
+        let input_color = [r, g, b, a];
+        let mut dirty : bool = false;
+        self.m_TextColors.iter_mut()
+            .for_each(|top_or_bottom_color| {
+                if *top_or_bottom_color != input_color {
+                    dirty = true;
+                }
+                *top_or_bottom_color = input_color;
+            });
+
+        if dirty { self.m_Bits.isPTDirty = 1; }
+    }
 }
 
 #[repr(C)]
