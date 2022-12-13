@@ -6,16 +6,29 @@ use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
-use smash::lua2cpp::L2CFighterBase;
+use smash::lua2cpp::{L2CFighterBase, L2CFighterCommon};
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut FRAME_COUNTER: usize = 0;
+static mut CAN_TECH: bool = false;
 
 pub fn init() {
     unsafe {
         FRAME_COUNTER = frame_counter::register_counter();
     }
+}
+
+#[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_is_enable_passive)]
+pub unsafe fn mod_is_enable_passive(
+    fighter: &mut L2CFighterCommon,
+) -> L2CValue {
+    let ori = original!()(fighter);
+    let module_accessor = sv_system::battle_object_module_accessor(fighter.lua_state_agent);
+    if is_training_mode() && is_operation_cpu(module_accessor) {
+            CAN_TECH = ori.get_bool();
+        }
+    ori
 }
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterBase_change_status)]
@@ -83,7 +96,9 @@ unsafe fn handle_grnd_tech(
     let can_tech = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE,
-    ) && (second_prev_status != FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON);
+    )
+        && (second_prev_status != FIGHTER_STATUS_KIND_CATCHED_AIR_FALL_GANON)
+        && CAN_TECH;
 
     if !can_tech {
         return false;
@@ -126,7 +141,7 @@ unsafe fn handle_wall_tech(
     let can_tech = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_WALL,
-    );
+    ) && CAN_TECH;
 
     if ![
         *FIGHTER_STATUS_KIND_STOP_WALL,
@@ -168,7 +183,7 @@ unsafe fn handle_ceil_tech(
     let can_tech = WorkModule::is_enable_transition_term(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_PASSIVE_CEIL,
-    );
+    ) && CAN_TECH;
 
     if ![
         *FIGHTER_STATUS_KIND_STOP_CEIL,
