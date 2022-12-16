@@ -42,7 +42,6 @@ fn nro_main(nro: &NroInfo<'_>) {
             training::shield::handle_sub_guard_cont,
             training::directional_influence::handle_correct_damage_vector_common,
             training::tech::handle_change_status,
-            training::tech::mod_is_enable_passive,
         );
     }
 }
