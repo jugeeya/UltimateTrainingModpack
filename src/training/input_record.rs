@@ -49,7 +49,8 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
     if entry_id_int == 0 && !fighter_is_nana {
         // Attack + Dpad Right: Playback
-        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
+        if false 
+            && ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R) {
             //crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
             playback();
