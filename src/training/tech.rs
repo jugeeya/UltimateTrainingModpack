@@ -1,11 +1,11 @@
 use crate::common::consts::*;
 use crate::common::*;
 use crate::training::{frame_counter, mash};
-use smash::app::{self, BattleObjectModuleAccessor, sv_system, lua_bind::*};
+use smash::app::{self, lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
-use smash::lua2cpp::{L2CFighterBase};
+use smash::lua2cpp::L2CFighterBase;
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();

@@ -245,7 +245,10 @@ pub unsafe fn get_fighter_distance() -> f32 {
 }
 
 // From https://github.com/chrispo-git/ult-s/blob/cc1c3060ed83f6d33f39964e84f9c32c07a17bae/src/controls/util.rs#L106
-pub unsafe fn get_fighter_common_from_accessor(module_accessor: &mut app::BattleObjectModuleAccessor) -> &mut L2CFighterCommon {
-    let lua_module = *(module_accessor as *mut app::BattleObjectModuleAccessor as *mut u64).add(0x190 / 8);
+pub unsafe fn get_fighter_common_from_accessor(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> &mut L2CFighterCommon {
+    let lua_module =
+        *(module_accessor as *mut app::BattleObjectModuleAccessor as *mut u64).add(0x190 / 8);
     &mut *(*((lua_module + 0x1D8) as *mut *mut L2CFighterCommon))
 }
