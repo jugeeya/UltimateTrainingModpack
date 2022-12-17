@@ -266,7 +266,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
                     let article_object_id =
                         Article::get_battle_object_id(article as *mut app::Article);
-                    if fighter_kind != *FIGHTER_KIND_PICKEL || article_idx != 0x5 { // don't remove crafting table
+                    if fighter_kind != *FIGHTER_KIND_PICKEL || article_idx != *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE { // don't remove crafting table
                         ArticleModule::remove_exist_object_id(
                             module_accessor,
                             article_object_id as u32,
