@@ -328,6 +328,7 @@ pub enum MaterialFlags {
 #[repr(C)]
 #[derive(Debug)]
 pub struct Material {
+    vtable: u64,
     m_Colors: MaterialColor,
     // Actually a struct
     m_MemCap: u32,
