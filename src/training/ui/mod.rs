@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use bitfield_struct::bitfield;
+
 mod resources;
 pub use resources::*;
 
@@ -196,13 +198,13 @@ pub struct Picture {
     shared_memory: *mut u8,
 }
 
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[bitfield(u16)]
 pub struct TextBoxBits {
-    textAlignment_x: u8,
-    textAlignment_y: u8,
+    #[bits(2)]
+    textAlignment: u8,
+    #[bits(1)]
     isPTDirty: u8,
-    shadowEnabled: u8,
+    shadowEnabled: bool,
     invisibleBorderEnabled: bool,
     doubleDrawnBorderEnabled: bool,
     widthLimitEnabled: bool,
@@ -264,7 +266,7 @@ pub struct TextBox {
 
     m_pLineWidthOffset: *const skyline::libc::c_void,
 
-    m_pMaterial: *const skyline::libc::c_void,
+    pub m_pMaterial: *mut Material,
     m_pDispStringBuf: *const skyline::libc::c_void,
 
     m_pPerCharacterTransform: *const skyline::libc::c_void,
@@ -282,7 +284,103 @@ impl TextBox {
                 *top_or_bottom_color = input_color;
             });
 
-        if dirty { self.m_Bits.isPTDirty = 1; }
+        if dirty { self.m_Bits.set_isPTDirty(1); }
+    }
+}
+
+#[repr(C)]
+pub union MaterialColor {
+    byteColor: [[u8; 4]; 2],
+    pFloatColor: *mut *mut f32,
+}
+
+use std::fmt;
+impl fmt::Debug for MaterialColor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        unsafe {
+            f.debug_struct("MaterialColor")
+                .field("byteColor", &self.byteColor)
+                .field("pFloatColor", &self.pFloatColor)
+                .finish()
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, PartialEq)]
+pub enum MaterialColorType {
+    BlackColor,
+    WhiteColor
+}
+
+#[repr(C)]
+#[derive(Debug, PartialEq)]
+pub enum MaterialFlags {
+    Flags_UserAllocated,
+    Flags_TextureOnly,
+    Flags_ThresholdingAlphaInterpolation,
+    Flags_BlackColorFloat,
+    Flags_WhiteColorFloat,
+    Flags_DynamicAllocatedColorData,
+}
+
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct Material {
+    m_Colors: MaterialColor,
+    // Actually a struct
+    m_MemCap: u32,
+    // Actually a struct
+    m_MemCount: u32,
+    m_pMem: *mut skyline::libc::c_void,
+    m_pShaderInfo: *const skyline::libc::c_void,
+    m_pName: *const skyline::libc::c_char,
+    m_VertexShaderConstantBufferOffset: u32,
+    m_PixelShaderConstantBufferOffset: u32,
+    m_pUserShaderConstantBufferInformation: *const skyline::libc::c_void,
+    m_pBlendState: *const skyline::libc::c_void,
+    m_PackedValues: u8,
+    m_Flag: u8,
+    m_ShaderVariation: u16
+}
+
+impl Material {
+    pub fn set_color_int(&mut self, idx: usize, r: u8, g: u8, b: u8, a: u8) {
+        let input_color = [r, g, b, a];
+        unsafe {
+            self.m_Colors.byteColor[idx] = input_color;
+        }
+    }
+
+    pub fn set_color_float(&mut self, idx: usize, r: f32, g: f32, b: f32, a: f32) {
+        unsafe {
+            *(*(self.m_Colors.pFloatColor.add(idx)).add(0)) = r;
+            *(*(self.m_Colors.pFloatColor.add(idx)).add(1)) = g;
+            *(*(self.m_Colors.pFloatColor.add(idx)).add(2)) = b;
+            *(*(self.m_Colors.pFloatColor.add(idx)).add(3)) = a;
+        }
+    }
+
+    pub fn set_color(&mut self, color_type: MaterialColorType, r: f32, g: f32, b: f32, a: f32) {
+        let (is_float_flag, idx) = if color_type == MaterialColorType::BlackColor {
+            (MaterialFlags::Flags_BlackColorFloat as u8, 0)
+        } else {
+            (MaterialFlags::Flags_WhiteColorFloat as u8, 1)
+        };
+        if self.m_Flag & (0x1 << is_float_flag) != 0 {
+            self.set_color_float(idx, r, g, b, a);
+        } else {
+            self.set_color_int(idx, r as u8, g as u8, b as u8, a as u8);
+        }
+    }
+
+    pub fn set_white_color(&mut self, r: f32, g: f32, b: f32, a: f32) {
+        self.set_color(MaterialColorType::WhiteColor, r, g, b, a);
+    }
+
+    pub fn set_black_color(&mut self, r: f32, g: f32, b: f32, a: f32) {
+        self.set_color(MaterialColorType::BlackColor, r, g, b, a);
     }
 }
 

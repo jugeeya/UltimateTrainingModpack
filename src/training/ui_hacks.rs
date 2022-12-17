@@ -141,7 +141,9 @@ pub unsafe fn layout_build_parts_impl(
                 kind,
             );
             (*text_pane).set_text_string(format!("Pane {idx}!").as_str());
+            println!("Pane {idx}: {:#?}", *(text_pane as *mut TextBox));
             (*(text_pane as *mut TextBox)).set_color(240 / (idx + 1), 0, (idx + 1) * 60, 255);
+            (*((*(text_pane as *mut TextBox)).m_pMaterial)).set_white_color(240.0 / (idx as f32 + 1.0), 0.0, (idx as f32 + 1.0) * 60.0, 255.0);
             (*(*text_pane).parent).remove_child(&*text_pane);
             (*disp_pane).append_child(&*text_pane);
         }
