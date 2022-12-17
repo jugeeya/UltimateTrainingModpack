@@ -266,10 +266,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
                     let article_object_id =
                         Article::get_battle_object_id(article as *mut app::Article);
-                    ArticleModule::remove_exist_object_id(
-                        module_accessor,
-                        article_object_id as u32,
-                    );
+                    if fighter_kind != *FIGHTER_KIND_PICKEL || article_idx != 0x5 { // don't remove crafting table
+                        ArticleModule::remove_exist_object_id(
+                            module_accessor,
+                            article_object_id as u32,
+                        );
+                    }  
                 }
             });
             let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
