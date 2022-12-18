@@ -105,7 +105,7 @@ pub unsafe fn layout_build_parts_impl(
             // pic is loaded first, we can create our parent pane here.
             let disp_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
             let mut disp_pane_block = ResPane::new(parent_name.as_str());
-            disp_pane_block.set_pos(ResVec3::new(70.0 + (idx as f32 * 250.0), -440.0, 0.0));
+            disp_pane_block.set_pos(ResVec3::new(806.0, 390.0 - (idx as f32 * 110.0), 0.0));
             let disp_pane = original!()(
                 layout,
                 out_build_result_information,
@@ -141,10 +141,10 @@ pub unsafe fn layout_build_parts_impl(
                 kind,
             );
             (*text_pane).set_text_string(format!("Pane {idx}!").as_str());
-            println!("Pane {idx}: {:#?}", *(text_pane as *mut TextBox));
+            // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+            (*((*(text_pane as *mut TextBox)).m_p_material)).set_white_color(255.0, 255.0, 255.0, 255.0);
+            (*((*(text_pane as *mut TextBox)).m_p_material)).set_black_color(0.0, 0.0, 0.0, 255.0);
             (*(text_pane as *mut TextBox)).set_color(240 / (idx + 1), 0, (idx + 1) * 60, 255);
-            (*((*(text_pane as *mut TextBox)).m_pMaterial)).set_white_color(240.0 / (idx as f32 + 1.0), 0.0, (idx as f32 + 1.0) * 60.0, 255.0);
-            println!("Material {idx}: {:#?}", (*((*(text_pane as *mut TextBox)).m_pMaterial)));
             (*(*text_pane).parent).remove_child(&*text_pane);
             (*disp_pane).append_child(&*text_pane);
         }
@@ -169,6 +169,10 @@ pub unsafe fn layout_build_parts_impl(
                 kind,
             );
             (*header_pane).set_text_string(format!("Header {idx}").as_str());
+            // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+            (*((*(header_pane as *mut TextBox)).m_p_material)).set_white_color(255.0, 255.0, 255.0, 255.0);
+            (*((*(header_pane as *mut TextBox)).m_p_material)).set_black_color(0.0, 0.0, 0.0, 255.0);
+            (*(header_pane as *mut TextBox)).set_color(0, 240 / (idx + 1), (idx + 1) * 60, 255);
             (*(*header_pane).parent).remove_child(&*header_pane);
             (*disp_pane).append_child(&*header_pane);
         }

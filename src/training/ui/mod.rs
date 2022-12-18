@@ -201,82 +201,72 @@ pub struct Picture {
 #[bitfield(u16)]
 pub struct TextBoxBits {
     #[bits(2)]
-    textAlignment: u8,
+    text_alignment: u8,
     #[bits(1)]
-    isPTDirty: u8,
-    shadowEnabled: bool,
-    invisibleBorderEnabled: bool,
-    doubleDrawnBorderEnabled: bool,
-    widthLimitEnabled: bool,
-    perCharacterTransformEnabled: bool,
-    centerCeilingEnabled: bool,
-    perCharacterTransformSplitByCharWidth: bool,
-    perCharacterTransformAutoShadowAlpha: bool,
-    drawFromRightToLeft : bool,
-    perCharacterTransformOriginToCenter : bool,
-    perCharacterTransformFixSpace: bool,
-    linefeedByCharacterHeightEnabled : bool,
-    perCharacterTransformSplitByCharWidthInsertSpaceEnabled: bool
+    is_ptdirty: u8,
+    shadow_enabled: bool,
+    invisible_border_enabled: bool,
+    double_drawn_border_enabled: bool,
+    width_limit_enabled: bool,
+    per_character_transform_enabled: bool,
+    center_ceiling_enabled: bool,
+    per_character_transform_split_by_char_width: bool,
+    per_character_transform_auto_shadow_alpha: bool,
+    draw_from_right_to_left : bool,
+    per_character_transform_origin_to_center : bool,
+    per_character_transform_fix_space: bool,
+    linefeed_by_character_height_enabled : bool,
+    per_character_transform_split_by_char_width_insert_space_enabled: bool
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct TextBox {
     pub pane: Pane,
-    // union
-    // {
-    //     uint16_t* utf16;
-    //     char* utf8;
-    //     void* neutral; // Used when conducting a process common to UTF-16 and UTF-8.
-    // } 
-    m_TextBuf: *const skyline::libc::c_char,
-    m_pTextId: *const skyline::libc::c_char,
-    m_TextColors: [[u8; 4]; 2],
-    m_pFont: *const skyline::libc::c_void,
-    m_FontSize_x: f32,
-    m_FontSize_y: f32,
-    m_LineSpace: f32,
-    m_CharSpace: f32,
+    // Actually a union 
+    m_text_buf: *const skyline::libc::c_char,
+    m_p_text_id: *const skyline::libc::c_char,
+    m_text_colors: [[u8; 4]; 2],
+    m_p_font: *const skyline::libc::c_void,
+    m_font_size_x: f32,
+    m_font_size_y: f32,
+    m_line_space: f32,
+    m_char_space: f32,
 
-    // union
-    // {
-    //     TagProcessor* utf16;
-    //     TagProcessorUtf8* utf8;
-    //     void* neutral; // Used when conducting a process common to UTF-16 and UTF-8.
-    // } m_pTagProcessor;,
-    m_pTagProcessor: *const skyline::libc::c_char,
+    // Actually a union
+    m_p_tag_processor: *const skyline::libc::c_char,
 
-    m_TextBufLen: u16,
-    m_TextLen: u16,
+    m_text_buf_len: u16,
+    m_text_len: u16,
 
-    m_Bits: TextBoxBits,
-    m_TextPosition: u8,
+    m_bits: TextBoxBits,
+    m_text_position: u8,
 
-    m_IsUtf8: bool,
+    m_is_utf8: bool,
 
-    m_ItalicRatio: f32,
+    m_italic_ratio: f32,
 
-    m_ShadowOffset_x: f32,
-    m_ShadowOffset_y: f32,
-    m_ShadowScale_x: f32,
-    m_ShadowScale_y: f32,
-    m_ShadowTopColor: [u8; 4],
-    m_ShadowBottomColor: [u8; 4],
-    m_ShadowItalicRatio: f32,
+    m_shadow_offset_x: f32,
+    m_shadow_offset_y: f32,
+    m_shadow_scale_x: f32,
+    m_shadow_scale_y: f32,
+    m_shadow_top_color: [u8; 4],
+    m_shadow_bottom_color: [u8; 4],
+    m_shadow_italic_ratio: f32,
 
-    m_pLineWidthOffset: *const skyline::libc::c_void,
+    m_p_line_width_offset: *const skyline::libc::c_void,
 
-    pub m_pMaterial: *mut Material,
-    m_pDispStringBuf: *const skyline::libc::c_void,
+    pub m_p_material: *mut Material,
+    m_p_disp_string_buf: *const skyline::libc::c_void,
 
-    m_pPerCharacterTransform: *const skyline::libc::c_void,
+    m_p_per_character_transform: *const skyline::libc::c_void,
 }
 
 impl TextBox {
     pub fn set_color(&mut self, r: u8, g: u8, b: u8, a: u8) {
         let input_color = [r, g, b, a];
         let mut dirty : bool = false;
-        self.m_TextColors.iter_mut()
+        self.m_text_colors.iter_mut()
             .for_each(|top_or_bottom_color| {
                 if *top_or_bottom_color != input_color {
                     dirty = true;
@@ -284,14 +274,14 @@ impl TextBox {
                 *top_or_bottom_color = input_color;
             });
 
-        if dirty { self.m_Bits.set_isPTDirty(1); }
+        if dirty { self.m_bits.set_is_ptdirty(1); }
     }
 }
 
 #[repr(C)]
 pub union MaterialColor {
-    byteColor: [[u8; 4]; 2],
-    pFloatColor: *mut *mut f32,
+    byte_color: [[u8; 4]; 2],
+    p_float_color: *mut *mut f32,
 }
 
 use std::fmt;
@@ -299,8 +289,8 @@ impl fmt::Debug for MaterialColor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         unsafe {
             f.debug_struct("MaterialColor")
-                .field("byteColor", &self.byteColor)
-                .field("pFloatColor", &self.pFloatColor)
+                .field("byteColor", &self.byte_color)
+                .field("pFloatColor", &self.p_float_color)
                 .finish()
         }
     }
@@ -316,12 +306,12 @@ pub enum MaterialColorType {
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub enum MaterialFlags {
-    Flags_UserAllocated,
-    Flags_TextureOnly,
-    Flags_ThresholdingAlphaInterpolation,
-    Flags_BlackColorFloat,
-    Flags_WhiteColorFloat,
-    Flags_DynamicAllocatedColorData,
+    FlagsUserAllocated,
+    FlagsTextureOnly,
+    FlagsThresholdingAlphaInterpolation,
+    FlagsBlackColorFloat,
+    FlagsWhiteColorFloat,
+    FlagsDynamicAllocatedColorData,
 }
 
 
@@ -329,47 +319,47 @@ pub enum MaterialFlags {
 #[derive(Debug)]
 pub struct Material {
     vtable: u64,
-    m_Colors: MaterialColor,
+    m_colors: MaterialColor,
     // Actually a struct
-    m_MemCap: u32,
+    m_mem_cap: u32,
     // Actually a struct
-    m_MemCount: u32,
-    m_pMem: *mut skyline::libc::c_void,
-    m_pShaderInfo: *const skyline::libc::c_void,
-    m_pName: *const skyline::libc::c_char,
-    m_VertexShaderConstantBufferOffset: u32,
-    m_PixelShaderConstantBufferOffset: u32,
-    m_pUserShaderConstantBufferInformation: *const skyline::libc::c_void,
-    m_pBlendState: *const skyline::libc::c_void,
-    m_PackedValues: u8,
-    m_Flag: u8,
-    m_ShaderVariation: u16
+    m_mem_count: u32,
+    m_p_mem: *mut skyline::libc::c_void,
+    m_p_shader_info: *const skyline::libc::c_void,
+    m_p_name: *const skyline::libc::c_char,
+    m_vertex_shader_constant_buffer_offset: u32,
+    m_pixel_shader_constant_buffer_offset: u32,
+    m_p_user_shader_constant_buffer_information: *const skyline::libc::c_void,
+    m_p_blend_state: *const skyline::libc::c_void,
+    m_packed_values: u8,
+    m_flag: u8,
+    m_shader_variation: u16
 }
 
 impl Material {
     pub fn set_color_int(&mut self, idx: usize, r: u8, g: u8, b: u8, a: u8) {
         let input_color = [r, g, b, a];
         unsafe {
-            self.m_Colors.byteColor[idx] = input_color;
+            self.m_colors.byte_color[idx] = input_color;
         }
     }
 
     pub fn set_color_float(&mut self, idx: usize, r: f32, g: f32, b: f32, a: f32) {
         unsafe {
-            *(*(self.m_Colors.pFloatColor.add(idx)).add(0)) = r;
-            *(*(self.m_Colors.pFloatColor.add(idx)).add(1)) = g;
-            *(*(self.m_Colors.pFloatColor.add(idx)).add(2)) = b;
-            *(*(self.m_Colors.pFloatColor.add(idx)).add(3)) = a;
+            *(*(self.m_colors.p_float_color.add(idx)).add(0)) = r;
+            *(*(self.m_colors.p_float_color.add(idx)).add(1)) = g;
+            *(*(self.m_colors.p_float_color.add(idx)).add(2)) = b;
+            *(*(self.m_colors.p_float_color.add(idx)).add(3)) = a;
         }
     }
 
     pub fn set_color(&mut self, color_type: MaterialColorType, r: f32, g: f32, b: f32, a: f32) {
         let (is_float_flag, idx) = if color_type == MaterialColorType::BlackColor {
-            (MaterialFlags::Flags_BlackColorFloat as u8, 0)
+            (MaterialFlags::FlagsBlackColorFloat as u8, 0)
         } else {
-            (MaterialFlags::Flags_WhiteColorFloat as u8, 1)
+            (MaterialFlags::FlagsWhiteColorFloat as u8, 1)
         };
-        if self.m_Flag & (0x1 << is_float_flag) != 0 {
+        if self.m_flag & (0x1 << is_float_flag) != 0 {
             self.set_color_float(idx, r, g, b, a);
         } else {
             self.set_color_int(idx, r as u8, g as u8, b as u8, a as u8);
