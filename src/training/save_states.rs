@@ -263,7 +263,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             // All articles have ID <= 0x25
             (0..=0x25)
                 // Don't remove crafting table
-                .filter(|article_idx| !(fighter_kind == *FIGHTER_KIND_PICKEL && *article_idx == *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE))
+                .filter(|article_idx| {
+                    !(fighter_kind == *FIGHTER_KIND_PICKEL
+                        && *article_idx == *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE)
+                })
                 .for_each(|article_idx| {
                     if ArticleModule::is_exist(module_accessor, article_idx) {
                         let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
