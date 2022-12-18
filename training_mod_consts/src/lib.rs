@@ -189,7 +189,7 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
         const WAIT = 0x10;
-        //const RECORD = 0x20;
+        const RECORD = 0x20;
     }
 }
 
@@ -203,7 +203,7 @@ impl LedgeOption {
                 LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
                 LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
-                //LedgeOption::RECORD => *FIGHTER_STATUS_KIND_NONE,
+                LedgeOption::RECORD => *FIGHTER_STATUS_KIND_NONE,
                 _ => return None,
             })
         }
@@ -219,7 +219,7 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
-            //LedgeOption::RECORD => "Playback",
+            LedgeOption::RECORD => "Playback",
             _ => return None,
         })
     }
@@ -1953,7 +1953,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
     
     overall_menu.tabs.push(override_tab);
 
-    /*let mut input_tab = Tab {
+    let mut input_tab = Tab {
         tab_id: "input",
         tab_title: "Input Recording",
         tab_submenus: Vec::new(),
@@ -1993,7 +1993,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         true,
         &(MENU.record_trigger as u32),
     );
-    overall_menu.tabs.push(input_tab);*/
+    overall_menu.tabs.push(input_tab);
 
     overall_menu
 }
