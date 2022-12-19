@@ -1,6 +1,6 @@
 use crate::training::combo::FRAME_ADVANTAGE;
 use crate::training::ui::*;
-use skyline::hooks::InlineCtx;
+use training_mod_consts::OnOff;
 
 #[skyline::hook(offset = 0x4b620)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {
@@ -10,43 +10,35 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     // anim_list.iterate_anim_list();
 
     if layout_name == "info_training" {
-        for s in ["txt_cap_00", "set_txt_num_00", "set_txt_num_01"] {
-            let txt_pane = layout_root_pane.find_pane_by_name_recursive(s);
-            if let Some(txt_pane) = txt_pane {
-                txt_pane.set_text_string("Hello!");
+        if let Some(parent) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_0") {
+            if crate::common::MENU.frame_advantage == OnOff::On {
+                parent.alpha = 255;
+                parent.global_alpha = 255;
+            } else {
+                parent.alpha = 0;
+                parent.global_alpha = 0;
             }
         }
 
-        if let Some(header) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_1_header") {
+        if let Some(header) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_0_header") {
             header.set_text_string("Frame Advantage");
         }
 
-        if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_1_txt") {
+        if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_0_txt") {
             text.set_text_string(format!("{FRAME_ADVANTAGE}").as_str());
+            let text = text as *mut Pane as *mut TextBox;
+            if FRAME_ADVANTAGE < 0 {
+                (*text).set_color(200, 8, 8, 255);
+            } else if FRAME_ADVANTAGE == 0 {
+                (*text).set_color(0, 0, 0, 255);
+            } else {
+                (*text).set_color(31, 198, 0, 255);
+            }
         }
     }
 
     original!()(layout, draw_info, cmd_buffer);
 }
-
-#[skyline::hook(offset = 0x3794e80)]
-pub unsafe fn handle_find_animation_by_name(
-    layout_view: *const u64,
-    s: *const skyline::libc::c_char,
-) -> u64 {
-    let ret = original!()(layout_view, s);
-    if skyline::from_c_str(s) == "changedig" {
-        let ret = ret as *mut AnimTransform;
-        if !ret.is_null() {
-            ret.as_mut().unwrap().parse_anim_transform();
-        }
-    }
-
-    ret
-}
-
-#[skyline::hook(offset = 0x37ac310, inline)]
-pub unsafe fn general_number_formatter(_ctx: &mut InlineCtx) {}
 
 #[skyline::hook(offset = 0x493a0)]
 pub unsafe fn layout_build_parts_impl(
@@ -78,7 +70,8 @@ pub unsafe fn layout_build_parts_impl(
     let root_pane = (*layout).raw_layout.root_pane;
 
     let block = data as *mut ResPane;
-    (0..4).for_each(|idx| {
+    let num_display_panes = 1;
+    (0..num_display_panes).for_each(|idx| {
         let mod_prefix = "trMod_disp_";
         let parent_name = format!("{mod_prefix}{idx}");
         let pic_name = format!("{mod_prefix}{idx}_base");
@@ -144,7 +137,6 @@ pub unsafe fn layout_build_parts_impl(
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             (*((*(text_pane as *mut TextBox)).m_p_material)).set_white_color(255.0, 255.0, 255.0, 255.0);
             (*((*(text_pane as *mut TextBox)).m_p_material)).set_black_color(0.0, 0.0, 0.0, 255.0);
-            (*(text_pane as *mut TextBox)).set_color(240 / (idx + 1), 0, (idx + 1) * 60, 255);
             (*(*text_pane).parent).remove_child(&*text_pane);
             (*disp_pane).append_child(&*text_pane);
         }
@@ -172,7 +164,8 @@ pub unsafe fn layout_build_parts_impl(
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             (*((*(header_pane as *mut TextBox)).m_p_material)).set_white_color(255.0, 255.0, 255.0, 255.0);
             (*((*(header_pane as *mut TextBox)).m_p_material)).set_black_color(0.0, 0.0, 0.0, 255.0);
-            (*(header_pane as *mut TextBox)).set_color(0, 240 / (idx + 1), (idx + 1) * 60, 255);
+            // Header should be white text
+            (*(header_pane as *mut TextBox)).set_color(255, 255, 255, 255);
             (*(*header_pane).parent).remove_child(&*header_pane);
             (*disp_pane).append_child(&*header_pane);
         }
@@ -190,17 +183,9 @@ pub unsafe fn layout_build_parts_impl(
     )
 }
 
-#[skyline::hook(offset = 0x47db0, inline)]
-pub unsafe fn layout_build_pane_obj(ctx: &mut InlineCtx) {
-    println!("Layout BuildPaneObj:\n{}", ctx);
-}
-
 pub fn install_hooks() {
     skyline::install_hooks!(
         handle_draw,
-        handle_find_animation_by_name,
-        general_number_formatter,
         layout_build_parts_impl,
-        layout_build_pane_obj
     );
 }

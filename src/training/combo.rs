@@ -45,14 +45,10 @@ unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -
 }
 
 fn update_frame_advantage(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
     new_frame_adv: i32,
 ) {
     unsafe {
         FRAME_ADVANTAGE = new_frame_adv;
-        if MENU.frame_advantage == consts::OnOff::On {
-            raygun_printer::print_string(&mut *module_accessor, &format!("{}", FRAME_ADVANTAGE));
-        }
     }
 }
 
@@ -87,7 +83,6 @@ pub unsafe fn is_enable_transition_term(
             let cpu_module_accessor = get_module_accessor(FighterId::CPU);
             if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
                 update_frame_advantage(
-                    module_accessor,
                     (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32,
                 );
             }
@@ -140,7 +135,6 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
         if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
             update_frame_advantage(
-                player_module_accessor,
                 (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32,
             );
         }
