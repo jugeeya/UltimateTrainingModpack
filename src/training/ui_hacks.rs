@@ -135,7 +135,8 @@ pub unsafe fn layout_build_parts_impl(
             );
             (*text_pane).set_text_string(format!("Pane {idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
-            (*((*(text_pane as *mut TextBox)).m_p_material)).set_white_color(255.0, 255.0, 255.0, 255.0);
+            (*((*(text_pane as *mut TextBox)).m_p_material))
+                .set_white_color(255.0, 255.0, 255.0, 255.0);
             (*((*(text_pane as *mut TextBox)).m_p_material)).set_black_color(0.0, 0.0, 0.0, 255.0);
             (*(*text_pane).parent).remove_child(&*text_pane);
             (*disp_pane).append_child(&*text_pane);
@@ -162,8 +163,10 @@ pub unsafe fn layout_build_parts_impl(
             );
             (*header_pane).set_text_string(format!("Header {idx}").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
-            (*((*(header_pane as *mut TextBox)).m_p_material)).set_white_color(255.0, 255.0, 255.0, 255.0);
-            (*((*(header_pane as *mut TextBox)).m_p_material)).set_black_color(0.0, 0.0, 0.0, 255.0);
+            (*((*(header_pane as *mut TextBox)).m_p_material))
+                .set_white_color(255.0, 255.0, 255.0, 255.0);
+            (*((*(header_pane as *mut TextBox)).m_p_material))
+                .set_black_color(0.0, 0.0, 0.0, 255.0);
             // Header should be white text
             (*(header_pane as *mut TextBox)).set_color(255, 255, 255, 255);
             (*(*header_pane).parent).remove_child(&*header_pane);
@@ -184,8 +187,5 @@ pub unsafe fn layout_build_parts_impl(
 }
 
 pub fn install_hooks() {
-    skyline::install_hooks!(
-        handle_draw,
-        layout_build_parts_impl,
-    );
+    skyline::install_hooks!(handle_draw, layout_build_parts_impl,);
 }

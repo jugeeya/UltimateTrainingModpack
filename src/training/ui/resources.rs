@@ -3,7 +3,7 @@
 #[derive(Debug, Copy, Clone)]
 pub struct ResVec2 {
     x: f32,
-    y: f32
+    y: f32,
 }
 
 #[repr(C)]
@@ -11,12 +11,16 @@ pub struct ResVec2 {
 pub struct ResVec3 {
     x: f32,
     y: f32,
-    z: f32
+    z: f32,
 }
 
 impl ResVec3 {
     pub fn default() -> ResVec3 {
-        ResVec3 { x: 0.0, y: 0.0, z: 0.0 }
+        ResVec3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
     }
 
     pub fn new(x: f32, y: f32, z: f32) -> ResVec3 {
@@ -31,7 +35,7 @@ pub struct ResColor {
     r: u8,
     g: u8,
     b: u8,
-    a: u8
+    a: u8,
 }
 
 #[repr(C)]
@@ -68,7 +72,11 @@ impl ResPane {
             flag_ex: 0,
             name: [0; 24],
             user_data: [0; 8],
-            pos: ResVec3{x: 0.0, y: 0.0, z: 0.0},
+            pos: ResVec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             rot_x: 0.0,
             rot_y: 0.0,
             rot_z: 0.0,
@@ -82,7 +90,10 @@ impl ResPane {
     }
 
     pub fn set_name(&mut self, name: &str) {
-        assert!(name.len() <= 24, "Name of pane must be at most 24 characters");
+        assert!(
+            name.len() <= 24,
+            "Name of pane must be at most 24 characters"
+        );
         unsafe {
             std::ptr::copy_nonoverlapping(name.as_ptr(), self.name.as_mut_ptr(), name.len());
         }
@@ -93,7 +104,12 @@ impl ResPane {
     }
 
     pub fn name_matches(&self, other: &str) -> bool {
-        self.name.iter().take_while(|b| **b != 0).map(|b| *b as char).collect::<String>() == other
+        self.name
+            .iter()
+            .take_while(|b| **b != 0)
+            .map(|b| *b as char)
+            .collect::<String>()
+            == other
     }
 }
 
@@ -121,16 +137,15 @@ pub struct ResTextBox {
     shadow_italic_ratio: f32,
     line_width_offset_offset: u32,
     per_character_transform_offset: u32,
-
-/* Additional Info
-    uint16_t           text[];                     // Text.
-    char                textId[];                   // The text ID.
-    u8 lineWidthOffsetCount; // The quantity of widths and offsets for each line.
-    float lineOffset[]; // The offset for each line.
-    float lineWidth[]; // The width of each line.
-    ResPerCharacterTransform perCharacterTransform     // Information for per-character animation.
-    ResAnimationInfo       perCharacterTransformAnimationInfo;     // Animation information for per-character animation.
-*/
+    /* Additional Info
+        uint16_t           text[];                     // Text.
+        char                textId[];                   // The text ID.
+        u8 lineWidthOffsetCount; // The quantity of widths and offsets for each line.
+        float lineOffset[]; // The offset for each line.
+        float lineWidth[]; // The width of each line.
+        ResPerCharacterTransform perCharacterTransform     // Information for per-character animation.
+        ResAnimationInfo       perCharacterTransformAnimationInfo;     // Animation information for per-character animation.
+    */
 }
 
 #[repr(C)]
@@ -141,15 +156,15 @@ pub struct ResPicture {
     material_idx: u16,
     tex_coord_count: u8,
     flags: u8,
-/* Additional Info
-    ResVec2 texCoords[texCoordCount][VERTEX_MAX];
-    uint32_t shapeBinaryIndex;
-*/
+    /* Additional Info
+        ResVec2 texCoords[texCoordCount][VERTEX_MAX];
+        uint32_t shapeBinaryIndex;
+    */
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct ResPictureWithTex<const TEX_COORD_COUNT : usize> {
+pub struct ResPictureWithTex<const TEX_COORD_COUNT: usize> {
     pub picture: ResPicture,
-    tex_coords:[[ResVec2; TEX_COORD_COUNT]; 4]
+    tex_coords: [[ResVec2; TEX_COORD_COUNT]; 4],
 }

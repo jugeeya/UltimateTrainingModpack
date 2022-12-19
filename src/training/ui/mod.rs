@@ -100,7 +100,7 @@ impl AnimTransformNode {
                 let anim_transform = (curr as *mut u64).add(2) as *mut AnimTransform;
                 anim_transform.as_mut().unwrap().parse_anim_transform();
             }
-    
+
             curr = (*curr).next;
             _anim_idx += 1;
             if curr == self as *mut AnimTransformNode || curr == (*curr).next {
@@ -114,7 +114,6 @@ impl AnimTransformNode {
 pub struct AnimTransformList {
     root: AnimTransformNode,
 }
-
 
 #[repr(C, align(8))]
 #[derive(Debug, Copy, Clone)]
@@ -148,18 +147,11 @@ pub struct Pane {
 }
 
 impl Pane {
-    pub unsafe fn find_pane_by_name_recursive(
-        &self,
-        s: &str,
-    ) -> Option<&mut Pane> {
+    pub unsafe fn find_pane_by_name_recursive(&self, s: &str) -> Option<&mut Pane> {
         find_pane_by_name_recursive(self, c_str!(s)).as_mut()
     }
 
-    pub unsafe fn find_pane_by_name(
-        &self,
-        s: &str,
-        recursive: bool,
-    ) -> Option<&mut Pane> {
+    pub unsafe fn find_pane_by_name(&self, s: &str, recursive: bool) -> Option<&mut Pane> {
         find_pane_by_name(self, c_str!(s), recursive).as_mut()
     }
 
@@ -212,18 +204,18 @@ pub struct TextBoxBits {
     center_ceiling_enabled: bool,
     per_character_transform_split_by_char_width: bool,
     per_character_transform_auto_shadow_alpha: bool,
-    draw_from_right_to_left : bool,
-    per_character_transform_origin_to_center : bool,
+    draw_from_right_to_left: bool,
+    per_character_transform_origin_to_center: bool,
     per_character_transform_fix_space: bool,
-    linefeed_by_character_height_enabled : bool,
-    per_character_transform_split_by_char_width_insert_space_enabled: bool
+    linefeed_by_character_height_enabled: bool,
+    per_character_transform_split_by_char_width_insert_space_enabled: bool,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct TextBox {
     pub pane: Pane,
-    // Actually a union 
+    // Actually a union
     m_text_buf: *const skyline::libc::c_char,
     m_p_text_id: *const skyline::libc::c_char,
     m_text_colors: [[u8; 4]; 2],
@@ -265,8 +257,9 @@ pub struct TextBox {
 impl TextBox {
     pub fn set_color(&mut self, r: u8, g: u8, b: u8, a: u8) {
         let input_color = [r, g, b, a];
-        let mut dirty : bool = false;
-        self.m_text_colors.iter_mut()
+        let mut dirty: bool = false;
+        self.m_text_colors
+            .iter_mut()
             .for_each(|top_or_bottom_color| {
                 if *top_or_bottom_color != input_color {
                     dirty = true;
@@ -274,7 +267,9 @@ impl TextBox {
                 *top_or_bottom_color = input_color;
             });
 
-        if dirty { self.m_bits.set_is_ptdirty(1); }
+        if dirty {
+            self.m_bits.set_is_ptdirty(1);
+        }
     }
 }
 
@@ -300,7 +295,7 @@ impl fmt::Debug for MaterialColor {
 #[derive(Debug, PartialEq)]
 pub enum MaterialColorType {
     BlackColor,
-    WhiteColor
+    WhiteColor,
 }
 
 #[repr(C)]
@@ -313,7 +308,6 @@ pub enum MaterialFlags {
     FlagsWhiteColorFloat,
     FlagsDynamicAllocatedColorData,
 }
-
 
 #[repr(C)]
 #[derive(Debug)]
@@ -333,7 +327,7 @@ pub struct Material {
     m_p_blend_state: *const skyline::libc::c_void,
     m_packed_values: u8,
     m_flag: u8,
-    m_shader_variation: u16
+    m_shader_variation: u16,
 }
 
 impl Material {

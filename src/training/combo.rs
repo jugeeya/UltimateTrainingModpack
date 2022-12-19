@@ -44,9 +44,7 @@ unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -
     }) || CancelModule::is_enable_cancel(module_accessor)
 }
 
-fn update_frame_advantage(
-    new_frame_adv: i32,
-) {
+fn update_frame_advantage(new_frame_adv: i32) {
     unsafe {
         FRAME_ADVANTAGE = new_frame_adv;
     }
@@ -134,9 +132,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     // if both are now active
     if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
         if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
-            update_frame_advantage(
-                (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32,
-            );
+            update_frame_advantage((CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32);
         }
 
         frame_counter::stop_counting(FRAME_COUNTER_INDEX);
