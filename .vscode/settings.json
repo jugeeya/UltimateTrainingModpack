@@ -2,7 +2,7 @@
     "rust-analyzer.checkOnSave.overrideCommand": [
         "cargo",
         "+nightly",
-        "check",
+        "clippy",
         "--workspace",
         "--message-format=json",
         "--all-features",
@@ -10,8 +10,4 @@
         "-A",
         "clippy::borrow_interior_mutable_const"
     ],
-    "rust-analyzer.updates.channel": "nightly",
-    "prettier.printWidth": 120,
-    "prettier.singleQuote": true,
-    "prettier.tabWidth": 4
 }
