@@ -2,6 +2,7 @@
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
 #![feature(once_cell)]
+#![feature(c_variadic)]
 #![allow(
     clippy::borrow_interior_mutable_const,
     clippy::not_unsafe_ptr_arg_deref,
@@ -83,6 +84,8 @@ pub fn main() {
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
     }
+
+    training::ui_hacks::install_hooks();
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
