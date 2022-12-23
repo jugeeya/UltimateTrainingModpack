@@ -42,7 +42,6 @@ pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
     }
 
     if !is_in_clatter(module_accessor) { // don't input clatter if we're not in clatter
-        // TODO: remove? //EffectModule::remove_common(module_accessor, Hash40::new("sys_clatter"));    
         return;
     }
 

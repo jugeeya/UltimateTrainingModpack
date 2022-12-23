@@ -161,40 +161,40 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
 unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<Action> {
     let fighter_distance = get_fighter_distance();
     if MENU.mash_triggers.contains(MashTrigger::HIT) && is_in_hitstun(module_accessor) {
-        if MENU.hitstun_state == Action::empty() {
+        if MENU.hitstun_override == Action::empty() {
             Some(MENU.mash_state.get_random())
         } else {
-            Some(MENU.hitstun_state.get_random())
+            Some(MENU.hitstun_override.get_random())
         }
     } else if MENU.mash_triggers.contains(MashTrigger::PARRY) && is_in_parry(module_accessor) {
-        if MENU.parry_state == Action::empty() {
+        if MENU.parry_override == Action::empty() {
             Some(MENU.mash_state.get_random())
         } else {
-            Some(MENU.parry_state.get_random())
+            Some(MENU.parry_override.get_random())
         }
     } else if MENU.mash_triggers.contains(MashTrigger::BLOCK) && is_in_shieldstun(module_accessor) {
-        if MENU.block_state == Action::empty() {
+        if MENU.block_override == Action::empty() {
             Some(MENU.mash_state.get_random())
         } else {
-            Some(MENU.block_state.get_random())
+            Some(MENU.block_override.get_random())
         }
     } else if MENU.mash_triggers.contains(MashTrigger::FOOTSTOOL) && is_in_footstool(module_accessor) {
-        if MENU.footstool_state == Action::empty() {
+        if MENU.footstool_override == Action::empty() {
             Some(MENU.mash_state.get_random())
         } else {
-            Some(MENU.footstool_state.get_random())
+            Some(MENU.footstool_override.get_random())
         }
     } else if MENU.mash_triggers.contains(MashTrigger::TRUMP) && is_in_ledgetrump(module_accessor) {
-        if MENU.trump_state == Action::empty() {
+        if MENU.trump_override == Action::empty() {
             Some(MENU.mash_state.get_random())
         } else {
-            Some(MENU.trump_state.get_random())
+            Some(MENU.trump_override.get_random())
         }
     } else if MENU.mash_triggers.contains(MashTrigger::LANDING) && is_in_landing(module_accessor) {
-        if MENU.landing_state == Action::empty() {
+        if MENU.landing_override == Action::empty() {
             Some(MENU.mash_state.get_random())
         } else {
-            Some(MENU.landing_state.get_random())
+            Some(MENU.landing_override.get_random())
         }
     }
     // LEDGE handled in ledge.rs

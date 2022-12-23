@@ -125,14 +125,14 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     }
 
     if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
-        if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_neutral_state.get_random());
-        } else if LEDGE_CASE == LedgeOption::ROLL && MENU.ledge_roll_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_roll_state.get_random());
-        } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_jump_state.get_random());
-        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_attack_state.get_random());
+        if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_override != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_neutral_override.get_random());
+        } else if LEDGE_CASE == LedgeOption::ROLL && MENU.ledge_roll_override != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_roll_override.get_random());
+        } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_override != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_jump_override.get_random());
+        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_override != Action::empty() {
+            mash::buffer_menu_mash(MENU.ledge_attack_override.get_random());
         } else {
             mash::buffer_menu_mash(MENU.mash_state.get_random());
         }
