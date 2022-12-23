@@ -1,2 +1,4 @@
 .devcontainer/** linguist-vendored
 .vscode/** linguist-vendored
+ryujinx_build.ps1 linguist-vendored
+ryujinx_build.sh linguist-vendored
