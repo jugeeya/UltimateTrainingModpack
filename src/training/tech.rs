@@ -116,9 +116,9 @@ unsafe fn handle_grnd_tech(
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
         if MENU.tech_action_override == Action::empty() {
-            mash::buffer_menu_mash(MENU.mash_state.get_random())
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
-            mash::buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
         }
     }
 
@@ -163,9 +163,9 @@ unsafe fn handle_wall_tech(
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
         if MENU.tech_action_override == Action::empty() {
-            mash::buffer_menu_mash(MENU.mash_state.get_random())
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
-            mash::buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
         }
     }
     true
@@ -198,9 +198,9 @@ unsafe fn handle_ceil_tech(
     *unk = LUA_TRUE;
     if MENU.mash_triggers.contains(MashTrigger::TECH) {
         if MENU.tech_action_override == Action::empty() {
-            mash::buffer_menu_mash(MENU.mash_state.get_random())
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
-            mash::buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
         }
     }
     true
@@ -270,9 +270,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         StatusModule::change_status_request_from_script(module_accessor, requested_status, false);
         if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
             if MENU.tech_action_override == Action::empty() {
-                mash::buffer_menu_mash(MENU.mash_state.get_random())
+                mash::external_buffer_menu_mash(MENU.mash_state.get_random())
             } else {
-                mash::buffer_menu_mash(MENU.tech_action_override.get_random())
+                mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
             }
         }
     }

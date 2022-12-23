@@ -215,13 +215,18 @@ unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAcces
     }
 }
 
-pub fn buffer_menu_mash(action: Action) {
+fn buffer_menu_mash(action: Action) {
     unsafe {
         buffer_action(action);
         full_hop::roll_full_hop();
         fast_fall::roll_fast_fall();
         FALLING_AERIAL = MENU.falling_aerials.get_random().into_bool();
     }
+}
+
+pub fn external_buffer_menu_mash(action: Action) {
+    full_reset();
+    buffer_menu_mash(action);
 }
 
 unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
