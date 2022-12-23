@@ -145,7 +145,7 @@ pub unsafe fn get_command_flag_cat(
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     // Different situations mean we want to change our buffered option, so we check what to buffer every frame
-    let buffered_action = should_buffer(module_accessor);
+    let buffered_action = get_buffered_action(module_accessor);
     match buffered_action {
         Some(action) => {
             full_reset(); 
@@ -158,7 +158,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     }
 }
 
-unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<Action> {
+unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<Action> {
     let fighter_distance = get_fighter_distance();
     if MENU.mash_triggers.contains(MashTrigger::HIT) && is_in_hitstun(module_accessor) {
         if MENU.hitstun_override == Action::empty() {

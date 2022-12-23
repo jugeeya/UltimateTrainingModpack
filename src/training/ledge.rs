@@ -86,7 +86,6 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     } else {
         should_buffer = false;
     }
-    println!("Status: {}, Frame: {}, flag_cliff: {}, buffer: {}",status_kind,current_frame,flag_cliff, should_buffer);
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
