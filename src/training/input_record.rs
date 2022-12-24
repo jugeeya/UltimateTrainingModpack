@@ -33,6 +33,8 @@ pub static mut INPUT_RECORD_FRAME: usize = 0;
 pub static mut POSSESSION: PossessionState = PossessionState::Player;
 pub static mut LOCKOUT_FRAME: usize = 0;
 pub static mut BUFFER_FRAME: usize = 0;
+pub static mut RECORDED_LR: f32 = 1.0; // The direction the CPU was facing before the current recording was recorded
+pub static mut CURRENT_LR: f32 = 1.0; // The direction the CPU was facing at the beginning of this playback
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; FINAL_RECORD_MAX]> =
@@ -61,7 +63,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             && MENU.record_trigger == RecordTrigger::Command
         {
            //crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
-           record();
+           lockout_record();
            println!("Record Command Received!"); //debug
         }
 
@@ -97,9 +99,13 @@ pub unsafe fn lockout_record() {
     });
     LOCKOUT_FRAME = 10;
     BUFFER_FRAME = 0;
+    // Store the direction the CPU is facing when we initially record, so we can turn their inputs around if needed
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    RECORDED_LR = PostureModule::lr(cpu_module_accessor);
+    CURRENT_LR = RECORDED_LR;
 }
 
-pub unsafe fn record() {
+pub unsafe fn _record() {
     INPUT_RECORD = Record;
     POSSESSION = Cpu;
     // Reset mappings to nothing, and then start recording. Likely want to reset in case we cut off recording early.
@@ -115,6 +121,8 @@ pub unsafe fn playback() {
     INPUT_RECORD = Playback;
     INPUT_RECORD_FRAME = 0;
     BUFFER_FRAME = 0;
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    CURRENT_LR = PostureModule::lr(cpu_module_accessor);
 }
 
 pub unsafe fn playback_ledge() {
@@ -128,6 +136,7 @@ pub unsafe fn playback_ledge() {
     if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
         BUFFER_FRAME -= 1;
     }
+    CURRENT_LR = PostureModule::lr(cpu_module_accessor);
 }
 
 pub unsafe fn stop_playback() {
@@ -191,6 +200,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     }
 
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+        let x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
         println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME);
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
         if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
@@ -198,13 +208,13 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             saved_mapped_inputs = MappedInputs::default();
         }
         (*controller_data).buttons = saved_mapped_inputs.buttons;
-        (*controller_data).stick_x = (saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32);
+        (*controller_data).stick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32));
         (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
         // Clamp stick inputs for separate part of structure
         const NEUTRAL: f32 = 0.2;
         const CLAMP_MAX: f32 = 120.0;
         let clamp_mul = 1.0 / CLAMP_MAX;
-        let mut clamped_lstick_x = ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
+        let mut clamped_lstick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
         let mut clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
         clamped_lstick_x = if clamped_lstick_x.abs() >= NEUTRAL { clamped_lstick_x } else { 0.0 };
         clamped_lstick_y = if clamped_lstick_y.abs() >= NEUTRAL { clamped_lstick_y } else { 0.0 };
