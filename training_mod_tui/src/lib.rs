@@ -95,7 +95,7 @@ impl<'a> App<'a> {
     }
 
     /// Returns the id of the currently selected tab
-    fn tab_selected(&self) -> &str {
+    pub fn tab_selected(&self) -> &str {
         self.tabs
             .items
             .get(self.tabs.state.selected().unwrap())

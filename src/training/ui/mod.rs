@@ -1,9 +1,15 @@
 #![allow(dead_code)]
 
+use std::ops::Deref;
+
 use bitfield_struct::bitfield;
 
 mod resources;
 pub use resources::*;
+
+use crate::consts::FighterId;
+use crate::get_module_accessor;
+use smash::app::lua_bind::*;
 
 macro_rules! c_str {
     ($l:tt) => {
@@ -48,6 +54,16 @@ pub struct AnimTransform {
     enabled: bool,
 }
 
+pub unsafe fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
+    let module_accessor = get_module_accessor(p);
+    let dmg = DamageModule::damage(module_accessor, 0);
+    let hundreds = dmg as u8 / 100;
+    let tens = (dmg as u8 / 10) - (hundreds * 100);
+    let ones = (dmg as u8) -  (hundreds * 100) - (tens * 10);
+    let dec = ((dmg as u8) - (hundreds * 100) - (tens * 10) - ones) * 10;
+    (hundreds, tens, ones, dec)
+}
+
 impl AnimTransform {
     pub unsafe fn parse_anim_transform(&mut self) {
         let res_animation_block_data_start = (*self).res_animation_block as u64;
@@ -55,7 +71,7 @@ impl AnimTransform {
         let mut anim_cont_offsets = (res_animation_block_data_start
             + res_animation_block.anim_cont_offsets_offset as u64)
             as *const u32;
-        for anim_cont_idx in 0..res_animation_block.anim_cont_count {
+        for _anim_cont_idx in 0..res_animation_block.anim_cont_count {
             let anim_cont_offset = *anim_cont_offsets;
             let res_animation_cont = (res_animation_block_data_start + anim_cont_offset as u64)
                 as *const ResAnimationContent;
@@ -63,19 +79,34 @@ impl AnimTransform {
             let name = skyline::try_from_c_str((*res_animation_cont).name.as_ptr())
                 .unwrap_or("UNKNOWN".to_string());
             let anim_type = (*res_animation_cont).anim_content_type;
-            let frame = (*self).frame;
-            println!(
-                "animTransform/resAnimationContent_{anim_cont_idx}: {name} of type {anim_type} on frame {frame}",
-            );
-            // AnimContentType 1 == MATERIAL
-            if (name == "dig_3_anim" || name == "set_dmg_num_3") && anim_type == 1 {
-                (*self).frame = 4.0;
+
+            if name.starts_with("set_dmg_num") {
+                let (hundreds, tens, ones, dec) = get_player_dmg_digits(FighterId::Player);
+
+                // AnimContentType 1 == MATERIAL
+                if name == "set_dmg_num_3" && anim_type == 1 {
+                    self.frame = hundreds as f32;
+                }
+                if name == "set_dmg_num_2" && anim_type == 1 {
+                    self.frame = tens as f32;
+                }
+                if name == "set_dmg_num_1" && anim_type == 1 {
+                    self.frame = ones as f32;
+                }
+                if name == "set_dmg_num_dec" && anim_type == 1 {
+                    self.frame = dec as f32;
+                }
             }
-            if (name == "dig_2_anim" || name == "set_dmg_num_2") && anim_type == 1 {
-                (*self).frame = 2.0;
-            }
-            if (name == "dig_1_anim" || name == "set_dmg_num_1") && anim_type == 1 {
-                (*self).frame = 8.0;
+
+            // AnimContentType 1 == PANE
+            if anim_type == 0 && (
+                name == "dig_3_anim" ||
+                name == "dig_2_anim" ||
+                name == "dig_1_anim" || 
+                name == "dig_dec_anim_01" || 
+                name == "dig_dec_anim_00"
+            ) {
+                self.frame = 12.0;
             }
 
             anim_cont_offsets = anim_cont_offsets.add(1);
@@ -167,8 +198,21 @@ impl Pane {
         pane_append_child(self, child as *const Pane);
     }
 
+    /// Detach from current parent pane
+    pub unsafe fn detach(&self) {
+        pane_remove_child(self.parent, self as *const Pane);
+    }
+
     pub unsafe fn as_parts(&mut self) -> *mut Parts {
         self as *mut Pane as *mut Parts
+    }
+
+    pub unsafe fn as_picture(&mut self) -> *mut Picture {
+        self as *mut Pane as *mut Picture
+    }
+
+    pub unsafe fn as_textbox(&mut self) -> &mut TextBox {
+        &mut *(self as *mut Pane as *mut TextBox)
     }
 }
 
@@ -188,6 +232,14 @@ pub struct Picture {
     material: *mut u8,
     vertex_colors: [[u8; 4]; 4],
     shared_memory: *mut u8,
+}
+
+impl Deref for Picture {
+    type Target = Pane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }    
 }
 
 #[bitfield(u16)]
@@ -270,6 +322,27 @@ impl TextBox {
         if dirty {
             self.m_bits.set_is_ptdirty(1);
         }
+    }
+
+    pub unsafe fn set_material_white_color(&mut self, r: f32, g: f32, b: f32, a: f32) {
+        (*self.m_p_material).set_white_color(r, g, b, a);
+    }
+
+    pub unsafe fn set_material_black_color(&mut self, r: f32, g: f32, b: f32, a: f32) {
+        (*self.m_p_material).set_black_color(r, g, b, a);
+    }
+
+    pub unsafe fn set_default_material_colors(&mut self) {
+        self.set_material_white_color(255.0, 255.0, 255.0, 255.0);
+        self.set_material_black_color(0.0, 0.0, 0.0, 255.0);
+    }
+}
+
+impl Deref for TextBox {
+    type Target = Pane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
     }
 }
 
@@ -369,16 +442,6 @@ impl Material {
     }
 }
 
-#[repr(C)]
-#[derive(Debug)]
-pub struct RawLayout {
-    pub anim_trans_list: AnimTransformNode,
-    pub root_pane: *const Pane,
-    group_container: u64,
-    layout_size: f64,
-    pub layout_name: *const skyline::libc::c_char,
-}
-
 #[derive(Debug, Copy, Clone)]
 pub struct PaneNode {
     pub prev: *mut PaneNode,
@@ -398,7 +461,11 @@ pub struct GroupContainer {}
 #[derive(Debug)]
 pub struct Layout {
     vtable: u64,
-    pub raw_layout: RawLayout,
+    pub anim_trans_list: AnimTransformNode,
+    pub root_pane: *const Pane,
+    group_container: u64,
+    layout_size: f64,
+    pub layout_name: *const skyline::libc::c_char,
 }
 
 #[skyline::from_offset(0x59970)]

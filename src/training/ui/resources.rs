@@ -6,6 +6,19 @@ pub struct ResVec2 {
     y: f32,
 }
 
+impl ResVec2 {
+    pub fn default() -> ResVec2 {
+        ResVec2 {
+            x: 0.0,
+            y: 0.0,
+        }
+    }
+
+    pub fn new(x: f32, y: f32) -> ResVec2 {
+        ResVec2 { x, y}
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResVec3 {
@@ -101,6 +114,11 @@ impl ResPane {
 
     pub fn set_pos(&mut self, pos: ResVec3) {
         self.pos = pos;
+    }
+
+    pub fn set_size(&mut self, size: ResVec2) {
+        self.size_x = size.x;
+        self.size_y = size.y;
     }
 
     pub fn name_matches(&self, other: &str) -> bool {

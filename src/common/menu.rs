@@ -73,7 +73,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
     let tui_response = serde_json::from_str::<TrainingModpackMenu>(message);
     if let Ok(message_json) = web_response {
         // Includes both MENU and DEFAULTS_MENU
-        // From Web Applet
+        // From Web QUICK_MENU_APPlet
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
         std::fs::write(
@@ -293,12 +293,18 @@ pub fn render_text_to_screen(s: &str) {
     }
 }
 
+use lazy_static::lazy_static;
+use parking_lot::Mutex;
+
+lazy_static! {
+    pub static ref QUICK_MENU_APP: 
+        Mutex<training_mod_tui::App<'static>> = Mutex::new(training_mod_tui::App::new(unsafe { get_menu() }));
+}
+
 pub unsafe fn quick_menu_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
-        let menu = get_menu();
-
-        let mut app = training_mod_tui::App::new(menu);
+        let mut app = QUICK_MENU_APP.lock();
 
         let backend = training_mod_tui::TestBackend::new(75, 15);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
@@ -357,7 +363,8 @@ pub unsafe fn quick_menu_loop() {
 
             has_slept_millis = 16;
             if !QUICK_MENU_ACTIVE {
-                app = training_mod_tui::App::new(get_menu());
+                // Idk how to redo this
+                // app = training_mod_tui::App::new(get_menu());
                 set_should_display_text_to_screen(false);
                 continue;
             }
