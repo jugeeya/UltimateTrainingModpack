@@ -57,13 +57,13 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
         if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_0_txt") {
             text.set_text_string(format!("{FRAME_ADVANTAGE}").as_str());
-            let text = text as *mut Pane as *mut TextBox;
+            let text = text.as_textbox();
             if FRAME_ADVANTAGE < 0 {
-                (*text).set_color(200, 8, 8, 255);
+                text.set_color(200, 8, 8, 255);
             } else if FRAME_ADVANTAGE == 0 {
-                (*text).set_color(0, 0, 0, 255);
+                text.set_color(0, 0, 0, 255);
             } else {
-                (*text).set_color(31, 198, 0, 255);
+                text.set_color(31, 198, 0, 255);
             }
         }
 
@@ -74,31 +74,42 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             let tab_selected = app.tab_selected();
             // let mut item_help = None;
             let tab = app.menu_items.get(tab_selected).unwrap();
+            
             (0..NUM_MENU_TEXT_OPTIONS)
-                .map(|idx| (idx, tab.idx_to_list_idx_opt(idx)))
-                .for_each(|(idx, list_idx_tup)| {
-                    if let Some(text) = layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_opt_{idx}").to_owned()) {
-                        if let Some((list_section, list_idx)) = list_idx_tup {
-                            let list = &tab.lists[list_section];
-                            let submenu = &list.items[list_idx];
-                            let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
-                            text.set_text_string(submenu.submenu_title);
-                            text.alpha = 255;
-                            text.global_alpha = 255;
-                            let text = text.as_textbox();
-                            if is_selected {
-                                text.set_color(31, 198, 0, 255);
-                                if let Some(footer) = layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_footer").to_owned()) {
-                                    footer.set_text_string(submenu.help_text);
-                                }
-                            } else {
-                                text.set_color(0, 0, 0, 255);
-                            }
-                        } else {
+                // Valid options in this submenu
+                .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
+                .map(|(list_section, list_idx)| (list_section, list_idx, 
+                    layout_root_pane.find_pane_by_name_recursive(
+                        &format!("trMod_menu_opt_{list_idx}_{list_section}").to_owned()).unwrap()))
+                .for_each(|(list_section, list_idx, text)| {
+                    let list = &tab.lists[list_section];
+                    let submenu = &list.items[list_idx];
+                    let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
+                    text.set_text_string(submenu.submenu_title);
+                    text.alpha = 255;
+                    text.global_alpha = 255;
+                    let text = text.as_textbox();
+                    if is_selected {
+                        text.set_color(31, 198, 0, 255);
+                        if let Some(footer) = layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_footer").to_owned()) {
+                            footer.set_text_string(submenu.help_text);
+                        }
+                    } else {
+                        text.set_color(0, 0, 0, 255);
+                    }
+                });
+        
+            (0..NUM_MENU_TEXT_OPTIONS)
+                // Invalid options in this submenu
+                .filter(|idx| tab.idx_to_list_idx_opt(*idx).is_none())
+                .for_each(|idx| {
+                    let x = idx % 3;
+                    let y = idx / 3;
+                    layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_opt_{y}_{x}").to_owned())
+                        .map(|text| {
                             text.alpha = 0;
                             text.global_alpha = 0;
-                        }
-                    }
+                        });
                 });
         }
     }
@@ -150,7 +161,7 @@ pub unsafe fn layout_build_parts_impl(
         );
     }
 
-    let root_pane = (*layout).root_pane;
+    let root_pane = &*(*layout).root_pane;
 
     let block = data as *mut ResPane;
 
@@ -172,13 +183,13 @@ pub unsafe fn layout_build_parts_impl(
         menu_pane_block.set_pos(ResVec3::new(600.0, 540.0 - 100.0, 0.0));
         let menu_pane = build!(menu_pane_block, ResPane, menu_pane_kind, Pane);
         menu_pane.detach();
-        (*root_pane).append_child(menu_pane);
+        root_pane.append_child(menu_pane);
         menu_pane.append_child(pic_menu_pane);
     }
 
     // Menu header, footer
     if (*block).name_matches("set_txt_num_01") {
-        let menu_pane = (*root_pane)
+        let menu_pane = root_pane
             .find_pane_by_name("trMod_menu", true)
             .unwrap();
 
@@ -215,16 +226,18 @@ pub unsafe fn layout_build_parts_impl(
 
     (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
         if (*block).name_matches("set_txt_num_01") {
-            let menu_pane = (*root_pane)
+            let menu_pane = root_pane
                 .find_pane_by_name("trMod_menu", true)
                 .unwrap();
     
             let block = data as *mut ResTextBox;
             let mut text_block = (*block).clone();
-            text_block.pane.set_name(format!("trMod_menu_opt_{txt_idx}").as_str());
+            let x = txt_idx % 3;
+            let y = txt_idx / 3;
+            text_block.pane.set_name(format!("trMod_menu_opt_{y}_{x}").as_str());
 
-            let x_offset = (txt_idx / 5) as f32 * 300.0;
-            let y_offset = (txt_idx % 5) as f32 * 50.0;
+            let x_offset = x as f32 * 300.0;
+            let y_offset = y as f32 * 50.0;
             text_block.pane.set_pos(ResVec3::new(-450.0 + x_offset, -25.0 - y_offset, 0.0));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
             text_pane.pane.set_text_string(format!("Opt {txt_idx}!").as_str());
@@ -258,12 +271,12 @@ pub unsafe fn layout_build_parts_impl(
             disp_pane_block.set_pos(ResVec3::new(806.0, 390.0 - (idx as f32 * 110.0), 0.0));
             let disp_pane = build!(disp_pane_block, ResPane, disp_pane_kind, Pane);
             disp_pane.detach();
-            (*root_pane).append_child(disp_pane);
+            root_pane.append_child(disp_pane);
             disp_pane.append_child(pic_pane);
         }
 
         if (*block).name_matches("set_txt_num_01") {
-            let disp_pane = (*root_pane)
+            let disp_pane = root_pane
                 .find_pane_by_name(parent_name.as_str(), true)
                 .unwrap();
 
@@ -280,7 +293,7 @@ pub unsafe fn layout_build_parts_impl(
         }
 
         if (*block).name_matches("txt_cap_01") {
-            let disp_pane = (*root_pane)
+            let disp_pane = root_pane
                 .find_pane_by_name(parent_name.as_str(), true)
                 .unwrap();
 
