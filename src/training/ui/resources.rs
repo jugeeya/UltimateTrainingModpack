@@ -132,6 +132,38 @@ impl ResPane {
 }
 
 #[repr(C)]
+#[derive(Debug, PartialEq)]
+enum TextBoxFlag
+{
+    ShadowEnabled,
+    ForceAssignTextLength,
+    InvisibleBorderEnabled,
+    DoubleDrawnBorderEnabled,
+    PerCharacterTransformEnabled,
+    CenterCeilingEnabled,
+    LineWidthOffsetEnabled,
+    ExtendedTagEnabled,
+    PerCharacterTransformSplitByCharWidth,
+    PerCharacterTransformAutoShadowAlpha,
+    DrawFromRightToLeft,
+    PerCharacterTransformOriginToCenter,
+    KeepingFontScaleEnabled,
+    PerCharacterTransformFixSpace,
+    PerCharacterTransformSplitByCharWidthInsertSpaceEnabled,
+    MaxTextBoxFlag,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub enum TextAlignment {
+    Synchronous,
+    Left,
+    Center,
+    Right,
+    MaxTextAlignment
+}
+
+#[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResTextBox {
     pub pane: ResPane,
@@ -164,6 +196,16 @@ pub struct ResTextBox {
         ResPerCharacterTransform perCharacterTransform     // Information for per-character animation.
         ResAnimationInfo       perCharacterTransformAnimationInfo;     // Animation information for per-character animation.
     */
+}
+
+impl ResTextBox {
+    pub fn enable_shadow(&mut self) {
+        self.text_box_flag |= 0x1 << TextBoxFlag::ShadowEnabled as u8;
+    }
+
+    pub fn text_alignment(&mut self, align: TextAlignment) {
+        self.text_alignment = align as u8;
+    }
 }
 
 #[repr(C)]

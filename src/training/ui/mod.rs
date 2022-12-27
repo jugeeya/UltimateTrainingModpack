@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use bitfield_struct::bitfield;
 
@@ -242,6 +242,12 @@ impl Deref for Picture {
     }    
 }
 
+impl DerefMut for Picture {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }    
+}
+
 #[bitfield(u16)]
 pub struct TextBoxBits {
     #[bits(2)]
@@ -344,6 +350,12 @@ impl Deref for TextBox {
     fn deref(&self) -> &Self::Target {
         &self.pane
     }
+}
+
+impl DerefMut for TextBox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }    
 }
 
 #[repr(C)]

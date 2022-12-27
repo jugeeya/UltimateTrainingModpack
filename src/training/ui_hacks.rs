@@ -1,9 +1,11 @@
 use crate::training::combo::FRAME_ADVANTAGE;
 use crate::training::ui::*;
 use training_mod_consts::OnOff;
+use training_mod_tui::gauge::{DoubleEndedGauge, GaugeState};
 
 pub static NUM_DISPLAY_PANES : usize = 1;
 pub static NUM_MENU_TEXT_OPTIONS : usize = 15;
+pub static NUM_MENU_TEXT_SLIDERS : usize = 4;
 
 #[skyline::hook(offset = 0x4b620)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {
@@ -70,9 +72,29 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
         // Grabbing lock as read-only, essentially
         let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
+
+        // Make all invisible first
+        (0..NUM_MENU_TEXT_OPTIONS)
+            .for_each(|idx| {
+                let x = idx % 3;
+                let y = idx / 3;
+                layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_opt_{x}_{y}").to_owned())
+                    .map(|text| {
+                        text.alpha = 0;
+                        text.global_alpha = 0;
+                    });
+            });
+        (0..NUM_MENU_TEXT_SLIDERS)
+            .for_each(|idx| {
+                layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_slider_{idx}").to_owned())
+                    .map(|text| {
+                        text.alpha = 0;
+                        text.global_alpha = 0;
+                    });
+            });
+
         if app.outer_list {
             let tab_selected = app.tab_selected();
-            // let mut item_help = None;
             let tab = app.menu_items.get(tab_selected).unwrap();
             
             (0..NUM_MENU_TEXT_OPTIONS)
@@ -80,7 +102,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                 .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
                 .map(|(list_section, list_idx)| (list_section, list_idx, 
                     layout_root_pane.find_pane_by_name_recursive(
-                        &format!("trMod_menu_opt_{list_idx}_{list_section}").to_owned()).unwrap()))
+                        &format!("trMod_menu_opt_{list_section}_{list_idx}").to_owned()).unwrap()))
                 .for_each(|(list_section, list_idx, text)| {
                     let list = &tab.lists[list_section];
                     let submenu = &list.items[list_idx];
@@ -98,19 +120,75 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         text.set_color(0, 0, 0, 255);
                     }
                 });
-        
-            (0..NUM_MENU_TEXT_OPTIONS)
-                // Invalid options in this submenu
-                .filter(|idx| tab.idx_to_list_idx_opt(*idx).is_none())
-                .for_each(|idx| {
-                    let x = idx % 3;
-                    let y = idx / 3;
-                    layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_opt_{y}_{x}").to_owned())
-                        .map(|text| {
-                            text.alpha = 0;
-                            text.global_alpha = 0;
+        } else {
+            if matches!(app.selected_sub_menu_slider.state, GaugeState::None) {
+                let (title, help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
+                for list_section in 0..sub_menu_str_lists.len() {
+                    let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
+                    let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
+                    sub_menu_str
+                        .iter()
+                        .enumerate()
+                        .for_each(|(idx, (checked, name))| {
+                            let is_selected = sub_menu_state.selected().filter(|s| *s == idx).is_some();
+                            if let Some(text) = layout_root_pane.find_pane_by_name_recursive(
+                                &format!("trMod_menu_opt_{list_section}_{idx}").to_owned()) {
+                                let text = text.as_textbox();
+                                text.set_text_string(&((if *checked { "X " } else { "  " }).to_owned() + name));
+                                if is_selected {
+                                    text.set_color(31, 198, 0, 255);
+                                } else {
+                                    text.set_color(0, 0, 0, 255);
+                                }
+                                text.alpha = 255;
+                                text.global_alpha = 255;
+                            }
                         });
-                });
+                }
+            } else {
+                let (_title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
+                let abs_min = gauge_vals.abs_min;
+                let abs_max = gauge_vals.abs_max;
+                let selected_min = gauge_vals.selected_min;
+                let selected_max = gauge_vals.selected_max;
+                if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_0") {
+                    let text = text.as_textbox();
+                    text.alpha = 255;
+                    text.global_alpha = 255;
+                    text.set_text_string(&format!("{abs_min}"));
+                }
+
+                if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_1") {
+                    let text = text.as_textbox();
+                    text.alpha = 255;
+                    text.global_alpha = 255;
+                    text.set_text_string(&format!("{selected_min}"));
+                    match gauge_vals.state {
+                        GaugeState::MinHover => text.set_color(200, 8, 8, 255),
+                        GaugeState::MinSelected => text.set_color(8, 200, 8, 255),
+                        _ => text.set_color(0, 0, 0, 255)
+                    }
+                }
+
+                if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_2") {
+                    let text = text.as_textbox();
+                    text.alpha = 255;
+                    text.global_alpha = 255;
+                    text.set_text_string(&format!("{selected_max}"));
+                    match gauge_vals.state {
+                        GaugeState::MaxHover => text.set_color(200, 8, 8, 255),
+                        GaugeState::MaxSelected => text.set_color(8, 200, 8, 255),
+                        _ => text.set_color(0, 0, 0, 255)
+                    }
+                }
+
+                if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_3") {
+                    let text = text.as_textbox();
+                    text.alpha = 255;
+                    text.global_alpha = 255;
+                    text.set_text_string(&format!("{abs_max}"));
+                }
+            }
         }
     }
 
@@ -232,15 +310,44 @@ pub unsafe fn layout_build_parts_impl(
     
             let block = data as *mut ResTextBox;
             let mut text_block = (*block).clone();
+            text_block.enable_shadow();
+            text_block.text_alignment(TextAlignment::Center);
+
             let x = txt_idx % 3;
             let y = txt_idx / 3;
-            text_block.pane.set_name(format!("trMod_menu_opt_{y}_{x}").as_str());
+            text_block.pane.set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
 
             let x_offset = x as f32 * 300.0;
             let y_offset = y as f32 * 50.0;
             text_block.pane.set_pos(ResVec3::new(-450.0 + x_offset, -25.0 - y_offset, 0.0));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
             text_pane.pane.set_text_string(format!("Opt {txt_idx}!").as_str());
+            // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+            text_pane.set_default_material_colors();
+            text_pane.set_color(0, 0, 0, 255);
+            text_pane.detach();
+            menu_pane.append_child(text_pane);
+        }
+    });
+
+    // Slider visualization
+    (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
+        if (*block).name_matches("set_txt_num_01") {
+            let menu_pane = root_pane
+                .find_pane_by_name("trMod_menu", true)
+                .unwrap();
+    
+            let block = data as *mut ResTextBox;
+            let mut text_block = (*block).clone();
+            text_block.enable_shadow();
+            text_block.text_alignment(TextAlignment::Center);
+
+            text_block.pane.set_name(format!("trMod_menu_slider_{idx}").as_str());
+
+            let x_offset = idx as f32 * 250.0;
+            text_block.pane.set_pos(ResVec3::new(-450.0 + x_offset, -150.0, 0.0));
+            let text_pane = build!(text_block, ResTextBox, kind, TextBox);
+            text_pane.pane.set_text_string(format!("Slider {idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             text_pane.set_default_material_colors();
             text_pane.set_color(0, 0, 0, 255);
