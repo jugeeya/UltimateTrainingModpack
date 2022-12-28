@@ -404,7 +404,7 @@ pub unsafe fn quick_menu_loop() {
             }
             writeln!(&mut view).unwrap();
 
-            render_text_to_screen(view.as_str());
+            // render_text_to_screen(view.as_str());
             received_input = false;
         }
     }

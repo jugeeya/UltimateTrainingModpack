@@ -22,9 +22,9 @@ impl ResVec2 {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResVec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl ResVec3 {
@@ -170,7 +170,7 @@ pub struct ResTextBox {
     text_buf_bytes: u16,
     text_str_bytes: u16,
     material_idx: u16,
-    font_idx: u16,
+    pub font_idx: u16,
     text_position: u8,
     text_alignment: u8,
     text_box_flag: u16,
@@ -227,4 +227,33 @@ pub struct ResPicture {
 pub struct ResPictureWithTex<const TEX_COORD_COUNT: usize> {
     pub picture: ResPicture,
     tex_coords: [[ResVec2; TEX_COORD_COUNT]; 4],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResParts {
+    pub pane: ResPane,
+    pub property_count: u32,
+    magnify: ResVec2,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+struct ResPartsProperty
+{
+    name: [skyline::libc::c_char; 24],
+    usage_flag: u8,
+    basic_usage_flag: u8,
+    material_usage_flag: u8,
+    system_ext_user_data_override_flag: u8,
+    property_offset: u32,
+    ext_user_data_offset: u32,
+    pane_basic_info_offset: u32,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResPartsWithProperty<const PROPERTY_COUNT: usize> {
+    pub parts: ResParts,
+    property_table: [ResPartsProperty; PROPERTY_COUNT],
 }

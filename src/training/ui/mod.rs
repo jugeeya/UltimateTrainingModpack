@@ -177,6 +177,20 @@ pub struct Pane {
     user_data: [skyline::libc::c_char; 9],
 }
 
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub enum PaneFlag {
+    Visible,
+    InfluencedAlpha,
+    LocationAdjust,
+    UserAllocated,
+    IsGlobalMatrixDirty,
+    UserMatrix,
+    UserGlobalMatrix,
+    IsConstantBufferReady,
+    Max
+}
+
 impl Pane {
     pub unsafe fn find_pane_by_name_recursive(&self, s: &str) -> Option<&mut Pane> {
         find_pane_by_name_recursive(self, c_str!(s)).as_mut()
@@ -223,6 +237,20 @@ pub struct Parts {
     // Some IntrusiveList
     link: PaneNode,
     pub layout: *mut Layout,
+}
+
+impl Deref for Parts {
+    type Target = Pane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }    
+}
+
+impl DerefMut for Parts {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }    
 }
 
 #[repr(C)]
@@ -274,7 +302,7 @@ pub struct TextBoxBits {
 pub struct TextBox {
     pub pane: Pane,
     // Actually a union
-    m_text_buf: *const skyline::libc::c_char,
+    pub m_text_buf: *mut skyline::libc::c_char,
     m_p_text_id: *const skyline::libc::c_char,
     m_text_colors: [[u8; 4]; 2],
     m_p_font: *const skyline::libc::c_void,
@@ -287,12 +315,12 @@ pub struct TextBox {
     m_p_tag_processor: *const skyline::libc::c_char,
 
     m_text_buf_len: u16,
-    m_text_len: u16,
+    pub m_text_len: u16,
 
     m_bits: TextBoxBits,
     m_text_position: u8,
 
-    m_is_utf8: bool,
+    pub m_is_utf8: bool,
 
     m_italic_ratio: f32,
 
