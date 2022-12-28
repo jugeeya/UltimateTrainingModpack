@@ -1,7 +1,10 @@
-use crate::training::combo::FRAME_ADVANTAGE;
+use crate::{training::combo::FRAME_ADVANTAGE, common::menu::QUICK_MENU_ACTIVE};
 use crate::training::ui::*;
-use training_mod_consts::OnOff;
-use training_mod_tui::gauge::{DoubleEndedGauge, GaugeState};
+use crate::common::get_player_dmg_digits;
+use crate::common::MENU;
+use crate::consts::FighterId;
+use training_mod_consts::{OnOff, SaveDamage};
+use training_mod_tui::gauge::GaugeState;
 
 pub static NUM_DISPLAY_PANES : usize = 1;
 pub static NUM_MENU_TEXT_OPTIONS : usize = 27;
@@ -13,31 +16,63 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     let layout_name = skyline::from_c_str((*layout).layout_name);
     let layout_root_pane = &*(*layout).root_pane;
 
-    if crate::common::is_training_mode() && layout_name == "info_melee" {
-        if let Some(parent) = layout_root_pane.find_pane_by_name_recursive("p1") {
-            let p1_layout_name = skyline::from_c_str((*(*parent.as_parts()).layout).layout_name);
-            let anim_list = &mut (*(*parent.as_parts()).layout).anim_trans_list;
-            anim_list.iterate_anim_list();
+    // Update percentage display as soon as possible on death,
+    // only if we have random save state damage active
+    if crate::common::is_training_mode() && 
+        (MENU.save_damage_cpu == SaveDamage::RANDOM || MENU.save_damage_player == SaveDamage::RANDOM) && 
+        layout_name == "info_melee" {
+        for player_name in &["p1", "p2"] {
+            if let Some(parent) = layout_root_pane.find_pane_by_name_recursive(player_name) {
+                let _p1_layout_name = skyline::from_c_str((*(*parent.as_parts()).layout).layout_name);
+                let anim_list = &mut (*(*parent.as_parts()).layout).anim_trans_list;
 
-            for dmg_num_s in &[
-                "set_dmg_num_3",
-                "dig_3",
-                "dig_3_anim",
-                "set_dmg_num_2",
-                "dig_2",
-                "dig_2_anim",
-                "set_dmg_num_1",
-                "dig_1",
-                "dig_1_anim",
-                "set_dmg_num_p",
-                "dig_dec",
-                "dig_dec_anim_00",
-                "set_dmg_num_dec",
-                "dig_dec_anim_01"
-            ] {
-                if let Some(dmg_num) = parent.find_pane_by_name_recursive(dmg_num_s) {
-                    dmg_num.alpha = 255;
-                    dmg_num.global_alpha = 255;
+                let mut has_altered_anim_list = false;
+                let (hundreds, tens, _, _) = get_player_dmg_digits(
+                    match *player_name {
+                        "p1" => FighterId::Player,
+                        "p2" => FighterId::CPU,
+                        _ => panic!("Unknown player name: {}", player_name)
+                    });
+
+                for dmg_num_s in &[
+                    "set_dmg_num_3",
+                    "dig_3",
+                    "dig_3_anim",
+                    "set_dmg_num_2",
+                    "dig_2",
+                    "dig_2_anim",
+                    "set_dmg_num_1",
+                    "dig_1",
+                    "dig_1_anim",
+                    "set_dmg_num_p",
+                    "dig_dec",
+                    "dig_dec_anim_00",
+                    "set_dmg_num_dec",
+                    "dig_dec_anim_01",
+                    "dig_0_anim",
+                    "set_dmg_p",
+                ] {
+                    if let Some(dmg_num) = parent.find_pane_by_name_recursive(dmg_num_s) {
+                        if (dmg_num_s.contains('3') && hundreds == 0) || 
+                            (dmg_num_s.contains('2') && hundreds == 0 && tens == 0) {
+                            continue;
+                        }
+                        if dmg_num.alpha != 255 || dmg_num.global_alpha != 255 {
+                            dmg_num.alpha = 255;
+                            dmg_num.global_alpha = 255;
+                            if !has_altered_anim_list {
+                                anim_list.iterate_anim_list(Some(player_name));
+                                has_altered_anim_list = true;
+                            }
+                        }
+                    }
+                }
+
+                for death_explosion_s in &["set_fxui_dead1", "set_fxui_dead2", "set_fxui_dead3"] {
+                    if let Some(death_explosion) = parent.find_pane_by_name_recursive(death_explosion_s) {
+                        death_explosion.alpha = 0;
+                        death_explosion.global_alpha = 0;
+                    }
                 }
             }
         }
@@ -73,6 +108,17 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
         // Grabbing lock as read-only, essentially
         let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
+
+        let menu_pane = layout_root_pane
+            .find_pane_by_name_recursive("trMod_menu")
+            .unwrap(); 
+        if QUICK_MENU_ACTIVE {
+            menu_pane.alpha = 255;
+            menu_pane.global_alpha = 255;
+        } else {
+            menu_pane.alpha = 0;
+            menu_pane.global_alpha = 0;
+        }
 
         // Make all invisible first
         (0..NUM_MENU_TEXT_OPTIONS)
@@ -131,7 +177,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     text.global_alpha = 255;
                     let text = text.as_textbox();
                     if is_selected {
-                        text.set_color(31, 198, 0, 255);
+                        text.set_color(0x27, 0x4E, 0x13, 255);
                         if let Some(footer) = layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_footer_txt").to_owned()) {
                             footer.set_text_string(submenu.help_text);
                         }
@@ -141,7 +187,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                 });
         } else {
             if matches!(app.selected_sub_menu_slider.state, GaugeState::None) {
-                let (title, help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
+                let (_title, _help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
                 for list_section in 0..sub_menu_str_lists.len() {
                     let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
                     let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
@@ -155,7 +201,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                 let text = text.as_textbox();
                                 text.set_text_string(name);
                                 if is_selected {
-                                    text.set_color(31, 198, 0, 255);
+                                    text.set_color(0x27, 0x4E, 0x13, 255);
                                 } else {
                                     text.set_color(0, 0, 0, 255);
                                 }
@@ -176,7 +222,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         });
                 }
             } else {
-                let (_title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
+                let (_title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
                 let abs_min = gauge_vals.abs_min;
                 let abs_max = gauge_vals.abs_max;
                 let selected_min = gauge_vals.selected_min;
@@ -369,7 +415,11 @@ pub unsafe fn layout_build_parts_impl(
             let x = txt_idx;
             text_block.pane.set_name(format!("trMod_menu_tab_{x}").as_str());
 
-            let x_offset = x as f32 * 300.0;
+            let mut x_offset = x as f32 * 300.0;
+            // Center current tab since we don't have a help key
+            if x == 1 {
+                x_offset -= 25.0;
+            }
             text_block.pane.set_pos(ResVec3::new(menu_pos.x - 125.0 + x_offset, menu_pos.y + 75.0, 0.0));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
             text_pane.pane.set_text_string(format!("Tab {txt_idx}!").as_str());
@@ -438,7 +488,7 @@ pub unsafe fn layout_build_parts_impl(
             text_block.pane.set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
 
             let x_offset = x as f32 * 400.0;
-            let y_offset = y as f32 * 100.0;
+            let y_offset = y as f32 * 75.0;
             text_block.pane.set_pos(ResVec3::new(menu_pos.x - 450.0 + x_offset, menu_pos.y - 25.0 - y_offset, 0.0));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
             text_pane.pane.set_text_string(format!("Opt {txt_idx}!").as_str());

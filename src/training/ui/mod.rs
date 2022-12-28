@@ -8,8 +8,7 @@ mod resources;
 pub use resources::*;
 
 use crate::consts::FighterId;
-use crate::get_module_accessor;
-use smash::app::lua_bind::*;
+use crate::common::get_player_dmg_digits;
 
 macro_rules! c_str {
     ($l:tt) => {
@@ -54,18 +53,8 @@ pub struct AnimTransform {
     enabled: bool,
 }
 
-pub unsafe fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
-    let module_accessor = get_module_accessor(p);
-    let dmg = DamageModule::damage(module_accessor, 0);
-    let hundreds = dmg as u8 / 100;
-    let tens = (dmg as u8 / 10) - (hundreds * 100);
-    let ones = (dmg as u8) -  (hundreds * 100) - (tens * 10);
-    let dec = ((dmg as u8) - (hundreds * 100) - (tens * 10) - ones) * 10;
-    (hundreds, tens, ones, dec)
-}
-
 impl AnimTransform {
-    pub unsafe fn parse_anim_transform(&mut self) {
+    pub unsafe fn parse_anim_transform(&mut self, layout_name: Option<&str>) {
         let res_animation_block_data_start = (*self).res_animation_block as u64;
         let res_animation_block = &*(*self).res_animation_block;
         let mut anim_cont_offsets = (res_animation_block_data_start
@@ -80,33 +69,28 @@ impl AnimTransform {
                 .unwrap_or("UNKNOWN".to_string());
             let anim_type = (*res_animation_cont).anim_content_type;
 
-            if name.starts_with("set_dmg_num") {
-                let (hundreds, tens, ones, dec) = get_player_dmg_digits(FighterId::Player);
+            // AnimContentType 1 == MATERIAL
+            if layout_name.is_some() && name.starts_with("set_dmg_num") && anim_type == 1 {
+                let layout_name = layout_name.unwrap();
+                let (hundreds, tens, ones, dec) = get_player_dmg_digits(
+                    match layout_name {
+                        "p1" => FighterId::Player,
+                        "p2" => FighterId::CPU,
+                        _ => panic!("Unknown layout name: {}", layout_name)
+                    });
 
-                // AnimContentType 1 == MATERIAL
-                if name == "set_dmg_num_3" && anim_type == 1 {
+                if name == "set_dmg_num_3" {
                     self.frame = hundreds as f32;
                 }
-                if name == "set_dmg_num_2" && anim_type == 1 {
+                if name == "set_dmg_num_2" {
                     self.frame = tens as f32;
                 }
-                if name == "set_dmg_num_1" && anim_type == 1 {
+                if name == "set_dmg_num_1" {
                     self.frame = ones as f32;
                 }
-                if name == "set_dmg_num_dec" && anim_type == 1 {
+                if name == "set_dmg_num_dec" {
                     self.frame = dec as f32;
                 }
-            }
-
-            // AnimContentType 1 == PANE
-            if anim_type == 0 && (
-                name == "dig_3_anim" ||
-                name == "dig_2_anim" ||
-                name == "dig_1_anim" || 
-                name == "dig_dec_anim_01" || 
-                name == "dig_dec_anim_00"
-            ) {
-                self.frame = 12.0;
             }
 
             anim_cont_offsets = anim_cont_offsets.add(1);
@@ -122,14 +106,14 @@ pub struct AnimTransformNode {
 }
 
 impl AnimTransformNode {
-    pub unsafe fn iterate_anim_list(&mut self) {
+    pub unsafe fn iterate_anim_list(&mut self, layout_name: Option<&str>) {
         let mut curr = self as *mut AnimTransformNode;
         let mut _anim_idx = 0;
         while !curr.is_null() {
             // Only if valid
             if curr != (*curr).next {
                 let anim_transform = (curr as *mut u64).add(2) as *mut AnimTransform;
-                anim_transform.as_mut().unwrap().parse_anim_transform();
+                anim_transform.as_mut().unwrap().parse_anim_transform(layout_name);
             }
 
             curr = (*curr).next;
