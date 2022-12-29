@@ -50,13 +50,27 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     "set_dmg_num_dec",
                     "dig_dec_anim_01",
                     "dig_0_anim",
-                    "set_dmg_p",
+                    "set_dmg_p"
                 ] {
                     if let Some(dmg_num) = parent.find_pane_by_name_recursive(dmg_num_s) {
                         if (dmg_num_s.contains('3') && hundreds == 0) || 
                             (dmg_num_s.contains('2') && hundreds == 0 && tens == 0) {
                             continue;
                         }
+
+                        if *dmg_num_s == "set_dmg_p" {
+                            println!("{}: {}", dmg_num_s, dmg_num.pos_y);
+                            dmg_num.pos_y = 0.0;
+                        } else if *dmg_num_s == "set_dmg_num_p" {
+                            println!("{}: {}", dmg_num_s, dmg_num.pos_y);
+                            dmg_num.pos_y = -4.0;
+                        } else if *dmg_num_s == "dig_dec" {
+                            println!("{}: {}", dmg_num_s, dmg_num.pos_y);
+                            dmg_num.pos_y = -16.0;
+                        } else {
+                            dmg_num.pos_y = 0.0;
+                        }
+
                         if dmg_num.alpha != 255 || dmg_num.global_alpha != 255 {
                             dmg_num.alpha = 255;
                             dmg_num.global_alpha = 255;
@@ -78,7 +92,9 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         }
     }
 
+    // Update training mod displays
     if layout_name == "info_training" {
+        // Update frame advantage
         if let Some(parent) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_0") {
             if crate::common::MENU.frame_advantage == OnOff::On {
                 parent.alpha = 255;
@@ -106,6 +122,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         }
 
 
+        // Update menu display
         // Grabbing lock as read-only, essentially
         let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
 
