@@ -8,14 +8,11 @@ pub struct ResVec2 {
 
 impl ResVec2 {
     pub fn default() -> ResVec2 {
-        ResVec2 {
-            x: 0.0,
-            y: 0.0,
-        }
+        ResVec2 { x: 0.0, y: 0.0 }
     }
 
     pub fn new(x: f32, y: f32) -> ResVec2 {
-        ResVec2 { x, y}
+        ResVec2 { x, y }
     }
 }
 
@@ -133,8 +130,7 @@ impl ResPane {
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
-enum TextBoxFlag
-{
+enum TextBoxFlag {
     ShadowEnabled,
     ForceAssignTextLength,
     InvisibleBorderEnabled,
@@ -160,7 +156,7 @@ pub enum TextAlignment {
     Left,
     Center,
     Right,
-    MaxTextAlignment
+    MaxTextAlignment,
 }
 
 #[repr(C)]
@@ -239,8 +235,7 @@ pub struct ResParts {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct ResPartsProperty
-{
+struct ResPartsProperty {
     name: [skyline::libc::c_char; 24],
     usage_flag: u8,
     basic_usage_flag: u8,

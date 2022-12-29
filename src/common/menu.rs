@@ -271,13 +271,12 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
     }
 }
 
-
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 
 lazy_static! {
-    pub static ref QUICK_MENU_APP: 
-        Mutex<training_mod_tui::App<'static>> = Mutex::new(training_mod_tui::App::new(unsafe { get_menu() }));
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> =
+        Mutex::new(training_mod_tui::App::new(unsafe { get_menu() }));
 }
 
 pub unsafe fn quick_menu_loop() {
