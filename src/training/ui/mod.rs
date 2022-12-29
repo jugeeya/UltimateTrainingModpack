@@ -212,6 +212,16 @@ impl Pane {
     pub unsafe fn as_textbox(&mut self) -> &mut TextBox {
         &mut *(self as *mut Pane as *mut TextBox)
     }
+
+    pub unsafe fn set_visible(&mut self, visible: bool) {
+        if visible {
+            self.alpha = 255;
+            self.global_alpha = 255;
+        } else {
+            self.alpha = 0;
+            self.global_alpha = 0;
+        }
+    }
 }
 
 #[repr(C)]

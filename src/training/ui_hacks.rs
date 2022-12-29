@@ -59,21 +59,17 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         }
 
                         if *dmg_num_s == "set_dmg_p" {
-                            println!("{}: {}", dmg_num_s, dmg_num.pos_y);
                             dmg_num.pos_y = 0.0;
                         } else if *dmg_num_s == "set_dmg_num_p" {
-                            println!("{}: {}", dmg_num_s, dmg_num.pos_y);
                             dmg_num.pos_y = -4.0;
                         } else if *dmg_num_s == "dig_dec" {
-                            println!("{}: {}", dmg_num_s, dmg_num.pos_y);
                             dmg_num.pos_y = -16.0;
                         } else {
                             dmg_num.pos_y = 0.0;
                         }
 
                         if dmg_num.alpha != 255 || dmg_num.global_alpha != 255 {
-                            dmg_num.alpha = 255;
-                            dmg_num.global_alpha = 255;
+                            dmg_num.set_visible(true);
                             if !has_altered_anim_list {
                                 anim_list.iterate_anim_list(Some(player_name));
                                 has_altered_anim_list = true;
@@ -82,10 +78,9 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     }
                 }
 
-                for death_explosion_s in &["set_fxui_dead1", "set_fxui_dead2", "set_fxui_dead3"] {
+                for death_explosion_s in &["set_fxui_dead1", "set_fxui_dead2", "set_fxui_dead3", "set_fxui_fire"] {
                     if let Some(death_explosion) = parent.find_pane_by_name_recursive(death_explosion_s) {
-                        death_explosion.alpha = 0;
-                        death_explosion.global_alpha = 0;
+                        death_explosion.set_visible(false);
                     }
                 }
             }
@@ -96,13 +91,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     if layout_name == "info_training" {
         // Update frame advantage
         if let Some(parent) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_0") {
-            if crate::common::MENU.frame_advantage == OnOff::On {
-                parent.alpha = 255;
-                parent.global_alpha = 255;
-            } else {
-                parent.alpha = 0;
-                parent.global_alpha = 0;
-            }
+            parent.set_visible(crate::common::MENU.frame_advantage == OnOff::On);
         }
 
         if let Some(header) = layout_root_pane.find_pane_by_name_recursive("trMod_disp_0_header") {
@@ -129,38 +118,21 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         let menu_pane = layout_root_pane
             .find_pane_by_name_recursive("trMod_menu")
             .unwrap(); 
-        if QUICK_MENU_ACTIVE {
-            menu_pane.alpha = 255;
-            menu_pane.global_alpha = 255;
-        } else {
-            menu_pane.alpha = 0;
-            menu_pane.global_alpha = 0;
-        }
+        menu_pane.set_visible(QUICK_MENU_ACTIVE);
 
         // Make all invisible first
-        (0..NUM_MENU_TEXT_OPTIONS)
-            .for_each(|idx| {
-                let x = idx % 3;
-                let y = idx / 3;
-                layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_opt_{x}_{y}").to_owned())
-                    .map(|text| {
-                        text.alpha = 0;
-                        text.global_alpha = 0;
-                    });
-                layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_check_{x}_{y}").to_owned())
-                    .map(|text| {
-                        text.alpha = 0;
-                        text.global_alpha = 0;
-                    });
-            });
-        (0..NUM_MENU_TEXT_SLIDERS)
-            .for_each(|idx| {
-                layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_slider_{idx}").to_owned())
-                    .map(|text| {
-                        text.alpha = 0;
-                        text.global_alpha = 0;
-                    });
-            });
+        (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {
+            let x = idx % 3;
+            let y = idx / 3;
+            layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_opt_{x}_{y}").to_owned())
+                .map(|text| text.set_visible(false) );
+            layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_check_{x}_{y}").to_owned())
+                .map(|text| text.set_visible(false) );
+        });
+        (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
+            layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_slider_{idx}").to_owned())
+                .map(|text| text.set_visible(false) );
+        });
 
         let app_tabs = &app.tabs.items;
         let tab_selected = app.tabs.state.selected().unwrap();
@@ -169,7 +141,6 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         let tab_titles = [prev_tab, tab_selected, next_tab]
             .map(|idx| app_tabs[idx]);
         
-
         (0..NUM_MENU_TABS).for_each(|idx| {
             layout_root_pane.find_pane_by_name_recursive(&format!("trMod_menu_tab_{idx}").to_owned())
                 .map(|text| text.set_text_string(tab_titles[idx]) );
@@ -190,8 +161,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     let submenu = &list.items[list_idx];
                     let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
                     text.set_text_string(submenu.submenu_title);
-                    text.alpha = 255;
-                    text.global_alpha = 255;
+                    text.set_visible(true);
                     let text = text.as_textbox();
                     if is_selected {
                         text.set_color(0x27, 0x4E, 0x13, 255);
@@ -222,8 +192,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                 } else {
                                     text.set_color(0, 0, 0, 255);
                                 }
-                                text.alpha = 255;
-                                text.global_alpha = 255;
+                                text.set_visible(true);
                             }
 
                             if let Some(check) = layout_root_pane.find_pane_by_name_recursive(
@@ -232,8 +201,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                     let check = check.as_textbox();
 
                                     check.set_text_string("+");
-                                    check.alpha = 255;
-                                    check.global_alpha = 255;
+                                    check.set_visible(true);
                                 }
                             }
                         });
@@ -246,15 +214,13 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                 let selected_max = gauge_vals.selected_max;
                 if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_0") {
                     let text = text.as_textbox();
-                    text.alpha = 255;
-                    text.global_alpha = 255;
+                    text.set_visible(true);
                     text.set_text_string(&format!("{abs_min}"));
                 }
 
                 if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_1") {
                     let text = text.as_textbox();
-                    text.alpha = 255;
-                    text.global_alpha = 255;
+                    text.set_visible(true);
                     text.set_text_string(&format!("{selected_min}"));
                     match gauge_vals.state {
                         GaugeState::MinHover => text.set_color(200, 8, 8, 255),
@@ -265,8 +231,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
                 if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_2") {
                     let text = text.as_textbox();
-                    text.alpha = 255;
-                    text.global_alpha = 255;
+                    text.set_visible(true);
                     text.set_text_string(&format!("{selected_max}"));
                     match gauge_vals.state {
                         GaugeState::MaxHover => text.set_color(200, 8, 8, 255),
@@ -277,8 +242,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
                 if let Some(text) = layout_root_pane.find_pane_by_name_recursive("trMod_menu_slider_3") {
                     let text = text.as_textbox();
-                    text.alpha = 255;
-                    text.global_alpha = 255;
+                    text.set_visible(true);
                     text.set_text_string(&format!("{abs_max}"));
                 }
             }
