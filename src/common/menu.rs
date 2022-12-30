@@ -2,7 +2,6 @@ use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
 
-use owo_colors::OwoColorize;
 use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline::nn::hid::NpadGcState;
@@ -11,7 +10,6 @@ use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use std::fs;
 use std::path::Path;
 use training_mod_consts::{MenuJsonStruct, TrainingModpackMenu};
-use training_mod_tui::Color;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 pub static mut QUICK_MENU_FRAME_COUNTER_INDEX: usize = 0;
@@ -273,32 +271,18 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
     }
 }
 
-extern "C" {
-    #[link_name = "render_text_to_screen"]
-    pub fn render_text_to_screen_cstr(str: *const skyline::libc::c_char);
+use lazy_static::lazy_static;
+use parking_lot::Mutex;
 
-    #[link_name = "set_should_display_text_to_screen"]
-    pub fn set_should_display_text_to_screen(toggle: bool);
-}
-
-macro_rules! c_str {
-    ($l:tt) => {
-        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr()
-    };
-}
-
-pub fn render_text_to_screen(s: &str) {
-    unsafe {
-        render_text_to_screen_cstr(c_str!(s));
-    }
+lazy_static! {
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> =
+        Mutex::new(training_mod_tui::App::new(unsafe { get_menu() }));
 }
 
 pub unsafe fn quick_menu_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
-        let menu = get_menu();
-
-        let mut app = training_mod_tui::App::new(menu);
+        let mut app = QUICK_MENU_APP.lock();
 
         let backend = training_mod_tui::TestBackend::new(75, 15);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
@@ -357,47 +341,15 @@ pub unsafe fn quick_menu_loop() {
 
             has_slept_millis = 16;
             if !QUICK_MENU_ACTIVE {
-                app = training_mod_tui::App::new(get_menu());
-                set_should_display_text_to_screen(false);
                 continue;
             }
             if !received_input {
                 continue;
             }
-            let mut view = String::new();
-
-            let frame_res = terminal
+            terminal
                 .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
                 .unwrap();
 
-            use std::fmt::Write;
-            for (i, cell) in frame_res.buffer.content().iter().enumerate() {
-                match cell.fg {
-                    Color::Black => write!(&mut view, "{}", &cell.symbol.black()),
-                    Color::Blue => write!(&mut view, "{}", &cell.symbol.blue()),
-                    Color::LightBlue => write!(&mut view, "{}", &cell.symbol.bright_blue()),
-                    Color::Cyan => write!(&mut view, "{}", &cell.symbol.cyan()),
-                    Color::LightCyan => write!(&mut view, "{}", &cell.symbol.cyan()),
-                    Color::Red => write!(&mut view, "{}", &cell.symbol.red()),
-                    Color::LightRed => write!(&mut view, "{}", &cell.symbol.bright_red()),
-                    Color::LightGreen => write!(&mut view, "{}", &cell.symbol.bright_green()),
-                    Color::Green => write!(&mut view, "{}", &cell.symbol.green()),
-                    Color::Yellow => write!(&mut view, "{}", &cell.symbol.yellow()),
-                    Color::LightYellow => write!(&mut view, "{}", &cell.symbol.bright_yellow()),
-                    Color::Magenta => write!(&mut view, "{}", &cell.symbol.magenta()),
-                    Color::LightMagenta => {
-                        write!(&mut view, "{}", &cell.symbol.bright_magenta())
-                    }
-                    _ => write!(&mut view, "{}", &cell.symbol),
-                }
-                .unwrap();
-                if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
-                    writeln!(&mut view).unwrap();
-                }
-            }
-            writeln!(&mut view).unwrap();
-
-            render_text_to_screen(view.as_str());
             received_input = false;
         }
     }

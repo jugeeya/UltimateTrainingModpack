@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use serde_json::{Map, json};
 pub use tui::{backend::TestBackend, style::Color, Terminal};
 
-mod gauge;
+pub mod gauge;
 mod list;
 
 use crate::gauge::{DoubleEndedGauge, GaugeState};
@@ -95,7 +95,7 @@ impl<'a> App<'a> {
     }
 
     /// Returns the id of the currently selected tab
-    fn tab_selected(&self) -> &str {
+    pub fn tab_selected(&self) -> &str {
         self.tabs
             .items
             .get(self.tabs.state.selected().unwrap())
@@ -221,7 +221,7 @@ impl<'a> App<'a> {
     /// 3: ListState for toggles, ListState::new() for slider
     /// TODO: Refactor return type into a nice struct
     pub fn sub_menu_strs_and_states(
-        &mut self,
+        &self,
     ) -> (&str, &str, Vec<(Vec<(bool, &str)>, ListState)>) {
         (
             self.sub_menu_selected().submenu_title,
@@ -254,7 +254,7 @@ impl<'a> App<'a> {
     /// 1: Help text
     /// 2: Reference to self.selected_sub_menu_slider
     /// TODO: Refactor return type into a nice struct
-    pub fn sub_menu_strs_for_slider(&mut self) -> (&str, &str, &DoubleEndedGauge) {
+    pub fn sub_menu_strs_for_slider(&self) -> (&str, &str, &DoubleEndedGauge) {
         let slider = match SubMenuType::from_str(self.sub_menu_selected()._type) {
             SubMenuType::SLIDER => &self.selected_sub_menu_slider,
             _ => {
@@ -780,6 +780,12 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
     }
 
     // Collect settings
+    to_json(app)
+
+    // TODO: Add saveDefaults
+}
+
+pub fn to_json(app: &App) -> String {
     let mut settings = Map::new();
     for key in app.menu_items.keys() {
         for list in &app.menu_items.get(key).unwrap().lists {
@@ -803,6 +809,4 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
         }
     }
     serde_json::to_string(&settings).unwrap()
-
-    // TODO: Add saveDefaults
 }

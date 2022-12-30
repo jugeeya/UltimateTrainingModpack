@@ -262,8 +262,7 @@ SD Card Root
                         ├── libnn_hid_hook.nro
                         ├── libnro_hook.nro
                         ├── libparam_hook.nro
-                        ├── libtraining_modpack.nro
-                        └── libtraining_modpack_menu.nro
+                        └── libtraining_modpack.nro
 ```
 
 To install a beta version of the modpack, follow the same procedure using the [latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta) on Github. Beta releases may have additional features and bugfixes, but are subject to change.

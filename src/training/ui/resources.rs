@@ -6,12 +6,22 @@ pub struct ResVec2 {
     y: f32,
 }
 
+impl ResVec2 {
+    pub fn default() -> ResVec2 {
+        ResVec2 { x: 0.0, y: 0.0 }
+    }
+
+    pub fn new(x: f32, y: f32) -> ResVec2 {
+        ResVec2 { x, y }
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResVec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl ResVec3 {
@@ -103,6 +113,11 @@ impl ResPane {
         self.pos = pos;
     }
 
+    pub fn set_size(&mut self, size: ResVec2) {
+        self.size_x = size.x;
+        self.size_y = size.y;
+    }
+
     pub fn name_matches(&self, other: &str) -> bool {
         self.name
             .iter()
@@ -114,13 +129,44 @@ impl ResPane {
 }
 
 #[repr(C)]
+#[derive(Debug, PartialEq)]
+enum TextBoxFlag {
+    ShadowEnabled,
+    ForceAssignTextLength,
+    InvisibleBorderEnabled,
+    DoubleDrawnBorderEnabled,
+    PerCharacterTransformEnabled,
+    CenterCeilingEnabled,
+    LineWidthOffsetEnabled,
+    ExtendedTagEnabled,
+    PerCharacterTransformSplitByCharWidth,
+    PerCharacterTransformAutoShadowAlpha,
+    DrawFromRightToLeft,
+    PerCharacterTransformOriginToCenter,
+    KeepingFontScaleEnabled,
+    PerCharacterTransformFixSpace,
+    PerCharacterTransformSplitByCharWidthInsertSpaceEnabled,
+    MaxTextBoxFlag,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub enum TextAlignment {
+    Synchronous,
+    Left,
+    Center,
+    Right,
+    MaxTextAlignment,
+}
+
+#[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResTextBox {
     pub pane: ResPane,
     text_buf_bytes: u16,
     text_str_bytes: u16,
     material_idx: u16,
-    font_idx: u16,
+    pub font_idx: u16,
     text_position: u8,
     text_alignment: u8,
     text_box_flag: u16,
@@ -148,6 +194,16 @@ pub struct ResTextBox {
     */
 }
 
+impl ResTextBox {
+    pub fn enable_shadow(&mut self) {
+        self.text_box_flag |= 0x1 << TextBoxFlag::ShadowEnabled as u8;
+    }
+
+    pub fn text_alignment(&mut self, align: TextAlignment) {
+        self.text_alignment = align as u8;
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResPicture {
@@ -167,4 +223,110 @@ pub struct ResPicture {
 pub struct ResPictureWithTex<const TEX_COORD_COUNT: usize> {
     pub picture: ResPicture,
     tex_coords: [[ResVec2; TEX_COORD_COUNT]; 4],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResParts {
+    pub pane: ResPane,
+    pub property_count: u32,
+    magnify: ResVec2,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+struct ResPartsProperty {
+    name: [skyline::libc::c_char; 24],
+    usage_flag: u8,
+    basic_usage_flag: u8,
+    material_usage_flag: u8,
+    system_ext_user_data_override_flag: u8,
+    property_offset: u32,
+    ext_user_data_offset: u32,
+    pane_basic_info_offset: u32,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResPartsWithProperty<const PROPERTY_COUNT: usize> {
+    pub parts: ResParts,
+    property_table: [ResPartsProperty; PROPERTY_COUNT],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+struct ResWindowInflation {
+    left: i16,
+    right: i16,
+    top: i16,
+    bottom: i16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowFrameSize {
+    left: u16,
+    right: u16,
+    top: u16,
+    bottom: u16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowContent {
+    vtx_cols: [ResColor; 4],
+    material_idx: u16,
+    tex_coord_count: u8,
+    padding: [u8; 1],
+    /* Additional Info
+        nn::util::Float2 texCoords[texCoordCount][VERTEX_MAX];
+    */
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowContentWithTexCoords<const TEX_COORD_COUNT: usize> {
+    pub window_content: ResWindowContent,
+    // This has to be wrong.
+    // Should be [[ResVec2; TEX_COORD_COUNT]; 4]?
+    tex_coords: [[ResVec3; TEX_COORD_COUNT]; 1],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowFrame {
+    material_idx: u16,
+    texture_flip: u8,
+    padding: [u8; 1],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindow {
+    pub pane: ResPane,
+    inflation: ResWindowInflation,
+    frame_size: ResWindowFrameSize,
+    frame_count: u8,
+    window_flags: u8,
+    padding: [u8; 2],
+    content_offset: u32,
+    frame_offset_table_offset: u32,
+    content: ResWindowContent,
+    /* Additional Info
+
+        ResWindowContent content;
+
+        detail::uint32_t frameOffsetTable[frameCount];
+        ResWindowFrame frames;
+
+    */
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowWithTexCoordsAndFrames<const TEX_COORD_COUNT: usize, const FRAME_COUNT: usize> {
+    pub window: ResWindow,
+    content: ResWindowContentWithTexCoords<TEX_COORD_COUNT>,
+    frame_offset_table: [u32; FRAME_COUNT],
+    frames: [ResWindowFrame; FRAME_COUNT],
 }
