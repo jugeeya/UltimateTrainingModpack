@@ -11,6 +11,40 @@ pub static NUM_MENU_TEXT_OPTIONS: usize = 27;
 pub static NUM_MENU_TEXT_SLIDERS: usize = 4;
 pub static NUM_MENU_TABS: usize = 3;
 
+pub static mut HAS_SORTED_MENU_CHILDREN : bool = false;
+
+// Sort all panes in under menu pane such that text and check options 
+// are last
+pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
+    let mut panes = (0..NUM_MENU_TEXT_OPTIONS).flat_map(|idx| {
+        let x = idx % 3;
+        let y = idx / 3;
+        [
+            root_pane.find_pane_by_name_recursive(format!("trMod_menu_opt_{x}_{y}").as_str()).unwrap(),
+            root_pane.find_pane_by_name_recursive(format!("trMod_menu_check_{x}_{y}").as_str()).unwrap(),
+            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str()).unwrap(),
+            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str()).unwrap()
+        ]
+    })
+    .collect::<Vec<&mut Pane>>();
+    
+    panes.append(
+        &mut (0..NUM_MENU_TEXT_SLIDERS).map(|idx| {
+            root_pane.find_pane_by_name_recursive(&format!("trMod_menu_slider_{idx}").as_str()).unwrap()
+        }).collect::<Vec<&mut Pane>>()
+    );
+
+    panes.sort_by(|a, _| {
+        if a.get_name().contains("opt") || a.get_name().contains("check") {
+            return std::cmp::Ordering::Greater;
+        } else {
+            return std::cmp::Ordering::Less;
+        }
+    });
+
+    panes
+}
+
 #[skyline::hook(offset = 0x4b620)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {
     let layout_name = skyline::from_c_str((*layout).layout_name);
@@ -146,6 +180,15 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             .unwrap();
         menu_pane.set_visible(QUICK_MENU_ACTIVE);
 
+        if !HAS_SORTED_MENU_CHILDREN {
+            let sorted_panes = all_menu_panes_sorted(root_pane);
+            // Place in sorted order such that backings are behind, etc.
+            sorted_panes.iter().for_each(|p| menu_pane.remove_child(p));
+            sorted_panes.iter().for_each(|p| menu_pane.append_child(p));
+
+            HAS_SORTED_MENU_CHILDREN = true;
+        }
+
         // Make all invisible first
         (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {
             let x = idx % 3;
@@ -154,6 +197,10 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                 .map(|text| text.set_visible(false) );
             root_pane
                 .find_pane_by_name_recursive(format!("trMod_menu_check_{x}_{y}").as_str())
+                .map(|text| text.set_visible(false) );
+            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str())
+                .map(|text| text.set_visible(false) );
+            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str())
                 .map(|text| text.set_visible(false) );
         });
         (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
@@ -190,9 +237,12 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                 // Valid options in this submenu
                 .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
                 .map(|(list_section, list_idx)| (list_section, list_idx, 
-                    root_pane.find_pane_by_name_recursive(
-                        &format!("trMod_menu_opt_{list_section}_{list_idx}").to_owned()).unwrap()))
-                .for_each(|(list_section, list_idx, text)| {
+                    root_pane.find_pane_by_name_recursive(format!("trMod_menu_opt_{list_section}_{list_idx}").as_str()).unwrap(),
+                    root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_left_{list_section}_{list_idx}").as_str()).unwrap(),
+                    root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_back_{list_section}_{list_idx}").as_str()).unwrap(),
+                ))
+                .for_each(|(list_section, list_idx, 
+                    text, bg_left, bg_back)| {
                     let list = &tab.lists[list_section];
                     let submenu = &list.items[list_idx];
                     let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
@@ -205,8 +255,11 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                             footer.set_text_string(submenu.help_text);
                         }
                     } else {
-                        text.set_color(0, 0, 0, 255);
+                        text.set_color(255, 255, 255, 255);
                     }
+                    
+                    bg_left.set_visible(true);
+                    bg_back.set_visible(true);
                 });
         } else {
             if matches!(app.selected_sub_menu_slider.state, GaugeState::None) {
@@ -226,9 +279,19 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                 if is_selected {
                                     text.set_color(0x27, 0x4E, 0x13, 255);
                                 } else {
-                                    text.set_color(0, 0, 0, 255);
+                                    text.set_color(255, 255, 255, 255);
                                 }
                                 text.set_visible(true);
+                            }
+
+                            if let Some(bg_left) = root_pane.find_pane_by_name_recursive(
+                                format!("trMod_menu_bg_left_{list_section}_{idx}").as_str()) {
+                                bg_left.set_visible(true);
+                            }
+
+                            if let Some(bg_back) = root_pane.find_pane_by_name_recursive(
+                                format!("trMod_menu_bg_back_{list_section}_{idx}").as_str()) {
+                                bg_back.set_visible(true);
                             }
 
                             if let Some(check) = root_pane.find_pane_by_name_recursive(
@@ -288,6 +351,10 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     original!()(layout, draw_info, cmd_buffer);
 }
 
+pub static mut MENU_PANE_PTR : u64 = 0;
+pub static mut HAS_CREATED_OPT_BG : bool = false;
+pub static mut HAS_CREATED_OPT_BG_BACK : bool = false;
+
 #[skyline::hook(offset = 0x493a0)]
 pub unsafe fn layout_build_parts_impl(
     layout: *mut Layout,
@@ -319,6 +386,57 @@ pub unsafe fn layout_build_parts_impl(
         };
     }
 
+    let root_pane = &*(*layout).root_pane;
+    let block = data as *mut ResPane;
+    let menu_pos = ResVec3::new(-360.0, 440.0, 0.0);
+
+    if layout_name == "info_training_btn0_00_item" {
+        if HAS_CREATED_OPT_BG == false && (*block).name_matches("icn_bg_main") {
+            (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
+                let x = txt_idx % 3;
+                let y = txt_idx / 3;
+
+                let x_offset = x as f32 * 500.0;
+                let y_offset = y as f32 * 85.0;
+            
+                let block = block as *mut ResPictureWithTex<2>;
+                let mut pic_menu_block = (*block).clone();
+                pic_menu_block.picture.pane.set_name(format!("trMod_menu_bg_left_{x}_{y}").as_str());
+                pic_menu_block.picture.pane.scale_x /= 1.5;
+                pic_menu_block.picture.pane.set_pos(ResVec3::new(menu_pos.x - 400.0 - 195.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
+                let pic_menu_pane = build!(pic_menu_block, ResPictureWithTex<2>, kind, Picture);
+                pic_menu_pane.detach();
+                if MENU_PANE_PTR != 0 {
+                    (&*(MENU_PANE_PTR as *mut Pane)).append_child(pic_menu_pane);
+                    HAS_CREATED_OPT_BG = true;
+                }
+            });
+        }
+        
+        if HAS_CREATED_OPT_BG_BACK == false && (*block).name_matches("btn_bg") {
+            (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
+                let x = txt_idx % 3;
+                let y = txt_idx / 3;
+
+                let x_offset = x as f32 * 500.0;
+                let y_offset = y as f32 * 85.0;
+
+                let block = block as *mut ResWindowWithTexCoordsAndFrames<1,4>;
+        
+                let mut pic_menu_block = (*block).clone();
+                pic_menu_block.window.pane.set_name(format!("trMod_menu_bg_back_{x}_{y}").as_str());
+                pic_menu_block.window.pane.scale_x /= 2.0;
+                pic_menu_block.window.pane.set_pos(ResVec3::new(menu_pos.x - 400.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
+                let pic_menu_pane = build!(pic_menu_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
+                pic_menu_pane.pane.detach();
+                if MENU_PANE_PTR != 0 {
+                    (&*(MENU_PANE_PTR as *mut Pane)).append_child(&pic_menu_pane.pane);
+                    HAS_CREATED_OPT_BG_BACK = true;
+                }
+            });
+        }
+    }
+
     if layout_name != "info_training" {
         return original!()(
             layout,
@@ -332,21 +450,8 @@ pub unsafe fn layout_build_parts_impl(
         );
     }
 
-    let root_pane = &*(*layout).root_pane;
-    let block = data as *mut ResPane;
-    let menu_pos = ResVec3::new(-360.0, 440.0, 0.0);
-
     // Menu creation
     if (*block).name_matches("pic_numbase_01") {
-        let block = block as *mut ResPictureWithTex<1>;
-        // For menu backing
-        let mut pic_menu_block = (*block).clone();
-        pic_menu_block.picture.pane.set_name("trMod_menu_base");
-        pic_menu_block.picture.pane.set_pos(menu_pos);
-        pic_menu_block.picture.pane.set_size(ResVec2::new(1400.0, 1600.0));
-        let pic_menu_pane = build!(pic_menu_block, ResPictureWithTex<1>, kind, Picture);
-        pic_menu_pane.detach();
-
         // pic is loaded first, we can create our parent pane here.
         let menu_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
         let mut menu_pane_block = ResPane::new("trMod_menu");
@@ -355,32 +460,12 @@ pub unsafe fn layout_build_parts_impl(
         let menu_pane = build!(menu_pane_block, ResPane, menu_pane_kind, Pane);
         menu_pane.detach();
         root_pane.append_child(menu_pane);
-        menu_pane.append_child(pic_menu_pane);
+        if MENU_PANE_PTR == 0 {
+            MENU_PANE_PTR = menu_pane as *mut Pane as u64;
+        }
     }
 
-    // Menu header
-    // TODO: Copy "Quit Training" window and text
-    if (*block).name_matches("set_txt_num_01") {
-        let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
-
-        let block = data as *mut ResTextBox;
-
-        // Header
-        let mut text_block = (*block).clone();
-        text_block.pane.size_x = text_block.pane.size_x * 2.0;
-        text_block.pane.set_name("trMod_menu_header");
-
-        text_block
-            .pane
-            .set_pos(ResVec3::new(menu_pos.x - 525.0, menu_pos.y + 75.0, 0.0));
-        let text_pane = build!(text_block, ResTextBox, kind, TextBox);
-        text_pane.pane.set_text_string("Modpack Menu");
-        // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
-        text_pane.set_default_material_colors();
-        text_pane.set_color(200, 8, 8, 255);
-        text_pane.detach();
-        menu_pane.append_child(text_pane);
-    }
+    
 
     // Menu footer background
     if (*block).name_matches("pic_help_bg_00") {
@@ -503,16 +588,16 @@ pub unsafe fn layout_build_parts_impl(
 
             text_block.pane.set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
 
-            let x_offset = x as f32 * 400.0;
-            let y_offset = y as f32 * 75.0;
-            text_block.pane.set_pos(ResVec3::new(menu_pos.x - 450.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
+            let x_offset = x as f32 * 500.0;
+            let y_offset = y as f32 * 85.0;
+            text_block.pane.set_pos(ResVec3::new(menu_pos.x - 480.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
             text_pane
                 .pane
                 .set_text_string(format!("Opt {txt_idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             text_pane.set_default_material_colors();
-            text_pane.set_color(0, 0, 0, 255);
+            text_pane.set_color(255, 255, 255, 255);
             text_pane.detach();
             menu_pane.append_child(text_pane);
 
@@ -521,7 +606,7 @@ pub unsafe fn layout_build_parts_impl(
             check_block.font_idx = 2;
 
             check_block.pane.set_name(format!("trMod_menu_check_{x}_{y}").as_str());
-            check_block.pane.set_pos(ResVec3::new(menu_pos.x - 675.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
+            check_block.pane.set_pos(ResVec3::new(menu_pos.x - 375.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
             let check_pane = build!(check_block, ResTextBox, kind, TextBox);
             check_pane
                 .pane

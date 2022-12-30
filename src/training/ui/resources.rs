@@ -118,13 +118,16 @@ impl ResPane {
         self.size_y = size.y;
     }
 
-    pub fn name_matches(&self, other: &str) -> bool {
+    pub fn get_name(&self) -> String {
         self.name
             .iter()
             .take_while(|b| **b != 0)
             .map(|b| *b as char)
             .collect::<String>()
-            == other
+    }
+
+    pub fn name_matches(&self, other: &str) -> bool {
+        self.get_name() == other
     }
 }
 

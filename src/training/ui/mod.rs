@@ -224,6 +224,14 @@ impl Pane {
             self.global_alpha = 0;
         }
     }
+
+    pub fn get_name(&self) -> String {
+        self.name
+            .iter()
+            .take_while(|b| **b != 0)
+            .map(|b| *b as char)
+            .collect::<String>()
+    }
 }
 
 #[repr(C)]
