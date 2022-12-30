@@ -529,7 +529,7 @@ pub struct GroupContainer {}
 pub struct Layout {
     vtable: u64,
     pub anim_trans_list: AnimTransformNode,
-    pub root_pane: *const Pane,
+    pub root_pane: *mut Pane,
     group_container: u64,
     layout_size: f64,
     pub layout_name: *const skyline::libc::c_char,

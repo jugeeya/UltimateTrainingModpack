@@ -2,7 +2,7 @@ use crate::common::get_player_dmg_digits;
 use crate::consts::FighterId;
 use crate::training::ui::*;
 use crate::{common::menu::QUICK_MENU_ACTIVE, training::combo::FRAME_ADVANTAGE};
-use training_mod_consts::OnOff;
+use training_mod_consts::{MENU, OnOff};
 use training_mod_tui::gauge::GaugeState;
 
 pub static NUM_DISPLAY_PANES: usize = 1;
@@ -90,7 +90,12 @@ pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
 #[skyline::hook(offset = 0x4b620)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {
     let layout_name = skyline::from_c_str((*layout).layout_name);
-    let root_pane = &*(*layout).root_pane;
+    let root_pane = &mut *(*layout).root_pane;
+
+    if crate::common::is_training_mode() && layout_name != "info_training" {
+        root_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
+        root_pane.set_visible(MENU.hud == OnOff::On);
+    }
 
     // Update percentage display as soon as possible on death
     if crate::common::is_training_mode() && layout_name == "info_melee" {
@@ -199,14 +204,17 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             if QUICK_MENU_ACTIVE {
                 quit_button.pos_y = 514.0;
             }
-            if let Some(quit_txt) = quit_button.find_pane_by_name_recursive("set_txt_00") {
-                quit_txt.set_text_string(if QUICK_MENU_ACTIVE {
-                    "Modpack Menu"
-                } else {
-                    // Awkward. We should get the o.g. translation for non-english games
-                    // Or create our own textbox here so we don't step on their toes.
-                    "Quit Training"
-                });
+
+            for quit_txt_s in &["set_txt_00", "set_txt_01"] {
+                if let Some(quit_txt) = quit_button.find_pane_by_name_recursive(quit_txt_s) {
+                    quit_txt.set_text_string(if QUICK_MENU_ACTIVE {
+                        "Modpack Menu"
+                    } else {
+                        // Awkward. We should get the o.g. translation for non-english games
+                        // Or create our own textbox here so we don't step on their toes.
+                        "Quit Training"
+                    });
+                }
             }
         }
 
