@@ -190,7 +190,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                 // Valid options in this submenu
                 .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
                 .map(|(list_section, list_idx)| (list_section, list_idx, 
-                    layout_root_pane.find_pane_by_name_recursive(
+                    root_pane.find_pane_by_name_recursive(
                         &format!("trMod_menu_opt_{list_section}_{list_idx}").to_owned()).unwrap()))
                 .for_each(|(list_section, list_idx, text)| {
                     let list = &tab.lists[list_section];
