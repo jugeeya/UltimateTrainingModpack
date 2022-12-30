@@ -292,12 +292,12 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                             .unwrap(),
                         root_pane
                             .find_pane_by_name_recursive(
-                                format!("trMod_menu_bg_left_{list_section}_{list_idx}").as_str(),
+                                menu_text_bg_left_fmt!(list_section, list_idx)
                             )
                             .unwrap(),
                         root_pane
                             .find_pane_by_name_recursive(
-                                format!("trMod_menu_bg_back_{list_section}_{list_idx}").as_str(),
+                                menu_text_bg_back_fmt!(list_section, list_idx)
                             )
                             .unwrap(),
                     )
@@ -347,19 +347,19 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         }
 
                         if let Some(bg_left) = root_pane.find_pane_by_name_recursive(
-                            format!("trMod_menu_bg_left_{list_section}_{idx}").as_str(),
+                            menu_text_bg_left_fmt!(list_section, idx)
                         ) {
                             bg_left.set_visible(true);
                         }
 
                         if let Some(bg_back) = root_pane.find_pane_by_name_recursive(
-                            format!("trMod_menu_bg_back_{list_section}_{idx}").as_str(),
+                            menu_text_bg_back_fmt!(list_section, idx)
                         ) {
                             bg_back.set_visible(true);
                         }
 
                         if let Some(check) = root_pane.find_pane_by_name_recursive(
-                            format!("trMod_menu_check_{list_section}_{idx}").as_str(),
+                            menu_text_check_fmt!(list_section, idx)
                         ) {
                             if *checked {
                                 let check = check.as_textbox();
