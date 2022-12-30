@@ -15,31 +15,31 @@ pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
 macro_rules! menu_text_name_fmt {
     ($x:ident, $y:ident) => {
         format!("trMod_menu_opt_{}_{}", $x, $y).as_str()
-    }
+    };
 }
 
 macro_rules! menu_text_check_fmt {
     ($x:ident, $y:ident) => {
         format!("trMod_menu_check_{}_{}", $x, $y).as_str()
-    }
+    };
 }
 
 macro_rules! menu_text_bg_left_fmt {
     ($x:ident, $y:ident) => {
         format!("trMod_menu_bg_left_{}_{}", $x, $y).as_str()
-    }
+    };
 }
 
 macro_rules! menu_text_bg_back_fmt {
     ($x:ident, $y:ident) => {
         format!("trMod_menu_bg_back_{}_{}", $x, $y).as_str()
-    }
+    };
 }
 
 macro_rules! menu_text_slider_fmt {
     ($x:ident) => {
         format!("trMod_menu_slider_{}", $x).as_str()
-    }
+    };
 }
 
 // Sort all panes in under menu pane such that text and check options
@@ -277,7 +277,10 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         list_section,
                         list_idx,
                         root_pane
-                            .find_pane_by_name_recursive(menu_text_name_fmt!(list_section, list_idx))
+                            .find_pane_by_name_recursive(menu_text_name_fmt!(
+                                list_section,
+                                list_idx
+                            ))
                             .unwrap(),
                         root_pane
                             .find_pane_by_name_recursive(
@@ -322,9 +325,9 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     .enumerate()
                     .for_each(|(idx, (checked, name))| {
                         let is_selected = sub_menu_state.selected().filter(|s| *s == idx).is_some();
-                        if let Some(text) = root_pane.find_pane_by_name_recursive(
-                            menu_text_name_fmt!(list_section, idx)
-                        ) {
+                        if let Some(text) = root_pane
+                            .find_pane_by_name_recursive(menu_text_name_fmt!(list_section, idx))
+                        {
                             let text = text.as_textbox();
                             text.set_text_string(name);
                             if is_selected {
@@ -488,8 +491,7 @@ pub unsafe fn layout_build_parts_impl(
                     menu_pos.y - 50.0 - y_offset,
                     0.0,
                 ));
-                let bg_pane =
-                    build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
+                let bg_pane = build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
                 bg_pane.detach();
                 if MENU_PANE_PTR != 0 {
                     (*(MENU_PANE_PTR as *mut Pane)).append_child(bg_pane);
