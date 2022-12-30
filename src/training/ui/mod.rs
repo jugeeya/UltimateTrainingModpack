@@ -508,7 +508,6 @@ impl DerefMut for Window {
     }
 }
 
-
 #[derive(Debug, Copy, Clone)]
 pub struct PaneNode {
     pub prev: *mut PaneNode,

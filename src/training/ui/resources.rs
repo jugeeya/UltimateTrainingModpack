@@ -258,7 +258,7 @@ pub struct ResPictureWithTex<const TEX_COORD_COUNT: usize> {
     tex_coords: [[ResVec2; TEX_COORD_COUNT]; 4],
 }
 
-impl<const TEX_COORD_COUNT : usize> Deref for ResPictureWithTex<TEX_COORD_COUNT> {
+impl<const TEX_COORD_COUNT: usize> Deref for ResPictureWithTex<TEX_COORD_COUNT> {
     type Target = ResPane;
 
     fn deref(&self) -> &Self::Target {
@@ -266,7 +266,7 @@ impl<const TEX_COORD_COUNT : usize> Deref for ResPictureWithTex<TEX_COORD_COUNT>
     }
 }
 
-impl<const TEX_COORD_COUNT : usize> DerefMut for ResPictureWithTex<TEX_COORD_COUNT> {
+impl<const TEX_COORD_COUNT: usize> DerefMut for ResPictureWithTex<TEX_COORD_COUNT> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.picture
     }
@@ -406,7 +406,9 @@ pub struct ResWindowWithTexCoordsAndFrames<const TEX_COORD_COUNT: usize, const F
     frames: [ResWindowFrame; FRAME_COUNT],
 }
 
-impl<const TEX_COORD_COUNT : usize, const FRAME_COUNT : usize> Deref for ResWindowWithTexCoordsAndFrames<TEX_COORD_COUNT, FRAME_COUNT> {
+impl<const TEX_COORD_COUNT: usize, const FRAME_COUNT: usize> Deref
+    for ResWindowWithTexCoordsAndFrames<TEX_COORD_COUNT, FRAME_COUNT>
+{
     type Target = ResPane;
 
     fn deref(&self) -> &Self::Target {
@@ -414,7 +416,9 @@ impl<const TEX_COORD_COUNT : usize, const FRAME_COUNT : usize> Deref for ResWind
     }
 }
 
-impl<const TEX_COORD_COUNT : usize, const FRAME_COUNT : usize> DerefMut for ResWindowWithTexCoordsAndFrames<TEX_COORD_COUNT, FRAME_COUNT> {
+impl<const TEX_COORD_COUNT: usize, const FRAME_COUNT: usize> DerefMut
+    for ResWindowWithTexCoordsAndFrames<TEX_COORD_COUNT, FRAME_COUNT>
+{
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.window
     }

@@ -2,7 +2,7 @@ use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
 use crate::consts::FighterId;
 use crate::training::ui::*;
 use crate::{common::menu::QUICK_MENU_ACTIVE, training::combo::FRAME_ADVANTAGE};
-use training_mod_consts::{MENU, OnOff};
+use training_mod_consts::{OnOff, MENU};
 use training_mod_tui::gauge::GaugeState;
 
 pub static NUM_DISPLAY_PANES: usize = 1;
@@ -291,14 +291,16 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                             ))
                             .unwrap(),
                         root_pane
-                            .find_pane_by_name_recursive(
-                                menu_text_bg_left_fmt!(list_section, list_idx)
-                            )
+                            .find_pane_by_name_recursive(menu_text_bg_left_fmt!(
+                                list_section,
+                                list_idx
+                            ))
                             .unwrap(),
                         root_pane
-                            .find_pane_by_name_recursive(
-                                menu_text_bg_back_fmt!(list_section, list_idx)
-                            )
+                            .find_pane_by_name_recursive(menu_text_bg_back_fmt!(
+                                list_section,
+                                list_idx
+                            ))
                             .unwrap(),
                     )
                 })
@@ -346,21 +348,21 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                             text.set_visible(true);
                         }
 
-                        if let Some(bg_left) = root_pane.find_pane_by_name_recursive(
-                            menu_text_bg_left_fmt!(list_section, idx)
-                        ) {
+                        if let Some(bg_left) = root_pane
+                            .find_pane_by_name_recursive(menu_text_bg_left_fmt!(list_section, idx))
+                        {
                             bg_left.set_visible(true);
                         }
 
-                        if let Some(bg_back) = root_pane.find_pane_by_name_recursive(
-                            menu_text_bg_back_fmt!(list_section, idx)
-                        ) {
+                        if let Some(bg_back) = root_pane
+                            .find_pane_by_name_recursive(menu_text_bg_back_fmt!(list_section, idx))
+                        {
                             bg_back.set_visible(true);
                         }
 
-                        if let Some(check) = root_pane.find_pane_by_name_recursive(
-                            menu_text_check_fmt!(list_section, idx)
-                        ) {
+                        if let Some(check) = root_pane
+                            .find_pane_by_name_recursive(menu_text_check_fmt!(list_section, idx))
+                        {
                             if *checked {
                                 let check = check.as_textbox();
 
