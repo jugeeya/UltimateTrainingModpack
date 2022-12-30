@@ -154,7 +154,7 @@ pub fn combo_passes(
     }
 }
 
-pub const DEFAULT_BTN_CONFIG: &'static str = r#"[button_config]
+pub const DEFAULT_BTN_CONFIG: &str = r#"[button_config]
 # Available Options:
 #
 # ATTACK

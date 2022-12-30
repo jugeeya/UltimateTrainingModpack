@@ -41,7 +41,7 @@ impl Uuid {
     pub fn to_str(&self) -> String {
         self.data
             .iter()
-            .map(|i| format!("{:02x}", i))
+            .map(|i| format!("{i:02x}"))
             .collect::<String>()
     }
 }
@@ -91,7 +91,7 @@ impl Event {
                         user_uid
                             .id
                             .iter()
-                            .map(|i| format!("{:02x}", i))
+                            .map(|i| format!("{i:02x}"))
                             .collect::<Vec<String>>()
                             .join(""),
                     )
@@ -109,7 +109,7 @@ impl Event {
                         device_uuid
                             .data
                             .iter()
-                            .map(|i| format!("{:02x}", i))
+                            .map(|i| format!("{i:02x}"))
                             .collect::<Vec<String>>()
                             .join(""),
                     )
@@ -137,7 +137,7 @@ impl Event {
                         session_id_hash
                             .hash
                             .iter()
-                            .map(|i| format!("{:02x}", i))
+                            .map(|i| format!("{i:02x}"))
                             .collect::<Vec<String>>()
                             .join(""),
                     )

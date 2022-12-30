@@ -73,7 +73,7 @@ pub fn should_reverse_angle(direction: &Direction) -> bool {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     unsafe {
         PostureModule::pos_x(player_module_accessor) > PostureModule::pos_x(cpu_module_accessor)
-            && ![Direction::LEFT, Direction::RIGHT].contains(&direction)
+            && ![Direction::LEFT, Direction::RIGHT].contains(direction)
     }
 }
 

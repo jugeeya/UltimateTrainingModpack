@@ -75,7 +75,7 @@ fn get_hazard_hook_address() -> usize {
         }
     }
 
-    flag_pos as usize
+    flag_pos
 }
 
 // 8.1.0 Defaults
@@ -129,16 +129,13 @@ unsafe fn validate_hazards_addrs() -> std::result::Result<(), ()> {
 pub fn hazard_manager() {
     println!("[Training Modpack] Applying hazard control mods.");
     unsafe {
-        match validate_hazards_addrs() {
-            Ok(()) => {
-                HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
-                LOAD_ADDRESS = get_hazard_hook_address();
-                A64InlineHook(
-                    LOAD_ADDRESS as *const skyline::libc::c_void,
-                    hazard_intercept as *const skyline::libc::c_void,
-                );
-            }
-            Err(()) => {}
+        if let Ok(()) = validate_hazards_addrs() {
+            HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
+            LOAD_ADDRESS = get_hazard_hook_address();
+            A64InlineHook(
+                LOAD_ADDRESS as *const skyline::libc::c_void,
+                hazard_intercept as *const skyline::libc::c_void,
+            );
         }
     }
 }

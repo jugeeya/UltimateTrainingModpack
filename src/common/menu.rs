@@ -54,8 +54,8 @@ pub unsafe fn write_menu() {
     let program_id = get_program_id();
     let htdocs_dir = "training_modpack";
     let menu_html_path = Path::new("sd:/atmosphere/contents")
-        .join(&format!("{:016X}", program_id))
-        .join(&format!("manual_html/html-document/{}.htdocs/", htdocs_dir))
+        .join(format!("{program_id:016X}"))
+        .join(format!("manual_html/html-document/{htdocs_dir}.htdocs/"))
         .join("training_menu.html");
 
     let write_resp = fs::write(menu_html_path, data);
@@ -94,18 +94,16 @@ pub unsafe fn set_menu_from_json(message: &str) {
         skyline::error::show_error(
             0x70,
             "Could not parse the menu response!\nPlease send a screenshot of the details page to the developers.\n\0",
-            &*format!("{:#?}\0", message)
+            &format!("{message:#?}\0")
         );
     };
-    if MENU.quick_menu == OnOff::Off {
-        if is_emulator() {
-            skyline::error::show_error(
-                0x69,
-                "Cannot use web menu on emulator.\n\0",
-                "Only the quick menu is runnable via emulator currently.\n\0",
-            );
-            MENU.quick_menu = OnOff::On;
-        }
+    if MENU.quick_menu == OnOff::Off && is_emulator() {
+        skyline::error::show_error(
+            0x69,
+            "Cannot use web menu on emulator.\n\0",
+            "Only the quick menu is runnable via emulator currently.\n\0",
+        );
+        MENU.quick_menu = OnOff::On;
     }
     EVENT_QUEUE.push(Event::menu_open(message.to_string()));
 }
@@ -151,14 +149,6 @@ pub struct ButtonPress {
 }
 
 impl ButtonPress {
-    pub fn default() -> ButtonPress {
-        ButtonPress {
-            prev_frame_is_pressed: false,
-            is_pressed: false,
-            lockout_frames: 0,
-        }
-    }
-
     pub fn read_press(&mut self) -> bool {
         let is_pressed = self.is_pressed;
         if self.is_pressed {

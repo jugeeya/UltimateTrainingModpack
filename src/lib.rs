@@ -5,11 +5,15 @@
 #![feature(c_variadic)]
 #![allow(
     clippy::borrow_interior_mutable_const,
+    clippy::declare_interior_mutable_const,
     clippy::not_unsafe_ptr_arg_deref,
     clippy::missing_safety_doc,
     clippy::wrong_self_convention,
     clippy::option_map_unit_fn,
-    clippy::float_cmp
+    clippy::float_cmp,
+    clippy::fn_null_check,
+    // Look into why for this one
+    clippy::transmute_num_to_bytes
 )]
 
 pub mod common;
@@ -66,7 +70,7 @@ pub fn main() {
             },
         };
 
-        let err_msg = format!("thread has panicked at '{}', {}", msg, location);
+        let err_msg = format!("thread has panicked at '{msg}', {location}");
         skyline::error::show_error(
             69,
             "Skyline plugin has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
@@ -108,7 +112,7 @@ pub fn main() {
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
     log!("Checking for previous menu in training_modpack_menu.json...");
     if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(&menu_conf_path).unwrap();
+        let menu_conf = fs::read_to_string(menu_conf_path).unwrap();
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
@@ -130,7 +134,7 @@ pub fn main() {
     log!("Checking for previous button combo settings in training_modpack.toml...");
     if fs::metadata(combo_path).is_ok() {
         log!("Previous button combo settings found. Loading...");
-        let combo_conf = fs::read_to_string(&combo_path).unwrap();
+        let combo_conf = fs::read_to_string(combo_path).unwrap();
         if button_config::validate_config(&combo_conf) {
             button_config::save_all_btn_config_from_toml(&combo_conf);
         } else {
@@ -161,7 +165,7 @@ pub fn main() {
                     event.event_name, event.device_id, event.event_time
                 );
 
-                let url = format!("{}{}", host, path);
+                let url = format!("{host}{path}");
                 minreq::post(url).with_json(&event).unwrap().send().ok();
             }
         }

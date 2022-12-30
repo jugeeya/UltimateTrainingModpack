@@ -76,7 +76,7 @@ pub unsafe fn hook_start_clatter(
     // Most of the time this is 8 frames, but could be less depending on
     // the status (e.g. freeze is 4 frames / input)
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        CLATTER_STEP = manual_recovery_rate.clone();
+        CLATTER_STEP = manual_recovery_rate;
     }
     original!()(
         module_accessor,

@@ -143,7 +143,7 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
 
 unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let fighter_distance = get_fighter_distance();
-    if MENU.mash_triggers.contains(MashTrigger::ALWAYS)
+    MENU.mash_triggers.contains(MashTrigger::ALWAYS)
         || (MENU.mash_triggers.contains(MashTrigger::HIT) && is_in_hitstun(module_accessor))
         // BLOCK handled in shield.rs
         || (MENU.mash_triggers.contains(MashTrigger::PARRY) && is_in_parry(module_accessor))
@@ -158,13 +158,7 @@ unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -
         || (MENU.mash_triggers.contains(MashTrigger::GROUNDED) && is_grounded(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::AIRBORNE) && is_airborne(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_CLOSE) && fighter_distance < DISTANCE_CLOSE_THRESHOLD)
-        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID) && fighter_distance < DISTANCE_MID_THRESHOLD)
-        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR) && fighter_distance < DISTANCE_FAR_THRESHOLD)
-    {
-        true
-    } else {
-        false
-    }
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID) && fighter_distance < DISTANCE_MID_THRESHOLD) || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR) && fighter_distance < DISTANCE_FAR_THRESHOLD)
 }
 
 // Temp Translation
