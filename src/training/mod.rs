@@ -360,10 +360,8 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
     if !is_training_mode() {
         return ori;
     }
-    if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 {
-        if buff::is_buffing(module_accessor) {
-            return 4294967295;
-        }
+    if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 && buff::is_buffing(module_accessor) {
+        return 4294967295;
     }
     ori
 }
@@ -384,7 +382,7 @@ static STALE_MENU_OFFSET: usize = 0x013e88a0;
 #[skyline::hook(offset=STALE_MENU_OFFSET, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
-    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x42b215e)) as u64;
+    let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b215e;
     let x1 = ctx.registers[1].x.as_mut();
     *x1 = on_text_ptr;
 }
@@ -467,9 +465,9 @@ static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, checks 
 pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     let ori = original!()(my_long_ptr);
     if !is_training_mode() {
-        return ori;
+        ori
     } else {
-        return false;
+        false
     }
 }
 

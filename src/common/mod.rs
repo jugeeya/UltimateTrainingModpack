@@ -26,7 +26,7 @@ extern "C" {
 
 #[cfg(feature = "outside_training_mode")]
 pub fn is_training_mode() -> bool {
-    return true;
+    true
 }
 
 pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
@@ -60,7 +60,7 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
         }
 
         let entry_id_int =
-            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
 
         if entry_id_int == 0 {
             return false;
@@ -76,13 +76,13 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
 }
 
 pub fn is_grounded(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let situation_kind = unsafe { StatusModule::situation_kind(module_accessor) as i32 };
+    let situation_kind = unsafe { StatusModule::situation_kind(module_accessor) };
 
     situation_kind == SITUATION_KIND_GROUND
 }
 
 pub fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let situation_kind = unsafe { StatusModule::situation_kind(module_accessor) as i32 };
+    let situation_kind = unsafe { StatusModule::situation_kind(module_accessor) };
 
     situation_kind == SITUATION_KIND_AIR
 }
@@ -105,7 +105,7 @@ pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) ->
 }
 
 pub fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = unsafe { StatusModule::status_kind(module_accessor) as i32 };
+    let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
 
     (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)
 }
@@ -130,7 +130,7 @@ pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor)
 }
 
 pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor);
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
     // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
     // And the previous status is FIGHTER_STATUS_NONE

@@ -58,7 +58,7 @@ fn roll_ledge_case() {
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if StatusModule::situation_kind(module_accessor) as i32 != *SITUATION_KIND_CLIFF {
+    if StatusModule::situation_kind(module_accessor) != *SITUATION_KIND_CLIFF {
         // No longer on ledge, so re-roll the ledge case and reset the delay counter for next time
         reset_ledge_case();
         reset_ledge_delay();
@@ -113,7 +113,7 @@ pub unsafe fn is_enable_transition_term(
         return None;
     }
     // Only handle ledge scenarios from menu
-    if StatusModule::status_kind(_module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT
+    if StatusModule::status_kind(_module_accessor) != *FIGHTER_STATUS_KIND_CLIFF_WAIT
         || MENU.ledge_state == LedgeOption::empty()
     {
         return None;

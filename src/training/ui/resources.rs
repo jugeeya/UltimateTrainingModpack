@@ -149,7 +149,7 @@ enum TextBoxFlag {
     KeepingFontScaleEnabled,
     PerCharacterTransformFixSpace,
     PerCharacterTransformSplitByCharWidthInsertSpaceEnabled,
-    MaxTextBoxFlag,
+    Max,
 }
 
 #[repr(C)]

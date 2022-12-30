@@ -70,9 +70,7 @@ unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccesso
     SHIELD_DELAY = MENU.reaction_time.get_random().into_delay();
 
     // Decrease offset once if needed
-    if MULTI_HIT_OFFSET > 0 {
-        MULTI_HIT_OFFSET -= 1;
-    }
+    MULTI_HIT_OFFSET = MULTI_HIT_OFFSET.saturating_sub(1);
 
     // Mark that we were in shield stun, so we don't decrease again
     WAS_IN_SHIELDSTUN = true;

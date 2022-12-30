@@ -199,7 +199,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         return;
     }
 
-    let status = StatusModule::status_kind(module_accessor) as i32;
+    let status = StatusModule::status_kind(module_accessor);
     let mut requested_status: i32 = 0;
     if [
         *FIGHTER_STATUS_KIND_DOWN_WAIT,

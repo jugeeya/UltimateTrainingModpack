@@ -56,7 +56,7 @@ pub unsafe fn is_enable_transition_term(
     is: bool,
 ) {
     let entry_id_int =
-        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
 
     if entry_id_int != (FighterId::Player as i32) {
         return;
@@ -93,7 +93,7 @@ pub unsafe fn is_enable_transition_term(
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let entry_id_int =
-        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
     // do only once.
     if entry_id_int != (FighterId::Player as i32) {
         return;

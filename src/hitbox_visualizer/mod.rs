@@ -161,7 +161,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
         return;
     }
 
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor);
     if (*FIGHTER_STATUS_KIND_CATCH..=*FIGHTER_STATUS_KIND_CATCH_TURN).contains(&status_kind) {
         return;
     }
@@ -231,11 +231,11 @@ unsafe fn mod_handle_attack(lua_state: u64) {
         let mut hitbox_params: Vec<L2CValue> =
             (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
         l2c_agent.clear_lua_stack();
-        for (i, mut x) in hitbox_params.iter_mut().enumerate().take(36) {
+        for (i, x) in hitbox_params.iter_mut().enumerate().take(36) {
             if i == 20 {
                 l2c_agent.push_lua_stack(&mut L2CValue::new_num(-999.0));
             } else {
-                l2c_agent.push_lua_stack(&mut x);
+                l2c_agent.push_lua_stack(x);
             }
         }
     }
@@ -335,7 +335,7 @@ unsafe fn mod_handle_catch(lua_state: u64) {
         size.get_num(),
         center,
         capsule_center,
-        ID_COLORS[(id.get_int() + 3 % 8) as usize],
+        ID_COLORS[((id.get_int() + 3) % 8) as usize],
     );
 }
 

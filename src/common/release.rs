@@ -38,26 +38,23 @@ pub fn version_check() {
             // Display dialog box on launch if changing versions
             DialogOk::ok(
                 format!(
-                    "Thank you for installing version {} of the Training Modpack.\n\n\
+                    "Thank you for installing version {CURRENT_VERSION} of the Training Modpack.\n\n\
                     Due to a breaking change in this version, your menu selections and defaults must be reset once.\n\n\
-                    Please refer to the Github page and the Discord server for a full list of recent features, bugfixes, and other changes.",
-                    CURRENT_VERSION
+                    Please refer to the Github page and the Discord server for a full list of recent features, bugfixes, and other changes."
                 )
             );
             // Remove old menu selections, silently ignoring errors (i.e. if the file doesn't exist)
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.conf").unwrap_or({});
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.json").unwrap_or({});
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu_defaults.conf")
-                .unwrap_or({});
+            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.conf").unwrap();
+            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.json").unwrap();
+            fs::remove_file("sd:/TrainingModpack/training_modpack_menu_defaults.conf").unwrap();
             record_current_version(VERSION_FILE_PATH);
         }
         VersionCheck::NoFile => {
             // Display dialog box on fresh installation
             DialogOk::ok(
                 format!(
-                    "Thank you for installing version {} of the Training Modpack.\n\n\
-                    Please refer to the Github page and the Discord server for a full list of features and instructions on how to utilize the improved Training Mode.",
-                    CURRENT_VERSION
+                    "Thank you for installing version {CURRENT_VERSION} of the Training Modpack.\n\n\
+                    Please refer to the Github page and the Discord server for a full list of features and instructions on how to utilize the improved Training Mode."
                 )
             );
             record_current_version(VERSION_FILE_PATH);

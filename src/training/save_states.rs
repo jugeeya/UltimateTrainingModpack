@@ -127,10 +127,8 @@ pub unsafe fn get_param_int(
         if param_hash == hash40("rebirth_move_frame") {
             return Some(0);
         }
-        if param_hash == hash40("rebirth_move_frame_trainer") {
-            if is_killing() {
-                return Some(0);
-            }
+        if param_hash == hash40("rebirth_move_frame_trainer") && is_killing() {
+            return Some(0);
         }
         if param_hash == hash40("rebirth_wait_frame") {
             return Some(0);
@@ -142,12 +140,8 @@ pub unsafe fn get_param_int(
             return Some(0);
         }
     }
-    if param_type == hash40("param_mball") {
-        if param_hash == hash40("change_fly_frame") {
-            if is_killing() {
-                return Some(0);
-            }
-        }
+    if param_type == hash40("param_mball") && param_hash == hash40("change_fly_frame") && is_killing() {
+        return Some(0);
     }
 
     None
@@ -203,7 +197,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
-    let status = StatusModule::status_kind(module_accessor) as i32;
+    let status = StatusModule::status_kind(module_accessor);
     let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
         == FighterId::CPU as i32;
     let save_state = if is_cpu {
@@ -318,7 +312,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     // move to correct pos
     if save_state.state == PosMove || save_state.state == NanaPosMove {
-        let status_kind = StatusModule::status_kind(module_accessor) as i32;
+        let status_kind = StatusModule::status_kind(module_accessor);
         if save_state.state == NanaPosMove
             && (!fighter_is_nana || (status_kind == FIGHTER_STATUS_KIND_STANDBY))
         {

@@ -6,8 +6,5 @@
         "--workspace",
         "--message-format=json",
         "--all-features",
-        "--",
-        "-A",
-        "clippy::borrow_interior_mutable_const"
     ],
 }

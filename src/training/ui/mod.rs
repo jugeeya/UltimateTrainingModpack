@@ -55,8 +55,8 @@ pub struct AnimTransform {
 
 impl AnimTransform {
     pub unsafe fn parse_anim_transform(&mut self, layout_name: Option<&str>) {
-        let res_animation_block_data_start = (*self).res_animation_block as u64;
-        let res_animation_block = &*(*self).res_animation_block;
+        let res_animation_block_data_start = self.res_animation_block as u64;
+        let res_animation_block = &*self.res_animation_block;
         let mut anim_cont_offsets = (res_animation_block_data_start
             + res_animation_block.anim_cont_offsets_offset as u64)
             as *const u32;
@@ -70,25 +70,26 @@ impl AnimTransform {
             let anim_type = (*res_animation_cont).anim_content_type;
 
             // AnimContentType 1 == MATERIAL
-            if layout_name.is_some() && name.starts_with("set_dmg_num") && anim_type == 1 {
-                let layout_name = layout_name.unwrap();
-                let (hundreds, tens, ones, dec) = get_player_dmg_digits(match layout_name {
-                    "p1" => FighterId::Player,
-                    "p2" => FighterId::CPU,
-                    _ => panic!("Unknown layout name: {}", layout_name),
-                });
+            if name.starts_with("set_dmg_num") && anim_type == 1 {
+                if let Some(layout_name) = layout_name {
+                    let (hundreds, tens, ones, dec) = get_player_dmg_digits(match layout_name {
+                        "p1" => FighterId::Player,
+                        "p2" => FighterId::CPU,
+                        _ => panic!("Unknown layout name: {}", layout_name),
+                    });
 
-                if name == "set_dmg_num_3" {
-                    self.frame = hundreds as f32;
-                }
-                if name == "set_dmg_num_2" {
-                    self.frame = tens as f32;
-                }
-                if name == "set_dmg_num_1" {
-                    self.frame = ones as f32;
-                }
-                if name == "set_dmg_num_dec" {
-                    self.frame = dec as f32;
+                    if name == "set_dmg_num_3" {
+                        self.frame = hundreds as f32;
+                    }
+                    if name == "set_dmg_num_2" {
+                        self.frame = tens as f32;
+                    }
+                    if name == "set_dmg_num_1" {
+                        self.frame = ones as f32;
+                    }
+                    if name == "set_dmg_num_dec" {
+                        self.frame = dec as f32;
+                    }
                 }
             }
 
@@ -418,12 +419,12 @@ pub enum MaterialColorType {
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub enum MaterialFlags {
-    FlagsUserAllocated,
-    FlagsTextureOnly,
-    FlagsThresholdingAlphaInterpolation,
-    FlagsBlackColorFloat,
-    FlagsWhiteColorFloat,
-    FlagsDynamicAllocatedColorData,
+    UserAllocated,
+    TextureOnly,
+    ThresholdingAlphaInterpolation,
+    BlackColorFloat,
+    WhiteColorFloat,
+    DynamicAllocatedColorData,
 }
 
 #[repr(C)]
@@ -466,9 +467,9 @@ impl Material {
 
     pub fn set_color(&mut self, color_type: MaterialColorType, r: f32, g: f32, b: f32, a: f32) {
         let (is_float_flag, idx) = if color_type == MaterialColorType::BlackColor {
-            (MaterialFlags::FlagsBlackColorFloat as u8, 0)
+            (MaterialFlags::BlackColorFloat as u8, 0)
         } else {
-            (MaterialFlags::FlagsWhiteColorFloat as u8, 1)
+            (MaterialFlags::WhiteColorFloat as u8, 1)
         };
         if self.m_flag & (0x1 << is_float_flag) != 0 {
             self.set_color_float(idx, r, g, b, a);

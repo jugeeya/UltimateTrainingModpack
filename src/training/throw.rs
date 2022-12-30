@@ -89,9 +89,9 @@ pub unsafe fn get_command_flag_throw_direction(
         return 0;
     }
 
-    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_WAIT
-        && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_PULL
-        && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_ATTACK
+    if StatusModule::status_kind(module_accessor) != *FIGHTER_STATUS_KIND_CATCH_WAIT
+        && StatusModule::status_kind(module_accessor) != *FIGHTER_STATUS_KIND_CATCH_PULL
+        && StatusModule::status_kind(module_accessor) != *FIGHTER_STATUS_KIND_CATCH_ATTACK
     {
         // No longer holding character, so re-roll the throw case and reset the delay counter for next time
         reset_throw_case();
@@ -132,7 +132,7 @@ pub unsafe fn get_command_flag_throw_direction(
         }
 
         // (this conditional would need to be changed to speed up pummelling)
-        if StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CATCH_WAIT {
+        if StatusModule::status_kind(module_accessor) == *FIGHTER_STATUS_KIND_CATCH_WAIT {
             let status = *FIGHTER_STATUS_KIND_CATCH_ATTACK; //.unwrap_or(0);
             StatusModule::change_status_request_from_script(module_accessor, status, true);
         }

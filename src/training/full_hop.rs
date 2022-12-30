@@ -61,7 +61,7 @@ unsafe fn should_return_none_in_check_button(
     }
 
     // Only need to hold during jump squat
-    let status_kind = StatusModule::status_kind(module_accessor) as i32;
+    let status_kind = StatusModule::status_kind(module_accessor);
     if status_kind != FIGHTER_STATUS_KIND_JUMP_SQUAT {
         return true;
     }
