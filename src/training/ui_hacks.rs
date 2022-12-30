@@ -426,12 +426,9 @@ pub unsafe fn layout_build_parts_impl(
 
                 let block = block as *mut ResPictureWithTex<2>;
                 let mut pic_menu_block = *block;
-                pic_menu_block
-                    .picture
-                    .pane
-                    .set_name(format!("trMod_menu_bg_left_{x}_{y}").as_str());
-                pic_menu_block.picture.pane.scale_x /= 1.5;
-                pic_menu_block.picture.pane.set_pos(ResVec3::new(
+                pic_menu_block.set_name(format!("trMod_menu_bg_left_{x}_{y}").as_str());
+                pic_menu_block.picture.scale_x /= 1.5;
+                pic_menu_block.picture.set_pos(ResVec3::new(
                     menu_pos.x - 400.0 - 195.0 + x_offset,
                     menu_pos.y - 50.0 - y_offset,
                     0.0,
@@ -455,22 +452,19 @@ pub unsafe fn layout_build_parts_impl(
 
                 let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
 
-                let mut pic_menu_block = *block;
-                pic_menu_block
-                    .window
-                    .pane
-                    .set_name(format!("trMod_menu_bg_back_{x}_{y}").as_str());
-                pic_menu_block.window.pane.scale_x /= 2.0;
-                pic_menu_block.window.pane.set_pos(ResVec3::new(
+                let mut bg_block = *block;
+                bg_block.set_name(format!("trMod_menu_bg_back_{x}_{y}").as_str());
+                bg_block.scale_x /= 2.0;
+                bg_block.set_pos(ResVec3::new(
                     menu_pos.x - 400.0 + x_offset,
                     menu_pos.y - 50.0 - y_offset,
                     0.0,
                 ));
-                let pic_menu_pane =
-                    build!(pic_menu_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
-                pic_menu_pane.pane.detach();
+                let bg_pane =
+                    build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
+                bg_pane.detach();
                 if MENU_PANE_PTR != 0 {
-                    (*(MENU_PANE_PTR as *mut Pane)).append_child(&pic_menu_pane.pane);
+                    (*(MENU_PANE_PTR as *mut Pane)).append_child(bg_pane);
                     HAS_CREATED_OPT_BG_BACK = true;
                 }
             });
@@ -511,7 +505,7 @@ pub unsafe fn layout_build_parts_impl(
         let block = block as *mut ResPictureWithTex<1>;
         // For menu backing
         let mut pic_menu_block = *block;
-        pic_menu_block.picture.pane.set_name("trMod_menu_footer_bg");
+        pic_menu_block.set_name("trMod_menu_footer_bg");
         let pic_menu_pane = build!(pic_menu_block, ResPictureWithTex<1>, kind, Picture);
         pic_menu_pane.detach();
 
@@ -524,10 +518,10 @@ pub unsafe fn layout_build_parts_impl(
 
         let block = data as *mut ResTextBox;
         let mut text_block = *block;
-        text_block.pane.set_name("trMod_menu_footer_txt");
+        text_block.set_name("trMod_menu_footer_txt");
 
         let text_pane = build!(text_block, ResTextBox, kind, TextBox);
-        text_pane.pane.set_text_string("Footer!");
+        text_pane.set_text_string("Footer!");
         // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
         text_pane.set_default_material_colors();
         text_pane.set_color(255, 255, 255, 255);
@@ -545,24 +539,20 @@ pub unsafe fn layout_build_parts_impl(
             text_block.text_alignment(TextAlignment::Center);
 
             let x = txt_idx;
-            text_block
-                .pane
-                .set_name(format!("trMod_menu_tab_{x}").as_str());
+            text_block.set_name(format!("trMod_menu_tab_{x}").as_str());
 
             let mut x_offset = x as f32 * 300.0;
             // Center current tab since we don't have a help key
             if x == 1 {
                 x_offset -= 25.0;
             }
-            text_block.pane.set_pos(ResVec3::new(
+            text_block.set_pos(ResVec3::new(
                 menu_pos.x - 25.0 + x_offset,
                 menu_pos.y + 75.0,
                 0.0,
             ));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
-            text_pane
-                .pane
-                .set_text_string(format!("Tab {txt_idx}!").as_str());
+            text_pane.set_text_string(format!("Tab {txt_idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             text_pane.set_default_material_colors();
             text_pane.set_color(255, 255, 255, 255);
@@ -577,18 +567,16 @@ pub unsafe fn layout_build_parts_impl(
             help_block.font_idx = 2;
 
             let x = txt_idx;
-            help_block
-                .pane
-                .set_name(format!("trMod_menu_tab_help_{x}").as_str());
+            help_block.set_name(format!("trMod_menu_tab_help_{x}").as_str());
 
             let x_offset = x as f32 * 300.0;
-            help_block.pane.set_pos(ResVec3::new(
+            help_block.set_pos(ResVec3::new(
                 menu_pos.x - 250.0 + x_offset,
                 menu_pos.y + 75.0,
                 0.0,
             ));
             let help_pane = build!(help_block, ResTextBox, kind, TextBox);
-            help_pane.pane.set_text_string("abcd");
+            help_pane.set_text_string("abcd");
             let it = help_pane.m_text_buf as *mut u16;
             match txt_idx {
                 // Left Tab: ZL
@@ -630,21 +618,17 @@ pub unsafe fn layout_build_parts_impl(
             text_block.enable_shadow();
             text_block.text_alignment(TextAlignment::Center);
 
-            text_block
-                .pane
-                .set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
+            text_block.set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
 
             let x_offset = x as f32 * 500.0;
             let y_offset = y as f32 * 85.0;
-            text_block.pane.set_pos(ResVec3::new(
+            text_block.set_pos(ResVec3::new(
                 menu_pos.x - 480.0 + x_offset,
                 menu_pos.y - 50.0 - y_offset,
                 0.0,
             ));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
-            text_pane
-                .pane
-                .set_text_string(format!("Opt {txt_idx}!").as_str());
+            text_pane.set_text_string(format!("Opt {txt_idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             text_pane.set_default_material_colors();
             text_pane.set_color(255, 255, 255, 255);
@@ -655,18 +639,14 @@ pub unsafe fn layout_build_parts_impl(
             // Font Idx 2 = nintendo64 which contains nice symbols
             check_block.font_idx = 2;
 
-            check_block
-                .pane
-                .set_name(format!("trMod_menu_check_{x}_{y}").as_str());
-            check_block.pane.set_pos(ResVec3::new(
+            check_block.set_name(format!("trMod_menu_check_{x}_{y}").as_str());
+            check_block.set_pos(ResVec3::new(
                 menu_pos.x - 375.0 + x_offset,
                 menu_pos.y - 50.0 - y_offset,
                 0.0,
             ));
             let check_pane = build!(check_block, ResTextBox, kind, TextBox);
-            check_pane
-                .pane
-                .set_text_string(format!("Check {txt_idx}!").as_str());
+            check_pane.set_text_string(format!("Check {txt_idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             check_pane.set_default_material_colors();
             check_pane.set_color(0, 0, 0, 255);
@@ -685,20 +665,16 @@ pub unsafe fn layout_build_parts_impl(
             text_block.enable_shadow();
             text_block.text_alignment(TextAlignment::Center);
 
-            text_block
-                .pane
-                .set_name(format!("trMod_menu_slider_{idx}").as_str());
+            text_block.set_name(format!("trMod_menu_slider_{idx}").as_str());
 
             let x_offset = idx as f32 * 250.0;
-            text_block.pane.set_pos(ResVec3::new(
+            text_block.set_pos(ResVec3::new(
                 menu_pos.x - 450.0 + x_offset,
                 menu_pos.y - 150.0,
                 0.0,
             ));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
-            text_pane
-                .pane
-                .set_text_string(format!("Slider {idx}!").as_str());
+            text_pane.set_text_string(format!("Slider {idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             text_pane.set_default_material_colors();
             text_pane.set_color(0, 0, 0, 255);
@@ -718,8 +694,8 @@ pub unsafe fn layout_build_parts_impl(
         if (*block).name_matches("pic_numbase_01") {
             let block = block as *mut ResPictureWithTex<1>;
             let mut pic_block = *block;
-            pic_block.picture.pane.set_name(pic_name.as_str());
-            pic_block.picture.pane.set_pos(ResVec3::default());
+            pic_block.set_name(pic_name.as_str());
+            pic_block.set_pos(ResVec3::default());
             let pic_pane = build!(pic_block, ResPictureWithTex<1>, kind, Picture);
             pic_pane.detach();
 
@@ -740,12 +716,10 @@ pub unsafe fn layout_build_parts_impl(
 
             let block = data as *mut ResTextBox;
             let mut text_block = *block;
-            text_block.pane.set_name(txt_name.as_str());
-            text_block.pane.set_pos(ResVec3::new(-10.0, -25.0, 0.0));
+            text_block.set_name(txt_name.as_str());
+            text_block.set_pos(ResVec3::new(-10.0, -25.0, 0.0));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
-            text_pane
-                .pane
-                .set_text_string(format!("Pane {idx}!").as_str());
+            text_pane.set_text_string(format!("Pane {idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             text_pane.set_default_material_colors();
             text_pane.detach();
@@ -759,12 +733,10 @@ pub unsafe fn layout_build_parts_impl(
 
             let block = data as *mut ResTextBox;
             let mut header_block = *block;
-            header_block.pane.set_name(header_name.as_str());
-            header_block.pane.set_pos(ResVec3::new(0.0, 25.0, 0.0));
+            header_block.set_name(header_name.as_str());
+            header_block.set_pos(ResVec3::new(0.0, 25.0, 0.0));
             let header_pane = build!(header_block, ResTextBox, kind, TextBox);
-            header_pane
-                .pane
-                .set_text_string(format!("Header {idx}").as_str());
+            header_pane.set_text_string(format!("Header {idx}").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             header_pane.set_default_material_colors();
             // Header should be white text

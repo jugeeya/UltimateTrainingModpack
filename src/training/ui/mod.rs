@@ -494,6 +494,21 @@ pub struct Window {
     // TODO
 }
 
+impl Deref for Window {
+    type Target = Pane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }
+}
+
+impl DerefMut for Window {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }
+}
+
+
 #[derive(Debug, Copy, Clone)]
 pub struct PaneNode {
     pub prev: *mut PaneNode,
