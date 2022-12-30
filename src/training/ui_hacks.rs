@@ -532,8 +532,11 @@ pub unsafe fn layout_build_parts_impl(
         let menu_pane = build!(menu_pane_block, ResPane, menu_pane_kind, Pane);
         menu_pane.detach();
         root_pane.append_child(menu_pane);
-        if MENU_PANE_PTR == 0 {
+        if MENU_PANE_PTR != menu_pane as *mut Pane as u64 {
             MENU_PANE_PTR = menu_pane as *mut Pane as u64;
+            HAS_CREATED_OPT_BG = false;
+            HAS_CREATED_OPT_BG_BACK = false;
+            HAS_SORTED_MENU_CHILDREN = false;
         }
     }
 
