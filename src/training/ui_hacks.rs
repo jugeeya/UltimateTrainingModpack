@@ -11,27 +11,40 @@ pub static NUM_MENU_TEXT_OPTIONS: usize = 27;
 pub static NUM_MENU_TEXT_SLIDERS: usize = 4;
 pub static NUM_MENU_TABS: usize = 3;
 
-pub static mut HAS_SORTED_MENU_CHILDREN : bool = false;
+pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
 
-// Sort all panes in under menu pane such that text and check options 
+// Sort all panes in under menu pane such that text and check options
 // are last
 pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
-    let mut panes = (0..NUM_MENU_TEXT_OPTIONS).flat_map(|idx| {
-        let x = idx % 3;
-        let y = idx / 3;
-        [
-            root_pane.find_pane_by_name_recursive(format!("trMod_menu_opt_{x}_{y}").as_str()).unwrap(),
-            root_pane.find_pane_by_name_recursive(format!("trMod_menu_check_{x}_{y}").as_str()).unwrap(),
-            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str()).unwrap(),
-            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str()).unwrap()
-        ]
-    })
-    .collect::<Vec<&mut Pane>>();
-    
+    let mut panes = (0..NUM_MENU_TEXT_OPTIONS)
+        .flat_map(|idx| {
+            let x = idx % 3;
+            let y = idx / 3;
+            [
+                root_pane
+                    .find_pane_by_name_recursive(format!("trMod_menu_opt_{x}_{y}").as_str())
+                    .unwrap(),
+                root_pane
+                    .find_pane_by_name_recursive(format!("trMod_menu_check_{x}_{y}").as_str())
+                    .unwrap(),
+                root_pane
+                    .find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str())
+                    .unwrap(),
+                root_pane
+                    .find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str())
+                    .unwrap(),
+            ]
+        })
+        .collect::<Vec<&mut Pane>>();
+
     panes.append(
-        &mut (0..NUM_MENU_TEXT_SLIDERS).map(|idx| {
-            root_pane.find_pane_by_name_recursive(&format!("trMod_menu_slider_{idx}").as_str()).unwrap()
-        }).collect::<Vec<&mut Pane>>()
+        &mut (0..NUM_MENU_TEXT_SLIDERS)
+            .map(|idx| {
+                root_pane
+                    .find_pane_by_name_recursive(&format!("trMod_menu_slider_{idx}").as_str())
+                    .unwrap()
+            })
+            .collect::<Vec<&mut Pane>>(),
     );
 
     panes.sort_by(|a, _| {
@@ -50,16 +63,14 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     let layout_name = skyline::from_c_str((*layout).layout_name);
     let root_pane = &*(*layout).root_pane;
 
-    // Update percentage display as soon as possible on death,
-    // only if we have random save state damage active
+    // Update percentage display as soon as possible on death
     if crate::common::is_training_mode()
-        && (MENU.save_damage_cpu == SaveDamage::RANDOM
-            || MENU.save_damage_player == SaveDamage::RANDOM)
         && layout_name == "info_melee"
     {
         for player_name in &["p1", "p2"] {
             if let Some(parent) = root_pane.find_pane_by_name_recursive(player_name) {
-                let _p1_layout_name = skyline::from_c_str((*(*parent.as_parts()).layout).layout_name);
+                let _p1_layout_name =
+                    skyline::from_c_str((*(*parent.as_parts()).layout).layout_name);
                 let anim_list = &mut (*(*parent.as_parts()).layout).anim_trans_list;
 
                 let mut has_altered_anim_list = false;
@@ -157,7 +168,6 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         // Grabbing lock as read-only, essentially
         let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
 
-
         if let Some(quit_button) = root_pane.find_pane_by_name_recursive("btn_finish") {
             // Normally at (-804, 640)
             // Comes down to (-804, 514)
@@ -175,9 +185,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             }
         }
 
-        let menu_pane = root_pane
-            .find_pane_by_name_recursive("trMod_menu")
-            .unwrap();
+        let menu_pane = root_pane.find_pane_by_name_recursive("trMod_menu").unwrap();
         menu_pane.set_visible(QUICK_MENU_ACTIVE);
 
         if !HAS_SORTED_MENU_CHILDREN {
@@ -193,20 +201,23 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {
             let x = idx % 3;
             let y = idx / 3;
-            root_pane.find_pane_by_name_recursive(format!("trMod_menu_opt_{x}_{y}").as_str())
-                .map(|text| text.set_visible(false) );
+            root_pane
+                .find_pane_by_name_recursive(format!("trMod_menu_opt_{x}_{y}").as_str())
+                .map(|text| text.set_visible(false));
             root_pane
                 .find_pane_by_name_recursive(format!("trMod_menu_check_{x}_{y}").as_str())
-                .map(|text| text.set_visible(false) );
-            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str())
-                .map(|text| text.set_visible(false) );
-            root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str())
-                .map(|text| text.set_visible(false) );
+                .map(|text| text.set_visible(false));
+            root_pane
+                .find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str())
+                .map(|text| text.set_visible(false));
+            root_pane
+                .find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str())
+                .map(|text| text.set_visible(false));
         });
         (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
             root_pane
                 .find_pane_by_name_recursive(&format!("trMod_menu_slider_{idx}").as_str())
-                .map(|text| text.set_visible(false) );
+                .map(|text| text.set_visible(false));
         });
 
         let app_tabs = &app.tabs.items;
@@ -226,7 +237,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         (0..NUM_MENU_TABS).for_each(|idx| {
             root_pane
                 .find_pane_by_name_recursive(format!("trMod_menu_tab_{idx}").as_str())
-                .map(|text| text.set_text_string(tab_titles[idx]) );
+                .map(|text| text.set_text_string(tab_titles[idx]));
         });
 
         if app.outer_list {
@@ -236,13 +247,28 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             (0..NUM_MENU_TEXT_OPTIONS)
                 // Valid options in this submenu
                 .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
-                .map(|(list_section, list_idx)| (list_section, list_idx, 
-                    root_pane.find_pane_by_name_recursive(format!("trMod_menu_opt_{list_section}_{list_idx}").as_str()).unwrap(),
-                    root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_left_{list_section}_{list_idx}").as_str()).unwrap(),
-                    root_pane.find_pane_by_name_recursive(format!("trMod_menu_bg_back_{list_section}_{list_idx}").as_str()).unwrap(),
-                ))
-                .for_each(|(list_section, list_idx, 
-                    text, bg_left, bg_back)| {
+                .map(|(list_section, list_idx)| {
+                    (
+                        list_section,
+                        list_idx,
+                        root_pane
+                            .find_pane_by_name_recursive(
+                                format!("trMod_menu_opt_{list_section}_{list_idx}").as_str(),
+                            )
+                            .unwrap(),
+                        root_pane
+                            .find_pane_by_name_recursive(
+                                format!("trMod_menu_bg_left_{list_section}_{list_idx}").as_str(),
+                            )
+                            .unwrap(),
+                        root_pane
+                            .find_pane_by_name_recursive(
+                                format!("trMod_menu_bg_back_{list_section}_{list_idx}").as_str(),
+                            )
+                            .unwrap(),
+                    )
+                })
+                .for_each(|(list_section, list_idx, text, bg_left, bg_back)| {
                     let list = &tab.lists[list_section];
                     let submenu = &list.items[list_idx];
                     let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
@@ -251,13 +277,15 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     let text = text.as_textbox();
                     if is_selected {
                         text.set_color(0x27, 0x4E, 0x13, 255);
-                        if let Some(footer) = root_pane.find_pane_by_name_recursive(&format!("trMod_menu_footer_txt").as_str()) {
+                        if let Some(footer) = root_pane
+                            .find_pane_by_name_recursive(&format!("trMod_menu_footer_txt").as_str())
+                        {
                             footer.set_text_string(submenu.help_text);
                         }
                     } else {
                         text.set_color(255, 255, 255, 255);
                     }
-                    
+
                     bg_left.set_visible(true);
                     bg_back.set_visible(true);
                 });
@@ -271,9 +299,11 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         .iter()
                         .enumerate()
                         .for_each(|(idx, (checked, name))| {
-                            let is_selected = sub_menu_state.selected().filter(|s| *s == idx).is_some();
+                            let is_selected =
+                                sub_menu_state.selected().filter(|s| *s == idx).is_some();
                             if let Some(text) = root_pane.find_pane_by_name_recursive(
-                                format!("trMod_menu_opt_{list_section}_{idx}").as_str()) {
+                                format!("trMod_menu_opt_{list_section}_{idx}").as_str(),
+                            ) {
                                 let text = text.as_textbox();
                                 text.set_text_string(name);
                                 if is_selected {
@@ -285,17 +315,20 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                             }
 
                             if let Some(bg_left) = root_pane.find_pane_by_name_recursive(
-                                format!("trMod_menu_bg_left_{list_section}_{idx}").as_str()) {
+                                format!("trMod_menu_bg_left_{list_section}_{idx}").as_str(),
+                            ) {
                                 bg_left.set_visible(true);
                             }
 
                             if let Some(bg_back) = root_pane.find_pane_by_name_recursive(
-                                format!("trMod_menu_bg_back_{list_section}_{idx}").as_str()) {
+                                format!("trMod_menu_bg_back_{list_section}_{idx}").as_str(),
+                            ) {
                                 bg_back.set_visible(true);
                             }
 
                             if let Some(check) = root_pane.find_pane_by_name_recursive(
-                                format!("trMod_menu_check_{list_section}_{idx}").as_str()) {
+                                format!("trMod_menu_check_{list_section}_{idx}").as_str(),
+                            ) {
                                 if *checked {
                                     let check = check.as_textbox();
 
@@ -351,9 +384,9 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     original!()(layout, draw_info, cmd_buffer);
 }
 
-pub static mut MENU_PANE_PTR : u64 = 0;
-pub static mut HAS_CREATED_OPT_BG : bool = false;
-pub static mut HAS_CREATED_OPT_BG_BACK : bool = false;
+pub static mut MENU_PANE_PTR: u64 = 0;
+pub static mut HAS_CREATED_OPT_BG: bool = false;
+pub static mut HAS_CREATED_OPT_BG_BACK: bool = false;
 
 #[skyline::hook(offset = 0x493a0)]
 pub unsafe fn layout_build_parts_impl(
@@ -398,12 +431,19 @@ pub unsafe fn layout_build_parts_impl(
 
                 let x_offset = x as f32 * 500.0;
                 let y_offset = y as f32 * 85.0;
-            
+
                 let block = block as *mut ResPictureWithTex<2>;
                 let mut pic_menu_block = (*block).clone();
-                pic_menu_block.picture.pane.set_name(format!("trMod_menu_bg_left_{x}_{y}").as_str());
+                pic_menu_block
+                    .picture
+                    .pane
+                    .set_name(format!("trMod_menu_bg_left_{x}_{y}").as_str());
                 pic_menu_block.picture.pane.scale_x /= 1.5;
-                pic_menu_block.picture.pane.set_pos(ResVec3::new(menu_pos.x - 400.0 - 195.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
+                pic_menu_block.picture.pane.set_pos(ResVec3::new(
+                    menu_pos.x - 400.0 - 195.0 + x_offset,
+                    menu_pos.y - 50.0 - y_offset,
+                    0.0,
+                ));
                 let pic_menu_pane = build!(pic_menu_block, ResPictureWithTex<2>, kind, Picture);
                 pic_menu_pane.detach();
                 if MENU_PANE_PTR != 0 {
@@ -412,7 +452,7 @@ pub unsafe fn layout_build_parts_impl(
                 }
             });
         }
-        
+
         if HAS_CREATED_OPT_BG_BACK == false && (*block).name_matches("btn_bg") {
             (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
                 let x = txt_idx % 3;
@@ -421,13 +461,21 @@ pub unsafe fn layout_build_parts_impl(
                 let x_offset = x as f32 * 500.0;
                 let y_offset = y as f32 * 85.0;
 
-                let block = block as *mut ResWindowWithTexCoordsAndFrames<1,4>;
-        
+                let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
+
                 let mut pic_menu_block = (*block).clone();
-                pic_menu_block.window.pane.set_name(format!("trMod_menu_bg_back_{x}_{y}").as_str());
+                pic_menu_block
+                    .window
+                    .pane
+                    .set_name(format!("trMod_menu_bg_back_{x}_{y}").as_str());
                 pic_menu_block.window.pane.scale_x /= 2.0;
-                pic_menu_block.window.pane.set_pos(ResVec3::new(menu_pos.x - 400.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
-                let pic_menu_pane = build!(pic_menu_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
+                pic_menu_block.window.pane.set_pos(ResVec3::new(
+                    menu_pos.x - 400.0 + x_offset,
+                    menu_pos.y - 50.0 - y_offset,
+                    0.0,
+                ));
+                let pic_menu_pane =
+                    build!(pic_menu_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
                 pic_menu_pane.pane.detach();
                 if MENU_PANE_PTR != 0 {
                     (&*(MENU_PANE_PTR as *mut Pane)).append_child(&pic_menu_pane.pane);
@@ -464,8 +512,6 @@ pub unsafe fn layout_build_parts_impl(
             MENU_PANE_PTR = menu_pane as *mut Pane as u64;
         }
     }
-
-    
 
     // Menu footer background
     if (*block).name_matches("pic_help_bg_00") {
@@ -518,7 +564,11 @@ pub unsafe fn layout_build_parts_impl(
             if x == 1 {
                 x_offset -= 25.0;
             }
-            text_block.pane.set_pos(ResVec3::new(menu_pos.x - 25.0 + x_offset, menu_pos.y + 75.0, 0.0));
+            text_block.pane.set_pos(ResVec3::new(
+                menu_pos.x - 25.0 + x_offset,
+                menu_pos.y + 75.0,
+                0.0,
+            ));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
             text_pane
                 .pane
@@ -542,7 +592,11 @@ pub unsafe fn layout_build_parts_impl(
                 .set_name(format!("trMod_menu_tab_help_{x}").as_str());
 
             let x_offset = x as f32 * 300.0;
-            help_block.pane.set_pos(ResVec3::new(menu_pos.x - 250.0 + x_offset, menu_pos.y + 75.0, 0.0));
+            help_block.pane.set_pos(ResVec3::new(
+                menu_pos.x - 250.0 + x_offset,
+                menu_pos.y + 75.0,
+                0.0,
+            ));
             let help_pane = build!(help_block, ResTextBox, kind, TextBox);
             help_pane.pane.set_text_string(format!("abcd").as_str());
             let it = help_pane.m_text_buf as *mut u16;
@@ -586,11 +640,17 @@ pub unsafe fn layout_build_parts_impl(
             text_block.enable_shadow();
             text_block.text_alignment(TextAlignment::Center);
 
-            text_block.pane.set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
+            text_block
+                .pane
+                .set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
 
             let x_offset = x as f32 * 500.0;
             let y_offset = y as f32 * 85.0;
-            text_block.pane.set_pos(ResVec3::new(menu_pos.x - 480.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
+            text_block.pane.set_pos(ResVec3::new(
+                menu_pos.x - 480.0 + x_offset,
+                menu_pos.y - 50.0 - y_offset,
+                0.0,
+            ));
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
             text_pane
                 .pane
@@ -605,8 +665,14 @@ pub unsafe fn layout_build_parts_impl(
             // Font Idx 2 = nintendo64 which contains nice symbols
             check_block.font_idx = 2;
 
-            check_block.pane.set_name(format!("trMod_menu_check_{x}_{y}").as_str());
-            check_block.pane.set_pos(ResVec3::new(menu_pos.x - 375.0 + x_offset, menu_pos.y - 50.0 - y_offset, 0.0));
+            check_block
+                .pane
+                .set_name(format!("trMod_menu_check_{x}_{y}").as_str());
+            check_block.pane.set_pos(ResVec3::new(
+                menu_pos.x - 375.0 + x_offset,
+                menu_pos.y - 50.0 - y_offset,
+                0.0,
+            ));
             let check_pane = build!(check_block, ResTextBox, kind, TextBox);
             check_pane
                 .pane
