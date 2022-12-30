@@ -163,6 +163,37 @@ pub enum TextAlignment {
 }
 
 #[repr(C)]
+#[derive(Debug, PartialEq)]
+enum TextBoxFlag {
+    ShadowEnabled,
+    ForceAssignTextLength,
+    InvisibleBorderEnabled,
+    DoubleDrawnBorderEnabled,
+    PerCharacterTransformEnabled,
+    CenterCeilingEnabled,
+    LineWidthOffsetEnabled,
+    ExtendedTagEnabled,
+    PerCharacterTransformSplitByCharWidth,
+    PerCharacterTransformAutoShadowAlpha,
+    DrawFromRightToLeft,
+    PerCharacterTransformOriginToCenter,
+    KeepingFontScaleEnabled,
+    PerCharacterTransformFixSpace,
+    PerCharacterTransformSplitByCharWidthInsertSpaceEnabled,
+    MaxTextBoxFlag,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub enum TextAlignment {
+    Synchronous,
+    Left,
+    Center,
+    Right,
+    MaxTextAlignment,
+}
+
+#[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResTextBox {
     pub pane: ResPane,
