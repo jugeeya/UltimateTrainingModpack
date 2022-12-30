@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 // Maybe needs a vtable.
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -197,6 +199,20 @@ pub struct ResTextBox {
     */
 }
 
+impl Deref for ResTextBox {
+    type Target = ResPane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }
+}
+
+impl DerefMut for ResTextBox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }
+}
+
 impl ResTextBox {
     pub fn enable_shadow(&mut self) {
         self.text_box_flag |= 0x1 << TextBoxFlag::ShadowEnabled as u8;
@@ -221,11 +237,39 @@ pub struct ResPicture {
     */
 }
 
+impl Deref for ResPicture {
+    type Target = ResPane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }
+}
+
+impl DerefMut for ResPicture {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResPictureWithTex<const TEX_COORD_COUNT: usize> {
     pub picture: ResPicture,
     tex_coords: [[ResVec2; TEX_COORD_COUNT]; 4],
+}
+
+impl<const TEX_COORD_COUNT: usize> Deref for ResPictureWithTex<TEX_COORD_COUNT> {
+    type Target = ResPane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.picture
+    }
+}
+
+impl<const TEX_COORD_COUNT: usize> DerefMut for ResPictureWithTex<TEX_COORD_COUNT> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.picture
+    }
 }
 
 #[repr(C)]
@@ -234,6 +278,20 @@ pub struct ResParts {
     pub pane: ResPane,
     pub property_count: u32,
     magnify: ResVec2,
+}
+
+impl Deref for ResParts {
+    type Target = ResPane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }
+}
+
+impl DerefMut for ResParts {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }
 }
 
 #[repr(C)]
@@ -325,6 +383,20 @@ pub struct ResWindow {
     */
 }
 
+impl Deref for ResWindow {
+    type Target = ResPane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }
+}
+
+impl DerefMut for ResWindow {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResWindowWithTexCoordsAndFrames<const TEX_COORD_COUNT: usize, const FRAME_COUNT: usize> {
@@ -332,4 +404,22 @@ pub struct ResWindowWithTexCoordsAndFrames<const TEX_COORD_COUNT: usize, const F
     content: ResWindowContentWithTexCoords<TEX_COORD_COUNT>,
     frame_offset_table: [u32; FRAME_COUNT],
     frames: [ResWindowFrame; FRAME_COUNT],
+}
+
+impl<const TEX_COORD_COUNT: usize, const FRAME_COUNT: usize> Deref
+    for ResWindowWithTexCoordsAndFrames<TEX_COORD_COUNT, FRAME_COUNT>
+{
+    type Target = ResPane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.window
+    }
+}
+
+impl<const TEX_COORD_COUNT: usize, const FRAME_COUNT: usize> DerefMut
+    for ResWindowWithTexCoordsAndFrames<TEX_COORD_COUNT, FRAME_COUNT>
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.window
+    }
 }

@@ -1122,6 +1122,7 @@ pub struct TrainingModpackMenu {
     pub frame_advantage: OnOff,
     pub full_hop: BoolFlag,
     pub hitbox_vis: OnOff,
+    pub hud: OnOff,
     pub input_delay: Delay,
     pub ledge_delay: LongDelay,
     pub ledge_state: LedgeOption,
@@ -1209,6 +1210,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     frame_advantage: OnOff::Off,
     full_hop: BoolFlag::TRUE,
     hitbox_vis: OnOff::On,
+    hud: OnOff::On,
     input_delay: Delay::D0,
     ledge_delay: LongDelay::empty(),
     ledge_state: LedgeOption::default(),
@@ -1680,6 +1682,13 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Quick Menu: Should use quick or web menu",
         true,
         &(MENU.quick_menu as u32),
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "HUD",
+        "hud",
+        "HUD: Turn UI on or off",
+        true,
+        &(MENU.hud as u32),
     );
     overall_menu.tabs.push(misc_tab);
 

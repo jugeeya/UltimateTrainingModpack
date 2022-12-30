@@ -494,6 +494,20 @@ pub struct Window {
     // TODO
 }
 
+impl Deref for Window {
+    type Target = Pane;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pane
+    }
+}
+
+impl DerefMut for Window {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pane
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct PaneNode {
     pub prev: *mut PaneNode,
@@ -514,7 +528,7 @@ pub struct GroupContainer {}
 pub struct Layout {
     vtable: u64,
     pub anim_trans_list: AnimTransformNode,
-    pub root_pane: *const Pane,
+    pub root_pane: *mut Pane,
     group_container: u64,
     layout_size: f64,
     pub layout_name: *const skyline::libc::c_char,
