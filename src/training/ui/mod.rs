@@ -7,8 +7,8 @@ use bitfield_struct::bitfield;
 mod resources;
 pub use resources::*;
 
-use crate::consts::FighterId;
 use crate::common::get_player_dmg_digits;
+use crate::consts::FighterId;
 
 macro_rules! c_str {
     ($l:tt) => {
@@ -72,12 +72,11 @@ impl AnimTransform {
             // AnimContentType 1 == MATERIAL
             if layout_name.is_some() && name.starts_with("set_dmg_num") && anim_type == 1 {
                 let layout_name = layout_name.unwrap();
-                let (hundreds, tens, ones, dec) = get_player_dmg_digits(
-                    match layout_name {
-                        "p1" => FighterId::Player,
-                        "p2" => FighterId::CPU,
-                        _ => panic!("Unknown layout name: {}", layout_name)
-                    });
+                let (hundreds, tens, ones, dec) = get_player_dmg_digits(match layout_name {
+                    "p1" => FighterId::Player,
+                    "p2" => FighterId::CPU,
+                    _ => panic!("Unknown layout name: {}", layout_name),
+                });
 
                 if name == "set_dmg_num_3" {
                     self.frame = hundreds as f32;
@@ -113,7 +112,10 @@ impl AnimTransformNode {
             // Only if valid
             if curr != (*curr).next {
                 let anim_transform = (curr as *mut u64).add(2) as *mut AnimTransform;
-                anim_transform.as_mut().unwrap().parse_anim_transform(layout_name);
+                anim_transform
+                    .as_mut()
+                    .unwrap()
+                    .parse_anim_transform(layout_name);
             }
 
             curr = (*curr).next;
@@ -172,7 +174,7 @@ pub enum PaneFlag {
     UserMatrix,
     UserGlobalMatrix,
     IsConstantBufferReady,
-    Max
+    Max,
 }
 
 impl Pane {
@@ -238,13 +240,13 @@ impl Deref for Parts {
 
     fn deref(&self) -> &Self::Target {
         &self.pane
-    }    
+    }
 }
 
 impl DerefMut for Parts {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.pane
-    }    
+    }
 }
 
 #[repr(C)]
@@ -261,13 +263,13 @@ impl Deref for Picture {
 
     fn deref(&self) -> &Self::Target {
         &self.pane
-    }    
+    }
 }
 
 impl DerefMut for Picture {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.pane
-    }    
+    }
 }
 
 #[bitfield(u16)]
@@ -377,7 +379,7 @@ impl Deref for TextBox {
 impl DerefMut for TextBox {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.pane
-    }    
+    }
 }
 
 #[repr(C)]
