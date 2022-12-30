@@ -140,7 +140,10 @@ pub unsafe fn get_param_int(
             return Some(0);
         }
     }
-    if param_type == hash40("param_mball") && param_hash == hash40("change_fly_frame") && is_killing() {
+    if param_type == hash40("param_mball")
+        && param_hash == hash40("change_fly_frame")
+        && is_killing()
+    {
         return Some(0);
     }
 

@@ -63,9 +63,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     let root_pane = &*(*layout).root_pane;
 
     // Update percentage display as soon as possible on death
-    if crate::common::is_training_mode()
-        && layout_name == "info_melee"
-    {
+    if crate::common::is_training_mode() && layout_name == "info_melee" {
         for player_name in &["p1", "p2"] {
             if let Some(parent) = root_pane.find_pane_by_name_recursive(player_name) {
                 let _p1_layout_name =
@@ -157,7 +155,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             match FRAME_ADVANTAGE {
                 x if x < 0 => text.set_color(200, 8, 8, 255),
                 x if x == 0 => text.set_color(0, 0, 0, 255),
-                _ => text.set_color(31, 198, 0, 255)
+                _ => text.set_color(31, 198, 0, 255),
             };
         }
 
@@ -274,8 +272,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     let text = text.as_textbox();
                     if is_selected {
                         text.set_color(0x27, 0x4E, 0x13, 255);
-                        if let Some(footer) = root_pane
-                            .find_pane_by_name_recursive("trMod_menu_footer_txt")
+                        if let Some(footer) =
+                            root_pane.find_pane_by_name_recursive("trMod_menu_footer_txt")
                         {
                             footer.set_text_string(submenu.help_text);
                         }
@@ -295,8 +293,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     .iter()
                     .enumerate()
                     .for_each(|(idx, (checked, name))| {
-                        let is_selected =
-                            sub_menu_state.selected().filter(|s| *s == idx).is_some();
+                        let is_selected = sub_menu_state.selected().filter(|s| *s == idx).is_some();
                         if let Some(text) = root_pane.find_pane_by_name_recursive(
                             format!("trMod_menu_opt_{list_section}_{idx}").as_str(),
                         ) {

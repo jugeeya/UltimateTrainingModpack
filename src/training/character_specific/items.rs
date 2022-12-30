@@ -519,7 +519,7 @@ pub unsafe fn handle_generate_article_for_target(
 ) -> u64 {
     // unknown return value, gets cast to an (Article *)
     let target_module_accessor = TARGET_PLAYER.unwrap_or(module_accessor);
-    
+
     original!()(
         article_module_accessor,
         int_1,

@@ -23,8 +23,7 @@ pub enum InputRecordState {
 use InputRecordState::*;
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
-    let entry_id_int =
-        WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
+    let entry_id_int = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
 
     if entry_id_int == 0 {
         // Attack + Dpad Right: Playback
