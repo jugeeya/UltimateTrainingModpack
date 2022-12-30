@@ -163,37 +163,6 @@ pub enum TextAlignment {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq)]
-enum TextBoxFlag {
-    ShadowEnabled,
-    ForceAssignTextLength,
-    InvisibleBorderEnabled,
-    DoubleDrawnBorderEnabled,
-    PerCharacterTransformEnabled,
-    CenterCeilingEnabled,
-    LineWidthOffsetEnabled,
-    ExtendedTagEnabled,
-    PerCharacterTransformSplitByCharWidth,
-    PerCharacterTransformAutoShadowAlpha,
-    DrawFromRightToLeft,
-    PerCharacterTransformOriginToCenter,
-    KeepingFontScaleEnabled,
-    PerCharacterTransformFixSpace,
-    PerCharacterTransformSplitByCharWidthInsertSpaceEnabled,
-    MaxTextBoxFlag,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub enum TextAlignment {
-    Synchronous,
-    Left,
-    Center,
-    Right,
-    MaxTextAlignment,
-}
-
-#[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ResTextBox {
     pub pane: ResPane,
@@ -289,7 +258,8 @@ pub struct ResPartsWithProperty<const PROPERTY_COUNT: usize> {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct ResWindowInflation {
+struct ResWindowInflation
+{
     left: i16,
     right: i16,
     top: i16,
@@ -298,7 +268,8 @@ struct ResWindowInflation {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct ResWindowFrameSize {
+pub struct ResWindowFrameSize
+{
     left: u16,
     right: u16,
     top: u16,
@@ -307,14 +278,16 @@ pub struct ResWindowFrameSize {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct ResWindowContent {
+pub struct ResWindowContent
+{
     vtx_cols: [ResColor; 4],
     material_idx: u16,
     tex_coord_count: u8,
-    padding: [u8; 1],
-    /* Additional Info
-        nn::util::Float2 texCoords[texCoordCount][VERTEX_MAX];
-    */
+    padding: [u8; 1], 
+
+/* Additional Info
+    nn::util::Float2 texCoords[texCoordCount][VERTEX_MAX];
+*/
 }
 
 #[repr(C)]
@@ -346,14 +319,15 @@ pub struct ResWindow {
     content_offset: u32,
     frame_offset_table_offset: u32,
     content: ResWindowContent,
-    /* Additional Info
 
-        ResWindowContent content;
+/* Additional Info
 
-        detail::uint32_t frameOffsetTable[frameCount];
-        ResWindowFrame frames;
+    ResWindowContent content;
 
-    */
+    detail::uint32_t frameOffsetTable[frameCount];
+    ResWindowFrame frames;
+
+*/
 }
 
 #[repr(C)]
@@ -362,5 +336,5 @@ pub struct ResWindowWithTexCoordsAndFrames<const TEX_COORD_COUNT: usize, const F
     pub window: ResWindow,
     content: ResWindowContentWithTexCoords<TEX_COORD_COUNT>,
     frame_offset_table: [u32; FRAME_COUNT],
-    frames: [ResWindowFrame; FRAME_COUNT],
+    frames: [ResWindowFrame; FRAME_COUNT]
 }

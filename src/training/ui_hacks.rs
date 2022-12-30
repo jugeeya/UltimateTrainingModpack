@@ -1,9 +1,8 @@
 use crate::common::get_player_dmg_digits;
-use crate::common::MENU;
 use crate::consts::FighterId;
 use crate::training::ui::*;
 use crate::{common::menu::QUICK_MENU_ACTIVE, training::combo::FRAME_ADVANTAGE};
-use training_mod_consts::{OnOff, SaveDamage};
+use training_mod_consts::OnOff;
 use training_mod_tui::gauge::GaugeState;
 
 pub static NUM_DISPLAY_PANES: usize = 1;
@@ -661,6 +660,7 @@ pub unsafe fn layout_build_parts_impl(
             text_pane.detach();
             menu_pane.append_child(text_pane);
             text_pane.set_color(0, 0, 0, 255);
+        }
     });
 
     // Display panes
