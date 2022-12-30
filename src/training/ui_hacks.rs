@@ -1,4 +1,4 @@
-use crate::common::get_player_dmg_digits;
+use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
 use crate::consts::FighterId;
 use crate::training::ui::*;
 use crate::{common::menu::QUICK_MENU_ACTIVE, training::combo::FRAME_ADVANTAGE};
@@ -92,13 +92,13 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     let layout_name = skyline::from_c_str((*layout).layout_name);
     let root_pane = &mut *(*layout).root_pane;
 
-    if crate::common::is_training_mode() && layout_name != "info_training" {
+    if is_training_mode() && is_ready_go() && layout_name != "info_training" {
         root_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
         root_pane.set_visible(MENU.hud == OnOff::On);
     }
 
     // Update percentage display as soon as possible on death
-    if crate::common::is_training_mode() && layout_name == "info_melee" {
+    if is_training_mode() && is_ready_go() && layout_name == "info_melee" {
         for player_name in &["p1", "p2"] {
             if let Some(parent) = root_pane.find_pane_by_name_recursive(player_name) {
                 let _p1_layout_name =
