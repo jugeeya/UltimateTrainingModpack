@@ -659,7 +659,60 @@ pub unsafe fn layout_build_parts_impl(
             text_pane.set_color(255, 255, 255, 255);
             text_pane.detach();
             menu_pane.append_child(text_pane);
+
+            let mut check_block = (*block).clone();
+            // Font Idx 2 = nintendo64 which contains nice symbols
+            check_block.font_idx = 2;
+
+            check_block
+                .pane
+                .set_name(format!("trMod_menu_check_{x}_{y}").as_str());
+            check_block.pane.set_pos(ResVec3::new(
+                menu_pos.x - 375.0 + x_offset,
+                menu_pos.y - 50.0 - y_offset,
+                0.0,
+            ));
+            let check_pane = build!(check_block, ResTextBox, kind, TextBox);
+            check_pane
+                .pane
+                .set_text_string(format!("Check {txt_idx}!").as_str());
+            // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+            check_pane.set_default_material_colors();
+            check_pane.set_color(0, 0, 0, 255);
+            check_pane.detach();
+            menu_pane.append_child(check_pane);
+        }
+    });
+
+    // Slider visualization
+    (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
+        if (*block).name_matches("set_txt_num_01") {
+            let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+
+            let block = data as *mut ResTextBox;
+            let mut text_block = (*block).clone();
+            text_block.enable_shadow();
+            text_block.text_alignment(TextAlignment::Center);
+
+            text_block
+                .pane
+                .set_name(format!("trMod_menu_slider_{idx}").as_str());
+
+            let x_offset = idx as f32 * 250.0;
+            text_block.pane.set_pos(ResVec3::new(
+                menu_pos.x - 450.0 + x_offset,
+                menu_pos.y - 150.0,
+                0.0,
+            ));
+            let text_pane = build!(text_block, ResTextBox, kind, TextBox);
+            text_pane
+                .pane
+                .set_text_string(format!("Slider {idx}!").as_str());
+            // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+            text_pane.set_default_material_colors();
             text_pane.set_color(0, 0, 0, 255);
+            text_pane.detach();
+            menu_pane.append_child(text_pane);
         }
     });
 
