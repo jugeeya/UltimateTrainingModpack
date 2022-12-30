@@ -12,6 +12,36 @@ pub static NUM_MENU_TABS: usize = 3;
 
 pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
 
+macro_rules! menu_text_name_fmt {
+    ($x:ident, $y:ident) => {
+        format!("trMod_menu_opt_{}_{}", $x, $y).as_str()
+    }
+}
+
+macro_rules! menu_text_check_fmt {
+    ($x:ident, $y:ident) => {
+        format!("trMod_menu_check_{}_{}", $x, $y).as_str()
+    }
+}
+
+macro_rules! menu_text_bg_left_fmt {
+    ($x:ident, $y:ident) => {
+        format!("trMod_menu_bg_left_{}_{}", $x, $y).as_str()
+    }
+}
+
+macro_rules! menu_text_bg_back_fmt {
+    ($x:ident, $y:ident) => {
+        format!("trMod_menu_bg_back_{}_{}", $x, $y).as_str()
+    }
+}
+
+macro_rules! menu_text_slider_fmt {
+    ($x:ident) => {
+        format!("trMod_menu_slider_{}", $x).as_str()
+    }
+}
+
 // Sort all panes in under menu pane such that text and check options
 // are last
 pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
@@ -21,16 +51,16 @@ pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
             let y = idx / 3;
             [
                 root_pane
-                    .find_pane_by_name_recursive(format!("trMod_menu_opt_{x}_{y}").as_str())
+                    .find_pane_by_name_recursive(menu_text_name_fmt!(x, y))
                     .unwrap(),
                 root_pane
-                    .find_pane_by_name_recursive(format!("trMod_menu_check_{x}_{y}").as_str())
+                    .find_pane_by_name_recursive(menu_text_check_fmt!(x, y))
                     .unwrap(),
                 root_pane
-                    .find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str())
+                    .find_pane_by_name_recursive(menu_text_bg_left_fmt!(x, y))
                     .unwrap(),
                 root_pane
-                    .find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str())
+                    .find_pane_by_name_recursive(menu_text_bg_back_fmt!(x, y))
                     .unwrap(),
             ]
         })
@@ -40,7 +70,7 @@ pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
         &mut (0..NUM_MENU_TEXT_SLIDERS)
             .map(|idx| {
                 root_pane
-                    .find_pane_by_name_recursive(format!("trMod_menu_slider_{idx}").as_str())
+                    .find_pane_by_name_recursive(menu_text_slider_fmt!(idx))
                     .unwrap()
             })
             .collect::<Vec<&mut Pane>>(),
@@ -197,21 +227,21 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             let x = idx % 3;
             let y = idx / 3;
             root_pane
-                .find_pane_by_name_recursive(format!("trMod_menu_opt_{x}_{y}").as_str())
+                .find_pane_by_name_recursive(menu_text_name_fmt!(x, y))
                 .map(|text| text.set_visible(false));
             root_pane
-                .find_pane_by_name_recursive(format!("trMod_menu_check_{x}_{y}").as_str())
+                .find_pane_by_name_recursive(menu_text_check_fmt!(x, y))
                 .map(|text| text.set_visible(false));
             root_pane
-                .find_pane_by_name_recursive(format!("trMod_menu_bg_left_{x}_{y}").as_str())
+                .find_pane_by_name_recursive(menu_text_bg_left_fmt!(x, y))
                 .map(|text| text.set_visible(false));
             root_pane
-                .find_pane_by_name_recursive(format!("trMod_menu_bg_back_{x}_{y}").as_str())
+                .find_pane_by_name_recursive(menu_text_bg_back_fmt!(x, y))
                 .map(|text| text.set_visible(false));
         });
         (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
             root_pane
-                .find_pane_by_name_recursive(format!("trMod_menu_slider_{idx}").as_str())
+                .find_pane_by_name_recursive(menu_text_slider_fmt!(idx))
                 .map(|text| text.set_visible(false));
         });
 
@@ -247,9 +277,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         list_section,
                         list_idx,
                         root_pane
-                            .find_pane_by_name_recursive(
-                                format!("trMod_menu_opt_{list_section}_{list_idx}").as_str(),
-                            )
+                            .find_pane_by_name_recursive(menu_text_name_fmt!(list_section, list_idx))
                             .unwrap(),
                         root_pane
                             .find_pane_by_name_recursive(
@@ -295,7 +323,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     .for_each(|(idx, (checked, name))| {
                         let is_selected = sub_menu_state.selected().filter(|s| *s == idx).is_some();
                         if let Some(text) = root_pane.find_pane_by_name_recursive(
-                            format!("trMod_menu_opt_{list_section}_{idx}").as_str(),
+                            menu_text_name_fmt!(list_section, idx)
                         ) {
                             let text = text.as_textbox();
                             text.set_text_string(name);
@@ -426,7 +454,7 @@ pub unsafe fn layout_build_parts_impl(
 
                 let block = block as *mut ResPictureWithTex<2>;
                 let mut pic_menu_block = *block;
-                pic_menu_block.set_name(format!("trMod_menu_bg_left_{x}_{y}").as_str());
+                pic_menu_block.set_name(menu_text_bg_left_fmt!(x, y));
                 pic_menu_block.picture.scale_x /= 1.5;
                 pic_menu_block.picture.set_pos(ResVec3::new(
                     menu_pos.x - 400.0 - 195.0 + x_offset,
@@ -453,7 +481,7 @@ pub unsafe fn layout_build_parts_impl(
                 let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
 
                 let mut bg_block = *block;
-                bg_block.set_name(format!("trMod_menu_bg_back_{x}_{y}").as_str());
+                bg_block.set_name(menu_text_bg_back_fmt!(x, y));
                 bg_block.scale_x /= 2.0;
                 bg_block.set_pos(ResVec3::new(
                     menu_pos.x - 400.0 + x_offset,
@@ -618,7 +646,7 @@ pub unsafe fn layout_build_parts_impl(
             text_block.enable_shadow();
             text_block.text_alignment(TextAlignment::Center);
 
-            text_block.set_name(format!("trMod_menu_opt_{x}_{y}").as_str());
+            text_block.set_name(menu_text_name_fmt!(x, y));
 
             let x_offset = x as f32 * 500.0;
             let y_offset = y as f32 * 85.0;
@@ -639,7 +667,7 @@ pub unsafe fn layout_build_parts_impl(
             // Font Idx 2 = nintendo64 which contains nice symbols
             check_block.font_idx = 2;
 
-            check_block.set_name(format!("trMod_menu_check_{x}_{y}").as_str());
+            check_block.set_name(menu_text_check_fmt!(x, y));
             check_block.set_pos(ResVec3::new(
                 menu_pos.x - 375.0 + x_offset,
                 menu_pos.y - 50.0 - y_offset,
@@ -665,7 +693,7 @@ pub unsafe fn layout_build_parts_impl(
             text_block.enable_shadow();
             text_block.text_alignment(TextAlignment::Center);
 
-            text_block.set_name(format!("trMod_menu_slider_{idx}").as_str());
+            text_block.set_name(menu_text_slider_fmt!(idx));
 
             let x_offset = idx as f32 * 250.0;
             text_block.set_pos(ResVec3::new(
