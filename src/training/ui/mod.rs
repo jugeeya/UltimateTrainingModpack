@@ -205,8 +205,8 @@ impl Pane {
         self as *mut Pane as *mut Parts
     }
 
-    pub unsafe fn as_picture(&mut self) -> *mut Picture {
-        self as *mut Pane as *mut Picture
+    pub unsafe fn as_picture(&mut self) -> &mut Picture {
+        &mut *(self as *mut Pane as *mut Picture)
     }
 
     pub unsafe fn as_textbox(&mut self) -> &mut TextBox {
@@ -251,8 +251,8 @@ impl DerefMut for Parts {
 #[derive(Debug, Copy, Clone)]
 pub struct Picture {
     pub pane: Pane,
-    material: *mut u8,
-    vertex_colors: [[u8; 4]; 4],
+    pub material: *mut Material,
+    pub vertex_colors: [[u8; 4]; 4],
     shared_memory: *mut u8,
 }
 
@@ -420,14 +420,14 @@ pub enum MaterialFlags {
 #[derive(Debug)]
 pub struct Material {
     vtable: u64,
-    m_colors: MaterialColor,
+    pub m_colors: MaterialColor,
     // Actually a struct
     m_mem_cap: u32,
     // Actually a struct
     m_mem_count: u32,
     m_p_mem: *mut skyline::libc::c_void,
     m_p_shader_info: *const skyline::libc::c_void,
-    m_p_name: *const skyline::libc::c_char,
+    pub m_p_name: *const skyline::libc::c_char,
     m_vertex_shader_constant_buffer_offset: u32,
     m_pixel_shader_constant_buffer_offset: u32,
     m_p_user_shader_constant_buffer_information: *const skyline::libc::c_void,
@@ -474,6 +474,13 @@ impl Material {
     pub fn set_black_color(&mut self, r: f32, g: f32, b: f32, a: f32) {
         self.set_color(MaterialColorType::BlackColor, r, g, b, a);
     }
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct Window {
+    pub pane: Pane,
+    // TODO
 }
 
 #[derive(Debug, Copy, Clone)]

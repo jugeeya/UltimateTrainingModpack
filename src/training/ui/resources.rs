@@ -257,3 +257,86 @@ pub struct ResPartsWithProperty<const PROPERTY_COUNT: usize> {
     pub parts: ResParts,
     property_table: [ResPartsProperty; PROPERTY_COUNT],
 }
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+struct ResWindowInflation
+{
+    left: i16,
+    right: i16,
+    top: i16,
+    bottom: i16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowFrameSize
+{
+    left: u16,
+    right: u16,
+    top: u16,
+    bottom: u16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowContent
+{
+    vtx_cols: [ResColor; 4],
+    material_idx: u16,
+    tex_coord_count: u8,
+    padding: [u8; 1], 
+
+/* Additional Info
+    nn::util::Float2 texCoords[texCoordCount][VERTEX_MAX];
+*/
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowContentWithTexCoords<const TEX_COORD_COUNT: usize> {
+    pub window_content: ResWindowContent,
+    // This has to be wrong.
+    // Should be [[ResVec2; TEX_COORD_COUNT]; 4]?
+    tex_coords: [[ResVec3; TEX_COORD_COUNT]; 1],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowFrame {
+    material_idx: u16,
+    texture_flip: u8,
+    padding: [u8; 1],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindow {
+    pub pane: ResPane,
+    inflation: ResWindowInflation,
+    frame_size: ResWindowFrameSize,
+    frame_count: u8,
+    window_flags: u8,
+    padding: [u8; 2],
+    content_offset: u32,
+    frame_offset_table_offset: u32,
+    content: ResWindowContent,
+
+/* Additional Info
+
+    ResWindowContent content;
+
+    detail::uint32_t frameOffsetTable[frameCount];
+    ResWindowFrame frames;
+
+*/
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ResWindowWithTexCoordsAndFrames<const TEX_COORD_COUNT: usize, const FRAME_COUNT: usize> {
+    pub window: ResWindow,
+    content: ResWindowContentWithTexCoords<TEX_COORD_COUNT>,
+    frame_offset_table: [u32; FRAME_COUNT],
+    frames: [ResWindowFrame; FRAME_COUNT]
+}
