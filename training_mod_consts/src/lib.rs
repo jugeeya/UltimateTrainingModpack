@@ -1295,8 +1295,12 @@ impl<'a> SubMenu<'a> {
         let titles = T::to_toggle_strs();
         for i in 0..values.len() {
             let checked: bool  = (values[i] & initial_value) > 0
-             || (!values[i] == 0 && initial_value == &0);
+                || (!values[i] == 0 && initial_value == &0);
             instance.add_toggle(values[i], titles[i], checked);
+        }
+        // Select the first option if there's nothing selected atm but it's a single option submenu
+        if is_single_option && instance.toggles.iter().all(|t| !t.checked) {
+            instance.toggles[0].checked = true;
         }
         instance
     }
