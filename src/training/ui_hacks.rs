@@ -1,12 +1,15 @@
 use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
 use crate::consts::FighterId;
+use crate::{common::menu::QUICK_MENU_ACTIVE, training::combo::FRAME_ADVANTAGE};
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use crate::{common::menu::QUICK_MENU_ACTIVE, training::combo::FRAME_ADVANTAGE};
 use training_mod_consts::{OnOff, MENU};
 use training_mod_tui::gauge::GaugeState;
 
-pub unsafe fn iterate_anim_list(anim_transform_node: &mut AnimTransformNode, layout_name: Option<&str>) {
+pub unsafe fn iterate_anim_list(
+    anim_transform_node: &mut AnimTransformNode,
+    layout_name: Option<&str>,
+) {
     let mut curr = anim_transform_node as *mut AnimTransformNode;
     let mut _anim_idx = 0;
     while !curr.is_null() {
@@ -164,8 +167,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     if is_training_mode() && is_ready_go() && layout_name == "info_melee" {
         for player_name in &["p1", "p2"] {
             if let Some(parent) = root_pane.find_pane_by_name_recursive(player_name) {
-                let _p1_layout_name =
-                    skyline::from_c_str((*parent.as_parts().layout).layout_name);
+                let _p1_layout_name = skyline::from_c_str((*parent.as_parts().layout).layout_name);
                 let anim_list = &mut (*parent.as_parts().layout).anim_trans_list;
 
                 let mut has_altered_anim_list = false;
