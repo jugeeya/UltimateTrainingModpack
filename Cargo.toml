@@ -34,7 +34,7 @@ native-tls = { version = "0.2.11", features = ["vendored"] }
 
 [patch.crates-io]
 native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", rev = "f202fca"  }
-nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs", branch = "0.2.1" }
+nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs", rev = "a6d78411af55dd72d45c76d041324b78b28f6875" }
 
 [profile.dev]
 panic = "abort"
