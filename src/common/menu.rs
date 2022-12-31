@@ -69,6 +69,7 @@ const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 pub unsafe fn set_menu_from_json(message: &str) {
     let web_response = serde_json::from_str::<MenuJsonStruct>(message);
     let tui_response = serde_json::from_str::<TrainingModpackMenu>(message);
+    println!("Received menu message: {message}");
     if let Ok(message_json) = web_response {
         // Includes both MENU and DEFAULTS_MENU
         // From Web Applet
@@ -126,6 +127,9 @@ pub fn spawn_menu() {
                 spawn_web_session(new_web_session(false));
             }
         } else {
+            let mut app = QUICK_MENU_APP.lock();
+            *app = training_mod_tui::App::new(get_menu());
+            drop(app);
             QUICK_MENU_ACTIVE = true;
         }
     }
@@ -272,17 +276,26 @@ lazy_static! {
 pub unsafe fn quick_menu_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
-        let mut app = QUICK_MENU_APP.lock();
-
         let backend = training_mod_tui::TestBackend::new(75, 15);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
-
         let mut has_slept_millis = 0;
         let render_frames = 5;
         let mut json_response = String::new();
         let button_presses = &mut BUTTON_PRESSES;
         let mut received_input = true;
         loop {
+            std::thread::sleep(std::time::Duration::from_millis(16));
+            has_slept_millis += 16;
+            if has_slept_millis < 16 * render_frames {
+                continue;
+            }
+            has_slept_millis = 0;
+
+            if !QUICK_MENU_ACTIVE {
+                continue;
+            }
+
+            let mut app = QUICK_MENU_APP.lock();
             button_presses.a.read_press().then(|| {
                 app.on_a();
                 received_input = true;
@@ -292,7 +305,9 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
                 if !app.outer_list {
                     app.on_b()
-                } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0 {
+                } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0
+                    && !json_response.is_empty()
+                {
                     // Leave menu.
                     QUICK_MENU_ACTIVE = false;
                     set_menu_from_json(&json_response);
@@ -323,24 +338,13 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
             });
 
-            std::thread::sleep(std::time::Duration::from_millis(16));
-            has_slept_millis += 16;
-            if has_slept_millis < 16 * render_frames {
-                continue;
+            if received_input {
+                terminal
+                    .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
+                    .unwrap();
+                received_input = false;
             }
-
-            has_slept_millis = 16;
-            if !QUICK_MENU_ACTIVE {
-                continue;
-            }
-            if !received_input {
-                continue;
-            }
-            terminal
-                .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
-                .unwrap();
-
-            received_input = false;
+            drop(app);
         }
     }
 }
@@ -359,15 +363,7 @@ unsafe fn spawn_web_session(session: WebSession) {
         defaults_menu: DEFAULTS_MENU,
     };
     session.send_json(&message_send);
-    println!(
-        "[Training Modpack] Sending message:\n{}",
-        serde_json::to_string_pretty(&message_send).unwrap()
-    );
     let message_recv = session.recv();
-    println!(
-        "[Training Modpack] Received menu from web:\n{}",
-        &message_recv
-    );
     println!("[Training Modpack] Tearing down Training Modpack menu session");
     session.exit();
     session.wait_for_exit();
