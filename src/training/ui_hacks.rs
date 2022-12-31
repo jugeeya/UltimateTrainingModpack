@@ -1,9 +1,72 @@
 use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
 use crate::consts::FighterId;
-use crate::training::ui::*;
+use skyline::nn::ui2d::*;
+use smash::ui2d::{SmashPane, SmashTextBox};
 use crate::{common::menu::QUICK_MENU_ACTIVE, training::combo::FRAME_ADVANTAGE};
 use training_mod_consts::{OnOff, MENU};
 use training_mod_tui::gauge::GaugeState;
+
+pub unsafe fn iterate_anim_list(anim_transform_node: &mut AnimTransformNode, layout_name: Option<&str>) {
+    let mut curr = anim_transform_node as *mut AnimTransformNode;
+    let mut _anim_idx = 0;
+    while !curr.is_null() {
+        // Only if valid
+        if curr != (*curr).next {
+            let anim_transform = (curr as *mut u64).add(2) as *mut AnimTransform;
+
+            parse_anim_transform(anim_transform.as_mut().unwrap(), layout_name);
+        }
+
+        curr = (*curr).next;
+        _anim_idx += 1;
+        if curr == anim_transform_node as *mut AnimTransformNode || curr == (*curr).next {
+            break;
+        }
+    }
+}
+
+pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_name: Option<&str>) {
+    let res_animation_block_data_start = anim_transform.res_animation_block as u64;
+    let res_animation_block = &*anim_transform.res_animation_block;
+    let mut anim_cont_offsets = (res_animation_block_data_start
+        + res_animation_block.anim_cont_offsets_offset as u64)
+        as *const u32;
+    for _anim_cont_idx in 0..res_animation_block.anim_cont_count {
+        let anim_cont_offset = *anim_cont_offsets;
+        let res_animation_cont = (res_animation_block_data_start + anim_cont_offset as u64)
+            as *const ResAnimationContent;
+
+        let name = skyline::try_from_c_str((*res_animation_cont).name.as_ptr())
+            .unwrap_or("UNKNOWN".to_string());
+        let anim_type = (*res_animation_cont).anim_content_type;
+
+        // AnimContentType 1 == MATERIAL
+        if name.starts_with("set_dmg_num") && anim_type == 1 {
+            if let Some(layout_name) = layout_name {
+                let (hundreds, tens, ones, dec) = get_player_dmg_digits(match layout_name {
+                    "p1" => FighterId::Player,
+                    "p2" => FighterId::CPU,
+                    _ => panic!("Unknown layout name: {}", layout_name),
+                });
+
+                if name == "set_dmg_num_3" {
+                    anim_transform.frame = hundreds as f32;
+                }
+                if name == "set_dmg_num_2" {
+                    anim_transform.frame = tens as f32;
+                }
+                if name == "set_dmg_num_1" {
+                    anim_transform.frame = ones as f32;
+                }
+                if name == "set_dmg_num_dec" {
+                    anim_transform.frame = dec as f32;
+                }
+            }
+        }
+
+        anim_cont_offsets = anim_cont_offsets.add(1);
+    }
+}
 
 pub static NUM_DISPLAY_PANES: usize = 1;
 pub static NUM_MENU_TEXT_OPTIONS: usize = 27;
@@ -102,8 +165,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         for player_name in &["p1", "p2"] {
             if let Some(parent) = root_pane.find_pane_by_name_recursive(player_name) {
                 let _p1_layout_name =
-                    skyline::from_c_str((*(*parent.as_parts()).layout).layout_name);
-                let anim_list = &mut (*(*parent.as_parts()).layout).anim_trans_list;
+                    skyline::from_c_str((*parent.as_parts().layout).layout_name);
+                let anim_list = &mut (*parent.as_parts().layout).anim_trans_list;
 
                 let mut has_altered_anim_list = false;
                 let (hundreds, tens, _, _) = get_player_dmg_digits(match *player_name {
@@ -150,7 +213,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         if dmg_num.alpha != 255 || dmg_num.global_alpha != 255 {
                             dmg_num.set_visible(true);
                             if !has_altered_anim_list {
-                                anim_list.iterate_anim_list(Some(player_name));
+                                iterate_anim_list(anim_list, Some(player_name));
                                 has_altered_anim_list = true;
                             }
                         }
@@ -181,12 +244,12 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         }
 
         if let Some(header) = root_pane.find_pane_by_name_recursive("trMod_disp_0_header") {
-            header.set_text_string("Frame Advantage");
+            header.as_textbox().set_text_string("Frame Advantage");
         }
 
         if let Some(text) = root_pane.find_pane_by_name_recursive("trMod_disp_0_txt") {
-            text.set_text_string(format!("{FRAME_ADVANTAGE}").as_str());
             let text = text.as_textbox();
+            text.set_text_string(format!("{FRAME_ADVANTAGE}").as_str());
             match FRAME_ADVANTAGE {
                 x if x < 0 => text.set_color(200, 8, 8, 255),
                 x if x == 0 => text.set_color(0, 0, 0, 255),
@@ -207,7 +270,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
             for quit_txt_s in &["set_txt_00", "set_txt_01"] {
                 if let Some(quit_txt) = quit_button.find_pane_by_name_recursive(quit_txt_s) {
-                    quit_txt.set_text_string(if QUICK_MENU_ACTIVE {
+                    quit_txt.as_textbox().set_text_string(if QUICK_MENU_ACTIVE {
                         "Modpack Menu"
                     } else {
                         // Awkward. We should get the o.g. translation for non-english games
@@ -270,7 +333,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         (0..NUM_MENU_TABS).for_each(|idx| {
             root_pane
                 .find_pane_by_name_recursive(format!("trMod_menu_tab_{idx}").as_str())
-                .map(|text| text.set_text_string(tab_titles[idx]));
+                .map(|text| text.as_textbox().set_text_string(tab_titles[idx]));
         });
 
         if app.outer_list {
@@ -308,15 +371,15 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     let list = &tab.lists[list_section];
                     let submenu = &list.items[list_idx];
                     let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
+                    let text = text.as_textbox();
                     text.set_text_string(submenu.submenu_title);
                     text.set_visible(true);
-                    let text = text.as_textbox();
                     if is_selected {
                         text.set_color(0x27, 0x4E, 0x13, 255);
                         if let Some(footer) =
                             root_pane.find_pane_by_name_recursive("trMod_menu_footer_txt")
                         {
-                            footer.set_text_string(submenu.help_text);
+                            footer.as_textbox().set_text_string(submenu.help_text);
                         }
                     } else {
                         text.set_color(255, 255, 255, 255);
@@ -452,7 +515,7 @@ pub unsafe fn layout_build_parts_impl(
         };
     }
 
-    let root_pane = &*(*layout).root_pane;
+    let root_pane = &mut *(*layout).root_pane;
     let block = data as *mut ResPane;
     let menu_pos = ResVec3::new(-360.0, 440.0, 0.0);
 
