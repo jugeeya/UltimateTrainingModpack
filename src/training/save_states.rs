@@ -16,8 +16,8 @@ use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use training_mod_consts::{CharacterItem, SaveDamage};
 use std::collections::HashMap;
+use training_mod_consts::{CharacterItem, SaveDamage};
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app14sv_information8stage_idEv"]
