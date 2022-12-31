@@ -483,7 +483,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.y = PostureModule::pos_y(module_accessor);
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
-        save_state.situation_kind = StatusModule::situation_kind(module_accessor);
+        save_state.situation_kind =
+            if StatusModule::situation_kind(module_accessor) == *SITUATION_KIND_CLIFF {
+                *SITUATION_KIND_AIR
+            } else {
+                StatusModule::situation_kind(module_accessor)
+            };
         // Always store fighter kind so that charges are handled properly
         save_state.fighter_kind = app::utility::get_kind(module_accessor);
         save_state.charge = charge::get_charge(module_accessor, fighter_kind);
