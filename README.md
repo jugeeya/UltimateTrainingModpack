@@ -312,7 +312,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
     These two stages are actually slightly asymmetrical. On Smashville, the left side is 4 units longer than the right side. On Town and City, the left side is 2 units shorter than the right side. This asymmetry is not currently accounted for in the Training Modpack when mirroring save states.
 14. **How do I install the Training Modpack?**
 
-    Full installation instructions are provided in the #setup-and-download discord channel
+    Full installation instructions are provided in the [#setup-and-download](https://discord.com/channels/407970595418931200/407971997008658432) Discord channel.
 15. **How do I install an update to the Training Modpack?**
 
     The process for installing and update is very similar to the initial installation. Download the new `.zip` file from the Github releases page, extract the contents, then drag the atmosphere folder to the root of your SD card. Any existing files will be replaced, so there is no need to delete any files manually.
@@ -330,7 +330,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
     `SD:/TrainingModpack/`
 18. **Can I donate to the Training Modpack?**
 
-    You can find the donation link in the #faq Discord channel. We use the money to commission video edits for releases, so thank you if you do end up donating!
+    You can find the donation link in the [#faq](https://discord.com/channels/407970595418931200/714960353058095216) Discord channel. We use the money to commission video edits for releases, so thank you if you do end up donating!
 19. **Do I have to repeat the process of installing the mods EVERY time I turn my switch on?**
 
     The custom firmware Atmosphere stays loaded when the switch goes to sleep, but not if it is fully powered off. So you only need to go through the process of injecting the payload through TegraRCMGui when the switch is fully powered off, such as if the SD card is removed.
@@ -346,10 +346,10 @@ To install a beta version of the modpack, follow the same procedure using the [l
     The Training Modpack has a wide array of features to improve training mode. Some of the more impactful improvements are the ability to save and load fighter positions, practice with hazards off, and adjust CPU behavior in certain scenarios. A full list and explanation of the different settings is available on the Github page here: https://github.com/jugeeya/UltimateTrainingModpack#features
 23. **I think I found a bug in the Training Modpack. How do I report it?**
 
-    First check in the #bug-reports channel and Github Issues to see if it has already been reported. If it hasn't, please collect as much information as you can about the bug (including how to reproduce it!) and submit it either in the #bug-reports channel or as an issue on Github here: https://github.com/jugeeya/UltimateTrainingModpack/issues
+    First check in the #bug-reports channel and Github Issues to see if it has already been reported. If it hasn't, please collect as much information as you can about the bug (including how to reproduce it!) and submit it either in the [#bug-reports](https://discord.com/channels/407970595418931200/407971515171340289) Discord channel or as an issue on Github here: https://github.com/jugeeya/UltimateTrainingModpack/issues
 24. **I have an idea for a new feature in the Training Modpack? How do I suggest it?**
 
-    Suggestions are always welcome! You can request new features in the #requests channel. Please do keep in mind that the developers are volunteers with busy lives, so we may not be able to implement every suggestion, but we do read all requests in that channel and often prioritize features that are highly requested.
+    Suggestions are always welcome! You can request new features in the [#requests](https://discord.com/channels/407970595418931200/407971627138285579) Discord channel. Please do keep in mind that the developers are volunteers with busy lives, so we may not be able to implement every suggestion, but we do read all requests in that channel and often prioritize features that are highly requested.
 25. **What happens when I pick multiple options for a setting, such as mash or tech options?**
 
     Some menu settings allow for multiple selections. When there are several settings selected, the CPU will randomly choose between the selections when that setting is triggered. For instance, if you have both "Ledge Jump" and "Neutral Getup" selected under "Ledge Options", then the CPU will randomly select between those two options when deciding what to do when it is on the ledge.
@@ -362,7 +362,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
     Good LAN connections can be simulated with an input delay of 3-5 frames. Poorer Wifi connections can be up to 6-8 frames.
 28. **How do I install other mods, like skins or stages?**
 
-    You will need to use the Arcropolis mod manager to enable other types of mods. This discord is focused on the Training Modpack; more information on installation of other mods can be found in the general SSBU modding discord, which is linked in #welcome .
+    You will need to use the Arcropolis mod manager to enable other types of mods. This discord is focused on the Training Modpack; more information on installation of other mods can be found in the general SSBU modding Discord, which is linked in the [#welcome](https://discord.com/channels/407970595418931200/721077130456203335) channel.
 29. **Can I put the Training Modpack under my `SD:/ultimate/mods` folder?**
 
     No, the Training Modpack is not supported in a chainloading configuration. Please only install in the recommended location.
