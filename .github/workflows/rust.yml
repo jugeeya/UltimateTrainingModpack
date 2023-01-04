@@ -115,6 +115,13 @@ jobs:
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
           cp -r static/* ${{env.SMASH_WEB_DIR}}
           zip -r training_modpack_beta.zip atmosphere
+      - name: Delete Release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          tag_name: beta 
+          delete_release: true 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update Release
         uses: meeDamian/github-release@2.0
         with:
