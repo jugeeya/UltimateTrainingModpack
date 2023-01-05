@@ -218,6 +218,8 @@ pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
 
 pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
     unsafe {
+        let update_count = (*state).updateCount;
+        let flags = (*state).Flags;
         if QUICK_MENU_ACTIVE {
             // TODO: This should make more sense, look into.
             // BUTTON_PRESSES.a.is_pressed = (*state).Buttons & (1 << 0) > 0;
@@ -261,6 +263,8 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             // If we're here, remove all other Npad presses...
             // Should we exclude the home button?
             (*state) = NpadGcState::default();
+            (*state).updateCount = update_count;
+            (*state).Flags = flags;
         }
     }
 }
