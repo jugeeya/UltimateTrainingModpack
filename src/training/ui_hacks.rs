@@ -525,7 +525,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
                     match index {
                         0 => text_pane.set_text_string(&format!("{abs_min}")),
-                        1 => {
+                        1 => text_pane.set_text_string(&format!("{abs_max}")),
+                        2 => {
                             text_pane.set_text_string(&format!("{selected_min}"));
                             match gauge_vals.state {
                                 GaugeState::MinHover => text_pane.set_color(200, 8, 8, 255),
@@ -533,7 +534,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                 _ => text_pane.set_color(0, 0, 0, 255),
                             }
                         },
-                        2 => {
+                        3 => {
                             text_pane.set_text_string(&format!("{selected_max}"));
                             match gauge_vals.state {
                                 GaugeState::MaxHover => text_pane.set_color(200, 8, 8, 255),
@@ -541,7 +542,6 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                 _ => text_pane.set_color(0, 0, 0, 255),
                             }
                         },
-                        3 => text_pane.set_text_string(&format!("{abs_max}")),
                         _ => text_pane.set_text_string("")
                     }
                 }
