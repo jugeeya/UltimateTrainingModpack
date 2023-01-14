@@ -978,7 +978,7 @@ pub unsafe fn layout_build_parts_impl(
         let x = idx % 2;
         let y = idx / 2;
 
-        let label_x_offset = x as f32 * 400.0;
+        let label_x_offset = x as f32 * 345.0;
         let label_y_offset = y as f32 * 125.0;
         
         if (*block).name_matches("set_txt_num_01") {
@@ -1017,11 +1017,14 @@ pub unsafe fn layout_build_parts_impl(
             label_block.text_alignment(TextAlignment::Center);
             label_block.set_name(format!("{}_lbl", menu_text_slider_fmt!(idx)).as_str());
             label_block.set_pos(ResVec3::new(
-                slider_root_pane.pos_x - 835.0 + label_x_offset,
+                slider_root_pane.pos_x - 750.0 + label_x_offset,
                 slider_root_pane.pos_y + 200.0 - label_y_offset,
                 0.0
             ));
             label_block.font_size = ResVec2::new(25.0, 50.0);
+            
+            // Aligns text to the center horizontally
+            label_block.text_position = 4;
 
             let label_pane = build!(label_block, ResTextBox, kind, TextBox);
 
