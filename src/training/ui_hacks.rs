@@ -1018,7 +1018,7 @@ pub unsafe fn layout_build_parts_impl(
             label_block.set_name(format!("{}_lbl", menu_text_slider_fmt!(idx)).as_str());
             label_block.set_pos(ResVec3::new(
                 slider_root_pane.pos_x - 750.0 + label_x_offset,
-                slider_root_pane.pos_y + 200.0 - label_y_offset,
+                slider_root_pane.pos_y + 205.0 - label_y_offset,
                 0.0
             ));
             label_block.font_size = ResVec2::new(25.0, 50.0);
