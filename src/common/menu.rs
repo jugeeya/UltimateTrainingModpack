@@ -282,24 +282,17 @@ pub unsafe fn quick_menu_loop() {
         std::thread::sleep(std::time::Duration::from_secs(10));
         let backend = training_mod_tui::TestBackend::new(75, 15);
         let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
-        let mut has_slept_millis = 0;
-        let render_frames = 5;
         let mut json_response = String::new();
         let button_presses = &mut BUTTON_PRESSES;
         let mut received_input = true;
         loop {
             std::thread::sleep(std::time::Duration::from_millis(16));
-            has_slept_millis += 16;
-            if has_slept_millis < 16 * render_frames {
-                continue;
-            }
-            has_slept_millis = 0;
 
             if !QUICK_MENU_ACTIVE {
                 continue;
             }
 
-            let mut app = QUICK_MENU_APP.lock();
+            let mut app = &mut *QUICK_MENU_APP.data_ptr();
             button_presses.a.read_press().then(|| {
                 app.on_a();
                 received_input = true;
