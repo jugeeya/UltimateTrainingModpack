@@ -78,6 +78,34 @@ pub static NUM_MENU_TABS: usize = 3;
 
 pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
 
+const BG_LEFT_ON_WHITE_COLOR : ResColor = ResColor {
+    r: 0, 
+    g: 28,
+    b: 118,
+    a: 255
+};
+
+const BG_LEFT_ON_BLACK_COLOR : ResColor = ResColor {
+    r: 0,
+    g: 22,
+    b: 112,
+    a: 0
+};
+
+const BG_LEFT_OFF_WHITE_COLOR : ResColor = ResColor {
+    r: 8,
+    g: 13,
+    b: 17,
+    a: 255
+};
+
+const BG_LEFT_OFF_BLACK_COLOR : ResColor = ResColor {
+    r: 5, 
+    g: 10,
+    b: 14,
+    a: 0
+};
+
 macro_rules! menu_text_name_fmt {
     ($x:ident, $y:ident) => {
         format!("trMod_menu_opt_{}_{}", $x, $y).as_str()
@@ -376,15 +404,18 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     let text = text.as_textbox();
                     text.set_text_string(submenu.submenu_title);
                     text.set_visible(true);
+                    let bg_left_material = &mut *bg_left.as_picture().material;
                     if is_selected {
-                        text.set_color(0x27, 0x4E, 0x13, 255);
                         if let Some(footer) =
                             root_pane.find_pane_by_name_recursive("trMod_menu_footer_txt")
                         {
                             footer.as_textbox().set_text_string(submenu.help_text);
                         }
+                        bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
                     } else {
-                        text.set_color(255, 255, 255, 255);
+                        bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                     }
 
                     bg_left.set_visible(true);
@@ -405,17 +436,20 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                         {
                             let text = text.as_textbox();
                             text.set_text_string(name);
-                            if is_selected {
-                                text.set_color(0x27, 0x4E, 0x13, 255);
-                            } else {
-                                text.set_color(255, 255, 255, 255);
-                            }
                             text.set_visible(true);
                         }
 
                         if let Some(bg_left) = root_pane
                             .find_pane_by_name_recursive(menu_text_bg_left_fmt!(list_section, idx))
                         {
+                            let bg_left_material = &mut *bg_left.as_picture().material;
+                            if is_selected {
+                                bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                            } else {
+                                bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                            }
                             bg_left.set_visible(true);
                         }
 
