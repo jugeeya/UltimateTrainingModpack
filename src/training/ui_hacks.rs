@@ -78,32 +78,32 @@ pub static NUM_MENU_TABS: usize = 3;
 
 pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
 
-const BG_LEFT_ON_WHITE_COLOR : ResColor = ResColor {
-    r: 0, 
+const BG_LEFT_ON_WHITE_COLOR: ResColor = ResColor {
+    r: 0,
     g: 28,
     b: 118,
-    a: 255
+    a: 255,
 };
 
-const BG_LEFT_ON_BLACK_COLOR : ResColor = ResColor {
+const BG_LEFT_ON_BLACK_COLOR: ResColor = ResColor {
     r: 0,
     g: 22,
     b: 112,
-    a: 0
+    a: 0,
 };
 
-const BG_LEFT_OFF_WHITE_COLOR : ResColor = ResColor {
+const BG_LEFT_OFF_WHITE_COLOR: ResColor = ResColor {
     r: 8,
     g: 13,
     b: 17,
-    a: 255
+    a: 255,
 };
 
-const BG_LEFT_OFF_BLACK_COLOR : ResColor = ResColor {
-    r: 5, 
+const BG_LEFT_OFF_BLACK_COLOR: ResColor = ResColor {
+    r: 5,
     g: 10,
     b: 14,
-    a: 0
+    a: 0,
 };
 
 macro_rules! menu_text_name_fmt {
