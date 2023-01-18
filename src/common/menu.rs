@@ -292,7 +292,7 @@ pub unsafe fn quick_menu_loop() {
                 continue;
             }
 
-            let mut app = &mut *QUICK_MENU_APP.data_ptr();
+            let app = &mut *QUICK_MENU_APP.data_ptr();
             button_presses.a.read_press().then(|| {
                 app.on_a();
                 received_input = true;
@@ -337,11 +337,10 @@ pub unsafe fn quick_menu_loop() {
 
             if received_input {
                 terminal
-                    .draw(|f| json_response = training_mod_tui::ui(f, &mut app))
+                    .draw(|f| json_response = training_mod_tui::ui(f, app))
                     .unwrap();
                 received_input = false;
             }
-            drop(app);
         }
     }
 }
