@@ -107,16 +107,16 @@ const BG_LEFT_OFF_BLACK_COLOR: ResColor = ResColor {
 };
 
 const BG_LEFT_SELECTED_BLACK_COLOR: ResColor = ResColor {
-    r: 130,
-    g: 31,
-    b: 31,
+    r: 80,
+    g: 0,
+    b: 0,
     a: 0,
 };
 
 const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
-    r: 145,
-    g: 33,
-    b: 33,
+    r: 118,
+    g: 0,
+    b: 0,
     a: 255,
 };
 
@@ -546,22 +546,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     match index {
                         0 => text_pane.set_text_string(&format!("{abs_min}")),
                         1 => text_pane.set_text_string(&format!("{abs_max}")),
-                        2 => {
-                            text_pane.set_text_string(&format!("{selected_min}"));
-                            match gauge_vals.state {
-                                GaugeState::MinHover => text_pane.set_color(200, 8, 8, 255),
-                                GaugeState::MinSelected => text_pane.set_color(8, 200, 8, 255),
-                                _ => text_pane.set_color(0, 0, 0, 255),
-                            }
-                        }
-                        3 => {
-                            text_pane.set_text_string(&format!("{selected_max}"));
-                            match gauge_vals.state {
-                                GaugeState::MaxHover => text_pane.set_color(200, 8, 8, 255),
-                                GaugeState::MaxSelected => text_pane.set_color(8, 200, 8, 255),
-                                _ => text_pane.set_color(0, 0, 0, 255),
-                            }
-                        }
+                        2 => text_pane.set_text_string(&format!("{selected_min}")),
+                        3 => text_pane.set_text_string(&format!("{selected_max}")),
                         _ => text_pane.set_text_string(""),
                     }
                 }
@@ -570,68 +556,47 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     .find_pane_by_name_recursive(format!("slider_btn_fg_{}", index).as_str())
                 {
                     let bg_left_material = &mut *bg_left.as_picture().material;
-                    match gauge_vals.state {
-                        GaugeState::MinHover | GaugeState::MinSelected => {
-                            bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                        }
+
+                    match index {
+                        2 => {
+                            match gauge_vals.state {
+                                GaugeState::MinHover => {
+                                    bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                                    bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                                },
+                                GaugeState::MinSelected => {
+                                    bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                                    bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                                },
+                                _ => {
+                                    bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                                    bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                                }
+                            }
+                        },
+                        3 => {
+                            match gauge_vals.state {
+                                GaugeState::MaxHover => {
+                                    bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                                    bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                                },
+                                GaugeState::MaxSelected => {
+                                    bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                                    bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                                },
+                                _ => {
+                                    bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                                    bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                                }
+                            }
+                        },
                         _ => {
                             bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
                             bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                         }
                     }
-                    bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                    bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
                     bg_left.set_visible(true);
                 }
-                // if let Some(pic_pane) = root_pane.find_pane_by_name_recursive(format!("slider_btn_fg_{}", index).as_str()) {
-                //     let pic_pane = pic_pane.as_picture();
-                //     let pic_material = pic_pane.material.as_mut().unwrap();
-
-                //     pic_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                //     pic_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-                // match index {
-                //     2 => {
-                //         match gauge_vals.state {
-                //             GaugeState::MinHover => {
-                //                 pic_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                //                 pic_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                //             },
-                //             GaugeState::MinSelected => {
-                //                 println!("min, idx: 2 - sel");
-                //                 pic_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-                //                 pic_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-                //             },
-                //             _ => {
-                //                 pic_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                //                 pic_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                //             },
-                //         }
-                //     },
-                //     3 => {
-                //         match gauge_vals.state {
-                //             GaugeState::MaxHover => {
-                //                 pic_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                //                 pic_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                //             },
-                //             GaugeState::MaxSelected => {
-                //                 pic_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-                //                 pic_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-                //             },
-                //             _ => {
-                //                 pic_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                //                 pic_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                //             },
-                //         }
-                //     },
-                //     _ => {
-                //         pic_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                //         pic_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                //     }
-                // }
-
-                // pic_pane.set_visible(true);
-                // }
             });
         }
     }
@@ -642,6 +607,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 pub static mut MENU_PANE_PTR: u64 = 0;
 pub static mut HAS_CREATED_OPT_BG: bool = false;
 pub static mut HAS_CREATED_OPT_BG_BACK: bool = false;
+pub static mut HAS_CREATED_SLIDER_BG: bool = false;
+pub static mut HAS_CREATED_SLIDER_BG_BACK: bool = false;
 
 #[skyline::hook(offset = 0x493a0)]
 pub unsafe fn layout_build_parts_impl(
@@ -732,15 +699,13 @@ pub unsafe fn layout_build_parts_impl(
             });
         }
 
-        (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
-            let x = index % 2;
-            let y = index / 2;
-
-            if (*block).name_matches("icn_bg_main") {
+        if !HAS_CREATED_SLIDER_BG && (*block).name_matches("icn_bg_main") {
+            (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
+                let x = index % 2;
+                let y = index / 2;
+            
                 if MENU_PANE_PTR != 0 {
-                    let slider_root = (*(MENU_PANE_PTR as *mut Pane))
-                        .find_pane_by_name("slider_menu", true)
-                        .unwrap();
+                    let slider_root = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_menu", true).unwrap();
 
                     let x_offset = x as f32 * 345.0;
                     let y_offset = y as f32 * 125.0;
@@ -763,27 +728,25 @@ pub unsafe fn layout_build_parts_impl(
                     pic_menu_pane.detach();
 
                     slider_root.append_child(pic_menu_pane);
+                    HAS_CREATED_SLIDER_BG = true;
                 }
-            }
-            if (*block).name_matches("btn_bg") {
-                if MENU_PANE_PTR != 0 {
-                    let slider_root = (*(MENU_PANE_PTR as *mut Pane))
-                        .find_pane_by_name("slider_menu", true)
-                        .unwrap();
+            });
+        }
+        
+        if !HAS_CREATED_SLIDER_BG_BACK && (*block).name_matches("btn_bg") {
+            (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
+                let x = index % 2;
+                let y = index / 2;
 
-                    let size_x = slider_root
-                        .find_pane_by_name_recursive("slider_ui_container")
+                if MENU_PANE_PTR != 0 {
+                    let slider_root = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_menu", true).unwrap();
+
+                    let size_x = slider_root.find_pane_by_name_recursive("slider_ui_container")
                         .unwrap()
-                        .size_x
-                        * 0.9
-                        / 2.0;
-                    let size_y = (slider_root
-                        .find_pane_by_name_recursive("slider_ui_container")
+                        .size_x * 0.9 / 2.0;
+                    let size_y = (slider_root.find_pane_by_name_recursive("slider_ui_container")
                         .unwrap()
-                        .size_y
-                        * 0.50
-                        - 20.0)
-                        / 2.0;
+                        .size_y * 0.50 - 20.0) / 2.0;
 
                     println!("x: 450.0, y: {}", size_y);
 
@@ -796,7 +759,10 @@ pub unsafe fn layout_build_parts_impl(
                     bg_block.set_name(format!("slider_item_btn_{}", index).as_str());
                     bg_block.scale_x /= 2.0;
 
-                    bg_block.set_size(ResVec2::new(605.0, size_y));
+                    bg_block.set_size(ResVec2::new(
+                        605.0,
+                        size_y
+                    ));
 
                     bg_block.set_pos(ResVec3::new(
                         slider_root.pos_x - 700.0 + x_offset,
@@ -804,14 +770,14 @@ pub unsafe fn layout_build_parts_impl(
                         0.0,
                     ));
 
-                    let bg_pane =
-                        build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
+                    let bg_pane = build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
                     bg_pane.detach();
 
                     slider_root.append_child(bg_pane);
+                    HAS_CREATED_SLIDER_BG_BACK = true;
                 }
-            }
-        });
+            });
+        }
     }
 
     if layout_name != "info_training" {
@@ -842,6 +808,8 @@ pub unsafe fn layout_build_parts_impl(
             HAS_CREATED_OPT_BG = false;
             HAS_CREATED_OPT_BG_BACK = false;
             HAS_SORTED_MENU_CHILDREN = false;
+            HAS_CREATED_SLIDER_BG = false;
+            HAS_CREATED_SLIDER_BG_BACK = false;
         }
     }
 
