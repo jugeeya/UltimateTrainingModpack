@@ -1,4 +1,5 @@
 use crate::common::{consts::*, *};
+use crate::logging::*;
 use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
 use smash::lib::{lua_const::*, L2CAgent, L2CValue};
 use smash::phx::{Hash40, Vector3f};
@@ -369,6 +370,6 @@ unsafe fn mod_handle_handle_set_rebound(
 }
 
 pub fn hitbox_visualization() {
-    println!("[Training Modpack] Applying hitbox visualization mods.");
+    info!("Applying hitbox visualization mods.");
     skyline::install_hooks!(handle_attack, handle_catch, handle_set_rebound);
 }
