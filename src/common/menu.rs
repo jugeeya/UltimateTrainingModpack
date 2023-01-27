@@ -1,7 +1,7 @@
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
-use crate::training::frame_counter;
 use crate::logging::*;
+use crate::training::frame_counter;
 
 use ramhorns::Template;
 use skyline::info::get_program_id;
@@ -347,10 +347,7 @@ static mut WEB_MENU_ACTIVE: bool = false;
 unsafe fn spawn_web_session(session: WebSession) {
     info!("Opening menu session...");
     let loaded_msg = session.recv();
-    info!(
-        "Received loaded message from web: {}",
-        &loaded_msg
-    );
+    info!("Received loaded message from web: {}", &loaded_msg);
     let message_send = MenuJsonStruct {
         menu: MENU,
         defaults_menu: DEFAULTS_MENU,

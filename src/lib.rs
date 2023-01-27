@@ -21,9 +21,9 @@ mod hazard_manager;
 mod hitbox_visualizer;
 mod training;
 
+mod logging;
 #[cfg(test)]
 mod test;
-mod logging;
 
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
@@ -32,11 +32,11 @@ use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
 use std::fs;
 
+use crate::logging::*;
 use crate::menu::quick_menu_loop;
 #[cfg(feature = "web_session_preload")]
 use crate::menu::web_session_loop;
 use training_mod_consts::{MenuJsonStruct, OnOff};
-use crate::logging::*;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -108,7 +108,8 @@ pub fn main() {
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
     info!("Checking for previous menu in training_modpack_menu.json...");
     if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(menu_conf_path).expect(&format!("Could not remove {}", menu_conf_path));
+        let menu_conf = fs::read_to_string(menu_conf_path)
+            .expect(&format!("Could not remove {}", menu_conf_path));
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
@@ -117,7 +118,10 @@ pub fn main() {
             }
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).expect(&format!("{} has invalid schema but could not be deleted!", menu_conf_path));
+            fs::remove_file(menu_conf_path).expect(&format!(
+                "{} has invalid schema but could not be deleted!",
+                menu_conf_path
+            ));
         }
     } else {
         info!("No previous menu file found.");
@@ -127,7 +131,8 @@ pub fn main() {
     info!("Checking for previous button combo settings in training_modpack.toml...");
     if fs::metadata(combo_path).is_ok() {
         info!("Previous button combo settings found. Loading...");
-        let combo_conf = fs::read_to_string(combo_path).expect(&format!("Could not read {}", combo_path));
+        let combo_conf =
+            fs::read_to_string(combo_path).expect(&format!("Could not read {}", combo_path));
         if button_config::validate_config(&combo_conf) {
             button_config::save_all_btn_config_from_toml(&combo_conf);
         } else {
@@ -159,7 +164,11 @@ pub fn main() {
                 );
 
                 let url = format!("{host}{path}");
-                minreq::post(url).with_json(&event).expect("Failed to send info to firebase").send().ok();
+                minreq::post(url)
+                    .with_json(&event)
+                    .expect("Failed to send info to firebase")
+                    .send()
+                    .ok();
             }
         }
     });

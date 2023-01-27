@@ -61,7 +61,8 @@ struct TopLevelBtnComboConfig {
 }
 
 pub fn validate_config(data: &str) -> bool {
-    let conf: TopLevelBtnComboConfig = toml::from_str(data).expect("Custom button config has invalid schema");
+    let conf: TopLevelBtnComboConfig =
+        toml::from_str(data).expect("Custom button config has invalid schema");
     let conf = conf.button_config;
     let configs = [conf.open_menu, conf.save_state, conf.load_state];
     let bad_keys = configs
