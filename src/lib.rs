@@ -103,7 +103,7 @@ pub fn main() {
     let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
     if fs::metadata(ovl_path).is_ok() {
         log!("Removing ovlTrainingModpack.ovl...");
-        fs::remove_file(ovl_path).unwrap();
+        fs::remove_file(ovl_path).expect("Could not remove /switch/.overlays/ovlTrainingModpack.ovl");
     }
 
     log!("Performing version check...");
@@ -112,19 +112,16 @@ pub fn main() {
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
     log!("Checking for previous menu in training_modpack_menu.json...");
     if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(menu_conf_path).unwrap();
+        let menu_conf = fs::read_to_string(menu_conf_path).expect("Could not read /TrainingModpack/training_modpack_menu.json");
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
                 DEFAULTS_MENU = menu_conf_json.defaults_menu;
                 log!("Previous menu found. Loading...");
             }
-        } else if menu_conf.starts_with("http://localhost") {
-            log!("Previous menu found, with URL schema. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
         } else {
             log!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
+            fs::remove_file(menu_conf_path).expect("/TrainingModpack/training_modpack_menu.json has invalid schema but could not be deleted!");
         }
     } else {
         log!("No previous menu file found.");
@@ -134,7 +131,7 @@ pub fn main() {
     log!("Checking for previous button combo settings in training_modpack.toml...");
     if fs::metadata(combo_path).is_ok() {
         log!("Previous button combo settings found. Loading...");
-        let combo_conf = fs::read_to_string(combo_path).unwrap();
+        let combo_conf = fs::read_to_string(combo_path).expect("Could not read /TrainingModpack/training_modpack.toml");
         if button_config::validate_config(&combo_conf) {
             button_config::save_all_btn_config_from_toml(&combo_conf);
         } else {
@@ -166,7 +163,7 @@ pub fn main() {
                 );
 
                 let url = format!("{host}{path}");
-                minreq::post(url).with_json(&event).unwrap().send().ok();
+                minreq::post(url).with_json(&event).expect("Failed to send info to firebase").send().ok();
             }
         }
     });

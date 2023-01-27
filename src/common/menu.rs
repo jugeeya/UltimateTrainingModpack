@@ -57,11 +57,7 @@ pub unsafe fn write_menu() {
         .join(format!("{program_id:016X}"))
         .join(format!("manual_html/html-document/{htdocs_dir}.htdocs/"))
         .join("training_menu.html");
-
-    let write_resp = fs::write(menu_html_path, data);
-    if write_resp.is_err() {
-        println!("Error!: {}", write_resp.err().unwrap());
-    }
+    fs::write(menu_html_path, data).expect("Failed to write menu HTML file");
 }
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
@@ -79,7 +75,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             MENU_CONF_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
-        .expect("Failed to write menu settings file");
+        .expect("Failed to write menu settings file from web response");
     } else if let Ok(message_json) = tui_response {
         // Only includes MENU
         // From TUI
@@ -90,7 +86,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             defaults_menu: DEFAULTS_MENU,
         };
         std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
-            .expect("Failed to write menu settings file");
+            .expect("Failed to write menu settings file from tui response");
     } else {
         skyline::error::show_error(
             0x70,
