@@ -73,7 +73,7 @@ pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_na
 
 pub static NUM_DISPLAY_PANES: usize = 1;
 pub static NUM_MENU_TEXT_OPTIONS: usize = 27;
-pub static NUM_MENU_TEXT_SLIDERS: usize = 4;
+pub static NUM_MENU_TEXT_SLIDERS: usize = 2;
 pub static NUM_MENU_TABS: usize = 3;
 
 pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
@@ -531,8 +531,6 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     match index {
                         0 => text_pane.set_text_string("Min"),
                         1 => text_pane.set_text_string("Max"),
-                        2 => text_pane.set_text_string("Current Min"),
-                        3 => text_pane.set_text_string("Current Max"),
                         _ => text_pane.set_text_string(""),
                     }
                 }
@@ -544,10 +542,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     text_pane.set_visible(true);
 
                     match index {
-                        0 => text_pane.set_text_string(&format!("{abs_min}")),
-                        1 => text_pane.set_text_string(&format!("{abs_max}")),
-                        2 => text_pane.set_text_string(&format!("{selected_min}")),
-                        3 => text_pane.set_text_string(&format!("{selected_max}")),
+                        0 => text_pane.set_text_string(&format!("{selected_min}")),
+                        1 => text_pane.set_text_string(&format!("{selected_max}")),
                         _ => text_pane.set_text_string(""),
                     }
                 }
@@ -558,7 +554,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     let bg_left_material = &mut *bg_left.as_picture().material;
 
                     match index {
-                        2 => {
+                        0 => {
                             match gauge_vals.state {
                                 GaugeState::MinHover => {
                                     bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
@@ -574,7 +570,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                 }
                             }
                         },
-                        3 => {
+                        1 => {
                             match gauge_vals.state {
                                 GaugeState::MaxHover => {
                                     bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
@@ -706,9 +702,9 @@ pub unsafe fn layout_build_parts_impl(
             
                 if MENU_PANE_PTR != 0 {
                     let slider_root = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_menu", true).unwrap();
-
+                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_ui_container", true).unwrap();
                     let x_offset = x as f32 * 345.0;
-                    let y_offset = y as f32 * 125.0;
+                    
 
                     let block = block as *mut ResPictureWithTex<2>;
                     let mut pic_menu_block = *block;
@@ -718,9 +714,11 @@ pub unsafe fn layout_build_parts_impl(
                     pic_menu_block.picture.scale_x /= 1.85;
                     pic_menu_block.picture.scale_y /= 1.25;
 
+                    let y_offset = pic_menu_block.size_y / 2.0;
+
                     pic_menu_block.set_pos(ResVec3::new(
                         slider_root.pos_x - 842.5 + x_offset,
-                        slider_root.pos_y + 200.0 - y_offset,
+                        slider_root.pos_y + (slider_bg.size_y * 0.458), // 137.5,
                         0.0,
                     ));
 
@@ -740,18 +738,14 @@ pub unsafe fn layout_build_parts_impl(
 
                 if MENU_PANE_PTR != 0 {
                     let slider_root = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_menu", true).unwrap();
+                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_ui_container", true).unwrap();
 
                     let size_x = slider_root.find_pane_by_name_recursive("slider_ui_container")
                         .unwrap()
                         .size_x * 0.9 / 2.0;
-                    let size_y = (slider_root.find_pane_by_name_recursive("slider_ui_container")
-                        .unwrap()
-                        .size_y * 0.50 - 20.0) / 2.0;
-
-                    println!("x: 450.0, y: {}", size_y);
+                    let size_y = 90.0;
 
                     let x_offset = x as f32 * 345.0;
-                    let y_offset = y as f32 * 125.0;
 
                     let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
                     let mut bg_block = *block;
@@ -766,9 +760,11 @@ pub unsafe fn layout_build_parts_impl(
 
                     bg_block.set_pos(ResVec3::new(
                         slider_root.pos_x - 700.0 + x_offset,
-                        slider_root.pos_y + 200.0 - y_offset,
+                        slider_root.pos_y + (slider_bg.size_y * 0.458),
                         0.0,
                     ));
+
+                    println!("button size y: {}", size_y);
 
                     let bg_pane = build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
                     bg_pane.detach();
@@ -997,13 +993,13 @@ pub unsafe fn layout_build_parts_impl(
         let mut picture_block = *block;
 
         picture_block.set_name(slider_container_name);
-        picture_block.set_size(ResVec2::new(675.0, 400.0));
+        picture_block.set_size(ResVec2::new(675.0, 300.0));
         picture_block.set_pos(ResVec3::new(-530.0, 180.0, 0.0));
         picture_block.tex_coords = [
             [ResVec2::new(0.0, 0.0)],
             [ResVec2::new(1.0, 0.0)],
-            [ResVec2::new(0.0, 2.0)],
-            [ResVec2::new(1.0, 2.0)],
+            [ResVec2::new(0.0, 1.5)],
+            [ResVec2::new(1.0, 1.5)],
         ];
 
         let picture_pane = build!(picture_block, ResPictureWithTex<1>, kind, Picture);
@@ -1018,7 +1014,7 @@ pub unsafe fn layout_build_parts_impl(
         let mut title_block = *block;
 
         title_block.set_name("slider_title");
-        title_block.set_pos(ResVec3::new(-530.0, 335.0, 0.0));
+        title_block.set_pos(ResVec3::new(-530.0, 285.0, 0.0));
         title_block.set_size(ResVec2::new(550.0, 100.0));
         title_block.font_size = ResVec2::new(50.0, 100.0);
 
@@ -1040,7 +1036,6 @@ pub unsafe fn layout_build_parts_impl(
         let y = idx / 2;
 
         let label_x_offset = x as f32 * 345.0;
-        let label_y_offset = y as f32 * 125.0;
 
         if (*block).name_matches("set_txt_num_01") {
             let slider_root_pane = root_pane.find_pane_by_name(slider_root_name, true).unwrap();
@@ -1058,11 +1053,10 @@ pub unsafe fn layout_build_parts_impl(
             text_block.set_name(menu_text_slider_fmt!(idx));
 
             let value_x_offset = x as f32 * 345.0;
-            let value_y_offset = y as f32 * 125.0;
 
             text_block.set_pos(ResVec3::new(
                 slider_root_pane.pos_x - 675.0 + value_x_offset,
-                slider_root_pane.pos_y + 200.0 - value_y_offset,
+                slider_root_pane.pos_y + (slider_container.size_y * 0.458),
                 0.0,
             ));
 
@@ -1081,7 +1075,7 @@ pub unsafe fn layout_build_parts_impl(
             label_block.set_name(format!("{}_lbl", menu_text_slider_fmt!(idx)).as_str());
             label_block.set_pos(ResVec3::new(
                 slider_root_pane.pos_x - 750.0 + label_x_offset,
-                slider_root_pane.pos_y + 205.0 - label_y_offset,
+                slider_root_pane.pos_y + (slider_container.size_y * 0.458) + 5.0,
                 0.0,
             ));
             label_block.font_size = ResVec2::new(25.0, 50.0);
