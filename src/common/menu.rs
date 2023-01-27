@@ -87,7 +87,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             defaults_menu: DEFAULTS_MENU,
         };
         std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
-            .expect("Failed to write menu settings file from tui response");
+            .expect("Failed to write menu settings file from quick menu response");
     } else {
         skyline::error::show_error(
             0x70,

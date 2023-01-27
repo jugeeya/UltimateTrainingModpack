@@ -99,7 +99,7 @@ pub fn main() {
     let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
     if fs::metadata(ovl_path).is_ok() {
         warn!("Removing ovlTrainingModpack.ovl...");
-        fs::remove_file(ovl_path).expect("Could not remove /switch/.overlays/ovlTrainingModpack.ovl");
+        fs::remove_file(ovl_path).expect(&format!("Could not remove {}", ovl_path));
     }
 
     info!("Performing version check...");
@@ -108,7 +108,7 @@ pub fn main() {
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
     info!("Checking for previous menu in training_modpack_menu.json...");
     if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(menu_conf_path).expect("Could not read /TrainingModpack/training_modpack_menu.json");
+        let menu_conf = fs::read_to_string(menu_conf_path).expect(&format!("Could not remove {}", menu_conf_path));
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
@@ -117,7 +117,7 @@ pub fn main() {
             }
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).expect("/TrainingModpack/training_modpack_menu.json has invalid schema but could not be deleted!");
+            fs::remove_file(menu_conf_path).expect(&format!("{} has invalid schema but could not be deleted!", menu_conf_path));
         }
     } else {
         info!("No previous menu file found.");
@@ -127,7 +127,7 @@ pub fn main() {
     info!("Checking for previous button combo settings in training_modpack.toml...");
     if fs::metadata(combo_path).is_ok() {
         info!("Previous button combo settings found. Loading...");
-        let combo_conf = fs::read_to_string(combo_path).expect("Could not read /TrainingModpack/training_modpack.toml");
+        let combo_conf = fs::read_to_string(combo_path).expect(&format!("Could not read {}", combo_path));
         if button_config::validate_config(&combo_conf) {
             button_config::save_all_btn_config_from_toml(&combo_conf);
         } else {
