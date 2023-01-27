@@ -1,6 +1,7 @@
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::training::frame_counter;
+use crate::logging::*;
 
 use ramhorns::Template;
 use skyline::info::get_program_id;
@@ -57,11 +58,7 @@ pub unsafe fn write_menu() {
         .join(format!("{program_id:016X}"))
         .join(format!("manual_html/html-document/{htdocs_dir}.htdocs/"))
         .join("training_menu.html");
-
-    let write_resp = fs::write(menu_html_path, data);
-    if write_resp.is_err() {
-        println!("Error!: {}", write_resp.err().unwrap());
-    }
+    fs::write(menu_html_path, data).expect("Failed to write menu HTML file");
 }
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
@@ -69,7 +66,7 @@ const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 pub unsafe fn set_menu_from_json(message: &str) {
     let web_response = serde_json::from_str::<MenuJsonStruct>(message);
     let tui_response = serde_json::from_str::<TrainingModpackMenu>(message);
-    println!("Received menu message: {message}");
+    info!("Received menu message: {message}");
     if let Ok(message_json) = web_response {
         // Includes both MENU and DEFAULTS_MENU
         // From Web Applet
@@ -79,7 +76,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             MENU_CONF_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
-        .expect("Failed to write menu settings file");
+        .expect("Failed to write menu settings file from web response");
     } else if let Ok(message_json) = tui_response {
         // Only includes MENU
         // From TUI
@@ -90,7 +87,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
             defaults_menu: DEFAULTS_MENU,
         };
         std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
-            .expect("Failed to write menu settings file");
+            .expect("Failed to write menu settings file from quick menu response");
     } else {
         skyline::error::show_error(
             0x70,
@@ -348,10 +345,10 @@ pub unsafe fn quick_menu_loop() {
 static mut WEB_MENU_ACTIVE: bool = false;
 
 unsafe fn spawn_web_session(session: WebSession) {
-    println!("[Training Modpack] Opening menu session...");
+    info!("Opening menu session...");
     let loaded_msg = session.recv();
-    println!(
-        "[Training Modpack] Received loaded message from web: {}",
+    info!(
+        "Received loaded message from web: {}",
         &loaded_msg
     );
     let message_send = MenuJsonStruct {
@@ -360,7 +357,7 @@ unsafe fn spawn_web_session(session: WebSession) {
     };
     session.send_json(&message_send);
     let message_recv = session.recv();
-    println!("[Training Modpack] Tearing down Training Modpack menu session");
+    info!("Tearing down Training Modpack menu session");
     session.exit();
     session.wait_for_exit();
     set_menu_from_json(&message_recv);
@@ -399,7 +396,7 @@ pub unsafe fn web_session_loop() {
                 // Starting a new session causes some ingame lag.
                 // Investigate whether we can minimize this lag by
                 // waiting until the player is idle or using CPU boost mode
-                println!("[Training Modpack] Starting new menu session...");
+                info!("Starting new menu session...");
                 web_session = Some(new_web_session(true));
             }
         } else {
@@ -407,7 +404,7 @@ pub unsafe fn web_session_loop() {
             // This will avoid conflicts with other web plugins, and helps with stability.
             // Having the session open too long, especially if the switch has been put to sleep, can cause freezes
             if let Some(web_session_to_kill) = web_session {
-                println!("[Training Modpack] Tearing down Training Modpack menu session");
+                info!("Tearing down Training Modpack menu session");
                 web_session_to_kill.exit();
                 web_session_to_kill.wait_for_exit();
             }

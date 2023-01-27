@@ -23,6 +23,7 @@ mod training;
 
 #[cfg(test)]
 mod test;
+mod logging;
 
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
@@ -34,8 +35,8 @@ use std::fs;
 use crate::menu::quick_menu_loop;
 #[cfg(feature = "web_session_preload")]
 use crate::menu::web_session_loop;
-use owo_colors::OwoColorize;
 use training_mod_consts::{MenuJsonStruct, OnOff};
+use crate::logging::*;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -70,21 +71,16 @@ pub fn main() {
             },
         };
 
-        let err_msg = format!("thread has panicked at '{msg}', {location}");
+        let err_msg = format!("SSBU Training Modpack has panicked at '{msg}', {location}");
         skyline::error::show_error(
             69,
-            "Skyline plugin has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
+            "SSBU Training Modpack has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
             err_msg.as_str(),
         );
     }));
+    init_logger().unwrap();
 
-    macro_rules! log {
-        ($($arg:tt)*) => {
-            println!("{}{}", "[Training Modpack] ".green(), format!($($arg)*));
-        };
-    }
-
-    log!("Initialized.");
+    info!("Initialized.");
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
     }
@@ -102,46 +98,43 @@ pub fn main() {
 
     let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
     if fs::metadata(ovl_path).is_ok() {
-        log!("Removing ovlTrainingModpack.ovl...");
-        fs::remove_file(ovl_path).unwrap();
+        warn!("Removing ovlTrainingModpack.ovl...");
+        fs::remove_file(ovl_path).expect(&format!("Could not remove {}", ovl_path));
     }
 
-    log!("Performing version check...");
+    info!("Performing version check...");
     release::version_check();
 
     let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
-    log!("Checking for previous menu in training_modpack_menu.json...");
+    info!("Checking for previous menu in training_modpack_menu.json...");
     if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(menu_conf_path).unwrap();
+        let menu_conf = fs::read_to_string(menu_conf_path).expect(&format!("Could not remove {}", menu_conf_path));
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
                 DEFAULTS_MENU = menu_conf_json.defaults_menu;
-                log!("Previous menu found. Loading...");
+                info!("Previous menu found. Loading...");
             }
-        } else if menu_conf.starts_with("http://localhost") {
-            log!("Previous menu found, with URL schema. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
         } else {
-            log!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
+            warn!("Previous menu found but is invalid. Deleting...");
+            fs::remove_file(menu_conf_path).expect(&format!("{} has invalid schema but could not be deleted!", menu_conf_path));
         }
     } else {
-        log!("No previous menu file found.");
+        info!("No previous menu file found.");
     }
 
     let combo_path = "sd:/TrainingModpack/training_modpack.toml";
-    log!("Checking for previous button combo settings in training_modpack.toml...");
+    info!("Checking for previous button combo settings in training_modpack.toml...");
     if fs::metadata(combo_path).is_ok() {
-        log!("Previous button combo settings found. Loading...");
-        let combo_conf = fs::read_to_string(combo_path).unwrap();
+        info!("Previous button combo settings found. Loading...");
+        let combo_conf = fs::read_to_string(combo_path).expect(&format!("Could not read {}", combo_path));
         if button_config::validate_config(&combo_conf) {
             button_config::save_all_btn_config_from_toml(&combo_conf);
         } else {
             button_config::save_all_btn_config_from_defaults();
         }
     } else {
-        log!("No previous button combo file found. Creating...");
+        info!("No previous button combo file found. Creating...");
         fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
             .expect("Failed to write button config conf file");
         button_config::save_all_btn_config_from_defaults();
@@ -166,7 +159,7 @@ pub fn main() {
                 );
 
                 let url = format!("{host}{path}");
-                minreq::post(url).with_json(&event).unwrap().send().ok();
+                minreq::post(url).with_json(&event).expect("Failed to send info to firebase").send().ok();
             }
         }
     });

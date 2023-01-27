@@ -3,6 +3,7 @@ use crate::common::{
 };
 use crate::hitbox_visualizer;
 use crate::training::character_specific::items;
+use crate::logging::*;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
@@ -476,7 +477,7 @@ extern "C" {
 }
 
 pub fn training_mods() {
-    println!("[Training Modpack] Applying training mods.");
+    info!("Applying training mods.");
 
     // Input Recording/Delay
     unsafe {

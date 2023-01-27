@@ -2,6 +2,7 @@
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
 use crate::common::consts::*;
+use crate::logging::*;
 use skyline::error::show_error;
 use skyline::hook;
 use skyline::hooks::A64InlineHook;
@@ -127,7 +128,7 @@ unsafe fn validate_hazards_addrs() -> std::result::Result<(), ()> {
 }
 
 pub fn hazard_manager() {
-    println!("[Training Modpack] Applying hazard control mods.");
+    info!("Applying hazard control mods.");
     unsafe {
         if let Ok(()) = validate_hazards_addrs() {
             HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
