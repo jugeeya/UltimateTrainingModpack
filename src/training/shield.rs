@@ -147,7 +147,7 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
 
 /// This is the cached shield damage multiplier.
 /// Vanilla is 1.19, but mods can change this.
-static mut CACHED_SHIELD_DAMAGE_MUL: f32 = -1.0;
+static mut CACHED_SHIELD_DAMAGE_MUL: Option<f32> = None;
 
 
 /// sets/resets the shield_damage_mul within 
@@ -160,8 +160,8 @@ pub unsafe fn param_installer() {
         let common_params = &mut *crate::training::COMMON_PARAMS;
 
         // cache the original shield damage multiplier once
-        if ORIGINAL_SHIELD_DAMAGE_MUL < 0.0 {
-            ORIGINAL_SHIELD_DAMAGE_MUL = common_params.shield_damage_mul;
+        if CACHED_SHIELD_DAMAGE_MUL.is_none() {
+            CACHED_SHIELD_DAMAGE_MUL = Some(common_params.shield_damage_mul);
         }
 
         if is_training_mode() && (MENU.shield_state == Shield::Infinite) {
@@ -171,7 +171,7 @@ pub unsafe fn param_installer() {
         } else {
             // reset the game's shield_damage_mul back to what
             // it originally was at game boot.
-            common_params.shield_damage_mul = CACHED_SHIELD_DAMAGE_MUL;
+            common_params.shield_damage_mul = CACHED_SHIELD_DAMAGE_MUL.unwrap();
         }
     }
 }
