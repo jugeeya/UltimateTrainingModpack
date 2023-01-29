@@ -149,10 +149,9 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
 /// Vanilla is 1.19, but mods can change this.
 static mut CACHED_SHIELD_DAMAGE_MUL: Option<f32> = None;
 
-
-/// sets/resets the shield_damage_mul within 
-/// the game's internal structure. 
-/// 
+/// sets/resets the shield_damage_mul within
+/// the game's internal structure.
+///
 /// `common_params` is effectively a mutable reference
 /// to the game's own internal data structure for params.
 pub unsafe fn param_installer() {
