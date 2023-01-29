@@ -86,6 +86,9 @@ pub unsafe fn handle_get_command_flag_cat(
 ) -> i32 {
     let mut flag = original!()(module_accessor, category);
 
+    // this must be run even outside of training mode
+    // because otherwise it won't reset the shield_damage_mul
+    // back to "normal" once you leave training mode.
     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
         shield::param_installer();
     }
