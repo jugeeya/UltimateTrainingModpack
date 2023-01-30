@@ -20,46 +20,46 @@ lazy_static::lazy_static! {
         (
             (String::from("info_training"), String::from("pic_numbase_01")),
             vec![
-                (false, menu::build_menu_display_pane),
-                (false, display::build_pic_base)
+                (false, menu::BUILD_CONTAINER_PANE),
+                (false, display::BUILD_PIC_BASE)
             ]
         ),
         (
             (String::from("info_training"), String::from("pic_help_bg_00")),
-            vec![(false, menu::build_menu_footer_bg)]
+            vec![(false, menu::BUILD_FOOTER_BG)]
         ),
         (
             (String::from("info_training"), String::from("set_txt_help_00")),
-            vec![(false, menu::build_menu_footer_txt)]
+            vec![(false, menu::BUILD_FOOTER_TXT)]
         ),
         (
             (String::from("info_training"), String::from("set_txt_num_01")),
             vec![
-                (false, menu::build_menu_tab_txts),
-                (false, menu::build_menu_opt_txts),
-                (false, menu::build_menu_slider_txts),
-                (false, display::build_pane_txt),
+                (false, menu::BUILD_TAB_TXTS),
+                (false, menu::BUILD_OPT_TXTS),
+                (false, menu::BUILD_SLIDER_TXTS),
+                (false, display::BUILD_PANE_TXT),
             ]
         ),
         (
             (String::from("info_training"), String::from("txt_cap_01")),
-            vec![(false, display::build_header_txt)]
+            vec![(false, display::BUILD_HEADER_TXT)]
         ),
         (
             (String::from("info_training_btn0_00_item"), String::from("icn_bg_main")),
-            vec![(false, menu::build_menu_bg_lefts)]
+            vec![(false, menu::BUILD_BG_LEFTS)]
         ),
         (
             (String::from("info_training_btn0_00_item"), String::from("btn_bg")),
-            vec![(false, menu::build_menu_bg_backs)]
+            vec![(false, menu::BUILD_BG_BACKS)]
         ),
     ]));
 }
 
 pub unsafe fn reset_creation() {
-    let mut pane_created = &mut *PANE_CREATED.data_ptr();
-    pane_created.iter_mut().for_each(|(identifier, creators)| {
-        creators.iter_mut().for_each(|(created, callback)| {
+    let pane_created = &mut *PANE_CREATED.data_ptr();
+    pane_created.iter_mut().for_each(|(_identifier, creators)| {
+        creators.iter_mut().for_each(|(created, _callback)| {
             *created = false;
         })
     })
@@ -103,7 +103,7 @@ pub unsafe fn layout_build_parts_impl(
 
     let block_name = (*block).get_name();
     let identifier = (layout_name.to_string(), block_name);
-    let mut pane_created = &mut *PANE_CREATED.data_ptr();
+    let pane_created = &mut *PANE_CREATED.data_ptr();
     let panes = pane_created.get_mut(&identifier);
     if let Some(panes) = panes {
         panes.iter_mut().for_each(|(has_created, callback)| {

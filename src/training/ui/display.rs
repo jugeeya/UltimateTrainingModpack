@@ -2,21 +2,47 @@ use crate::{training::combo::FRAME_ADVANTAGE};
 use crate::training::ui;
 use training_mod_consts::OnOff;
 use skyline::nn::ui2d::*;
+use smash::app::sv_animcmd::frame;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
 pub static NUM_DISPLAY_PANES: usize = 1;
 
+macro_rules! display_parent_fmt {
+    ($x:ident) => {
+        format!("trMod_disp_{}", $x).as_str()
+    };
+}
+
+macro_rules! display_pic_fmt {
+    ($x:ident) => {
+        format!("trMod_disp_{}_base", $x).as_str()
+    };
+}
+
+macro_rules! display_header_fmt {
+    ($x:ident) => {
+        format!("trMod_disp_{}_header", $x).as_str()
+    };
+}
+
+macro_rules! display_txt_fmt {
+    ($x:ident) => {
+        format!("trMod_disp_{}_txt", $x).as_str()
+    };
+}
+
 pub unsafe fn draw(root_pane: &mut Pane) {
+    let frame_adv_idx = 0;
     // Update frame advantage
-    if let Some(parent) = root_pane.find_pane_by_name_recursive("trMod_disp_0") {
+    if let Some(parent) = root_pane.find_pane_by_name_recursive(display_parent_fmt!(frame_adv_idx)) {
         parent.set_visible(crate::common::MENU.frame_advantage == OnOff::On);
     }
 
-    if let Some(header) = root_pane.find_pane_by_name_recursive("trMod_disp_0_header") {
+    if let Some(header) = root_pane.find_pane_by_name_recursive(display_header_fmt!(frame_adv_idx)) {
         header.as_textbox().set_text_string("Frame Advantage");
     }
 
-    if let Some(text) = root_pane.find_pane_by_name_recursive("trMod_disp_0_txt") {
+    if let Some(text) = root_pane.find_pane_by_name_recursive(display_txt_fmt!(frame_adv_idx)) {
         let text = text.as_textbox();
         text.set_text_string(format!("{FRAME_ADVANTAGE}").as_str());
         match FRAME_ADVANTAGE {
@@ -28,7 +54,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 }
 
 
-pub static build_pic_base : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_PIC_BASE: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -38,22 +64,16 @@ pub static build_pic_base : ui::PaneCreationCallback = |layout_name, root_pane, 
     }
 
     (0..NUM_DISPLAY_PANES).for_each(|idx| {
-        let mod_prefix = "trMod_disp_";
-        let parent_name = format!("{mod_prefix}{idx}");
-        let pic_name = format!("{mod_prefix}{idx}_base");
-        let header_name = format!("{mod_prefix}{idx}_header");
-        let txt_name = format!("{mod_prefix}{idx}_txt");
-
         let block = block as *mut ResPictureWithTex<1>;
         let mut pic_block = *block;
-        pic_block.set_name(pic_name.as_str());
+        pic_block.set_name(display_pic_fmt!(idx));
         pic_block.set_pos(ResVec3::default());
         let pic_pane = build!(pic_block, ResPictureWithTex<1>, kind, Picture);
         pic_pane.detach();
 
         // pic is loaded first, we can create our parent pane here.
         let disp_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
-        let mut disp_pane_block = ResPane::new(parent_name.as_str());
+        let mut disp_pane_block = ResPane::new(display_parent_fmt!(idx));
         disp_pane_block.set_pos(ResVec3::new(806.0, 390.0 - (idx as f32 * 110.0), 0.0));
         let disp_pane = build!(disp_pane_block, ResPane, disp_pane_kind, Pane);
         disp_pane.detach();
@@ -62,7 +82,7 @@ pub static build_pic_base : ui::PaneCreationCallback = |layout_name, root_pane, 
     });
 };
 
-pub static build_pane_txt : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_PANE_TXT: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -72,19 +92,13 @@ pub static build_pane_txt : ui::PaneCreationCallback = |layout_name, root_pane, 
     }
 
     (0..NUM_DISPLAY_PANES).for_each(|idx| {
-        let mod_prefix = "trMod_disp_";
-        let parent_name = format!("{mod_prefix}{idx}");
-        let pic_name = format!("{mod_prefix}{idx}_base");
-        let header_name = format!("{mod_prefix}{idx}_header");
-        let txt_name = format!("{mod_prefix}{idx}_txt");
-
         let disp_pane = root_pane
-            .find_pane_by_name(parent_name.as_str(), true)
+            .find_pane_by_name(display_parent_fmt!(idx), true)
             .unwrap();
 
         let block = block as *mut ResTextBox;
         let mut text_block = *block;
-        text_block.set_name(txt_name.as_str());
+        text_block.set_name(display_txt_fmt!(idx));
         text_block.set_pos(ResVec3::new(-10.0, -25.0, 0.0));
         let text_pane = build!(text_block, ResTextBox, kind, TextBox);
         text_pane.set_text_string(format!("Pane {idx}!").as_str());
@@ -95,7 +109,7 @@ pub static build_pane_txt : ui::PaneCreationCallback = |layout_name, root_pane, 
     });
 };
 
-pub static build_header_txt : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_HEADER_TXT: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -105,19 +119,13 @@ pub static build_header_txt : ui::PaneCreationCallback = |layout_name, root_pane
     }
 
     (0..NUM_DISPLAY_PANES).for_each(|idx| {
-        let mod_prefix = "trMod_disp_";
-        let parent_name = format!("{mod_prefix}{idx}");
-        let pic_name = format!("{mod_prefix}{idx}_base");
-        let header_name = format!("{mod_prefix}{idx}_header");
-        let txt_name = format!("{mod_prefix}{idx}_txt");
-
         let disp_pane = root_pane
-            .find_pane_by_name(parent_name.as_str(), true)
+            .find_pane_by_name(display_parent_fmt!(idx), true)
             .unwrap();
 
         let block = block as *mut ResTextBox;
         let mut header_block = *block;
-        header_block.set_name(header_name.as_str());
+        header_block.set_name(display_header_fmt!(idx));
         header_block.set_pos(ResVec3::new(0.0, 25.0, 0.0));
         let header_pane = build!(header_block, ResTextBox, kind, TextBox);
         header_pane.set_text_string(format!("Header {idx}").as_str());

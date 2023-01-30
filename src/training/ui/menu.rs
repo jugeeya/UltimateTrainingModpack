@@ -3,7 +3,6 @@ use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
 use crate::training::ui;
-use crate::training::ui::PANE_CREATED;
 
 pub static NUM_MENU_TEXT_OPTIONS: usize = 27;
 pub static NUM_MENU_TEXT_SLIDERS: usize = 4;
@@ -342,15 +341,13 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 }
 
 pub static mut MENU_PANE_PTR: u64 = 0;
-
-pub static mut RUN_SETUP : bool = false;
 const MENU_POS : ResVec3 = ResVec3 {
     x: -360.0,
     y: 440.0,
     z: 0.0
 };
 
-pub static build_menu_display_pane : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_CONTAINER_PANE: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -376,7 +373,7 @@ pub static build_menu_display_pane : ui::PaneCreationCallback = |layout_name, ro
     ui::reset_creation();
 };
 
-pub static build_menu_footer_bg : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_FOOTER_BG: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -396,7 +393,7 @@ pub static build_menu_footer_bg : ui::PaneCreationCallback = |layout_name, root_
     menu_pane.append_child(pic_menu_pane);
 };
 
-pub static build_menu_footer_txt : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_FOOTER_TXT: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -421,7 +418,7 @@ pub static build_menu_footer_txt : ui::PaneCreationCallback = |layout_name, root
     menu_pane.append_child(text_pane);
 };
 
-pub static build_menu_tab_txts : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -506,7 +503,7 @@ pub static build_menu_tab_txts : ui::PaneCreationCallback = |layout_name, root_p
     });
 };
 
-pub static build_menu_opt_txts : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_OPT_TXTS: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -563,7 +560,7 @@ pub static build_menu_opt_txts : ui::PaneCreationCallback = |layout_name, root_p
     });
 };
 
-pub static build_menu_slider_txts : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_SLIDER_TXTS: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -598,7 +595,7 @@ pub static build_menu_slider_txts : ui::PaneCreationCallback = |layout_name, roo
     });
 };
 
-pub static build_menu_bg_lefts : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_BG_LEFTS: ui::PaneCreationCallback = |_, _, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
@@ -631,7 +628,7 @@ pub static build_menu_bg_lefts : ui::PaneCreationCallback = |layout_name, root_p
     });
 };
 
-pub static build_menu_bg_backs : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_BG_BACKS: ui::PaneCreationCallback = |_, _, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {
