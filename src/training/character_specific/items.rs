@@ -509,6 +509,7 @@ daikon_replace!(DAISY, daisy, 1);
 
 // GenerateArticleForTarget for Peach/Diddy(/Link?) item creation
 static GAFT_OFFSET: usize = 0x03d40a0;
+
 #[skyline::hook(offset = GAFT_OFFSET)]
 pub unsafe fn handle_generate_article_for_target(
     article_module_accessor: *mut app::BattleObjectModuleAccessor,

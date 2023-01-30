@@ -340,6 +340,7 @@ pub unsafe fn quick_menu_loop() {
                     .draw(|f| json_response = training_mod_tui::ui(f, app))
                     .unwrap();
                 received_input = false;
+                set_menu_from_json(&json_response);
             }
         }
     }
