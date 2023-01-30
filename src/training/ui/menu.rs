@@ -342,9 +342,6 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 }
 
 pub static mut MENU_PANE_PTR: u64 = 0;
-pub static mut HAS_CREATED_OPT_BG: bool = false;
-pub static mut HAS_CREATED_OPT_BG_BACK: bool = false;
-
 
 pub static mut RUN_SETUP : bool = false;
 const MENU_POS : ResVec3 = ResVec3 {
@@ -373,8 +370,6 @@ pub static build_menu_display_pane : ui::PaneCreationCallback = |layout_name, ro
     root_pane.append_child(menu_pane);
     if MENU_PANE_PTR != menu_pane as *mut Pane as u64 {
         MENU_PANE_PTR = menu_pane as *mut Pane as u64;
-        HAS_CREATED_OPT_BG = false;
-        HAS_CREATED_OPT_BG_BACK = false;
         HAS_SORTED_MENU_CHILDREN = false;
     }
 
@@ -612,31 +607,28 @@ pub static build_menu_bg_lefts : ui::PaneCreationCallback = |layout_name, root_p
         };
     }
 
-    if !HAS_CREATED_OPT_BG {
-        (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
-            let x = txt_idx % 3;
-            let y = txt_idx / 3;
+    (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
+        let x = txt_idx % 3;
+        let y = txt_idx / 3;
 
-            let x_offset = x as f32 * 500.0;
-            let y_offset = y as f32 * 85.0;
+        let x_offset = x as f32 * 500.0;
+        let y_offset = y as f32 * 85.0;
 
-            let block = block as *mut ResPictureWithTex<2>;
-            let mut pic_menu_block = *block;
-            pic_menu_block.set_name(menu_text_bg_left_fmt!(x, y));
-            pic_menu_block.picture.scale_x /= 1.5;
-            pic_menu_block.picture.set_pos(ResVec3::new(
-                MENU_POS.x - 400.0 - 195.0 + x_offset,
-                MENU_POS.y - 50.0 - y_offset,
-                0.0,
-            ));
-            let pic_menu_pane = build!(pic_menu_block, ResPictureWithTex<2>, kind, Picture);
-            pic_menu_pane.detach();
-            if MENU_PANE_PTR != 0 {
-                (*(MENU_PANE_PTR as *mut Pane)).append_child(pic_menu_pane);
-                HAS_CREATED_OPT_BG = true;
-            }
-        });
-    }
+        let block = block as *mut ResPictureWithTex<2>;
+        let mut pic_menu_block = *block;
+        pic_menu_block.set_name(menu_text_bg_left_fmt!(x, y));
+        pic_menu_block.picture.scale_x /= 1.5;
+        pic_menu_block.picture.set_pos(ResVec3::new(
+            MENU_POS.x - 400.0 - 195.0 + x_offset,
+            MENU_POS.y - 50.0 - y_offset,
+            0.0,
+        ));
+        let pic_menu_pane = build!(pic_menu_block, ResPictureWithTex<2>, kind, Picture);
+        pic_menu_pane.detach();
+        if MENU_PANE_PTR != 0 {
+            (*(MENU_PANE_PTR as *mut Pane)).append_child(pic_menu_pane);
+        }
+    });
 };
 
 pub static build_menu_bg_backs : ui::PaneCreationCallback = |layout_name, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
@@ -648,30 +640,27 @@ pub static build_menu_bg_backs : ui::PaneCreationCallback = |layout_name, root_p
         };
     }
 
-    if !HAS_CREATED_OPT_BG_BACK {
-        (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
-            let x = txt_idx % 3;
-            let y = txt_idx / 3;
+    (0..NUM_MENU_TEXT_OPTIONS).for_each(|txt_idx| {
+        let x = txt_idx % 3;
+        let y = txt_idx / 3;
 
-            let x_offset = x as f32 * 500.0;
-            let y_offset = y as f32 * 85.0;
+        let x_offset = x as f32 * 500.0;
+        let y_offset = y as f32 * 85.0;
 
-            let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
+        let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
 
-            let mut bg_block = *block;
-            bg_block.set_name(menu_text_bg_back_fmt!(x, y));
-            bg_block.scale_x /= 2.0;
-            bg_block.set_pos(ResVec3::new(
-                MENU_POS.x - 400.0 + x_offset,
-                MENU_POS.y - 50.0 - y_offset,
-                0.0,
-            ));
-            let bg_pane = build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
-            bg_pane.detach();
-            if MENU_PANE_PTR != 0 {
-                (*(MENU_PANE_PTR as *mut Pane)).append_child(bg_pane);
-                HAS_CREATED_OPT_BG_BACK = true;
-            }
-        });
-    }
+        let mut bg_block = *block;
+        bg_block.set_name(menu_text_bg_back_fmt!(x, y));
+        bg_block.scale_x /= 2.0;
+        bg_block.set_pos(ResVec3::new(
+            MENU_POS.x - 400.0 + x_offset,
+            MENU_POS.y - 50.0 - y_offset,
+            0.0,
+        ));
+        let bg_pane = build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
+        bg_pane.detach();
+        if MENU_PANE_PTR != 0 {
+            (*(MENU_PANE_PTR as *mut Pane)).append_child(bg_pane);
+        }
+    });
 };

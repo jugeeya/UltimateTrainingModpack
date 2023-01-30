@@ -102,8 +102,9 @@ pub unsafe fn layout_build_parts_impl(
     let root_pane = &mut *(*layout).root_pane;
 
     let block_name = (*block).get_name();
+    let identifier = (layout_name.to_string(), block_name);
     let mut pane_created = &mut *PANE_CREATED.data_ptr();
-    let panes = pane_created.get_mut(&(layout_name.to_string(), block_name));
+    let panes = pane_created.get_mut(&identifier);
     if let Some(panes) = panes {
         panes.iter_mut().for_each(|(has_created, callback)| {
             if !*has_created {
@@ -120,7 +121,10 @@ pub unsafe fn layout_build_parts_impl(
                          kind
                 );
 
-                *has_created = true;
+                // Special case: Menu init should always occur
+                if ("info_training".to_string(), "pic_numbase_01".to_string()) != identifier {
+                    *has_created = true;
+                }
             }
         });
     }
