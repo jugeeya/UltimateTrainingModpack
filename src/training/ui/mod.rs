@@ -19,7 +19,10 @@ lazy_static::lazy_static! {
     >> = Mutex::new(HashMap::from([
         (
             (String::from("info_training"), String::from("pic_numbase_01")),
-            vec![(false, menu::build_menu_display_pane)]
+            vec![
+                (false, menu::build_menu_display_pane),
+                (false, display::build_pic_base)
+            ]
         ),
         (
             (String::from("info_training"), String::from("pic_help_bg_00")),
@@ -34,10 +37,32 @@ lazy_static::lazy_static! {
             vec![
                 (false, menu::build_menu_tab_txts),
                 (false, menu::build_menu_opt_txts),
-                (false, menu::build_menu_slider_txts)
+                (false, menu::build_menu_slider_txts),
+                (false, display::build_pane_txt),
             ]
         ),
+        (
+            (String::from("info_training"), String::from("txt_cap_01")),
+            vec![(false, display::build_header_txt)]
+        ),
+        (
+            (String::from("info_training_btn0_00_item"), String::from("icn_bg_main")),
+            vec![(false, menu::build_menu_bg_lefts)]
+        ),
+        (
+            (String::from("info_training_btn0_00_item"), String::from("btn_bg")),
+            vec![(false, menu::build_menu_bg_backs)]
+        ),
     ]));
+}
+
+pub unsafe fn reset_creation() {
+    let mut pane_created = &mut *PANE_CREATED.data_ptr();
+    pane_created.iter_mut().for_each(|(identifier, creators)| {
+        creators.iter_mut().for_each(|(created, callback)| {
+            *created = false;
+        })
+    })
 }
 
 #[skyline::hook(offset = 0x4b620)]
@@ -76,33 +101,29 @@ pub unsafe fn layout_build_parts_impl(
     let layout_name = &skyline::from_c_str((*layout).layout_name);
     let root_pane = &mut *(*layout).root_pane;
 
-    menu::build(
-        layout_name,
-        root_pane,
-        original!(),
-        layout,
-        out_build_result_information,
-        device,
-        block,
-        parts_build_data_set,
-        build_arg_set,
-        build_res_set,
-        kind,
-    );
+    let block_name = (*block).get_name();
+    let mut pane_created = &mut *PANE_CREATED.data_ptr();
+    let panes = pane_created.get_mut(&(layout_name.to_string(), block_name));
+    if let Some(panes) = panes {
+        panes.iter_mut().for_each(|(has_created, callback)| {
+            if !*has_created {
+                callback(layout_name,
+                         root_pane,
+                         original!(),
+                         layout,
+                         out_build_result_information,
+                         device,
+                         block,
+                         parts_build_data_set,
+                         build_arg_set,
+                         build_res_set,
+                         kind
+                );
 
-    display::build(
-        layout_name,
-        root_pane,
-        original!(),
-        layout,
-        out_build_result_information,
-        device,
-        block,
-        parts_build_data_set,
-        build_arg_set,
-        build_res_set,
-        kind,
-    );
+                *has_created = true;
+            }
+        });
+    }
 
     original!()(
         layout,
