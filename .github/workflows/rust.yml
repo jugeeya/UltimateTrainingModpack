@@ -55,7 +55,7 @@ jobs:
           # echo "::set-output name=changelog::$changelog"
 
           # Actually build plugin
-          PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
+          cargo-skyline skyline build --release
         env:
           HOME: /root
       - name: Upload plugin artifact
