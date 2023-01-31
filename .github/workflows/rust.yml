@@ -34,6 +34,8 @@ jobs:
       image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
+        name: Rust Cache 
       - name: Build release NRO
         id: build_release
         run: cargo-skyline skyline build --release
