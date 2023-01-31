@@ -535,7 +535,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     match index {
                         0 => text_pane.set_text_string("Min"),
                         1 => text_pane.set_text_string("Max"),
-                        _ => text_pane.set_text_string(""),
+                        _ => panic!("Unexpected slider label index {}!", index)
                     }
                 }
 
