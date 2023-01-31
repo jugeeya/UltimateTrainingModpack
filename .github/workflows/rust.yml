@@ -22,7 +22,7 @@ jobs:
           default: true
           target: x86_64-unknown-linux-gnu
       - name: Run Clippy
-        run: cargo clippy --all-targets--all-features --target=x86_64-unknown-linux-gnu
+        run: cargo +nightly clippy --all-targets--all-features --target=x86_64-unknown-linux-gnu
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
