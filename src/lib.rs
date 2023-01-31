@@ -22,8 +22,6 @@ mod hitbox_visualizer;
 mod training;
 
 mod logging;
-#[cfg(test)]
-mod test;
 
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};

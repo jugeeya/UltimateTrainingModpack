@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  clippy_pr:
+  checker:
+    name: Check, Clippy, and Rustfmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -20,6 +21,8 @@ jobs:
           components: rustfmt, clippy
           default: true
           target: x86_64-unknown-linux-gnu
+      - name: Run Clippy
+        run: cargo +nightly check --target=x86_64-unknown-linux-gnu
       - name: Run Clippy
         run: cargo +nightly clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu
       - uses: mbrobbel/rustfmt-check@master
