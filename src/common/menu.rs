@@ -106,7 +106,6 @@ pub unsafe fn set_menu_from_json(message: &str) {
         );
         MENU.quick_menu = OnOff::On;
     }
-    EVENT_QUEUE.push(Event::menu_open(message.to_string()));
 }
 
 pub fn spawn_menu() {
@@ -308,6 +307,7 @@ pub unsafe fn quick_menu_loop() {
                     // Leave menu.
                     QUICK_MENU_ACTIVE = false;
                     set_menu_from_json(&json_response);
+                    EVENT_QUEUE.push(Event::menu_open(json_response.to_string()));
                 }
             });
             button_presses.zl.read_press().then(|| {
@@ -365,6 +365,7 @@ unsafe fn spawn_web_session(session: WebSession) {
     session.exit();
     session.wait_for_exit();
     set_menu_from_json(&message_recv);
+    EVENT_QUEUE.push(Event::menu_open(message_recv.to_string()));
 }
 
 unsafe fn new_web_session(hidden: bool) -> WebSession {
