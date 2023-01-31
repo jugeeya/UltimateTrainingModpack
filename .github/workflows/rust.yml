@@ -13,8 +13,6 @@ jobs:
     container: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
-      - name: Setup PATH
-        run: export PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin
       - name: Install minimal nightly rust
         uses: actions-rs/toolchain@v1
         with:
