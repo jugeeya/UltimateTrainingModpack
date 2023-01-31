@@ -10,7 +10,7 @@ on:
 jobs:
   clippy_pr:
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:3.2.0
+    container: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
       - name: Setup PATH
@@ -36,7 +36,7 @@ jobs:
     outputs:
       changelog: ${{ steps.build_release.outputs.changelog }}
     container:
-      image: jugeeya/cargo-skyline:3.2.0
+      image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
       - name: Build release NRO
@@ -72,7 +72,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     container:
-      image: jugeeya/cargo-skyline:3.2.0
+      image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
       - name: Build outside_training_mode NRO
