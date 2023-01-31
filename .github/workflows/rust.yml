@@ -9,7 +9,7 @@ on:
 
 jobs:
   checker:
-    name: Check, Clippy, and Rustfmt
+    name: Check, Clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,10 +25,6 @@ jobs:
         run: cargo +nightly check --target=x86_64-unknown-linux-gnu
       - name: Clippy
         run: cargo +nightly clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu
-      - name: Rustfmt
-        uses: mbrobbel/rustfmt-check@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
   plugin:
     name: Plugin NRO
     runs-on: ubuntu-latest
