@@ -10,7 +10,7 @@ on:
 jobs:
   clippy_pr:
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:3.2.0-no-dkp
+#    container: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
       - name: Install minimal nightly rust
@@ -22,7 +22,7 @@ jobs:
           default: true
           target: x86_64-unknown-linux-gnu
       - name: Run Clippy
-        run: cargo +nightly clippy --all-targets--all-features --target=x86_64-unknown-linux-gnu
+        run: cargo +nightly clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
