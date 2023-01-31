@@ -347,7 +347,7 @@ const MENU_POS : ResVec3 = ResVec3 {
     z: 0.0
 };
 
-pub static BUILD_CONTAINER_PANE: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, block, parts_build_data_set, build_arg_set, build_res_set, kind| unsafe {
+pub static BUILD_CONTAINER_PANE: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, _block, parts_build_data_set, build_arg_set, build_res_set, _kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
             paste::paste! {

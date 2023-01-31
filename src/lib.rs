@@ -36,6 +36,7 @@ use crate::menu::quick_menu_loop;
 use crate::menu::web_session_loop;
 use owo_colors::OwoColorize;
 use training_mod_consts::{MenuJsonStruct, OnOff};
+use crate::training::ui::notifications::notification;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -87,6 +88,10 @@ pub fn main() {
     log!("Initialized.");
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
+        notification("Training Modpack", "Welcome!", 60);
+        notification("Open Menu", "Special + Uptaunt", 120);
+        notification("Save State", "Grab + Downtaunt", 120);
+        notification("Load State", "Grab + Uptaunt", 120);
     }
 
     hitbox_visualizer::hitbox_visualization();

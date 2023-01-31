@@ -7,6 +7,7 @@ use parking_lot::Mutex;
 mod damage;
 mod display;
 mod menu;
+pub mod notifications;
 
 type PaneCreationCallback = for<'a, 'b> unsafe fn(&'a str, &'b mut Pane,
                                                   extern "C" fn(*mut Layout, *mut u8, *const u8, *mut ResPane, *const u8, *const u8, *const u8, u32) -> *mut Pane,

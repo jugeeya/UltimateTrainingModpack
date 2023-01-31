@@ -1,8 +1,5 @@
-use crate::{training::combo::FRAME_ADVANTAGE};
 use crate::training::ui;
-use training_mod_consts::OnOff;
 use skyline::nn::ui2d::*;
-use smash::app::sv_animcmd::frame;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
 pub static NUM_DISPLAY_PANES: usize = 1;
@@ -32,24 +29,35 @@ macro_rules! display_txt_fmt {
 }
 
 pub unsafe fn draw(root_pane: &mut Pane) {
-    let frame_adv_idx = 0;
-    // Update frame advantage
-    if let Some(parent) = root_pane.find_pane_by_name_recursive(display_parent_fmt!(frame_adv_idx)) {
-        parent.set_visible(crate::common::MENU.frame_advantage == OnOff::On);
+    let notification_idx = 0;
+
+    let queue = &mut ui::notifications::QUEUE;
+    let notification = queue.first_mut();
+
+    if let Some(parent) = root_pane.find_pane_by_name_recursive(display_parent_fmt!(notification_idx)) {
+        parent.set_visible(notification.is_some());
+        if notification.is_none() {
+            return;
+        }
     }
 
-    if let Some(header) = root_pane.find_pane_by_name_recursive(display_header_fmt!(frame_adv_idx)) {
-        header.as_textbox().set_text_string("Frame Advantage");
+    let notification = notification.unwrap();
+    let header_txt = notification.header();
+    let message = notification.message();
+    let color = notification.color();
+    let has_completed = notification.tick();
+    if has_completed {
+        queue.remove(0);
     }
 
-    if let Some(text) = root_pane.find_pane_by_name_recursive(display_txt_fmt!(frame_adv_idx)) {
+    if let Some(header) = root_pane.find_pane_by_name_recursive(display_header_fmt!(notification_idx)) {
+        header.as_textbox().set_text_string(header_txt);
+    }
+
+    if let Some(text) = root_pane.find_pane_by_name_recursive(display_txt_fmt!(notification_idx)) {
         let text = text.as_textbox();
-        text.set_text_string(format!("{FRAME_ADVANTAGE}").as_str());
-        match FRAME_ADVANTAGE {
-            x if x < 0 => text.set_color(200, 8, 8, 255),
-            x if x == 0 => text.set_color(0, 0, 0, 255),
-            _ => text.set_color(31, 198, 0, 255),
-        };
+        text.set_text_string(message);
+        text.set_color(color.r, color.g, color.b, color.a);
     }
 }
 
@@ -74,7 +82,7 @@ pub static BUILD_PIC_BASE: ui::PaneCreationCallback = |_, root_pane, original_bu
         // pic is loaded first, we can create our parent pane here.
         let disp_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
         let mut disp_pane_block = ResPane::new(display_parent_fmt!(idx));
-        disp_pane_block.set_pos(ResVec3::new(806.0, 390.0 - (idx as f32 * 110.0), 0.0));
+        disp_pane_block.set_pos(ResVec3::new(806.0, -50.0 - (idx as f32 * 110.0), 0.0));
         let disp_pane = build!(disp_pane_block, ResPane, disp_pane_kind, Pane);
         disp_pane.detach();
         root_pane.append_child(disp_pane);
