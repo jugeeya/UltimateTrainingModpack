@@ -108,8 +108,6 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
     app.on_a();
     // Unset Mash Airdodge
     app.on_a();
-    // Return to submenu selection
-    app.on_b();
 
     let menu_json = app.get_menu_selections();
     let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
@@ -128,8 +126,8 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
         "The defaults menu should have Mash Airdodge"
     );
 
-    // Reset all to defaults
-    app.on_r();
+    // Reset current menu alone to defaults
+    app.on_l();
     let menu_json = app.get_menu_selections();
     let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
     let menu = menu_struct.menu;
@@ -140,6 +138,45 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
         serde_json::to_string(&menu).unwrap(),
         "The menu should have Mash Airdodge"
     );
+
+    // Enter Mash Toggles
+    app.on_a();
+    // Unset Mash Airdodge
+    app.on_a();
+    // Return to submenu selection
+    app.on_b();
+    // Go down to Followup Toggles
+    app.on_down();
+    // Enter Followup Toggles
+    app.on_a();
+    // Go down and set Jump
+    app.on_down();
+    app.on_a();
+    // Return to submenu selection
+    app.on_b();
+    // Save defaults
+    app.on_x();
+    // Go back in and unset Jump
+    app.on_a();
+    app.on_down();
+    app.on_a();
+    // Return to submenu selection
+    app.on_b();
+    // Reset all to defaults
+    app.on_r();
+    let menu_json = app.get_menu_selections();
+    let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
+    let menu = menu_struct.menu;
+    let _ = menu_struct.defaults_menu;
+
+    prev_menu.mash_state.toggle(Action::AIR_DODGE);
+    prev_menu.follow_up.toggle(Action::JUMP);
+    assert_eq!(
+        serde_json::to_string(&prev_menu).unwrap(),
+        serde_json::to_string(&menu).unwrap(),
+        "The menu should have Mash Airdodge off and Followup Jump on"
+    );
+
 
     Ok(())
 }
@@ -216,10 +253,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else {
             println!("JSONs: {:#?}", res.as_ref().unwrap());
             unsafe {
-                MENU = serde_json::from_str::<TrainingModpackMenu>(&res.as_ref().unwrap().0).unwrap();
-                println!("MENU: {:#?}", MENU);
-                let defaults_menu = serde_json::from_str::<TrainingModpackMenu>(&res.as_ref().unwrap().1).unwrap();
-                println!("DEFAULTS MENU: {:#?}", defaults_menu);
+                let menu = serde_json::from_str::<MenuJsonStruct>(&res.as_ref().unwrap()).unwrap();
+                println!("menu: {:#?}", menu);
             }
         }
     }
@@ -232,11 +267,11 @@ fn run_app<B: tui::backend::Backend>(
     terminal: &mut Terminal<B>,
     mut app: training_mod_tui::App,
     tick_rate: Duration,
-) -> io::Result<(String, String)> {
+) -> io::Result<String> {
     let mut last_tick = Instant::now();
     loop {
         terminal.draw(|f| training_mod_tui::ui(f, &mut app).clone())?;
-        let (menu_json, defaults_menu_json) = app.get_menu_selections();
+        let menu_json = app.get_menu_selections();
 
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
@@ -245,7 +280,10 @@ fn run_app<B: tui::backend::Backend>(
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Char('q') => return Ok((menu_json, defaults_menu_json)),
+                    KeyCode::Char('q') => return Ok(menu_json),
+                    KeyCode::Char('x') => app.on_x(),
+                    KeyCode::Char('p') => app.on_zr(),
+                    KeyCode::Char('o') => app.on_zl(),
                     KeyCode::Char('r') => app.on_r(),
                     KeyCode::Char('l') => app.on_l(),
                     KeyCode::Left => app.on_left(),

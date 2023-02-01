@@ -286,6 +286,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
+use training_mod_tui::AppPage;
 
 lazy_static! {
     pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> =
@@ -316,7 +317,7 @@ pub unsafe fn quick_menu_loop() {
             let b_press = &mut button_presses.b;
             b_press.read_press().then(|| {
                 received_input = true;
-                if !app.outer_list {
+                if app.page != AppPage::SUBMENU {
                     app.on_b()
                 } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0
                 {

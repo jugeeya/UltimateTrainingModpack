@@ -1,6 +1,7 @@
 use crate::{common::menu::QUICK_MENU_ACTIVE};
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
+use training_mod_tui::AppPage;
 use training_mod_tui::gauge::GaugeState;
 use crate::training::ui;
 
@@ -193,7 +194,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
             .map(|text| text.as_textbox().set_text_string(tab_titles[idx]));
     });
 
-    if app.outer_list {
+    if app.page == AppPage::SUBMENU {
         let tab_selected = app.tab_selected();
         let tab = app.menu_items.get(tab_selected).unwrap();
 
