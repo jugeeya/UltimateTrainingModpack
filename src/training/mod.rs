@@ -2,6 +2,7 @@ use crate::common::{
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
 };
 use crate::hitbox_visualizer;
+use crate::logging::*;
 use crate::training::character_specific::items;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
@@ -85,6 +86,9 @@ pub unsafe fn handle_get_command_flag_cat(
 ) -> i32 {
     let mut flag = original!()(module_accessor, category);
 
+    // this must be run even outside of training mode
+    // because otherwise it won't reset the shield_damage_mul
+    // back to "normal" once you leave training mode.
     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
         shield::param_installer();
     }
@@ -476,7 +480,7 @@ extern "C" {
 }
 
 pub fn training_mods() {
-    println!("[Training Modpack] Applying training mods.");
+    info!("Applying training mods.");
 
     // Input Recording/Delay
     unsafe {

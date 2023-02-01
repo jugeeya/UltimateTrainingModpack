@@ -1,3 +1,4 @@
+use crate::logging::*;
 use skyline_web::DialogOk;
 use std::fs;
 
@@ -44,9 +45,12 @@ pub fn version_check() {
                 )
             );
             // Remove old menu selections, silently ignoring errors (i.e. if the file doesn't exist)
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.conf").unwrap();
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.json").unwrap();
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu_defaults.conf").unwrap();
+            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.conf")
+                .unwrap_or_else(|_| error!("Couldn't remove training_modpack_menu.conf"));
+            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.json")
+                .unwrap_or_else(|_| error!("Couldn't remove training_modpack_menu.json"));
+            fs::remove_file("sd:/TrainingModpack/training_modpack_menu_defaults.conf")
+                .unwrap_or_else(|_| error!("Couldn't remove training_modpack_menu_defaults.conf"));
             record_current_version(VERSION_FILE_PATH);
         }
         VersionCheck::NoFile => {

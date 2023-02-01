@@ -61,7 +61,8 @@ struct TopLevelBtnComboConfig {
 }
 
 pub fn validate_config(data: &str) -> bool {
-    let conf: TopLevelBtnComboConfig = toml::from_str(data).unwrap();
+    let conf: TopLevelBtnComboConfig =
+        toml::from_str(data).expect("Custom button config has invalid schema");
     let conf = conf.button_config;
     let configs = [conf.open_menu, conf.save_state, conf.load_state];
     let bad_keys = configs
@@ -117,7 +118,7 @@ pub fn save_all_btn_config_from_defaults() {
 }
 
 pub fn save_all_btn_config_from_toml(data: &str) {
-    let conf: TopLevelBtnComboConfig = toml::from_str(data).unwrap();
+    let conf: TopLevelBtnComboConfig = toml::from_str(data).expect("Could not parse button config");
     unsafe {
         // This println is necessary. Why?.......
         println!("{:?}", &conf.button_config.load_state.press);
