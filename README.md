@@ -392,7 +392,7 @@ If you'd like to build the modpack starting from the source code, you can build 
 cargo skyline build --release
 ```
 
-To build the entire modpack including supporting files, use the steps in [`full_build.sh`](full_build.sh) or in the [Github Actions specification file](https://github.com/jugeeya/UltimateTrainingModpack/blob/master/.github/workflows/rust.yml).
+To build the entire modpack including supporting files, use the steps in the [Github Actions specification file](https://github.com/jugeeya/UltimateTrainingModpack/blob/main/.github/workflows/rust.yml).
 
 ## Prerequisites
 - Stable Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
