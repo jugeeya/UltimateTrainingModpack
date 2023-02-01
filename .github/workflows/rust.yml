@@ -21,6 +21,10 @@ jobs:
           components: rustfmt, clippy
           default: true
           target: x86_64-unknown-linux-gnu
+      - uses: Swatinem/rust-cache@v2
+        name: Rust Cache 
+        with:
+          prefix-key: "checker" 
       - name: Check
         run: cargo +nightly check --target=x86_64-unknown-linux-gnu
       - name: Clippy
@@ -32,6 +36,10 @@ jobs:
       image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
+        name: Rust Cache
+        with:
+          prefix-key: "plugin"
       - name: Build release NRO
         id: build_release
         run: cargo-skyline skyline build --release
@@ -55,6 +63,10 @@ jobs:
       image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
+        name: Rust Cache
+        with:
+          prefix-key: "plugin"
       - name: Build outside_training_mode NRO
         run: |
           cargo-skyline skyline build --release --features outside_training_mode
