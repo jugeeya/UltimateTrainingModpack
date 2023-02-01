@@ -1,4 +1,4 @@
-use training_mod_consts::{Slider, SubMenu, SubMenuType, Toggle, UiMenu};
+use training_mod_consts::{MenuJsonStruct, Slider, SubMenu, SubMenuType, Toggle, UiMenu};
 use tui::{
     backend::Backend,
     layout::{Constraint, Corner, Direction, Layout, Rect},
@@ -29,10 +29,11 @@ pub struct App<'a> {
     pub selected_sub_menu_toggles: MultiStatefulList<Toggle<'a>>,
     pub selected_sub_menu_slider: DoubleEndedGauge,
     pub outer_list: bool,
+    pub default_menu: (UiMenu<'a>, String),
 }
 
 impl<'a> App<'a> {
-    pub fn new(menu: UiMenu<'a>) -> App<'a> {
+    pub fn new(menu: UiMenu<'a>, default_menu: (UiMenu<'a>, String)) -> App<'a> {
         let num_lists = 3;
 
         let mut menu_items_stateful = HashMap::new();
@@ -49,6 +50,7 @@ impl<'a> App<'a> {
             selected_sub_menu_toggles: MultiStatefulList::with_items(vec![], 0),
             selected_sub_menu_slider: DoubleEndedGauge::new(),
             outer_list: true,
+            default_menu: default_menu
         };
         app.set_sub_menu_items();
         app
@@ -421,14 +423,39 @@ impl<'a> App<'a> {
         self.set_sub_menu_items();
     }
 
+    /// Save defaults command
+    pub fn on_x(&mut self) {
+        if self.outer_list {
+            let json = self.to_json();
+            unsafe {
+                self.default_menu = (training_mod_consts::ui_menu(serde_json::from_str::<training_mod_consts::TrainingModpackMenu>(&json).unwrap()), json);
+            }
+        }
+    }
+
+    /// Reset current submenu to defaults
     pub fn on_l(&mut self) {
+        if !self.outer_list {
+            // TODO
+        }
+    }
+
+    /// Reset all menus to defaults
+    pub fn on_r(&mut self) {
+        // TODO: Check if we should only do this in outer list
+        if self.outer_list {
+            *self = App::new(self.default_menu.0.clone(), self.default_menu.clone());
+        }
+    }
+
+    pub fn on_zl(&mut self) {
         if self.outer_list {
             self.tabs.previous();
             self.set_sub_menu_items();
         }
     }
 
-    pub fn on_r(&mut self) {
+    pub fn on_zr(&mut self) {
         if self.outer_list {
             self.tabs.next();
             self.set_sub_menu_items();
@@ -502,9 +529,47 @@ impl<'a> App<'a> {
             self.sub_menu_next_list();
         }
     }
+
+    /// Returns JSON representation of current menu settings
+    pub fn to_json(&self) -> String {
+        let mut settings = Map::new();
+        for key in self.menu_items.keys() {
+            for list in &self.menu_items.get(key).unwrap().lists {
+                for sub_menu in &list.items {
+                    if !sub_menu.toggles.is_empty() {
+                        let val: u32 = sub_menu
+                            .toggles
+                            .iter()
+                            .filter(|t| t.checked)
+                            .map(|t| t.toggle_value)
+                            .sum();
+                        settings.insert(sub_menu.submenu_id.to_string(), json!(val));
+                    } else if sub_menu.slider.is_some() {
+                        let s: &Slider = sub_menu.slider.as_ref().unwrap();
+                        let val: Vec<u32> = vec![s.selected_min, s.selected_max];
+                        settings.insert(sub_menu.submenu_id.to_string(), json!(val));
+                    } else {
+                        panic!("Could not collect settings for {:?}", sub_menu.submenu_id);
+                    }
+                }
+            }
+        }
+        serde_json::to_string(&settings).unwrap()
+    }
+
+
+    /// Returns the current menu selections and the default menu selections.
+    pub fn get_menu_selections(&self) -> String {
+        serde_json::to_string(
+            &MenuJsonStruct {
+            menu: serde_json::from_str(self.to_json().as_str()).unwrap(),
+            defaults_menu: serde_json::from_str(self.default_menu.1.clone().as_str()).unwrap(),
+        }).unwrap()
+    }
 }
 
-pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
+/// Run
+pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let app_tabs = &app.tabs;
     let tab_selected = app_tabs.state.selected().unwrap();
     let mut span_selected = Spans::default();
@@ -656,10 +721,9 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             f.render_stateful_widget(list, list_chunks[list_section], &mut state);
         }
 
-        // TODO: Add Save Defaults
         let help_paragraph = Paragraph::new(
             item_help.unwrap_or("").replace('\"', "")
-                + "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab",
+                + "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab | X: Save Defaults",
         )
         .style(Style::default().fg(Color::Cyan));
         f.render_widget(help_paragraph, vertical_chunks[2]);
@@ -778,35 +842,4 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
             f.render_widget(help_paragraph, vertical_chunks[2]);
         }
     }
-
-    // Collect settings
-    to_json(app)
-
-    // TODO: Add saveDefaults
-}
-
-pub fn to_json(app: &App) -> String {
-    let mut settings = Map::new();
-    for key in app.menu_items.keys() {
-        for list in &app.menu_items.get(key).unwrap().lists {
-            for sub_menu in &list.items {
-                if !sub_menu.toggles.is_empty() {
-                    let val: u32 = sub_menu
-                        .toggles
-                        .iter()
-                        .filter(|t| t.checked)
-                        .map(|t| t.toggle_value)
-                        .sum();
-                    settings.insert(sub_menu.submenu_id.to_string(), json!(val));
-                } else if sub_menu.slider.is_some() {
-                    let s: &Slider = sub_menu.slider.as_ref().unwrap();
-                    let val: Vec<u32> = vec![s.selected_min, s.selected_max];
-                    settings.insert(sub_menu.submenu_id.to_string(), json!(val));
-                } else {
-                    panic!("Could not collect settings for {:?}", sub_menu.submenu_id);
-                }
-            }
-        }
-    }
-    serde_json::to_string(&settings).unwrap()
 }

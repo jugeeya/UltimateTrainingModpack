@@ -9,7 +9,7 @@ use skyline::nn::web::WebSessionBootMode;
 use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use std::fs;
 use std::path::Path;
-use training_mod_consts::{MenuJsonStruct, TrainingModpackMenu};
+use training_mod_consts::MenuJsonStruct;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
 pub static mut QUICK_MENU_FRAME_COUNTER_INDEX: usize = 0;
@@ -45,7 +45,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
 pub unsafe fn write_menu() {
     let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
 
-    let overall_menu = get_menu();
+    let overall_menu = ui_menu(MENU);
 
     let data = tpl.render(&overall_menu);
 
@@ -68,7 +68,6 @@ const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 
 pub unsafe fn set_menu_from_json(message: &str) {
     let web_response = serde_json::from_str::<MenuJsonStruct>(message);
-    let tui_response = serde_json::from_str::<TrainingModpackMenu>(message);
     println!("Received menu message: {message}");
     if let Ok(message_json) = web_response {
         // Includes both MENU and DEFAULTS_MENU
@@ -80,17 +79,6 @@ pub unsafe fn set_menu_from_json(message: &str) {
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
         .expect("Failed to write menu settings file");
-    } else if let Ok(message_json) = tui_response {
-        // Only includes MENU
-        // From TUI
-        MENU = message_json;
-
-        let conf = MenuJsonStruct {
-            menu: MENU,
-            defaults_menu: DEFAULTS_MENU,
-        };
-        std::fs::write(MENU_CONF_PATH, serde_json::to_string_pretty(&conf).unwrap())
-            .expect("Failed to write menu settings file");
     } else {
         skyline::error::show_error(
             0x70,
@@ -127,7 +115,9 @@ pub fn spawn_menu() {
             }
         } else {
             let mut app = QUICK_MENU_APP.lock();
-            *app = training_mod_tui::App::new(get_menu());
+            *app = training_mod_tui::App::new(
+                ui_menu(MENU),
+                (ui_menu(DEFAULTS_MENU), serde_json::to_string(&DEFAULTS_MENU).unwrap()));
             drop(app);
             QUICK_MENU_ACTIVE = true;
         }
@@ -137,6 +127,9 @@ pub fn spawn_menu() {
 pub struct ButtonPresses {
     pub a: ButtonPress,
     pub b: ButtonPress,
+    pub x: ButtonPress,
+    pub r: ButtonPress,
+    pub l: ButtonPress,
     pub zr: ButtonPress,
     pub zl: ButtonPress,
     pub left: ButtonPress,
@@ -179,6 +172,21 @@ pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
         lockout_frames: 0,
     },
     b: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    x: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    r: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
+    l: ButtonPress {
         prev_frame_is_pressed: false,
         is_pressed: false,
         lockout_frames: 0,
@@ -240,6 +248,15 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             if (*state).Buttons & (1 << 1) > 0 {
                 BUTTON_PRESSES.b.is_pressed = true;
             }
+            if (*state).Buttons & (1 << 2) > 0 {
+                BUTTON_PRESSES.x.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 6) > 0 {
+                BUTTON_PRESSES.l.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 7) > 0 {
+                BUTTON_PRESSES.r.is_pressed = true;
+            }
             if (*state).Buttons & (1 << 8) > 0 {
                 BUTTON_PRESSES.zl.is_pressed = true;
             }
@@ -273,15 +290,16 @@ use parking_lot::Mutex;
 
 lazy_static! {
     pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> =
-        Mutex::new(training_mod_tui::App::new(unsafe { get_menu() }));
+        Mutex::new(training_mod_tui::App::new(
+            unsafe { ui_menu(MENU) },
+            unsafe { (ui_menu(DEFAULTS_MENU), serde_json::to_string(&DEFAULTS_MENU).unwrap())}
+            )
+        );
 }
 
 pub unsafe fn quick_menu_loop() {
     loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
-        let backend = training_mod_tui::TestBackend::new(75, 15);
-        let mut terminal = training_mod_tui::Terminal::new(backend).unwrap();
-        let mut json_response = String::new();
         let button_presses = &mut BUTTON_PRESSES;
         let mut received_input = true;
         loop {
@@ -302,20 +320,32 @@ pub unsafe fn quick_menu_loop() {
                 if !app.outer_list {
                     app.on_b()
                 } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0
-                    && !json_response.is_empty()
                 {
                     // Leave menu.
                     QUICK_MENU_ACTIVE = false;
-                    set_menu_from_json(&json_response);
-                    EVENT_QUEUE.push(Event::menu_open(json_response.to_string()));
+                    let menu_json = app.get_menu_selections();
+                    set_menu_from_json(&menu_json);
+                    EVENT_QUEUE.push(Event::menu_open(menu_json.to_string()));
                 }
             });
-            button_presses.zl.read_press().then(|| {
+            button_presses.x.read_press().then(|| {
+                app.on_x();
+                received_input = true;
+            });
+            button_presses.l.read_press().then(|| {
                 app.on_l();
                 received_input = true;
             });
-            button_presses.zr.read_press().then(|| {
+            button_presses.r.read_press().then(|| {
                 app.on_r();
+                received_input = true;
+            });
+            button_presses.zl.read_press().then(|| {
+                app.on_zl();
+                received_input = true;
+            });
+            button_presses.zr.read_press().then(|| {
+                app.on_zr();
                 received_input = true;
             });
             button_presses.left.read_press().then(|| {
@@ -336,11 +366,8 @@ pub unsafe fn quick_menu_loop() {
             });
 
             if received_input {
-                terminal
-                    .draw(|f| json_response = training_mod_tui::ui(f, app))
-                    .unwrap();
                 received_input = false;
-                set_menu_from_json(&json_response);
+                set_menu_from_json(&app.get_menu_selections());
             }
         }
     }

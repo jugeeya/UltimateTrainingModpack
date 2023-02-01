@@ -1329,7 +1329,7 @@ impl<'a> SubMenu<'a> {
     }
 }
 
-#[derive(Content, Serialize)]
+#[derive(Content, Serialize, Clone)]
 pub struct Tab<'a> {
     pub tab_id: &'a str,
     pub tab_title: &'a str,
@@ -1372,12 +1372,12 @@ impl<'a> Tab<'a> {
     }
 }
 
-#[derive(Content, Serialize)]
+#[derive(Content, Serialize, Clone)]
 pub struct UiMenu<'a> {
     pub tabs: Vec<Tab<'a>>,
 }
 
-pub unsafe fn get_menu() -> UiMenu<'static> {
+pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     let mut overall_menu = UiMenu { tabs: Vec::new() };
 
     let mut mash_tab = Tab {
@@ -1390,98 +1390,98 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "mash_state",
         "Mash Toggles: Actions to be performed as soon as possible",
         false,
-        &(MENU.mash_state.bits as u32),
+        &(menu.mash_state.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Action>(
         "Followup Toggles",
         "follow_up",
         "Followup Toggles: Actions to be performed after the Mash option",
         false,
-        &(MENU.follow_up.bits as u32),
+        &(menu.follow_up.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<MashTrigger>(
         "Mash Triggers",
         "mash_triggers",
         "Mash triggers: When the Mash Option will be performed",
         false,
-        &(MENU.mash_triggers.bits as u32),
+        &(menu.mash_triggers.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<AttackAngle>(
         "Attack Angle",
         "attack_angle",
         "Attack Angle: For attacks that can be angled, such as some forward tilts",
         false,
-        &(MENU.attack_angle.bits as u32),
+        &(menu.attack_angle.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<ThrowOption>(
         "Throw Options",
         "throw_state",
         "Throw Options: Throw to be performed when a grab is landed",
         false,
-        &(MENU.throw_state.bits as u32),
+        &(menu.throw_state.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<MedDelay>(
         "Throw Delay",
         "throw_delay",
         "Throw Delay: How many frames to delay the throw option",
         false,
-        &(MENU.throw_delay.bits as u32),
+        &(menu.throw_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<MedDelay>(
         "Pummel Delay",
         "pummel_delay",
         "Pummel Delay: How many frames after a grab to wait before starting to pummel",
         false,
-        &(MENU.pummel_delay.bits as u32),
+        &(menu.pummel_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
         "Falling Aerials",
         "falling_aerials",
         "Falling Aerials: Should aerials be performed when rising or when falling",
         false,
-        &(MENU.falling_aerials.bits as u32),
+        &(menu.falling_aerials.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
         "Full Hop",
         "full_hop",
         "Full Hop: Should the CPU perform a full hop or a short hop",
         false,
-        &(MENU.full_hop.bits as u32),
+        &(menu.full_hop.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "Aerial Delay",
         "aerial_delay",
         "Aerial Delay: How long to delay a Mash aerial attack",
         false,
-        &(MENU.aerial_delay.bits as u32),
+        &(menu.aerial_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
         "Fast Fall",
         "fast_fall",
         "Fast Fall: Should the CPU fastfall during a jump",
         false,
-        &(MENU.fast_fall.bits as u32),
+        &(menu.fast_fall.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "Fast Fall Delay",
         "fast_fall_delay",
         "Fast Fall Delay: How many frames the CPU should delay their fastfall",
         false,
-        &(MENU.fast_fall_delay.bits as u32),
+        &(menu.fast_fall_delay.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "OoS Offset",
         "oos_offset",
         "OoS Offset: How many times the CPU shield can be hit before performing a Mash option",
         false,
-        &(MENU.oos_offset.bits as u32),
+        &(menu.oos_offset.bits as u32),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
         "Reaction Time",
         "reaction_time",
         "Reaction Time: How many frames to delay before performing a mash option",
         false,
-        &(MENU.reaction_time.bits as u32),
+        &(menu.reaction_time.bits as u32),
     );
     overall_menu.tabs.push(mash_tab);
 
@@ -1495,77 +1495,77 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "air_dodge_dir",
         "Airdodge Direction: Direction to angle airdodges",
         false,
-        &(MENU.air_dodge_dir.bits as u32),
+        &(menu.air_dodge_dir.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
         "DI Direction",
         "di_state",
         "DI Direction: Direction to angle the directional influence during hitlag",
         false,
-        &(MENU.di_state.bits as u32),
+        &(menu.di_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
         "SDI Direction",
         "sdi_state",
         "SDI Direction: Direction to angle the smash directional influence during hitlag",
         false,
-        &(MENU.sdi_state.bits as u32),
+        &(menu.sdi_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<SdiFrequency>(
         "SDI Strength",
         "sdi_strength",
         "SDI Strength: Relative strength of the smash directional influence inputs",
         true,
-        &(MENU.sdi_strength as u32),
+        &(menu.sdi_strength as u32),
     );
     defensive_tab.add_submenu_with_toggles::<ClatterFrequency>(
         "Clatter Strength",
         "clatter_strength",
         "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
         true,
-        &(MENU.clatter_strength as u32),
+        &(menu.clatter_strength as u32),
     );
     defensive_tab.add_submenu_with_toggles::<LedgeOption>(
         "Ledge Options",
         "ledge_state",
         "Ledge Options: Actions to be taken when on the ledge",
         false,
-        &(MENU.ledge_state.bits as u32),
+        &(menu.ledge_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<LongDelay>(
         "Ledge Delay",
         "ledge_delay",
         "Ledge Delay: How many frames to delay the ledge option",
         false,
-        &(MENU.ledge_delay.bits as u32),
+        &(menu.ledge_delay.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<TechFlags>(
         "Tech Options",
         "tech_state",
         "Tech Options: Actions to take when slammed into a hard surface",
         false,
-        &(MENU.tech_state.bits as u32),
+        &(menu.tech_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<MissTechFlags>(
         "Mistech Options",
         "miss_tech_state",
         "Mistech Options: Actions to take after missing a tech",
         false,
-        &(MENU.miss_tech_state.bits as u32),
+        &(menu.miss_tech_state.bits as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Shield>(
         "Shield Toggles",
         "shield_state",
         "Shield Toggles: CPU Shield Behavior",
         true,
-        &(MENU.shield_state as u32),
+        &(menu.shield_state as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
         "Shield Tilt",
         "shield_tilt",
         "Shield Tilt: Direction to tilt the shield",
         false, // TODO: Should this be true?
-        &(MENU.shield_tilt.bits as u32),
+        &(menu.shield_tilt.bits as u32),
     );
 
     defensive_tab.add_submenu_with_toggles::<OnOff>(
@@ -1573,7 +1573,7 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "crouch",
         "Crouch: Should the CPU crouch when on the ground",
         true,
-        &(MENU.crouch as u32),
+        &(menu.crouch as u32),
     );
     overall_menu.tabs.push(defensive_tab);
 
@@ -1587,63 +1587,63 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "save_state_mirroring",
         "Mirroring: Flips save states in the left-right direction across the stage center",
         true,
-        &(MENU.save_state_mirroring as u32),
+        &(menu.save_state_mirroring as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
         "Auto Save States",
         "save_state_autoload",
         "Auto Save States: Load save state when any fighter dies",
         true,
-        &(MENU.save_state_autoload as u32),
+        &(menu.save_state_autoload as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveDamage>(
         "Save Dmg (CPU)",
         "save_damage_cpu",
         "Save Damage: Should save states retain CPU damage",
         true,
-        &(MENU.save_damage_cpu.bits as u32),
+        &(menu.save_damage_cpu.bits as u32),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
         "Dmg Range (CPU)",
         "save_damage_limits_cpu",
         "Limits on random damage to apply to the CPU when loading a save state",
-        &(MENU.save_damage_limits_cpu.0 as u32),
-        &(MENU.save_damage_limits_cpu.1 as u32),
+        &(menu.save_damage_limits_cpu.0 as u32),
+        &(menu.save_damage_limits_cpu.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveDamage>(
         "Save Dmg (Player)",
         "save_damage_player",
         "Save Damage: Should save states retain player damage",
         true,
-        &(MENU.save_damage_player.bits as u32),
+        &(menu.save_damage_player.bits as u32),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
         "Dmg Range (Player)",
         "save_damage_limits_player",
         "Limits on random damage to apply to the player when loading a save state",
-        &(MENU.save_damage_limits_player.0 as u32),
-        &(MENU.save_damage_limits_player.1 as u32),
+        &(menu.save_damage_limits_player.0 as u32),
+        &(menu.save_damage_limits_player.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
         "Enable Save States",
         "save_state_enable",
         "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
         true,
-        &(MENU.save_state_enable as u32),
+        &(menu.save_state_enable as u32),
     );
     save_state_tab.add_submenu_with_toggles::<CharacterItem>(
         "Character Item",
         "character_item",
         "Character Item: CPU/Player item to hold when loading a save state",
         true,
-        &(MENU.character_item as u32),
+        &(menu.character_item as u32),
     );
     save_state_tab.add_submenu_with_toggles::<BuffOption>(
         "Buff Options",
         "buff_state",
         "Buff Options: Buff(s) to be applied to respective character when loading save states",
         false,
-        &(MENU.buff_state.bits as u32),
+        &(menu.buff_state.bits as u32),
     );
     overall_menu.tabs.push(save_state_tab);
 
@@ -1657,42 +1657,42 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "frame_advantage",
         "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable",
         true,
-        &(MENU.frame_advantage as u32),
+        &(menu.frame_advantage as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Hitbox Visualization",
         "hitbox_vis",
         "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects",
         true,
-        &(MENU.hitbox_vis as u32),
+        &(menu.hitbox_vis as u32),
     );
     misc_tab.add_submenu_with_toggles::<Delay>(
         "Input Delay",
         "input_delay",
         "Input Delay: Frames to delay player inputs by",
         true,
-        &(MENU.input_delay.bits as u32),
+        &(menu.input_delay.bits as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Stage Hazards",
         "stage_hazards",
         "Stage Hazards: Should stage hazards be present",
         true,
-        &(MENU.stage_hazards as u32),
+        &(menu.stage_hazards as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Quick Menu",
         "quick_menu",
         "Quick Menu: Should use quick or web menu",
         true,
-        &(MENU.quick_menu as u32),
+        &(menu.quick_menu as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "HUD",
         "hud",
         "HUD: Turn UI on or off",
         true,
-        &(MENU.hud as u32),
+        &(menu.hud as u32),
     );
     overall_menu.tabs.push(misc_tab);
 

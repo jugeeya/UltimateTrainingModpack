@@ -3,6 +3,7 @@ use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
 use std::collections::HashMap;
 use parking_lot::Mutex;
+use skyline::libc::c_void;
 
 mod damage;
 mod display;
@@ -142,6 +143,22 @@ pub unsafe fn layout_build_parts_impl(
     )
 }
 
+
+#[skyline::hook(offset = 0x32cace0)]
+pub unsafe fn handle_load_layout_files(
+    meta_layout_root: *mut c_void,
+    loading_list: *mut c_void,
+    layout_arc_hash: *const u32,
+    param_4: i32
+) -> u64 {
+    println!("Layout.arc hash: {:x}", *layout_arc_hash);
+    original!()(meta_layout_root, loading_list, layout_arc_hash, param_4)
+}
+
 pub fn init() {
-    skyline::install_hooks!(handle_draw, layout_build_parts_impl,);
+    skyline::install_hooks!(
+        handle_draw,
+        layout_build_parts_impl,
+        // handle_load_layout_files
+    );
 }
