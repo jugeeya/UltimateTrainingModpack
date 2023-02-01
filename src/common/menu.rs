@@ -21,7 +21,9 @@ pub fn init() {
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
         QUICK_MENU_FRAME_COUNTER_INDEX = frame_counter::register_counter();
-        write_menu();
+        if !is_emulator() {
+            write_web_menu_file();
+        }
     }
 }
 
@@ -43,7 +45,7 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
     }
 }
 
-pub unsafe fn write_menu() {
+pub unsafe fn write_web_menu_file() {
     let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
 
     let overall_menu = get_menu();
