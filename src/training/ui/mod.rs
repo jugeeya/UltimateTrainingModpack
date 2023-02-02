@@ -23,7 +23,8 @@ lazy_static::lazy_static! {
             (String::from("info_training"), String::from("pic_numbase_01")),
             vec![
                 (false, menu::BUILD_CONTAINER_PANE),
-                (false, display::BUILD_PIC_BASE)
+                (false, display::BUILD_PIC_BASE),
+                (false, menu::BUILD_SLIDER_CONTAINER_PANE),
             ]
         ),
         (
@@ -45,7 +46,10 @@ lazy_static::lazy_static! {
         ),
         (
             (String::from("info_training"), String::from("txt_cap_01")),
-            vec![(false, display::BUILD_HEADER_TXT)]
+            vec![
+                (false, display::BUILD_HEADER_TXT),
+                (false, menu::BUILD_SLIDER_HEADER_TXT),
+            ]
         ),
         (
             (String::from("info_training_btn0_00_item"), String::from("icn_bg_main")),
