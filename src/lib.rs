@@ -35,6 +35,7 @@ use crate::menu::quick_menu_loop;
 #[cfg(feature = "web_session_preload")]
 use crate::menu::web_session_loop;
 use training_mod_consts::{MenuJsonStruct, OnOff};
+use crate::training::ui::notifications::notification;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -81,9 +82,11 @@ pub fn main() {
     info!("Initialized.");
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
+        notification("Training Modpack", "Welcome!", 60);
+        notification("Open Menu", "Special + Uptaunt", 120);
+        notification("Save State", "Grab + Downtaunt", 120);
+        notification("Load State", "Grab + Uptaunt", 120);
     }
-
-    training::ui_hacks::install_hooks();
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();

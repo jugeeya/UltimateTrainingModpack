@@ -24,7 +24,7 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod throw;
-pub mod ui_hacks;
+pub mod ui;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -570,4 +570,5 @@ pub fn training_mods() {
     buff::init();
     items::init();
     tech::init();
+    ui::init();
 }

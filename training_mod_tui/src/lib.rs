@@ -1,4 +1,4 @@
-use training_mod_consts::{Slider, SubMenu, SubMenuType, Toggle, UiMenu};
+use training_mod_consts::{MenuJsonStruct, Slider, SubMenu, SubMenuType, Toggle, UiMenu, ui_menu, TrainingModpackMenu};
 use tui::{
     backend::Backend,
     layout::{Constraint, Corner, Direction, Layout, Rect},
@@ -20,6 +20,14 @@ use crate::list::{MultiStatefulList, StatefulList};
 
 static NX_TUI_WIDTH: u16 = 66;
 
+#[derive(PartialEq)]
+pub enum AppPage {
+    SUBMENU,
+    TOGGLE,
+    SLIDER,
+    CONFIRMATION
+}
+
 /// We should hold a list of SubMenus.
 /// The currently selected SubMenu should also have an associated list with necessary information.
 /// We can convert the option types (Toggle, OnOff, Slider) to lists
@@ -28,11 +36,12 @@ pub struct App<'a> {
     pub menu_items: HashMap<&'a str, MultiStatefulList<SubMenu<'a>>>,
     pub selected_sub_menu_toggles: MultiStatefulList<Toggle<'a>>,
     pub selected_sub_menu_slider: DoubleEndedGauge,
-    pub outer_list: bool,
+    pub page: AppPage,
+    pub default_menu: (UiMenu<'a>, String),
 }
 
 impl<'a> App<'a> {
-    pub fn new(menu: UiMenu<'a>) -> App<'a> {
+    pub fn new(menu: UiMenu<'a>, default_menu: (UiMenu<'a>, String)) -> App<'a> {
         let num_lists = 3;
 
         let mut menu_items_stateful = HashMap::new();
@@ -48,7 +57,8 @@ impl<'a> App<'a> {
             menu_items: menu_items_stateful,
             selected_sub_menu_toggles: MultiStatefulList::with_items(vec![], 0),
             selected_sub_menu_slider: DoubleEndedGauge::new(),
-            outer_list: true,
+            page: AppPage::SUBMENU,
+            default_menu: default_menu
         };
         app.set_sub_menu_items();
         app
@@ -269,7 +279,7 @@ impl<'a> App<'a> {
     }
 
     /// Different behavior depending on the current menu location
-    /// Outer list: Sets self.outer_list to false
+    /// Submenu list: Enters toggle or slider submenu
     /// Toggle submenu: Toggles the selected submenu toggle in self.selected_sub_menu_toggles and in the actual SubMenu struct
     /// Slider submenu: Swaps hover/selected state. Updates the actual SubMenu struct if going from Selected -> Hover
     pub fn on_a(&mut self) {
@@ -288,14 +298,14 @@ impl<'a> App<'a> {
             .items
             .get_mut(list_idx)
             .unwrap();
-        if self.outer_list {
-            self.outer_list = false;
+        if self.page == AppPage::SUBMENU {
             match SubMenuType::from_str(selected_sub_menu._type) {
                 // Need to change the slider state to MinHover so the slider shows up initially
                 SubMenuType::SLIDER => {
+                    self.page = AppPage::SLIDER;
                     self.selected_sub_menu_slider.state = GaugeState::MinHover;
                 }
-                _ => {}
+                SubMenuType::TOGGLE => self.page = AppPage::TOGGLE
             }
         } else {
             match SubMenuType::from_str(selected_sub_menu._type) {
@@ -371,9 +381,9 @@ impl<'a> App<'a> {
     }
 
     /// Different behavior depending on the current menu location
-    /// Outer list: None
-    /// Toggle submenu: Sets self.outer_list to true
-    /// Slider submenu: If in a selected state, then commit changes and change to hover. Else set self.outer_list to true
+    /// Submenu selection: None
+    /// Toggle submenu: Sets page to submenu selection
+    /// Slider submenu: If in a selected state, then commit changes and change to hover. Else set page to submenu selection
     pub fn on_b(&mut self) {
         let tab_selected = self
             .tabs
@@ -417,26 +427,55 @@ impl<'a> App<'a> {
             },
             _ => {}
         }
-        self.outer_list = true;
+        self.page = AppPage::SUBMENU;
         self.set_sub_menu_items();
     }
 
+    /// Save defaults command
+    pub fn on_x(&mut self) {
+        if self.page == AppPage::SUBMENU {
+            let json = self.to_json();
+            unsafe {
+                self.default_menu = (ui_menu(serde_json::from_str::<TrainingModpackMenu>(&json).unwrap()), json);
+            }
+        }
+    }
+
+    /// Reset current submenu to defaults
     pub fn on_l(&mut self) {
-        if self.outer_list {
+        if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
+            let json = self.to_json();
+            let mut json_value = serde_json::from_str::<serde_json::Value>(&json).unwrap();
+            let selected_sub_menu= self.sub_menu_selected();
+            let id = selected_sub_menu.submenu_id;
+            let default_json_value = serde_json::from_str::<serde_json::Value>(&self.default_menu.1).unwrap();
+            *json_value.get_mut(id).unwrap() = default_json_value.get(id).unwrap().clone();
+            let new_menu = serde_json::from_value::<TrainingModpackMenu>(json_value).unwrap();
+            *self = App::new(unsafe { ui_menu(new_menu) }, self.default_menu.clone());
+        }
+    }
+
+    /// Reset all menus to defaults
+    pub fn on_r(&mut self) {
+        *self = App::new(self.default_menu.0.clone(), self.default_menu.clone());
+    }
+
+    pub fn on_zl(&mut self) {
+        if self.page == AppPage::SUBMENU {
             self.tabs.previous();
             self.set_sub_menu_items();
         }
     }
 
-    pub fn on_r(&mut self) {
-        if self.outer_list {
+    pub fn on_zr(&mut self) {
+        if self.page == AppPage::SUBMENU {
             self.tabs.next();
             self.set_sub_menu_items();
         }
     }
 
     pub fn on_up(&mut self) {
-        if self.outer_list {
+        if self.page == AppPage::SUBMENU {
             self.menu_items
                 .get_mut(
                     self.tabs
@@ -447,13 +486,13 @@ impl<'a> App<'a> {
                 .unwrap()
                 .previous();
             self.set_sub_menu_items();
-        } else {
+        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
             self.sub_menu_previous();
         }
     }
 
     pub fn on_down(&mut self) {
-        if self.outer_list {
+        if self.page == AppPage::SUBMENU {
             self.menu_items
                 .get_mut(
                     self.tabs
@@ -464,13 +503,13 @@ impl<'a> App<'a> {
                 .unwrap()
                 .next();
             self.set_sub_menu_items();
-        } else {
+        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
             self.sub_menu_next();
         }
     }
 
     pub fn on_left(&mut self) {
-        if self.outer_list {
+        if self.page == AppPage::SUBMENU {
             self.menu_items
                 .get_mut(
                     self.tabs
@@ -481,13 +520,13 @@ impl<'a> App<'a> {
                 .unwrap()
                 .previous_list();
             self.set_sub_menu_items();
-        } else {
+        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
             self.sub_menu_previous_list();
         }
     }
 
     pub fn on_right(&mut self) {
-        if self.outer_list {
+        if self.page == AppPage::SUBMENU {
             self.menu_items
                 .get_mut(
                     self.tabs
@@ -498,13 +537,221 @@ impl<'a> App<'a> {
                 .unwrap()
                 .next_list();
             self.set_sub_menu_items();
-        } else {
+        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
             self.sub_menu_next_list();
         }
     }
+
+    /// Returns JSON representation of current menu settings
+    pub fn to_json(&self) -> String {
+        let mut settings = Map::new();
+        for key in self.menu_items.keys() {
+            for list in &self.menu_items.get(key).unwrap().lists {
+                for sub_menu in &list.items {
+                    if !sub_menu.toggles.is_empty() {
+                        let val: u32 = sub_menu
+                            .toggles
+                            .iter()
+                            .filter(|t| t.checked)
+                            .map(|t| t.toggle_value)
+                            .sum();
+                        settings.insert(sub_menu.submenu_id.to_string(), json!(val));
+                    } else if sub_menu.slider.is_some() {
+                        let s: &Slider = sub_menu.slider.as_ref().unwrap();
+                        let val: Vec<u32> = vec![s.selected_min, s.selected_max];
+                        settings.insert(sub_menu.submenu_id.to_string(), json!(val));
+                    } else {
+                        panic!("Could not collect settings for {:?}", sub_menu.submenu_id);
+                    }
+                }
+            }
+        }
+        serde_json::to_string(&settings).unwrap()
+    }
+
+
+    /// Returns the current menu selections and the default menu selections.
+    pub fn get_menu_selections(&self) -> String {
+        serde_json::to_string(
+            &MenuJsonStruct {
+            menu: serde_json::from_str(self.to_json().as_str()).unwrap(),
+            defaults_menu: serde_json::from_str(self.default_menu.1.clone().as_str()).unwrap(),
+        }).unwrap()
+    }
 }
 
-pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
+fn render_submenu_page<B: Backend>(f: &mut Frame<B>, app: &mut App, list_chunks: Vec<Rect>, help_chunk: Rect) {
+    let tab_selected = app.tab_selected();
+    let mut item_help = None;
+    for (list_section, stateful_list) in app
+        .menu_items
+        .get(tab_selected)
+        .unwrap()
+        .lists
+        .iter()
+        .enumerate()
+    {
+        let items: Vec<ListItem> = stateful_list
+            .items
+            .iter()
+            .map(|i| {
+                let lines = vec![Spans::from(if stateful_list.state.selected().is_some() {
+                    i.submenu_title.to_owned()
+                } else {
+                    "   ".to_owned() + i.submenu_title
+                })];
+                ListItem::new(lines).style(Style::default().fg(Color::White))
+            })
+            .collect();
+
+        let list = List::new(items)
+            .block(
+                Block::default()
+                    .title(if list_section == 0 { "Options" } else { "" })
+                    .style(Style::default().fg(Color::LightRed)),
+            )
+            .highlight_style(
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .highlight_symbol(">> ");
+
+        let mut state = stateful_list.state.clone();
+        if state.selected().is_some() {
+            item_help = Some(stateful_list.items[state.selected().unwrap()].help_text);
+        }
+
+        f.render_stateful_widget(list, list_chunks[list_section], &mut state);
+    }
+
+    let help_paragraph = Paragraph::new(
+        item_help.unwrap_or("").replace('\"', "")
+            + "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab | X: Save Defaults",
+    )
+        .style(Style::default().fg(Color::Cyan));
+    f.render_widget(help_paragraph, help_chunk);
+}
+
+pub fn render_toggle_page<B: Backend>(f: &mut Frame<B>, app: &mut App, list_chunks: Vec<Rect>, help_chunk: Rect) {
+    let (title, help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
+    for list_section in 0..sub_menu_str_lists.len() {
+        let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
+        let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
+        let values_items: Vec<ListItem> = sub_menu_str
+            .iter()
+            .map(|s| {
+                ListItem::new(vec![Spans::from(
+                    (if s.0 { "X " } else { "  " }).to_owned() + s.1,
+                )])
+            })
+            .collect();
+
+        let values_list = List::new(values_items)
+            .block(Block::default().title(if list_section == 0 { title } else { "" }))
+            .start_corner(Corner::TopLeft)
+            .highlight_style(
+                Style::default()
+                    .fg(Color::LightGreen)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .highlight_symbol(">> ");
+        f.render_stateful_widget(values_list, list_chunks[list_section], sub_menu_state);
+    }
+    let help_paragraph = Paragraph::new(
+        help_text.replace('\"', "") + "\nA: Select toggle | B: Exit submenu | X: Reset to defaults",
+    )
+        .style(Style::default().fg(Color::Cyan));
+    f.render_widget(help_paragraph, help_chunk);
+}
+
+
+pub fn render_slider_page<B: Backend>(f: &mut Frame<B>, app: &mut App, vertical_chunk: Rect, help_chunk: Rect) {
+    let (_title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
+    let abs_min = gauge_vals.abs_min;
+    let abs_max = gauge_vals.abs_max;
+    let selected_min = gauge_vals.selected_min;
+    let selected_max = gauge_vals.selected_max;
+    let lbl_ratio = 0.95; // Needed so that the upper limit label is visible
+    let constraints = [
+        Constraint::Ratio((lbl_ratio * (selected_min-abs_min) as f32) as u32, abs_max-abs_min),
+        Constraint::Ratio((lbl_ratio * (selected_max-selected_min) as f32) as u32, abs_max-abs_min),
+        Constraint::Ratio((lbl_ratio * (abs_max-selected_max) as f32) as u32, abs_max-abs_min),
+        Constraint::Min(3), // For upper limit label
+    ];
+    let gauge_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(constraints)
+        .split(vertical_chunk);
+
+    let slider_lbls = [
+        abs_min,
+        selected_min,
+        selected_max,
+        abs_max,
+    ];
+    for (idx, lbl) in slider_lbls.iter().enumerate() {
+        let mut line_set = tui::symbols::line::NORMAL;
+        line_set.horizontal = "-";
+        let mut gauge = LineGauge::default()
+            .ratio(1.0)
+            .label(format!("{}", lbl))
+            .style(Style::default().fg(Color::White))
+            .line_set(line_set)
+            .gauge_style(Style::default().fg(Color::White).bg(Color::Black));
+        if idx == 1 {
+            // Slider between selected_min and selected_max
+            match gauge_vals.state {
+                GaugeState::MinHover => {
+                    gauge = gauge.style(Style::default().fg(Color::Red))
+                }
+                GaugeState::MinSelected => {
+                    gauge = gauge.style(Style::default().fg(Color::Green))
+                }
+                _ => {}
+            }
+            gauge = gauge.gauge_style(Style::default().fg(Color::Yellow).bg(Color::Black));
+        } else if idx == 2 {
+            // Slider between selected_max and abs_max
+            match gauge_vals.state {
+                GaugeState::MaxHover => {
+                    gauge = gauge.style(Style::default().fg(Color::Red))
+                }
+                GaugeState::MaxSelected => {
+                    gauge = gauge.style(Style::default().fg(Color::Green))
+                }
+                _ => {}
+            }
+        } else if idx == 3 {
+            // Slider for abs_max
+            // We only want the label to show, so set the line character to " "
+            let mut line_set = tui::symbols::line::NORMAL;
+            line_set.horizontal = " ";
+            gauge = gauge.line_set(line_set);
+
+            // For some reason, the selected_max slider displays on top
+            // So we need to change the abs_max slider styling to match
+            // If the selected_max is close enough to the abs_max
+            if (selected_max as f32 / abs_max as f32) > 0.95 {
+                gauge = gauge.style(match gauge_vals.state {
+                    GaugeState::MaxHover => Style::default().fg(Color::Red),
+                    GaugeState::MaxSelected => Style::default().fg(Color::Green),
+                    _ => Style::default(),
+                })
+            }
+        }
+        f.render_widget(gauge, gauge_chunks[idx]);
+    }
+
+    let help_paragraph = Paragraph::new(
+        help_text.replace('\"', "") + "\nA: Select toggle | B: Exit submenu | X: Reset to defaults",
+    )
+        .style(Style::default().fg(Color::Cyan));
+    f.render_widget(help_paragraph, help_chunk);
+}
+
+/// Run
+pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let app_tabs = &app.tabs;
     let tab_selected = app_tabs.state.selected().unwrap();
     let mut span_selected = Spans::default();
@@ -611,202 +858,10 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) -> String {
 
     f.render_widget(tabs, vertical_chunks[0]);
 
-    if app.outer_list {
-        let tab_selected = app.tab_selected();
-        let mut item_help = None;
-        for (list_section, stateful_list) in app
-            .menu_items
-            .get(tab_selected)
-            .unwrap()
-            .lists
-            .iter()
-            .enumerate()
-        {
-            let items: Vec<ListItem> = stateful_list
-                .items
-                .iter()
-                .map(|i| {
-                    let lines = vec![Spans::from(if stateful_list.state.selected().is_some() {
-                        i.submenu_title.to_owned()
-                    } else {
-                        "   ".to_owned() + i.submenu_title
-                    })];
-                    ListItem::new(lines).style(Style::default().fg(Color::White))
-                })
-                .collect();
-
-            let list = List::new(items)
-                .block(
-                    Block::default()
-                        .title(if list_section == 0 { "Options" } else { "" })
-                        .style(Style::default().fg(Color::LightRed)),
-                )
-                .highlight_style(
-                    Style::default()
-                        .fg(Color::Green)
-                        .add_modifier(Modifier::BOLD),
-                )
-                .highlight_symbol(">> ");
-
-            let mut state = stateful_list.state.clone();
-            if state.selected().is_some() {
-                item_help = Some(stateful_list.items[state.selected().unwrap()].help_text);
-            }
-
-            f.render_stateful_widget(list, list_chunks[list_section], &mut state);
-        }
-
-        // TODO: Add Save Defaults
-        let help_paragraph = Paragraph::new(
-            item_help.unwrap_or("").replace('\"', "")
-                + "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab",
-        )
-        .style(Style::default().fg(Color::Cyan));
-        f.render_widget(help_paragraph, vertical_chunks[2]);
-    } else {
-        if matches!(app.selected_sub_menu_slider.state, GaugeState::None) {
-            let (title, help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
-            for list_section in 0..sub_menu_str_lists.len() {
-                let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
-                let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
-                let values_items: Vec<ListItem> = sub_menu_str
-                    .iter()
-                    .map(|s| {
-                        ListItem::new(vec![Spans::from(
-                            (if s.0 { "X " } else { "  " }).to_owned() + s.1,
-                        )])
-                    })
-                    .collect();
-
-                let values_list = List::new(values_items)
-                    .block(Block::default().title(if list_section == 0 { title } else { "" }))
-                    .start_corner(Corner::TopLeft)
-                    .highlight_style(
-                        Style::default()
-                            .fg(Color::LightGreen)
-                            .add_modifier(Modifier::BOLD),
-                    )
-                    .highlight_symbol(">> ");
-                f.render_stateful_widget(values_list, list_chunks[list_section], sub_menu_state);
-            }
-            let help_paragraph = Paragraph::new(
-                help_text.replace('\"', "") + "\nA: Select toggle | B: Exit submenu",
-            )
-            .style(Style::default().fg(Color::Cyan));
-            f.render_widget(help_paragraph, vertical_chunks[2]);
-        } else {
-            let (_title, help_text, gauge_vals) = app.sub_menu_strs_for_slider();
-            let abs_min = gauge_vals.abs_min;
-            let abs_max = gauge_vals.abs_max;
-            let selected_min = gauge_vals.selected_min;
-            let selected_max = gauge_vals.selected_max;
-            let lbl_ratio = 0.95; // Needed so that the upper limit label is visible
-            let constraints = [
-                Constraint::Ratio((lbl_ratio * (selected_min-abs_min) as f32) as u32, abs_max-abs_min),
-                Constraint::Ratio((lbl_ratio * (selected_max-selected_min) as f32) as u32, abs_max-abs_min),
-                Constraint::Ratio((lbl_ratio * (abs_max-selected_max) as f32) as u32, abs_max-abs_min),
-                Constraint::Min(3), // For upper limit label
-            ];
-            let gauge_chunks = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints(constraints)
-                .split(vertical_chunks[1]);
-
-            let slider_lbls = [
-                abs_min,
-                selected_min,
-                selected_max,
-                abs_max,
-            ];
-            for (idx, lbl) in slider_lbls.iter().enumerate() {
-                let mut line_set = tui::symbols::line::NORMAL;
-                line_set.horizontal = "-";
-                let mut gauge = LineGauge::default()
-                    .ratio(1.0)
-                    .label(format!("{}", lbl))
-                    .style(Style::default().fg(Color::White))
-                    .line_set(line_set)
-                    .gauge_style(Style::default().fg(Color::White).bg(Color::Black));
-                if idx == 1 {
-                    // Slider between selected_min and selected_max
-                    match gauge_vals.state {
-                        GaugeState::MinHover => {
-                            gauge = gauge.style(Style::default().fg(Color::Red))
-                        }
-                        GaugeState::MinSelected => {
-                            gauge = gauge.style(Style::default().fg(Color::Green))
-                        }
-                        _ => {}
-                    }
-                    gauge = gauge.gauge_style(Style::default().fg(Color::Yellow).bg(Color::Black));
-                } else if idx == 2 {
-                    // Slider between selected_max and abs_max
-                    match gauge_vals.state {
-                        GaugeState::MaxHover => {
-                            gauge = gauge.style(Style::default().fg(Color::Red))
-                        }
-                        GaugeState::MaxSelected => {
-                            gauge = gauge.style(Style::default().fg(Color::Green))
-                        }
-                        _ => {}
-                    }
-                } else if idx == 3 {
-                    // Slider for abs_max
-                    // We only want the label to show, so set the line character to " "
-                    let mut line_set = tui::symbols::line::NORMAL;
-                    line_set.horizontal = " ";
-                    gauge = gauge.line_set(line_set);
-
-                    // For some reason, the selected_max slider displays on top
-                    // So we need to change the abs_max slider styling to match
-                    // If the selected_max is close enough to the abs_max
-                    if (selected_max as f32 / abs_max as f32) > 0.95 {
-                        gauge = gauge.style(match gauge_vals.state {
-                            GaugeState::MaxHover => Style::default().fg(Color::Red),
-                            GaugeState::MaxSelected => Style::default().fg(Color::Green),
-                            _ => Style::default(),
-                        })
-                    }
-                }
-                f.render_widget(gauge, gauge_chunks[idx]);
-            }
-
-            let help_paragraph = Paragraph::new(
-                help_text.replace('\"', "") + "\nA: Select toggle | B: Exit submenu",
-            )
-            .style(Style::default().fg(Color::Cyan));
-            f.render_widget(help_paragraph, vertical_chunks[2]);
-        }
+    match app.page {
+        AppPage::SUBMENU => render_submenu_page(f, app, list_chunks, vertical_chunks[2]),
+        AppPage::SLIDER => render_slider_page(f, app, vertical_chunks[1], vertical_chunks[2]),
+        AppPage::TOGGLE => render_toggle_page(f, app, list_chunks, vertical_chunks[2]),
+        AppPage::CONFIRMATION => todo!()
     }
-
-    // Collect settings
-    to_json(app)
-
-    // TODO: Add saveDefaults
-}
-
-pub fn to_json(app: &App) -> String {
-    let mut settings = Map::new();
-    for key in app.menu_items.keys() {
-        for list in &app.menu_items.get(key).unwrap().lists {
-            for sub_menu in &list.items {
-                if !sub_menu.toggles.is_empty() {
-                    let val: u32 = sub_menu
-                        .toggles
-                        .iter()
-                        .filter(|t| t.checked)
-                        .map(|t| t.toggle_value)
-                        .sum();
-                    settings.insert(sub_menu.submenu_id.to_string(), json!(val));
-                } else if sub_menu.slider.is_some() {
-                    let s: &Slider = sub_menu.slider.as_ref().unwrap();
-                    let val: Vec<u32> = vec![s.selected_min, s.selected_max];
-                    settings.insert(sub_menu.submenu_id.to_string(), json!(val));
-                } else {
-                    panic!("Could not collect settings for {:?}", sub_menu.submenu_id);
-                }
-            }
-        }
-    }
-    serde_json::to_string(&settings).unwrap()
 }
