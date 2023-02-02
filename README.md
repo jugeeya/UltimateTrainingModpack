@@ -35,35 +35,36 @@ The latest beta release can be found [here](https://github.com/jugeeya/UltimateT
 These are the features that can be found [in the latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta) that are not in the stable release. 
 
 ### Features
-* Added option for CPU to crouch when grounded
-* Improved web menu UI
-* Added Mash Triggers feature, allowing configuration of when the CPU performs mash options
-* Add ability to perform mash option after ledge trump, footstool, clatter, hitstun, tumble, and within certain distances
-* Allow configurable button combinations for save states and opening the menu
-* Prevent star ko's in training mode
-* Allow user to select random damage values on save state load
-* Clear articles like boomerang, anvil, hydrant when loading save states (crafting table excluded)
-* Display frame advantage as a notification textbox
-* Greatly improved UI and speed for the quick menu
-* Add option to toggle off HUD
+* Added option for CPU to crouch when grounded - @asimon-1
+* Improved web menu UI - @asimon-1, @xhudaman, @jugeeya
+* Added Mash Triggers feature, allowing configuration of when the CPU performs mash options - @GradualSyrup
+* Add ability to perform mash option after ledge trump, footstool, clatter, hitstun, tumble, and within certain distances - @asimon-1
+* Allow configurable button combinations for save states and opening the menu - @asimon-1
+* Prevent Star KOs in training mode - @GradualSyrup
+* Allow user to select random damage values on save state load - @asimon-1, @jugeeya
+* Clear articles like boomerang, anvil, hydrant when loading save states (crafting table excluded) - @jugeeya, 
+* Display frame advantage as a notification textbox - @jugeeya
+* Display welcome notification with instructions on how to use the mod - @jugeeya
+* Greatly improved UI and speed for the quick menu - @jugeeya, @xhudaman
+* Add option to toggle off HUD - @jugeeya
 
 ### Bugfixes
-* No longer change pokemon when loading a save state with PT
-* Mash options are no longer buffered when loading a save state
-* Fixed issue where input delay menu selection would not be respected 
-* Fixed bug where Pac-Man fruit preparedness wasn't saved in state
-* Fixed bug where items would deplete shields set to "Infinite"
-* Fixed bug where back button would not work with touch screen
-* Fix Joycon controllers with input delay
-* Fix issue where CPU would perform options out of Snake's down throw too early
-* Fix issue where CPU could tech untechables
-* Fixed several bugs when loading a save state on ledge
-* When loading mirrors save states on asymmetric stages, mirror around the stage center
-* Fixes to Quick Menu when using joycons
+* No longer change pokemon when loading a save state with PT - @jugeeya
+* Mash options are no longer buffered when loading a save state - @GradualSyrup
+* Fixed issue where input delay menu selection would not be respected - @jugeeya, @asimon-1
+* Fixed bug where Pac-Man fruit preparedness wasn't saved in state - @GradualSyrup
+* Fixed bug where items would deplete shields set to "Infinite" - @jugeeya
+* Fixed bug where back button would not work with touch screen - @gnaomo
+* Fix Joycon controllers with input delay - @asimon-1, @jugeeya
+* Fix issue where CPU would perform options out of Snake's down throw too early - @asimon-1
+* Fix issue where CPU could tech untechables - @asimon-1
+* Fixed several bugs when loading a save state on ledge - @asimon-1
+* When loading mirrors save states on asymmetric stages, mirror around the stage center - @asimon-1
+* Fixes to Quick Menu when using joycons - @jugeeya
 
 ### Adjustments
-* Adjust clatter strength values
-* Update infinite shield compatibility with modded gameplay
+* Adjust clatter strength values - @asimon-1
+* Update infinite shield compatibility with modded gameplay - @techyCoder81
 
 <a name="features"/>
 
