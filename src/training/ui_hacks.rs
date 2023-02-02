@@ -583,7 +583,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     match index {
                         0 => text_pane.set_text_string(&format!("{selected_min}")),
                         1 => text_pane.set_text_string(&format!("{selected_max}")),
-                        _ => text_pane.set_text_string(""),
+                        _ => panic!("Unexpected slider label index {}!", index),
                     }
                 }
 
@@ -621,10 +621,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                                 bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                             }
                         },
-                        _ => {
-                            bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                        }
+                        _ => panic!("Unexpected slider label index {}!", index),
                     }
                     bg_left.set_visible(true);
                 }
