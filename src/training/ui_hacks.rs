@@ -107,14 +107,21 @@ const BG_LEFT_OFF_BLACK_COLOR: ResColor = ResColor {
 };
 
 const BG_LEFT_SELECTED_BLACK_COLOR: ResColor = ResColor {
-    r: 80,
-    g: 0,
-    b: 0,
+    r: 240,
+    g: 154,
+    b: 7,
     a: 0,
 };
 
 const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
-    r: 118,
+    r: 255,
+    g: 166,
+    b: 7,
+    a: 255,
+};
+
+const BLACK: ResColor = ResColor {
+    r: 0,
     g: 0,
     b: 0,
     a: 255,
@@ -194,9 +201,7 @@ pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
         &mut (0..NUM_MENU_TEXT_SLIDERS)
             .map(|idx| {
                 root_pane
-                    .find_pane_by_name_recursive(
-                        menu_slider_label_fmt!(idx)
-                    )
+                    .find_pane_by_name_recursive(menu_slider_label_fmt!(idx))
                     .unwrap()
             })
             .collect::<Vec<&mut Pane>>(),
@@ -533,9 +538,39 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     text_pane.set_visible(true);
 
                     match index {
-                        0 => text_pane.set_text_string("Min"),
-                        1 => text_pane.set_text_string("Max"),
-                        _ => panic!("Unexpected slider label index {}!", index)
+                        0 => {
+                            text_pane.set_text_string("Min");
+
+                            match gauge_vals.state {
+                                GaugeState::MinHover | GaugeState::MinSelected => {
+                                    text_pane.m_bits |= 1 << TextBoxFlag::ShadowEnabled as u8;
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+                                    text_pane.set_color(255, 255, 255, 255);
+                                }
+                                _ => {
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::ShadowEnabled as u8);
+                                    text_pane.m_bits |= 1 << TextBoxFlag::InvisibleBorderEnabled as u8;
+                                    text_pane.set_color(85, 89, 92, 255);
+                                }
+                            }
+                        }
+                        1 => {
+                            text_pane.set_text_string("Max");
+
+                            match gauge_vals.state {
+                                GaugeState::MaxHover | GaugeState::MaxSelected => {
+                                    text_pane.m_bits |= 1 << TextBoxFlag::ShadowEnabled as u8;
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+                                    text_pane.set_color(255, 255, 255, 255);
+                                }
+                                _ => {
+                                    text_pane.m_bits |= 1 << TextBoxFlag::InvisibleBorderEnabled as u8;
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::ShadowEnabled as u8);
+                                    text_pane.set_color(85, 89, 92, 255);
+                                }
+                            }
+                        }
+                        _ => panic!("Unexpected slider label index {}!", index),
                     }
                 }
 
@@ -558,36 +593,32 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
                     let bg_left_material = &mut *bg_left.as_picture().material;
 
                     match index {
-                        0 => {
-                            match gauge_vals.state {
-                                GaugeState::MinHover => {
-                                    bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                                    bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                                },
-                                GaugeState::MinSelected => {
-                                    bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-                                    bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-                                },
-                                _ => {
-                                    bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                                    bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                                }
+                        0 => match gauge_vals.state {
+                            GaugeState::MinHover => {
+                                bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                            }
+                            GaugeState::MinSelected => {
+                                bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                            }
+                            _ => {
+                                bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                             }
                         },
-                        1 => {
-                            match gauge_vals.state {
-                                GaugeState::MaxHover => {
-                                    bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                                    bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                                },
-                                GaugeState::MaxSelected => {
-                                    bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-                                    bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-                                },
-                                _ => {
-                                    bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                                    bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                                }
+                        1 => match gauge_vals.state {
+                            GaugeState::MaxHover => {
+                                bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                            }
+                            GaugeState::MaxSelected => {
+                                bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                            }
+                            _ => {
+                                bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                             }
                         },
                         _ => {
@@ -702,12 +733,15 @@ pub unsafe fn layout_build_parts_impl(
         if !HAS_CREATED_SLIDER_BG && (*block).name_matches("icn_bg_main") {
             (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
                 let x = index % 2;
-            
+
                 if MENU_PANE_PTR != 0 {
-                    let slider_root = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_menu", true).unwrap();
-                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_ui_container", true).unwrap();
+                    let slider_root = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_menu", true)
+                        .unwrap();
+                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_ui_container", true)
+                        .unwrap();
                     let x_offset = x as f32 * 345.0;
-                    
 
                     let block = block as *mut ResPictureWithTex<2>;
                     let mut pic_menu_block = *block;
@@ -731,14 +765,18 @@ pub unsafe fn layout_build_parts_impl(
                 }
             });
         }
-        
+
         if !HAS_CREATED_SLIDER_BG_BACK && (*block).name_matches("btn_bg") {
             (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
                 let x = index % 2;
 
                 if MENU_PANE_PTR != 0 {
-                    let slider_root = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_menu", true).unwrap();
-                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane)).find_pane_by_name("slider_ui_container", true).unwrap();
+                    let slider_root = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_menu", true)
+                        .unwrap();
+                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_ui_container", true)
+                        .unwrap();
 
                     let size_y = 90.0;
 
@@ -750,10 +788,7 @@ pub unsafe fn layout_build_parts_impl(
                     bg_block.set_name(format!("slider_item_btn_{}", index).as_str());
                     bg_block.scale_x /= 2.0;
 
-                    bg_block.set_size(ResVec2::new(
-                        605.0,
-                        size_y
-                    ));
+                    bg_block.set_size(ResVec2::new(605.0, size_y));
 
                     bg_block.set_pos(ResVec3::new(
                         slider_root.pos_x - 700.0 + x_offset,
@@ -1064,7 +1099,6 @@ pub unsafe fn layout_build_parts_impl(
 
             let mut label_block = *block;
 
-            label_block.enable_shadow();
             label_block.text_alignment(TextAlignment::Center);
             label_block.set_name(menu_slider_label_fmt!(idx));
             label_block.set_pos(ResVec3::new(
@@ -1077,12 +1111,18 @@ pub unsafe fn layout_build_parts_impl(
             // Aligns text to the center horizontally
             label_block.text_position = 4;
 
+            label_block.shadow_offset = ResVec2::new(4.0, -3.0);
+            label_block.shadow_cols = [BLACK, BLACK];
+            label_block.shadow_scale = ResVec2::new(1.0, 1.0);
+
             let label_pane = build!(label_block, ResTextBox, kind, TextBox);
 
             label_pane.set_text_string(format!("Slider opt {idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             label_pane.set_default_material_colors();
-            label_pane.set_color(250, 250, 250, 255);
+            label_pane.set_color(85, 89, 92, 255);
+            // Turns on text outline
+            label_pane.m_bits = label_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
             label_pane.detach();
 
             slider_root_pane.append_child(label_pane);
