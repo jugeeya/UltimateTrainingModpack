@@ -131,6 +131,10 @@ jobs:
           body: >
             Beta built off of the latest code in the repository. 
             
+            # Changelog
+            
+            You can find the changelog here: https://github.com/jugeeya/UltimateTrainingModpack#beta-changelog
+            
 
             ## Installation
 
