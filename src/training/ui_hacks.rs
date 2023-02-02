@@ -73,7 +73,7 @@ pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_na
 
 pub static NUM_DISPLAY_PANES: usize = 1;
 pub static NUM_MENU_TEXT_OPTIONS: usize = 27;
-pub static NUM_MENU_TEXT_SLIDERS: usize = 4;
+pub static NUM_MENU_TEXT_SLIDERS: usize = 2;
 pub static NUM_MENU_TABS: usize = 3;
 
 pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
@@ -106,6 +106,27 @@ const BG_LEFT_OFF_BLACK_COLOR: ResColor = ResColor {
     a: 0,
 };
 
+const BG_LEFT_SELECTED_BLACK_COLOR: ResColor = ResColor {
+    r: 240,
+    g: 154,
+    b: 7,
+    a: 0,
+};
+
+const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
+    r: 255,
+    g: 166,
+    b: 7,
+    a: 255,
+};
+
+const BLACK: ResColor = ResColor {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 255,
+};
+
 macro_rules! menu_text_name_fmt {
     ($x:ident, $y:ident) => {
         format!("trMod_menu_opt_{}_{}", $x, $y).as_str()
@@ -133,6 +154,12 @@ macro_rules! menu_text_bg_back_fmt {
 macro_rules! menu_text_slider_fmt {
     ($x:ident) => {
         format!("trMod_menu_slider_{}", $x).as_str()
+    };
+}
+
+macro_rules! menu_slider_label_fmt {
+    ($x:ident) => {
+        format!("trMod_menu_slider_{}_lbl", $x).as_str()
     };
 }
 
@@ -165,6 +192,16 @@ pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
             .map(|idx| {
                 root_pane
                     .find_pane_by_name_recursive(menu_text_slider_fmt!(idx))
+                    .unwrap()
+            })
+            .collect::<Vec<&mut Pane>>(),
+    );
+
+    panes.append(
+        &mut (0..NUM_MENU_TEXT_SLIDERS)
+            .map(|idx| {
+                root_pane
+                    .find_pane_by_name_recursive(menu_slider_label_fmt!(idx))
                     .unwrap()
             })
             .collect::<Vec<&mut Pane>>(),
@@ -344,7 +381,15 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             root_pane
                 .find_pane_by_name_recursive(menu_text_slider_fmt!(idx))
                 .map(|text| text.set_visible(false));
+
+            root_pane
+                .find_pane_by_name_recursive(format!("trMod_menu_slider_{}_lbl", idx).as_str())
+                .map(|text| text.set_visible(false));
         });
+
+        root_pane
+            .find_pane_by_name_recursive("slider_menu")
+            .map(|pane| pane.set_visible(false));
 
         let app_tabs = &app.tabs.items;
         let tab_selected = app.tabs.state.selected().unwrap();
@@ -473,43 +518,114 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
             });
         } else {
             let (_title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
-            let abs_min = gauge_vals.abs_min;
-            let abs_max = gauge_vals.abs_max;
             let selected_min = gauge_vals.selected_min;
             let selected_max = gauge_vals.selected_max;
-            if let Some(text) = root_pane.find_pane_by_name_recursive("trMod_menu_slider_0") {
-                let text = text.as_textbox();
-                text.set_visible(true);
-                text.set_text_string(&format!("{abs_min}"));
+
+            if let Some(pane) = root_pane.find_pane_by_name_recursive("slider_menu") {
+                pane.set_visible(true);
             }
 
-            if let Some(text) = root_pane.find_pane_by_name_recursive("trMod_menu_slider_1") {
+            if let Some(text) = root_pane.find_pane_by_name_recursive("slider_title") {
                 let text = text.as_textbox();
-                text.set_visible(true);
-                text.set_text_string(&format!("{selected_min}"));
-                match gauge_vals.state {
-                    GaugeState::MinHover => text.set_color(200, 8, 8, 255),
-                    GaugeState::MinSelected => text.set_color(8, 200, 8, 255),
-                    _ => text.set_color(0, 0, 0, 255),
+                text.set_text_string(&format!("{_title}"));
+            }
+
+            (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
+                if let Some(text_pane) = root_pane.find_pane_by_name_recursive(
+                    format!("trMod_menu_slider_{}_lbl", index).as_str(),
+                ) {
+                    let text_pane = text_pane.as_textbox();
+                    text_pane.set_visible(true);
+
+                    match index {
+                        0 => {
+                            text_pane.set_text_string("Min");
+
+                            match gauge_vals.state {
+                                GaugeState::MinHover | GaugeState::MinSelected => {
+                                    text_pane.m_bits |= 1 << TextBoxFlag::ShadowEnabled as u8;
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+                                    text_pane.set_color(255, 255, 255, 255);
+                                }
+                                _ => {
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::ShadowEnabled as u8);
+                                    text_pane.m_bits |= 1 << TextBoxFlag::InvisibleBorderEnabled as u8;
+                                    text_pane.set_color(85, 89, 92, 255);
+                                }
+                            }
+                        }
+                        1 => {
+                            text_pane.set_text_string("Max");
+
+                            match gauge_vals.state {
+                                GaugeState::MaxHover | GaugeState::MaxSelected => {
+                                    text_pane.m_bits |= 1 << TextBoxFlag::ShadowEnabled as u8;
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+                                    text_pane.set_color(255, 255, 255, 255);
+                                }
+                                _ => {
+                                    text_pane.m_bits |= 1 << TextBoxFlag::InvisibleBorderEnabled as u8;
+                                    text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::ShadowEnabled as u8);
+                                    text_pane.set_color(85, 89, 92, 255);
+                                }
+                            }
+                        }
+                        _ => panic!("Unexpected slider label index {}!", index),
+                    }
                 }
-            }
 
-            if let Some(text) = root_pane.find_pane_by_name_recursive("trMod_menu_slider_2") {
-                let text = text.as_textbox();
-                text.set_visible(true);
-                text.set_text_string(&format!("{selected_max}"));
-                match gauge_vals.state {
-                    GaugeState::MaxHover => text.set_color(200, 8, 8, 255),
-                    GaugeState::MaxSelected => text.set_color(8, 200, 8, 255),
-                    _ => text.set_color(0, 0, 0, 255),
+                if let Some(text_pane) = root_pane
+                    .find_pane_by_name_recursive(format!("trMod_menu_slider_{}", index).as_str())
+                {
+                    let text_pane = text_pane.as_textbox();
+                    text_pane.set_visible(true);
+
+                    match index {
+                        0 => text_pane.set_text_string(&format!("{selected_min}")),
+                        1 => text_pane.set_text_string(&format!("{selected_max}")),
+                        _ => panic!("Unexpected slider label index {}!", index),
+                    }
                 }
-            }
 
-            if let Some(text) = root_pane.find_pane_by_name_recursive("trMod_menu_slider_3") {
-                let text = text.as_textbox();
-                text.set_visible(true);
-                text.set_text_string(&format!("{abs_max}"));
-            }
+                if let Some(bg_left) = root_pane
+                    .find_pane_by_name_recursive(format!("slider_btn_fg_{}", index).as_str())
+                {
+                    let bg_left_material = &mut *bg_left.as_picture().material;
+
+                    match index {
+                        0 => match gauge_vals.state {
+                            GaugeState::MinHover => {
+                                bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                            }
+                            GaugeState::MinSelected => {
+                                bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                            }
+                            _ => {
+                                bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                            }
+                        },
+                        1 => match gauge_vals.state {
+                            GaugeState::MaxHover => {
+                                bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                            }
+                            GaugeState::MaxSelected => {
+                                bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                            }
+                            _ => {
+                                bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                                bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                            }
+                        },
+                        _ => panic!("Unexpected slider label index {}!", index),
+                    }
+                    bg_left.set_visible(true);
+                }
+            });
         }
     }
 
@@ -519,6 +635,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 pub static mut MENU_PANE_PTR: u64 = 0;
 pub static mut HAS_CREATED_OPT_BG: bool = false;
 pub static mut HAS_CREATED_OPT_BG_BACK: bool = false;
+pub static mut HAS_CREATED_SLIDER_BG: bool = false;
+pub static mut HAS_CREATED_SLIDER_BG_BACK: bool = false;
 
 #[skyline::hook(offset = 0x493a0)]
 pub unsafe fn layout_build_parts_impl(
@@ -608,6 +726,81 @@ pub unsafe fn layout_build_parts_impl(
                 }
             });
         }
+
+        if !HAS_CREATED_SLIDER_BG && (*block).name_matches("icn_bg_main") {
+            (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
+                let x = index % 2;
+
+                if MENU_PANE_PTR != 0 {
+                    let slider_root = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_menu", true)
+                        .unwrap();
+                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_ui_container", true)
+                        .unwrap();
+                    let x_offset = x as f32 * 345.0;
+
+                    let block = block as *mut ResPictureWithTex<2>;
+                    let mut pic_menu_block = *block;
+
+                    pic_menu_block.set_name(format!("slider_btn_fg_{}", index).as_str());
+
+                    pic_menu_block.picture.scale_x /= 1.85;
+                    pic_menu_block.picture.scale_y /= 1.25;
+
+                    pic_menu_block.set_pos(ResVec3::new(
+                        slider_root.pos_x - 842.5 + x_offset,
+                        slider_root.pos_y + slider_bg.size_y * 0.458,
+                        0.0,
+                    ));
+
+                    let pic_menu_pane = build!(pic_menu_block, ResPictureWithTex<2>, kind, Picture);
+                    pic_menu_pane.detach();
+
+                    slider_root.append_child(pic_menu_pane);
+                    HAS_CREATED_SLIDER_BG = true;
+                }
+            });
+        }
+
+        if !HAS_CREATED_SLIDER_BG_BACK && (*block).name_matches("btn_bg") {
+            (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
+                let x = index % 2;
+
+                if MENU_PANE_PTR != 0 {
+                    let slider_root = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_menu", true)
+                        .unwrap();
+                    let slider_bg = (*(MENU_PANE_PTR as *mut Pane))
+                        .find_pane_by_name("slider_ui_container", true)
+                        .unwrap();
+
+                    let size_y = 90.0;
+
+                    let x_offset = x as f32 * 345.0;
+
+                    let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
+                    let mut bg_block = *block;
+
+                    bg_block.set_name(format!("slider_item_btn_{}", index).as_str());
+                    bg_block.scale_x /= 2.0;
+
+                    bg_block.set_size(ResVec2::new(605.0, size_y));
+
+                    bg_block.set_pos(ResVec3::new(
+                        slider_root.pos_x - 700.0 + x_offset,
+                        slider_root.pos_y + slider_bg.size_y * 0.458,
+                        0.0,
+                    ));
+
+                    let bg_pane = build!(bg_block, ResWindowWithTexCoordsAndFrames<1,4>, kind, Window);
+                    bg_pane.detach();
+
+                    slider_root.append_child(bg_pane);
+                    HAS_CREATED_SLIDER_BG_BACK = true;
+                }
+            });
+        }
     }
 
     if layout_name != "info_training" {
@@ -638,6 +831,8 @@ pub unsafe fn layout_build_parts_impl(
             HAS_CREATED_OPT_BG = false;
             HAS_CREATED_OPT_BG_BACK = false;
             HAS_SORTED_MENU_CHILDREN = false;
+            HAS_CREATED_SLIDER_BG = false;
+            HAS_CREATED_SLIDER_BG_BACK = false;
         }
     }
 
@@ -798,30 +993,136 @@ pub unsafe fn layout_build_parts_impl(
     });
 
     // Slider visualization
+
+    // UI Backing
+    let slider_root_name = "slider_menu";
+    let slider_container_name = "slider_ui_container";
+
+    if (*block).name_matches("pic_numbase_01") {
+        let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+        let slider_ui_root_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
+        let mut slider_ui_root_block = ResPane::new(slider_root_name);
+
+        slider_ui_root_block.set_pos(ResVec3::default());
+
+        let slider_ui_root = build!(
+            slider_ui_root_block,
+            ResPane,
+            slider_ui_root_pane_kind,
+            Pane
+        );
+
+        slider_ui_root.detach();
+        menu_pane.append_child(slider_ui_root);
+
+        let block = data as *mut ResPictureWithTex<1>;
+
+        let mut picture_block = *block;
+
+        picture_block.set_name(slider_container_name);
+        picture_block.set_size(ResVec2::new(675.0, 300.0));
+        picture_block.set_pos(ResVec3::new(-530.0, 180.0, 0.0));
+        picture_block.tex_coords = [
+            [ResVec2::new(0.0, 0.0)],
+            [ResVec2::new(1.0, 0.0)],
+            [ResVec2::new(0.0, 1.5)],
+            [ResVec2::new(1.0, 1.5)],
+        ];
+
+        let picture_pane = build!(picture_block, ResPictureWithTex<1>, kind, Picture);
+        picture_pane.detach();
+        slider_ui_root.append_child(picture_pane);
+    }
+
+    if (*block).name_matches("txt_cap_01") {
+        let container_pane = root_pane.find_pane_by_name(slider_root_name, true).unwrap();
+
+        let block = data as *mut ResTextBox;
+        let mut title_block = *block;
+
+        title_block.set_name("slider_title");
+        title_block.set_pos(ResVec3::new(-530.0, 285.0, 0.0));
+        title_block.set_size(ResVec2::new(550.0, 100.0));
+        title_block.font_size = ResVec2::new(50.0, 100.0);
+
+        let title_pane = build!(title_block, ResTextBox, kind, TextBox);
+
+        title_pane.set_text_string(format!("Slider Title").as_str());
+
+        // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+        title_pane.set_default_material_colors();
+
+        // Header should be white text
+        title_pane.set_color(255, 255, 255, 255);
+        title_pane.detach();
+        container_pane.append_child(title_pane);
+    }
+
     (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
+        let x = idx % 2;
+
+        let label_x_offset = x as f32 * 345.0;
+
         if (*block).name_matches("set_txt_num_01") {
-            let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+            let slider_root_pane = root_pane.find_pane_by_name(slider_root_name, true).unwrap();
+            let slider_container = root_pane
+                .find_pane_by_name(slider_container_name, true)
+                .unwrap();
 
             let block = data as *mut ResTextBox;
+
             let mut text_block = *block;
+
             text_block.enable_shadow();
             text_block.text_alignment(TextAlignment::Center);
 
             text_block.set_name(menu_text_slider_fmt!(idx));
 
-            let x_offset = idx as f32 * 250.0;
+            let value_x_offset = x as f32 * 345.0;
+
             text_block.set_pos(ResVec3::new(
-                menu_pos.x - 450.0 + x_offset,
-                menu_pos.y - 150.0,
+                slider_root_pane.pos_x - 675.0 + value_x_offset,
+                slider_root_pane.pos_y + (slider_container.size_y * 0.458),
                 0.0,
             ));
+
             let text_pane = build!(text_block, ResTextBox, kind, TextBox);
-            text_pane.set_text_string(format!("Slider {idx}!").as_str());
+            text_pane.set_text_string(format!("Slider opt {idx}!").as_str());
             // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
             text_pane.set_default_material_colors();
             text_pane.set_color(0, 0, 0, 255);
             text_pane.detach();
-            menu_pane.append_child(text_pane);
+            slider_root_pane.append_child(text_pane);
+
+            let mut label_block = *block;
+
+            label_block.text_alignment(TextAlignment::Center);
+            label_block.set_name(menu_slider_label_fmt!(idx));
+            label_block.set_pos(ResVec3::new(
+                slider_root_pane.pos_x - 750.0 + label_x_offset,
+                slider_root_pane.pos_y + slider_container.size_y * 0.458 + 5.0,
+                0.0,
+            ));
+            label_block.font_size = ResVec2::new(25.0, 50.0);
+
+            // Aligns text to the center horizontally
+            label_block.text_position = 4;
+
+            label_block.shadow_offset = ResVec2::new(4.0, -3.0);
+            label_block.shadow_cols = [BLACK, BLACK];
+            label_block.shadow_scale = ResVec2::new(1.0, 1.0);
+
+            let label_pane = build!(label_block, ResTextBox, kind, TextBox);
+
+            label_pane.set_text_string(format!("Slider opt {idx}!").as_str());
+            // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+            label_pane.set_default_material_colors();
+            label_pane.set_color(85, 89, 92, 255);
+            // Turns on text outline
+            label_pane.m_bits = label_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+            label_pane.detach();
+
+            slider_root_pane.append_child(label_pane);
         }
     });
 
