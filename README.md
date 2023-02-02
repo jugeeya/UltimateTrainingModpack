@@ -17,7 +17,9 @@ A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyli
 
 The latest stable release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest).
 
-The latest beta release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta).
+The latest beta release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta).
+
+-  [Features](#beta-changelog)
 
 -  [Features](#features)
 
@@ -26,6 +28,42 @@ The latest beta release can be found [here](https://github.com/jugeeya/UltimateT
 -  [Frequently Asked Questions](#faq)
 
 -  [Build Instructions](#build)
+
+<a name="beta-changelog"/>
+
+# Beta Changelog
+These are the features that can be found [in the latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta) that are not in the stable release. 
+
+### Features
+* Added option for CPU to crouch when grounded
+* Improved web menu UI
+* Added Mash Triggers feature, allowing configuration of when the CPU performs mash options
+* Add ability to perform mash option after ledge trump, footstool, clatter, hitstun, tumble, and within certain distances
+* Allow configurable button combinations for save states and opening the menu
+* Prevent star ko's in training mode
+* Allow user to select random damage values on save state load
+* Clear articles like boomerang, anvil, hydrant when loading save states (crafting table excluded)
+* Display frame advantage as a notification textbox
+* Greatly improved UI and speed for the quick menu
+* Add option to toggle off HUD
+
+### Bugfixes
+* No longer change pokemon when loading a save state with PT
+* Mash options are no longer buffered when loading a save state
+* Fixed issue where input delay menu selection would not be respected 
+* Fixed bug where Pac-Man fruit preparedness wasn't saved in state
+* Fixed bug where items would deplete shields set to "Infinite"
+* Fixed bug where back button would not work with touch screen
+* Fix Joycon controllers with input delay
+* Fix issue where CPU would perform options out of Snake's down throw too early
+* Fix issue where CPU could tech untechables
+* Fixed several bugs when loading a save state on ledge
+* When loading mirrors save states on asymmetric stages, mirror around the stage center
+* Fixes to Quick Menu when using joycons
+
+### Adjustments
+* Adjust clatter strength values
+* Update infinite shield compatibility with modded gameplay
 
 <a name="features"/>
 
