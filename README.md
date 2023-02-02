@@ -19,7 +19,7 @@ The latest stable release can be found [here](https://github.com/jugeeya/Ultimat
 
 The latest beta release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta).
 
--  [Features](#beta-changelog)
+-  [Beta Changelog](#beta-changelog)
 
 -  [Features](#features)
 
