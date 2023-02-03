@@ -371,13 +371,13 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 
                         match gauge_vals.state {
                             GaugeState::MinHover | GaugeState::MinSelected => {
-                                text_pane.m_bits |= 1 << TextBoxFlag::ShadowEnabled as u8;
-                                text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+                                text_pane.text_shadow_enable(true);
+                                text_pane.text_outline_enable(true);
                                 text_pane.set_color(255, 255, 255, 255);
                             }
                             _ => {
-                                text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::ShadowEnabled as u8);
-                                text_pane.m_bits |= 1 << TextBoxFlag::InvisibleBorderEnabled as u8;
+                                text_pane.text_shadow_enable(false);
+                                text_pane.text_outline_enable(false);
                                 text_pane.set_color(85, 89, 92, 255);
                             }
                         }
@@ -387,13 +387,13 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 
                         match gauge_vals.state {
                             GaugeState::MaxHover | GaugeState::MaxSelected => {
-                                text_pane.m_bits |= 1 << TextBoxFlag::ShadowEnabled as u8;
-                                text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+                                text_pane.text_shadow_enable(true);
+                                text_pane.text_outline_enable(true);
                                 text_pane.set_color(255, 255, 255, 255);
                             }
                             _ => {
-                                text_pane.m_bits |= 1 << TextBoxFlag::InvisibleBorderEnabled as u8;
-                                text_pane.m_bits = text_pane.m_bits & !(1 << TextBoxFlag::ShadowEnabled as u8);
+                                text_pane.text_shadow_enable(false);
+                                text_pane.text_outline_enable(false);
                                 text_pane.set_color(85, 89, 92, 255);
                             }
                         }
@@ -591,23 +591,23 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         ));
         let help_pane = build!(help_block, ResTextBox, kind, TextBox);
         help_pane.set_text_string("abcd");
-        let it = help_pane.m_text_buf as *mut u16;
+        let it = help_pane.text_buf as *mut u16;
         match txt_idx {
             // Left Tab: ZL
             0 => {
                 *it = 0xE0E6;
                 *(it.add(1)) = 0x0;
-                help_pane.m_text_len = 1;
+                help_pane.text_len = 1;
             }
             1 => {
                 *it = 0x0;
-                help_pane.m_text_len = 0;
+                help_pane.text_len = 0;
             }
             // Right Tab: ZR
             2 => {
                 *it = 0xE0E7;
                 *(it.add(1)) = 0x0;
-                help_pane.m_text_len = 1;
+                help_pane.text_len = 1;
             }
             _ => {}
         }
@@ -814,21 +814,15 @@ pub static BUILD_SLIDER_TXTS: ui::PaneCreationCallback = |_, root_pane, original
         ));
         label_block.font_size = ResVec2::new(25.0, 50.0);
 
-        // Aligns text to the center horizontally
-        label_block.text_position = 4;
-
-        label_block.shadow_offset = ResVec2::new(4.0, -3.0);
-        label_block.shadow_cols = [BLACK, BLACK];
-        label_block.shadow_scale = ResVec2::new(1.0, 1.0);
-
         let label_pane = build!(label_block, ResTextBox, kind, TextBox);
 
         label_pane.set_text_string(format!("Slider opt {idx}!").as_str());
         // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
         label_pane.set_default_material_colors();
         label_pane.set_color(85, 89, 92, 255);
-        // Turns on text outline
-        label_pane.m_bits = label_pane.m_bits & !(1 << TextBoxFlag::InvisibleBorderEnabled as u8);
+        label_pane.text_outline_enable(true);
+        label_pane.set_text_shadow(ResVec2::new(4.0, -3.0), ResVec2::new(1.0, 1.0), [BLACK, BLACK], 0.0);
+        label_pane.set_text_alignment(HorizontalPosition::Left, VerticalPosition::Top);
         label_pane.detach();
 
         slider_root_pane.append_child(label_pane);
