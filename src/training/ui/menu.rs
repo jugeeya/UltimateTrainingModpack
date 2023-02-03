@@ -286,9 +286,15 @@ pub unsafe fn draw(root_pane: &mut Pane) {
                     }
                     bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
                     bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                    text.text_shadow_enable(true);
+                    text.text_outline_enable(true);
+                    text.set_color(255, 255, 255, 255);
                 } else {
                     bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
                     bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                    text.text_shadow_enable(false);
+                    text.text_outline_enable(false);
+                    text.set_color(85, 89, 92, 255);
                 }
 
                 bg_left.set_visible(true);
@@ -309,6 +315,17 @@ pub unsafe fn draw(root_pane: &mut Pane) {
                     {
                         let text = text.as_textbox();
                         text.set_text_string(name);
+
+                        if is_selected {
+                            text.text_shadow_enable(true);
+                            text.text_outline_enable(true);
+                            text.set_color(255, 255, 255, 255);
+                        } else {
+                            text.text_shadow_enable(false);
+                            text.text_outline_enable(false);
+                            text.set_color(85, 89, 92, 255);
+                        }
+
                         text.set_visible(true);
                     }
 
@@ -637,7 +654,6 @@ pub static BUILD_OPT_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
 
         let block = block as *mut ResTextBox;
         let mut text_block = *block;
-        text_block.enable_shadow();
         text_block.text_alignment(TextAlignment::Center);
 
         text_block.set_name(menu_text_name_fmt!(x, y));
@@ -653,7 +669,9 @@ pub static BUILD_OPT_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         text_pane.set_text_string(format!("Opt {txt_idx}!").as_str());
         // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
         text_pane.set_default_material_colors();
-        text_pane.set_color(255, 255, 255, 255);
+        text_pane.set_color(85, 89, 92, 255);
+        text_pane.set_text_shadow(ResVec2::new(4.0, -3.0), ResVec2::new(1.0, 1.0), [BLACK, BLACK], 0.0);
+        text_pane.set_text_alignment(HorizontalPosition::Center, VerticalPosition::Center);
         text_pane.detach();
         menu_pane.append_child(text_pane);
 
