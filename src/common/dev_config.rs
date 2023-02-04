@@ -33,8 +33,24 @@ pub struct DevConfig {
 }
 
 lazy_static! {
-    pub static ref DEV_CONFIG : Mutex<DevConfig> = Mutex::new(DevConfig::default());
+    pub static ref DEV_CONFIG : Mutex<DevConfig> = Mutex::new(DevConfig::load_from_toml());
     pub static ref DEV_CONFIG_STR : Mutex<String> = Mutex::new("".to_string());
+}
+
+impl DevConfig {
+    fn load_from_toml() -> DevConfig {
+        let dev_path = "sd:/TrainingModpack/dev.toml";
+
+        if fs::metadata(dev_path).is_ok() {
+
+            info!("Loading dev.toml configs...");
+            let dev_config_str = fs::read_to_string(dev_path).unwrap_or_else(|_| panic!("Could not read {}", dev_path));
+            
+            return toml::from_str(&dev_config_str).expect("Could not parse dev config");
+        }
+        
+        DevConfig::default()
+    }
 }
 
 pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
@@ -48,13 +64,10 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
 
     // Occurs on L+R+A
     if (buttons & a_press > 0) && (buttons & l_press > 0) && (buttons & r_press > 0) {
-        let dev_path = "sd:/TrainingModpack/dev.toml";
-        if fs::metadata(dev_path).is_ok() {
-            info!("Loading dev.toml configs...");
-            let mut dev_config_str = DEV_CONFIG_STR.lock();
-            *dev_config_str = fs::read_to_string(dev_path).unwrap_or_else(|_| panic!("Could not remove {}", dev_path));
+
+
             let mut dev_config = DEV_CONFIG.lock();
-            *dev_config = toml::from_str(&dev_config_str).expect("Could not parse dev config");
+            *dev_config = DevConfig::load_from_toml();
         }
     }
 }
