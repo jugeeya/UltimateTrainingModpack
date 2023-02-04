@@ -1,6 +1,4 @@
-use crate::common::{
-    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
-};
+use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, dev_config};
 use crate::hitbox_visualizer;
 use crate::logging::*;
 use crate::training::character_specific::items;
@@ -482,13 +480,14 @@ extern "C" {
 pub fn training_mods() {
     info!("Applying training mods.");
 
-    // Input Recording/Delay
+    // Input Mods
     unsafe {
         if (add_nn_hid_hook as *const ()).is_null() {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
         add_nn_hid_hook(menu::handle_get_npad_state);
+        add_nn_hid_hook(dev_config::handle_get_npad_state);
     }
 
     unsafe {

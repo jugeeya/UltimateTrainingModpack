@@ -4,6 +4,7 @@ pub mod events;
 pub mod menu;
 pub mod raygun_printer;
 pub mod release;
+pub mod dev_config;
 
 use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
