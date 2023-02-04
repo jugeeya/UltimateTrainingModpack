@@ -32,7 +32,7 @@ use toml;
 pub struct DevConfig {
 }
 
-pub fn config() -> &'static DevConfig {
+pub unsafe config() -> &'static DevConfig {
     &*DEV_CONFIG.data_ptr()
 }
 
