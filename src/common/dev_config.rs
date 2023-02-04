@@ -32,6 +32,10 @@ use toml;
 pub struct DevConfig {
 }
 
+pun fn config() -> &DevConfig {
+    &*DEV_CONFIG.data_ptr()
+}
+
 lazy_static! {
     pub static ref DEV_CONFIG : Mutex<DevConfig> = Mutex::new(DevConfig::load_from_toml());
     pub static ref DEV_CONFIG_STR : Mutex<String> = Mutex::new("".to_string());
