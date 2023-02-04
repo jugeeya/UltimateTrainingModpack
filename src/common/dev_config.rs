@@ -68,6 +68,6 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
 
             let mut dev_config = DEV_CONFIG.lock();
             *dev_config = DevConfig::load_from_toml();
-        }
+
     }
 }
