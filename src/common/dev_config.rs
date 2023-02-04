@@ -24,9 +24,9 @@ use toml;
 ///
 /// In another file such as `ui2d/menu.rs`:
 /// ```rust
-/// let dev_config = crate::dev_config::DEV_CONFIG.data_ptr();
-/// quit_menu_button.pos_y = (*dev_config).quit_menu_pos_y;
-/// quit_menu_text.as_textbox().set_text_string(&(*dev_config).quit_menu_title);
+/// let dev_config = crate::dev_config::config();
+/// quit_menu_button.pos_y = dev_config.quit_menu_pos_y;
+/// quit_menu_text.as_textbox().set_text_string(&dev_config.quit_menu_title);
 /// ```
 #[derive(Deserialize, Default)]
 pub struct DevConfig {
@@ -44,12 +44,9 @@ lazy_static! {
 impl DevConfig {
     fn load_from_toml() -> DevConfig {
         let dev_path = "sd:/TrainingModpack/dev.toml";
-
         if fs::metadata(dev_path).is_ok() {
-
             info!("Loading dev.toml configs...");
             let dev_config_str = fs::read_to_string(dev_path).unwrap_or_else(|_| panic!("Could not read {}", dev_path));
-            
             return toml::from_str(&dev_config_str).expect("Could not parse dev config");
         }
         
@@ -68,10 +65,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
 
     // Occurs on L+R+A
     if (buttons & a_press > 0) && (buttons & l_press > 0) && (buttons & r_press > 0) {
-
-
-            let mut dev_config = DEV_CONFIG.lock();
-            *dev_config = DevConfig::load_from_toml();
-
+        let mut dev_config = DEV_CONFIG.lock();
+        *dev_config = DevConfig::load_from_toml();
     }
 }
