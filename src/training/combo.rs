@@ -1,4 +1,5 @@
 use skyline::nn::ui2d::ResColor;
+use training_mod_consts::OnOff;
 use crate::common::consts::FighterId;
 use crate::common::*;
 use crate::training::*;
@@ -50,18 +51,20 @@ fn update_frame_advantage(new_frame_adv: i32) {
     unsafe {
         FRAME_ADVANTAGE = new_frame_adv;
         FRAME_ADVANTAGE_STR = String::new();
-        FRAME_ADVANTAGE_STR.push_str(&format!("{}", FRAME_ADVANTAGE));
-        ui::notifications::clear_notifications("Frame Advantage");
-        ui::notifications::color_notification(
-            "Frame Advantage",
-            &FRAME_ADVANTAGE_STR,
-            60,
-            match FRAME_ADVANTAGE {
-                x if x < 0 => ResColor{r: 200, g: 8, b: 8, a: 255},
-                x if x == 0 => ResColor{r: 0, g: 0, b: 0, a: 255},
-                _ => ResColor{r: 31, g: 198, b: 0, a: 255},
-            }
-        );
+        FRAME_ADVANTAGE_STR.push_str(&format!("{FRAME_ADVANTAGE}"));
+        if MENU.frame_advantage == OnOff::On {
+            ui::notifications::clear_notifications("Frame Advantage");
+            ui::notifications::color_notification(
+                "Frame Advantage",
+                &FRAME_ADVANTAGE_STR,
+                60,
+                match FRAME_ADVANTAGE {
+                    x if x < 0 => ResColor { r: 200, g: 8, b: 8, a: 255 },
+                    x if x == 0 => ResColor { r: 0, g: 0, b: 0, a: 255 },
+                    _ => ResColor { r: 31, g: 198, b: 0, a: 255 },
+                }
+            );
+        }
     }
 }
 
