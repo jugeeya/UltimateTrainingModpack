@@ -14,11 +14,12 @@ type PaneCreationCallback = for<'a, 'b> unsafe fn(&'a str, &'b mut Pane,
                                                   extern "C" fn(*mut Layout, *mut u8, *const u8, *mut ResPane, *const u8, *const u8, *const u8, u32) -> *mut Pane,
                                                   *mut Layout, *mut u8, *const u8, *mut ResPane,
                                                   *const u8, *const u8, *const u8, u32);
+type PaneCreationMap =  HashMap<
+    (String, String), Vec<(bool, PaneCreationCallback)>
+>;
 
 lazy_static::lazy_static! {
-    static ref PANE_CREATED: Mutex<HashMap<
-        (String, String), Vec<(bool, PaneCreationCallback)>
-    >> = Mutex::new(HashMap::from([
+    static ref PANE_CREATED: Mutex<PaneCreationMap> = Mutex::new(HashMap::from([
         (
             (String::from("info_training"), String::from("pic_numbase_01")),
             vec![

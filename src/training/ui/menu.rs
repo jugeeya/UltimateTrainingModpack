@@ -11,6 +11,14 @@ pub static NUM_MENU_TABS: usize = 3;
 
 pub static mut HAS_SORTED_MENU_CHILDREN: bool = false;
 
+pub static mut MENU_PANE_PTR: u64 = 0;
+const MENU_POS : ResVec3 = ResVec3 {
+    x: -360.0,
+    y: 440.0,
+    z: 0.0
+};
+
+
 const BG_LEFT_ON_WHITE_COLOR: ResColor = ResColor {
     r: 0,
     g: 28,
@@ -60,6 +68,11 @@ const BLACK: ResColor = ResColor {
     a: 255,
 };
 
+pub static mut MENU_NAME : &str = "trMod_menu";
+pub static mut SLIDER_MENU_NAME : &str = "slider_menu";
+pub static mut SLIDER_TITLE_NAME : &str = "slider_title";
+pub static mut SLIDER_UI_CONTAINER_NAME : &str = "slider_ui_container";
+
 macro_rules! menu_text_name_fmt {
     ($x:ident, $y:ident) => {
         format!("trMod_menu_opt_{}_{}", $x, $y).as_str()
@@ -84,6 +97,18 @@ macro_rules! menu_text_bg_back_fmt {
     };
 }
 
+macro_rules! menu_tab_fmt {
+    ($x:ident) => {
+        format!("trMod_menu_tab_{}", $x).as_str()
+    };
+}
+
+macro_rules! menu_tab_help_fmt {
+    ($x:ident) => {
+        format!("trMod_menu_tab_help_{}", $x).as_str()
+    };
+}
+
 macro_rules! menu_text_slider_fmt {
     ($x:ident) => {
         format!("trMod_menu_slider_{}", $x).as_str()
@@ -93,6 +118,18 @@ macro_rules! menu_text_slider_fmt {
 macro_rules! menu_slider_label_fmt {
     ($x:ident) => {
         format!("trMod_menu_slider_{}_lbl", $x).as_str()
+    };
+}
+
+macro_rules! menu_slider_button_label_fmt {
+    ($x:ident) => {
+        format!("slider_item_btn_{}_lbl", $x).as_str()
+    };
+}
+
+macro_rules! menu_slider_button_fg_fmt {
+    ($x:ident) => {
+        format!("slider_btn_fg_{}_lbl", $x).as_str()
     };
 }
 
@@ -176,7 +213,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
         }
     }
 
-    let menu_pane = root_pane.find_pane_by_name_recursive("trMod_menu").unwrap();
+    let menu_pane = root_pane.find_pane_by_name_recursive(MENU_NAME).unwrap();
     menu_pane.set_visible(QUICK_MENU_ACTIVE);
 
     if !HAS_SORTED_MENU_CHILDREN {
@@ -216,7 +253,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
     });
 
     root_pane
-            .find_pane_by_name_recursive("slider_menu")
+            .find_pane_by_name_recursive(SLIDER_MENU_NAME)
             .map(|pane| pane.set_visible(false));
 
     let app_tabs = &app.tabs.items;
@@ -362,22 +399,22 @@ pub unsafe fn draw(root_pane: &mut Pane) {
                 });
         });
     } else {
-        let (_title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
+        let (title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
         let selected_min = gauge_vals.selected_min;
         let selected_max = gauge_vals.selected_max;
 
-        if let Some(pane) = root_pane.find_pane_by_name_recursive("slider_menu") {
+        if let Some(pane) = root_pane.find_pane_by_name_recursive(SLIDER_MENU_NAME) {
             pane.set_visible(true);
         }
 
-        if let Some(text) = root_pane.find_pane_by_name_recursive("slider_title") {
+        if let Some(text) = root_pane.find_pane_by_name_recursive(SLIDER_TITLE_NAME) {
             let text = text.as_textbox();
-            text.set_text_string(&format!("{_title}"));
+            text.set_text_string(title);
         }
 
         (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
             if let Some(text_pane) = root_pane.find_pane_by_name_recursive(
-                format!("trMod_menu_slider_{}_lbl", index).as_str(),
+                menu_slider_label_fmt!(index),
             ) {
                 let text_pane = text_pane.as_textbox();
                 text_pane.set_visible(true);
@@ -420,7 +457,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
             }
 
             if let Some(text_pane) = root_pane
-                .find_pane_by_name_recursive(format!("trMod_menu_slider_{}", index).as_str())
+                .find_pane_by_name_recursive(menu_text_slider_fmt!(index))
             {
                 let text_pane = text_pane.as_textbox();
                 text_pane.set_visible(true);
@@ -433,7 +470,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
             }
 
             if let Some(bg_left) = root_pane
-                .find_pane_by_name_recursive(format!("slider_btn_fg_{}", index).as_str())
+                .find_pane_by_name_recursive(menu_slider_button_fg_fmt!(index))
             {
                 let bg_left_material = &mut *bg_left.as_picture().material;
 
@@ -474,13 +511,6 @@ pub unsafe fn draw(root_pane: &mut Pane) {
     }
 }
 
-pub static mut MENU_PANE_PTR: u64 = 0;
-const MENU_POS : ResVec3 = ResVec3 {
-    x: -360.0,
-    y: 440.0,
-    z: 0.0
-};
-
 pub static BUILD_CONTAINER_PANE: ui::PaneCreationCallback = |_, root_pane, original_build, layout, out_build_result_information, device, _block, parts_build_data_set, build_arg_set, build_res_set, _kind| unsafe {
     macro_rules! build {
         ($block: ident, $resTyp: ty, $kind:ident, $typ: ty) => {
@@ -492,7 +522,7 @@ pub static BUILD_CONTAINER_PANE: ui::PaneCreationCallback = |_, root_pane, origi
 
     // Let's create our parent display pane here.
     let menu_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
-    let mut menu_pane_block = ResPane::new("trMod_menu");
+    let mut menu_pane_block = ResPane::new(MENU_NAME);
     // Overall menu pane @ 0,0 to reason about positions globally
     menu_pane_block.set_pos(ResVec3::default());
     let menu_pane = build!(menu_pane_block, ResPane, menu_pane_kind, Pane);
@@ -516,7 +546,7 @@ pub static BUILD_FOOTER_BG: ui::PaneCreationCallback = |_, root_pane, original_b
         };
     }
 
-    let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+    let menu_pane = root_pane.find_pane_by_name(MENU_NAME, true).unwrap();
     let block = block as *mut ResPictureWithTex<1>;
     // For menu backing
     let mut pic_menu_block = *block;
@@ -536,7 +566,7 @@ pub static BUILD_FOOTER_TXT: ui::PaneCreationCallback = |_, root_pane, original_
         };
     }
 
-    let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+    let menu_pane = root_pane.find_pane_by_name(MENU_NAME, true).unwrap();
 
     let block = block as *mut ResTextBox;
     let mut text_block = *block;
@@ -562,7 +592,7 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
     }
 
     (0..NUM_MENU_TABS).for_each(|txt_idx| {
-        let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+        let menu_pane = root_pane.find_pane_by_name(MENU_NAME, true).unwrap();
 
         let block = block as *mut ResTextBox;
         let mut text_block = *block;
@@ -570,7 +600,7 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         text_block.text_alignment(TextAlignment::Center);
 
         let x = txt_idx;
-        text_block.set_name(format!("trMod_menu_tab_{x}").as_str());
+        text_block.set_name(menu_tab_fmt!(x));
 
         let mut x_offset = x as f32 * 300.0;
         // Center current tab since we don't have a help key
@@ -598,7 +628,7 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         help_block.font_idx = 2;
 
         let x = txt_idx;
-        help_block.set_name(format!("trMod_menu_tab_help_{x}").as_str());
+        help_block.set_name(menu_tab_help_fmt!(x));
 
         let x_offset = x as f32 * 300.0;
         help_block.set_pos(ResVec3::new(
@@ -607,7 +637,7 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
             0.0,
         ));
         let help_pane = build!(help_block, ResTextBox, kind, TextBox);
-        help_pane.set_text_string("abcd");
+        help_pane.set_text_string("Help Buttons");
         let it = help_pane.text_buf as *mut u16;
         match txt_idx {
             // Left Tab: ZL
@@ -650,7 +680,7 @@ pub static BUILD_OPT_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         let x = txt_idx % 3;
         let y = txt_idx / 3;
 
-        let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+        let menu_pane = root_pane.find_pane_by_name(MENU_NAME, true).unwrap();
 
         let block = block as *mut ResTextBox;
         let mut text_block = *block;
@@ -704,12 +734,9 @@ pub static BUILD_SLIDER_CONTAINER_PANE: ui::PaneCreationCallback = |_, root_pane
         };
     }
 
-    let slider_root_name = "slider_menu";
-    let slider_container_name = "slider_ui_container";
-
-    let menu_pane = root_pane.find_pane_by_name("trMod_menu", true).unwrap();
+    let menu_pane = root_pane.find_pane_by_name(MENU_NAME, true).unwrap();
     let slider_ui_root_pane_kind = u32::from_le_bytes([b'p', b'a', b'n', b'1']);
-    let mut slider_ui_root_block = ResPane::new(slider_root_name);
+    let mut slider_ui_root_block = ResPane::new(SLIDER_MENU_NAME);
 
     slider_ui_root_block.set_pos(ResVec3::default());
 
@@ -727,7 +754,7 @@ pub static BUILD_SLIDER_CONTAINER_PANE: ui::PaneCreationCallback = |_, root_pane
 
     let mut picture_block = *block;
 
-    picture_block.set_name(slider_container_name);
+    picture_block.set_name(SLIDER_UI_CONTAINER_NAME);
     picture_block.set_size(ResVec2::new(675.0, 300.0));
     picture_block.set_pos(ResVec3::new(-530.0, 180.0, 0.0));
     picture_block.tex_coords = [
@@ -751,20 +778,19 @@ pub static BUILD_SLIDER_HEADER_TXT: ui::PaneCreationCallback = |_, root_pane, or
         };
     }
 
-    let slider_root_name = "slider_menu";
-    let container_pane = root_pane.find_pane_by_name(slider_root_name, true).unwrap();
+    let container_pane = root_pane.find_pane_by_name(SLIDER_MENU_NAME, true).unwrap();
 
     let block = block as *mut ResTextBox;
     let mut title_block = *block;
 
-    title_block.set_name("slider_title");
+    title_block.set_name(SLIDER_TITLE_NAME);
     title_block.set_pos(ResVec3::new(-530.0, 285.0, 0.0));
     title_block.set_size(ResVec2::new(550.0, 100.0));
     title_block.font_size = ResVec2::new(50.0, 100.0);
 
     let title_pane = build!(title_block, ResTextBox, kind, TextBox);
 
-    title_pane.set_text_string(format!("Slider Title").as_str());
+    title_pane.set_text_string("Slider title!");
 
     // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
     title_pane.set_default_material_colors();
@@ -784,17 +810,14 @@ pub static BUILD_SLIDER_TXTS: ui::PaneCreationCallback = |_, root_pane, original
         };
     }
 
-    let slider_root_name = "slider_menu";
-    let slider_container_name = "slider_ui_container";
-
     (0..NUM_MENU_TEXT_SLIDERS).for_each(|idx| {
         let x = idx % 2;
 
         let label_x_offset = x as f32 * 345.0;
 
-        let slider_root_pane = root_pane.find_pane_by_name(slider_root_name, true).unwrap();
+        let slider_root_pane = root_pane.find_pane_by_name(SLIDER_MENU_NAME, true).unwrap();
         let slider_container = root_pane
-            .find_pane_by_name(slider_container_name, true)
+            .find_pane_by_name(SLIDER_UI_CONTAINER_NAME, true)
             .unwrap();
 
         let block = block as *mut ResTextBox;
@@ -885,17 +908,17 @@ pub static BUILD_BG_LEFTS: ui::PaneCreationCallback = |_, _, original_build, lay
 
         if MENU_PANE_PTR != 0 {
             let slider_root = (*(MENU_PANE_PTR as *mut Pane))
-                .find_pane_by_name("slider_menu", true)
+                .find_pane_by_name(SLIDER_MENU_NAME, true)
                 .unwrap();
             let slider_bg = (*(MENU_PANE_PTR as *mut Pane))
-                .find_pane_by_name("slider_ui_container", true)
+                .find_pane_by_name(SLIDER_UI_CONTAINER_NAME, true)
                 .unwrap();
             let x_offset = x as f32 * 345.0;
 
             let block = block as *mut ResPictureWithTex<2>;
             let mut pic_menu_block = *block;
 
-            pic_menu_block.set_name(format!("slider_btn_fg_{}", index).as_str());
+            pic_menu_block.set_name(menu_slider_button_fg_fmt!(index));
 
             pic_menu_block.picture.scale_x /= 1.85;
             pic_menu_block.picture.scale_y /= 1.25;
@@ -952,10 +975,10 @@ pub static BUILD_BG_BACKS: ui::PaneCreationCallback = |_, _, original_build, lay
 
         if MENU_PANE_PTR != 0 {
             let slider_root = (*(MENU_PANE_PTR as *mut Pane))
-                .find_pane_by_name("slider_menu", true)
+                .find_pane_by_name(SLIDER_MENU_NAME, true)
                 .unwrap();
             let slider_bg = (*(MENU_PANE_PTR as *mut Pane))
-                .find_pane_by_name("slider_ui_container", true)
+                .find_pane_by_name(SLIDER_UI_CONTAINER_NAME, true)
                 .unwrap();
 
             let size_y = 90.0;
@@ -965,7 +988,7 @@ pub static BUILD_BG_BACKS: ui::PaneCreationCallback = |_, _, original_build, lay
             let block = block as *mut ResWindowWithTexCoordsAndFrames<1, 4>;
             let mut bg_block = *block;
 
-            bg_block.set_name(format!("slider_item_btn_{}", index).as_str());
+            bg_block.set_name(menu_slider_button_label_fmt!(index));
             bg_block.scale_x /= 2.0;
 
             bg_block.set_size(ResVec2::new(605.0, size_y));

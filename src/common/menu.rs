@@ -325,7 +325,7 @@ pub unsafe fn quick_menu_loop() {
                     QUICK_MENU_ACTIVE = false;
                     let menu_json = app.get_menu_selections();
                     set_menu_from_json(&menu_json);
-                    EVENT_QUEUE.push(Event::menu_open(menu_json.to_string()));
+                    EVENT_QUEUE.push(Event::menu_open(menu_json));
                 }
             });
             button_presses.x.read_press().then(|| {
@@ -389,7 +389,7 @@ unsafe fn spawn_web_session(session: WebSession) {
     session.exit();
     session.wait_for_exit();
     set_menu_from_json(&message_recv);
-    EVENT_QUEUE.push(Event::menu_open(message_recv.to_string()));
+    EVENT_QUEUE.push(Event::menu_open(message_recv));
 }
 
 unsafe fn new_web_session(hidden: bool) -> WebSession {

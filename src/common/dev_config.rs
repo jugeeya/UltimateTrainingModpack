@@ -38,7 +38,6 @@ pub unsafe fn config() -> &'static DevConfig {
 
 lazy_static! {
     pub static ref DEV_CONFIG : Mutex<DevConfig> = Mutex::new(DevConfig::load_from_toml());
-    pub static ref DEV_CONFIG_STR : Mutex<String> = Mutex::new("".to_string());
 }
 
 impl DevConfig {
