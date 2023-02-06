@@ -700,7 +700,7 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         menu_pane.append_child(help_pane);
 
         // Let's also make defaults help buttons below
-        text_block.pos.y = text_block.pos.y - 45.0;
+        text_block.pos.y -= 45.0;
         // Uncenter from above
         if x == 1 {
             text_block.pos.x += 25.0;
@@ -723,7 +723,7 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         text_pane.detach();
         menu_pane.append_child(text_pane);
 
-        help_block.pos.y = help_block.pos.y - 45.0;
+        help_block.pos.y -= 45.0;
         help_block.set_name(defaults_help_button!(txt_idx));
         let help_pane = build!(help_block, ResTextBox, kind, TextBox);
         help_pane.set_text_string("Help Button");
