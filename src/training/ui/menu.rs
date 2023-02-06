@@ -1,7 +1,7 @@
 use crate::{common::menu::QUICK_MENU_ACTIVE};
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use training_mod_tui::AppPage;
+use training_mod_tui::{App, AppPage};
 use training_mod_tui::gauge::GaugeState;
 use crate::training::ui;
 
@@ -109,6 +109,24 @@ macro_rules! menu_tab_help_fmt {
     };
 }
 
+macro_rules! defaults_help_text {
+    ($x:ident) => {
+        format!("defaults_help_txt_{}", $x).as_str()
+    };
+    ($x:literal) => {
+        format!("defaults_help_txt_{}", $x).as_str()
+    };
+}
+
+macro_rules! defaults_help_button {
+    ($x:ident) => {
+        format!("defaults_help_btn_{}", $x).as_str()
+    };
+    ($x:literal) => {
+        format!("defaults_help_txt_{}", $x).as_str()
+    };
+}
+
 macro_rules! menu_text_slider_fmt {
     ($x:ident) => {
         format!("trMod_menu_slider_{}", $x).as_str()
@@ -186,6 +204,244 @@ pub unsafe fn all_menu_panes_sorted(root_pane: &Pane) -> Vec<&mut Pane> {
     });
 
     panes
+}
+
+unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
+    let tab_selected = app.tab_selected();
+    let tab = app.menu_items.get(tab_selected).unwrap();
+
+    (0..NUM_MENU_TEXT_OPTIONS)
+        // Valid options in this submenu
+        .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
+        .map(|(list_section, list_idx)| {
+            (
+                list_section,
+                list_idx,
+                root_pane
+                    .find_pane_by_name_recursive(menu_text_name_fmt!(
+                            list_section,
+                            list_idx
+                        ))
+                    .unwrap(),
+                root_pane
+                    .find_pane_by_name_recursive(menu_text_bg_left_fmt!(
+                            list_section,
+                            list_idx
+                        ))
+                    .unwrap(),
+                root_pane
+                    .find_pane_by_name_recursive(menu_text_bg_back_fmt!(
+                            list_section,
+                            list_idx
+                        ))
+                    .unwrap(),
+            )
+        })
+        .for_each(|(list_section, list_idx, text, bg_left, bg_back)| {
+            let list = &tab.lists[list_section];
+            let submenu = &list.items[list_idx];
+            let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
+            let text = text.as_textbox();
+            text.set_text_string(submenu.submenu_title);
+            text.set_visible(true);
+            let bg_left_material = &mut *bg_left.as_picture().material;
+            if is_selected {
+                if let Some(footer) =
+                    root_pane.find_pane_by_name_recursive("trMod_menu_footer_txt")
+                {
+                    footer.as_textbox().set_text_string(submenu.help_text);
+                }
+                bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                text.text_shadow_enable(true);
+                text.text_outline_enable(true);
+                text.set_color(255, 255, 255, 255);
+            } else {
+                bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                text.text_shadow_enable(false);
+                text.text_outline_enable(false);
+                text.set_color(85, 89, 92, 255);
+            }
+
+            bg_left.set_visible(true);
+            bg_back.set_visible(true);
+        });
+}
+
+unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
+    let (_title, _help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
+    (0..sub_menu_str_lists.len()).for_each(|list_section| {
+        let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
+        let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
+        sub_menu_str
+            .iter()
+            .enumerate()
+            .for_each(|(idx, (checked, name))| {
+                let is_selected = sub_menu_state.selected().filter(|s| *s == idx).is_some();
+                if let Some(text) = root_pane
+                    .find_pane_by_name_recursive(menu_text_name_fmt!(list_section, idx))
+                {
+                    let text = text.as_textbox();
+                    text.set_text_string(name);
+
+                    if is_selected {
+                        text.text_shadow_enable(true);
+                        text.text_outline_enable(true);
+                        text.set_color(255, 255, 255, 255);
+                    } else {
+                        text.text_shadow_enable(false);
+                        text.text_outline_enable(false);
+                        text.set_color(85, 89, 92, 255);
+                    }
+
+                    text.set_visible(true);
+                }
+
+                if let Some(bg_left) = root_pane
+                    .find_pane_by_name_recursive(menu_text_bg_left_fmt!(list_section, idx))
+                {
+                    let bg_left_material = &mut *bg_left.as_picture().material;
+                    if is_selected {
+                        bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                    } else {
+                        bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                    }
+                    bg_left.set_visible(true);
+                }
+
+                if let Some(bg_back) = root_pane
+                    .find_pane_by_name_recursive(menu_text_bg_back_fmt!(list_section, idx))
+                {
+                    bg_back.set_visible(true);
+                }
+
+                if let Some(check) = root_pane
+                    .find_pane_by_name_recursive(menu_text_check_fmt!(list_section, idx))
+                {
+                    if *checked {
+                        let check = check.as_textbox();
+
+                        check.set_text_string("+");
+                        check.set_visible(true);
+                    }
+                }
+            });
+    });
+}
+
+unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
+    let (title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
+    let selected_min = gauge_vals.selected_min;
+    let selected_max = gauge_vals.selected_max;
+
+    if let Some(pane) = root_pane.find_pane_by_name_recursive(SLIDER_MENU_NAME) {
+        pane.set_visible(true);
+    }
+
+    if let Some(text) = root_pane.find_pane_by_name_recursive(SLIDER_TITLE_NAME) {
+        let text = text.as_textbox();
+        text.set_text_string(title);
+    }
+
+    (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
+        if let Some(text_pane) = root_pane.find_pane_by_name_recursive(
+            menu_slider_label_fmt!(index),
+        ) {
+            let text_pane = text_pane.as_textbox();
+            text_pane.set_visible(true);
+
+            match index {
+                0 => {
+                    text_pane.set_text_string("Min");
+
+                    match gauge_vals.state {
+                        GaugeState::MinHover | GaugeState::MinSelected => {
+                            text_pane.text_shadow_enable(true);
+                            text_pane.text_outline_enable(true);
+                            text_pane.set_color(255, 255, 255, 255);
+                        }
+                        _ => {
+                            text_pane.text_shadow_enable(false);
+                            text_pane.text_outline_enable(false);
+                            text_pane.set_color(85, 89, 92, 255);
+                        }
+                    }
+                }
+                1 => {
+                    text_pane.set_text_string("Max");
+
+                    match gauge_vals.state {
+                        GaugeState::MaxHover | GaugeState::MaxSelected => {
+                            text_pane.text_shadow_enable(true);
+                            text_pane.text_outline_enable(true);
+                            text_pane.set_color(255, 255, 255, 255);
+                        }
+                        _ => {
+                            text_pane.text_shadow_enable(false);
+                            text_pane.text_outline_enable(false);
+                            text_pane.set_color(85, 89, 92, 255);
+                        }
+                    }
+                }
+                _ => panic!("Unexpected slider label index {}!", index),
+            }
+        }
+
+        if let Some(text_pane) = root_pane
+            .find_pane_by_name_recursive(menu_text_slider_fmt!(index))
+        {
+            let text_pane = text_pane.as_textbox();
+            text_pane.set_visible(true);
+
+            match index {
+                0 => text_pane.set_text_string(&format!("{selected_min}")),
+                1 => text_pane.set_text_string(&format!("{selected_max}")),
+                _ => panic!("Unexpected slider label index {}!", index),
+            }
+        }
+
+        if let Some(bg_left) = root_pane
+            .find_pane_by_name_recursive(menu_slider_button_fg_fmt!(index))
+        {
+            let bg_left_material = &mut *bg_left.as_picture().material;
+
+            match index {
+                0 => match gauge_vals.state {
+                    GaugeState::MinHover => {
+                        bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                    }
+                    GaugeState::MinSelected => {
+                        bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                    }
+                    _ => {
+                        bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                    }
+                },
+                1 => match gauge_vals.state {
+                    GaugeState::MaxHover => {
+                        bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                    }
+                    GaugeState::MaxSelected => {
+                        bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
+                    }
+                    _ => {
+                        bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                        bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                    }
+                },
+                _ => panic!("Unexpected slider label index {}!", index),
+            }
+            bg_left.set_visible(true);
+        }
+    });
 }
 
 pub unsafe fn draw(root_pane: &mut Pane) {
@@ -276,238 +532,11 @@ pub unsafe fn draw(root_pane: &mut Pane) {
             .map(|text| text.as_textbox().set_text_string(tab_titles[idx]));
     });
 
-    if app.page == AppPage::SUBMENU {
-        let tab_selected = app.tab_selected();
-        let tab = app.menu_items.get(tab_selected).unwrap();
-
-        (0..NUM_MENU_TEXT_OPTIONS)
-            // Valid options in this submenu
-            .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
-            .map(|(list_section, list_idx)| {
-                (
-                    list_section,
-                    list_idx,
-                    root_pane
-                        .find_pane_by_name_recursive(menu_text_name_fmt!(
-                            list_section,
-                            list_idx
-                        ))
-                        .unwrap(),
-                    root_pane
-                        .find_pane_by_name_recursive(menu_text_bg_left_fmt!(
-                            list_section,
-                            list_idx
-                        ))
-                        .unwrap(),
-                    root_pane
-                        .find_pane_by_name_recursive(menu_text_bg_back_fmt!(
-                            list_section,
-                            list_idx
-                        ))
-                        .unwrap(),
-                )
-            })
-            .for_each(|(list_section, list_idx, text, bg_left, bg_back)| {
-                let list = &tab.lists[list_section];
-                let submenu = &list.items[list_idx];
-                let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
-                let text = text.as_textbox();
-                text.set_text_string(submenu.submenu_title);
-                text.set_visible(true);
-                let bg_left_material = &mut *bg_left.as_picture().material;
-                if is_selected {
-                    if let Some(footer) =
-                        root_pane.find_pane_by_name_recursive("trMod_menu_footer_txt")
-                    {
-                        footer.as_textbox().set_text_string(submenu.help_text);
-                    }
-                    bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                    bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                    text.text_shadow_enable(true);
-                    text.text_outline_enable(true);
-                    text.set_color(255, 255, 255, 255);
-                } else {
-                    bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                    bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                    text.text_shadow_enable(false);
-                    text.text_outline_enable(false);
-                    text.set_color(85, 89, 92, 255);
-                }
-
-                bg_left.set_visible(true);
-                bg_back.set_visible(true);
-            });
-    } else if matches!(app.selected_sub_menu_slider.state, GaugeState::None) {
-        let (_title, _help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
-        (0..sub_menu_str_lists.len()).for_each(|list_section| {
-            let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
-            let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
-            sub_menu_str
-                .iter()
-                .enumerate()
-                .for_each(|(idx, (checked, name))| {
-                    let is_selected = sub_menu_state.selected().filter(|s| *s == idx).is_some();
-                    if let Some(text) = root_pane
-                        .find_pane_by_name_recursive(menu_text_name_fmt!(list_section, idx))
-                    {
-                        let text = text.as_textbox();
-                        text.set_text_string(name);
-
-                        if is_selected {
-                            text.text_shadow_enable(true);
-                            text.text_outline_enable(true);
-                            text.set_color(255, 255, 255, 255);
-                        } else {
-                            text.text_shadow_enable(false);
-                            text.text_outline_enable(false);
-                            text.set_color(85, 89, 92, 255);
-                        }
-
-                        text.set_visible(true);
-                    }
-
-                    if let Some(bg_left) = root_pane
-                        .find_pane_by_name_recursive(menu_text_bg_left_fmt!(list_section, idx))
-                    {
-                        let bg_left_material = &mut *bg_left.as_picture().material;
-                        if is_selected {
-                            bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                        } else {
-                            bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                        }
-                        bg_left.set_visible(true);
-                    }
-
-                    if let Some(bg_back) = root_pane
-                        .find_pane_by_name_recursive(menu_text_bg_back_fmt!(list_section, idx))
-                    {
-                        bg_back.set_visible(true);
-                    }
-
-                    if let Some(check) = root_pane
-                        .find_pane_by_name_recursive(menu_text_check_fmt!(list_section, idx))
-                    {
-                        if *checked {
-                            let check = check.as_textbox();
-
-                            check.set_text_string("+");
-                            check.set_visible(true);
-                        }
-                    }
-                });
-        });
-    } else {
-        let (title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
-        let selected_min = gauge_vals.selected_min;
-        let selected_max = gauge_vals.selected_max;
-
-        if let Some(pane) = root_pane.find_pane_by_name_recursive(SLIDER_MENU_NAME) {
-            pane.set_visible(true);
-        }
-
-        if let Some(text) = root_pane.find_pane_by_name_recursive(SLIDER_TITLE_NAME) {
-            let text = text.as_textbox();
-            text.set_text_string(title);
-        }
-
-        (0..NUM_MENU_TEXT_SLIDERS).for_each(|index| {
-            if let Some(text_pane) = root_pane.find_pane_by_name_recursive(
-                menu_slider_label_fmt!(index),
-            ) {
-                let text_pane = text_pane.as_textbox();
-                text_pane.set_visible(true);
-
-                match index {
-                    0 => {
-                        text_pane.set_text_string("Min");
-
-                        match gauge_vals.state {
-                            GaugeState::MinHover | GaugeState::MinSelected => {
-                                text_pane.text_shadow_enable(true);
-                                text_pane.text_outline_enable(true);
-                                text_pane.set_color(255, 255, 255, 255);
-                            }
-                            _ => {
-                                text_pane.text_shadow_enable(false);
-                                text_pane.text_outline_enable(false);
-                                text_pane.set_color(85, 89, 92, 255);
-                            }
-                        }
-                    }
-                    1 => {
-                        text_pane.set_text_string("Max");
-
-                        match gauge_vals.state {
-                            GaugeState::MaxHover | GaugeState::MaxSelected => {
-                                text_pane.text_shadow_enable(true);
-                                text_pane.text_outline_enable(true);
-                                text_pane.set_color(255, 255, 255, 255);
-                            }
-                            _ => {
-                                text_pane.text_shadow_enable(false);
-                                text_pane.text_outline_enable(false);
-                                text_pane.set_color(85, 89, 92, 255);
-                            }
-                        }
-                    }
-                    _ => panic!("Unexpected slider label index {}!", index),
-                }
-            }
-
-            if let Some(text_pane) = root_pane
-                .find_pane_by_name_recursive(menu_text_slider_fmt!(index))
-            {
-                let text_pane = text_pane.as_textbox();
-                text_pane.set_visible(true);
-
-                match index {
-                    0 => text_pane.set_text_string(&format!("{selected_min}")),
-                    1 => text_pane.set_text_string(&format!("{selected_max}")),
-                    _ => panic!("Unexpected slider label index {}!", index),
-                }
-            }
-
-            if let Some(bg_left) = root_pane
-                .find_pane_by_name_recursive(menu_slider_button_fg_fmt!(index))
-            {
-                let bg_left_material = &mut *bg_left.as_picture().material;
-
-                match index {
-                    0 => match gauge_vals.state {
-                        GaugeState::MinHover => {
-                            bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                        }
-                        GaugeState::MinSelected => {
-                            bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-                        }
-                        _ => {
-                            bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                        }
-                    },
-                    1 => match gauge_vals.state {
-                        GaugeState::MaxHover => {
-                            bg_left_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                        }
-                        GaugeState::MaxSelected => {
-                            bg_left_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-                        }
-                        _ => {
-                            bg_left_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                            bg_left_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                        }
-                    },
-                    _ => panic!("Unexpected slider label index {}!", index),
-                }
-                bg_left.set_visible(true);
-            }
-        });
+    match app.page {
+        AppPage::SUBMENU => render_submenu_page(app, root_pane),
+        AppPage::SLIDER => render_slider_page(app, root_pane),
+        AppPage::TOGGLE => render_toggle_page(app, root_pane),
+        AppPage::CONFIRMATION => todo!()
     }
 }
 
@@ -620,6 +649,9 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
         if txt_idx == 1 {
             text_pane.set_color(255, 255, 0, 255);
         }
+        text_pane.set_text_shadow(ResVec2::new(4.0, -3.0), ResVec2::new(1.0, 1.0), [BLACK, BLACK], 0.0);
+        text_pane.text_outline_enable(true);
+        text_pane.text_shadow_enable(true);
         text_pane.detach();
         menu_pane.append_child(text_pane);
 
@@ -637,7 +669,7 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
             0.0,
         ));
         let help_pane = build!(help_block, ResTextBox, kind, TextBox);
-        help_pane.set_text_string("Help Buttons");
+        help_pane.set_text_string("Help Button");
         let it = help_pane.text_buf as *mut u16;
         match txt_idx {
             // Left Tab: ZL
@@ -659,9 +691,58 @@ pub static BUILD_TAB_TXTS: ui::PaneCreationCallback = |_, root_pane, original_bu
             _ => {}
         }
 
-        // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
         help_pane.set_default_material_colors();
         help_pane.set_color(255, 255, 255, 255);
+        help_pane.set_text_shadow(ResVec2::new(4.0, -3.0), ResVec2::new(1.0, 1.0), [BLACK, BLACK], 0.0);
+        help_pane.text_outline_enable(true);
+        help_pane.text_shadow_enable(true);
+        help_pane.detach();
+        menu_pane.append_child(help_pane);
+
+        // Let's also make defaults help buttons below
+        text_block.pos.y = text_block.pos.y - 45.0;
+        // Uncenter from above
+        if x == 1 {
+            text_block.pos.x += 25.0;
+        }
+        text_block.set_name(defaults_help_text!(txt_idx));
+        let text_pane = build!(text_block, ResTextBox, kind, TextBox);
+        text_pane.set_text_string(if txt_idx == 0 {
+            "Save Defaults"
+        } else if txt_idx == 1 {
+            "Reset Current Menu"
+        } else {
+            "Reset All Menus"
+        });
+        // Ensure Material Colors are not hardcoded so we can just use SetTextColor.
+        text_pane.set_default_material_colors();
+        text_pane.set_color(255, 255, 255, 255);
+        text_pane.set_text_shadow(ResVec2::new(4.0, -3.0), ResVec2::new(1.0, 1.0), [BLACK, BLACK], 0.0);
+        text_pane.text_outline_enable(true);
+        text_pane.text_shadow_enable(true);
+        text_pane.detach();
+        menu_pane.append_child(text_pane);
+
+        help_block.pos.y = help_block.pos.y - crate::dev_config::config().defaults_help_offset_y;
+        help_block.set_name(defaults_help_button!(txt_idx));
+        let help_pane = build!(help_block, ResTextBox, kind, TextBox);
+        help_pane.set_text_string("Help Button");
+        let it = help_pane.text_buf as *mut u16;
+        help_pane.text_len = 1;
+        *(it.add(1)) = 0x0;
+        if txt_idx == 0 {
+            *it = 0xE0E2; // X
+        } else if txt_idx == 1 {
+            *it = 0xE0E4; // L
+        } else {
+            *it = 0xE0E5; // R
+        }
+
+        help_pane.set_default_material_colors();
+        help_pane.set_color(255, 255, 255, 255);
+        help_pane.set_text_shadow(ResVec2::new(4.0, -3.0), ResVec2::new(1.0, 1.0), [BLACK, BLACK], 0.0);
+        help_pane.text_outline_enable(true);
+        help_pane.text_shadow_enable(true);
         help_pane.detach();
         menu_pane.append_child(help_pane);
     });

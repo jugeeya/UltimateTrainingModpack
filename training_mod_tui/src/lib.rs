@@ -627,7 +627,7 @@ fn render_submenu_page<B: Backend>(f: &mut Frame<B>, app: &mut App, list_chunks:
 
     let help_paragraph = Paragraph::new(
         item_help.unwrap_or("").replace('\"', "")
-            + "\nA: Enter sub-menu | B: Exit menu | ZL/ZR: Next tab | X: Save Defaults",
+            + "\nZL/ZR: Next tab | X: Save Defaults | R: Reset All Menus",
     )
         .style(Style::default().fg(Color::Cyan));
     f.render_widget(help_paragraph, help_chunk);
@@ -659,7 +659,7 @@ pub fn render_toggle_page<B: Backend>(f: &mut Frame<B>, app: &mut App, list_chun
         f.render_stateful_widget(values_list, list_chunks[list_section], sub_menu_state);
     }
     let help_paragraph = Paragraph::new(
-        help_text.replace('\"', "") + "\nA: Select toggle | B: Exit submenu | X: Reset to defaults",
+        help_text.replace('\"', "") + "\nL: Reset Current Menu",
     )
         .style(Style::default().fg(Color::Cyan));
     f.render_widget(help_paragraph, help_chunk);
@@ -744,7 +744,7 @@ pub fn render_slider_page<B: Backend>(f: &mut Frame<B>, app: &mut App, vertical_
     }
 
     let help_paragraph = Paragraph::new(
-        help_text.replace('\"', "") + "\nA: Select toggle | B: Exit submenu | X: Reset to defaults",
+        help_text.replace('\"', "") + "\nL: Reset Current Menu",
     )
         .style(Style::default().fg(Color::Cyan));
     f.render_widget(help_paragraph, help_chunk);
