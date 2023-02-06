@@ -3,7 +3,6 @@
 #![feature(exclusive_range_pattern)]
 #![feature(once_cell)]
 #![feature(c_variadic)]
-#![deny(warnings)]
 #![allow(
     clippy::borrow_interior_mutable_const,
     clippy::declare_interior_mutable_const,
@@ -33,7 +32,7 @@ use std::fs;
 
 use crate::logging::*;
 use crate::menu::quick_menu_loop;
-use training_mod_consts::{MenuJsonStruct, OnOff};
+use training_mod_consts::MenuJsonStruct;
 use crate::training::ui::notifications::notification;
 
 fn nro_main(nro: &NroInfo<'_>) {

@@ -3,11 +3,7 @@ use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
 use crate::training::frame_counter;
 
-use ramhorns::Template;
-use skyline::info::get_program_id;
 use skyline::nn::hid::NpadGcState;
-use std::fs;
-use std::path::Path;
 use training_mod_consts::MenuJsonStruct;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
