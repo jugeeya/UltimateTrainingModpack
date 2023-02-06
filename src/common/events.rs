@@ -172,7 +172,7 @@ impl Event {
     }
 }
 
-fn smash_version() -> String {
+pub fn smash_version() -> String {
     let mut smash_version = oe::DisplayVersion { name: [0; 16] };
 
     unsafe {

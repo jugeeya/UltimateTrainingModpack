@@ -1,5 +1,15 @@
 #![allow(dead_code)] // TODO: Yeah don't do this
 use bitflags::bitflags;
+use crate::common::release::CURRENT_VERSION;
+use crate::common::events::smash_version;
+use crate::training::save_states::SavedState;
+use training_mod_consts::TrainingModpackMenu;
+
+use crate::default_save_state;
+use crate::training::character_specific::steve;
+use crate::training::charge::ChargeState;
+use crate::training::save_states::SaveState::NoAction;
+
 
 // Need to define necesary structures here. Probably should move to consts or something. Realistically, should be in skyline smash prob tho.
 
@@ -246,6 +256,53 @@ impl MappedInputs { // pub needed?
             lstick_y: 0,
             rstick_x: 0,
             rstick_y: 0
+        }
+    }
+}
+
+// Final Structure containing all input recording slots, menu options, and save states.
+// 5 Input Recording Slots should be fine for now for most mix up scenarios
+// When loading a "scenario", we want to load all menu options (with maybe overrides in the config?), load savestate(s), and load input recording slots.
+// If we have submenus for input recording slots, we need to get that info as well, and we want to apply saved damage from save states to the menu.
+// Damage range seems to be saved in menu for range of damage, so that's taken care of with menu.
+
+#[derive(Clone)]
+#[repr(C)]
+pub struct Scenario {
+    pub record_slots: Vec<Vec<MappedInputs>>,
+    pub starting_statuses: Vec<i32>,
+    pub menu: TrainingModpackMenu,
+    pub save_states: Vec<SavedState>,
+    pub player_char: i32, // fighter_kind
+    pub cpu_char: i32, // fighter_kind
+    pub stage: i32, // index of stage, but -1 = random
+    pub title: String,
+    pub description: String,
+    pub mod_version: String, 
+    pub smash_version: String,
+    // depending on version, we need to modify newly added menu options, so that regardless of their defaults they reflect the previous version to minimize breakage of old scenarios
+    //      we may also add more scenario parts to the struct in the future etc.
+    // pub screenshot: image????
+    // datetime?
+    // author?
+    // mirroring?
+    
+}
+
+impl Scenario {
+    pub fn default() -> Scenario {
+        Scenario {
+            record_slots: vec![vec![MappedInputs::default(); 600]; 5],
+            starting_statuses: vec![0],
+            menu: crate::common::consts::DEFAULTS_MENU,
+            save_states: vec![default_save_state!(); 5],
+            player_char: 0,
+            cpu_char: 0,
+            stage: -1, // index of stage, but -1 = random/any stage
+            title: "Scenario Title".to_string(),
+            description: "Description...".to_string(),
+            mod_version: CURRENT_VERSION.to_string(),
+            smash_version: smash_version(),
         }
     }
 }

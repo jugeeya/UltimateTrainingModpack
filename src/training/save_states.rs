@@ -22,7 +22,8 @@ use smash::phx::{Hash40, Vector3f};
 use training_mod_consts::{CharacterItem, SaveDamage};
 
 #[derive(PartialEq)]
-enum SaveState {
+#[derive(Clone)]
+pub enum SaveState {
     Save,
     NoAction,
     KillPlayer,
@@ -31,18 +32,20 @@ enum SaveState {
     ApplyBuff,
 }
 
-struct SavedState {
-    x: f32,
-    y: f32,
-    percent: f32,
-    lr: f32,
-    situation_kind: i32,
-    state: SaveState,
-    fighter_kind: i32,
-    charge: ChargeState,
-    steve_state: Option<steve::SteveState>,
+#[derive(Clone)]
+pub struct SavedState {
+    pub x: f32,
+    pub y: f32,
+    pub percent: f32,
+    pub lr: f32,
+    pub situation_kind: i32,
+    pub state: SaveState,
+    pub fighter_kind: i32,
+    pub charge: ChargeState,
+    pub steve_state: Option<steve::SteveState>,
 }
 
+#[macro_export]
 macro_rules! default_save_state {
     () => {
         SavedState {

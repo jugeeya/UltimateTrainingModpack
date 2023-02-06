@@ -189,7 +189,7 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
         const WAIT = 0x10;
-        const RECORD = 0x20;
+        const PLAYBACK = 0x20;
     }
 }
 
@@ -203,7 +203,7 @@ impl LedgeOption {
                 LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
                 LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
-                LedgeOption::RECORD => *FIGHTER_STATUS_KIND_NONE,
+                LedgeOption::PLAYBACK => *FIGHTER_STATUS_KIND_NONE,
                 _ => return None,
             })
         }
@@ -219,7 +219,7 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
-            LedgeOption::RECORD => "Playback",
+            LedgeOption::PLAYBACK => "Playback",
             _ => return None,
         })
     }

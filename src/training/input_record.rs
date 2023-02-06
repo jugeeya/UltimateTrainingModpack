@@ -23,11 +23,20 @@ pub enum PossessionState {
     Standby,
 }
 
+#[derive(PartialEq)]
+#[derive(Copy, Clone)]
+pub enum StartingStatus {
+    Aerial, // FIGHTER_STATUS_KIND_ATTACK_AIR
+    Airdodge, // FIGHTER_STATUS_KIND_ESCAPE_AIR, FIGHTER_STATUS_KIND_ESCAPE_AIR_SLIDE
+    Other, // Other statuses cannot be used to hitstun cancel via damage_fly_attack_frame/damage_fly_escape_frame 
+}
+
 use InputRecordState::*;
 use PossessionState::*;
 
 const FINAL_RECORD_MAX: usize = 150; // Maximum length for input recording sequences (capacity)
-//pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
+const TOTAL_SLOT_COUNT: usize = 5; // Total number of input recording slots
+pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
 pub static mut POSSESSION: PossessionState = PossessionState::Player;
@@ -35,12 +44,35 @@ pub static mut LOCKOUT_FRAME: usize = 0;
 pub static mut BUFFER_FRAME: usize = 0;
 pub static mut RECORDED_LR: f32 = 1.0; // The direction the CPU was facing before the current recording was recorded
 pub static mut CURRENT_LR: f32 = 1.0; // The direction the CPU was facing at the beginning of this playback
+pub static mut STARTING_STATUS: i32 = 0; // The first status entered in the recording outside of waits
+                                         //     used to calculate if the input playback should begin before hitstun would normally end (hitstun cancel, monado art?)
+pub static mut CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
+pub static mut CURRENT_PLAYBACK_SLOT: usize = 0; // Which slot is being used for playback right now?
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; FINAL_RECORD_MAX]> =
         Mutex::new([{
             MappedInputs::default()
         }; FINAL_RECORD_MAX]);
+    static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
+        Mutex::new([{StartingStatus::Other}; TOTAL_SLOT_COUNT]);
+}
+
+fn into_starting_status(status: i32) -> StartingStatus {
+    if status == *FIGHTER_STATUS_KIND_ATTACK_AIR {
+        return StartingStatus::Aerial;
+    } else if (*FIGHTER_STATUS_KIND_ESCAPE_AIR..*FIGHTER_STATUS_KIND_ESCAPE_AIR_SLIDE).contains(&status) {
+        return StartingStatus::Airdodge;
+    }
+    StartingStatus::Other
+}
+
+fn into_transition_term(starting_status: StartingStatus) -> i32 {
+    match starting_status {
+        StartingStatus::Aerial => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
+        StartingStatus::Airdodge => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
+        StartingStatus::Other => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_HI, // placeholder - most likely don't want to use this in final build, and have a different set of checks
+    }
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
@@ -70,7 +102,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
         // may need to move this to another func
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-            if INPUT_RECORD_FRAME >= P1_FINAL_MAPPING.lock().len() - 1 { // FINAL_RECORD_FRAME - 1 { 
+            if INPUT_RECORD_FRAME >= FINAL_RECORD_FRAME - 1 { // P1_FINAL_MAPPING.lock().len() - 1 { 
                 // Above alternative causes us to stay on last input forever, need to figure out since we want to be able to have shorter playbacks
                 INPUT_RECORD = None;
                 POSSESSION = Player;
@@ -176,6 +208,13 @@ unsafe fn handle_final_input_mapping(
                 POSSESSION = Cpu;
             }
 
+            if INPUT_RECORD_FRAME == 1 {
+                // We're on the second frame of recording, grabbing the status should give us the status that resulted from the first frame of input
+                // We'll want to save this status so that we use the correct TRANSITION TERM for hitstun cancelling out of damage fly
+                let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+                P1_STARTING_STATUSES.lock()[CURRENT_PLAYBACK_SLOT] = into_starting_status(StatusModule::status_kind(cpu_module_accessor));
+            }
+
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::default(); // don't control player while recording
             println!("Stored Player Input! Frame: {}",INPUT_RECORD_FRAME);
@@ -203,10 +242,12 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         let x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
         println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME);
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
+        
         if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
             // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
             saved_mapped_inputs = MappedInputs::default();
         }
+
         (*controller_data).buttons = saved_mapped_inputs.buttons;
         (*controller_data).stick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32));
         (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
@@ -226,7 +267,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         // When buffering an option, we keep inputting the first frame of input during the buffer window
         if BUFFER_FRAME > 0 {
             BUFFER_FRAME -= 1;
-        } else if INPUT_RECORD_FRAME < P1_FINAL_MAPPING.lock().len() - 1 && POSSESSION != Standby {
+        } else if INPUT_RECORD_FRAME < FINAL_RECORD_FRAME - 1 && POSSESSION != Standby { //P1_FINAL_MAPPING.lock().len() - 1 && POSSESSION != Standby {
             INPUT_RECORD_FRAME += 1;
         }
     } 
