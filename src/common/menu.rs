@@ -6,8 +6,6 @@ use crate::training::frame_counter;
 use ramhorns::Template;
 use skyline::info::get_program_id;
 use skyline::nn::hid::NpadGcState;
-use skyline::nn::web::WebSessionBootMode;
-use skyline_web::{Background, BootDisplay, WebSession, Webpage};
 use std::fs;
 use std::path::Path;
 use training_mod_consts::MenuJsonStruct;
@@ -21,9 +19,6 @@ pub fn init() {
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
         QUICK_MENU_FRAME_COUNTER_INDEX = frame_counter::register_counter();
-        if !is_emulator() {
-            write_web_menu_file();
-        }
     }
 }
 
@@ -45,32 +40,13 @@ pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModul
     }
 }
 
-pub unsafe fn write_web_menu_file() {
-    let tpl = Template::new(include_str!("../templates/menu.html")).unwrap();
-
-    let overall_menu = ui_menu(MENU);
-
-    let data = tpl.render(&overall_menu);
-
-    // Now that we have the html, write it to file
-    // From skyline-web
-    let program_id = get_program_id();
-    let htdocs_dir = "training_modpack";
-    let menu_html_path = Path::new("sd:/atmosphere/contents")
-        .join(format!("{program_id:016X}"))
-        .join(format!("manual_html/html-document/{htdocs_dir}.htdocs/"))
-        .join("training_menu.html");
-    fs::write(menu_html_path, data).expect("Failed to write menu HTML file");
-}
-
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
 
 pub unsafe fn set_menu_from_json(message: &str) {
-    let web_response = serde_json::from_str::<MenuJsonStruct>(message);
+    let response = serde_json::from_str::<MenuJsonStruct>(message);
     info!("Received menu message: {message}");
-    if let Ok(message_json) = web_response {
+    if let Ok(message_json) = response {
         // Includes both MENU and DEFAULTS_MENU
-        // From Web Applet
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
         std::fs::write(
@@ -85,14 +61,6 @@ pub unsafe fn set_menu_from_json(message: &str) {
             &format!("{message:#?}\0")
         );
     };
-    if MENU.quick_menu == OnOff::Off && is_emulator() {
-        skyline::error::show_error(
-            0x69,
-            "Cannot use web menu on emulator.\n\0",
-            "Only the quick menu is runnable via emulator currently.\n\0",
-        );
-        MENU.quick_menu = OnOff::On;
-    }
 }
 
 pub fn spawn_menu() {
@@ -102,24 +70,12 @@ pub fn spawn_menu() {
         frame_counter::reset_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX);
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
-        if MENU.quick_menu == OnOff::Off {
-            #[cfg(feature = "web_session_preload")]
-            {
-                WEB_MENU_ACTIVE = true;
-            }
-
-            #[cfg(not(feature = "web_session_preload"))]
-            {
-                spawn_web_session(new_web_session(false));
-            }
-        } else {
-            let mut app = QUICK_MENU_APP.lock();
-            *app = training_mod_tui::App::new(
-                ui_menu(MENU),
-                (ui_menu(DEFAULTS_MENU), serde_json::to_string(&DEFAULTS_MENU).unwrap()));
-            drop(app);
-            QUICK_MENU_ACTIVE = true;
-        }
+        let mut app = QUICK_MENU_APP.lock();
+        *app = training_mod_tui::App::new(
+            ui_menu(MENU),
+            (ui_menu(DEFAULTS_MENU), serde_json::to_string(&DEFAULTS_MENU).unwrap()));
+        drop(app);
+        QUICK_MENU_ACTIVE = true;
     }
 }
 
@@ -369,75 +325,6 @@ pub unsafe fn quick_menu_loop() {
                 received_input = false;
                 set_menu_from_json(&app.get_menu_selections());
             }
-        }
-    }
-}
-
-static mut WEB_MENU_ACTIVE: bool = false;
-
-unsafe fn spawn_web_session(session: WebSession) {
-    info!("Opening menu session...");
-    let loaded_msg = session.recv();
-    info!("Received loaded message from web: {}", &loaded_msg);
-    let message_send = MenuJsonStruct {
-        menu: MENU,
-        defaults_menu: DEFAULTS_MENU,
-    };
-    session.send_json(&message_send);
-    let message_recv = session.recv();
-    info!("Tearing down Training Modpack menu session");
-    session.exit();
-    session.wait_for_exit();
-    set_menu_from_json(&message_recv);
-    EVENT_QUEUE.push(Event::menu_open(message_recv));
-}
-
-unsafe fn new_web_session(hidden: bool) -> WebSession {
-    Webpage::new()
-        .background(Background::BlurredScreenshot)
-        .boot_icon(true)
-        .boot_display(BootDisplay::BlurredScreenshot)
-        .htdocs_dir("training_modpack")
-        .start_page("training_menu.html")
-        .open_session(if hidden {
-            WebSessionBootMode::InitiallyHidden
-        } else {
-            WebSessionBootMode::Default
-        })
-        .unwrap()
-}
-
-pub unsafe fn web_session_loop() {
-    // Don't query the FighterManager too early otherwise it will crash...
-    std::thread::sleep(std::time::Duration::new(30, 0)); // sleep for 30 secs on bootup
-    let mut web_session: Option<WebSession> = None;
-    loop {
-        std::thread::sleep(std::time::Duration::from_millis(100));
-        if (is_ready_go() || entry_count() > 0) && is_training_mode() {
-            if web_session.is_some() {
-                if WEB_MENU_ACTIVE {
-                    spawn_web_session(web_session.unwrap());
-                    web_session = None;
-                    WEB_MENU_ACTIVE = false;
-                }
-            } else {
-                // TODO
-                // Starting a new session causes some ingame lag.
-                // Investigate whether we can minimize this lag by
-                // waiting until the player is idle or using CPU boost mode
-                info!("Starting new menu session...");
-                web_session = Some(new_web_session(true));
-            }
-        } else {
-            // No longer in training mode, tear down the session.
-            // This will avoid conflicts with other web plugins, and helps with stability.
-            // Having the session open too long, especially if the switch has been put to sleep, can cause freezes
-            if let Some(web_session_to_kill) = web_session {
-                info!("Tearing down Training Modpack menu session");
-                web_session_to_kill.exit();
-                web_session_to_kill.wait_for_exit();
-            }
-            web_session = None;
         }
     }
 }

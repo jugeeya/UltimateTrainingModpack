@@ -33,8 +33,6 @@ use std::fs;
 
 use crate::logging::*;
 use crate::menu::quick_menu_loop;
-#[cfg(feature = "web_session_preload")]
-use crate::menu::web_session_loop;
 use training_mod_consts::{MenuJsonStruct, OnOff};
 use crate::training::ui::notifications::notification;
 
@@ -145,14 +143,6 @@ pub fn main() {
         button_config::save_all_btn_config_from_defaults();
     }
 
-    if is_emulator() {
-        unsafe {
-            DEFAULTS_MENU.quick_menu = OnOff::On;
-            MENU.quick_menu = OnOff::On;
-            BASE_MENU.quick_menu = OnOff::On;
-        }
-    }
-
     std::thread::spawn(|| loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
         unsafe {
@@ -174,9 +164,4 @@ pub fn main() {
     });
 
     std::thread::spawn(|| unsafe { quick_menu_loop() });
-
-    #[cfg(feature = "web_session_preload")]
-    if !is_emulator() {
-        std::thread::spawn(|| unsafe { web_session_loop() });
-    }
 }
