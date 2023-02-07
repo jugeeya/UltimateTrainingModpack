@@ -8,7 +8,6 @@ extern crate bitflags_serde_shim;
 extern crate num_derive;
 
 use core::f64::consts::PI;
-use ramhorns::Content;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 #[cfg(feature = "smash")]
@@ -1238,7 +1237,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
 
-#[derive(Content, Clone, Serialize)]
+#[derive(Clone, Serialize)]
 pub struct Slider {
     pub selected_min: u32,
     pub selected_max: u32,
@@ -1246,14 +1245,14 @@ pub struct Slider {
     pub abs_max: u32,
 }
 
-#[derive(Content, Clone, Serialize)]
+#[derive(Clone, Serialize)]
 pub struct Toggle<'a> {
     pub toggle_value: u32,
     pub toggle_title: &'a str,
     pub checked: bool,
 }
 
-#[derive(Content, Clone, Serialize)]
+#[derive(Clone, Serialize)]
 pub struct SubMenu<'a> {
     pub submenu_title: &'a str,
     pub submenu_id: &'a str,
@@ -1327,7 +1326,7 @@ impl<'a> SubMenu<'a> {
     }
 }
 
-#[derive(Content, Serialize, Clone)]
+#[derive(Serialize, Clone)]
 pub struct Tab<'a> {
     pub tab_id: &'a str,
     pub tab_title: &'a str,
@@ -1370,7 +1369,7 @@ impl<'a> Tab<'a> {
     }
 }
 
-#[derive(Content, Serialize, Clone)]
+#[derive(Serialize, Clone)]
 pub struct UiMenu<'a> {
     pub tabs: Vec<Tab<'a>>,
 }

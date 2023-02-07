@@ -1,14 +1,9 @@
 use crate::common::{is_ready_go, is_training_mode};
+use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
 use std::collections::HashMap;
-use std::convert::TryFrom;
-use std::iter::repeat;
-use std::sync::Arc;
-use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use skyline::libc::c_void;
-use smash::app::lua_bind::FighterManager::is_melee_mode_online_tournament;
 
 mod damage;
 mod display;
@@ -97,7 +92,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 }
 
 #[skyline::hook(offset = 0x493a0)]
-pub unsafe fn layout_build_parts_impl(
+pub unsafe fn handle_build_parts_impl(
     layout: *mut Layout,
     out_build_result_information: *mut u8,
     device: *const u8,
@@ -150,11 +145,15 @@ pub unsafe fn layout_build_parts_impl(
     )
 }
 
-const LAYOUT_ARC_MAX_SIZE : usize = 5000000;
-static mut LAYOUT_ARC : &mut [u8; LAYOUT_ARC_MAX_SIZE] = &mut [0u8; LAYOUT_ARC_MAX_SIZE];
-// const LAYOUT_ARC_SIZE = X;
-// static mut LAYOUT_ARC : &[u8; LAYOUT_ARC_SIZE] = include_bytes!("../../static/training_layout.arc");
-use sarc::SarcFile;
+// We'll keep some sane max size here; we shouldn't reach above 500KiB is the idea,
+// but we can try higher if we need to.
+#[cfg(feature = "layout_arc_from_file")]
+static mut LAYOUT_ARC : & mut [u8; 5000000] = &mut [0u8; 5000000];
+
+// Insert actual byte size of the file below here!
+const LAYOUT_ARC_SIZE: usize = 40000;
+#[cfg(not(feature = "layout_arc_from_file"))]
+static mut LAYOUT_ARC: &[u8; LAYOUT_ARC_SIZE] = include_bytes!("../../static/training_layout.arc");
 
 #[skyline::hook(offset = 0x37730d4, inline)]
 unsafe fn handle_pre_attach_malloc(
@@ -162,24 +161,29 @@ unsafe fn handle_pre_attach_malloc(
 ) {
     let decompressed_file = *ctx.registers[21].x.as_ref() as *const u8;
     let decompressed_size = *ctx.registers[1].x.as_ref() as usize;
-    let sarc = std::slice::from_raw_parts(decompressed_file,decompressed_size);
 
     let training_layout = String::from("blyt/info_training.bflyt");
-    if SarcFile::read(sarc).unwrap()
-        .files
-        .iter()
-        .any(|file| file.name.is_some() && file.name.as_ref().unwrap() == &training_layout) {
+    let is_training_layout = |file| file.name.is_some() && file.name.as_ref().unwrap() == &training_layout;
+    if is_training_mode() && SarcFile::read(
+            std::slice::from_raw_parts(decompressed_file,decompressed_size)
+        ).unwrap().files.iter().any(is_training_layout) {
 
-        // If using include_str!
-        // let inject_arc = LAYOUT_ARC;
-        let inject_arc = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();
-        let inject_arc_size = inject_arc.len() as u64;
+        let inject_arc_size : u64;
 
-        // Copy read file to global
-        inject_arc
-            .iter()
-            .enumerate()
-            .for_each(|(idx, byte)| LAYOUT_ARC[idx] = *byte);
+        #[cfg(feature = "layout_arc_from_file")] {
+            let inject_arc = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();
+            inject_arc_size = inject_arc.len() as u64;
+
+            // Copy read file to global
+            inject_arc
+                .iter()
+                .enumerate()
+                .for_each(|(idx, byte)| LAYOUT_ARC[idx] = *byte);
+        }
+
+        #[cfg(not(feature = "layout_arc_from_file"))] {
+            inject_arc_size = LAYOUT_ARC_SIZE as u64;
+        }
 
         // Decompressed file pointer
         let decompressed_file = ctx.registers[21].x.as_mut();
@@ -195,7 +199,7 @@ unsafe fn handle_pre_attach_malloc(
 pub fn init() {
     skyline::install_hooks!(
         handle_draw,
-        layout_build_parts_impl,
-        handle_pre_attach_malloc
+        handle_build_parts_impl,
+        handle_layout_arc_malloc
     );
 }

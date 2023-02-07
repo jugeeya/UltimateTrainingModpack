@@ -10,12 +10,6 @@ macro_rules! display_parent_fmt {
     };
 }
 
-macro_rules! display_pic_fmt {
-    ($x:ident) => {
-        format!("trMod_disp_{}_base", $x).as_str()
-    };
-}
-
 macro_rules! display_header_fmt {
     ($x:ident) => {
         format!("trMod_disp_{}_header", $x).as_str()
