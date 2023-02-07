@@ -28,7 +28,7 @@ jobs:
       - name: Check
         run: cargo +nightly check --target=x86_64-unknown-linux-gnu
       - name: Clippy
-        run: cargo +nightly clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu
+        run: cargo +nightly clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
         working-directory: training_mod_tui
         run: cargo +nightly test

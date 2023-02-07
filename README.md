@@ -13,7 +13,7 @@
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/jugeeya?color=brightgreen&logo=twitter&style=for-the-badge)](https://twitter.com/jugeeya)
 
-A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyline](https://github.com/jam1garner/cargo-skyline) for adding features to the training mode. It interfaces with [skyline-web](https://github.com/skyline-rs/skyline-web) to provide a menu for customizing training options.
+A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyline](https://github.com/jam1garner/cargo-skyline) for adding features to the training mode. It uses native Smash UI to provide a menu for customizing training options.
 
 The latest stable release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest).
 
@@ -36,7 +36,6 @@ These are the features that can be found [in the latest beta release](https://gi
 
 ### Features
 * Added option for CPU to crouch when grounded - @asimon-1
-* Improved web menu UI - @asimon-1, @xhudaman, @jugeeya
 * Added Mash Triggers feature, allowing configuration of when the CPU performs mash options - @GradualSyrup
 * Add ability to perform mash option after ledge trump, footstool, clatter, hitstun, tumble, and within certain distances - @asimon-1
 * Allow configurable button combinations for save states and opening the menu - @asimon-1
@@ -235,7 +234,6 @@ When multiple options are selected, one of the selected options will be chosen a
 | Misc Settings | Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects | Yes, No |
 | Misc Settings | Input Delay | Frames to delay player inputs by | 0 to 10 frames (0.167 seconds) |
 | Misc Settings | Stage Hazards | Should stage hazards be present | Yes, No |
-| Misc Settings | Quick Menu | Should use the quick menu instead of the web menu | Yes, No |
 
 <a name="installation"/>
 
@@ -256,8 +254,6 @@ SD Card Root
             ├── manual_html
             │   └── html-document
             │       └── training_modpack.htdocs
-            │           ├── css
-            │           │   └── training_modpack.css
             │           ├── img
             │           │   ├── aerial_delay.svg
             │           │   ├── air_dodge_dir.svg
@@ -280,7 +276,6 @@ SD Card Root
             │           │   ├── miss_tech_state.svg
             │           │   ├── oos_offset.svg
             │           │   ├── pummel_delay.svg
-            │           │   ├── quick_menu.svg
             │           │   ├── reaction_time.svg
             │           │   ├── save_damage.svg
             │           │   ├── save_state_enable.svg
@@ -293,8 +288,6 @@ SD Card Root
             │           │   ├── tech_state.svg
             │           │   ├── throw_delay.svg
             │           │   └── throw_state.svg
-            │           └── js
-            │               └── training_modpack.js
             └── romfs
                 └── skyline
                     └── plugins
@@ -343,22 +336,20 @@ To install a beta version of the modpack, follow the same procedure using the [l
 11. **How do I open the menu?**
 
     Hold the `SPECIAL` button and press `UP TAUNT` while in training mode. Typically this is `B+DPAD UP`, but do note that these are affected by your control scheme so if you have changed those inputs you need to adjust accordingly.
-12. **Why does the menu open slowly?**
 
-    The menu uses a built-in web browser for its display, inputs, and styling. It takes about 2 seconds for the browser to open. If you prefer a quicker experience and are frequently opening the menu to adjust your settings, the beta release includes a "Quick Menu" with a different backend.
-13. **Why are the save state mirroring positions slightly off on Town and City and Smashville?**
+12. **Why are the save state mirroring positions slightly off on Town and City and Smashville?**
 
     These two stages are actually slightly asymmetrical. On Smashville, the left side is 4 units longer than the right side. On Town and City, the left side is 2 units shorter than the right side. This asymmetry is not currently accounted for in the Training Modpack when mirroring save states.
-14. **How do I install the Training Modpack?**
+13. **How do I install the Training Modpack?**
 
     Full installation instructions are provided in the [#setup-and-download](https://discord.com/channels/407970595418931200/407971997008658432) Discord channel.
-15. **How do I install an update to the Training Modpack?**
+14. **How do I install an update to the Training Modpack?**
 
     The process for installing and update is very similar to the initial installation. Download the new `.zip` file from the Github releases page, extract the contents, then drag the atmosphere folder to the root of your SD card. Any existing files will be replaced, so there is no need to delete any files manually.
-16. **How do I install a beta release to the Training Modpack?**
+15. **How do I install a beta release to the Training Modpack?**
 
     To install a beta release, follow the same process as updating the Training Modpack. Download the beta `.zip` file from the Github releases page, extract the contents, and drag the atmosphere folder to the root of your SD card. Any existing files will be replaced, so there is no need to delete any files manually.
-17. **How do I remove the Training Modpack?**
+16. **How do I remove the Training Modpack?**
 
     Removing the Training Modpack is as simple as deleting the files and folders that are associated with the modpack, listed below:
     `SD:/atmosphere/contents/01006A800016E000/manual_html/html-document/training_modpack.htdocs/`
@@ -367,45 +358,45 @@ To install a beta version of the modpack, follow the same procedure using the [l
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libparam_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`
     `SD:/TrainingModpack/`
-18. **Can I donate to the Training Modpack?**
+17. **Can I donate to the Training Modpack?**
 
     You can find the donation link in the [#faq](https://discord.com/channels/407970595418931200/714960353058095216) Discord channel. We use the money to commission video edits for releases, so thank you if you do end up donating!
-19. **Do I have to repeat the process of installing the mods EVERY time I turn my switch on?**
+18. **Do I have to repeat the process of installing the mods EVERY time I turn my switch on?**
 
     The custom firmware Atmosphere stays loaded when the switch goes to sleep, but not if it is fully powered off. So you only need to go through the process of injecting the payload through TegraRCMGui when the switch is fully powered off, such as if the SD card is removed.
-20. **I've heard about people getting banned while uing this mod online. Can I use this while playing online without getting banned?**
+19. **I've heard about people getting banned while uing this mod online. Can I use this while playing online without getting banned?**
 
     The Training Modpack features are only applied while in training mode and do not affect any of the other game modes outside of it, including online play. Smash online is client sided, so only the data that is sent to other players is available for inspection by Nintendo. Since the Training Modpack doesn't affect that data, the Training Modpack is safe to use when playing online. This conclusion is backed up by user experience, where many users have played online with the Training Modpack active and have suffered no adverse consequences.
     *HOWEVER*, please understand that there is inherent risk involved with smash modding, and no guarantee is made that your switch will not be banned. Other wifi-unsafe mods, unsportsmanlike online play, cheating, save editors, online emuMMC, pirating, and other activities may result in a ban. Nintendo has not published a list of ban-worthy activities, nor have they communicated that modding is acceptable, but these are several well-known causes from user experience. It is your responsibility to understand these risks, since it is your switch and your choices.
-21. **Can I change the button combination to bring up the menu?**
+20. **Can I change the button combination to bring up the menu?**
 
     This functionality is not supported at this time. However, it is a common request and we are looking into the possibility for the future.
-22. **What features does the Training Modpack have? What does each option do?**
+21. **What features does the Training Modpack have? What does each option do?**
 
     The Training Modpack has a wide array of features to improve training mode. Some of the more impactful improvements are the ability to save and load fighter positions, practice with hazards off, and adjust CPU behavior in certain scenarios. A full list and explanation of the different settings is available on the Github page here: https://github.com/jugeeya/UltimateTrainingModpack#features
-23. **I think I found a bug in the Training Modpack. How do I report it?**
+22. **I think I found a bug in the Training Modpack. How do I report it?**
 
     First check in the #bug-reports channel and Github Issues to see if it has already been reported. If it hasn't, please collect as much information as you can about the bug (including how to reproduce it!) and submit it either in the [#bug-reports](https://discord.com/channels/407970595418931200/407971515171340289) Discord channel or as an issue on Github here: https://github.com/jugeeya/UltimateTrainingModpack/issues
-24. **I have an idea for a new feature in the Training Modpack? How do I suggest it?**
+23. **I have an idea for a new feature in the Training Modpack? How do I suggest it?**
 
     Suggestions are always welcome! You can request new features in the [#requests](https://discord.com/channels/407970595418931200/407971627138285579) Discord channel. Please do keep in mind that the developers are volunteers with busy lives, so we may not be able to implement every suggestion, but we do read all requests in that channel and often prioritize features that are highly requested.
-25. **What happens when I pick multiple options for a setting, such as mash or tech options?**
+24. **What happens when I pick multiple options for a setting, such as mash or tech options?**
 
     Some menu settings allow for multiple selections. When there are several settings selected, the CPU will randomly choose between the selections when that setting is triggered. For instance, if you have both "Ledge Jump" and "Neutral Getup" selected under "Ledge Options", then the CPU will randomly select between those two options when deciding what to do when it is on the ledge.
-26. **How do I reset my Training Modpack settings?**
+25. **How do I reset my Training Modpack settings?**
 
     If you want to completely reset your menu selections back to the factory default, all you have to do is delete this file:
     `SD:/TrainingModpack/training_modpack_menu.conf`
-27. **What input delay should I pick for practicing online?**
+26. **What input delay should I pick for practicing online?**
 
     Good LAN connections can be simulated with an input delay of 3-5 frames. Poorer Wifi connections can be up to 6-8 frames.
-28. **How do I install other mods, like skins or stages?**
+27. **How do I install other mods, like skins or stages?**
 
     You will need to use the Arcropolis mod manager to enable other types of mods. This discord is focused on the Training Modpack; more information on installation of other mods can be found in the general SSBU modding Discord, which is linked in the [#welcome](https://discord.com/channels/407970595418931200/721077130456203335) channel.
-29. **Can I put the Training Modpack under my `SD:/ultimate/mods` folder?**
+28. **Can I put the Training Modpack under my `SD:/ultimate/mods` folder?**
 
     No, the Training Modpack is not supported in a chainloading configuration. Please only install in the recommended location.
-30. **Are there any known mods that conflict with the Training Modpack?**
+29. **Are there any known mods that conflict with the Training Modpack?**
 
     Currently the known conflicts are:
 
@@ -413,11 +404,11 @@ To install a beta version of the modpack, follow the same procedure using the [l
     * Minecraft Skins
     * Blujay's Hitbox Visualizer
 
-31. **Who created the Training Modpack?**
+30. **Who created the Training Modpack?**
 
     jugeeya is the creator of the Training Modpack, along with its predecessor in Smash 4. There are a number of developers who contribute new features and bugfixes as well, listed on the contributors page: https://github.com/jugeeya/UltimateTrainingModpack/graphs/contributors
 
-32. **I want to contribute as a developer to the Training Modpack. How do I get started?**
+31. **I want to contribute as a developer to the Training Modpack. How do I get started?**
 
     If you'd like to help out as a developer, we welcome any contributions! The Training Modpack is written in Rust, and uses the Skyline framework to hook into existing Smash functions to add functionality to training mode. If you aren't already familiar with Rust, the Rust book is a great place to start familiarizing yourself with the syntax and structure: https://doc.rust-lang.org/book/ . You can also take a look through the existing codebase on Github to check out how everything works right now. It's all open source!
 

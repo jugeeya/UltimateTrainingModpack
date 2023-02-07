@@ -1131,7 +1131,6 @@ pub struct TrainingModpackMenu {
     pub miss_tech_state: MissTechFlags,
     pub oos_offset: Delay,
     pub pummel_delay: MedDelay,
-    pub quick_menu: OnOff,
     pub reaction_time: Delay,
     pub save_damage_cpu: SaveDamage,
     pub save_damage_limits_cpu: DamagePercent,
@@ -1219,7 +1218,6 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     miss_tech_state: MissTechFlags::all(),
     oos_offset: Delay::empty(),
     pummel_delay: MedDelay::empty(),
-    quick_menu: OnOff::Off,
     reaction_time: Delay::empty(),
     save_damage_cpu: SaveDamage::DEFAULT,
     save_damage_limits_cpu: DamagePercent::default(),
@@ -1679,13 +1677,6 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         "Stage Hazards: Should stage hazards be present",
         true,
         &(menu.stage_hazards as u32),
-    );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Quick Menu",
-        "quick_menu",
-        "Quick Menu: Should use quick or web menu",
-        true,
-        &(menu.quick_menu as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "HUD",
