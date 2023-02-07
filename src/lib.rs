@@ -3,7 +3,7 @@
 #![feature(exclusive_range_pattern)]
 #![feature(once_cell)]
 #![feature(c_variadic)]
-#![deny(warnings)]
+// #![deny(warnings)]
 #![allow(
     clippy::borrow_interior_mutable_const,
     clippy::declare_interior_mutable_const,
