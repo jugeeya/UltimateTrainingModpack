@@ -210,36 +210,24 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
     max_value_text.set_text_string(&format!("{selected_max}"));
 
     let min_title_bg_material = &mut *min_title_bg.as_picture().material;
-    match gauge_vals.state {
-        GaugeState::MinHover => {
-            min_title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-            min_title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-        }
-        GaugeState::MinSelected => {
-            min_title_bg_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-            min_title_bg_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-        }
-        _ => {
-            min_title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-            min_title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-        }
-    }
+    let min_colors = match gauge_vals.state {
+        GaugeState::MinHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
+        GaugeState::MinSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
+        _ => (BG_LEFT_OFF_WHITE_COLOR, BG_LEFT_OFF_BLACK_COLOR)
+    };
+
+    min_title_bg_material.set_white_res_color(min_colors.0);
+    min_title_bg_material.set_black_res_color(min_colors.1);
 
     let max_title_bg_material = &mut *max_title_bg.as_picture().material;
-    match gauge_vals.state {
-        GaugeState::MaxHover => {
-            max_title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-            max_title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-        }
-        GaugeState::MaxSelected => {
-            max_title_bg_material.set_white_res_color(BG_LEFT_SELECTED_WHITE_COLOR);
-            max_title_bg_material.set_black_res_color(BG_LEFT_SELECTED_BLACK_COLOR);
-        }
-        _ => {
-            max_title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-            max_title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-        }
-    }
+    let max_colors = match gauge_vals.state {
+        GaugeState::MaxHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
+        GaugeState::MaxSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
+        _ => (BG_LEFT_OFF_WHITE_COLOR, BG_LEFT_OFF_BLACK_COLOR)
+    };
+
+    max_title_bg_material.set_white_res_color(max_colors.0);
+    max_title_bg_material.set_black_res_color(max_colors.1);
 }
 
 pub unsafe fn draw(root_pane: &mut Pane) {
@@ -309,15 +297,22 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 
         let icon_pane = key_help_pane.find_pane_by_name_recursive("set_txt_icon")
             .unwrap().as_textbox();
+        let help_pane = key_help_pane.find_pane_by_name_recursive("set_txt_help")
+            .unwrap().as_textbox();
         icon_pane.set_text_string("");
+
+        // Left/Right tabs have keys
         if let Some(key) = key {
             let it = icon_pane.text_buf as *mut u16;
             icon_pane.text_len = 1;
             *it = *key as u16;
             *(it.add(1)) = 0x0;
+        } else {
+            // Center tab should be highlighted
+            help_pane.set_default_material_colors();
+            help_pane.set_color(255, 255, 0, 255);
         }
-        key_help_pane.find_pane_by_name_recursive("set_txt_help")
-            .unwrap().as_textbox().set_text_string(tab_titles[idx]);
+        help_pane.set_text_string(tab_titles[idx]);
     });
     [(0xE0E2, "SaveDefaults"), (0xE0E4, "ResetCurrentDefaults"), (0xE0E5, "ResetAllDefaults")].iter()
         .for_each(|(key, name)| {
