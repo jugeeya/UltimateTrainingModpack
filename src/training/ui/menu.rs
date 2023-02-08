@@ -77,12 +77,8 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             title_text.set_text_string(submenu.submenu_title);
             let title_bg_material = &mut *title_bg.material;
             if is_selected {
-                // TODO: Create footer in layout.arc
-                // if let Some(footer) =
-                //     root_pane.find_pane_by_name_recursive("trMod_menu_footer_txt")
-                // {
-                //     footer.as_textbox().set_text_string(submenu.help_text);
-                // }
+                root_pane.find_pane_by_name_recursive("FooterTxt")
+                    .unwrap().as_textbox().set_text_string(submenu.help_text);
                 title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
                 title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
                 title_text.text_shadow_enable(true);
@@ -304,14 +300,42 @@ pub unsafe fn draw(root_pane: &mut Pane) {
     } else {
         tab_selected + 1
     };
-    let _tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx]);
+    let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx]);
 
-    // TODO: Create in layout.arc
-    // (0..NUM_MENU_TABS).for_each(|idx| {
-    //     root_pane
-    //         .find_pane_by_name_recursive(format!("trMod_menu_tab_{idx}").as_str())
-    //         .map(|text| text.as_textbox().set_text_string(tab_titles[idx]));
-    // });
+    [(Some(0xE0E6), "LeftTab"), (None, "CurrentTab"), (Some(0xE0E7), "RightTab")]
+        .iter().enumerate().for_each(|(idx, (key, name))| {
+        let key_help_pane = root_pane.find_pane_by_name_recursive(name)
+            .unwrap();
+
+        let icon_pane = key_help_pane.find_pane_by_name_recursive("set_txt_icon")
+            .unwrap().as_textbox();
+        icon_pane.set_text_string("");
+        if let Some(key) = key {
+            let it = icon_pane.text_buf as *mut u16;
+            icon_pane.text_len = 1;
+            *it = *key as u16;
+            *(it.add(1)) = 0x0;
+        }
+        key_help_pane.find_pane_by_name_recursive("set_txt_help")
+            .unwrap().as_textbox().set_text_string(tab_titles[idx]);
+    });
+    [(0xE0E2, "SaveDefaults"), (0xE0E4, "ResetCurrentDefaults"), (0xE0E5, "ResetAllDefaults")].iter()
+        .for_each(|(key, name)| {
+        let key_help_pane = root_pane.find_pane_by_name_recursive(name)
+            .unwrap();
+
+        let icon_pane = key_help_pane.find_pane_by_name_recursive("set_txt_icon")
+            .unwrap().as_textbox();
+        icon_pane.set_text_string("");
+        let it = icon_pane.text_buf as *mut u16;
+        icon_pane.text_len = 1;
+        *it = *key as u16;
+        *(it.add(1)) = 0x0;
+
+
+        key_help_pane.find_pane_by_name_recursive("set_txt_help")
+            .unwrap().as_textbox().set_text_string(name);
+    });
 
     match app.page {
         AppPage::SUBMENU => render_submenu_page(app, root_pane),
