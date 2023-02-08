@@ -148,13 +148,43 @@ pub unsafe fn handle_build_parts_impl(
 // We'll keep some sane max size here; we shouldn't reach above 500KiB is the idea,
 // but we can try higher if we need to.
 #[cfg(feature = "layout_arc_from_file")]
-static mut LAYOUT_ARC : & mut [u8; 5000000] = &mut [0u8; 5000000];
+static mut LAYOUT_ARC : & mut [u8; 500000] = &mut [0u8; 500000];
 
-// Insert actual byte size of the file below here!
-const LAYOUT_ARC_SIZE: usize = 40000;
-#[cfg(not(feature = "layout_arc_from_file"))]
-static mut LAYOUT_ARC: &[u8; LAYOUT_ARC_SIZE] = include_bytes!("../../static/training_layout.arc");
-
+/// We are editing the info_training/layout.arc and replacing the original file with our
+/// modified version from `sd://TrainingModpack/layout.arc` or, in the case of Ryujinx for the cool
+/// kids `${RYUJINX_DIR}/sdcard/TrainingModpack/layout.arc`
+///
+/// When we edit the layout we are doing two things.
+///
+/// 1. Creating a new BFLYT inside the layout.arc for whatever component we are making. For example,
+/// the slider menu button.
+///
+/// 2. Adding a Parts pane to the info_training.bflyt with the "Part Name" matching the name of
+/// our new BFLYT without the file extension (mimicking how it's done with native Parts panes)
+///
+/// # Warnings
+/// When creating a BFLYT from an existing one we need to edit the names of the panes so that
+/// the default animations no longer modify them.  Otherwise the game will override properties,
+/// i.e. material colours, and we won't be able to control them properly.
+///
+/// Once we have the file edited and saved to the correct location we can access the pane
+/// from the layout as we normally would in our Draw function
+/// `(root_pane.find_pane_by_name_recursive("name_of_parts_pane")`.
+///
+/// # Usage
+/// Now say I want to edit background colour of the button's label.
+/// I would have to grab the parts pane and find the pane I want to modify on it, then I'd be able
+/// to make the modifications as I normally would.
+///
+/// ```rust
+/// let slider_button = root_pane.find_pane_by_name_recursive("name_of_parts_pane");
+/// let label_bg = slider_button.find_pane_by_name_recursive("name_of_picture_pane");
+///
+/// let label_material = &mut *label_bg.as_picture().material;
+///
+/// label_material.set_white_res_color(LABEL_WHITE_SELECTED_COLOR);
+/// label_material.set_black_res_color(LABEL_BLACK_SELECTED_COLOR);
+/// ```
 #[skyline::hook(offset = 0x37730d4, inline)]
 unsafe fn handle_layout_arc_malloc(
     ctx: &mut skyline::hooks::InlineCtx
@@ -169,33 +199,37 @@ unsafe fn handle_layout_arc_malloc(
     let mut layout_arc = SarcFile::read(
         std::slice::from_raw_parts(decompressed_file,decompressed_size)
     ).unwrap();
-    let training_layout = layout_arc.files.iter_mut().find(|f| {
+    let training_layout = layout_arc.files.iter().find(|f| {
         f.name.is_some() && f.name.as_ref().unwrap() == &String::from("blyt/info_training.bflyt")
     });
     if training_layout.is_none() {
         return;
     }
 
+    let inject_arc;
     let inject_arc_size : u64;
 
     #[cfg(feature = "layout_arc_from_file")] {
-        let inject_arc = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();
-        inject_arc_size = inject_arc.len() as u64;
+        let inject_arc_from_file = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();
+        inject_arc_size = inject_arc_from_file.len() as u64;
 
         // Copy read file to global
-        inject_arc
+        inject_arc_from_file
             .iter()
             .enumerate()
             .for_each(|(idx, byte)| LAYOUT_ARC[idx] = *byte);
+        inject_arc = LAYOUT_ARC.as_ptr();
     }
 
     #[cfg(not(feature = "layout_arc_from_file"))] {
-        inject_arc_size = LAYOUT_ARC_SIZE as u64;
+        let inject_arc_from_file = include_bytes!("../../static/layout.arc");
+        inject_arc = inject_arc_from_file.as_ptr();
+        inject_arc_size = inject_arc_from_file.len() as u64;
     }
 
     // Decompressed file pointer
     let decompressed_file = ctx.registers[21].x.as_mut();
-    *decompressed_file = LAYOUT_ARC.as_ptr() as u64;
+    *decompressed_file = inject_arc as u64;
 
     // Decompressed size is in each of these registers
     *ctx.registers[1].x.as_mut() = inject_arc_size;
