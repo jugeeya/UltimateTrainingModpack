@@ -13,6 +13,7 @@ skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git"
 skyline-web = { git = "https://github.com/skyline-rs/skyline-web.git" }
 bitflags = "1.2.1"
 parking_lot = { version = "0.12.0", features = ["nightly"] }
+include-flate = "0.1.4"
 lazy_static = "1.4.0"
 owo-colors = "2.1.0"
 once_cell = "1.12.0"

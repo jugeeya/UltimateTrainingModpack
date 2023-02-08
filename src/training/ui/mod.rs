@@ -222,9 +222,10 @@ unsafe fn handle_layout_arc_malloc(
     }
 
     #[cfg(not(feature = "layout_arc_from_file"))] {
-        let inject_arc_from_file = include_bytes!("../../static/layout.arc");
-        inject_arc = inject_arc_from_file.as_ptr();
-        inject_arc_size = inject_arc_from_file.len() as u64;
+        include_flate::flate!(static INJECT_ARC_FROM_FILE: [u8] from "src/static/layout.arc");
+
+        inject_arc = INJECT_ARC_FROM_FILE.as_ptr();
+        inject_arc_size = INJECT_ARC_FROM_FILE.len() as u64;
     }
 
     // Decompressed file pointer
