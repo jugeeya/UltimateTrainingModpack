@@ -1,5 +1,5 @@
 use crate::common::{is_ready_go, is_training_mode};
-use sarc::SarcFile;
+use sarc::{SarcFile, SarcEntry};
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
 use std::collections::HashMap;
@@ -156,44 +156,51 @@ const LAYOUT_ARC_SIZE: usize = 40000;
 static mut LAYOUT_ARC: &[u8; LAYOUT_ARC_SIZE] = include_bytes!("../../static/training_layout.arc");
 
 #[skyline::hook(offset = 0x37730d4, inline)]
-unsafe fn handle_pre_attach_malloc(
+unsafe fn handle_layout_arc_malloc(
     ctx: &mut skyline::hooks::InlineCtx
 ) {
+    if !is_training_mode() {
+        return;
+    }
+
     let decompressed_file = *ctx.registers[21].x.as_ref() as *const u8;
     let decompressed_size = *ctx.registers[1].x.as_ref() as usize;
 
-    let training_layout = String::from("blyt/info_training.bflyt");
-    let is_training_layout = |file| file.name.is_some() && file.name.as_ref().unwrap() == &training_layout;
-    if is_training_mode() && SarcFile::read(
-            std::slice::from_raw_parts(decompressed_file,decompressed_size)
-        ).unwrap().files.iter().any(is_training_layout) {
-
-        let inject_arc_size : u64;
-
-        #[cfg(feature = "layout_arc_from_file")] {
-            let inject_arc = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();
-            inject_arc_size = inject_arc.len() as u64;
-
-            // Copy read file to global
-            inject_arc
-                .iter()
-                .enumerate()
-                .for_each(|(idx, byte)| LAYOUT_ARC[idx] = *byte);
-        }
-
-        #[cfg(not(feature = "layout_arc_from_file"))] {
-            inject_arc_size = LAYOUT_ARC_SIZE as u64;
-        }
-
-        // Decompressed file pointer
-        let decompressed_file = ctx.registers[21].x.as_mut();
-        *decompressed_file = LAYOUT_ARC.as_ptr() as u64;
-
-        // Decompressed size is in each of these registers
-        *ctx.registers[1].x.as_mut() = inject_arc_size;
-        *ctx.registers[23].x.as_mut() = inject_arc_size;
-        *ctx.registers[24].x.as_mut() = inject_arc_size;
+    let mut layout_arc = SarcFile::read(
+        std::slice::from_raw_parts(decompressed_file,decompressed_size)
+    ).unwrap();
+    let training_layout = layout_arc.files.iter_mut().find(|f| {
+        f.name.is_some() && f.name.as_ref().unwrap() == &String::from("blyt/info_training.bflyt")
+    });
+    if training_layout.is_none() {
+        return;
     }
+
+    let inject_arc_size : u64;
+
+    #[cfg(feature = "layout_arc_from_file")] {
+        let inject_arc = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();
+        inject_arc_size = inject_arc.len() as u64;
+
+        // Copy read file to global
+        inject_arc
+            .iter()
+            .enumerate()
+            .for_each(|(idx, byte)| LAYOUT_ARC[idx] = *byte);
+    }
+
+    #[cfg(not(feature = "layout_arc_from_file"))] {
+        inject_arc_size = LAYOUT_ARC_SIZE as u64;
+    }
+
+    // Decompressed file pointer
+    let decompressed_file = ctx.registers[21].x.as_mut();
+    *decompressed_file = LAYOUT_ARC.as_ptr() as u64;
+
+    // Decompressed size is in each of these registers
+    *ctx.registers[1].x.as_mut() = inject_arc_size;
+    *ctx.registers[23].x.as_mut() = inject_arc_size;
+    *ctx.registers[24].x.as_mut() = inject_arc_size;
 }
 
 pub fn init() {
