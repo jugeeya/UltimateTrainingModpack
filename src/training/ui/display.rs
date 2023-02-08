@@ -2,23 +2,21 @@ use crate::training::ui;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
-pub static NUM_DISPLAY_PANES: usize = 1;
-
 macro_rules! display_parent_fmt {
     ($x:ident) => {
-        format!("trMod_disp_{}", $x).as_str()
+        format!("TrModDisp{}", $x).as_str()
     };
 }
 
 macro_rules! display_header_fmt {
     ($x:ident) => {
-        format!("trMod_disp_{}_header", $x).as_str()
+        format!("TrModDisp{}Header", $x).as_str()
     };
 }
 
 macro_rules! display_txt_fmt {
     ($x:ident) => {
-        format!("trMod_disp_{}_txt", $x).as_str()
+        format!("TrModDisp{}Txt", $x).as_str()
     };
 }
 

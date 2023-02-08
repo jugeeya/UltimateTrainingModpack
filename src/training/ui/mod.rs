@@ -1,73 +1,12 @@
 use crate::common::{is_ready_go, is_training_mode};
-use sarc::{SarcFile, SarcEntry};
+use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
-use std::collections::HashMap;
-use parking_lot::Mutex;
 
 mod damage;
 mod display;
 mod menu;
 pub mod notifications;
-
-type PaneCreationCallback = for<'a, 'b> unsafe fn(&'a str, &'b mut Pane,
-                                                  extern "C" fn(*mut Layout, *mut u8, *const u8, *mut ResPane, *const u8, *const u8, *const u8, u32) -> *mut Pane,
-                                                  *mut Layout, *mut u8, *const u8, *mut ResPane,
-                                                  *const u8, *const u8, *const u8, u32);
-type PaneCreationMap =  HashMap<
-    (String, String), Vec<(bool, PaneCreationCallback)>
->;
-
-lazy_static::lazy_static! {
-    static ref PANE_CREATED: Mutex<PaneCreationMap> = Mutex::new(HashMap::from([
-        // (
-        //     (String::from("info_training"), String::from("pic_numbase_01")),
-        //     vec![
-        //         (false, menu::BUILD_CONTAINER_PANE),
-        //         (false, menu::BUILD_SLIDER_CONTAINER_PANE),
-        //     ]
-        // ),
-        // (
-        //     (String::from("info_training"), String::from("pic_help_bg_00")),
-        //     vec![(false, menu::BUILD_FOOTER_BG)]
-        // ),
-        // (
-        //     (String::from("info_training"), String::from("set_txt_help_00")),
-        //     vec![(false, menu::BUILD_FOOTER_TXT)]
-        // ),
-        // (
-        //     (String::from("info_training"), String::from("set_txt_num_01")),
-        //     vec![
-        //         (false, menu::BUILD_TAB_TXTS),
-        //         (false, menu::BUILD_OPT_TXTS),
-        //         (false, menu::BUILD_SLIDER_TXTS),
-        //     ]
-        // ),
-        // (
-        //     (String::from("info_training"), String::from("txt_cap_01")),
-        //     vec![
-        //         (false, menu::BUILD_SLIDER_HEADER_TXT),
-        //     ]
-        // ),
-        // (
-        //     (String::from("info_training_btn0_00_item"), String::from("icn_bg_main")),
-        //     vec![(false, menu::BUILD_BG_LEFTS)]
-        // ),
-        // (
-        //     (String::from("info_training_btn0_00_item"), String::from("btn_bg")),
-        //     vec![(false, menu::BUILD_BG_BACKS)]
-        // ),
-    ]));
-}
-
-pub unsafe fn reset_creation() {
-    let pane_created = &mut *PANE_CREATED.data_ptr();
-    pane_created.iter_mut().for_each(|(_identifier, creators)| {
-        creators.iter_mut().for_each(|(created, _callback)| {
-            *created = false;
-        })
-    })
-}
 
 #[skyline::hook(offset = 0x4b620)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {
@@ -85,70 +24,16 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
     if layout_name == "info_training" {
         display::draw(root_pane);
-        // menu::draw(root_pane);
+        menu::draw(root_pane);
     }
 
     original!()(layout, draw_info, cmd_buffer);
 }
 
-#[skyline::hook(offset = 0x493a0)]
-pub unsafe fn handle_build_parts_impl(
-    layout: *mut Layout,
-    out_build_result_information: *mut u8,
-    device: *const u8,
-    block: *mut ResPane,
-    parts_build_data_set: *const u8,
-    build_arg_set: *const u8,
-    build_res_set: *const u8,
-    kind: u32,
-) -> *mut Pane {
-    let layout_name = &skyline::from_c_str((*layout).layout_name);
-    let root_pane = &mut *(*layout).root_pane;
-
-    let block_name = (*block).get_name();
-    let identifier = (layout_name.to_string(), block_name);
-    let pane_created = &mut *PANE_CREATED.data_ptr();
-    let panes = pane_created.get_mut(&identifier);
-    if let Some(panes) = panes {
-        panes.iter_mut().for_each(|(has_created, callback)| {
-            if !*has_created {
-                callback(layout_name,
-                         root_pane,
-                         original!(),
-                         layout,
-                         out_build_result_information,
-                         device,
-                         block,
-                         parts_build_data_set,
-                         build_arg_set,
-                         build_res_set,
-                         kind
-                );
-
-                // Special case: Menu init should always occur
-                if ("info_training".to_string(), "pic_numbase_01".to_string()) != identifier {
-                    *has_created = true;
-                }
-            }
-        });
-    }
-
-    original!()(
-        layout,
-        out_build_result_information,
-        device,
-        block,
-        parts_build_data_set,
-        build_arg_set,
-        build_res_set,
-        kind,
-    )
-}
-
-// We'll keep some sane max size here; we shouldn't reach above 500KiB is the idea,
+// We'll keep some sane max size here; we shouldn't reach above 600KiB is the idea,
 // but we can try higher if we need to.
 #[cfg(feature = "layout_arc_from_file")]
-static mut LAYOUT_ARC : & mut [u8; 500000] = &mut [0u8; 500000];
+static mut LAYOUT_ARC : &mut [u8; 600000] = &mut [0u8; 600000];
 
 /// We are editing the info_training/layout.arc and replacing the original file with our
 /// modified version from `sd://TrainingModpack/layout.arc` or, in the case of Ryujinx for the cool
@@ -196,7 +81,7 @@ unsafe fn handle_layout_arc_malloc(
     let decompressed_file = *ctx.registers[21].x.as_ref() as *const u8;
     let decompressed_size = *ctx.registers[1].x.as_ref() as usize;
 
-    let mut layout_arc = SarcFile::read(
+    let layout_arc = SarcFile::read(
         std::slice::from_raw_parts(decompressed_file,decompressed_size)
     ).unwrap();
     let training_layout = layout_arc.files.iter().find(|f| {
@@ -241,7 +126,6 @@ unsafe fn handle_layout_arc_malloc(
 pub fn init() {
     skyline::install_hooks!(
         handle_draw,
-        handle_build_parts_impl,
         handle_layout_arc_malloc
     );
 }
