@@ -89,7 +89,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                 title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                 title_text.text_shadow_enable(false);
                 title_text.text_outline_enable(false);
-                title_text.set_color(85, 89, 92, 255);
+                title_text.set_color(178, 199, 211, 255);
             }
         });
 }
@@ -128,7 +128,7 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                 } else {
                     title_text.text_shadow_enable(false);
                     title_text.text_outline_enable(false);
-                    title_text.set_color(85, 89, 92, 255);
+                    title_text.set_color(178, 199, 211, 255);
                 }
 
                 let title_bg_material = &mut *title_bg.material;
@@ -188,7 +188,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
         _ => {
             min_title_text.text_shadow_enable(false);
             min_title_text.text_outline_enable(false);
-            min_title_text.set_color(85, 89, 92, 255);
+            min_title_text.set_color(178, 199, 211, 255);
         }
     }
 
@@ -202,7 +202,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
         _ => {
             max_title_text.text_shadow_enable(false);
             max_title_text.text_outline_enable(false);
-            max_title_text.set_color(85, 89, 92, 255);
+            max_title_text.set_color(178, 199, 211, 255);
         }
     }
 
