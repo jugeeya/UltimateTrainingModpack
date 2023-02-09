@@ -59,11 +59,11 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
         .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
         .for_each(|(list_section, list_idx)| {
             let menu_button_row = root_pane.find_pane_by_name_recursive(
-                format!("TrModMenuButtonRow{}", list_idx).as_str()
+                format!("TrModMenuButtonRow{list_idx}").as_str()
             ).unwrap();
             menu_button_row.set_visible(true);
             let menu_button = menu_button_row.find_pane_by_name_recursive(
-                format!("Button{}", list_section).as_str()
+                format!("Button{list_section}").as_str()
             ).unwrap();
             menu_button.set_visible(true);
             let title_text = menu_button.find_pane_by_name_recursive("TitleTxt")
@@ -104,11 +104,11 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
             .enumerate()
             .for_each(|(list_idx, (checked, name))| {
                 let menu_button_row = root_pane.find_pane_by_name_recursive(
-                    format!("TrModMenuButtonRow{}", list_idx).as_str()
+                    format!("TrModMenuButtonRow{list_idx}").as_str()
                 ).unwrap();
                 menu_button_row.set_visible(true);
                 let menu_button = menu_button_row.find_pane_by_name_recursive(
-                    format!("Button{}", list_section).as_str()
+                    format!("Button{list_section}").as_str()
                 ).unwrap();
                 menu_button.set_visible(true);
 
@@ -263,11 +263,11 @@ pub unsafe fn draw(root_pane: &mut Pane) {
         let row_idx = idx / 3;
 
         let menu_button_row = root_pane.find_pane_by_name_recursive(
-            format!("TrModMenuButtonRow{}", row_idx).as_str()
+            format!("TrModMenuButtonRow{row_idx}").as_str()
         ).unwrap();
         menu_button_row.set_visible(false);
         let menu_button = menu_button_row.find_pane_by_name_recursive(
-            format!("Button{}", col_idx).as_str()
+            format!("Button{col_idx}").as_str()
         ).unwrap();
         menu_button.set_visible(false);
 
@@ -327,9 +327,23 @@ pub unsafe fn draw(root_pane: &mut Pane) {
         *it = *key as u16;
         *(it.add(1)) = 0x0;
 
-
+        // PascalCase to Title Case
+        let title_case = name
+            .chars()
+            .fold(vec![], |mut acc, ch| {
+                if ch.is_uppercase() {
+                    acc.push(String::new());
+                }
+                if let Some(last) = acc.last_mut() {
+                    last.push(ch);
+                }
+                acc
+            })
+            .into_iter()
+            .collect::<Vec<String>>()
+            .join(" ");
         key_help_pane.find_pane_by_name_recursive("set_txt_help")
-            .unwrap().as_textbox().set_text_string(name);
+            .unwrap().as_textbox().set_text_string(title_case.as_str());
     });
 
     match app.page {
