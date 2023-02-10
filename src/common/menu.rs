@@ -3,7 +3,7 @@ use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
 use crate::training::frame_counter;
 
-use skyline::nn::hid::NpadGcState;
+use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
 use training_mod_consts::MenuJsonStruct;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -258,6 +258,16 @@ pub unsafe fn quick_menu_loop() {
             std::thread::sleep(std::time::Duration::from_millis(16));
 
             if !QUICK_MENU_ACTIVE {
+                continue;
+            }
+
+            // Check for all controllers unplugged
+            let mut potential_controller_ids = (0..8).collect::<Vec<u32>>();
+            potential_controller_ids.push(0x20);
+            if potential_controller_ids
+                .iter()
+                .all(|i| GetNpadStyleSet(i as *const _).flags == 0) {
+                QUICK_MENU_ACTIVE = false;
                 continue;
             }
 
