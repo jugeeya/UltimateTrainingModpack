@@ -20,7 +20,7 @@ pub fn init() {
     }
 }
 
-unsafe fn was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+unsafe fn _was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
 }
@@ -96,7 +96,7 @@ pub unsafe fn is_enable_transition_term(
         // if both are now active
         if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
             let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-            if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
+            if was_in_shieldstun(cpu_module_accessor) {
                 update_frame_advantage(
                     (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32,
                 );
@@ -147,7 +147,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
 
     // if both are now active
     if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
-        if was_in_hitstun(cpu_module_accessor) || was_in_shieldstun(cpu_module_accessor) {
+        if was_in_shieldstun(cpu_module_accessor) {
             update_frame_advantage((CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32);
         }
 

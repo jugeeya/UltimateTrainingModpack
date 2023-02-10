@@ -34,8 +34,8 @@ pub fn reset_frame_count(index: usize) {
 }
 
 pub fn full_reset(index: usize) {
-    frame_counter::reset_frame_count(index);
-    frame_counter::stop_counting(index);
+    reset_frame_count(index);
+    stop_counting(index);
 }
 
 /**
@@ -46,10 +46,10 @@ pub fn should_delay(delay: u32, index: usize) -> bool {
         return false;
     }
 
-    let current_frame = frame_counter::get_frame_count(index);
+    let current_frame = get_frame_count(index);
 
     if current_frame == 0 {
-        frame_counter::start_counting(index);
+        start_counting(index);
     }
 
     if current_frame >= delay {
@@ -64,13 +64,17 @@ pub fn get_frame_count(index: usize) -> u32 {
     unsafe { COUNTERS[index] }
 }
 
+pub fn tick_idx(index: usize) {
+    unsafe { COUNTERS[index] += 1; }
+}
+
 fn tick() {
     unsafe {
         for (index, _frame) in COUNTERS.iter().enumerate() {
             if !SHOULD_COUNT[index] {
                 continue;
             }
-            COUNTERS[index] += 1;
+            tick_idx(index);
         }
     }
 }

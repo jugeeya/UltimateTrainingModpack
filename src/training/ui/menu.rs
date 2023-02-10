@@ -3,6 +3,7 @@ use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::{App, AppPage};
 use training_mod_tui::gauge::GaugeState;
+use crate::training::frame_counter;
 
 pub static NUM_MENU_TEXT_OPTIONS: usize = 33;
 pub static _NUM_MENU_TABS: usize = 3;
@@ -256,6 +257,9 @@ pub unsafe fn draw(root_pane: &mut Pane) {
     }
 
     root_pane.find_pane_by_name_recursive("TrModMenu").unwrap().set_visible(QUICK_MENU_ACTIVE);
+    if QUICK_MENU_ACTIVE {
+        frame_counter::tick_idx(crate::common::menu::FRAME_COUNTER_INDEX);
+    }
 
     // Make all invisible first
     (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {

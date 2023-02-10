@@ -6,34 +6,21 @@ use crate::training::frame_counter;
 use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
 use training_mod_consts::MenuJsonStruct;
 
-static mut FRAME_COUNTER_INDEX: usize = 0;
-pub static mut QUICK_MENU_FRAME_COUNTER_INDEX: usize = 0;
-const MENU_LOCKOUT_FRAMES: u32 = 15;
+// This is a special frame counter that will tick on draw()
+// We'll count how long the menu has been open
+pub static mut FRAME_COUNTER_INDEX: usize = 0;
+const MENU_INPUT_WAIT_FRAMES : u32 = 30;
+const MENU_CLOSE_WAIT_FRAMES : u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub fn init() {
     unsafe {
         FRAME_COUNTER_INDEX = frame_counter::register_counter();
-        QUICK_MENU_FRAME_COUNTER_INDEX = frame_counter::register_counter();
     }
 }
 
-pub unsafe fn menu_condition(module_accessor: &mut smash::app::BattleObjectModuleAccessor) -> bool {
-    // also ensure quick menu is reset
-    if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) > 60 {
-        frame_counter::full_reset(QUICK_MENU_FRAME_COUNTER_INDEX);
-    }
-
-    // Only check for button combination if the counter is 0 (not locked out)
-    match frame_counter::get_frame_count(FRAME_COUNTER_INDEX) {
-        0 => button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu),
-        1..MENU_LOCKOUT_FRAMES => false,
-        _ => {
-            // Waited longer than the lockout time, reset the counter so the menu can be opened again
-            frame_counter::full_reset(FRAME_COUNTER_INDEX);
-            false
-        }
-    }
+pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu)
 }
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
@@ -62,9 +49,6 @@ pub unsafe fn set_menu_from_json(message: &str) {
 pub fn spawn_menu() {
     unsafe {
         frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-        frame_counter::start_counting(FRAME_COUNTER_INDEX);
-        frame_counter::reset_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX);
-        frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
         QUICK_MENU_ACTIVE = true;
     }
@@ -184,7 +168,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             // BUTTON_PRESSES.down.is_pressed = (*state).Buttons & ((1 << 15) | (1 << 19)) > 0;
             // BUTTON_PRESSES.up.is_pressed = (*state).Buttons & ((1 << 13) | (1 << 17)) > 0;
 
-            if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) != 0 {
+            if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) < MENU_INPUT_WAIT_FRAMES {
                 return;
             }
 
@@ -276,10 +260,10 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
                 if app.page != AppPage::SUBMENU {
                     app.on_b()
-                } else if frame_counter::get_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX) == 0
-                {
+                } else if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > MENU_CLOSE_WAIT_FRAMES {
                     // Leave menu.
                     QUICK_MENU_ACTIVE = false;
+                    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
                     let menu_json = app.get_menu_selections();
                     set_menu_from_json(&menu_json);
                     EVENT_QUEUE.push(Event::menu_open(menu_json));
