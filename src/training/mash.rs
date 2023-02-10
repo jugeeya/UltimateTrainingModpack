@@ -1,6 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::attack_angle;
+use crate::training::{attack_angle, save_states};
 use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::frame_counter;
@@ -142,6 +142,10 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
 }
 
 unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if save_states::is_loading() {
+        return false;
+    }
+
     let fighter_distance = get_fighter_distance();
     MENU.mash_triggers.contains(MashTrigger::ALWAYS)
         || (MENU.mash_triggers.contains(MashTrigger::HIT) && is_in_hitstun(module_accessor))
@@ -158,7 +162,8 @@ unsafe fn should_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) -
         || (MENU.mash_triggers.contains(MashTrigger::GROUNDED) && is_grounded(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::AIRBORNE) && is_airborne(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_CLOSE) && fighter_distance < DISTANCE_CLOSE_THRESHOLD)
-        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID) && fighter_distance < DISTANCE_MID_THRESHOLD) || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR) && fighter_distance < DISTANCE_FAR_THRESHOLD)
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID) && fighter_distance < DISTANCE_MID_THRESHOLD)
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR) && fighter_distance < DISTANCE_FAR_THRESHOLD)
 }
 
 // Temp Translation

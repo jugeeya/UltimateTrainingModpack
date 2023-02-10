@@ -95,10 +95,11 @@ static mut MIRROR_STATE: f32 = 1.0;
 // MIRROR_STATE == -1 -> Do Mirror
 
 pub unsafe fn is_killing() -> bool {
-    if SAVE_STATE_PLAYER.state == KillPlayer || SAVE_STATE_CPU.state == KillPlayer {
-        return true;
-    }
-    false
+    SAVE_STATE_PLAYER.state == KillPlayer || SAVE_STATE_CPU.state == KillPlayer
+}
+
+pub unsafe fn is_loading() -> bool {
+    SAVE_STATE_PLAYER.state != NoAction || SAVE_STATE_CPU.state != NoAction
 }
 
 pub unsafe fn should_mirror() -> f32 {

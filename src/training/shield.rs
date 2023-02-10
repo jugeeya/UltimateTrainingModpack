@@ -1,6 +1,6 @@
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::frame_counter;
+use crate::training::{frame_counter, save_states};
 use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
@@ -187,7 +187,8 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // We should hold shield if the state requires it
-    if ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+    if unsafe { save_states::is_loading() } ||
+        ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
         return false;
     }
 
