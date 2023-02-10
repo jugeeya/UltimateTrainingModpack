@@ -66,11 +66,6 @@ pub fn spawn_menu() {
         frame_counter::reset_frame_count(QUICK_MENU_FRAME_COUNTER_INDEX);
         frame_counter::start_counting(QUICK_MENU_FRAME_COUNTER_INDEX);
 
-        let mut app = QUICK_MENU_APP.lock();
-        *app = training_mod_tui::App::new(
-            ui_menu(MENU),
-            (ui_menu(DEFAULTS_MENU), serde_json::to_string(&DEFAULTS_MENU).unwrap()));
-        drop(app);
         QUICK_MENU_ACTIVE = true;
     }
 }
