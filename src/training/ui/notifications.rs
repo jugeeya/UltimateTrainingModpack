@@ -1,17 +1,17 @@
 use skyline::nn::ui2d::ResColor;
 
-pub static mut QUEUE: Vec<Notification<'static>> = vec![];
+pub static mut QUEUE: Vec<Notification> = vec![];
 
-#[derive(Copy, Clone)]
-pub struct Notification<'a> {
-    header: &'a str,
-    message: &'a str,
+#[derive(Clone)]
+pub struct Notification {
+    pub header: String,
+    pub message: String,
     length: u32,
-    color: ResColor
+    pub color: ResColor
 }
 
-impl<'a> Notification<'a> {
-    pub fn new(header: &'a str, message: &'a str, length: u32, color: ResColor) -> Notification<'a> {
+impl Notification {
+    pub fn new(header: String, message: String, length: u32, color: ResColor) -> Notification {
         Notification {
             header,
             message,
@@ -28,21 +28,9 @@ impl<'a> Notification<'a> {
         self.length -= 1;
         false
     }
-
-    pub fn header(self) -> &'a str {
-        self.header
-    }
-
-    pub fn message(self) -> &'a str {
-        self.message
-    }
-
-    pub fn color(self) -> ResColor {
-        self.color
-    }
 }
 
-pub fn notification(header: &'static str, message: &'static str, len: u32) {
+pub fn notification(header: String, message: String, len: u32) {
     unsafe {
         let queue = &mut QUEUE;
         queue.push(Notification::new(header, message, len, ResColor {
@@ -54,7 +42,7 @@ pub fn notification(header: &'static str, message: &'static str, len: u32) {
     }
 }
 
-pub fn color_notification(header: &'static str, message: &'static str, len: u32, color: ResColor) {
+pub fn color_notification(header: String, message: String, len: u32, color: ResColor) {
     unsafe {
         let queue = &mut QUEUE;
         queue.push(Notification::new(header, message, len, color));

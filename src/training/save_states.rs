@@ -12,19 +12,22 @@ use crate::training::character_specific::steve;
 use crate::training::charge::{self, ChargeState};
 use crate::training::items::apply_item;
 use crate::training::reset;
+use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
+use SaveState::*;
 use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use std::collections::HashMap;
 use training_mod_consts::{CharacterItem, SaveDamage};
+use crate::training::ui::notifications;
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app14sv_information8stage_idEv"]
     pub fn stage_id() -> i32;
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 enum SaveState {
     Save,
     NoAction,
@@ -34,6 +37,7 @@ enum SaveState {
     ApplyBuff,
 }
 
+#[derive(Copy, Clone)]
 struct SavedState {
     x: f32,
     y: f32,
@@ -85,21 +89,32 @@ macro_rules! default_save_state {
     };
 }
 
-use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
-use SaveState::*;
+// static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
+// static mut SAVE_STATE_CPU: SavedState = default_save_state!();
 
-static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
-static mut SAVE_STATE_CPU: SavedState = default_save_state!();
-static mut MIRROR_STATE: f32 = 1.0;
+const NUM_SAVE_STATE_SLOTS : usize = 5;
+static mut SAVE_STATE_PLAYER : [SavedState; NUM_SAVE_STATE_SLOTS] = [default_save_state!(); NUM_SAVE_STATE_SLOTS];
+static mut SAVE_STATE_CPU : [SavedState; NUM_SAVE_STATE_SLOTS] = [default_save_state!(); NUM_SAVE_STATE_SLOTS];
+static mut SAVE_STATE_SLOT : usize = 0;
+
+unsafe fn save_state_player() -> &'static mut SavedState {
+    &mut SAVE_STATE_PLAYER[SAVE_STATE_SLOT]
+}
+
+unsafe fn save_state_cpu() -> &'static mut SavedState {
+    &mut SAVE_STATE_CPU[SAVE_STATE_SLOT]
+}
+
 // MIRROR_STATE == 1 -> Do not mirror
 // MIRROR_STATE == -1 -> Do Mirror
+static mut MIRROR_STATE: f32 = 1.0;
 
 pub unsafe fn is_killing() -> bool {
-    SAVE_STATE_PLAYER.state == KillPlayer || SAVE_STATE_CPU.state == KillPlayer
+    save_state_player().state == KillPlayer || save_state_cpu().state == KillPlayer
 }
 
 pub unsafe fn is_loading() -> bool {
-    SAVE_STATE_PLAYER.state != NoAction || SAVE_STATE_CPU.state != NoAction
+    save_state_player().state != NoAction || save_state_cpu().state != NoAction
 }
 
 pub unsafe fn should_mirror() -> f32 {
@@ -221,9 +236,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
         == FighterId::CPU as i32;
     let save_state = if is_cpu {
-        &mut SAVE_STATE_CPU
+        save_state_cpu()
     } else {
-        &mut SAVE_STATE_PLAYER
+        save_state_player()
     };
 
     let fighter_kind = app::utility::get_kind(module_accessor);
@@ -240,6 +255,28 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     ]
     .contains(&fighter_kind);
 
+    if !is_operation_cpu(module_accessor) &&
+        button_config::combo_passes(module_accessor, button_config::ButtonCombo::PrevSaveStateSlot) {
+        SAVE_STATE_SLOT = if SAVE_STATE_SLOT == 0 {
+            NUM_SAVE_STATE_SLOTS - 1
+        } else {
+            SAVE_STATE_SLOT - 1
+        };
+        notifications::clear_notifications("Save State");
+        notifications::notification("Save State".to_string(), format!("Switched to Slot {SAVE_STATE_SLOT}"), 120);
+
+        return;
+    }
+
+    if !is_operation_cpu(module_accessor) &&
+        button_config::combo_passes(module_accessor, button_config::ButtonCombo::NextSaveStateSlot) {
+        SAVE_STATE_SLOT = (SAVE_STATE_SLOT + 1) % NUM_SAVE_STATE_SLOTS;
+        notifications::clear_notifications("Save State");
+        notifications::notification("Save State".to_string(), format!("Switched to Slot {SAVE_STATE_SLOT}"), 120);
+
+        return;
+    }
+
     // Grab + Dpad up: reset state
     let autoload_reset = MENU.save_state_autoload == OnOff::On
         && save_state.state == NoAction
@@ -251,8 +288,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
-            SAVE_STATE_PLAYER.state = KillPlayer;
-            SAVE_STATE_CPU.state = KillPlayer;
+            save_state_player().state = KillPlayer;
+            save_state_cpu().state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
         return;
@@ -497,8 +534,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if button_config::combo_passes(module_accessor, button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
-        SAVE_STATE_PLAYER.state = Save;
-        SAVE_STATE_CPU.state = Save;
+        save_state_player().state = Save;
+        save_state_cpu().state = Save;
     }
 
     if save_state.state == Save && !fighter_is_nana {

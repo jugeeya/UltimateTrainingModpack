@@ -10,7 +10,6 @@
     clippy::missing_safety_doc,
     clippy::wrong_self_convention,
     clippy::option_map_unit_fn,
-    clippy::float_cmp,
     clippy::fn_null_check,
     // Look into why for this one
     clippy::transmute_num_to_bytes
@@ -80,10 +79,10 @@ pub fn main() {
     info!("Initialized.");
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
-        notification("Training Modpack", "Welcome!", 60);
-        notification("Open Menu", "Special + Uptaunt", 120);
-        notification("Save State", "Grab + Downtaunt", 120);
-        notification("Load State", "Grab + Uptaunt", 120);
+        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+        notification("Open Menu".to_string(), "Special + Uptaunt".to_string(), 120);
+        notification("Save State".to_string(), "Grab + Downtaunt".to_string(), 120);
+        notification("Load State".to_string(), "Grab + Uptaunt".to_string(), 120);
     }
 
     hitbox_visualizer::hitbox_visualization();
