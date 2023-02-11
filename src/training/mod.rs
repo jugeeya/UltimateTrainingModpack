@@ -565,7 +565,6 @@ pub fn training_mods() {
     mash::init();
     ledge::init();
     throw::init();
-    menu::init();
     buff::init();
     items::init();
     tech::init();
