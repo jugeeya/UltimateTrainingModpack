@@ -14,11 +14,13 @@ use crate::training::items::apply_item;
 use crate::training::reset;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 use SaveState::*;
+use serde::{Serialize, Deserialize};
 use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use std::collections::HashMap;
+use log::info;
 use training_mod_consts::{CharacterItem, SaveDamage};
 use crate::training::ui::notifications;
 
@@ -27,7 +29,7 @@ extern "C" {
     pub fn stage_id() -> i32;
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Copy, Clone, Debug)]
 enum SaveState {
     Save,
     NoAction,
@@ -37,7 +39,7 @@ enum SaveState {
     ApplyBuff,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 struct SavedState {
     x: f32,
     y: f32,
@@ -89,20 +91,40 @@ macro_rules! default_save_state {
     };
 }
 
-// static mut SAVE_STATE_PLAYER: SavedState = default_save_state!();
-// static mut SAVE_STATE_CPU: SavedState = default_save_state!();
-
 const NUM_SAVE_STATE_SLOTS : usize = 5;
-static mut SAVE_STATE_PLAYER : [SavedState; NUM_SAVE_STATE_SLOTS] = [default_save_state!(); NUM_SAVE_STATE_SLOTS];
-static mut SAVE_STATE_CPU : [SavedState; NUM_SAVE_STATE_SLOTS] = [default_save_state!(); NUM_SAVE_STATE_SLOTS];
+static mut SAVE_STATE_SLOTS : [[SavedState; NUM_SAVE_STATE_SLOTS]; 2] = [[default_save_state!(); NUM_SAVE_STATE_SLOTS]; 2];
 static mut SAVE_STATE_SLOT : usize = 0;
 
+pub fn load_from_file() {
+    let save_states_path = "sd:/TrainingModpack/save_states.json";
+    info!("Checking for previous save state settings in save_states.json...");
+    if std::fs::metadata(save_states_path).is_err() {
+        return;
+    }
+
+    info!("Previous save state settings found. Loading...");
+    // TODO: This doesn't work! Crashes...
+    // if let Ok(data) = std::fs::read_to_string(save_states_path) {
+    //     unsafe {
+    //         SAVE_STATE_SLOTS = serde_json::from_str(&data)
+    //             .expect("Could not parse button config");
+    //     }
+    // }
+}
+
+pub unsafe fn save_to_file() {
+    let save_states_str = serde_json::to_string_pretty(&SAVE_STATE_SLOTS)
+        .expect("Error serializing save state information");
+    std::fs::write("sd:/TrainingModpack/save_states.json", save_states_str)
+        .expect("Could not write save state information to file");
+}
+
 unsafe fn save_state_player() -> &'static mut SavedState {
-    &mut SAVE_STATE_PLAYER[SAVE_STATE_SLOT]
+    &mut SAVE_STATE_SLOTS[0][SAVE_STATE_SLOT]
 }
 
 unsafe fn save_state_cpu() -> &'static mut SavedState {
-    &mut SAVE_STATE_CPU[SAVE_STATE_SLOT]
+    &mut SAVE_STATE_SLOTS[1][SAVE_STATE_SLOT]
 }
 
 // MIRROR_STATE == 1 -> Do not mirror
@@ -580,5 +602,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             0,
             0,
         );
+
+        // If both chars finished saving by now
+        if save_state_player().state != Save && save_state_cpu().state != Save {
+            save_to_file();
+        }
     }
 }

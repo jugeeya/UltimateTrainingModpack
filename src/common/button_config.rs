@@ -2,6 +2,8 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 use smash::app::lua_bind::ControlModule;
 use std::collections::HashMap;
+use std::fs;
+use log::info;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use toml;
@@ -74,39 +76,33 @@ pub struct TopLevelBtnComboConfig {
     button_config: BtnComboConfig,
 }
 
-pub fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
-    let conf = conf.button_config;
-    let configs = [conf.open_menu, conf.save_state, conf.load_state,
-        conf.previous_save_state_slot, conf.next_save_state_slot];
-    let bad_keys = configs
-        .iter()
-        .flat_map(|btn_list| {
-            btn_list
-                .hold
-                .iter()
-                .chain(btn_list.press.iter())
-                .filter(|x| !BUTTON_MAPPING.contains_key(x.to_uppercase().as_str()))
-        })
-        .collect::<Vec<&String>>();
+pub fn load_from_file() {
+    let combo_path = "sd:/TrainingModpack/training_modpack.toml";
+    info!("Checking for previous button combo settings in training_modpack.toml...");
+    let mut valid_button_config = false;
+    if fs::metadata(combo_path).is_ok() {
+        info!("Previous button combo settings found. Loading...");
+        let combo_conf =
+            fs::read_to_string(combo_path).unwrap_or_else(|_| panic!("Could not read {}", combo_path));
+        let conf: Result<TopLevelBtnComboConfig, toml::de::Error> = toml::from_str(&combo_conf);
+        if let Ok(conf) = conf {
+            if validate_config(conf) {
+                save_all_btn_config_from_toml(&combo_conf);
+                valid_button_config = true;
+            }
+        }
+    }
 
-    if !bad_keys.is_empty() {
-        skyline::error::show_error(
-            0x71,
-            "Training Modpack custom button\nconfiguration is invalid!\0",
-            &format!(
-                "The following keys are invalid in\nsd:/TrainingModpack/training_modpack.toml:\n\
-                {:?}\n\nPossible Keys: {:#?}\0",
-                &bad_keys,
-                BUTTON_MAPPING.keys()
-            ),
-        );
-        false
-    } else {
-        true
+    if !valid_button_config {
+        info!("No previous button combo file found. Creating...");
+        fs::write(combo_path, DEFAULT_BTN_CONFIG)
+            .expect("Failed to write button config conf file");
+        save_all_btn_config_from_defaults();
     }
 }
 
-pub fn save_all_btn_config_from_defaults() {
+
+fn save_all_btn_config_from_defaults() {
     let conf = TopLevelBtnComboConfig {
         button_config: BtnComboConfig {
             open_menu: BtnList {
@@ -138,12 +134,44 @@ pub fn save_all_btn_config_from_defaults() {
     }
 }
 
-pub fn save_all_btn_config_from_toml(data: &str) {
+fn save_all_btn_config_from_toml(data: &str) {
     let conf: TopLevelBtnComboConfig = toml::from_str(data).expect("Could not parse button config");
     unsafe {
         // This println is necessary. Why?.......
         println!("{:?}", &conf.button_config.load_state.press);
         BUTTON_COMBO_CONFIG = conf.button_config;
+    }
+}
+
+fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
+    let conf = conf.button_config;
+    let configs = [conf.open_menu, conf.save_state, conf.load_state,
+        conf.previous_save_state_slot, conf.next_save_state_slot];
+    let bad_keys = configs
+        .iter()
+        .flat_map(|btn_list| {
+            btn_list
+                .hold
+                .iter()
+                .chain(btn_list.press.iter())
+                .filter(|x| !BUTTON_MAPPING.contains_key(x.to_uppercase().as_str()))
+        })
+        .collect::<Vec<&String>>();
+
+    if !bad_keys.is_empty() {
+        skyline::error::show_error(
+            0x71,
+            "Training Modpack custom button\nconfiguration is invalid!\0",
+            &format!(
+                "The following keys are invalid in\nsd:/TrainingModpack/training_modpack.toml:\n\
+                {:?}\n\nPossible Keys: {:#?}\0",
+                &bad_keys,
+                BUTTON_MAPPING.keys()
+            ),
+        );
+        false
+    } else {
+        true
     }
 }
 
@@ -200,7 +228,7 @@ pub fn combo_passes_exclusive(
     combo_passes(module_accessor, combo) && !other_combo_passes
 }
 
-pub const DEFAULT_BTN_CONFIG: &str = r#"[button_config]
+const DEFAULT_BTN_CONFIG: &str = r#"[button_config]
 # Available Options:
 #
 # ATTACK
