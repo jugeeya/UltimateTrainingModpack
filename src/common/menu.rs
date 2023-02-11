@@ -13,7 +13,7 @@ const MENU_CLOSE_WAIT_FRAMES : u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu)
+    button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::OpenMenu)
 }
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";

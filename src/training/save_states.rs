@@ -256,7 +256,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     if !is_operation_cpu(module_accessor) &&
-        button_config::combo_passes(module_accessor, button_config::ButtonCombo::PrevSaveStateSlot) {
+        button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::PrevSaveStateSlot) {
         SAVE_STATE_SLOT = if SAVE_STATE_SLOT == 0 {
             NUM_SAVE_STATE_SLOTS - 1
         } else {
@@ -269,7 +269,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     if !is_operation_cpu(module_accessor) &&
-        button_config::combo_passes(module_accessor, button_config::ButtonCombo::NextSaveStateSlot) {
+        button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::NextSaveStateSlot) {
         SAVE_STATE_SLOT = (SAVE_STATE_SLOT + 1) % NUM_SAVE_STATE_SLOTS;
         notifications::clear_notifications("Save State");
         notifications::notification("Save State".to_string(), format!("Switched to Slot {SAVE_STATE_SLOT}"), 120);
@@ -284,7 +284,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     let mut triggered_reset: bool = false;
     if !is_operation_cpu(module_accessor) {
         triggered_reset =
-            button_config::combo_passes(module_accessor, button_config::ButtonCombo::LoadState);
+            button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::LoadState);
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
@@ -531,7 +531,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Grab + Dpad down: Save state
-    if button_config::combo_passes(module_accessor, button_config::ButtonCombo::SaveState) {
+    if button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
         save_state_player().state = Save;

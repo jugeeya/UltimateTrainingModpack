@@ -2,6 +2,8 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 use smash::app::lua_bind::ControlModule;
 use std::collections::HashMap;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 use toml;
 
 lazy_static! {
@@ -43,7 +45,7 @@ static mut BUTTON_COMBO_CONFIG: BtnComboConfig = BtnComboConfig {
     },
 };
 
-#[derive(Debug)]
+#[derive(Debug, EnumIter, PartialEq)]
 pub enum ButtonCombo {
     OpenMenu,
     SaveState,
@@ -68,13 +70,11 @@ struct BtnComboConfig {
 }
 
 #[derive(Deserialize)]
-struct TopLevelBtnComboConfig {
+pub struct TopLevelBtnComboConfig {
     button_config: BtnComboConfig,
 }
 
-pub fn validate_config(data: &str) -> bool {
-    let conf: TopLevelBtnComboConfig =
-        toml::from_str(data).expect("Custom button config has invalid schema");
+pub fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
     let conf = conf.button_config;
     let configs = [conf.open_menu, conf.save_state, conf.load_state,
         conf.previous_save_state_slot, conf.next_save_state_slot];
@@ -147,41 +147,57 @@ pub fn save_all_btn_config_from_toml(data: &str) {
     }
 }
 
-pub fn combo_passes(
+unsafe fn get_combo_keys(combo: ButtonCombo) -> (&'static Vec<String>, &'static Vec<String>) {
+    match combo {
+        ButtonCombo::OpenMenu => (
+            &BUTTON_COMBO_CONFIG.open_menu.hold,
+            &BUTTON_COMBO_CONFIG.open_menu.press,
+        ),
+        ButtonCombo::SaveState => (
+            &BUTTON_COMBO_CONFIG.save_state.hold,
+            &BUTTON_COMBO_CONFIG.save_state.press,
+        ),
+        ButtonCombo::LoadState => (
+            &BUTTON_COMBO_CONFIG.load_state.hold,
+            &BUTTON_COMBO_CONFIG.load_state.press,
+        ),
+        ButtonCombo::PrevSaveStateSlot => (
+            &BUTTON_COMBO_CONFIG.previous_save_state_slot.hold,
+            &BUTTON_COMBO_CONFIG.previous_save_state_slot.press,
+        ),
+        ButtonCombo::NextSaveStateSlot => (
+            &BUTTON_COMBO_CONFIG.next_save_state_slot.hold,
+            &BUTTON_COMBO_CONFIG.next_save_state_slot.press,
+        ),
+    }
+}
+
+fn combo_passes(
     module_accessor: *mut smash::app::BattleObjectModuleAccessor,
     combo: ButtonCombo,
 ) -> bool {
     unsafe {
-        let (hold, press) = match combo {
-            ButtonCombo::OpenMenu => (
-                &BUTTON_COMBO_CONFIG.open_menu.hold,
-                &BUTTON_COMBO_CONFIG.open_menu.press,
-            ),
-            ButtonCombo::SaveState => (
-                &BUTTON_COMBO_CONFIG.save_state.hold,
-                &BUTTON_COMBO_CONFIG.save_state.press,
-            ),
-            ButtonCombo::LoadState => (
-                &BUTTON_COMBO_CONFIG.load_state.hold,
-                &BUTTON_COMBO_CONFIG.load_state.press,
-            ),
-            ButtonCombo::PrevSaveStateSlot => (
-                &BUTTON_COMBO_CONFIG.previous_save_state_slot.hold,
-                &BUTTON_COMBO_CONFIG.previous_save_state_slot.press,
-            ),
-            ButtonCombo::NextSaveStateSlot => (
-                &BUTTON_COMBO_CONFIG.next_save_state_slot.hold,
-                &BUTTON_COMBO_CONFIG.next_save_state_slot.press,
-            ),
-        };
-        hold.iter()
+        let (hold, press) = get_combo_keys(combo);
+        let this_combo_passes = hold.iter()
             .map(|hold| *BUTTON_MAPPING.get(&*hold.to_uppercase()).unwrap())
             .all(|hold| ControlModule::check_button_on(module_accessor, hold))
             && press
                 .iter()
                 .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
-                .all(|press| ControlModule::check_button_trigger(module_accessor, press))
+                .all(|press| ControlModule::check_button_trigger(module_accessor, press));
+
+        this_combo_passes
     }
+}
+
+pub fn combo_passes_exclusive(
+    module_accessor: *mut smash::app::BattleObjectModuleAccessor,
+    combo: ButtonCombo
+) -> bool {
+    let other_combo_passes = ButtonCombo::iter()
+        .filter(|other_combo| *other_combo != combo)
+        .any(|other_combo| combo_passes(module_accessor, other_combo));
+    combo_passes(module_accessor, combo) && !other_combo_passes
 }
 
 pub const DEFAULT_BTN_CONFIG: &str = r#"[button_config]

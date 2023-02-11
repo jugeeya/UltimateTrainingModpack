@@ -125,16 +125,21 @@ pub fn main() {
 
     let combo_path = "sd:/TrainingModpack/training_modpack.toml";
     info!("Checking for previous button combo settings in training_modpack.toml...");
+    let mut valid_button_config = false;
     if fs::metadata(combo_path).is_ok() {
         info!("Previous button combo settings found. Loading...");
         let combo_conf =
             fs::read_to_string(combo_path).unwrap_or_else(|_| panic!("Could not remove {}", combo_path));
-        if button_config::validate_config(&combo_conf) {
-            button_config::save_all_btn_config_from_toml(&combo_conf);
-        } else {
-            button_config::save_all_btn_config_from_defaults();
+        let conf: Result<button_config::TopLevelBtnComboConfig, toml::de::Error> = toml::from_str(&combo_conf);
+        if let Ok(conf) = conf {
+            if button_config::validate_config(conf) {
+                button_config::save_all_btn_config_from_toml(&combo_conf);
+                valid_button_config = true;
+            }
         }
-    } else {
+    }
+
+    if !valid_button_config {
         info!("No previous button combo file found. Creating...");
         fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
             .expect("Failed to write button config conf file");
