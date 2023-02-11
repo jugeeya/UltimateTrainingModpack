@@ -1,23 +1,16 @@
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
-use crate::training::frame_counter;
 
 use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
 use training_mod_consts::MenuJsonStruct;
 
 // This is a special frame counter that will tick on draw()
 // We'll count how long the menu has been open
-pub static mut FRAME_COUNTER_INDEX: usize = 0;
+pub static mut FRAME_COUNTER : u32 = 0;
 const MENU_INPUT_WAIT_FRAMES : u32 = 30;
 const MENU_CLOSE_WAIT_FRAMES : u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
-
-pub fn init() {
-    unsafe {
-        FRAME_COUNTER_INDEX = frame_counter::register_counter();
-    }
-}
 
 pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu)
@@ -48,8 +41,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
 
 pub fn spawn_menu() {
     unsafe {
-        frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-
+        FRAME_COUNTER = 0;
         QUICK_MENU_ACTIVE = true;
     }
 }
@@ -168,7 +160,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             // BUTTON_PRESSES.down.is_pressed = (*state).Buttons & ((1 << 15) | (1 << 19)) > 0;
             // BUTTON_PRESSES.up.is_pressed = (*state).Buttons & ((1 << 13) | (1 << 17)) > 0;
 
-            if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) < MENU_INPUT_WAIT_FRAMES {
+            if FRAME_COUNTER < MENU_INPUT_WAIT_FRAMES {
                 return;
             }
 
@@ -260,10 +252,10 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
                 if app.page != AppPage::SUBMENU {
                     app.on_b()
-                } else if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > MENU_CLOSE_WAIT_FRAMES {
+                } else if FRAME_COUNTER > MENU_CLOSE_WAIT_FRAMES {
                     // Leave menu.
                     QUICK_MENU_ACTIVE = false;
-                    frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+                    FRAME_COUNTER = 0;
                     let menu_json = app.get_menu_selections();
                     set_menu_from_json(&menu_json);
                     EVENT_QUEUE.push(Event::menu_open(menu_json));
