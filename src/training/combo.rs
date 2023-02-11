@@ -5,7 +5,6 @@ use crate::common::*;
 use crate::training::*;
 
 pub static mut FRAME_ADVANTAGE: i32 = 0;
-static mut FRAME_ADVANTAGE_STR: String = String::new();
 static mut PLAYER_ACTIONABLE: bool = false;
 static mut CPU_ACTIONABLE: bool = false;
 static mut PLAYER_ACTIVE_FRAME: u32 = 0;
@@ -50,13 +49,11 @@ unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -
 fn update_frame_advantage(new_frame_adv: i32) {
     unsafe {
         FRAME_ADVANTAGE = new_frame_adv;
-        FRAME_ADVANTAGE_STR = String::new();
-        FRAME_ADVANTAGE_STR.push_str(&format!("{FRAME_ADVANTAGE}"));
         if MENU.frame_advantage == OnOff::On {
             ui::notifications::clear_notifications("Frame Advantage");
             ui::notifications::color_notification(
-                "Frame Advantage",
-                &FRAME_ADVANTAGE_STR,
+                "Frame Advantage".to_string(),
+                format!("{FRAME_ADVANTAGE}"),
                 60,
                 match FRAME_ADVANTAGE {
                     x if x < 0 => ResColor { r: 200, g: 8, b: 8, a: 255 },
