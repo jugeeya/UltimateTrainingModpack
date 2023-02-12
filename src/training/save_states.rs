@@ -14,6 +14,7 @@ use crate::training::items::apply_item;
 use crate::training::reset;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 use SaveState::*;
+use parking_lot::Mutex;
 use serde::{Serialize, Deserialize};
 use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
@@ -91,40 +92,55 @@ macro_rules! default_save_state {
     };
 }
 
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+pub struct SaveStateSlots {
+    player: [SavedState; NUM_SAVE_STATE_SLOTS],
+    cpu: [SavedState; NUM_SAVE_STATE_SLOTS],
+}
+
 const NUM_SAVE_STATE_SLOTS : usize = 5;
-static mut SAVE_STATE_SLOTS : [[SavedState; NUM_SAVE_STATE_SLOTS]; 2] = [[default_save_state!(); NUM_SAVE_STATE_SLOTS]; 2];
+// I actually had to do it this way, a simple load-from-file in main() caused crashes.
+lazy_static::lazy_static! {
+    static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(load_from_file());
+}
 static mut SAVE_STATE_SLOT : usize = 0;
 
-pub fn load_from_file() {
-    let save_states_path = "sd:/TrainingModpack/save_states.json";
-    info!("Checking for previous save state settings in save_states.json...");
+pub fn load_from_file() -> SaveStateSlots {
+    let defaults = SaveStateSlots{
+        player: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
+        cpu: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
+    };
+
+    let save_states_path = "sd:/TrainingModpack/save_states.toml";
+    info!("Checking for previous save state settings in save_states.toml...");
     if std::fs::metadata(save_states_path).is_err() {
-        return;
+        return defaults;
     }
 
     info!("Previous save state settings found. Loading...");
-    // TODO: This doesn't work! Crashes...
-    // if let Ok(data) = std::fs::read_to_string(save_states_path) {
-    //     unsafe {
-    //         SAVE_STATE_SLOTS = serde_json::from_str(&data)
-    //             .expect("Could not parse button config");
-    //     }
-    // }
+    if let Ok(data) = std::fs::read_to_string(save_states_path) {
+        let input_slots = toml::from_str::<SaveStateSlots>(&data);
+        if let Ok(input_slots) = input_slots {
+            return input_slots;
+        }
+    }
+
+    defaults
 }
 
 pub unsafe fn save_to_file() {
-    let save_states_str = serde_json::to_string_pretty(&SAVE_STATE_SLOTS)
+    let save_states_str = toml::to_string_pretty(&*SAVE_STATE_SLOTS.data_ptr())
         .expect("Error serializing save state information");
-    std::fs::write("sd:/TrainingModpack/save_states.json", save_states_str)
+    std::fs::write("sd:/TrainingModpack/save_states.toml", save_states_str)
         .expect("Could not write save state information to file");
 }
 
 unsafe fn save_state_player() -> &'static mut SavedState {
-    &mut SAVE_STATE_SLOTS[0][SAVE_STATE_SLOT]
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[SAVE_STATE_SLOT]
 }
 
 unsafe fn save_state_cpu() -> &'static mut SavedState {
-    &mut SAVE_STATE_SLOTS[1][SAVE_STATE_SLOT]
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[SAVE_STATE_SLOT]
 }
 
 // MIRROR_STATE == 1 -> Do not mirror

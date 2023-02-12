@@ -31,7 +31,6 @@ use std::fs;
 
 use crate::logging::*;
 use crate::menu::quick_menu_loop;
-use crate::training::save_states;
 use crate::training::ui::notifications::notification;
 
 fn nro_main(nro: &NroInfo<'_>) {
@@ -105,7 +104,6 @@ pub fn main() {
 
     menu::load_from_file();
     button_config::load_from_file();
-    save_states::load_from_file();
 
     std::thread::spawn(|| loop {
         std::thread::sleep(std::time::Duration::from_secs(10));
