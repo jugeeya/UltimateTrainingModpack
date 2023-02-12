@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use log::info;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use smash::app::{self, Item, lua_bind::*};
+use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
@@ -11,11 +11,10 @@ use training_mod_consts::{CharacterItem, SaveDamage};
 
 use SaveState::*;
 
-use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 use crate::common::button_config;
-use crate::common::consts::FighterId;
 use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
+use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
@@ -27,6 +26,7 @@ use crate::training::charge::{self, ChargeState};
 use crate::training::items::apply_item;
 use crate::training::reset;
 use crate::training::ui::notifications;
+use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app14sv_information8stage_idEv"]
@@ -294,26 +294,42 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_EDGE,
         *FIGHTER_KIND_WIIFIT,
     ]
-        .contains(&fighter_kind);
+    .contains(&fighter_kind);
 
-    if !is_operation_cpu(module_accessor) &&
-        button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::PrevSaveStateSlot) {
+    if !is_operation_cpu(module_accessor)
+        && button_config::combo_passes_exclusive(
+            module_accessor,
+            button_config::ButtonCombo::PrevSaveStateSlot,
+        )
+    {
         SAVE_STATE_SLOT = if SAVE_STATE_SLOT == 0 {
             NUM_SAVE_STATE_SLOTS - 1
         } else {
             SAVE_STATE_SLOT - 1
         };
         notifications::clear_notifications("Save State");
-        notifications::notification("Save State".to_string(), format!("Switched to Slot {SAVE_STATE_SLOT}"), 120);
+        notifications::notification(
+            "Save State".to_string(),
+            format!("Switched to Slot {SAVE_STATE_SLOT}"),
+            120,
+        );
 
         return;
     }
 
-    if !is_operation_cpu(module_accessor) &&
-        button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::NextSaveStateSlot) {
+    if !is_operation_cpu(module_accessor)
+        && button_config::combo_passes_exclusive(
+            module_accessor,
+            button_config::ButtonCombo::NextSaveStateSlot,
+        )
+    {
         SAVE_STATE_SLOT = (SAVE_STATE_SLOT + 1) % NUM_SAVE_STATE_SLOTS;
         notifications::clear_notifications("Save State");
-        notifications::notification("Save State".to_string(), format!("Switched to Slot {SAVE_STATE_SLOT}"), 120);
+        notifications::notification(
+            "Save State".to_string(),
+            format!("Switched to Slot {SAVE_STATE_SLOT}"),
+            120,
+        );
 
         return;
     }
@@ -324,8 +340,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
     if !is_operation_cpu(module_accessor) {
-        triggered_reset =
-            button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::LoadState);
+        triggered_reset = button_config::combo_passes_exclusive(
+            module_accessor,
+            button_config::ButtonCombo::LoadState,
+        );
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
@@ -340,7 +358,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == KillPlayer {
         on_ptrainer_death(module_accessor);
         SoundModule::stop_all_sound(module_accessor);
-        if status == FIGHTER_STATUS_KIND_REBIRTH {
+        if status == FIGHTER_STATUS_KIND_REBIRTH || status == FIGHTER_STATUS_KIND_WAIT {
             save_state.state = PosMove;
         } else if !is_dead(module_accessor) && !fighter_is_nana {
             // Don't kill Nana again, since she already gets killed by the game from Popo's death
@@ -572,7 +590,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Grab + Dpad down: Save state
-    if button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::SaveState) {
+    if button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::SaveState)
+    {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
         save_state_player().state = Save;
