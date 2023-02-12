@@ -1,16 +1,19 @@
-use crate::training::input_delay::p1_controller_id;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::NpadHandheldState;
 use smash::app::{lua_bind::*, BattleObjectModuleAccessor};
 use smash::lib::lua_const::*;
 
+use InputRecordState::*;
+
+use crate::training::input_delay::p1_controller_id;
+
 lazy_static! {
     static ref P1_NPAD_STATES: Mutex<[NpadHandheldState; 90]> =
         Mutex::new([{ NpadHandheldState::default() }; 90]);
 }
 
-pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
+pub static mut INPUT_RECORD: InputRecordState = None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
 
 #[derive(PartialEq)]
@@ -19,8 +22,6 @@ pub enum InputRecordState {
     Record,
     Playback,
 }
-
-use InputRecordState::*;
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
     let entry_id_int = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);

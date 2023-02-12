@@ -1,11 +1,12 @@
+use std::fs;
+
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use serde::Deserialize;
 use skyline::nn::hid::NpadGcState;
-use crate::logging::info;
-use std::fs;
 use toml;
 
+use crate::logging::info;
 
 /// Hot-reloadable configs for quicker development
 ///
@@ -29,8 +30,7 @@ use toml;
 /// quit_menu_text.as_textbox().set_text_string(&dev_config.quit_menu_title);
 /// ```
 #[derive(Deserialize, Default)]
-pub struct DevConfig {
-}
+pub struct DevConfig {}
 
 pub unsafe fn config() -> &'static DevConfig {
     &*DEV_CONFIG.data_ptr()
@@ -48,7 +48,7 @@ impl DevConfig {
             let dev_config_str = fs::read_to_string(dev_path).unwrap_or_else(|_| panic!("Could not read {}", dev_path));
             return toml::from_str(&dev_config_str).expect("Could not parse dev config");
         }
-        
+
         DevConfig::default()
     }
 }

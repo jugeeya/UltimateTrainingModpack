@@ -7,7 +7,7 @@ pub struct Notification {
     pub header: String,
     pub message: String,
     length: u32,
-    pub color: ResColor
+    pub color: ResColor,
 }
 
 impl Notification {
@@ -16,7 +16,7 @@ impl Notification {
             header,
             message,
             length,
-            color
+            color,
         }
     }
 
@@ -37,7 +37,7 @@ pub fn notification(header: String, message: String, len: u32) {
             r: 0,
             g: 0,
             b: 0,
-            a: 255
+            a: 255,
         }));
     }
 }

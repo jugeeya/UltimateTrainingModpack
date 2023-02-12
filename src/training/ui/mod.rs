@@ -1,7 +1,8 @@
-use crate::common::{is_ready_go, is_training_mode};
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
-use training_mod_consts::{OnOff, MENU};
+use training_mod_consts::{MENU, OnOff};
+
+use crate::common::{is_ready_go, is_training_mode};
 
 mod damage;
 mod display;
@@ -33,7 +34,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 // We'll keep some sane max size here; we shouldn't reach above 600KiB is the idea,
 // but we can try higher if we need to.
 #[cfg(feature = "layout_arc_from_file")]
-static mut LAYOUT_ARC : &mut [u8; 600000] = &mut [0u8; 600000];
+static mut LAYOUT_ARC: &mut [u8; 600000] = &mut [0u8; 600000];
 
 /// We are editing the info_training/layout.arc and replacing the original file with our
 /// modified version from `sd://TrainingModpack/layout.arc` or, in the case of Ryujinx for the cool
@@ -82,7 +83,7 @@ unsafe fn handle_layout_arc_malloc(
     let decompressed_size = *ctx.registers[1].x.as_ref() as usize;
 
     let layout_arc = SarcFile::read(
-        std::slice::from_raw_parts(decompressed_file,decompressed_size)
+        std::slice::from_raw_parts(decompressed_file, decompressed_size)
     ).unwrap();
     let training_layout = layout_arc.files.iter().find(|f| {
         f.name.is_some() && f.name.as_ref().unwrap() == &String::from("blyt/info_training.bflyt")
@@ -92,7 +93,7 @@ unsafe fn handle_layout_arc_malloc(
     }
 
     let inject_arc;
-    let inject_arc_size : u64;
+    let inject_arc_size: u64;
 
     #[cfg(feature = "layout_arc_from_file")] {
         let inject_arc_from_file = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();

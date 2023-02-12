@@ -1,8 +1,10 @@
-use crate::{common, common::menu::QUICK_MENU_ACTIVE};
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
+
 use training_mod_tui::{App, AppPage};
 use training_mod_tui::gauge::GaugeState;
+
+use crate::{common, common::menu::QUICK_MENU_ACTIVE};
 
 pub static NUM_MENU_TEXT_OPTIONS: usize = 33;
 pub static _NUM_MENU_TABS: usize = 3;
@@ -319,35 +321,35 @@ pub unsafe fn draw(root_pane: &mut Pane) {
     });
     [(0xE0E2, "SaveDefaults"), (0xE0E4, "ResetCurrentDefaults"), (0xE0E5, "ResetAllDefaults")].iter()
         .for_each(|(key, name)| {
-        let key_help_pane = root_pane.find_pane_by_name_recursive(name)
-            .unwrap();
+            let key_help_pane = root_pane.find_pane_by_name_recursive(name)
+                .unwrap();
 
-        let icon_pane = key_help_pane.find_pane_by_name_recursive("set_txt_icon")
-            .unwrap().as_textbox();
-        icon_pane.set_text_string("");
-        let it = icon_pane.text_buf as *mut u16;
-        icon_pane.text_len = 1;
-        *it = *key as u16;
-        *(it.add(1)) = 0x0;
+            let icon_pane = key_help_pane.find_pane_by_name_recursive("set_txt_icon")
+                .unwrap().as_textbox();
+            icon_pane.set_text_string("");
+            let it = icon_pane.text_buf as *mut u16;
+            icon_pane.text_len = 1;
+            *it = *key as u16;
+            *(it.add(1)) = 0x0;
 
-        // PascalCase to Title Case
-        let title_case = name
-            .chars()
-            .fold(vec![], |mut acc, ch| {
-                if ch.is_uppercase() {
-                    acc.push(String::new());
-                }
-                if let Some(last) = acc.last_mut() {
-                    last.push(ch);
-                }
-                acc
-            })
-            .into_iter()
-            .collect::<Vec<String>>()
-            .join(" ");
-        key_help_pane.find_pane_by_name_recursive("set_txt_help")
-            .unwrap().as_textbox().set_text_string(title_case.as_str());
-    });
+            // PascalCase to Title Case
+            let title_case = name
+                .chars()
+                .fold(vec![], |mut acc, ch| {
+                    if ch.is_uppercase() {
+                        acc.push(String::new());
+                    }
+                    if let Some(last) = acc.last_mut() {
+                        last.push(ch);
+                    }
+                    acc
+                })
+                .into_iter()
+                .collect::<Vec<String>>()
+                .join(" ");
+            key_help_pane.find_pane_by_name_recursive("set_txt_help")
+                .unwrap().as_textbox().set_text_string(title_case.as_str());
+        });
 
     match app.page {
         AppPage::SUBMENU => render_submenu_page(app, root_pane),

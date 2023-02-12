@@ -1,8 +1,10 @@
-use crate::common::MENU;
+use std::collections::VecDeque;
+
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
-use std::collections::VecDeque;
+
+use crate::common::MENU;
 
 lazy_static! {
     static ref P1_DELAYED_NPAD_STATES: Mutex<VecDeque<NpadGcState>> = Mutex::new(VecDeque::new());

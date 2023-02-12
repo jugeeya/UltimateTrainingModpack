@@ -1,11 +1,12 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::{frame_counter, mash};
 use smash::app::{self, lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
+
+use crate::common::consts::*;
+use crate::common::*;
+use crate::training::{frame_counter, mash};
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
@@ -66,7 +67,7 @@ unsafe fn mod_handle_change_status(
 }
 
 unsafe fn handle_grnd_tech(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
@@ -122,7 +123,7 @@ unsafe fn handle_grnd_tech(
 }
 
 unsafe fn handle_wall_tech(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
@@ -164,7 +165,7 @@ unsafe fn handle_wall_tech(
 }
 
 unsafe fn handle_ceil_tech(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
@@ -194,7 +195,7 @@ unsafe fn handle_ceil_tech(
     true
 }
 
-pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) || MENU.tech_state == TechFlags::empty() {
         return;
     }
@@ -263,7 +264,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
 }
 
 pub unsafe fn change_motion(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     motion_kind: u64,
 ) -> Option<u64> {
     if !is_operation_cpu(module_accessor) {
@@ -297,9 +298,7 @@ pub unsafe fn change_motion(
     None
 }
 
-unsafe fn get_snake_laydown_lockout_time(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> u32 {
+unsafe fn get_snake_laydown_lockout_time(module_accessor: &mut BattleObjectModuleAccessor) -> u32 {
     let base_lockout_time: f32 = WorkModule::get_param_float(
         module_accessor,
         hash40("common"),

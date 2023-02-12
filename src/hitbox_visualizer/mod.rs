@@ -1,8 +1,9 @@
-use crate::common::{consts::*, *};
-use crate::logging::*;
 use smash::app::{self, lua_bind::*, sv_animcmd, sv_system};
 use smash::lib::{lua_const::*, L2CAgent, L2CValue};
 use smash::phx::{Hash40, Vector3f};
+
+use crate::common::{consts::*, *};
+use crate::logging::*;
 
 pub const ID_COLORS: &[Vector3f] = &[
     // used to tint the hitbox effects -- make sure that at least one component
@@ -107,44 +108,24 @@ pub unsafe fn generate_hitbox_effects(
             z: 0.0,
         };
 
-        if false {
-            // is_fighter(module_accessor) {
-            EffectModule::req_on_joint(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                Hash40::new_raw(bone),
-                &pos,
-                &zeros,
-                size * size_mult,
-                &zeros,
-                &zeros,
-                true,
-                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
-                    | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
-                    | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
-                0,
-                0,
-            );
-        } else {
-            EffectModule::req_follow(
-                module_accessor,
-                Hash40::new("sys_shield"),
-                Hash40::new_raw(bone),
-                &pos,
-                &zeros,
-                size * size_mult,
-                true,
-                *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
-                    | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
-                    | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
-                0,
-                0,
-                0,
-                0,
-                true,
-                true,
-            );
-        }
+        EffectModule::req_follow(
+            module_accessor,
+            Hash40::new("sys_shield"),
+            Hash40::new_raw(bone),
+            &pos,
+            &zeros,
+            size * size_mult,
+            true,
+            *EFFECT_SUB_ATTRIBUTE_NO_JOINT_SCALE as u32
+                | *EFFECT_SUB_ATTRIBUTE_FOLLOW as u32
+                | *EFFECT_SUB_ATTRIBUTE_CONCLUDE_STATUS as u32,
+            0,
+            0,
+            0,
+            0,
+            true,
+            true,
+        );
 
         // set to hitbox ID color
         EffectModule::set_rgb_partial_last(module_accessor, color.x, color.y, color.z);

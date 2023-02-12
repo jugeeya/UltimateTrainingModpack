@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
@@ -11,7 +11,8 @@ pub struct SteveState {
     pub mat_gold: i32,
     pub mat_redstone: i32,
     pub mat_diamond: i32,
-    pub sword_mat: char, // is actually FighterPickelMaterialKind, but char is same size and works
+    pub sword_mat: char,
+    // is actually FighterPickelMaterialKind, but char is same size and works
     pub sword_durability: f32,
     pub axe_mat: char,
     pub axe_durability: f32,
