@@ -1,4 +1,4 @@
-use smash::app::{self, lua_bind::*, sv_system, BattleObjectModuleAccessor};
+use smash::app::{lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
