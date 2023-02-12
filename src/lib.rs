@@ -31,7 +31,6 @@ use std::fs;
 
 use crate::logging::*;
 use crate::menu::quick_menu_loop;
-use training_mod_consts::MenuJsonStruct;
 use crate::training::ui::notifications::notification;
 
 fn nro_main(nro: &NroInfo<'_>) {
@@ -103,43 +102,8 @@ pub fn main() {
     info!("Performing version check...");
     release::version_check();
 
-    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
-    info!("Checking for previous menu in training_modpack_menu.json...");
-    if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(menu_conf_path)
-            .unwrap_or_else(|_| panic!("Could not remove {}", menu_conf_path));
-        if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
-            unsafe {
-                MENU = menu_conf_json.menu;
-                DEFAULTS_MENU = menu_conf_json.defaults_menu;
-                info!("Previous menu found. Loading...");
-            }
-        } else {
-            warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path)
-                .unwrap_or_else(|_| panic!("{} has invalid schema but could not be deleted!", menu_conf_path));
-        }
-    } else {
-        info!("No previous menu file found.");
-    }
-
-    let combo_path = "sd:/TrainingModpack/training_modpack.toml";
-    info!("Checking for previous button combo settings in training_modpack.toml...");
-    if fs::metadata(combo_path).is_ok() {
-        info!("Previous button combo settings found. Loading...");
-        let combo_conf =
-            fs::read_to_string(combo_path).unwrap_or_else(|_| panic!("Could not remove {}", combo_path));
-        if button_config::validate_config(&combo_conf) {
-            button_config::save_all_btn_config_from_toml(&combo_conf);
-        } else {
-            button_config::save_all_btn_config_from_defaults();
-        }
-    } else {
-        info!("No previous button combo file found. Creating...");
-        fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
-            .expect("Failed to write button config conf file");
-        button_config::save_all_btn_config_from_defaults();
-    }
+    menu::load_from_file();
+    button_config::load_from_file();
 
     std::thread::spawn(|| loop {
         std::thread::sleep(std::time::Duration::from_secs(10));

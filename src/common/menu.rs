@@ -1,3 +1,4 @@
+use std::fs;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
@@ -13,10 +14,32 @@ const MENU_CLOSE_WAIT_FRAMES : u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu)
+    button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::OpenMenu)
 }
 
 const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
+
+pub fn load_from_file() {
+    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
+    info!("Checking for previous menu in training_modpack_menu.json...");
+    if fs::metadata(menu_conf_path).is_ok() {
+        let menu_conf = fs::read_to_string(menu_conf_path)
+            .unwrap_or_else(|_| panic!("Could not remove {}", menu_conf_path));
+        if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
+            unsafe {
+                MENU = menu_conf_json.menu;
+                DEFAULTS_MENU = menu_conf_json.defaults_menu;
+                info!("Previous menu found. Loading...");
+            }
+        } else {
+            warn!("Previous menu found but is invalid. Deleting...");
+            fs::remove_file(menu_conf_path)
+                .unwrap_or_else(|_| panic!("{} has invalid schema but could not be deleted!", menu_conf_path));
+        }
+    } else {
+        info!("No previous menu file found.");
+    }
+}
 
 pub unsafe fn set_menu_from_json(message: &str) {
     let response = serde_json::from_str::<MenuJsonStruct>(message);
@@ -160,10 +183,6 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             // BUTTON_PRESSES.down.is_pressed = (*state).Buttons & ((1 << 15) | (1 << 19)) > 0;
             // BUTTON_PRESSES.up.is_pressed = (*state).Buttons & ((1 << 13) | (1 << 17)) > 0;
 
-            if FRAME_COUNTER < MENU_INPUT_WAIT_FRAMES {
-                return;
-            }
-
             if (*state).Buttons & (1 << 0) > 0 {
                 BUTTON_PRESSES.a.is_pressed = true;
             }
@@ -179,7 +198,8 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             if (*state).Buttons & (1 << 7) > 0 {
                 BUTTON_PRESSES.r.is_pressed = true;
             }
-            if (*state).Buttons & (1 << 8) > 0 {
+            // Special case for frame-by-frame
+            if FRAME_COUNTER < MENU_INPUT_WAIT_FRAMES && (*state).Buttons & (1 << 8) > 0 {
                 BUTTON_PRESSES.zl.is_pressed = true;
             }
             if (*state).Buttons & (1 << 9) > 0 {

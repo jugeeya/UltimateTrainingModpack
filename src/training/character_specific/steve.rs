@@ -1,7 +1,8 @@
+use serde::{Serialize, Deserialize};
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-#[derive(Copy, Clone)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub struct SteveState {
     pub mat_g1: i32,
     pub mat_wood: i32,

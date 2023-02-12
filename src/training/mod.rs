@@ -33,7 +33,7 @@ pub(crate) mod input_delay;
 mod input_record;
 mod mash;
 mod reset;
-mod save_states;
+pub(crate) mod save_states;
 mod shield_tilt;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
