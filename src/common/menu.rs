@@ -1,16 +1,21 @@
 use std::fs;
+
+use lazy_static::lazy_static;
+use parking_lot::Mutex;
+use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
+use training_mod_consts::MenuJsonStruct;
+
+use training_mod_tui::AppPage;
+
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
 
-use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
-use training_mod_consts::MenuJsonStruct;
-
 // This is a special frame counter that will tick on draw()
 // We'll count how long the menu has been open
-pub static mut FRAME_COUNTER : u32 = 0;
-const MENU_INPUT_WAIT_FRAMES : u32 = 30;
-const MENU_CLOSE_WAIT_FRAMES : u32 = 60;
+pub static mut FRAME_COUNTER: u32 = 0;
+const MENU_INPUT_WAIT_FRAMES: u32 = 30;
+const MENU_CLOSE_WAIT_FRAMES: u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -33,8 +38,12 @@ pub fn load_from_file() {
             }
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path)
-                .unwrap_or_else(|_| panic!("{} has invalid schema but could not be deleted!", menu_conf_path));
+            fs::remove_file(menu_conf_path).unwrap_or_else(|_| {
+                panic!(
+                    "{} has invalid schema but could not be deleted!",
+                    menu_conf_path
+                )
+            });
         }
     } else {
         info!("No previous menu file found.");
@@ -48,7 +57,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
         // Includes both MENU and DEFAULTS_MENU
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
-        std::fs::write(
+        fs::write(
             MENU_CONF_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
@@ -57,7 +66,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
         skyline::error::show_error(
             0x70,
             "Could not parse the menu response!\nPlease send a screenshot of the details page to the developers.\n\0",
-            &format!("{message:#?}\0")
+            &format!("{message:#?}\0"),
         );
     };
 }
@@ -227,17 +236,15 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
     }
 }
 
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
-use training_mod_tui::AppPage;
-
 lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> =
-        Mutex::new(training_mod_tui::App::new(
-            unsafe { ui_menu(MENU) },
-            unsafe { (ui_menu(DEFAULTS_MENU), serde_json::to_string(&DEFAULTS_MENU).unwrap())}
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
+        training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
+            (
+                ui_menu(DEFAULTS_MENU),
+                serde_json::to_string(&DEFAULTS_MENU).unwrap(),
             )
-        );
+        })
+    );
 }
 
 pub unsafe fn quick_menu_loop() {
@@ -257,7 +264,8 @@ pub unsafe fn quick_menu_loop() {
             potential_controller_ids.push(0x20);
             if potential_controller_ids
                 .iter()
-                .all(|i| GetNpadStyleSet(i as *const _).flags == 0) {
+                .all(|i| GetNpadStyleSet(i as *const _).flags == 0)
+            {
                 QUICK_MENU_ACTIVE = false;
                 continue;
             }

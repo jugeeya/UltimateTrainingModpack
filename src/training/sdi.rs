@@ -1,9 +1,11 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::directional_influence;
 use core::f64::consts::PI;
+
 use smash::app::{self, lua_bind::*};
 use smash::Vector2f;
+
+use crate::common::*;
+use crate::common::consts::*;
+use crate::training::directional_influence;
 
 static mut COUNTER: u32 = 0;
 

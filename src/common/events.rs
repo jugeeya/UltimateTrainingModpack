@@ -1,9 +1,10 @@
+use std::convert::TryInto;
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use skyline::libc::c_void;
 use skyline::nn::{account, oe, time};
-use std::convert::TryInto;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::common::release::CURRENT_VERSION;
 
@@ -181,5 +182,27 @@ fn smash_version() -> String {
         std::ffi::CStr::from_ptr(smash_version.name.as_ptr() as *const i8)
             .to_string_lossy()
             .into_owned()
+    }
+}
+
+pub fn events_loop() {
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(10));
+        unsafe {
+            while let Some(event) = EVENT_QUEUE.pop() {
+                let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
+                let path = format!(
+                    "/event/{}/device/{}/{}.json",
+                    event.event_name, event.device_id, event.event_time
+                );
+
+                let url = format!("{host}{path}");
+                minreq::post(url)
+                    .with_json(&event)
+                    .expect("Failed to send info to firebase")
+                    .send()
+                    .ok();
+            }
+        }
     }
 }

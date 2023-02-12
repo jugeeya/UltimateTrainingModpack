@@ -1,10 +1,12 @@
-use crate::common::consts::*;
-use crate::common::*;
 use core::f64::consts::PI;
+
 use smash::app::{self, lua_bind::*, sv_system};
-use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
+use smash::lib::lua_const::*;
 use smash::lua2cpp::L2CFighterCommon;
+
+use crate::common::*;
+use crate::common::consts::*;
 
 static mut DI_CASE: Direction = Direction::empty();
 

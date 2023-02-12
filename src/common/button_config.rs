@@ -1,9 +1,10 @@
-use lazy_static::lazy_static;
-use serde::Deserialize;
-use smash::app::lua_bind::ControlModule;
 use std::collections::HashMap;
 use std::fs;
+
+use lazy_static::lazy_static;
 use log::info;
+use serde::Deserialize;
+use smash::app::lua_bind::ControlModule;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use toml;
@@ -53,7 +54,7 @@ pub enum ButtonCombo {
     SaveState,
     LoadState,
     PrevSaveStateSlot,
-    NextSaveStateSlot
+    NextSaveStateSlot,
 }
 
 #[derive(Deserialize, Default)]
@@ -68,7 +69,7 @@ struct BtnComboConfig {
     save_state: BtnList,
     load_state: BtnList,
     previous_save_state_slot: BtnList,
-    next_save_state_slot: BtnList
+    next_save_state_slot: BtnList,
 }
 
 #[derive(Deserialize)]
@@ -210,9 +211,9 @@ fn combo_passes(
             .map(|hold| *BUTTON_MAPPING.get(&*hold.to_uppercase()).unwrap())
             .all(|hold| ControlModule::check_button_on(module_accessor, hold))
             && press
-                .iter()
-                .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
-                .all(|press| ControlModule::check_button_trigger(module_accessor, press));
+            .iter()
+            .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
+            .all(|press| ControlModule::check_button_trigger(module_accessor, press));
 
         this_combo_passes
     }
@@ -220,7 +221,7 @@ fn combo_passes(
 
 pub fn combo_passes_exclusive(
     module_accessor: *mut smash::app::BattleObjectModuleAccessor,
-    combo: ButtonCombo
+    combo: ButtonCombo,
 ) -> bool {
     let other_combo_passes = ButtonCombo::iter()
         .filter(|other_combo| *other_combo != combo)

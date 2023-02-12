@@ -1,9 +1,10 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::frame_counter;
-use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+
+use crate::common::*;
+use crate::common::consts::*;
+use crate::training::frame_counter;
+use crate::training::mash;
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;

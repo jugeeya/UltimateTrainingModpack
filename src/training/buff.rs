@@ -1,9 +1,10 @@
+use smash::app::{self, lua_bind::*};
+use smash::lib::lua_const::*;
+
 use crate::common::consts::*;
 use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
-use smash::app::{self, lua_bind::*};
-use smash::lib::lua_const::*;
 
 static mut BUFF_DELAY_COUNTER: usize = 0;
 

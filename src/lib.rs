@@ -4,16 +4,27 @@
 #![feature(once_cell)]
 #![feature(c_variadic)]
 #![allow(
-    clippy::borrow_interior_mutable_const,
-    clippy::declare_interior_mutable_const,
-    clippy::not_unsafe_ptr_arg_deref,
-    clippy::missing_safety_doc,
-    clippy::wrong_self_convention,
-    clippy::option_map_unit_fn,
-    clippy::fn_null_check,
-    // Look into why for this one
-    clippy::transmute_num_to_bytes
+clippy::borrow_interior_mutable_const,
+clippy::declare_interior_mutable_const,
+clippy::not_unsafe_ptr_arg_deref,
+clippy::missing_safety_doc,
+clippy::wrong_self_convention,
+clippy::option_map_unit_fn,
+clippy::fn_null_check,
+clippy::transmute_num_to_bytes
 )]
+
+use std::fs;
+
+use skyline::libc::mkdir;
+use skyline::nro::{self, NroInfo};
+
+use crate::common::*;
+use crate::common::events::events_loop;
+use crate::events::{Event, EVENT_QUEUE};
+use crate::logging::*;
+use crate::menu::quick_menu_loop;
+use crate::training::ui::notifications::notification;
 
 pub mod common;
 mod hazard_manager;
@@ -21,17 +32,6 @@ mod hitbox_visualizer;
 mod training;
 
 mod logging;
-
-use crate::common::*;
-use crate::events::{Event, EVENT_QUEUE};
-
-use skyline::libc::mkdir;
-use skyline::nro::{self, NroInfo};
-use std::fs;
-
-use crate::logging::*;
-use crate::menu::quick_menu_loop;
-use crate::training::ui::notifications::notification;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -105,25 +105,7 @@ pub fn main() {
     menu::load_from_file();
     button_config::load_from_file();
 
-    std::thread::spawn(|| loop {
-        std::thread::sleep(std::time::Duration::from_secs(10));
-        unsafe {
-            while let Some(event) = EVENT_QUEUE.pop() {
-                let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
-                let path = format!(
-                    "/event/{}/device/{}/{}.json",
-                    event.event_name, event.device_id, event.event_time
-                );
-
-                let url = format!("{host}{path}");
-                minreq::post(url)
-                    .with_json(&event)
-                    .expect("Failed to send info to firebase")
-                    .send()
-                    .ok();
-            }
-        }
-    });
+    std::thread::spawn(events_loop);
 
     std::thread::spawn(|| unsafe { quick_menu_loop() });
 }

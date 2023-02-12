@@ -1,8 +1,9 @@
-use crate::common::*;
-use crate::training::frame_counter;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+
+use crate::common::*;
+use crate::training::frame_counter;
 
 static mut FRAME_COUNTER: usize = 0;
 

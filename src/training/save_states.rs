@@ -1,7 +1,21 @@
+use std::collections::HashMap;
+
+use log::info;
+use parking_lot::Mutex;
+use serde::{Deserialize, Serialize};
+use smash::app::{self, Item, lua_bind::*};
+use smash::hash40;
+use smash::lib::lua_const::*;
+use smash::phx::{Hash40, Vector3f};
+use training_mod_consts::{CharacterItem, SaveDamage};
+
+use SaveState::*;
+
+use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 use crate::common::button_config;
+use crate::common::consts::FighterId;
 use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
-use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
 use crate::common::is_dead;
@@ -12,17 +26,6 @@ use crate::training::character_specific::steve;
 use crate::training::charge::{self, ChargeState};
 use crate::training::items::apply_item;
 use crate::training::reset;
-use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
-use SaveState::*;
-use parking_lot::Mutex;
-use serde::{Serialize, Deserialize};
-use smash::app::{self, lua_bind::*, Item};
-use smash::hash40;
-use smash::lib::lua_const::*;
-use smash::phx::{Hash40, Vector3f};
-use std::collections::HashMap;
-use log::info;
-use training_mod_consts::{CharacterItem, SaveDamage};
 use crate::training::ui::notifications;
 
 extern "C" {
@@ -98,15 +101,15 @@ pub struct SaveStateSlots {
     cpu: [SavedState; NUM_SAVE_STATE_SLOTS],
 }
 
-const NUM_SAVE_STATE_SLOTS : usize = 5;
+const NUM_SAVE_STATE_SLOTS: usize = 5;
 // I actually had to do it this way, a simple load-from-file in main() caused crashes.
 lazy_static::lazy_static! {
     static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(load_from_file());
 }
-static mut SAVE_STATE_SLOT : usize = 0;
+static mut SAVE_STATE_SLOT: usize = 0;
 
 pub fn load_from_file() -> SaveStateSlots {
-    let defaults = SaveStateSlots{
+    let defaults = SaveStateSlots {
         player: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
         cpu: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
     };
@@ -291,7 +294,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_EDGE,
         *FIGHTER_KIND_WIIFIT,
     ]
-    .contains(&fighter_kind);
+        .contains(&fighter_kind);
 
     if !is_operation_cpu(module_accessor) &&
         button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::PrevSaveStateSlot) {

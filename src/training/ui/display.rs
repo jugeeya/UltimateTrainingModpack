@@ -1,6 +1,7 @@
-use crate::training::ui;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
+
+use crate::training::ui;
 
 macro_rules! display_parent_fmt {
     ($x:ident) => {
