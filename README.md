@@ -46,6 +46,9 @@ These are the features that can be found [in the latest beta release](https://gi
 * Display welcome notification with instructions on how to use the mod - @jugeeya
 * Greatly improved UI and speed for the quick menu - @jugeeya, @xhudaman
 * Add option to toggle off HUD - @jugeeya
+* Cursor Memory for the menu: menu rem
+bers which submenu was selected between openings - @jugeeya
+* Save State slots: Use DPad Left/Right to switch slots for saving and loading save states! - @jugeeya
 
 ### Bugfixes
 * No longer change pokemon when loading a save state with PT - @jugeeya
@@ -60,10 +63,12 @@ These are the features that can be found [in the latest beta release](https://gi
 * Fixed several bugs when loading a save state on ledge - @asimon-1
 * When loading mirrors save states on asymmetric stages, mirror around the stage center - @asimon-1
 * Fixes to Quick Menu when using joycons - @jugeeya
+* Fix Quick Menu causing inaccessible inputs when controllers were disconnected - @jugeeya
 
 ### Adjustments
 * Adjust clatter strength values - @asimon-1
 * Update infinite shield compatibility with modded gameplay - @techyCoder81
+* Deprecate Web Menu in favor of native UI menu - @jugeeya, @xhudaman, @austintraver
 
 <a name="features"/>
 
@@ -90,6 +95,8 @@ Set stage hazards on or off in Training Mode! Use this to practice on tournament
 ## Save States
 
 At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. With the mirroring setting, loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
+
+You can switch Save State slots by using `Grab + Left Taunt` to switch to a previous slot and `Grab + Right Taunt` to switch to the next. There are 5 slots you can save, and they are persisted between loads of the game!
 
 The following attributes are saved in the save states:
 
@@ -162,7 +169,7 @@ Practice with emulated extra input delay, in frames. Use this to practice with o
 
 ## Frame Advantage
 
-Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield. Can also be used to find the advantage on hit to determine appropriate followups.
+Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield.
 
 ## Hitbox Visualization
 
@@ -400,9 +407,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
 
     Currently the known conflicts are:
 
-    * HewDraw Remix (HDR)
     * Minecraft Skins
-    * Blujay's Hitbox Visualizer
 
 30. **Who created the Training Modpack?**
 
