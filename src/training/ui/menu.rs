@@ -49,10 +49,18 @@ const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
     a: 255,
 };
 
-
 unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
     let tab_selected = app.tab_selected();
     let tab = app.menu_items.get(tab_selected).unwrap();
+
+    let submenu_ids = app.menu_items
+    .values() // Get the MultiStatefulList for each tab
+    .flat_map(|multi_stateful_list| multi_stateful_list.lists.iter() // For each StatefulList in this MultiStatefulList
+        .flat_map(|sub_stateful_list| sub_stateful_list.items.iter() // For each submenu in this StatefulList
+            .map(|submenu| submenu.submenu_id) // Grab the ID
+        )
+    )
+    .collect::<Vec<&str>>();
 
     (0..NUM_MENU_TEXT_OPTIONS)
         // Valid options in this submenu
@@ -90,6 +98,21 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                 title_text.text_shadow_enable(false);
                 title_text.text_outline_enable(false);
                 title_text.set_color(178, 199, 211, 255);
+            }
+            
+            submenu_ids.iter().for_each(|id| {
+                if let Some(icon) = menu_button.find_pane_by_name_recursive(id) {
+                    if id == &submenu.submenu_id {
+                        icon.set_visible(true);
+                    } else {
+                        icon.set_visible(false);
+                    }
+                }
+            });
+
+            if let Some(icon) = menu_button.find_pane_by_name_recursive(submenu.submenu_id) {
+                dbg!(submenu.submenu_id);
+                icon.as_picture().set_visible(true);
             }
         });
 }
@@ -140,6 +163,7 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                     title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                 }
 
+                // Replace with setting the check mark to visible
                 if *checked {
                     value_text.set_text_string("X");
                     value_text.set_visible(true);
