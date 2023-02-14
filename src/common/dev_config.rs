@@ -6,12 +6,13 @@ use serde::Deserialize;
 use skyline::nn::hid::NpadGcState;
 use toml;
 
+use crate::consts::DEV_TOML_PATH;
 use crate::logging::info;
 
 /// Hot-reloadable configs for quicker development
 ///
 /// In game, press L+R+A at any point to reread these configs from
-/// the file in sd:/TrainingModpack/dev.toml
+/// the file in DEV_TOML_PATH on the SD card
 ///
 /// Example usage:
 ///
@@ -42,7 +43,7 @@ lazy_static! {
 
 impl DevConfig {
     fn load_from_toml() -> DevConfig {
-        let dev_path = "sd:/TrainingModpack/dev.toml";
+        let dev_path = DEV_TOML_PATH;
         if fs::metadata(dev_path).is_ok() {
             info!("Loading dev.toml configs...");
             let dev_config_str = fs::read_to_string(dev_path).unwrap_or_else(|_| panic!("Could not read {}", dev_path));

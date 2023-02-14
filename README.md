@@ -357,7 +357,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnro_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libparam_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`
-    `SD:/TrainingModpack/`
+    `SD:/ultimate/TrainingModpack/`
 17. **Can I donate to the Training Modpack?**
 
     You can find the donation link in the [#faq](https://discord.com/channels/407970595418931200/714960353058095216) Discord channel. We use the money to commission video edits for releases, so thank you if you do end up donating!
@@ -386,7 +386,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
 25. **How do I reset my Training Modpack settings?**
 
     If you want to completely reset your menu selections back to the factory default, all you have to do is delete this file:
-    `SD:/TrainingModpack/training_modpack_menu.conf`
+    `SD:/ultimate/TrainingModpack/training_modpack_menu.conf`
 26. **What input delay should I pick for practicing online?**
 
     Good LAN connections can be simulated with an input delay of 3-5 frames. Poorer Wifi connections can be up to 6-8 frames.

@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::fs;
 
+use crate::consts::TRAINING_MODPACK_TOML_PATH;
+
 use lazy_static::lazy_static;
 use log::info;
 use serde::Deserialize;
@@ -78,13 +80,13 @@ pub struct TopLevelBtnComboConfig {
 }
 
 pub fn load_from_file() {
-    let combo_path = "sd:/TrainingModpack/training_modpack.toml";
-    info!("Checking for previous button combo settings in training_modpack.toml...");
+    let combo_path = TRAINING_MODPACK_TOML_PATH;
+    info!("Checking for previous button combo settings in {TRAINING_MODPACK_TOML_PATH}...");
     let mut valid_button_config = false;
     if fs::metadata(combo_path).is_ok() {
         info!("Previous button combo settings found. Loading...");
-        let combo_conf =
-            fs::read_to_string(combo_path).unwrap_or_else(|_| panic!("Could not read {}", combo_path));
+        let combo_conf = fs::read_to_string(combo_path)
+            .unwrap_or_else(|_| panic!("Could not read {}", combo_path));
         let conf: Result<TopLevelBtnComboConfig, toml::de::Error> = toml::from_str(&combo_conf);
         if let Ok(conf) = conf {
             if validate_config(conf) {
@@ -96,12 +98,10 @@ pub fn load_from_file() {
 
     if !valid_button_config {
         info!("No previous button combo file found. Creating...");
-        fs::write(combo_path, DEFAULT_BTN_CONFIG)
-            .expect("Failed to write button config conf file");
+        fs::write(combo_path, DEFAULT_BTN_CONFIG).expect("Failed to write button config conf file");
         save_all_btn_config_from_defaults();
     }
 }
-
 
 fn save_all_btn_config_from_defaults() {
     let conf = TopLevelBtnComboConfig {
@@ -146,8 +146,13 @@ fn save_all_btn_config_from_toml(data: &str) {
 
 fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
     let conf = conf.button_config;
-    let configs = [conf.open_menu, conf.save_state, conf.load_state,
-        conf.previous_save_state_slot, conf.next_save_state_slot];
+    let configs = [
+        conf.open_menu,
+        conf.save_state,
+        conf.load_state,
+        conf.previous_save_state_slot,
+        conf.next_save_state_slot,
+    ];
     let bad_keys = configs
         .iter()
         .flat_map(|btn_list| {
@@ -164,8 +169,9 @@ fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
             0x71,
             "Training Modpack custom button\nconfiguration is invalid!\0",
             &format!(
-                "The following keys are invalid in\nsd:/TrainingModpack/training_modpack.toml:\n\
+                "The following keys are invalid in\n{}:\n\
                 {:?}\n\nPossible Keys: {:#?}\0",
+                TRAINING_MODPACK_TOML_PATH,
                 &bad_keys,
                 BUTTON_MAPPING.keys()
             ),
@@ -207,13 +213,14 @@ fn combo_passes(
 ) -> bool {
     unsafe {
         let (hold, press) = get_combo_keys(combo);
-        let this_combo_passes = hold.iter()
+        let this_combo_passes = hold
+            .iter()
             .map(|hold| *BUTTON_MAPPING.get(&*hold.to_uppercase()).unwrap())
             .all(|hold| ControlModule::check_button_on(module_accessor, hold))
             && press
-            .iter()
-            .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
-            .all(|press| ControlModule::check_button_trigger(module_accessor, press));
+                .iter()
+                .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
+                .all(|press| ControlModule::check_button_trigger(module_accessor, press));
 
         this_combo_passes
     }

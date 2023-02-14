@@ -8,6 +8,7 @@ use training_mod_consts::MenuJsonStruct;
 use training_mod_tui::AppPage;
 
 use crate::common::*;
+use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
 
@@ -22,14 +23,11 @@ pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccess
     button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::OpenMenu)
 }
 
-const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
-
 pub fn load_from_file() {
-    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
-    info!("Checking for previous menu in training_modpack_menu.json...");
-    if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(menu_conf_path)
-            .unwrap_or_else(|_| panic!("Could not remove {}", menu_conf_path));
+    info!("Checking for previous menu in {MENU_OPTIONS_PATH}...");
+    if fs::metadata(MENU_OPTIONS_PATH).is_ok() {
+        let menu_conf = fs::read_to_string(MENU_OPTIONS_PATH)
+            .unwrap_or_else(|_| panic!("Could not remove {}", MENU_OPTIONS_PATH));
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
@@ -38,10 +36,10 @@ pub fn load_from_file() {
             }
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).unwrap_or_else(|_| {
+            fs::remove_file(MENU_OPTIONS_PATH).unwrap_or_else(|_| {
                 panic!(
                     "{} has invalid schema but could not be deleted!",
-                    menu_conf_path
+                    MENU_OPTIONS_PATH
                 )
             });
         }
@@ -58,7 +56,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
         fs::write(
-            MENU_CONF_PATH,
+            MENU_OPTIONS_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
         .expect("Failed to write menu settings file");
@@ -223,7 +221,10 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             if (*state).Buttons & ((1 << 15) | (1 << 19)) > 0 {
                 BUTTON_PRESSES.down.is_pressed = true;
             }
-            if (*state).Buttons & ((1 << 13) | (1 << 17)) > 0 {
+            // Special case for "UP" in menu open button combo
+            if FRAME_COUNTER < MENU_INPUT_WAIT_FRAMES
+                && (*state).Buttons & ((1 << 13) | (1 << 17)) > 0
+            {
                 BUTTON_PRESSES.up.is_pressed = true;
             }
 

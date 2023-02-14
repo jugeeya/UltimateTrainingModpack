@@ -9,9 +9,9 @@ extern crate num_derive;
 
 use serde::{Deserialize, Serialize};
 
-mod options;
+pub mod options;
 pub use options::*;
-mod files;
+pub mod files;
 pub use files::*;
 
 #[repr(C)]
@@ -175,7 +175,7 @@ impl<'a> SubMenu<'a> {
         submenu_id: &'a str,
         help_text: &'a str,
         is_single_option: bool,
-        initial_value: &u32
+        initial_value: &u32,
     ) -> SubMenu<'a> {
         let mut instance = SubMenu {
             submenu_title: submenu_title,
@@ -190,8 +190,8 @@ impl<'a> SubMenu<'a> {
         let values = T::to_toggle_vals();
         let titles = T::to_toggle_strs();
         for i in 0..values.len() {
-            let checked: bool  = (values[i] & initial_value) > 0
-                || (!values[i] == 0 && initial_value == &0);
+            let checked: bool =
+                (values[i] & initial_value) > 0 || (!values[i] == 0 && initial_value == &0);
             instance.add_toggle(values[i], titles[i], checked);
         }
         // Select the first option if there's nothing selected atm but it's a single option submenu
