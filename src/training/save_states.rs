@@ -17,6 +17,7 @@ use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
+use crate::common::consts::SAVE_STATES_TOML_PATH;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
@@ -114,14 +115,13 @@ pub fn load_from_file() -> SaveStateSlots {
         cpu: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
     };
 
-    let save_states_path = "sd:/TrainingModpack/save_states.toml";
-    info!("Checking for previous save state settings in save_states.toml...");
-    if std::fs::metadata(save_states_path).is_err() {
+    info!("Checking for previous save state settings in {SAVE_STATES_TOML_PATH}...");
+    if std::fs::metadata(SAVE_STATES_TOML_PATH).is_err() {
         return defaults;
     }
 
     info!("Previous save state settings found. Loading...");
-    if let Ok(data) = std::fs::read_to_string(save_states_path) {
+    if let Ok(data) = std::fs::read_to_string(SAVE_STATES_TOML_PATH) {
         let input_slots = toml::from_str::<SaveStateSlots>(&data);
         if let Ok(input_slots) = input_slots {
             return input_slots;
@@ -134,7 +134,7 @@ pub fn load_from_file() -> SaveStateSlots {
 pub unsafe fn save_to_file() {
     let save_states_str = toml::to_string_pretty(&*SAVE_STATE_SLOTS.data_ptr())
         .expect("Error serializing save state information");
-    std::fs::write("sd:/TrainingModpack/save_states.toml", save_states_str)
+    std::fs::write(SAVE_STATES_TOML_PATH, save_states_str)
         .expect("Could not write save state information to file");
 }
 
@@ -596,6 +596,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         MIRROR_STATE = 1.0;
         save_state_player().state = Save;
         save_state_cpu().state = Save;
+        notifications::clear_notifications("Save State");
+        notifications::notification(
+            "Save State".to_string(),
+            format!("Saved Slot {SAVE_STATE_SLOT}"),
+            120,
+        );
     }
 
     if save_state.state == Save && !fighter_is_nana {
