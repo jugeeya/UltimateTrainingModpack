@@ -12,12 +12,12 @@ use training_mod_consts::{CharacterItem, SaveDamage};
 use SaveState::*;
 
 use crate::common::button_config;
-use crate::common::consts::SAVE_STATES_TOML_PATH;
 use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
+use crate::common::consts::SAVE_STATES_TOML_PATH;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
@@ -114,7 +114,7 @@ pub fn load_from_file() -> SaveStateSlots {
         player: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
         cpu: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
     };
-    
+
     info!("Checking for previous save state settings in {SAVE_STATES_TOML_PATH}...");
     if std::fs::metadata(SAVE_STATES_TOML_PATH).is_err() {
         return defaults;
@@ -596,6 +596,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         MIRROR_STATE = 1.0;
         save_state_player().state = Save;
         save_state_cpu().state = Save;
+        notifications::clear_notifications("Save State");
+        notifications::notification(
+            "Save State".to_string(),
+            format!("Saved Slot {SAVE_STATE_SLOT}"),
+            120,
+        );
     }
 
     if save_state.state == Save && !fighter_is_nana {
