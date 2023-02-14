@@ -51,23 +51,24 @@ bers which submenu was selected between openings - @jugeeya
 * Save State slots: Use DPad Left/Right to switch slots for saving and loading save states! - @jugeeya
 
 ### Bugfixes
-* No longer change pokemon when loading a save state with PT - @jugeeya
+* No longer change pokemon when loading a save state with Pokemon Trainer. This fixes most issues with PT save states. - @jugeeya
 * Mash options are no longer buffered when loading a save state - @GradualSyrup
-* Fixed issue where input delay menu selection would not be respected - @jugeeya, @asimon-1
+* Fixed bug where input delay menu selection would not be respected - @jugeeya, @asimon-1
 * Fixed bug where Pac-Man fruit preparedness wasn't saved in state - @GradualSyrup
 * Fixed bug where items would deplete shields set to "Infinite" - @jugeeya
 * Fixed bug where back button would not work with touch screen - @gnaomo
-* Fix Joycon controllers with input delay - @asimon-1, @jugeeya
-* Fix issue where CPU would perform options out of Snake's down throw too early - @asimon-1
-* Fix issue where CPU could tech untechables - @asimon-1
+* Fixed bug for Joycon controllers with input delay - @asimon-1, @jugeeya
+* Fixed bug where CPU would perform options out of Snake's down throw too early - @asimon-1
+* Fixed bug where CPU could tech untechables - @asimon-1
 * Fixed several bugs when loading a save state on ledge - @asimon-1
 * When loading mirrors save states on asymmetric stages, mirror around the stage center - @asimon-1
-* Fixes to Quick Menu when using joycons - @jugeeya
-* Fix Quick Menu causing inaccessible inputs when controllers were disconnected - @jugeeya
+* Fixed Quick Menu when using joycons - @jugeeya
+* Fixed Quick Menu causing inaccessible inputs when controllers were disconnected - @jugeeya
 
 ### Adjustments
 * Adjust clatter strength values - @asimon-1
 * Update infinite shield compatibility with modded gameplay - @techyCoder81
+* Move SD card configs folder from `sd:/TrainingModpack` to `sd:/ultimate/TrainingModpack` - @jugeeya
 * Deprecate Web Menu in favor of native UI menu - @jugeeya, @xhudaman, @austintraver
 
 <a name="features"/>
