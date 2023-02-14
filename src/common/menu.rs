@@ -206,7 +206,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
                 BUTTON_PRESSES.r.is_pressed = true;
             }
             // Special case for frame-by-frame
-            if FRAME_COUNTER < MENU_INPUT_WAIT_FRAMES && (*state).Buttons & (1 << 8) > 0 {
+            if FRAME_COUNTER > MENU_INPUT_WAIT_FRAMES && (*state).Buttons & (1 << 8) > 0 {
                 BUTTON_PRESSES.zl.is_pressed = true;
             }
             if (*state).Buttons & (1 << 9) > 0 {
@@ -222,7 +222,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
                 BUTTON_PRESSES.down.is_pressed = true;
             }
             // Special case for "UP" in menu open button combo
-            if FRAME_COUNTER < MENU_INPUT_WAIT_FRAMES
+            if FRAME_COUNTER > MENU_INPUT_WAIT_FRAMES
                 && (*state).Buttons & ((1 << 13) | (1 << 17)) > 0
             {
                 BUTTON_PRESSES.up.is_pressed = true;
