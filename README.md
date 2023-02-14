@@ -9,7 +9,7 @@
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/jugeeya/UltimateTrainingModpack/rust.yml?branch=main&logo=github&style=for-the-badge)](https://github.com/jugeeya/UltimateTrainingModpack/actions)
 
-[![Discord](https://img.shields.io/discord/407970595418931200?label=discord&logo=discord&style=for-the-badge)](https://discord.gg/qU4TBwV)
+[![Discord](https://img.shields.io/discord/407970595418931200?label=discord&logo=discord&style=for-the-badge)](https://discord.gg/xUZWJ5BWe7)
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/jugeeya?color=brightgreen&logo=twitter&style=for-the-badge)](https://twitter.com/jugeeya)
 
