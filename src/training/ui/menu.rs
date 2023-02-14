@@ -74,6 +74,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                 format!("Button{list_section}").as_str()
             ).unwrap();
             menu_button.set_visible(true);
+
             let title_text = menu_button.find_pane_by_name_recursive("TitleTxt")
                 .unwrap().as_textbox();
             let title_bg = menu_button.find_pane_by_name_recursive("TitleBg")
@@ -110,10 +111,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                 }
             });
 
-            if let Some(icon) = menu_button.find_pane_by_name_recursive(submenu.submenu_id) {
-                dbg!(submenu.submenu_id);
-                icon.as_picture().set_visible(true);
-            }
+            menu_button.find_pane_by_name_recursive("Icon").unwrap().set_visible(true);
         });
 }
 
@@ -134,6 +132,8 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                     format!("Button{list_section}").as_str()
                 ).unwrap();
                 menu_button.set_visible(true);
+
+                menu_button.find_pane_by_name_recursive("Icon").unwrap().set_visible(false);
 
                 let title_text = menu_button.find_pane_by_name_recursive("TitleTxt")
                     .unwrap().as_textbox();
@@ -252,6 +252,9 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
 
     max_title_bg_material.set_white_res_color(max_colors.0);
     max_title_bg_material.set_black_res_color(max_colors.1);
+
+    min_value_text.set_visible(true);
+    max_value_text.set_visible(true);
 }
 
 pub unsafe fn draw(root_pane: &mut Pane) {
