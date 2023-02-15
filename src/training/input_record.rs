@@ -3,11 +3,12 @@ use smash::lib::lua_const::*;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use crate::training::input_recording::structures::*;
-use crate::common::consts::{RecordTrigger, FighterId};
-use crate::common::{MENU, get_module_accessor};
-
+use crate::common::consts::{RecordTrigger, HitstunPlayback, FighterId};
+use crate::common::{MENU, get_module_accessor, is_in_hitstun, is_in_shieldstun};
+use crate::training::mash;
 
 #[derive(PartialEq)]
+#[derive(Debug)]
 pub enum InputRecordState {
     None,
     Pause,
@@ -16,6 +17,7 @@ pub enum InputRecordState {
 }
 
 #[derive(PartialEq)]
+#[derive(Debug)]
 pub enum PossessionState {
     Player,
     Cpu,
@@ -26,9 +28,18 @@ pub enum PossessionState {
 #[derive(PartialEq)]
 #[derive(Copy, Clone)]
 pub enum StartingStatus {
-    Aerial, // FIGHTER_STATUS_KIND_ATTACK_AIR
+    Aerial, // FIGHTER_STATUS_KIND_ATTACK_AIR TODO: This shouldn't happen without starting input recording in the air - when would we want this?
+    // Probably should lock input recordings to either the ground or the air
     Airdodge, // FIGHTER_STATUS_KIND_ESCAPE_AIR, FIGHTER_STATUS_KIND_ESCAPE_AIR_SLIDE
-    Other, // Other statuses cannot be used to hitstun cancel via damage_fly_attack_frame/damage_fly_escape_frame 
+    // Other statuses cannot be used to hitstun cancel via damage_fly_attack_frame/damage_fly_escape_frame
+    // Some statuses can leave shield earlier though, so we should check for this
+    SpecialHi, // Up B: FIGHTER_STATUS_KIND_SPECIAL_HI, 
+    Jump, // FIGHTER_STATUS_KIND_JUMP_SQUAT
+    DoubleJump, //FIGHTER_STATUS_KIND_JUMP_AERIAL
+    Spotdodge, // FIGHTER_STATUS_KIND_ESCAPE
+    Roll, // FIGHTER_STATUS_KIND_ESCAPE_F, FIGHTER_STATUS_KIND_ESCAPE_B
+    Grab, // FIGHTER_STATUS_KIND_CATCH
+    Other,
 }
 
 use InputRecordState::*;
@@ -58,12 +69,83 @@ lazy_static! {
         Mutex::new([{StartingStatus::Other}; TOTAL_SLOT_COUNT]);
 }
 
+unsafe fn can_transition(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
+    let transition_term = into_transition_term(into_starting_status(STARTING_STATUS));
+    WorkModule::is_enable_transition_term(module_accessor, transition_term)
+}
+
+unsafe fn should_mash_playback() {
+    // Don't want to interrupt recording
+    if is_recording() {
+        return;
+    }
+    if !mash::is_playback_queued() {
+        return;
+    }
+    // playback is queued, so we might want to begin this frame
+    // if we're currently playing back, we don't want to interrupt (this may change for layered multislot playback, but for now this is fine)
+    if is_playback() {
+        return;
+    }
+    let mut should_playback = false;
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    // depending on our current status, we want to wait for different timings to begin playback
+    
+    // TODO: This isn't the best way to write this I'm sure, want to rewrite
+
+    if is_in_hitstun(&mut *cpu_module_accessor) {
+        // if we're in hitstun and want to enter the frame we start hitstop for SDI, start if we're in any damage status instantly
+        if MENU.hitstun_playback == HitstunPlayback::Instant {
+            should_playback = true;
+        }
+        // if we want to wait until we exit hitstop and begin flying away for shield art etc, start if we're not in hitstop
+        if MENU.hitstun_playback == HitstunPlayback::Hitstop && !StopModule::is_stop(cpu_module_accessor) {
+            should_playback = true;
+        }
+        // if we're in hitstun and want to wait till FAF to act, then we want to match our starting status to the correct transition term to see if we can hitstun cancel
+        if MENU.hitstun_playback == HitstunPlayback::Hitstun {
+            if can_transition(cpu_module_accessor) {
+                should_playback = true;
+            }
+        }
+    } else if is_in_shieldstun(&mut *cpu_module_accessor) {
+        // TODO: Add instant shieldstun toggle for shield art out of electric hitstun? Idk that's so specific
+        if can_transition(cpu_module_accessor) {
+            should_playback = true;
+        }
+    } else if can_transition(cpu_module_accessor) {
+        should_playback = true;
+    }
+
+
+    // how do we deal with buffering motion inputs out of shield? You can't complete them in one frame, but they can definitely be buffered during shield drop
+    // probably need a separate standby setting for grounded, aerial, shield, where shield starts once you let go of shield, and aerial keeps you in the air?
+
+    if should_playback {
+        playback();
+    }
+}
+
+// TODO: set up a better match later and make this into one func
+
 fn into_starting_status(status: i32) -> StartingStatus {
     if status == *FIGHTER_STATUS_KIND_ATTACK_AIR {
         return StartingStatus::Aerial;
     } else if (*FIGHTER_STATUS_KIND_ESCAPE_AIR..*FIGHTER_STATUS_KIND_ESCAPE_AIR_SLIDE).contains(&status) {
         return StartingStatus::Airdodge;
-    }
+    } else if status == *FIGHTER_STATUS_KIND_SPECIAL_HI {
+        return StartingStatus::SpecialHi;
+    } else if status == *FIGHTER_STATUS_KIND_JUMP_SQUAT {
+        return StartingStatus::Jump;
+    } else if status == *FIGHTER_STATUS_KIND_JUMP_AERIAL {
+        return StartingStatus::DoubleJump;
+    } else if status == *FIGHTER_STATUS_KIND_ESCAPE {
+        return StartingStatus::Spotdodge;
+    } else if (*FIGHTER_STATUS_KIND_ESCAPE_F..*FIGHTER_STATUS_KIND_ESCAPE_B).contains(&status) {
+        return StartingStatus::Roll;
+    } else if status == *FIGHTER_STATUS_KIND_CATCH {
+        return StartingStatus::Grab;
+    } 
     StartingStatus::Other
 }
 
@@ -71,7 +153,13 @@ fn into_transition_term(starting_status: StartingStatus) -> i32 {
     match starting_status {
         StartingStatus::Aerial => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
         StartingStatus::Airdodge => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
-        StartingStatus::Other => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_HI, // placeholder - most likely don't want to use this in final build, and have a different set of checks
+        StartingStatus::Other => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_S, // placeholder - most likely don't want to use this in final build, and have a different set of checks
+        StartingStatus::SpecialHi => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_HI,
+        StartingStatus::Jump => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT,
+        StartingStatus::DoubleJump => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_AERIAL,
+        StartingStatus::Spotdodge => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+        StartingStatus::Roll => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_F,
+        StartingStatus::Grab => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
     }
 }
 
@@ -102,11 +190,13 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
         // may need to move this to another func
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-            if INPUT_RECORD_FRAME >= FINAL_RECORD_FRAME - 1 { // P1_FINAL_MAPPING.lock().len() - 1 { 
-                // Above alternative causes us to stay on last input forever, need to figure out since we want to be able to have shorter playbacks
+            if INPUT_RECORD_FRAME >= FINAL_RECORD_FRAME - 1 {
                 INPUT_RECORD = None;
                 POSSESSION = Player;
                 INPUT_RECORD_FRAME = 0;
+                if mash::is_playback_queued() {
+                    mash::reset();
+                }
             }
         }
     }
@@ -129,7 +219,7 @@ pub unsafe fn lockout_record() {
     P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
         *mapped_input = MappedInputs::default();
     });
-    LOCKOUT_FRAME = 10;
+    LOCKOUT_FRAME = 30; // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
     BUFFER_FRAME = 0;
     // Store the direction the CPU is facing when we initially record, so we can turn their inputs around if needed
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
@@ -150,7 +240,12 @@ pub unsafe fn _record() {
 }
 
 pub unsafe fn playback() {
+    if INPUT_RECORD == Pause {
+        println!("Tried to playback during lockout!");
+        return;
+    }
     INPUT_RECORD = Playback;
+    POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
     BUFFER_FRAME = 0;
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
@@ -158,7 +253,12 @@ pub unsafe fn playback() {
 }
 
 pub unsafe fn playback_ledge() {
+    if INPUT_RECORD == Pause {
+        println!("Tried to playback during lockout!");
+        return;
+    }
     INPUT_RECORD = Playback;
+    POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
     BUFFER_FRAME = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
     // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
@@ -213,6 +313,7 @@ unsafe fn handle_final_input_mapping(
                 // We'll want to save this status so that we use the correct TRANSITION TERM for hitstun cancelling out of damage fly
                 let cpu_module_accessor = get_module_accessor(FighterId::CPU);
                 P1_STARTING_STATUSES.lock()[CURRENT_PLAYBACK_SLOT] = into_starting_status(StatusModule::status_kind(cpu_module_accessor));
+                STARTING_STATUS = StatusModule::status_kind(cpu_module_accessor); // TODO: Handle this based on slot later instead
             }
 
             P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
@@ -227,6 +328,15 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     call_original!(p_data);
     let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
     let controller_no  = (*controller_data).controller_index;
+
+    // Check if we need to begin playback this frame due to a mash toggle
+    // TODO: Setup STARTING_STATUS based on current playback slot here
+
+    // This check prevents out of shield if mash exiting is on
+    if INPUT_RECORD == None {
+        should_mash_playback();
+    }
+
     if INPUT_RECORD == Pause {
         if LOCKOUT_FRAME > 0 {
             LOCKOUT_FRAME -= 1;
@@ -240,7 +350,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
 
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
         let x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
-        println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME);
+        println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
         
         if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
@@ -267,7 +377,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         // When buffering an option, we keep inputting the first frame of input during the buffer window
         if BUFFER_FRAME > 0 {
             BUFFER_FRAME -= 1;
-        } else if INPUT_RECORD_FRAME < FINAL_RECORD_FRAME - 1 && POSSESSION != Standby { //P1_FINAL_MAPPING.lock().len() - 1 && POSSESSION != Standby {
+        } else if INPUT_RECORD_FRAME < FINAL_RECORD_FRAME - 1 && POSSESSION != Standby {
             INPUT_RECORD_FRAME += 1;
         }
     } 

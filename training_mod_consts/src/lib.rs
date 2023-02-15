@@ -219,7 +219,7 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
-            LedgeOption::PLAYBACK => "Playback",
+            LedgeOption::PLAYBACK => "Input Playback",
             _ => return None,
         })
     }
@@ -412,6 +412,7 @@ bitflags! {
         // TODO: Make work
         const DASH = 0x0080_0000;
         const DASH_ATTACK = 0x0100_0000;
+        const PLAYBACK = 0x0200_0000;
     }
 }
 
@@ -460,6 +461,7 @@ impl Action {
             Action::GRAB => "Grab",
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
+            Action::PLAYBACK => "Input Playback",
             _ => return None,
         })
     }
@@ -1200,6 +1202,38 @@ impl ToggleTrait for RecordTrigger {
     }
 }
 
+// If doing input recording out of hitstun, when does playback begin after?
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum HitstunPlayback { // Should these start at 0? All of my new menu structs need some review, I'm just doing whatever atm
+    Hitstun = 0x1,
+    Hitstop = 0x2,
+    Instant = 0x4,
+}
+
+impl HitstunPlayback {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            HitstunPlayback::Hitstun => "As Hitstun Ends",
+            HitstunPlayback::Hitstop => "As Hitstop Ends",
+            HitstunPlayback::Instant => "As Hitstop Begins",
+        })
+    }
+}
+
+impl ToggleTrait for HitstunPlayback {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        HitstunPlayback::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        HitstunPlayback::iter().map(|i| i as u32).collect()
+    }
+}
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct DamagePercent(pub u32, pub u32);
 
@@ -1299,6 +1333,7 @@ pub struct TrainingModpackMenu {
     pub playback_slot: PlaybackSlot,
     pub playback_mash: OnOff,
     pub record_trigger: RecordTrigger,
+    pub hitstun_playback: HitstunPlayback,
 }
 
 const fn num_bits<T>() -> u32 {
@@ -1404,6 +1439,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     playback_slot: PlaybackSlot::S1,
     playback_mash: OnOff::On,
     record_trigger: RecordTrigger::None, //Command?
+    hitstun_playback: HitstunPlayback::Hitstun,
     // TODO: alphabetize
 };
 
@@ -1992,6 +2028,13 @@ pub unsafe fn get_menu() -> UiMenu<'static> {
         "Recording Trigger: What condition is required to begin recording input",
         true,
         &(MENU.record_trigger as u32),
+    );
+    input_tab.add_submenu_with_toggles::<HitstunPlayback>(
+        "Hitstun Playback Trigger",
+        "hitstun_playback",
+        "Hitstun Playback Trigger: When to begin playing back inputs on hitstun mash trigger",
+        true,
+        &(MENU.hitstun_playback as u32),
     );
     overall_menu.tabs.push(input_tab);
 

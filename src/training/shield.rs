@@ -162,7 +162,7 @@ pub unsafe fn param_installer() {
 pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     // Don't let shield override input recording playback
     unsafe {
-        if input_record::is_playback() {
+        if input_record::is_playback() || input_record::is_standby() {
             return false;
         }
     }
