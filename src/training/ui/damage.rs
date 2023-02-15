@@ -1,7 +1,8 @@
-use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
-use crate::consts::FighterId;
 use skyline::nn::ui2d::*;
 use smash::ui2d::SmashPane;
+
+use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
+use crate::consts::FighterId;
 
 pub unsafe fn iterate_anim_list(
     anim_transform_node: &mut AnimTransformNode,

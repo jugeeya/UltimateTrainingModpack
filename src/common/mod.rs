@@ -1,19 +1,20 @@
-pub mod button_config;
-pub mod consts;
-pub mod events;
-pub mod menu;
-pub mod raygun_printer;
-pub mod release;
-pub mod dev_config;
-
-use crate::common::consts::*;
 use smash::app::{self, lua_bind::*};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lua2cpp::L2CFighterCommon;
 
 pub use crate::common::consts::MENU;
-pub static mut DEFAULTS_MENU: TrainingModpackMenu = crate::common::consts::DEFAULTS_MENU;
+use crate::common::consts::*;
+
+pub mod button_config;
+pub mod consts;
+pub mod dev_config;
+pub mod events;
+pub mod menu;
+pub mod raygun_printer;
+pub mod release;
+
+pub static mut DEFAULTS_MENU: TrainingModpackMenu = consts::DEFAULTS_MENU;
 pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut ITEM_MANAGER_ADDR: usize = 0;
@@ -99,6 +100,7 @@ pub fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
     // TODO: Should this be *FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_AIR ?
     (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
+
 pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
 

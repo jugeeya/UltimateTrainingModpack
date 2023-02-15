@@ -1,8 +1,9 @@
-use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
+use serde::{Deserialize, Serialize};
+use smash::app::{self, ArticleOperationTarget, FighterFacial, FighterUtil, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
-#[derive(Default, Copy, Clone)]
+#[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
     pub int_x: Option<i32>,
     pub int_y: Option<i32>,

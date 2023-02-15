@@ -1,9 +1,13 @@
-use crate::logging::*;
-use skyline_web::DialogOk;
 use std::fs;
 
+use skyline_web::DialogOk;
+
+use crate::consts::{
+    LEGACY_MENU_OPTIONS_PATH, MENU_DEFAULT_OPTIONS_PATH, MENU_OPTIONS_PATH, VERSION_TXT_PATH,
+};
+use crate::logging::*;
+
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const VERSION_FILE_PATH: &str = "sd:/TrainingModpack/version.txt";
 
 enum VersionCheck {
     Current,
@@ -31,7 +35,7 @@ fn record_current_version(fpath: &str) {
 }
 
 pub fn version_check() {
-    match is_current_version(VERSION_FILE_PATH) {
+    match is_current_version(VERSION_TXT_PATH) {
         VersionCheck::Current => {
             // Version is current, no need to take any action
         }
@@ -45,13 +49,16 @@ pub fn version_check() {
                 )
             );
             // Remove old menu selections, silently ignoring errors (i.e. if the file doesn't exist)
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.conf")
-                .unwrap_or_else(|_| error!("Couldn't remove training_modpack_menu.conf"));
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu.json")
-                .unwrap_or_else(|_| error!("Couldn't remove training_modpack_menu.json"));
-            fs::remove_file("sd:/TrainingModpack/training_modpack_menu_defaults.conf")
-                .unwrap_or_else(|_| error!("Couldn't remove training_modpack_menu_defaults.conf"));
-            record_current_version(VERSION_FILE_PATH);
+            [
+                MENU_OPTIONS_PATH,
+                MENU_DEFAULT_OPTIONS_PATH,
+                LEGACY_MENU_OPTIONS_PATH,
+            ]
+            .iter()
+            .for_each(|path| {
+                fs::remove_file(path).unwrap_or_else(|_| error!("Couldn't remove {path}"))
+            });
+            record_current_version(VERSION_TXT_PATH);
         }
         VersionCheck::NoFile => {
             // Display dialog box on fresh installation
@@ -61,7 +68,7 @@ pub fn version_check() {
                     Please refer to the Github page and the Discord server for a full list of features and instructions on how to utilize the improved Training Mode."
                 )
             );
-            record_current_version(VERSION_FILE_PATH);
+            record_current_version(VERSION_TXT_PATH);
         }
     }
 }

@@ -1,22 +1,52 @@
-use crate::common::*;
-use crate::events::{Event, EVENT_QUEUE};
-use crate::logging::*;
+use std::fs;
 
+use lazy_static::lazy_static;
+use parking_lot::Mutex;
 use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
 use training_mod_consts::MenuJsonStruct;
 
+use training_mod_tui::AppPage;
+
+use crate::common::*;
+use crate::consts::MENU_OPTIONS_PATH;
+use crate::events::{Event, EVENT_QUEUE};
+use crate::logging::*;
+
 // This is a special frame counter that will tick on draw()
 // We'll count how long the menu has been open
-pub static mut FRAME_COUNTER : u32 = 0;
-const MENU_INPUT_WAIT_FRAMES : u32 = 30;
-const MENU_CLOSE_WAIT_FRAMES : u32 = 60;
+pub static mut FRAME_COUNTER: u32 = 0;
+const MENU_INPUT_WAIT_FRAMES: u32 = 30;
+const MENU_CLOSE_WAIT_FRAMES: u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    button_config::combo_passes(module_accessor, button_config::ButtonCombo::OpenMenu)
+    button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::OpenMenu)
 }
 
-const MENU_CONF_PATH: &str = "sd:/TrainingModpack/training_modpack_menu.json";
+pub fn load_from_file() {
+    info!("Checking for previous menu in {MENU_OPTIONS_PATH}...");
+    if fs::metadata(MENU_OPTIONS_PATH).is_ok() {
+        let menu_conf = fs::read_to_string(MENU_OPTIONS_PATH)
+            .unwrap_or_else(|_| panic!("Could not remove {}", MENU_OPTIONS_PATH));
+        if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
+            unsafe {
+                MENU = menu_conf_json.menu;
+                DEFAULTS_MENU = menu_conf_json.defaults_menu;
+                info!("Previous menu found. Loading...");
+            }
+        } else {
+            warn!("Previous menu found but is invalid. Deleting...");
+            fs::remove_file(MENU_OPTIONS_PATH).unwrap_or_else(|_| {
+                panic!(
+                    "{} has invalid schema but could not be deleted!",
+                    MENU_OPTIONS_PATH
+                )
+            });
+        }
+    } else {
+        info!("No previous menu file found.");
+    }
+}
 
 pub unsafe fn set_menu_from_json(message: &str) {
     let response = serde_json::from_str::<MenuJsonStruct>(message);
@@ -25,8 +55,8 @@ pub unsafe fn set_menu_from_json(message: &str) {
         // Includes both MENU and DEFAULTS_MENU
         MENU = message_json.menu;
         DEFAULTS_MENU = message_json.defaults_menu;
-        std::fs::write(
-            MENU_CONF_PATH,
+        fs::write(
+            MENU_OPTIONS_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
         )
         .expect("Failed to write menu settings file");
@@ -34,7 +64,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
         skyline::error::show_error(
             0x70,
             "Could not parse the menu response!\nPlease send a screenshot of the details page to the developers.\n\0",
-            &format!("{message:#?}\0")
+            &format!("{message:#?}\0"),
         );
     };
 }
@@ -169,7 +199,8 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             if (*state).Buttons & (1 << 7) > 0 {
                 BUTTON_PRESSES.r.is_pressed = true;
             }
-            if (*state).Buttons & (1 << 8) > 0 {
+            // Special case for frame-by-frame
+            if FRAME_COUNTER > MENU_INPUT_WAIT_FRAMES && (*state).Buttons & (1 << 8) > 0 {
                 BUTTON_PRESSES.zl.is_pressed = true;
             }
             if (*state).Buttons & (1 << 9) > 0 {
@@ -184,7 +215,10 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             if (*state).Buttons & ((1 << 15) | (1 << 19)) > 0 {
                 BUTTON_PRESSES.down.is_pressed = true;
             }
-            if (*state).Buttons & ((1 << 13) | (1 << 17)) > 0 {
+            // Special case for "UP" in menu open button combo
+            if FRAME_COUNTER > MENU_INPUT_WAIT_FRAMES
+                && (*state).Buttons & ((1 << 13) | (1 << 17)) > 0
+            {
                 BUTTON_PRESSES.up.is_pressed = true;
             }
 
@@ -197,17 +231,15 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
     }
 }
 
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
-use training_mod_tui::AppPage;
-
 lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> =
-        Mutex::new(training_mod_tui::App::new(
-            unsafe { ui_menu(MENU) },
-            unsafe { (ui_menu(DEFAULTS_MENU), serde_json::to_string(&DEFAULTS_MENU).unwrap())}
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
+        training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
+            (
+                ui_menu(DEFAULTS_MENU),
+                serde_json::to_string(&DEFAULTS_MENU).unwrap(),
             )
-        );
+        })
+    );
 }
 
 pub unsafe fn quick_menu_loop() {
@@ -227,7 +259,8 @@ pub unsafe fn quick_menu_loop() {
             potential_controller_ids.push(0x20);
             if potential_controller_ids
                 .iter()
-                .all(|i| GetNpadStyleSet(i as *const _).flags == 0) {
+                .all(|i| GetNpadStyleSet(i as *const _).flags == 0)
+            {
                 QUICK_MENU_ACTIVE = false;
                 continue;
             }

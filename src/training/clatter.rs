@@ -1,10 +1,11 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::mash;
-use smash::app::lua_bind::{ControlModule, EffectModule};
 use smash::app::BattleObjectModuleAccessor;
+use smash::app::lua_bind::{ControlModule, EffectModule};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+
+use crate::common::*;
+use crate::common::consts::*;
+use crate::training::mash;
 
 static mut COUNTER: u32 = 0;
 static mut WAS_IN_CLATTER_FLAG: bool = false;

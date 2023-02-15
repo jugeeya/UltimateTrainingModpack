@@ -1,8 +1,11 @@
-use crate::common::{is_ready_go, is_training_mode};
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
 use byte_unit::MEBIBYTE;
+
+use crate::common::{is_ready_go, is_training_mode};
+#[cfg(feature = "layout_arc_from_file")]
+use crate::consts::LAYOUT_ARC_PATH;
 
 mod damage;
 mod display;
@@ -31,11 +34,6 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     original!()(layout, draw_info, cmd_buffer);
 }
 
-// We'll keep some sane max size here; we shouldn't reach above 600KiB is the idea,
-// but we can try higher if we need to.
-// Temporarily set to 5,000,000 will update to lower value once we know
-// how much space we need
-
 // Allocate a static amount of memory that Smash isn't allowed to deallocate,
 // in order for us to be able to swap the 'layout.arc' with the current
 // version of the file in between loads of training mode.
@@ -43,8 +41,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 static mut LAYOUT_ARC: &mut [u8; (2 * MEBIBYTE) as usize] = &mut [0u8; (2 * MEBIBYTE) as usize];
 
 /// We are editing the info_training/layout.arc and replacing the original file with our
-/// modified version from `sd://TrainingModpack/layout.arc` or, in the case of Ryujinx for the cool
-/// kids `${RYUJINX_DIR}/sdcard/TrainingModpack/layout.arc`
+/// modified version from `LAYOUT_ARC_PATH`
 ///
 /// When we edit the layout we are doing two things.
 ///
@@ -78,9 +75,7 @@ static mut LAYOUT_ARC: &mut [u8; (2 * MEBIBYTE) as usize] = &mut [0u8; (2 * MEBI
 /// label_material.set_black_res_color(LABEL_BLACK_SELECTED_COLOR);
 /// ```
 #[skyline::hook(offset = 0x37730d4, inline)]
-unsafe fn handle_layout_arc_malloc(
-    ctx: &mut skyline::hooks::InlineCtx
-) {
+unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
     if !is_training_mode() {
         return;
     }
@@ -89,8 +84,12 @@ unsafe fn handle_layout_arc_malloc(
     let decompressed_size = *ctx.registers[1].x.as_ref() as usize;
 
     let layout_arc = SarcFile::read(
-        std::slice::from_raw_parts(decompressed_file,decompressed_size)
-    ).unwrap();
+        std::slice::from_raw_parts(
+            decompressed_file,
+            decompressed_size,
+        )
+    )
+        .unwrap();
     let training_layout = layout_arc.files.iter().find(|f| {
         f.name.is_some() && f.name.as_ref().unwrap() == &String::from("blyt/info_training.bflyt")
     });
@@ -99,10 +98,11 @@ unsafe fn handle_layout_arc_malloc(
     }
 
     let inject_arc;
-    let inject_arc_size : u64;
+    let inject_arc_size: u64;
 
-    #[cfg(feature = "layout_arc_from_file")] {
-        let inject_arc_from_file = std::fs::read("sd:/TrainingModpack/layout.arc").unwrap();
+    #[cfg(feature = "layout_arc_from_file")]
+    {
+        let inject_arc_from_file = std::fs::read(LAYOUT_ARC_PATH).unwrap();
         inject_arc_size = inject_arc_from_file.len() as u64;
 
         // Copy read file to global
@@ -113,7 +113,8 @@ unsafe fn handle_layout_arc_malloc(
         inject_arc = LAYOUT_ARC.as_ptr();
     }
 
-    #[cfg(not(feature = "layout_arc_from_file"))] {
+    #[cfg(not(feature = "layout_arc_from_file"))]
+    {
         include_flate::flate!(static INJECT_ARC_FROM_FILE: [u8] from "src/static/layout.arc");
 
         inject_arc = INJECT_ARC_FROM_FILE.as_ptr();
@@ -131,8 +132,5 @@ unsafe fn handle_layout_arc_malloc(
 }
 
 pub fn init() {
-    skyline::install_hooks!(
-        handle_draw,
-        handle_layout_arc_malloc
-    );
+    skyline::install_hooks!(handle_draw, handle_layout_arc_malloc);
 }

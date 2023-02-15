@@ -1,6 +1,7 @@
-use crate::common::*;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+
+use crate::common::*;
 
 // the current full hop status
 static mut FULL_HOP: bool = false;

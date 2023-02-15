@@ -1,7 +1,3 @@
-use crate::common::{is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, dev_config};
-use crate::hitbox_visualizer;
-use crate::logging::*;
-use crate::training::character_specific::items;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
@@ -9,6 +5,13 @@ use smash::app::{self, enSEType, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
+
+use crate::common::{
+    dev_config, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+};
+use crate::hitbox_visualizer;
+use crate::logging::*;
+use crate::training::character_specific::items;
 
 pub mod buff;
 pub mod charge;
@@ -29,11 +32,11 @@ mod attack_angle;
 mod character_specific;
 mod fast_fall;
 mod full_hop;
-pub(crate) mod input_delay;
+pub mod input_delay;
 mod input_record;
 mod mash;
 mod reset;
-mod save_states;
+pub mod save_states;
 mod shield_tilt;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
@@ -321,7 +324,9 @@ fn params_main(params_info: &ParamsInfo<'_>) {
     }
 }
 
-static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
+static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140;
+
+// this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
 #[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
 pub unsafe fn handle_add_limit(
     add_limit: f32,
@@ -369,8 +374,9 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
 
 // Set Stale Moves to On
 static STALE_OFFSET: usize = 0x013e88a4;
+
 // One instruction after stale moves toggle register is set to 0
-#[skyline::hook(offset=STALE_OFFSET, inline)]
+#[skyline::hook(offset = STALE_OFFSET, inline)]
 unsafe fn stale_handle(ctx: &mut InlineCtx) {
     let x22 = ctx.registers[22].x.as_mut();
     let training_structure_address = (*x22 + 0xb60) as *mut u8;
@@ -379,8 +385,9 @@ unsafe fn stale_handle(ctx: &mut InlineCtx) {
 
 // Set Stale Moves to On in the menu text
 static STALE_MENU_OFFSET: usize = 0x013e88a0;
+
 // One instruction after menu text register is set to off
-#[skyline::hook(offset=STALE_MENU_OFFSET, inline)]
+#[skyline::hook(offset = STALE_MENU_OFFSET, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
     let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b215e;
@@ -461,7 +468,9 @@ pub unsafe fn handle_effect(
     )
 }
 
-static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, checks if stage allows for star KOs
+static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950;
+
+// can_futtobi_back, checks if stage allows for star KOs
 #[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
 pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     let ori = original!()(my_long_ptr);
@@ -512,7 +521,7 @@ pub fn training_mods() {
                 .as_ptr(),
         );
 
-        smash::params::add_hook(params_main).unwrap();
+        add_hook(params_main).unwrap();
     }
 
     skyline::install_hooks!(
