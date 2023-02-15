@@ -2,6 +2,7 @@ use crate::common::{is_ready_go, is_training_mode};
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
+use byte_unit::MEBIBYTE;
 
 mod damage;
 mod display;
@@ -34,8 +35,12 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 // but we can try higher if we need to.
 // Temporarily set to 5,000,000 will update to lower value once we know
 // how much space we need
+
+// Allocate a static amount of memory that Smash isn't allowed to deallocate,
+// in order for us to be able to swap the 'layout.arc' with the current
+// version of the file in between loads of training mode.
 #[cfg(feature = "layout_arc_from_file")]
-static mut LAYOUT_ARC : &mut [u8; 5_000_000] = &mut [0u8; 5_000_000];
+static mut LAYOUT_ARC: &mut [u8; (2 * MEBIBYTE) as usize] = &mut [0u8; (2 * MEBIBYTE) as usize];
 
 /// We are editing the info_training/layout.arc and replacing the original file with our
 /// modified version from `sd://TrainingModpack/layout.arc` or, in the case of Ryujinx for the cool
