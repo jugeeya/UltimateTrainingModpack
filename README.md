@@ -35,41 +35,13 @@ The latest beta release can be found [here](https://github.com/jugeeya/UltimateT
 These are the features that can be found [in the latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta) that are not in the stable release. 
 
 ### Features
-* Added option for CPU to crouch when grounded - @asimon-1
-* Added Mash Triggers feature, allowing configuration of when the CPU performs mash options - @GradualSyrup
-* Add ability to perform mash option after ledge trump, footstool, clatter, hitstun, tumble, and within certain distances - @asimon-1
-* Allow configurable button combinations for save states and opening the menu - @asimon-1
-* Prevent Star KOs in training mode - @GradualSyrup
-* Allow user to select random damage values on save state load - @asimon-1, @jugeeya
-* Clear articles like boomerang, anvil, hydrant when loading save states (crafting table excluded) - @jugeeya, 
-* Display frame advantage as a notification textbox - @jugeeya
-* Display welcome notification with instructions on how to use the mod - @jugeeya
-* Greatly improved UI and speed for the quick menu - @jugeeya, @xhudaman
-* Add option to toggle off HUD - @jugeeya
-* Cursor Memory for the menu: menu rem
-bers which submenu was selected between openings - @jugeeya
-* Save State slots: Use DPad Left/Right to switch slots for saving and loading save states! - @jugeeya
+N/A
 
 ### Bugfixes
-* No longer change pokemon when loading a save state with Pokemon Trainer. This fixes most issues with PT save states. - @jugeeya
-* Mash options are no longer buffered when loading a save state - @GradualSyrup
-* Fixed bug where input delay menu selection would not be respected - @jugeeya, @asimon-1
-* Fixed bug where Pac-Man fruit preparedness wasn't saved in state - @GradualSyrup
-* Fixed bug where items would deplete shields set to "Infinite" - @jugeeya
-* Fixed bug where back button would not work with touch screen - @gnaomo
-* Fixed bug for Joycon controllers with input delay - @asimon-1, @jugeeya
-* Fixed bug where CPU would perform options out of Snake's down throw too early - @asimon-1
-* Fixed bug where CPU could tech untechables - @asimon-1
-* Fixed several bugs when loading a save state on ledge - @asimon-1
-* When loading mirrors save states on asymmetric stages, mirror around the stage center - @asimon-1
-* Fixed Quick Menu when using joycons - @jugeeya
-* Fixed Quick Menu causing inaccessible inputs when controllers were disconnected - @jugeeya
+N/A
 
 ### Adjustments
-* Adjust clatter strength values - @asimon-1
-* Update infinite shield compatibility with modded gameplay - @techyCoder81
-* Move SD card configs folder from `sd:/TrainingModpack` to `sd:/ultimate/TrainingModpack` - @jugeeya
-* Deprecate Web Menu in favor of native UI menu - @jugeeya, @xhudaman, @austintraver
+N/A
 
 <a name="features"/>
 
