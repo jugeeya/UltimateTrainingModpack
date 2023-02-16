@@ -578,6 +578,23 @@ impl<'a> App<'a> {
             defaults_menu: serde_json::from_str(self.default_menu.1.clone().as_str()).unwrap(),
         }).unwrap()
     }
+
+    pub fn submenu_ids(&self) -> Vec<&str> {
+        return self.menu_items
+        .values()
+        .flat_map(|multi_stateful_list| {
+            multi_stateful_list
+                .lists
+                .iter()
+                .flat_map(|sub_stateful_list| {
+                    sub_stateful_list
+                        .items
+                        .iter()
+                        .map(|submenu| submenu.submenu_id)
+                })
+        })
+        .collect::<Vec<&str>>();
+    }
 }
 
 fn render_submenu_page<B: Backend>(f: &mut Frame<B>, app: &mut App, list_chunks: Vec<Rect>, help_chunk: Rect) {
