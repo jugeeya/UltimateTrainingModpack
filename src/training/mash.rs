@@ -159,6 +159,9 @@ unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
 }
 
 unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<Action> {
+    if save_states::is_loading() { // Test this!
+        None;
+    }
     let fighter_distance = get_fighter_distance();
     if is_in_clatter(module_accessor) {
         let action = MENU.clatter_override.get_random();

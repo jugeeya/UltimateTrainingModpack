@@ -5,7 +5,6 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::*;
 use crate::common::consts::*;
-use crate::training::mash;
 
 static mut COUNTER: u32 = 0;
 static mut CLATTER_STEP: f32 = 8.0;

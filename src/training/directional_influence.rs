@@ -24,8 +24,6 @@ pub fn roll_di_case() {
 pub fn reset_di_case(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_in_hitstun(module_accessor) {
         // Don't reset the DI direction during hitstun
-        // TODO: Want to reset it upon hitstun restarting; probably don't reset once we've been
-        //  in hitstop for 1 frame, but reset every time hitstop restarts?
         return;
     }
     unsafe {
