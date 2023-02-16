@@ -72,13 +72,12 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
 
     let submenu_ids = app.menu_items
         .values() // Get the MultiStatefulList for each tab
-        .flat_map(|multi_stateful_list| multi_stateful_list.lists.iter() // For each StatefulList in this MultiStatefulList
-            .flat_map(|sub_stateful_list| sub_stateful_list.items.iter() // For each submenu in this StatefulList
-                .map(|submenu| submenu.submenu_id) // Grab the ID
+        .flat_map(|multi_stateful_list| multi_stateful_list.lists.iter()
+            .flat_map(|sub_stateful_list| sub_stateful_list.items.iter()
+                .map(|submenu| submenu.submenu_id)
             )
         )
         .collect::<Vec<&str>>();
-
     (0..NUM_MENU_TEXT_OPTIONS)
         // Valid options in this submenu
         .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
@@ -125,13 +124,9 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             }
 
             submenu_ids.iter().for_each(|id| {
-                if let Some(icon) = menu_button.find_pane_by_name_recursive(id) {
-                    if id == &submenu.submenu_id {
-                        icon.set_visible(true);
-                    } else {
-                        icon.set_visible(false);
-                    }
-                }
+                menu_button.find_pane_by_name_recursive(id)
+                    .unwrap()
+                    .set_visible(id == &submenu.submenu_id);
             });
 
             menu_button.find_pane_by_name_recursive("Icon").unwrap().set_visible(true);
