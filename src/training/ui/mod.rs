@@ -1,3 +1,4 @@
+use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
@@ -33,10 +34,13 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     original!()(layout, draw_info, cmd_buffer);
 }
 
-// We'll keep some sane max size here; we shouldn't reach above 600KiB is the idea,
-// but we can try higher if we need to.
+// Allocate a static amount of memory that Smash isn't allowed to deallocate,
+// in order for us to be able to swap the 'layout.arc' with the current
+// version of the file in between loads of training mode.
 #[cfg(feature = "layout_arc_from_file")]
-static mut LAYOUT_ARC: &mut [u8; 600000] = &mut [0u8; 600000];
+const LAYOUT_ARC_SIZE: usize = (2 * MEBIBYTE) as usize;
+#[cfg(feature = "layout_arc_from_file")]
+static mut LAYOUT_ARC: &mut [u8; LAYOUT_ARC_SIZE] = &mut [0u8; LAYOUT_ARC_SIZE];
 
 /// We are editing the info_training/layout.arc and replacing the original file with our
 /// modified version from `LAYOUT_ARC_PATH`

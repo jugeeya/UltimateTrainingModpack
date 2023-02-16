@@ -1,9 +1,9 @@
+use std::collections::HashMap;
+
 use lazy_static::lazy_static;
 use skyline::nn::hid::GetNpadStyleSet;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use std::collections::HashMap;
-
 use training_mod_tui::gauge::GaugeState;
 use training_mod_tui::{App, AppPage};
 
@@ -69,6 +69,7 @@ lazy_static! {
 unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
     let tab_selected = app.tab_selected();
     let tab = app.menu_items.get(tab_selected).unwrap();
+    let submenu_ids = app.submenu_ids();
 
     (0..NUM_MENU_TEXT_OPTIONS)
         // Valid options in this submenu
@@ -78,42 +79,74 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                 .find_pane_by_name_recursive(format!("TrModMenuButtonRow{list_idx}").as_str())
                 .unwrap();
             menu_button_row.set_visible(true);
+
             let menu_button = menu_button_row
                 .find_pane_by_name_recursive(format!("Button{list_section}").as_str())
                 .unwrap();
-            menu_button.set_visible(true);
+
             let title_text = menu_button
                 .find_pane_by_name_recursive("TitleTxt")
                 .unwrap()
                 .as_textbox();
+
             let title_bg = menu_button
                 .find_pane_by_name_recursive("TitleBg")
                 .unwrap()
                 .as_picture();
 
+            let title_bg_material = &mut *title_bg.material;
+
             let list = &tab.lists[list_section];
             let submenu = &list.items[list_idx];
             let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
+
             title_text.set_text_string(submenu.submenu_title);
-            let title_bg_material = &mut *title_bg.material;
+
+            // In the actual 'layout.arc' file, every icon image is stacked
+            // into a single container pane, with each image directly on top of another.
+            // Hide all icon images, and strategically mark the icon that
+            // corresponds with a particular button to be visible.
+            submenu_ids.iter().for_each(|id| {
+                menu_button
+                    .find_pane_by_name_recursive(id)
+                    .unwrap()
+                    .set_visible(id == &submenu.submenu_id);
+            });
+
+            menu_button
+                .find_pane_by_name_recursive("check")
+                .unwrap()
+                .set_visible(false);
+
             if is_selected {
                 root_pane
                     .find_pane_by_name_recursive("FooterTxt")
                     .unwrap()
                     .as_textbox()
                     .set_text_string(submenu.help_text);
+
                 title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
                 title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+
                 title_text.text_shadow_enable(true);
                 title_text.text_outline_enable(true);
+
                 title_text.set_color(255, 255, 255, 255);
             } else {
                 title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
                 title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+
                 title_text.text_shadow_enable(false);
                 title_text.text_outline_enable(false);
+                
                 title_text.set_color(178, 199, 211, 255);
             }
+
+            menu_button.set_visible(true);
+            menu_button
+                .find_pane_by_name_recursive("Icon")
+                .unwrap()
+                .set_visible(true);
         });
 }
 
@@ -130,6 +163,7 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                     .find_pane_by_name_recursive(format!("TrModMenuButtonRow{list_idx}").as_str())
                     .unwrap();
                 menu_button_row.set_visible(true);
+
                 let menu_button = menu_button_row
                     .find_pane_by_name_recursive(format!("Button{list_section}").as_str())
                     .unwrap();
@@ -139,42 +173,51 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                     .find_pane_by_name_recursive("TitleTxt")
                     .unwrap()
                     .as_textbox();
+
                 let title_bg = menu_button
                     .find_pane_by_name_recursive("TitleBg")
                     .unwrap()
                     .as_picture();
-                let value_text = menu_button
-                    .find_pane_by_name_recursive("ValueTxt")
-                    .unwrap()
-                    .as_textbox();
 
                 let is_selected = sub_menu_state
                     .selected()
                     .filter(|s| *s == list_idx)
                     .is_some();
+
+                let submenu_ids = app.submenu_ids();
+
+                submenu_ids.iter().for_each(|id| {
+                    menu_button
+                        .find_pane_by_name_recursive(id)
+                        .unwrap()
+                        .set_visible(false)
+                });
+
                 title_text.set_text_string(name);
+                menu_button.find_pane_by_name_recursive("check")
+                    .unwrap()
+                    .set_visible(true);
+
+                menu_button.find_pane_by_name_recursive("Icon").unwrap().set_visible(*checked);
+
+                let title_bg_material = &mut *title_bg.material;
+
                 if is_selected {
                     title_text.text_shadow_enable(true);
                     title_text.text_outline_enable(true);
-                    title_text.set_color(255, 255, 255, 255);
-                } else {
-                    title_text.text_shadow_enable(false);
-                    title_text.text_outline_enable(false);
-                    title_text.set_color(178, 199, 211, 255);
-                }
 
-                let title_bg_material = &mut *title_bg.material;
-                if is_selected {
+                    title_text.set_color(255, 255, 255, 255);
+
                     title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
                     title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
                 } else {
+                    title_text.text_shadow_enable(false);
+                    title_text.text_outline_enable(false);
+
+                    title_text.set_color(178, 199, 211, 255);
+
                     title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
                     title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                }
-
-                if *checked {
-                    value_text.set_text_string("X");
-                    value_text.set_visible(true);
                 }
             });
     });
@@ -282,6 +325,9 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
 
     max_title_bg_material.set_white_res_color(max_colors.0);
     max_title_bg_material.set_black_res_color(max_colors.1);
+
+    min_value_text.set_visible(true);
+    max_value_text.set_visible(true);
 }
 
 pub unsafe fn draw(root_pane: &mut Pane) {
@@ -326,6 +372,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
             .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row_idx}").as_str())
             .unwrap();
         menu_button_row.set_visible(false);
+
         let menu_button = menu_button_row
             .find_pane_by_name_recursive(format!("Button{col_idx}").as_str())
             .unwrap();

@@ -180,15 +180,6 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
         let update_count = (*state).updateCount;
         let flags = (*state).Flags;
         if QUICK_MENU_ACTIVE {
-            // TODO: This should make more sense, look into.
-            // BUTTON_PRESSES.a.is_pressed = (*state).Buttons & (1 << 0) > 0;
-            // BUTTON_PRESSES.b.is_pressed = (*state).Buttons & (1 << 1) > 0;
-            // BUTTON_PRESSES.zl.is_pressed = (*state).Buttons & (1 << 8) > 0;
-            // BUTTON_PRESSES.zr.is_pressed = (*state).Buttons & (1 << 9) > 0;
-            // BUTTON_PRESSES.left.is_pressed = (*state).Buttons & ((1 << 12) | (1 << 16)) > 0;
-            // BUTTON_PRESSES.right.is_pressed = (*state).Buttons & ((1 << 14) | (1 << 18)) > 0;
-            // BUTTON_PRESSES.down.is_pressed = (*state).Buttons & ((1 << 15) | (1 << 19)) > 0;
-            // BUTTON_PRESSES.up.is_pressed = (*state).Buttons & ((1 << 13) | (1 << 17)) > 0;
 
             if (*state).Buttons & (1 << 0) > 0 {
                 BUTTON_PRESSES.a.is_pressed = true;
