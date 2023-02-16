@@ -69,22 +69,7 @@ lazy_static! {
 unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
     let tab_selected = app.tab_selected();
     let tab = app.menu_items.get(tab_selected).unwrap();
-
-    let submenu_ids = app
-        .menu_items
-        .values()
-        .flat_map(|multi_stateful_list| {
-            multi_stateful_list
-                .lists
-                .iter()
-                .flat_map(|sub_stateful_list| {
-                    sub_stateful_list
-                        .items
-                        .iter()
-                        .map(|submenu| submenu.submenu_id)
-                })
-        })
-        .collect::<Vec<&str>>();
+    let submenu_ids = app.submenu_ids();
 
     (0..NUM_MENU_TEXT_OPTIONS)
         // Valid options in this submenu
@@ -199,21 +184,7 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                     .filter(|s| *s == list_idx)
                     .is_some();
 
-                let submenu_ids = app
-                    .menu_items
-                    .values()
-                    .flat_map(|multi_stateful_list| {
-                        multi_stateful_list
-                            .lists
-                            .iter()
-                            .flat_map(|sub_stateful_list| {
-                                sub_stateful_list
-                                    .items
-                                    .iter()
-                                    .map(|submenu| submenu.submenu_id)
-                            })
-                    })
-                    .collect::<Vec<&str>>();
+                let submenu_ids = app.submenu_ids();
 
                 submenu_ids.iter().for_each(|id| {
                     menu_button
