@@ -72,7 +72,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
 
     let submenu_ids = app
         .menu_items
-        .values() // Get the MultiStatefulList for each tab
+        .values()
         .flat_map(|multi_stateful_list| {
             multi_stateful_list
                 .lists
@@ -85,6 +85,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                 })
         })
         .collect::<Vec<&str>>();
+
     (0..NUM_MENU_TEXT_OPTIONS)
         // Valid options in this submenu
         .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
@@ -93,43 +94,33 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                 .find_pane_by_name_recursive(format!("TrModMenuButtonRow{list_idx}").as_str())
                 .unwrap();
             menu_button_row.set_visible(true);
+
             let menu_button = menu_button_row
                 .find_pane_by_name_recursive(format!("Button{list_section}").as_str())
                 .unwrap();
-            menu_button.set_visible(true);
+
             let title_text = menu_button
                 .find_pane_by_name_recursive("TitleTxt")
                 .unwrap()
                 .as_textbox();
+
             let title_bg = menu_button
                 .find_pane_by_name_recursive("TitleBg")
                 .unwrap()
                 .as_picture();
 
+            let title_bg_material = &mut *title_bg.material;
+
             let list = &tab.lists[list_section];
             let submenu = &list.items[list_idx];
             let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
-            title_text.set_text_string(submenu.submenu_title);
-            let title_bg_material = &mut *title_bg.material;
-            if is_selected {
-                root_pane
-                    .find_pane_by_name_recursive("FooterTxt")
-                    .unwrap()
-                    .as_textbox()
-                    .set_text_string(submenu.help_text);
-                title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-                title_text.text_shadow_enable(true);
-                title_text.text_outline_enable(true);
-                title_text.set_color(255, 255, 255, 255);
-            } else {
-                title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                title_text.text_shadow_enable(false);
-                title_text.text_outline_enable(false);
-                title_text.set_color(178, 199, 211, 255);
-            }
 
+            title_text.set_text_string(submenu.submenu_title);
+
+            // In the actual 'layout.arc' file, every icon image is stacked
+            // into a single container pane, with each image directly on top of another.
+            // Hide all icon images, and strategically mark the icon that
+            // corresponds with a particular button to be visible.
             submenu_ids.iter().for_each(|id| {
                 menu_button
                     .find_pane_by_name_recursive(id)
@@ -137,6 +128,36 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
                     .set_visible(id == &submenu.submenu_id);
             });
 
+            menu_button
+                .find_pane_by_name_recursive("check")
+                .unwrap()
+                .set_visible(false);
+
+            if is_selected {
+                root_pane
+                    .find_pane_by_name_recursive("FooterTxt")
+                    .unwrap()
+                    .as_textbox()
+                    .set_text_string(submenu.help_text);
+
+                title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+
+                title_text.text_shadow_enable(true);
+                title_text.text_outline_enable(true);
+
+                title_text.set_color(255, 255, 255, 255);
+            } else {
+                title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+
+                title_text.text_shadow_enable(false);
+                title_text.text_outline_enable(false);
+                
+                title_text.set_color(178, 199, 211, 255);
+            }
+
+            menu_button.set_visible(true);
             menu_button
                 .find_pane_by_name_recursive("Icon")
                 .unwrap()
@@ -157,61 +178,75 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                     .find_pane_by_name_recursive(format!("TrModMenuButtonRow{list_idx}").as_str())
                     .unwrap();
                 menu_button_row.set_visible(true);
+
                 let menu_button = menu_button_row
                     .find_pane_by_name_recursive(format!("Button{list_section}").as_str())
                     .unwrap();
                 menu_button.set_visible(true);
 
-                // In the actual 'layout.arc' file, every icon image is stacked
-                // into a single area, with each image directly on top of another.
-                // Hide all icon images, and strategically mark the icon that
-                // corresponds with a particular button to be visible.
-                menu_button
-                    .find_pane_by_name_recursive("Icon")
-                    .unwrap()
-                    .set_visible(false);
-
                 let title_text = menu_button
                     .find_pane_by_name_recursive("TitleTxt")
                     .unwrap()
                     .as_textbox();
+
                 let title_bg = menu_button
                     .find_pane_by_name_recursive("TitleBg")
                     .unwrap()
                     .as_picture();
-                let value_text = menu_button
-                    .find_pane_by_name_recursive("ValueTxt")
-                    .unwrap()
-                    .as_textbox();
 
                 let is_selected = sub_menu_state
                     .selected()
                     .filter(|s| *s == list_idx)
                     .is_some();
+
+                let submenu_ids = app
+                    .menu_items
+                    .values()
+                    .flat_map(|multi_stateful_list| {
+                        multi_stateful_list
+                            .lists
+                            .iter()
+                            .flat_map(|sub_stateful_list| {
+                                sub_stateful_list
+                                    .items
+                                    .iter()
+                                    .map(|submenu| submenu.submenu_id)
+                            })
+                    })
+                    .collect::<Vec<&str>>();
+
+                submenu_ids.iter().for_each(|id| {
+                    menu_button
+                        .find_pane_by_name_recursive(id)
+                        .unwrap()
+                        .set_visible(false)
+                });
+
                 title_text.set_text_string(name);
+                menu_button.find_pane_by_name_recursive("check")
+                    .unwrap()
+                    .set_visible(true);
+
+                menu_button.find_pane_by_name_recursive("Icon").unwrap().set_visible(*checked);
+
+                let title_bg_material = &mut *title_bg.material;
+
                 if is_selected {
                     title_text.text_shadow_enable(true);
                     title_text.text_outline_enable(true);
-                    title_text.set_color(255, 255, 255, 255);
-                } else {
-                    title_text.text_shadow_enable(false);
-                    title_text.text_outline_enable(false);
-                    title_text.set_color(178, 199, 211, 255);
-                }
 
-                let title_bg_material = &mut *title_bg.material;
-                if is_selected {
+                    title_text.set_color(255, 255, 255, 255);
+
                     title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
                     title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
                 } else {
+                    title_text.text_shadow_enable(false);
+                    title_text.text_outline_enable(false);
+
+                    title_text.set_color(178, 199, 211, 255);
+
                     title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
                     title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-                }
-
-                // TODO: Replace with setting the check mark to visible
-                if *checked {
-                    value_text.set_text_string("X");
-                    value_text.set_visible(true);
                 }
             });
     });
@@ -366,6 +401,7 @@ pub unsafe fn draw(root_pane: &mut Pane) {
             .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row_idx}").as_str())
             .unwrap();
         menu_button_row.set_visible(false);
+
         let menu_button = menu_button_row
             .find_pane_by_name_recursive(format!("Button{col_idx}").as_str())
             .unwrap();
