@@ -1,9 +1,11 @@
-use crate::common::consts::*;
-use crate::common::*;
-use smash::app::lua_bind::{ControlModule, EffectModule};
 use smash::app::BattleObjectModuleAccessor;
+use smash::app::lua_bind::{ControlModule, EffectModule};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+
+use crate::common::*;
+use crate::common::consts::*;
+use crate::training::mash;
 
 static mut COUNTER: u32 = 0;
 static mut CLATTER_STEP: f32 = 8.0;
@@ -71,7 +73,7 @@ pub unsafe fn hook_start_clatter(
     // Most of the time this is 8 frames, but could be less depending on
     // the status (e.g. freeze is 4 frames / input)
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        CLATTER_STEP = manual_recovery_rate.clone();
+        CLATTER_STEP = manual_recovery_rate;
     }
     original!()(
         module_accessor,

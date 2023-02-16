@@ -2,7 +2,7 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/docker-from-docker
 {
 	"name": "Cargo Skyline",
-	"image": "jugeeya/cargo-skyline:3.2.0",
+	"image": "jugeeya/cargo-skyline:3.2.0-no-dkp",
 	"mounts": [
 		"source=ultimatetrainingmodpack-bashhistory,target=/commandhistory,type=volume"
 	],
@@ -10,24 +10,14 @@
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
-
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"matklad.rust-analyzer",
+				"rust-lang.rust-analyzer",
 				"bungcip.better-toml",
 				"serayuzgur.crates",
 				"statiolake.vscode-rustfmt"
 			]
 		}
-	},
-
-	// // Add the IDs of extensions you want installed when the container is created.
-	"extensions": [
-		"ms-azuretools.vscode-docker",
-		"matklad.rust-analyzer",
-		"bungcip.better-toml",
-		"serayuzgur.crates",
-		"statiolake.vscode-rustfmt"
-	]
+	}
 }

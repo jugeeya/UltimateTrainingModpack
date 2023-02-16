@@ -1,15 +1,15 @@
-use crate::common::consts::OnOff;
-use crate::common::consts::*;
+use smash::app::{self, lua_bind::*};
+use smash::lib::lua_const::*;
+
 use crate::common::*;
-use crate::training::attack_angle;
+use crate::common::consts::*;
+use crate::training::{attack_angle, save_states};
 use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::frame_counter;
 use crate::training::full_hop;
 use crate::training::input_record;
 use crate::training::shield;
-use smash::app::{self, lua_bind::*};
-use smash::lib::lua_const::*;
 
 const DISTANCE_CLOSE_THRESHOLD: f32 = 16.0;
 const DISTANCE_MID_THRESHOLD: f32 = 37.0;

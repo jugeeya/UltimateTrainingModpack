@@ -15,16 +15,21 @@ impl<T: Clone> MultiStatefulList<T> {
     }
 
     pub fn idx_to_list_idx(&self, idx: usize) -> (usize, usize) {
+        self.idx_to_list_idx_opt(idx).unwrap_or((0, 0))
+    }
+
+    pub fn idx_to_list_idx_opt(&self, idx: usize) -> Option<(usize, usize)> {
         for list_section in 0..self.lists.len() {
             let list_section_min_idx = (self.total_len as f32 / self.lists.len() as f32).ceil() as usize * list_section;
             let list_section_max_idx = std::cmp::min(
                 (self.total_len as f32 / self.lists.len() as f32).ceil() as usize * (list_section + 1),
                 self.total_len);
             if (list_section_min_idx..list_section_max_idx).contains(&idx) {
-                return (list_section, idx - list_section_min_idx)
+                return Some((list_section, idx - list_section_min_idx));
             }
         }
-        (0, 0)
+        
+        None
     }
 
     fn list_idx_to_idx(&self, list_idx: (usize, usize)) -> usize {

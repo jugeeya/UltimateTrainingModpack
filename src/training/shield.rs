@@ -1,15 +1,16 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::frame_counter;
-use crate::training::input_record;
-use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::sv_system;
 use smash::hash40;
-use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
+use smash::lib::lua_const::*;
 use smash::lua2cpp::L2CFighterCommon;
+
+use crate::common::*;
+use crate::common::consts::*;
+use crate::training::{frame_counter, save_states};
+use crate::training::mash;
+use crate::training::input_record;
 
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
@@ -71,9 +72,7 @@ unsafe fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccesso
     SHIELD_DELAY = MENU.reaction_time.get_random().into_delay();
 
     // Decrease offset once if needed
-    if MULTI_HIT_OFFSET > 0 {
-        MULTI_HIT_OFFSET -= 1;
-    }
+    MULTI_HIT_OFFSET = MULTI_HIT_OFFSET.saturating_sub(1);
 
     // Mark that we were in shield stun, so we don't decrease again
     WAS_IN_SHIELDSTUN = true;
@@ -148,13 +147,32 @@ fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
     None
 }
 
+/// This is the cached shield damage multiplier.
+/// Vanilla is 1.19, but mods can change this.
+static mut CACHED_SHIELD_DAMAGE_MUL: Option<f32> = None;
+
+/// sets/resets the shield_damage_mul within
+/// the game's internal structure.
+///
+/// `common_params` is effectively a mutable reference
+/// to the game's own internal data structure for params.
 pub unsafe fn param_installer() {
     if crate::training::COMMON_PARAMS as usize != 0 {
         let common_params = &mut *crate::training::COMMON_PARAMS;
+
+        // cache the original shield damage multiplier once
+        if CACHED_SHIELD_DAMAGE_MUL.is_none() {
+            CACHED_SHIELD_DAMAGE_MUL = Some(common_params.shield_damage_mul);
+        }
+
         if is_training_mode() && (MENU.shield_state == Shield::Infinite) {
+            // if you are in training mode and have infinite shield enabled,
+            // set the game's shield_damage_mul to 0.0
             common_params.shield_damage_mul = 0.0;
         } else {
-            common_params.shield_damage_mul = 1.19;
+            // reset the game's shield_damage_mul back to what
+            // it originally was at game boot.
+            common_params.shield_damage_mul = CACHED_SHIELD_DAMAGE_MUL.unwrap();
         }
     }
 }
@@ -177,7 +195,8 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // We should hold shield if the state requires it
-    if ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+    if unsafe { save_states::is_loading() } ||
+        ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
         return false;
     }
 

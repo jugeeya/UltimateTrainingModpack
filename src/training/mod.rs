@@ -1,8 +1,3 @@
-use crate::common::{
-    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
-};
-use crate::hitbox_visualizer;
-use crate::training::character_specific::items;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
@@ -10,6 +5,13 @@ use smash::app::{self, enSEType, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
+
+use crate::common::{
+    dev_config, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+};
+use crate::hitbox_visualizer;
+use crate::logging::*;
+use crate::training::character_specific::items;
 
 pub mod buff;
 pub mod charge;
@@ -23,6 +25,7 @@ pub mod sdi;
 pub mod shield;
 pub mod tech;
 pub mod throw;
+pub mod ui;
 
 mod air_dodge_direction;
 mod attack_angle;
@@ -30,11 +33,11 @@ mod character_specific;
 mod input_recording;
 mod fast_fall;
 mod full_hop;
-pub(crate) mod input_delay;
+pub mod input_delay;
 mod input_record;
 mod mash;
 mod reset;
-mod save_states;
+pub mod save_states;
 mod shield_tilt;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
@@ -88,6 +91,9 @@ pub unsafe fn handle_get_command_flag_cat(
 ) -> i32 {
     let mut flag = original!()(module_accessor, category);
 
+    // this must be run even outside of training mode
+    // because otherwise it won't reset the shield_damage_mul
+    // back to "normal" once you leave training mode.
     if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
         shield::param_installer();
     }
@@ -331,7 +337,9 @@ fn params_main(params_info: &ParamsInfo<'_>) {
     }
 }
 
-static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140; // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
+static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140;
+
+// this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
 #[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
 pub unsafe fn handle_add_limit(
     add_limit: f32,
@@ -371,18 +379,17 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
     if !is_training_mode() {
         return ori;
     }
-    if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 {
-        if buff::is_buffing(module_accessor) {
-            return 4294967295;
-        }
+    if ori == *FIGHTER_JACK_STATUS_KIND_SUMMON as u64 && buff::is_buffing(module_accessor) {
+        return 4294967295;
     }
     ori
 }
 
 // Set Stale Moves to On
 static STALE_OFFSET: usize = 0x013e88a4;
+
 // One instruction after stale moves toggle register is set to 0
-#[skyline::hook(offset=STALE_OFFSET, inline)]
+#[skyline::hook(offset = STALE_OFFSET, inline)]
 unsafe fn stale_handle(ctx: &mut InlineCtx) {
     let x22 = ctx.registers[22].x.as_mut();
     let training_structure_address = (*x22 + 0xb60) as *mut u8;
@@ -391,11 +398,12 @@ unsafe fn stale_handle(ctx: &mut InlineCtx) {
 
 // Set Stale Moves to On in the menu text
 static STALE_MENU_OFFSET: usize = 0x013e88a0;
+
 // One instruction after menu text register is set to off
-#[skyline::hook(offset=STALE_MENU_OFFSET, inline)]
+#[skyline::hook(offset = STALE_MENU_OFFSET, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
-    let on_text_ptr = ((getRegionAddress(Region::Text) as u64) + (0x42b215e)) as u64;
+    let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b215e;
     let x1 = ctx.registers[1].x.as_mut();
     *x1 = on_text_ptr;
 }
@@ -473,14 +481,16 @@ pub unsafe fn handle_effect(
     )
 }
 
-static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950; // can_futtobi_back, checks if stage allows for star KOs
+static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950;
+
+// can_futtobi_back, checks if stage allows for star KOs
 #[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
 pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     let ori = original!()(my_long_ptr);
     if !is_training_mode() {
-        return ori;
+        ori
     } else {
-        return false;
+        false
     }
 }
 
@@ -490,15 +500,16 @@ extern "C" {
 }
 
 pub fn training_mods() {
-    println!("[Training Modpack] Applying training mods.");
+    info!("Applying training mods.");
 
-    // Input Recording/Delay
+    // Input Mods
     unsafe {
         if (add_nn_hid_hook as *const ()).is_null() {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
         add_nn_hid_hook(menu::handle_get_npad_state);
+        add_nn_hid_hook(dev_config::handle_get_npad_state);
     }
 
     unsafe {
@@ -523,7 +534,7 @@ pub fn training_mods() {
                 .as_ptr(),
         );
 
-        smash::params::add_hook(params_main).unwrap();
+        add_hook(params_main).unwrap();
     }
 
     skyline::install_hooks!(
@@ -576,9 +587,9 @@ pub fn training_mods() {
     mash::init();
     ledge::init();
     throw::init();
-    menu::init();
     buff::init();
     items::init();
     tech::init();
     input_record::init();
+    ui::init();
 }

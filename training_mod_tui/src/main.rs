@@ -17,10 +17,10 @@ use tui::Terminal;
 
 use training_mod_consts::*;
 
-fn test_backend_setup(ui_menu: UiMenu) -> Result<
-    (Terminal<training_mod_tui::TestBackend>, training_mod_tui::App),
+fn test_backend_setup<'a>(ui_menu: UiMenu<'a>, menu_defaults: (UiMenu<'a>, String)) -> Result<
+    (Terminal<training_mod_tui::TestBackend>, training_mod_tui::App<'a>),
     Box<dyn Error>> {
-    let app = training_mod_tui::App::new(ui_menu);
+    let app = training_mod_tui::App::<'a>::new(ui_menu, menu_defaults);
     let backend = tui::backend::TestBackend::new(75, 15);
     let terminal = Terminal::new(backend)?;
     let mut state = tui::widgets::ListState::default();
@@ -30,25 +30,153 @@ fn test_backend_setup(ui_menu: UiMenu) -> Result<
 }
 
 #[test]
-fn ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
+fn test_set_airdodge() -> Result<(), Box<dyn Error>> {
     let menu;
-    let prev_menu;
+    let mut prev_menu;
+    let menu_defaults;
     unsafe {
-        prev_menu = MENU;
-        menu = get_menu();
+        prev_menu = MENU.clone();
+        menu = ui_menu(MENU);
+        menu_defaults = (ui_menu(MENU), serde_json::to_string(&MENU).unwrap());
     }
 
-    let (mut terminal, mut app) = test_backend_setup(menu)?;
-    let mut json_response = String::new();
-    let _frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
+    let (_terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+    // Enter Mash Toggles
+    app.on_a();
+    // Set Mash Airdodge
+    app.on_a();
+    let menu_json = app.get_menu_selections();
+    let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
+    let menu = menu_struct.menu;
+    let _ = menu_struct.defaults_menu;
+    prev_menu.mash_state.toggle(Action::AIR_DODGE);
+    assert_eq!(
+        serde_json::to_string(&prev_menu).unwrap(),
+        serde_json::to_string(&menu).unwrap()
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_ensure_menu_retains_selections() -> Result<(), Box<dyn Error>> {
+    let menu;
+    let prev_menu;
+    let menu_defaults;
     unsafe {
-        MENU = serde_json::from_str::<TrainingModpackMenu>(&json_response).unwrap();
-        // At this point, we didn't change the menu at all; we should still see all the same options.
-        assert_eq!(
-            serde_json::to_string(&prev_menu).unwrap(),
-            serde_json::to_string(&MENU).unwrap()
-        );
+        prev_menu = MENU.clone();
+        menu = ui_menu(MENU);
+        menu_defaults = (ui_menu(MENU), serde_json::to_string(&MENU).unwrap());
     }
+
+    let (_terminal, app) = test_backend_setup(menu, menu_defaults)?;
+    let menu_json = app.get_menu_selections();
+    let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
+    let menu = menu_struct.menu;
+    let _ = menu_struct.defaults_menu;
+    // At this point, we didn't change the menu at all; we should still see all the same options.
+    assert_eq!(
+        serde_json::to_string(&prev_menu).unwrap(),
+        serde_json::to_string(&menu).unwrap()
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
+    let menu;
+    let mut prev_menu;
+    let menu_defaults;
+    unsafe {
+        prev_menu = MENU.clone();
+        menu = ui_menu(MENU);
+        menu_defaults = (ui_menu(MENU), serde_json::to_string(&MENU).unwrap());
+    }
+
+    let (_terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+
+    // Enter Mash Toggles
+    app.on_a();
+    // Set Mash Airdodge
+    app.on_a();
+    // Return to submenu selection
+    app.on_b();
+    // Save Defaults
+    app.on_x();
+    // Enter Mash Toggles again
+    app.on_a();
+    // Unset Mash Airdodge
+    app.on_a();
+
+    let menu_json = app.get_menu_selections();
+    let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
+    let menu = menu_struct.menu;
+    let defaults_menu = menu_struct.defaults_menu;
+
+    assert_eq!(
+        serde_json::to_string(&prev_menu).unwrap(),
+        serde_json::to_string(&menu).unwrap(),
+        "The menu should be the same as how we started"
+    );
+    prev_menu.mash_state.toggle(Action::AIR_DODGE);
+    assert_eq!(
+        serde_json::to_string(&prev_menu).unwrap(),
+        serde_json::to_string(&defaults_menu).unwrap(),
+        "The defaults menu should have Mash Airdodge"
+    );
+
+    // Reset current menu alone to defaults
+    app.on_l();
+    let menu_json = app.get_menu_selections();
+    let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
+    let menu = menu_struct.menu;
+    let _ = menu_struct.defaults_menu;
+
+    assert_eq!(
+        serde_json::to_string(&prev_menu).unwrap(),
+        serde_json::to_string(&menu).unwrap(),
+        "The menu should have Mash Airdodge"
+    );
+
+    // Enter Mash Toggles
+    app.on_a();
+    // Unset Mash Airdodge
+    app.on_a();
+    // Return to submenu selection
+    app.on_b();
+    // Go down to Followup Toggles
+    app.on_down();
+    // Enter Followup Toggles
+    app.on_a();
+    // Go down and set Jump
+    app.on_down();
+    app.on_a();
+    // Return to submenu selection
+    app.on_b();
+    // Save defaults
+    app.on_x();
+    // Go back in and unset Jump
+    app.on_a();
+    app.on_down();
+    app.on_a();
+    // Return to submenu selection
+    app.on_b();
+    // Reset all to defaults
+    app.on_r();
+    let menu_json = app.get_menu_selections();
+    let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
+    let menu = menu_struct.menu;
+    let _ = menu_struct.defaults_menu;
+
+    prev_menu.mash_state.toggle(Action::AIR_DODGE);
+    prev_menu.follow_up.toggle(Action::JUMP);
+    assert_eq!(
+        serde_json::to_string(&prev_menu).unwrap(),
+        serde_json::to_string(&menu).unwrap(),
+        "The menu should have Mash Airdodge off and Followup Jump on"
+    );
+
 
     Ok(())
 }
@@ -57,17 +185,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
     let inputs = args.get(1);
     let menu;
+    let menu_defaults;
+
     unsafe {
-        menu = get_menu();
+        menu = ui_menu(MENU);
+        menu_defaults = (ui_menu(MENU), serde_json::to_string(&MENU).unwrap());
     }
 
     #[cfg(not(feature = "has_terminal"))] {
-        let (mut terminal, mut app) = test_backend_setup(menu)?;
+        let (mut terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
         if inputs.is_some() {
             inputs.unwrap().split(",").for_each(|input| {
                 match input.to_uppercase().as_str() {
+                    "X" => app.on_x(),
                     "L" => app.on_l(),
                     "R" => app.on_r(),
+                    "O" => app.on_zl(),
+                    "P" => app.on_zr(),
                     "A" => app.on_a(),
                     "B" => app.on_b(),
                     "UP" => app.on_up(),
@@ -78,8 +212,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             })
         }
-        let mut json_response = String::new();
-        let frame_res = terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app))?;
+        let frame_res = terminal.draw(|f| training_mod_tui::ui(f, &mut app))?;
+        let menu_json = app.get_menu_selections();
 
         for (i, cell) in frame_res.buffer.content().iter().enumerate() {
             print!("{}", cell.symbol);
@@ -89,11 +223,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         println!();
 
-        println!("json_response:\n{}", json_response);
+        println!("Menu:\n{menu_json}");
     }
 
     #[cfg(feature = "has_terminal")] {
-        let app = training_mod_tui::App::new(menu);
+        let app = training_mod_tui::App::new(menu, menu_defaults);
 
         // setup terminal
         enable_raw_mode()?;
@@ -117,10 +251,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Err(err) = res {
             println!("{:?}", err)
         } else {
-            println!("JSON: {}", res.as_ref().unwrap());
+            println!("JSONs: {:#?}", res.as_ref().unwrap());
             unsafe {
-                MENU = serde_json::from_str::<TrainingModpackMenu>(&res.as_ref().unwrap()).unwrap();
-                println!("MENU: {:#?}", MENU);
+                let menu = serde_json::from_str::<MenuJsonStruct>(&res.as_ref().unwrap()).unwrap();
+                println!("menu: {:#?}", menu);
             }
         }
     }
@@ -135,9 +269,9 @@ fn run_app<B: tui::backend::Backend>(
     tick_rate: Duration,
 ) -> io::Result<String> {
     let mut last_tick = Instant::now();
-    let mut json_response = String::new();
     loop {
-        terminal.draw(|f| json_response = training_mod_tui::ui(f, &mut app).clone())?;
+        terminal.draw(|f| training_mod_tui::ui(f, &mut app).clone())?;
+        let menu_json = app.get_menu_selections();
 
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
@@ -146,7 +280,10 @@ fn run_app<B: tui::backend::Backend>(
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
-                    KeyCode::Char('q') => return Ok(json_response),
+                    KeyCode::Char('q') => return Ok(menu_json),
+                    KeyCode::Char('x') => app.on_x(),
+                    KeyCode::Char('p') => app.on_zr(),
+                    KeyCode::Char('o') => app.on_zl(),
                     KeyCode::Char('r') => app.on_r(),
                     KeyCode::Char('l') => app.on_l(),
                     KeyCode::Left => app.on_left(),

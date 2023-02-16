@@ -1,12 +1,18 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
-use crate::common::consts::*;
+
 use skyline::error::show_error;
 use skyline::hook;
 use skyline::hooks::A64InlineHook;
 use skyline::text_iter::{add_get_imm, adrp_get_imm, Instruction::*, TextIter};
 use smash::app::smashball::is_training_mode;
+
+use HazardState::*;
+use HookState::*;
+
+use crate::common::consts::*;
+use crate::logging::*;
 
 enum HazardState {
     Begin,
@@ -22,9 +28,6 @@ enum HookState {
     Adrp1,
     Ldrsw2,
 }
-
-use HazardState::*;
-use HookState::*;
 
 fn get_hazard_flag_address() -> usize {
     let mut state = HazardState::Begin;
@@ -75,7 +78,7 @@ fn get_hazard_hook_address() -> usize {
         }
     }
 
-    flag_pos as usize
+    flag_pos
 }
 
 // 8.1.0 Defaults
@@ -97,7 +100,7 @@ fn mod_handle_hazards() {
     }
 }
 
-unsafe fn validate_hazards_addrs() -> std::result::Result<(), ()> {
+unsafe fn validate_hazards_addrs() -> Result<(), ()> {
     HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
     LOAD_ADDRESS = get_hazard_hook_address();
 
@@ -127,18 +130,15 @@ unsafe fn validate_hazards_addrs() -> std::result::Result<(), ()> {
 }
 
 pub fn hazard_manager() {
-    println!("[Training Modpack] Applying hazard control mods.");
+    info!("Applying hazard control mods.");
     unsafe {
-        match validate_hazards_addrs() {
-            Ok(()) => {
-                HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
-                LOAD_ADDRESS = get_hazard_hook_address();
-                A64InlineHook(
-                    LOAD_ADDRESS as *const skyline::libc::c_void,
-                    hazard_intercept as *const skyline::libc::c_void,
-                );
-            }
-            Err(()) => {}
+        if let Ok(()) = validate_hazards_addrs() {
+            HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
+            LOAD_ADDRESS = get_hazard_hook_address();
+            A64InlineHook(
+                LOAD_ADDRESS as *const skyline::libc::c_void,
+                hazard_intercept as *const skyline::libc::c_void,
+            );
         }
     }
 }

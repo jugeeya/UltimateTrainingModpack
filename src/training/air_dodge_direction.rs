@@ -1,9 +1,11 @@
+use core::f64::consts::PI;
+
+use smash::app::{self, lua_bind::*};
+use smash::lib::lua_const::*;
+
 use crate::common::consts::*;
 use crate::common::*;
 use crate::training::directional_influence::should_reverse_angle;
-use core::f64::consts::PI;
-use smash::app::{self, lua_bind::*};
-use smash::lib::lua_const::*;
 
 static mut STICK_DIRECTION: Direction = Direction::empty();
 
@@ -39,7 +41,7 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Op
                 module_accessor,
                 *FIGHTER_KINETIC_ENERGY_ID_DAMAGE,
             )
-                as *mut smash::app::KineticEnergy);
+                as *mut app::KineticEnergy);
             // If we're launched left, reverse stick X
             if launch_speed_x < 0.0 {
                 PI - angle
