@@ -24,14 +24,18 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache 
         with:
-          prefix-key: "checker" 
-      - name: Check
-        run: cargo +nightly check --target=x86_64-unknown-linux-gnu
+          prefix-key: "checker"
       - name: Clippy
-        run: cargo +nightly clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: clippy
+          args: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
-        working-directory: training_mod_tui
-        run: cargo +nightly test
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          working-directory: training_mod_tui
   plugin:
     name: Plugin NRO
     runs-on: ubuntu-latest
