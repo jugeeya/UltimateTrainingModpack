@@ -1,7 +1,7 @@
+use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
-use byte_unit::MEBIBYTE;
 
 use crate::common::{is_ready_go, is_training_mode};
 #[cfg(feature = "layout_arc_from_file")]
@@ -38,7 +38,9 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 // in order for us to be able to swap the 'layout.arc' with the current
 // version of the file in between loads of training mode.
 #[cfg(feature = "layout_arc_from_file")]
-static mut LAYOUT_ARC: &mut [u8; (2 * MEBIBYTE) as usize] = &mut [0u8; (2 * MEBIBYTE) as usize];
+const LAYOUT_ARC_SIZE: usize = (2 * MEBIBYTE) as usize;
+#[cfg(feature = "layout_arc_from_file")]
+static mut LAYOUT_ARC: &mut [u8; LAYOUT_ARC_SIZE] = &mut [0u8; LAYOUT_ARC_SIZE];
 
 /// We are editing the info_training/layout.arc and replacing the original file with our
 /// modified version from `LAYOUT_ARC_PATH`
@@ -83,13 +85,11 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
     let decompressed_file = *ctx.registers[21].x.as_ref() as *const u8;
     let decompressed_size = *ctx.registers[1].x.as_ref() as usize;
 
-    let layout_arc = SarcFile::read(
-        std::slice::from_raw_parts(
-            decompressed_file,
-            decompressed_size,
-        )
-    )
-        .unwrap();
+    let layout_arc = SarcFile::read(std::slice::from_raw_parts(
+        decompressed_file,
+        decompressed_size,
+    ))
+    .unwrap();
     let training_layout = layout_arc.files.iter().find(|f| {
         f.name.is_some() && f.name.as_ref().unwrap() == &String::from("blyt/info_training.bflyt")
     });
