@@ -6,8 +6,6 @@ use crate::common::consts::*;
 use crate::training::frame_counter;
 use crate::training::mash;
 use crate::training::input_record;
-use smash::app::{self, lua_bind::*};
-use smash::lib::lua_const::*;
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
@@ -142,10 +140,10 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 }
 
 pub unsafe fn is_enable_transition_term(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
+    _module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
 ) -> Option<bool> {
-    if !is_operation_cpu(&mut *module_accessor) {
+    if !is_operation_cpu(&mut *_module_accessor) {
         return None;
     }
 

@@ -632,91 +632,91 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         "hitstun_override",
         "Hitstun: Mash overrides to be performed after hit",
         false,
-        &(MENU.hitstun_override.bits as u32),
+        &(menu.hitstun_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Block",
         "block_override",
         "Block: Mash overrides to be performed after shieldstun",
         false,
-        &(MENU.block_override.bits as u32),
+        &(menu.block_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Parry",
         "parry_override",
         "Parry: Mash overrides to be performed after parry",
         false,
-        &(MENU.parry_override.bits as u32),
+        &(menu.parry_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Landing",
         "landing_override",
         "Landing: Mash overrides to be performed after landing",
         false,
-        &(MENU.landing_override.bits as u32),
+        &(menu.landing_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Trump",
         "trump_override",
         "Trump: Mash overrides to be performed after ledge trump",
         false,
-        &(MENU.trump_override.bits as u32),
+        &(menu.trump_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Footstool",
         "footstool_override",
         "Footstool: Mash overrides to be performed after footstool",
         false,
-        &(MENU.footstool_override.bits as u32),
+        &(menu.footstool_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Tumble",
         "tumble_override",
         "Tumble: Mash overrides to be performed when in tumble",
         false,
-        &(MENU.tumble_override.bits as u32),
+        &(menu.tumble_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Clatter",
         "clatter_override",
         "Clatter: Mash overrides to be performed when escaping a clatter situation",
         false,
-        &(MENU.clatter_override.bits as u32),
+        &(menu.clatter_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Ledge Getup",
         "ledge_neutral_override",
         "Ledge Getup: Mash overrides to be performed after neutral getup from ledge",
         false,
-        &(MENU.ledge_neutral_override.bits as u32),
+        &(menu.ledge_neutral_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Ledge Jump",
         "ledge_jump_override",
         "Ledge Jump: Mash overrides to be performed after jump from ledge",
         false,
-        &(MENU.ledge_jump_override.bits as u32),
+        &(menu.ledge_jump_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Ledge Roll",
         "ledge_roll_override",
         "Ledge Roll: Mash overrides to be performed after roll from ledge",
         false,
-        &(MENU.ledge_roll_override.bits as u32),
+        &(menu.ledge_roll_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Ledge Attack",
         "ledge_attack_override",
         "Ledge Attack: Mash overrides to be performed after getup attack from ledge",
         false,
-        &(MENU.ledge_attack_override.bits as u32),
+        &(menu.ledge_attack_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Tech",
         "tech_action_override",
         "Tumble: Mash overrides to be performed teching",
         false,
-        &(MENU.tech_action_override.bits as u32),
+        &(menu.tech_action_override.bits() as u32),
     );
     
     overall_menu.tabs.push(override_tab);
