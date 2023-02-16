@@ -67,28 +67,14 @@ impl<'a> App<'a> {
     /// Takes the currently selected tab/submenu and clones the options into
     /// self.selected_sub_menu_toggles and self.selected_sub_menu_slider
     pub fn set_sub_menu_items(&mut self) {
-        let (list_section, list_idx) = self
-            .menu_items
-            .get(self.tab_selected())
-            .unwrap()
-            .idx_to_list_idx(self.menu_items.get(self.tab_selected()).unwrap().state);
-        let selected_sub_menu = &self.menu_items.get(self.tab_selected()).unwrap().lists
-            [list_section]
-            .items
-            .get(list_idx)
-            .unwrap();
-
-        let toggles = selected_sub_menu.toggles.clone();
-        let slider = selected_sub_menu.slider.clone();
-        match SubMenuType::from_str(self.sub_menu_selected()._type) {
+        let submenu = self.sub_menu_selected();
+        let toggles = submenu.toggles.clone();
+        let slider = submenu.slider.clone();
+        match SubMenuType::from_str(submenu._type) {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles = MultiStatefulList::with_items(
                     toggles,
-                    if selected_sub_menu.toggles.len() >= 3 {
-                        3
-                    } else {
-                        selected_sub_menu.toggles.len()
-                    },
+                    cmp::min(submenu.toggles.len(), 3)
                 )
             }
             SubMenuType::SLIDER => {
@@ -283,23 +269,14 @@ impl<'a> App<'a> {
     /// Toggle submenu: Toggles the selected submenu toggle in self.selected_sub_menu_toggles and in the actual SubMenu struct
     /// Slider submenu: Swaps hover/selected state. Updates the actual SubMenu struct if going from Selected -> Hover
     pub fn on_a(&mut self) {
-        let tab_selected = self
-            .tabs
-            .items
-            .get(self.tabs.state.selected().unwrap())
-            .unwrap();
+        let tab_selected = self.tab_selected();
         let (list_section, list_idx) = self
             .menu_items
             .get(tab_selected)
             .unwrap()
             .idx_to_list_idx(self.menu_items.get(tab_selected).unwrap().state);
-        let selected_sub_menu = self.menu_items.get_mut(tab_selected).unwrap().lists
-            [list_section]
-            .items
-            .get_mut(list_idx)
-            .unwrap();
         if self.page == AppPage::SUBMENU {
-            match SubMenuType::from_str(selected_sub_menu._type) {
+            match SubMenuType::from_str(self.sub_menu_selected()._type) {
                 // Need to change the slider state to MinHover so the slider shows up initially
                 SubMenuType::SLIDER => {
                     self.page = AppPage::SLIDER;
@@ -320,11 +297,8 @@ impl<'a> App<'a> {
                         .for_each(|(state, toggle_list)| {
                             toggle_list.iter_mut().enumerate().for_each(|(i, o)| {
                                 if state.is_some() && i == state.unwrap() {
-                                    if !o.checked {
-                                        o.checked = true;
-                                    } else {
-                                        o.checked = false;
-                                    }
+                                    // Toggle the checked/unchecked state.
+                                    o.checked = !o.checked;
                                 } else if is_single_option {
                                     o.checked = false;
                                 }
@@ -337,11 +311,7 @@ impl<'a> App<'a> {
                         .enumerate()
                         .for_each(|(i, o)| {
                             if i == state {
-                                if !o.checked {
-                                    o.checked = true;
-                                } else {
-                                    o.checked = false;
-                                }
+                                o.checked = !o.checked;
                             } else if is_single_option {
                                 o.checked = false;
                             }
@@ -385,20 +355,7 @@ impl<'a> App<'a> {
     /// Toggle submenu: Sets page to submenu selection
     /// Slider submenu: If in a selected state, then commit changes and change to hover. Else set page to submenu selection
     pub fn on_b(&mut self) {
-        let tab_selected = self
-            .tabs
-            .items
-            .get(self.tabs.state.selected().unwrap())
-            .unwrap();
-        let (list_section, list_idx) = self
-            .menu_items
-            .get(tab_selected)
-            .unwrap()
-            .idx_to_list_idx(self.menu_items.get(tab_selected).unwrap().state);
-        let selected_sub_menu = self.menu_items.get_mut(tab_selected).unwrap().lists[list_section]
-            .items
-            .get_mut(list_idx)
-            .unwrap();
+        let selected_sub_menu = self.sub_menu_selected();
         match SubMenuType::from_str(selected_sub_menu._type) {
             SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                 GaugeState::MinSelected => {
@@ -475,70 +432,54 @@ impl<'a> App<'a> {
     }
 
     pub fn on_up(&mut self) {
-        if self.page == AppPage::SUBMENU {
-            self.menu_items
-                .get_mut(
-                    self.tabs
-                        .items
-                        .get(self.tabs.state.selected().unwrap())
-                        .unwrap(),
-                )
+        match self.page {
+            AppPage::SUBMENU => {
+                self.menu_items
+                .get_mut(self.tab_selected())
                 .unwrap()
                 .previous();
-            self.set_sub_menu_items();
-        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
-            self.sub_menu_previous();
+                self.set_sub_menu_items();
+            },
+            AppPage::TOGGLE | AppPage::SLIDER => self.sub_menu_previous(),
         }
     }
 
     pub fn on_down(&mut self) {
-        if self.page == AppPage::SUBMENU {
-            self.menu_items
-                .get_mut(
-                    self.tabs
-                        .items
-                        .get(self.tabs.state.selected().unwrap())
-                        .unwrap(),
-                )
-                .unwrap()
-                .next();
-            self.set_sub_menu_items();
-        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
-            self.sub_menu_next();
+        match self.page {
+            AppPage::SUBMENU => {
+                self.menu_items
+                    .get_mut(self.tab_selected())
+                    .unwrap()
+                    .next();
+                self.set_sub_menu_items();
+            },
+            AppPage::TOGGLE | AppPage::SLIDER => self.sub_menu_next(),
         }
     }
 
     pub fn on_left(&mut self) {
-        if self.page == AppPage::SUBMENU {
-            self.menu_items
-                .get_mut(
-                    self.tabs
-                        .items
-                        .get(self.tabs.state.selected().unwrap())
-                        .unwrap(),
-                )
-                .unwrap()
-                .previous_list();
-            self.set_sub_menu_items();
-        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
-            self.sub_menu_previous_list();
+        match self.page {
+            AppPage::SUBMENU => {
+                self.menu_items
+                    .get_mut(self.tab_selected())
+                    .unwrap()
+                    .previous_list();
+                self.set_sub_menu_items();
+            }
+            AppPage::TOGGLE | AppPage::SLIDER => self.sub_menu_previous_list(),
         }
     }
 
     pub fn on_right(&mut self) {
-        if self.page == AppPage::SUBMENU {
-            self.menu_items
-                .get_mut(
-                    self.tabs
-                        .items
-                        .get(self.tabs.state.selected().unwrap())
-                        .unwrap(),
-                )
-                .unwrap()
-                .next_list();
-            self.set_sub_menu_items();
-        } else if self.page == AppPage::TOGGLE || self.page == AppPage::SLIDER {
-            self.sub_menu_next_list();
+        match self.page {
+            AppPage::SUBMENU => {
+                self.menu_items
+                    .get_mut(self.tab_selected())
+                    .unwrap()
+                    .next_list();
+                self.set_sub_menu_items();
+            },
+            AppPage::TOGGLE | AppPage::SLIDER => self.sub_menu_next_list(),
         }
     }
 
