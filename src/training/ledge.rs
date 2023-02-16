@@ -76,7 +76,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
+    //let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
     let should_buffer;
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
 
