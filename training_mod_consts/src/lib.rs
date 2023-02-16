@@ -57,7 +57,7 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub throw_delay: MedDelay,
     pub throw_state: ThrowOption,
-    pub block_override: Action,
+    pub shieldstun_override: Action,
     pub hitstun_override: Action,
     pub parry_override: Action,
     pub footstool_override: Action,
@@ -150,7 +150,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tech_state: TechFlags::all(),
     throw_delay: MedDelay::empty(),
     throw_state: ThrowOption::NONE,
-    block_override: Action::empty(),
+    shieldstun_override: Action::empty(),
     hitstun_override: Action::empty(),
     parry_override: Action::empty(),
     footstool_override: Action::empty(),
@@ -636,10 +636,10 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Block",
-        "block_override",
+        "shieldstun_override",
         "Block: Mash overrides to be performed after shieldstun",
         false,
-        &(menu.block_override.bits() as u32),
+        &(menu.shieldstun_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
         "Parry",

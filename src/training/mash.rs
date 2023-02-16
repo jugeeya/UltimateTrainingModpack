@@ -192,8 +192,8 @@ unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAcces
             Some(action)
         }
     } else if is_in_shieldstun(module_accessor) {
-        let action = MENU.block_override.get_random();
-        if action == Action::empty() && MENU.mash_triggers.contains(MashTrigger::BLOCK) {
+        let action = MENU.shieldstun_override.get_random();
+        if action == Action::empty() && MENU.mash_triggers.contains(MashTrigger::SHIELDSTUN) {
             Some(MENU.mash_state.get_random())
         } else {
             Some(action)
