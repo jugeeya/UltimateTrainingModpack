@@ -323,6 +323,7 @@ impl<'a> App<'a> {
                                     if !o.checked {
                                         o.checked = true;
                                     } else {
+                                        if is_single_option { return; }
                                         o.checked = false;
                                     }
                                 } else if is_single_option {
@@ -340,6 +341,7 @@ impl<'a> App<'a> {
                                 if !o.checked {
                                     o.checked = true;
                                 } else {
+                                    if is_single_option { return; }
                                     o.checked = false;
                                 }
                             } else if is_single_option {
