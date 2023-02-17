@@ -107,10 +107,11 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             // Hide all icon images, and strategically mark the icon that
             // corresponds with a particular button to be visible.
             submenu_ids.iter().for_each(|id| {
-                menu_button
-                    .find_pane_by_name_recursive(id)
-                    .unwrap()
-                    .set_visible(id == &submenu.submenu_id);
+                let pane = menu_button.find_pane_by_name_recursive(id);
+                match pane {
+                    Some(p) => p.set_visible(id == &submenu.submenu_id),
+                    None => (),
+                }
             });
 
             menu_button
@@ -187,10 +188,11 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                 let submenu_ids = app.submenu_ids();
 
                 submenu_ids.iter().for_each(|id| {
-                    menu_button
-                        .find_pane_by_name_recursive(id)
-                        .unwrap()
-                        .set_visible(false)
+                    let pane = menu_button.find_pane_by_name_recursive(id);
+                    match pane {
+                        Some(p) => p.set_visible(false),
+                        None => (),
+                    }
                 });
 
                 title_text.set_text_string(name);
