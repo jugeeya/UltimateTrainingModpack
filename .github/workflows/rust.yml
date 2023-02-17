@@ -128,8 +128,10 @@ jobs:
             
 
             ## Installation
+            
+            *For fuller instructions, please join the [Discord](https://discord.gg/xUZWJ5BWe7) and visit the #setup-and-download channel.*
 
-            - Install Atmosphere to your hacked Switch. One great guide can be found at https://switch.homebrew.guide/ 
+            - (*Console only*) Install Atmosphere to your hacked Switch. One great guide can be found at https://switch.homebrew.guide/ 
             
             - Place the **contents** of the `training_modpack_beta.zip` on the root of your SD card. This means that you first unzip the file, then place its folder on the SD card root. The `atmosphere` folder should be **merged** onto the root of your SD card.
             
