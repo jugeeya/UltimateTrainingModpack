@@ -415,11 +415,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     // Kill the fighter and move them to camera bounds
     if save_state.state == KillPlayer {
         on_ptrainer_death(module_accessor);
-        on_death(fighter_kind, module_accessor);
         if !is_dead(module_accessor) &&
             // Don't kill Nana again, since she already gets killed by the game from Popo's death
             !fighter_is_nana
         {
+            on_death(fighter_kind, module_accessor);
             StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         }
 
@@ -430,8 +430,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     if save_state.state == WaitForAlive {
         on_ptrainer_death(module_accessor);
-        on_death(fighter_kind, module_accessor);
-        if !is_dead(module_accessor) {
+        if !is_dead(module_accessor) && !fighter_is_nana {
+            on_death(fighter_kind, module_accessor);
             save_state.state = PosMove;
         }
     }
