@@ -120,7 +120,8 @@ pub unsafe fn draw(root_pane: &mut Pane, layout_name: &str) {
                         }
 
                         if dmg_num.alpha != 255 || dmg_num.global_alpha != 255 {
-                            dmg_num.set_visible(true);
+                            dmg_num.alpha = 255;
+                            dmg_num.global_alpha = 255;
                             if !has_altered_anim_list {
                                 iterate_anim_list(anim_list, Some(player_name));
                                 has_altered_anim_list = true;
@@ -138,7 +139,8 @@ pub unsafe fn draw(root_pane: &mut Pane, layout_name: &str) {
                     if let Some(death_explosion) =
                         parent.find_pane_by_name_recursive(death_explosion_s)
                     {
-                        death_explosion.set_visible(false);
+                        death_explosion.alpha = 0;
+                        death_explosion.global_alpha = 0;
                     }
                 }
             }
