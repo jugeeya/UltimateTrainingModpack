@@ -721,7 +721,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     
     overall_menu.tabs.push(override_tab);
 
-    /*let mut input_tab = Tab {
+    let mut input_tab = Tab {
         tab_id: "input",
         tab_title: "Input Recording",
         tab_submenus: Vec::new(),
@@ -731,37 +731,37 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         "save_state_playback",
         "Save State Playback: Begin recorded input playback upon loading a save state",
         true,
-        &(MENU.save_state_playback as u32),
+        &(menu.save_state_playback as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordSlot>(
         "Recording Slot",
         "recording_slot",
         "Recording Slot: Choose which slot to record into",
         true,
-        &(MENU.recording_slot as u32),
+        &(menu.recording_slot as u32),
     );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>( // TODO: This menu should really be a submenu inside Action menus, probably want to be able to customize for each action
         "Playback Slots",
         "playback_slot",
         "Playback Slots: Choose which slots to choose between for playback when this action is triggered",
         false,
-        &(MENU.playback_slot.bits as u32),
+        &(menu.playback_slot.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<OnOff>(
         "Mash Ends Playback",
         "playback_mash",
         "Mash Ends Playback: End input recording playback when a mash trigger occurs",
         true,
-        &(MENU.playback_mash as u32),
+        &(menu.playback_mash as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordTrigger>(
         "Recording Trigger",
         "record_trigger",
         "Recording Trigger: What condition is required to begin recording input",
         true,
-        &(MENU.record_trigger as u32),
+        &(menu.record_trigger as u32),
     );
-    overall_menu.tabs.push(input_tab);*/
+    overall_menu.tabs.push(input_tab);
 
     overall_menu
 }
