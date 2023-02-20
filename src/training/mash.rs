@@ -163,6 +163,14 @@ unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAcces
         return None;
     }
     let fighter_distance = get_fighter_distance();
+    if is_in_tech(module_accessor) {
+        let action = MENU.tech_action_override.get_random();
+        if action != Action::empty() {
+            return Some(action);
+        } if action == Action::empty() && MENU.mash_triggers.contains(MashTrigger::TECH) {
+            return Some(MENU.mash_state.get_random());
+        }
+    } 
     if is_in_clatter(module_accessor) {
         let action = MENU.clatter_override.get_random();
         if action != Action::empty() { // If we have an override selected, always use it
@@ -228,8 +236,6 @@ unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAcces
         }
     }
     // LEDGE handled in ledge.rs
-    // TECH handled in tech.rs
-    // MISTECH handled in tech.rs
     if (MENU.mash_triggers.contains(MashTrigger::GROUNDED) && is_grounded(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::AIRBORNE) && is_airborne(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_CLOSE) && fighter_distance < DISTANCE_CLOSE_THRESHOLD)

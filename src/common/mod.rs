@@ -215,6 +215,12 @@ pub unsafe fn is_in_tumble(module_accessor: &mut app::BattleObjectModuleAccessor
     (*FIGHTER_STATUS_KIND_DAMAGE_FLY..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 
+pub unsafe fn is_in_tech(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor); 
+    (*FIGHTER_STATUS_KIND_DOWN_STAND..=*FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK).contains(&status_kind) ||
+        (*FIGHTER_STATUS_KIND_PASSIVE..=*FIGHTER_STATUS_KIND_PASSIVE_CEIL).contains(&status_kind)
+}
+
 pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
 
