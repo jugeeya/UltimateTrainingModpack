@@ -635,9 +635,9 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.hitstun_override.bits() as u32),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Block",
+        "Shieldstun",
         "shieldstun_override",
-        "Block: Mash overrides to be performed after shieldstun",
+        "Shieldstun: Mash overrides to be performed after shieldstun",
         false,
         &(menu.shieldstun_override.bits() as u32),
     );
