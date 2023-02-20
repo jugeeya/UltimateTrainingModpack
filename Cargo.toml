@@ -36,7 +36,7 @@ log = "0.4.17"
 byte-unit = "4.0.18"
 
 [patch.crates-io]
-native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", rev = "a688af9"  }
+native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", rev = "8166dae" }
 nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs" }
 
 [profile.dev]
