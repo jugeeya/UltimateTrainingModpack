@@ -192,6 +192,7 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
         const WAIT = 0x10;
+        const PLAYBACK = 0x20;
     }
 }
 
@@ -205,6 +206,7 @@ impl LedgeOption {
                 LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
                 LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
+                LedgeOption::PLAYBACK => *FIGHTER_STATUS_KIND_NONE,
                 _ => return None,
             })
         }
@@ -220,6 +222,7 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
+            LedgeOption::PLAYBACK => "Input Playback",
             _ => return None,
         })
     }
@@ -412,6 +415,7 @@ bitflags! {
         // TODO: Make work
         const DASH = 0x0080_0000;
         const DASH_ATTACK = 0x0100_0000;
+        const PLAYBACK = 0x0200_0000;
     }
 }
 
@@ -460,6 +464,7 @@ impl Action {
             Action::GRAB => "Grab",
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
+            Action::PLAYBACK => "Input Playback",
             _ => return None,
         })
     }
@@ -1237,5 +1242,38 @@ impl ToggleTrait for RecordTrigger {
 
     fn to_toggle_vals() -> Vec<u32> {
         RecordTrigger::iter().map(|i| i as u32).collect()
+    }
+}
+
+// If doing input recording out of hitstun, when does playback begin after?
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum HitstunPlayback { // Should these start at 0? All of my new menu structs need some review, I'm just doing whatever atm
+    Hitstun = 0x1,
+    Hitstop = 0x2,
+    Instant = 0x4,
+}
+
+impl HitstunPlayback {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            HitstunPlayback::Hitstun => "As Hitstun Ends",
+            HitstunPlayback::Hitstop => "As Hitstop Ends",
+            HitstunPlayback::Instant => "As Hitstop Begins",
+        })
+    }
+}
+
+impl ToggleTrait for HitstunPlayback {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        HitstunPlayback::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        HitstunPlayback::iter().map(|i| i as u32).collect()
     }
 }
