@@ -1,11 +1,12 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::{frame_counter, mash};
-use smash::app::{self, lua_bind::*, sv_system, BattleObjectModuleAccessor};
+use smash::app::{lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
+
+use crate::common::consts::*;
+use crate::common::*;
+use crate::training::{frame_counter, mash};
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
@@ -66,7 +67,7 @@ unsafe fn mod_handle_change_status(
 }
 
 unsafe fn handle_grnd_tech(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
@@ -115,10 +116,10 @@ unsafe fn handle_grnd_tech(
         _ => false,
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
-        if MENU.tech_action_state == Action::empty() {
-            mash::buffer_menu_mash(MENU.mash_state.get_random())
+        if MENU.tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
-            mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
         }
     }
 
@@ -126,7 +127,7 @@ unsafe fn handle_grnd_tech(
 }
 
 unsafe fn handle_wall_tech(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
@@ -162,17 +163,17 @@ unsafe fn handle_wall_tech(
         _ => false,
     };
     if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
-        if MENU.tech_action_state == Action::empty() {
-            mash::buffer_menu_mash(MENU.mash_state.get_random())
+        if MENU.tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
-            mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
         }
     }
     true
 }
 
 unsafe fn handle_ceil_tech(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
     status_kind_int: i32,
@@ -197,21 +198,21 @@ unsafe fn handle_ceil_tech(
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
     if MENU.mash_triggers.contains(MashTrigger::TECH) {
-        if MENU.tech_action_state == Action::empty() {
-            mash::buffer_menu_mash(MENU.mash_state.get_random())
+        if MENU.tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
-            mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
         }
     }
     true
 }
 
-pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) || MENU.tech_state == TechFlags::empty() {
         return;
     }
 
-    let status = StatusModule::status_kind(module_accessor) as i32;
+    let status = StatusModule::status_kind(module_accessor);
     let mut requested_status: i32 = 0;
     if [
         *FIGHTER_STATUS_KIND_DOWN_WAIT,
@@ -269,17 +270,17 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     if requested_status != 0 {
         StatusModule::change_status_request_from_script(module_accessor, requested_status, false);
         if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
-            if MENU.tech_action_state == Action::empty() {
-                mash::buffer_menu_mash(MENU.mash_state.get_random())
+            if MENU.tech_action_override == Action::empty() {
+                mash::external_buffer_menu_mash(MENU.mash_state.get_random())
             } else {
-                mash::buffer_menu_mash(MENU.tech_action_state.get_random())
+                mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
             }
         }
     }
 }
 
 pub unsafe fn change_motion(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     motion_kind: u64,
 ) -> Option<u64> {
     if !is_operation_cpu(module_accessor) {
@@ -313,9 +314,7 @@ pub unsafe fn change_motion(
     None
 }
 
-unsafe fn get_snake_laydown_lockout_time(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> u32 {
+unsafe fn get_snake_laydown_lockout_time(module_accessor: &mut BattleObjectModuleAccessor) -> u32 {
     let base_lockout_time: f32 = WorkModule::get_param_float(
         module_accessor,
         hash40("common"),

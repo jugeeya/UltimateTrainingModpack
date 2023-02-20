@@ -1,8 +1,9 @@
-use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
+use serde::{Deserialize, Serialize};
+use smash::app::{self, ArticleOperationTarget, FighterFacial, FighterUtil, lua_bind::*};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
-#[derive(Copy, Clone)]
+#[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
     pub int_x: Option<i32>,
     pub int_y: Option<i32>,
@@ -41,19 +42,6 @@ impl ChargeState {
     fn has_charge(mut self, has_charge: bool) -> Self {
         self.has_charge = Some(has_charge);
         self
-    }
-}
-
-impl Default for ChargeState {
-    fn default() -> Self {
-        Self {
-            int_x: None,
-            int_y: None,
-            float_x: None,
-            float_y: None,
-            float_z: None,
-            has_charge: None,
-        }
     }
 }
 
@@ -282,12 +270,11 @@ pub unsafe fn handle_charge(
             );
             if shot_charge == 112 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-                let samus_cshot_hash;
-                if fighter_kind == FIGHTER_KIND_SAMUS {
-                    samus_cshot_hash = Hash40::new("samus_cshot_max");
+                let samus_cshot_hash = if fighter_kind == FIGHTER_KIND_SAMUS {
+                    Hash40::new("samus_cshot_max")
                 } else {
-                    samus_cshot_hash = Hash40::new("samusd_cshot_max");
-                }
+                    Hash40::new("samusd_cshot_max")
+                };
                 let joint_hash = Hash40::new("armr");
                 let pos = Vector3f {
                     x: 7.98004,

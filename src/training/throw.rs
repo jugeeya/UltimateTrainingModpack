@@ -1,9 +1,10 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::frame_counter;
-use crate::training::mash;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+
+use crate::common::*;
+use crate::common::consts::*;
+use crate::training::frame_counter;
+use crate::training::mash;
 
 const NOT_SET: u32 = 9001;
 static mut THROW_DELAY: u32 = NOT_SET;
@@ -89,9 +90,9 @@ pub unsafe fn get_command_flag_throw_direction(
         return 0;
     }
 
-    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_WAIT
-        && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_PULL
-        && StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CATCH_ATTACK
+    if StatusModule::status_kind(module_accessor) != *FIGHTER_STATUS_KIND_CATCH_WAIT
+        && StatusModule::status_kind(module_accessor) != *FIGHTER_STATUS_KIND_CATCH_PULL
+        && StatusModule::status_kind(module_accessor) != *FIGHTER_STATUS_KIND_CATCH_ATTACK
     {
         // No longer holding character, so re-roll the throw case and reset the delay counter for next time
         reset_throw_case();
@@ -132,7 +133,7 @@ pub unsafe fn get_command_flag_throw_direction(
         }
 
         // (this conditional would need to be changed to speed up pummelling)
-        if StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CATCH_WAIT {
+        if StatusModule::status_kind(module_accessor) == *FIGHTER_STATUS_KIND_CATCH_WAIT {
             let status = *FIGHTER_STATUS_KIND_CATCH_ATTACK; //.unwrap_or(0);
             StatusModule::change_status_request_from_script(module_accessor, status, true);
         }
@@ -146,7 +147,7 @@ pub unsafe fn get_command_flag_throw_direction(
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW_HI,
     ) {
         let cmd = THROW_CASE.into_cmd().unwrap_or(0);
-        mash::buffer_menu_mash(MENU.mash_state.get_random());
+        mash::external_buffer_menu_mash(MENU.mash_state.get_random());
         return cmd;
     }
 

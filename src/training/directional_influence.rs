@@ -1,10 +1,12 @@
-use crate::common::consts::*;
-use crate::common::*;
 use core::f64::consts::PI;
+
 use smash::app::{self, lua_bind::*, sv_system};
-use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
+use smash::lib::lua_const::*;
 use smash::lua2cpp::L2CFighterCommon;
+
+use crate::common::*;
+use crate::common::consts::*;
 
 static mut DI_CASE: Direction = Direction::empty();
 
@@ -22,8 +24,6 @@ pub fn roll_di_case() {
 pub fn reset_di_case(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_in_hitstun(module_accessor) {
         // Don't reset the DI direction during hitstun
-        // TODO: Want to reset it upon hitstun restarting; probably don't reset once we've been
-        //  in hitstop for 1 frame, but reset every time hitstop restarts?
         return;
     }
     unsafe {
@@ -75,7 +75,7 @@ pub fn should_reverse_angle(direction: &Direction) -> bool {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     unsafe {
         PostureModule::pos_x(player_module_accessor) > PostureModule::pos_x(cpu_module_accessor)
-            && ![Direction::LEFT, Direction::RIGHT].contains(&direction)
+            && ![Direction::LEFT, Direction::RIGHT].contains(direction)
     }
 }
 

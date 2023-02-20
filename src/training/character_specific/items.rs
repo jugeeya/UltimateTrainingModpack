@@ -1,12 +1,13 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::mash;
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::ItemKind;
 use smash::app::{ArticleOperationTarget, BattleObjectModuleAccessor, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::lib::lua_const::*;
+
+use crate::common::consts::*;
+use crate::common::*;
+use crate::training::mash;
 
 pub struct CharItem {
     pub fighter_kind: LuaConst,
@@ -354,7 +355,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
                 let item_ptr = ItemManager::get_active_item(item_mgr, 0);
                 ItemModule::have_item_instance(
                     player_module_accessor,
-                    item_ptr as *mut smash::app::Item,
+                    item_ptr as *mut Item,
                     0,
                     false,
                     false,
@@ -509,24 +510,25 @@ daikon_replace!(DAISY, daisy, 1);
 
 // GenerateArticleForTarget for Peach/Diddy(/Link?) item creation
 static GAFT_OFFSET: usize = 0x03d40a0;
+
 #[skyline::hook(offset = GAFT_OFFSET)]
 pub unsafe fn handle_generate_article_for_target(
-    article_module_accessor: *mut app::BattleObjectModuleAccessor,
+    article_module_accessor: *mut BattleObjectModuleAccessor,
     int_1: i32,
-    module_accessor: *mut app::BattleObjectModuleAccessor, // this is always 0x0 normally
+    module_accessor: *mut BattleObjectModuleAccessor, // this is always 0x0 normally
     bool_1: bool,
     int_2: i32,
 ) -> u64 {
     // unknown return value, gets cast to an (Article *)
     let target_module_accessor = TARGET_PLAYER.unwrap_or(module_accessor);
-    let ori = original!()(
+
+    original!()(
         article_module_accessor,
         int_1,
         target_module_accessor,
         bool_1,
         int_2,
-    );
-    return ori;
+    )
 }
 
 pub fn init() {

@@ -5,33 +5,35 @@
 #![feature(c_variadic)]
 #![allow(
     clippy::borrow_interior_mutable_const,
+    clippy::declare_interior_mutable_const,
     clippy::not_unsafe_ptr_arg_deref,
     clippy::missing_safety_doc,
     clippy::wrong_self_convention,
     clippy::option_map_unit_fn,
-    clippy::float_cmp
+    clippy::fn_null_check,
+    clippy::transmute_num_to_bytes
 )]
+
+use std::fs;
+use std::path::PathBuf;
+
+use skyline::nro::{self, NroInfo};
+use training_mod_consts::LEGACY_TRAINING_MODPACK_ROOT;
+
+use crate::common::events::events_loop;
+use crate::common::*;
+use crate::consts::TRAINING_MODPACK_ROOT;
+use crate::events::{Event, EVENT_QUEUE};
+use crate::logging::*;
+use crate::menu::quick_menu_loop;
+use crate::training::ui::notifications::notification;
 
 pub mod common;
 mod hazard_manager;
 mod hitbox_visualizer;
 mod training;
 
-#[cfg(test)]
-mod test;
-
-use crate::common::*;
-use crate::events::{Event, EVENT_QUEUE};
-
-use skyline::libc::mkdir;
-use skyline::nro::{self, NroInfo};
-use std::fs;
-
-use crate::menu::quick_menu_loop;
-#[cfg(feature = "web_session_preload")]
-use crate::menu::web_session_loop;
-use owo_colors::OwoColorize;
-use training_mod_consts::{MenuJsonStruct, OnOff};
+mod logging;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {
@@ -47,12 +49,6 @@ fn nro_main(nro: &NroInfo<'_>) {
     }
 }
 
-macro_rules! c_str {
-    ($l:tt) => {
-        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr()
-    };
-}
-
 #[skyline::main(name = "training_modpack")]
 pub fn main() {
     std::panic::set_hook(Box::new(|info| {
@@ -66,111 +62,61 @@ pub fn main() {
             },
         };
 
-        let err_msg = format!("thread has panicked at '{}', {}", msg, location);
+        let err_msg = format!("SSBU Training Modpack has panicked at '{msg}', {location}");
         skyline::error::show_error(
             69,
-            "Skyline plugin has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
+            "SSBU Training Modpack has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
             err_msg.as_str(),
         );
     }));
+    init_logger().unwrap();
 
-    macro_rules! log {
-        ($($arg:tt)*) => {
-            println!("{}{}", "[Training Modpack] ".green(), format!($($arg)*));
-        };
-    }
-
-    log!("Initialized.");
+    info!("Initialized.");
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
+        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+        notification(
+            "Open Menu".to_string(),
+            "Special + Uptaunt".to_string(),
+            120,
+        );
+        notification(
+            "Save State".to_string(),
+            "Grab + Downtaunt".to_string(),
+            120,
+        );
+        notification("Load State".to_string(), "Grab + Uptaunt".to_string(), 120);
     }
-
-    training::ui_hacks::install_hooks();
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
 
-    unsafe {
-        mkdir(c_str!("sd:/TrainingModpack/"), 777);
+    fs::create_dir_all(TRAINING_MODPACK_ROOT)
+        .expect("Could not create Training Modpack root folder!");
+
+    // Migrate legacy if exists
+    if fs::metadata(LEGACY_TRAINING_MODPACK_ROOT).is_ok() {
+        for entry in fs::read_dir(LEGACY_TRAINING_MODPACK_ROOT).unwrap() {
+            let entry = entry.unwrap();
+            let src_path = &entry.path();
+            let dest_path = &PathBuf::from(TRAINING_MODPACK_ROOT).join(entry.file_name());
+            fs::rename(src_path, dest_path).unwrap_or_else(|e| {
+                error!("Could not move file from {src_path:#?} to {dest_path:#?} with error {e}")
+            });
+        }
+        fs::remove_dir_all(LEGACY_TRAINING_MODPACK_ROOT)
+            .expect("Could not delete legacy Training Modpack folder!");
     }
 
-    let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
-    if fs::metadata(ovl_path).is_ok() {
-        log!("Removing ovlTrainingModpack.ovl...");
-        fs::remove_file(ovl_path).unwrap();
-    }
-
-    log!("Performing version check...");
+    info!("Performing version check...");
     release::version_check();
 
-    let menu_conf_path = "sd:/TrainingModpack/training_modpack_menu.json";
-    log!("Checking for previous menu in training_modpack_menu.json...");
-    if fs::metadata(menu_conf_path).is_ok() {
-        let menu_conf = fs::read_to_string(&menu_conf_path).unwrap();
-        if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
-            unsafe {
-                MENU = menu_conf_json.menu;
-                DEFAULTS_MENU = menu_conf_json.defaults_menu;
-                log!("Previous menu found. Loading...");
-            }
-        } else if menu_conf.starts_with("http://localhost") {
-            log!("Previous menu found, with URL schema. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
-        } else {
-            log!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(menu_conf_path).expect("Could not delete menu conf file!");
-        }
-    } else {
-        log!("No previous menu file found.");
-    }
+    menu::load_from_file();
+    button_config::load_from_file();
 
-    let combo_path = "sd:/TrainingModpack/training_modpack.toml";
-    log!("Checking for previous button combo settings in training_modpack.toml...");
-    if fs::metadata(combo_path).is_ok() {
-        log!("Previous button combo settings found. Loading...");
-        let combo_conf = fs::read_to_string(&combo_path).unwrap();
-        if button_config::validate_config(&combo_conf) {
-            button_config::save_all_btn_config_from_toml(&combo_conf);
-        } else {
-            button_config::save_all_btn_config_from_defaults();
-        }
-    } else {
-        log!("No previous button combo file found. Creating...");
-        fs::write(combo_path, button_config::DEFAULT_BTN_CONFIG)
-            .expect("Failed to write button config conf file");
-        button_config::save_all_btn_config_from_defaults();
-    }
-
-    if is_emulator() {
-        unsafe {
-            DEFAULTS_MENU.quick_menu = OnOff::On;
-            MENU.quick_menu = OnOff::On;
-            BASE_MENU.quick_menu = OnOff::On;
-        }
-    }
-
-    std::thread::spawn(|| loop {
-        std::thread::sleep(std::time::Duration::from_secs(10));
-        unsafe {
-            while let Some(event) = EVENT_QUEUE.pop() {
-                let host = "https://my-project-1511972643240-default-rtdb.firebaseio.com";
-                let path = format!(
-                    "/event/{}/device/{}/{}.json",
-                    event.event_name, event.device_id, event.event_time
-                );
-
-                let url = format!("{}{}", host, path);
-                minreq::post(url).with_json(&event).unwrap().send().ok();
-            }
-        }
-    });
+    std::thread::spawn(events_loop);
 
     std::thread::spawn(|| unsafe { quick_menu_loop() });
-
-    #[cfg(feature = "web_session_preload")]
-    if !is_emulator() {
-        std::thread::spawn(|| unsafe { web_session_loop() });
-    }
 }

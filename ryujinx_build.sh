@@ -6,7 +6,7 @@ SMASH_APPLICATION_PATH="C:\Users\Jdsam\Downloads\Super Smash Bros. Ultimate (Wor
 RYUJINX_SMASH_SKYLINE_PLUGINS_PATH="/mnt/c/Users/Jdsam/AppData/Roaming/Ryujinx/mods/contents/01006a800016e000/romfs/skyline/plugins"
 
 # Build with release feature
-cargo skyline build --release
+cargo skyline build --release --features layout_arc_from_file
 
 # Copy over to plugins path
 cp target/aarch64-skyline-switch/release/libtraining_modpack.nro $RYUJINX_SMASH_SKYLINE_PLUGINS_PATH

@@ -10,7 +10,6 @@ strum_macros = "0.21.0"
 num = "0.4.0"
 num-derive = "0.3"
 num-traits = "0.2"
-ramhorns = "0.12.0"
 paste = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1.8"

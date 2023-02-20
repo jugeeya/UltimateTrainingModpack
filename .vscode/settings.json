@@ -1,13 +1,10 @@
 {
-    "rust-analyzer.checkOnSave.overrideCommand": [
+    "rust-analyzer.check.overrideCommand": [
         "cargo",
         "+nightly",
         "clippy",
         "--workspace",
         "--message-format=json",
         "--all-features",
-        "--",
-        "-A",
-        "clippy::borrow_interior_mutable_const"
     ],
 }

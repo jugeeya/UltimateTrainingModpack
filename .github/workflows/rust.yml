@@ -8,13 +8,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  clippy_pr:
+  checker:
+    name: Check, Clippy, Tests
     runs-on: ubuntu-latest
-    container: jugeeya/cargo-skyline:3.2.0
     steps:
       - uses: actions/checkout@v2
-      - name: Setup PATH
-        run: export PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin
       - name: Install minimal nightly rust
         uses: actions-rs/toolchain@v1
         with:
@@ -23,39 +21,35 @@ jobs:
           components: rustfmt, clippy
           default: true
           target: x86_64-unknown-linux-gnu
-      - uses: actions-rs/clippy-check@v1
+      - uses: Swatinem/rust-cache@v2
+        name: Rust Cache 
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          toolchain: nightly
-          args: --all-features --target=x86_64-unknown-linux-gnu
-      - uses: mbrobbel/rustfmt-check@master
+          prefix-key: "checker"
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          command: clippy
+          args: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
+      - name: TUI Test
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          working-directory: training_mod_tui
   plugin:
+    name: Plugin NRO
     runs-on: ubuntu-latest
-    outputs:
-      changelog: ${{ steps.build_release.outputs.changelog }}
     container:
-      image: jugeeya/cargo-skyline:3.2.0
+      image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
+        name: Rust Cache
+        with:
+          prefix-key: "plugin"
       - name: Build release NRO
         id: build_release
-        run: |
-          # # Grab changelog for beta description later
-          # # Grab latest tag, grab log vs. main, replace newlines with two newlines and a list marker
-          # changelog="- $(git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...main | sed -z 's/\n/\n\n- /g')"
-          # # GH actions hate multiline strings. https://trstringer.com/github-actions-multiline-strings/
-          # changelog="${changelog//'%'/'%25'}"
-          # changelog="${changelog//$'\n'/'%0A'}"
-          # changelog="${changelog//$'\r'/'%0D'}"
-          # echo "changelog<<EOF" >> $GITHUB_ENV
-          # echo "$changelog" >> $GITHUB_ENV
-          # echo "EOF" >> $GITHUB_ENV
-          # echo "::set-output name=changelog::$changelog"
-
-          # Actually build plugin
-          PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release
+        run: cargo-skyline skyline build --release
         env:
           HOME: /root
       - name: Upload plugin artifact
@@ -63,21 +57,21 @@ jobs:
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-      - name: Upload static files
-        uses: actions/upload-artifact@v2
-        with:
-          name: static
-          path: src/static
   plugin_outside_training_mode:
+    name: Plugin NRO (Outside Training Mode)
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     container:
-      image: jugeeya/cargo-skyline:3.2.0
+      image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v2
+        name: Rust Cache
+        with:
+          prefix-key: "plugin"
       - name: Build outside_training_mode NRO
         run: |
-          PATH=$PATH:/root/.cargo/bin:/opt/devkitpro/devkitA64/bin /root/.cargo/bin/cargo-skyline skyline build --release --features outside_training_mode
+          cargo-skyline skyline build --release --features outside_training_mode
         env:
           HOME: /root
       - name: Upload plugin (outside training mode) artifact
@@ -86,6 +80,7 @@ jobs:
           name: plugin_outside_training_mode
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
   upload:
+    name: Upload Beta Release
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     needs:
@@ -96,16 +91,9 @@ jobs:
       - name: Prepare zip
         id: prepare_zip
         env:
-          SKYLINE_DIR: atmosphere/contents/01006A800016E000
           SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
-          SMASH_WEB_DIR: atmosphere/contents/01006A800016E000/manual_html/html-document/training_modpack.htdocs
         run: |
-          mkdir -p ${{env.SKYLINE_DIR}} 
           mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
-          mkdir -p ${{env.SMASH_WEB_DIR}}
-          wget https://web.archive.org/web/20220210115256/https://github.com/skyline-dev/skyline/releases/download/beta/skyline.zip
-          unzip skyline.zip
-          mv exefs ${{env.SKYLINE_DIR}}
           cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
           wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.1/libparam_hook.nro
           wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
@@ -113,9 +101,14 @@ jobs:
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
-          mv static/libtraining_modpack_menu.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_menu.nro
-          cp -r static/* ${{env.SMASH_WEB_DIR}}
           zip -r training_modpack_beta.zip atmosphere
+      - name: Delete Release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          tag_name: beta 
+          delete_release: true 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update Release
         uses: meeDamian/github-release@2.0
         with:
@@ -128,33 +121,25 @@ jobs:
           name: beta
           body: >
             Beta built off of the latest code in the repository. 
-
-            ## Changelog
-
-            ${{needs.plugin.outputs.changelog}}
+            
+            # Changelog
+            
+            You can find the changelog here: https://github.com/jugeeya/UltimateTrainingModpack#beta-changelog
             
 
             ## Installation
+            
+            *For fuller instructions, please join the [Discord](https://discord.gg/xUZWJ5BWe7) and visit the #setup-and-download channel.*
 
-            ### Installing on console
-
+            - (*Console only*) Install Atmosphere to your hacked Switch. One great guide can be found at https://switch.homebrew.guide/ 
             
-            Install the same way you would install a full release.
+            - Place the **contents** of the `training_modpack_beta.zip` on the root of your SD card. This means that you first unzip the file, then place its folder on the SD card root. The `atmosphere` folder should be **merged** onto the root of your SD card.
             
-            ### Installing on Ryujinx 
+              - *For Ryujinx*: Paste the `contents` folder inside `atmosphere` into `%AppData%/Ryujinx/mods/`
             
+            - Download Skyline: https://github.com/skyline-dev/skyline/releases. Place the `exefs` folder from the zip into `atmosphere/contents/01006A800016E000` on your SD card.
             
-            
-            Instructions to get the beta working on Ryujinx.
-            
-            
-            1. Download the latest build of Ryujinx, which can be found here:  https://ryujinx.org/download/
-            
-            2. Download the beta. https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta 
-            
-            3. The atmosphere folder from the beta zip is everything that should be in Ryujinx's mod folder. This means `%AppData%/Ryujinx/mods/contents/01006a800016e000` should have what `atmosphere/contents/01006a800016e000` has. 
-
-            4. You should be good to go after this. When in training mode, use Special+Uptaunt to bring up the menu. 
+              - *For Ryujinx*: Paste these files in `%AppData%/Ryujinx/mods/contents/01006a800016e000`
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact

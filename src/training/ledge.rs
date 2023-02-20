@@ -1,10 +1,11 @@
-use crate::common::consts::*;
+use smash::app::{self, lua_bind::*};
+use smash::lib::lua_const::*;
+
 use crate::common::*;
+use crate::common::consts::*;
 use crate::training::frame_counter;
 use crate::training::mash;
 use crate::training::input_record;
-use smash::app::{self, lua_bind::*};
-use smash::lib::lua_const::*;
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
@@ -59,7 +60,7 @@ fn roll_ledge_case() {
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if StatusModule::situation_kind(module_accessor) as i32 != *SITUATION_KIND_CLIFF {
+    if StatusModule::situation_kind(module_accessor) != *SITUATION_KIND_CLIFF {
         // No longer on ledge, so re-roll the ledge case and reset the delay counter for next time
         reset_ledge_case();
         reset_ledge_delay();
@@ -75,7 +76,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
+    //let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
     let should_buffer;
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
 
@@ -86,7 +87,6 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     } else {
         should_buffer = false;
     }
-    println!("Status: {}, Frame: {}, flag_cliff: {}, buffer: {}",status_kind,current_frame,flag_cliff, should_buffer);
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
@@ -125,30 +125,30 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     }
 
     if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
-        if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_neutral_state.get_random());
-        } else if LEDGE_CASE == LedgeOption::ROLL && MENU.ledge_roll_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_roll_state.get_random());
-        } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_jump_state.get_random());
-        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_state != Action::empty() {
-            mash::buffer_menu_mash(MENU.ledge_attack_state.get_random());
+        if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_override != Action::empty() {
+            mash::external_buffer_menu_mash(MENU.ledge_neutral_override.get_random());
+        } else if LEDGE_CASE == LedgeOption::ROLL && MENU.ledge_roll_override != Action::empty() {
+            mash::external_buffer_menu_mash(MENU.ledge_roll_override.get_random());
+        } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_override != Action::empty() {
+            mash::external_buffer_menu_mash(MENU.ledge_jump_override.get_random());
+        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_override != Action::empty() {
+            mash::external_buffer_menu_mash(MENU.ledge_attack_override.get_random());
         } else {
-            mash::buffer_menu_mash(MENU.mash_state.get_random());
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random());
         }
     }
 }
 
 pub unsafe fn is_enable_transition_term(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
+    _module_accessor: *mut app::BattleObjectModuleAccessor,
     term: i32,
 ) -> Option<bool> {
-    if !is_operation_cpu(&mut *module_accessor) {
+    if !is_operation_cpu(&mut *_module_accessor) {
         return None;
     }
 
     // Only handle ledge scenarios from menu
-    if StatusModule::status_kind(module_accessor) as i32 != *FIGHTER_STATUS_KIND_CLIFF_WAIT
+    if StatusModule::status_kind(_module_accessor) != *FIGHTER_STATUS_KIND_CLIFF_WAIT
         || MENU.ledge_state == LedgeOption::empty()
     {
         return None;

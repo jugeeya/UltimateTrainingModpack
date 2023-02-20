@@ -1,9 +1,11 @@
-use crate::common::consts::*;
-use crate::common::*;
-use crate::training::directional_influence;
 use core::f64::consts::PI;
+
 use smash::app::{self, lua_bind::*};
 use smash::Vector2f;
+
+use crate::common::*;
+use crate::common::consts::*;
+use crate::training::directional_influence;
 
 static mut COUNTER: u32 = 0;
 
@@ -44,8 +46,8 @@ pub unsafe fn check_hit_stop_delay_command(
             // If there is a non-neutral direction picked,
             // modify the SDI angle Vector2f as a side-effect
             // and return 1 so the CPU knows that an SDI input occurred
-            (*sdi_direction).x = (angle.cos() as f32).into();
-            (*sdi_direction).y = (angle.sin() as f32).into();
+            (*sdi_direction).x = angle.cos() as f32;
+            (*sdi_direction).y = angle.sin() as f32;
             return 1;
         }
     }

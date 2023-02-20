@@ -168,11 +168,10 @@ fn print_char(
     for segment_char in segment_str.chars() {
         let mut index = segment_char as i32 - 'a' as i32;
 
-        let segment: [f32; 5];
         if is_facing_left {
             index = SEGMENT_REV[index as usize] as i32 - 'a' as i32;
         }
-        segment = SEGMENT_DICT[index as usize];
+        let segment = SEGMENT_DICT[index as usize];
 
         const SIZE_MULT: f32 = 0.5;
 
