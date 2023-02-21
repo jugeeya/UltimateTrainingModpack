@@ -1,3 +1,4 @@
+#[cfg(feature = "layout_arc_from_file")]
 use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
