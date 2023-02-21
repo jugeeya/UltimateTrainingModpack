@@ -1,3 +1,4 @@
+#[cfg(feature = "layout_arc_from_file")]
 use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
@@ -22,6 +23,8 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
         // InfluencedAlpha means "Should my children panes' alpha be influenced by mine, as the parent?"
         root_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
         root_pane.set_visible(MENU.hud == OnOff::On);
+    } else {
+        root_pane.set_visible(true);
     }
 
     damage::draw(root_pane, layout_name);

@@ -5,21 +5,28 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
-#[cfg(feature = "has_terminal")]
-use tui::backend::CrosstermBackend;
+use std::error::Error;
 #[cfg(feature = "has_terminal")]
 use std::{
     io,
     time::{Duration, Instant},
 };
-use std::error::Error;
+#[cfg(feature = "has_terminal")]
+use tui::backend::CrosstermBackend;
 use tui::Terminal;
 
 use training_mod_consts::*;
 
-fn test_backend_setup<'a>(ui_menu: UiMenu<'a>, menu_defaults: (UiMenu<'a>, String)) -> Result<
-    (Terminal<training_mod_tui::TestBackend>, training_mod_tui::App<'a>),
-    Box<dyn Error>> {
+fn test_backend_setup<'a>(
+    ui_menu: UiMenu<'a>,
+    menu_defaults: (UiMenu<'a>, String),
+) -> Result<
+    (
+        Terminal<training_mod_tui::TestBackend>,
+        training_mod_tui::App<'a>,
+    ),
+    Box<dyn Error>,
+> {
     let app = training_mod_tui::App::<'a>::new(ui_menu, menu_defaults);
     let backend = tui::backend::TestBackend::new(75, 15);
     let terminal = Terminal::new(backend)?;
@@ -103,7 +110,7 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
     // Return to submenu selection
     app.on_b();
     // Save Defaults
-    app.on_x();
+    app.save_defaults();
     // Enter Mash Toggles again
     app.on_a();
     // Unset Mash Airdodge
@@ -127,7 +134,7 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
     );
 
     // Reset current menu alone to defaults
-    app.on_l();
+    app.reset_current_submenu();
     let menu_json = app.get_menu_selections();
     let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
     let menu = menu_struct.menu;
@@ -155,7 +162,7 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
     // Return to submenu selection
     app.on_b();
     // Save defaults
-    app.on_x();
+    app.save_defaults();
     // Go back in and unset Jump
     app.on_a();
     app.on_down();
@@ -163,7 +170,7 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
     // Return to submenu selection
     app.on_b();
     // Reset all to defaults
-    app.on_r();
+    app.reset_all_submenus();
     let menu_json = app.get_menu_selections();
     let menu_struct = serde_json::from_str::<MenuJsonStruct>(&menu_json).unwrap();
     let menu = menu_struct.menu;
@@ -176,7 +183,6 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
         serde_json::to_string(&menu).unwrap(),
         "The menu should have Mash Airdodge off and Followup Jump on"
     );
-
 
     Ok(())
 }
@@ -192,16 +198,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         menu_defaults = (ui_menu(MENU), serde_json::to_string(&MENU).unwrap());
     }
 
-    #[cfg(not(feature = "has_terminal"))] {
+    #[cfg(not(feature = "has_terminal"))]
+    {
         let (mut terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
         if inputs.is_some() {
-            inputs.unwrap().split(",").for_each(|input| {
-                match input.to_uppercase().as_str() {
-                    "X" => app.on_x(),
-                    "L" => app.on_l(),
-                    "R" => app.on_r(),
-                    "O" => app.on_zl(),
-                    "P" => app.on_zr(),
+            inputs
+                .unwrap()
+                .split(",")
+                .for_each(|input| match input.to_uppercase().as_str() {
+                    "X" => app.save_defaults(),
+                    "Y" => app.reset_current_submenu(),
+                    "Z" => app.reset_all_submenus(),
+                    "L" => app.previous_tab(),
+                    "R" => app.next_tab(),
                     "A" => app.on_a(),
                     "B" => app.on_b(),
                     "UP" => app.on_up(),
@@ -209,8 +218,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "LEFT" => app.on_left(),
                     "RIGHT" => app.on_right(),
                     _ => {}
-                }
-            })
+                })
         }
         let frame_res = terminal.draw(|f| training_mod_tui::ui(f, &mut app))?;
         let menu_json = app.get_menu_selections();
@@ -226,7 +234,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Menu:\n{menu_json}");
     }
 
-    #[cfg(feature = "has_terminal")] {
+    #[cfg(feature = "has_terminal")]
+    {
         let app = training_mod_tui::App::new(menu, menu_defaults);
 
         // setup terminal
@@ -281,11 +290,11 @@ fn run_app<B: tui::backend::Backend>(
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Char('q') => return Ok(menu_json),
-                    KeyCode::Char('x') => app.on_x(),
-                    KeyCode::Char('p') => app.on_zr(),
-                    KeyCode::Char('o') => app.on_zl(),
-                    KeyCode::Char('r') => app.on_r(),
-                    KeyCode::Char('l') => app.on_l(),
+                    KeyCode::Char('x') => app.save_defaults(),
+                    KeyCode::Char('p') => app.reset_current_submenu(),
+                    KeyCode::Char('o') => app.reset_all_submenus(),
+                    KeyCode::Char('r') => app.next_tab(),
+                    KeyCode::Char('l') => app.previous_tab(),
                     KeyCode::Left => app.on_left(),
                     KeyCode::Right => app.on_right(),
                     KeyCode::Down => app.on_down(),
