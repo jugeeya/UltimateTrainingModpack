@@ -143,7 +143,7 @@ Practice with emulated extra input delay, in frames. Use this to practice with o
 
 ## Frame Advantage
 
-Practice moves on shield to find out the frame advantage of the moves performed. Best used with Infinite Shield.
+Practice moves on shield to find out the frame advantage of the moves performed. Best used with Shield Toggles set to Infinite.
 
 ## Hitbox Visualization
 
