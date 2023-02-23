@@ -29,31 +29,22 @@ The latest beta release can be found [here](https://github.com/jugeeya/UltimateT
 
 -  [Build Instructions](#build)
 
-<a name="beta-changelog"/>
-
-# Beta Changelog
-These are the features that can be found [in the latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta) that are not in the stable release. 
-
-### Features
-N/A
-
-### Bugfixes
-N/A
-
-### Adjustments
-N/A
-
 <a name="features"/>
 
 # Features
 The features in this modpack are configured through the menu, which can be accessed within training mode by pressing `SPECIAL+UPTAUNT`. Generally they fall into these categories:
 
-- Enables or disables stage hazards
-- Saves and loads the positional state of the player and CPU
-- Displays additional information onscreen
-- Controls CPU behavior
+- **Mash Settings**; **Defensive Settings**: Controls CPU behavior
+- **Save State Settings**: Saves and loads the positional state of the player and CPU
+- **Miscellaneous Settings**: Displays additional information onscreen, enables or disables stage hazards
 
-## Mash Settings
+## Menu Settings
+
+When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `Y` button. All menus can be reset to the default by pressing the `Z`/`ZR` button. These defaults can be saved upon exiting the menu by pressing `X` when in-menu. Use this to make a preset that fits your personal training style.
+
+### Mash Settings
+
+
 <img src="./photos/mash_settings.png">
 <details><summary>Click here for setting descriptions...</summary>
 
@@ -77,7 +68,7 @@ The features in this modpack are configured through the menu, which can be acces
 
 </details>
 
-## Defensive Settings
+### Defensive Settings
 <img src="./photos/defensive_settings.png">
 <details><summary>Click here for setting descriptions...</summary>
 
@@ -94,49 +85,60 @@ The features in this modpack are configured through the menu, which can be acces
 | Mistech Options | Actions to take after missing a tech | Neutral getup, getup attack, roll in, roll out |
 | Shield Toggles | CPU Shield Behavior | None, Infinite (no shield damage or decay), Hold (no shield decay until the shield is hit for the first time), Constant (no shield decay) |
 | Shield Tilt | Direction to tilt the shield | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
+| Crouch | Should the CPU crouch when on the ground | Yes, No |
 
 </details>
 
-## Save State Settings
+
+
+The CPU can be instructed to perform a wide array of different actions in response to particular situations. The following situations are available:
+
+- Mash: To be performed after being hit or shielding an attack
+- Followup: To be performed as soon as possible after the mash option
+- Ledge: To be performed when hanging on the ledge
+- Tech: To be performed when slammed into the ground or wall
+- Miss Tech: To be performed after failing to tech
+
+The timing of the CPU option can be influenced by the following settings:
+
+- Mash Triggers
+- Aerial Delay
+- Ledge Delay
+- OoS Offset
+- Reaction Time
+- Fast Fall Delay
+- Falling Aerials
+
+<img src="./photos/mash_triggers.png">
+
+
+### Save State Settings
+
+
+<img src="./photos/FLy0xiw.gif">
+
+<p align="center">
 <img src="./photos/save_states.png">
 <img src="./photos/damage_range.png">
-<details><summary>Click here for setting descriptions...</summary>
-
-| Feature | Description | Options |
-|:---:|:---|:---|
-| Buff Options | Buff(s) to be applied to respective character when loading save states | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
-| Character Item | CPU/Player item to hold when loading a save state | None, Player 1st Variation througher 8th variation, CPU 1st variation through 8th variation |
-
-</details>
-
-
-## Miscellaneous Settings
-
-<img src="./photos/misc_settings.png">
-<img src="./photos/mash_triggers.png">
+</p>
 <details><summary>Click here for setting descriptions...</summary>
 
 | Feature | Description | Options |
 |:---:|:---|:---|
 | Mirroring | Flips save states in the left-right direction across the stage center | None, Alternate, Random |
 | Save Damage | Should save states retain player/CPU damage | Yes, No |
-| Enable Save States | Should save states be enabled or disabled | Yes, No |
 | Save States Autoload | Load save state when any fighter dies | Yes, No |
-| Frame Advantage | Display the time difference between when the player is actionable and the CPU is actionable | Yes, No |
-| Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects | Yes, No |
-| Input Delay | Frames to delay player inputs by | 0 to 10 frames (0.167 seconds) |
-| Stage Hazards | Should stage hazards be present | Yes, No |
-| HUD | Turn UI on or off | Yes, No |
+| Save Damage (CPU) | What to use for CPU's damage on save state load | Default, Save State, Random |
+| Damage Range (CPU) | Random percentage for save state load for CPU | 0 to 150 % |
+| Save Damage (Player) | What to use for player's damage on save state load | Default, Save State, Random |
+| Damage Range (Player) | Random percentage for save state load for player | 0 to 150 % |
+| Enable Save States | Should save states be enabled or disabled | Yes, No |
+| Character Item | CPU/Player item to hold when loading a save state | None, Player 1st Variation througher 8th variation, CPU 1st variation through 8th variation 
+| Buff Options | Buff(s) to be applied to respective character when loading save states | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
 
 </details>
 
-
-
-## Stage Hazards
-
-Set stage hazards on or off in Training Mode! Use this to practice on tournament legal stages with hazards.
-
-## Save States
+#### Save States
 
 At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. With the mirroring setting, loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
 
@@ -182,7 +184,7 @@ With the following attributes applied according to the menu selection when loadi
   - Wii Fit Trainer: Deep breathing
 - Character item
 
-The following table lists the available items to be loaded:
+<details><summary>Click here to see the available items to be loaded.</summary>
 
 | Fighter | Item Variation 1 | Item Variation 2 | Item Variation 3 | Item Variation 4 | Item Variation 5 | Item Variation 6 | Item Variation 7 | Item Variation 8 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -205,45 +207,43 @@ The following table lists the available items to be loaded:
 | Villager | Wood Chip | - | - | - | - | - | - | - |
 | Young Link | Bomb | - | - | - | - | - | - | - |
 
-<img src="./photos/FLy0xiw.gif">
+</details>
 
-## Input Delay
+
+
+### Miscellaneous Settings
+
+
+#### Stage Hazards
+
+Set stage hazards on or off in Training Mode! Use this to practice on tournament legal stages with hazards.
+
+#### Input Delay
 
 Practice with emulated extra input delay, in frames. Use this to practice with online's default delay, which is typically 4-5 frames.
 
-## Frame Advantage
+#### Frame Advantage
 
 Practice moves on shield to find out the frame advantage of the moves performed. Best used with Shield Toggles set to Infinite.
 
-## Hitbox Visualization
+#### Hitbox Visualization
 
 Currently, hitboxes and grabboxes are supported. When visualization is active, other move effects are temporarily turned off for easier visualization.
 
-## CPU Behavior
+<img src="./photos/misc_settings.png">
+<details><summary>Click here for setting descriptions...</summary>
 
-The CPU can be instructed to perform a wide array of different actions in response to particular situations. The following situations are available:
+| Feature | Description | Options |
+|:---:|:---|:---|
+| Frame Advantage | Display the time difference between when the player is actionable and the CPU is actionable | Yes, No |
+| Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects | Yes, No |
+| Input Delay | Frames to delay player inputs by | 0 to 10 frames (0.167 seconds) |
+| Stage Hazards | Should stage hazards be present | Yes, No |
+| HUD | Turn UI on or off | Yes, No |
 
-- Mash: To be performed after being hit or shielding an attack
-- Followup: To be performed as soon as possible after the mash option
-- Ledge: To be performed when hanging on the ledge
-- Tech: To be performed when slammed into the ground or wall
-- Miss Tech: To be performed after failing to tech
+</details>
 
-The timing of the CPU option can be influenced by the following settings:
 
-- Mash Triggers
-- Aerial Delay
-- Ledge Delay
-- OoS Offset
-- Reaction Time
-- Fast Fall Delay
-- Falling Aerials
-
------
-
-## Menu Settings
-
-When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `Y` button. All menus can be reset to the default by pressing the `Z`/`ZR` button. These defaults can be saved upon exiting the menu by pressing `X` when in-menu. Use this to make a preset that fits your personal training style.
 
 <a name="installation"/>
 
@@ -400,3 +400,17 @@ To build the entire modpack including supporting files, use the steps in the [Gi
 
 ## Prerequisites
 - Stable Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
+
+<a name="beta-changelog"/>
+
+# Beta Changelog
+These are the features that can be found [in the latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta) that are not in the stable release. 
+
+### Features
+N/A
+
+### Bugfixes
+N/A
+
+### Adjustments
+N/A
