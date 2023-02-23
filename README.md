@@ -54,12 +54,83 @@ The features in this modpack are configured through the menu, which can be acces
 - Displays additional information onscreen
 - Controls CPU behavior
 
+## Mash Settings
 <img src="./photos/mash_settings.png">
+<details><summary>Click here for setting descriptions...</summary>
+
+| Feature | Description | Options |
+|:---:|:---|:---|
+| Mash Toggles | Actions to be performed as soon as possible out of hitstun or shieldstun | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
+| Followup Toggles | Actions to be performed after the Mash option | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
+| Mash Triggers | Conditions which will cause the CPU to perform their mash action | Hitstun, shieldstun, parry, tumble, landing, ledge trump, footstool, clatter, ledge option, tech option, grounded, airborne, distance: close, distance: mid, distance: far, always |
+| Attack Angles | For attacks that can be angled, such as some forward tilts | Neutral, up, down |
+| Throw Options | Throw to be performed when a grab is landed | None, Forward Throw, Back Throw, Up Throw, Down Throw |
+| Throw Delay | How many frames to delay the throw option | 0 to 150 frames (2.5 seconds) in increments of 5 frames |
+| Pummel Delay | How many frames after a grab to wait before starting to pummel | 0 to 150 frames (2.5 seconds) in increments of 5 frames |
+| Falling Aerials | Should aerials be performed when rising or when falling | Yes, No |
+| Full Hop | Should the CPU perform a full hop or a short hop | Yes, No |
+| Aerial Delay | How long to delay a Mash aerial attack | 0 to 30 frames (0.5 seconds) |
+| Fast Fall | Should the CPU fastfall during a jump | Yes, No |
+| Fast Fall Delay | How many frames the CPU should delay their fastfall | 0 to 30 frames (0.5 seconds) |
+| OoS Offset | How many times the CPU shield can be hit before performing a Mash option | 0 to 30 hits |
+| Reaction Time | How many frames to delay before performing an option out of shield | 0 to 30 frames (0.5 seconds) |
+
+
+</details>
+
+## Defensive Settings
 <img src="./photos/defensive_settings.png">
+<details><summary>Click here for setting descriptions...</summary>
+
+| Feature | Description | Options |
+|:---:|:---|:---|
+| Airdodge Direction | Direction to angle airdodges | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
+| DI Direction | Direction to angle the directional influence during hitlag | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
+| SDI Direction | Direction to angle the smash directional influence during hitlag | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
+| SDI Strength | Relative strength of the smash directional influence inputs | None, Normal (8 frames between inputs), Medium (6 frames), High (4 frames) |
+| Clatter Strength | Relative strength of mashing out of grabs, buries, etc. | None, Normal (8 frames between inputs), Medium (6 frames), High (4 frames) |
+| Ledge Options | Actions to be taken when on the ledge | Neutral getup, ledge roll, ledge attack, wait |
+| Ledge Delay | How many frames to delay the ledge option | 0 to 300 frames (5 seconds) in increments of 10 frames |
+| Tech Options | Actions to take when slammed into a hard surface | Miss tech, tech in place, tech roll in, tech roll out |
+| Mistech Options | Actions to take after missing a tech | Neutral getup, getup attack, roll in, roll out |
+| Shield Toggles | CPU Shield Behavior | None, Infinite (no shield damage or decay), Hold (no shield decay until the shield is hit for the first time), Constant (no shield decay) |
+| Shield Tilt | Direction to tilt the shield | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
+
+</details>
+
+## Save State Settings
 <img src="./photos/save_states.png">
 <img src="./photos/damage_range.png">
+<details><summary>Click here for setting descriptions...</summary>
+
+| Feature | Description | Options |
+|:---:|:---|:---|
+| Buff Options | Buff(s) to be applied to respective character when loading save states | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
+| Character Item | CPU/Player item to hold when loading a save state | None, Player 1st Variation througher 8th variation, CPU 1st variation through 8th variation |
+
+</details>
+
+
+## Miscellaneous Settings
+
 <img src="./photos/misc_settings.png">
 <img src="./photos/mash_triggers.png">
+<details><summary>Click here for setting descriptions...</summary>
+
+| Feature | Description | Options |
+|:---:|:---|:---|
+| Mirroring | Flips save states in the left-right direction across the stage center | None, Alternate, Random |
+| Save Damage | Should save states retain player/CPU damage | Yes, No |
+| Enable Save States | Should save states be enabled or disabled | Yes, No |
+| Save States Autoload | Load save state when any fighter dies | Yes, No |
+| Frame Advantage | Display the time difference between when the player is actionable and the CPU is actionable | Yes, No |
+| Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects | Yes, No |
+| Input Delay | Frames to delay player inputs by | 0 to 10 frames (0.167 seconds) |
+| Stage Hazards | Should stage hazards be present | Yes, No |
+| HUD | Turn UI on or off | Yes, No |
+
+</details>
+
 
 
 ## Stage Hazards
@@ -173,49 +244,7 @@ The timing of the CPU option can be influenced by the following settings:
 
 ## Menu Settings
 
-When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `X` button. All menus can be reset to the default by pressing the `L` button. These defaults can be saved upon exiting the menu by pressing `R` when in-menu. Use this to make a preset that fits your personal training style.
-
-
-| Tab | Feature | Description | Options |
-|:---:|:---:|:---|:---|
-| Mash Settings | Mash Toggles | Actions to be performed as soon as possible out of hitstun or shieldstun | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
-| Mash Settings | Followup Toggles | Actions to be performed after the Mash option | Airdodge, jump, shield, spotdodge, roll in, roll out, aerials, jab, tilts, smash attacks, grab, dash, dash attack |
-| Mash Settings | Mash Triggers | Conditions which will cause the CPU to perform their mash action | Hitstun, shieldstun, parry, tumble, landing, ledge trump, footstool, clatter, ledge option, tech option, grounded, airborne, distance: close, distance: mid, distance: far, always |
-| Mash Settings | Attack Angles | For attacks that can be angled, such as some forward tilts | Neutral, up, down |
-| Mash Settings | Throw Options | Throw to be performed when a grab is landed | None, Forward Throw, Back Throw, Up Throw, Down Throw |
-| Mash Settings | Throw Delay | How many frames to delay the throw option | 0 to 150 frames (2.5 seconds) in increments of 5 frames |
-| Mash Settings | Pummel Delay | How many frames after a grab to wait before starting to pummel | 0 to 150 frames (2.5 seconds) in increments of 5 frames |
-| Mash Settings | Falling Aerials | Should aerials be performed when rising or when falling | Yes, No |
-| Mash Settings | Full Hop | Should the CPU perform a full hop or a short hop | Yes, No |
-| Mash Settings | Aerial Delay | How long to delay a Mash aerial attack | 0 to 30 frames (0.5 seconds) |
-| Mash Settings | Fast Fall | Should the CPU fastfall during a jump | Yes, No |
-| Mash Settings | Fast Fall Delay | How many frames the CPU should delay their fastfall | 0 to 30 frames (0.5 seconds) |
-| Mash Settings | OoS Offset | How many times the CPU shield can be hit before performing a Mash option | 0 to 30 hits |
-| Mash Settings | Reaction Time | How many frames to delay before performing an option out of shield | 0 to 30 frames (0.5 seconds) |
-| ----- | ----- | ----- | ----- |
-| Defensive Settings | Airdodge Direction | Direction to angle airdodges | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
-| Defensive Settings | DI Direction | Direction to angle the directional influence during hitlag | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
-| Defensive Settings | SDI Direction | Direction to angle the smash directional influence during hitlag | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
-| Defensive Settings | SDI Strength | Relative strength of the smash directional influence inputs | None, Normal (8 frames between inputs), Medium (6 frames), High (4 frames) |
-| Defensive Settings | Clatter Strength | Relative strength of mashing out of grabs, buries, etc. | None, Normal (8 frames between inputs), Medium (6 frames), High (4 frames) |
-| Defensive Settings | Ledge Options | Actions to be taken when on the ledge | Neutral getup, ledge roll, ledge attack, wait |
-| Defensive Settings | Ledge Delay | How many frames to delay the ledge option | 0 to 300 frames (5 seconds) in increments of 10 frames |
-| Defensive Settings | Tech Options | Actions to take when slammed into a hard surface | Miss tech, tech in place, tech roll in, tech roll out |
-| Defensive Settings | Mistech Options | Actions to take after missing a tech | Neutral getup, getup attack, roll in, roll out |
-| Defensive Settings | Shield Toggles | CPU Shield Behavior | None, Infinite (no shield damage or decay), Hold (no shield decay until the shield is hit for the first time), Constant (no shield decay) |
-| Defensive Settings | Shield Tilt | Direction to tilt the shield | Neutral, out, up-out, up, up-in, in, down-in, down, down-out, left, right |
-| Defensive Settings | Buff Options | Buff(s) to be applied to respective character when loading save states | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
-| Defensive Settings | Character Item | CPU/Player item to hold when loading a save state | None, Player 1st Variation througher 8th variation, CPU 1st variation through 8th variation |
-| ----- | ----- | ----- | ----- |
-| Misc Settings | Mirroring | Flips save states in the left-right direction across the stage center | None, Alternate, Random |
-| Misc Settings | Save Damage | Should save states retain player/CPU damage | Yes, No |
-| Misc Settings | Enable Save States | Should save states be enabled or disabled | Yes, No |
-| Misc Settings | Save States Autoload | Load save state when any fighter dies | Yes, No |
-| Misc Settings | Frame Advantage | Display the time difference between when the player is actionable and the CPU is actionable | Yes, No |
-| Misc Settings | Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects | Yes, No |
-| Misc Settings | Input Delay | Frames to delay player inputs by | 0 to 10 frames (0.167 seconds) |
-| Misc Settings | Stage Hazards | Should stage hazards be present | Yes, No |
-| Misc Settings | HUD | Turn UI on or off | Yes, No |
+When multiple options are selected, one of the selected options will be chosen at random. Open / focused menus can be reset by pressing the `Y` button. All menus can be reset to the default by pressing the `Z`/`ZR` button. These defaults can be saved upon exiting the menu by pressing `X` when in-menu. Use this to make a preset that fits your personal training style.
 
 <a name="installation"/>
 
