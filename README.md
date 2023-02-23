@@ -1,7 +1,8 @@
-<p align="center">
-<img src="./photos/character_item.gif">
-<img src="./photos/mash_trigger_tumble.gif">
-</p>
+
+<img align="right" src="./photos/character_item.gif">
+<img align="right" width="620" src="./photos/mash_trigger_tumble.gif">
+
+<div align="center">
 
 # Ultimate Training Modpack Plugin
 
@@ -15,9 +16,12 @@
 
 A [Skyline](https://github.com/shadowninja108/Skyline) plugin using [cargo-skyline](https://github.com/jam1garner/cargo-skyline) for adding features to the training mode. It uses native Smash UI to provide a menu for customizing training options.
 
+</div>
+
 The latest stable release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest).
 
 The latest beta release can be found [here](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta).
+
 
 -  [Beta Changelog](#beta-changelog)
 
@@ -28,6 +32,7 @@ The latest beta release can be found [here](https://github.com/jugeeya/UltimateT
 -  [Frequently Asked Questions](#faq)
 
 -  [Build Instructions](#build)
+
 
 <a name="features"/>
 
