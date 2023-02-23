@@ -53,13 +53,13 @@ The features in this modpack are configured through the menu, which can be acces
 - Displays additional information onscreen
 - Controls CPU behavior
 
-<img src="./photos/2022051021130700-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
+<img src="./photos/mash_settings.png">
+<img src="./photos/defensive_settings.png">
+<img src="./photos/save_states.png">
+<img src="./photos/damage_range.png">
+<img src="./photos/misc_settings.png">
+<img src="./photos/mash_triggers.png">
 
-<img src="./photos/2022060221360900-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
-
-<img src="./photos/2022060221415900-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
-
-<img src="./photos/2022051021134700-0E7DF678130F4F0FA2C88AE72B47AFDF.jpg">
 
 ## Stage Hazards
 
@@ -214,6 +214,7 @@ When multiple options are selected, one of the selected options will be chosen a
 | Misc Settings | Hitbox Visualization | Should hitboxes be displayed, hiding other visual effects | Yes, No |
 | Misc Settings | Input Delay | Frames to delay player inputs by | 0 to 10 frames (0.167 seconds) |
 | Misc Settings | Stage Hazards | Should stage hazards be present | Yes, No |
+| Misc Settings | HUD | Turn UI on or off | Yes, No |
 
 <a name="installation"/>
 
@@ -231,43 +232,9 @@ SD Card Root
 └── atmosphere
     └── contents
         └── 01006A800016E000
-            ├── manual_html
-            │   └── html-document
-            │       └── training_modpack.htdocs
-            │           ├── img
-            │           │   ├── aerial_delay.svg
-            │           │   ├── air_dodge_dir.svg
-            │           │   ├── attack_angle.svg
-            │           │   ├── buff_state.svg
-            │           │   ├── check.svg
-            │           │   ├── clatter_strength.svg
-            │           │   ├── di_state.svg
-            │           │   ├── falling_aerials.svg
-            │           │   ├── fast_fall.svg
-            │           │   ├── fast_fall_delay.svg
-            │           │   ├── follow_up.svg
-            │           │   ├── frame_advantage.svg
-            │           │   ├── full_hop.svg
-            │           │   ├── input_delay.svg
-            │           │   ├── ledge_delay.svg
-            │           │   ├── ledge_state.svg
-            │           │   ├── mash_state.svg
-            │           │   ├── mash_triggers.svg
-            │           │   ├── miss_tech_state.svg
-            │           │   ├── oos_offset.svg
-            │           │   ├── pummel_delay.svg
-            │           │   ├── reaction_time.svg
-            │           │   ├── save_damage.svg
-            │           │   ├── save_state_enable.svg
-            │           │   ├── save_state_mirroring.svg
-            │           │   ├── sdi_state.svg
-            │           │   ├── sdi_strength.svg
-            │           │   ├── shield_state.svg
-            │           │   ├── shield_tilt.svg
-            │           │   ├── stage_hazards.svg
-            │           │   ├── tech_state.svg
-            │           │   ├── throw_delay.svg
-            │           │   └── throw_state.svg
+            └── exefs
+                ├── subsdk9 
+                ├── main.npdm
             └── romfs
                 └── skyline
                     └── plugins
