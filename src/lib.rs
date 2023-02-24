@@ -107,7 +107,7 @@ pub fn main() {
             });
         }
         fs::remove_dir_all(LEGACY_TRAINING_MODPACK_ROOT)
-            .expect("Could not delete legacy Training Modpack folder!");
+            .unwrap_or_else(|e| error!("Could not delete legacy Training Modpack folder with error {e}"));
     }
 
     info!("Performing version check...");
