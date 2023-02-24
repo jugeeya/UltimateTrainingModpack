@@ -105,6 +105,22 @@ The CPU can be instructed to perform a wide array of different actions in respon
 - Ledge: To be performed when hanging on the ledge
 - Tech: To be performed when slammed into the ground or wall
 - Miss Tech: To be performed after failing to tech
+- Hitstun
+- Shieldstun
+- Parry
+- Tumble
+- Landing
+- Ledge Trump
+- Footstool
+- Clatter ("Mashing out" of grabs, freeze, bury, etc.)
+- Ledge Option
+- Tech Option
+- Grounded
+- Airborne
+- Distance: Close
+- Distance: Mid
+- Distance: Far
+- Always
 
 The timing of the CPU option can be influenced by the following settings:
 
@@ -265,15 +281,15 @@ To install the training modpack, download the .zip file from the [latest release
 
 ```
 SD Card Root
-└── atmosphere
-    └── contents
-        └── 01006A800016E000
-            └── exefs
-                ├── subsdk9 
-                ├── main.npdm
-            └── romfs
-                └── skyline
-                    └── plugins
+└── atmosphere/
+    └── contents/
+        └── 01006A800016E000/
+            ├── exefs/
+            │   ├── subsdk9 
+            │   └── main.npdm
+            └── romfs/
+                └── skyline/
+                    └── plugins/
                         ├── libnn_hid_hook.nro
                         ├── libnro_hook.nro
                         ├── libparam_hook.nro
