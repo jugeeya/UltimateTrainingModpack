@@ -343,23 +343,10 @@ pub unsafe fn draw(root_pane: &mut Pane) {
     // Update menu display
     // Grabbing lock as read-only, essentially
     let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
-
-    if let Some(quit_button) = root_pane.find_pane_by_name_recursive("btn_finish") {
-        // Normally at (-804, 640)
-        // Comes down to (-804, 514)
-        if QUICK_MENU_ACTIVE {
-            quit_button.pos_y = 514.0;
-        }
-
+    if let Some(quit_button) = root_pane.find_pane_by_name_recursive("TrModTitle") {
         for quit_txt_s in &["set_txt_00", "set_txt_01"] {
             if let Some(quit_txt) = quit_button.find_pane_by_name_recursive(quit_txt_s) {
-                quit_txt.as_textbox().set_text_string(if QUICK_MENU_ACTIVE {
-                    "Modpack Menu"
-                } else {
-                    // Awkward. We should get the o.g. translation for non-english games
-                    // Or create our own textbox here so we don't step on their toes.
-                    "Quit Training"
-                });
+                quit_txt.as_textbox().set_text_string("Modpack Menu");
             }
         }
     }
