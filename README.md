@@ -274,10 +274,20 @@ Currently, hitboxes and grabboxes are supported. When visualization is active, o
 
 The training modpack requires the following prerequisite packages:
 
-* Atmosphere: https://github.com/Atmosphere-NX/Atmosphere/releases
 * Skyline: https://github.com/skyline-dev/skyline/releases
+  * This is a generic code mod loader for Nintendo Switch games that the Training Modpack uses.
 
-To install the training modpack, download the .zip file from the [latest release page](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest). Extract the files from the .zip file using the file explorer on Windows or Mac, or a program such as 7-zip (windows) or unzip (Linux). Then transfer the extracted contents (atmosphere folder) onto the root of your SD card, merging the /atmosphere folder with the one on your SD card. No files need to be manually deleted when upgrading from a previous version. The SD card should have the below files at these locations.
+To install the Training Modpack, download the .zip file from the [latest release page](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest). Extract the files from the .zip file using the file explorer on Windows or Mac, or a program such as 7-zip (windows) or unzip (Linux). 
+
+## Installation on Nintendo Switch
+
+* Atmosphere: https://github.com/Atmosphere-NX/Atmosphere/releases
+  * This is the custom firmware that is required for any hacked Switch. One great guide for installation here can be found at https://switch.homebrew.guide/.
+
+1) Transfer the extracted contents of the TrainingModpack .zip (`atmosphere` folder) onto the root of your SD card, merging the `/atmosphere` folder with the one on your SD card. 
+2) Similarly, transfer the extracted contents of the Skyline .zip (`exefs` folder) into `sd:/atmosphere/contents/01006A800016E000`.
+3) No files need to be manually deleted when upgrading from a previous version. 
+4) The The SD card should have the below files at these locations.
 
 ```
 SD Card Root
@@ -296,25 +306,53 @@ SD Card Root
                         └── libtraining_modpack.nro
 ```
 
+## Installation on Ryujinx Emulator on PC
+Exact same process as above, but the filepaths are in Ryujinx's mod paths.
+
+1) Extract the contents of the TrainingModpack .zip (`atmosphere` folder). Within that folder, you'll have a `contents` folder. Paste the `contents` folder inside atmosphere into `%AppData%/Ryujinx/mods/`.
+2) Similarly, extracted contents of the Skyline .zip (`exefs` folder) into into `%AppData%/Ryujinx/mods/contents/01006a800016e000`.
+3) No files need to be manually deleted when upgrading from a previous version. 
+4) The Ryujinx mods folder should have the files below at these locations.
+
+```
+%AppData%
+└── Ryujinx/
+    └── mods/
+      └── contents/
+          └── 01006A800016E000/
+              ├── exefs/
+              │   ├── subsdk9 
+              │   └── main.npdm
+              └── romfs/
+                  └── skyline/
+                      └── plugins/
+                          ├── libnn_hid_hook.nro
+                          ├── libnro_hook.nro
+                          ├── libparam_hook.nro
+                          └── libtraining_modpack.nro
+```
+
+## Beta Installation
+
 To install a beta version of the modpack, follow the same procedure using the [latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta) on Github. Beta releases may have additional features and bugfixes, but are subject to change.
 
 <a name="faq"/>
 
 # Frequently Asked Questions
 
-1. **There was a switch update, can I install it?**
+1. **There was a Switch update, can I install it?**
 
-   Whenever there is a switch update, you will need to update Atmosphere as well. To continue playing with mods, you should not install switch updates until there is a corresponding Atmosphere update. If you accidentally update your switch and there isn't an atmosphere update available yet, you can continue playing without mods by turning your switch fully off (hold the power button) then turning it back on normally.
-2. **There was a smash update, can I install it?**
+   Whenever there is a Switch update, you will need to update Atmosphere as well. To continue playing with mods, you should not install switch updates until there is a corresponding Atmosphere update. If you accidentally update your switch and there isn't an atmosphere update available yet, you can continue playing without mods by turning your switch fully off (hold the power button) then turning it back on normally.
+2. **There was a Smash update, can I install it?**
 
-   Yes, you can install updates to smash. The training modpack is generally resistant to changes in the game, so smash itself can be safely updated.
-3. **Can my switch run the Training Modpack?**
+   Yes, you can install updates to Smash. The training modpack is generally resistant to changes in the game, so Smash itself can be safely updated.
+3. **Can my Switch run the Training Modpack?**
 
-   Depending on when your switch was manufactured, the exploits used to allow access to mods may or may not be patched and it may be possible for you to run mods like the Training Modpack on your switch. Enter the serial number of your switch into https://ismyswitchpatched.com/ to determine if your switch can be modded or not.
-4. **My switch is patched, can I still install the Training Modpack?**
+   Depending on when your Switch was manufactured, the exploits used to allow access to mods may or may not be patched and it may be possible for you to run mods like the Training Modpack on your switch. Enter the serial number of your switch into https://ismyswitchpatched.com/ to determine if your switch can be modded or not.
+4. **My Switch is patched, can I still install the Training Modpack?**
 
-   No, your switch cannot run the Training Modpack. Only units that were manufactured before a certain point can run custom firmware and game mods.
-5. **My switch is "Possibly Patched", can I still install the Training Modpack?**
+   No, your Switch cannot run the Training Modpack. Only units that were manufactured before a certain point can run custom firmware and game mods.
+5. **My Switch is "Possibly Patched", can I still install the Training Modpack?**
 
    Possibly - it is not known whether your switch has the hardware patch installed or not. However, you can find out with no risk by completing the installation steps through step 12. If your switch launches into Atmosphere, then it is unpatched and you can run mods. If Tegra gives the message "Smashed the stack with a 0x0000 byte SETUP request!", then your switch is patched and cannot run mods.
 6. **Do I need an emuMMC?**
@@ -322,11 +360,11 @@ To install a beta version of the modpack, follow the same procedure using the [l
    No, an emuMMC is not required for smash mods. Using an emuMMC is complicated and a known ban risk when connected online, so it is not recommended.
 7. **Can this mod be run on emulators?**
 
-   There is experimental support the Training Modpack on Ryujinx. Yuzu does not support Skyline (a prerequisite for loading the Training Modpack), so it cannot run the Training Modpack at this time.
+   Yes, using Ryujinx! See the installation instructions for more information. Yuzu does not support Skyline (a prerequisite for loading the Training Modpack), so it cannot run the Training Modpack at this time.
 8. **How do I know that I installed the Training Modpack correctly?**
 
-   When launching smash for the first time after installing the Training Modpack, you should receive a pop up notification confirming that you've installed it correctly. You can also check your SD card to make sure that you have all of the files installed in the correct location. If you have the following files, its likely that everything else is installed correctly as well. `SD:/atmosphere/contents/01006A800016E000/exefs/main.npdm`, `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`
-9.  **How do I launch smash without the Training Modpack?**
+   When launching Smash for the first time after installing the Training Modpack, you should receive a pop up notification confirming that you've installed it correctly. You can also check your SD card to make sure that you have all of the files installed in the correct location. If you have the following files, its likely that everything else is installed correctly as well. `SD:/atmosphere/contents/01006A800016E000/exefs/main.npdm`, `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`, etc.
+9.  **How do I launch Smash without the Training Modpack?**
 
     Hold the `L` button as you are launching smash.
 10. **I can launch smash, but the mod doesn't seem to be doing anything in training mode?**
