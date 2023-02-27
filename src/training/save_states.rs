@@ -17,6 +17,7 @@ use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
+use crate::common::consts::SAVE_STATES_TOML_PATH;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
@@ -38,6 +39,7 @@ enum SaveState {
     Save,
     NoAction,
     KillPlayer,
+    WaitForAlive,
     PosMove,
     NanaPosMove,
     ApplyBuff,
@@ -114,14 +116,13 @@ pub fn load_from_file() -> SaveStateSlots {
         cpu: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
     };
 
-    let save_states_path = "sd:/TrainingModpack/save_states.toml";
-    info!("Checking for previous save state settings in save_states.toml...");
-    if std::fs::metadata(save_states_path).is_err() {
+    info!("Checking for previous save state settings in {SAVE_STATES_TOML_PATH}...");
+    if std::fs::metadata(SAVE_STATES_TOML_PATH).is_err() {
         return defaults;
     }
 
     info!("Previous save state settings found. Loading...");
-    if let Ok(data) = std::fs::read_to_string(save_states_path) {
+    if let Ok(data) = std::fs::read_to_string(SAVE_STATES_TOML_PATH) {
         let input_slots = toml::from_str::<SaveStateSlots>(&data);
         if let Ok(input_slots) = input_slots {
             return input_slots;
@@ -134,7 +135,7 @@ pub fn load_from_file() -> SaveStateSlots {
 pub unsafe fn save_to_file() {
     let save_states_str = toml::to_string_pretty(&*SAVE_STATE_SLOTS.data_ptr())
         .expect("Error serializing save state information");
-    std::fs::write("sd:/TrainingModpack/save_states.toml", save_states_str)
+    std::fs::write(SAVE_STATES_TOML_PATH, save_states_str)
         .expect("Could not write save state information to file");
 }
 
@@ -151,7 +152,8 @@ unsafe fn save_state_cpu() -> &'static mut SavedState {
 static mut MIRROR_STATE: f32 = 1.0;
 
 pub unsafe fn is_killing() -> bool {
-    save_state_player().state == KillPlayer || save_state_cpu().state == KillPlayer
+    (save_state_player().state == KillPlayer || save_state_player().state == WaitForAlive)
+        || (save_state_cpu().state == KillPlayer || save_state_cpu().state == WaitForAlive)
 }
 
 pub unsafe fn is_loading() -> bool {
@@ -190,7 +192,7 @@ pub unsafe fn get_param_int(
         if param_hash == hash40("rebirth_move_frame") {
             return Some(0);
         }
-        if param_hash == hash40("rebirth_move_frame_trainer") && is_killing() {
+        if param_hash == hash40("rebirth_move_frame_trainer") && is_loading() {
             return Some(0);
         }
         if param_hash == hash40("rebirth_wait_frame") {
@@ -205,7 +207,7 @@ pub unsafe fn get_param_int(
     }
     if param_type == hash40("param_mball")
         && param_hash == hash40("change_fly_frame")
-        && is_killing()
+        && is_loading()
     {
         return Some(0);
     }
@@ -265,6 +267,62 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
         let ptrainer_masterball_module_accessor =
             &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
+    }
+}
+
+unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectModuleAccessor) {
+    SoundModule::stop_all_sound(module_accessor);
+    // Try moving off-screen so we don't see effects.
+    let pos = Vector3f {
+        x: -300.0,
+        y: -100.0,
+        z: 0.0,
+    };
+    PostureModule::set_pos(module_accessor, &pos);
+
+    // All articles have ID <= 0x25
+    (0..=0x25)
+        // Don't remove crafting table
+        .filter(|article_idx| {
+            !(fighter_kind == *FIGHTER_KIND_PICKEL
+                && *article_idx == *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE)
+        })
+        .for_each(|article_idx| {
+            if ArticleModule::is_exist(module_accessor, article_idx) {
+                let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
+                let article_object_id = Article::get_battle_object_id(article as *mut app::Article);
+                ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
+            }
+        });
+    let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+    (0..ItemManager::get_num_of_active_item_all(item_mgr)).for_each(|item_idx| {
+        let item = ItemManager::get_active_item(item_mgr, item_idx);
+        if item != 0 {
+            let item = item as *mut Item;
+            let item_battle_object_id = app::lua_bind::Item::get_battle_object_id(item) as u32;
+            ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
+        }
+    });
+    MotionAnimcmdModule::set_sleep(module_accessor, true);
+    SoundModule::pause_se_all(module_accessor, true);
+    ControlModule::stop_rumble(module_accessor, true);
+    SoundModule::stop_all_sound(module_accessor);
+    // Return camera to normal when loading save state
+    SlowModule::clear_whole(module_accessor);
+    CameraModule::zoom_out(module_accessor, 0);
+    // Remove blue effect (but does not remove darkened screen)
+    EffectModule::kill_kind(
+        module_accessor,
+        Hash40::new("sys_bg_criticalhit"),
+        false,
+        false,
+    );
+    // Removes the darkened screen from special zooms
+    // If there's a crit that doesn't get removed, it's likely bg_criticalhit2.
+    EffectModule::remove_screen(module_accessor, Hash40::new("bg_criticalhit"), 0);
+    // Remove all quakes to prevent screen shake lingering through load.
+    for quake_kind in *CAMERA_QUAKE_KIND_NONE..=*CAMERA_QUAKE_KIND_MAX {
+        CameraModule::stop_quake(module_accessor, quake_kind);
     }
 }
 
@@ -354,76 +412,28 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
-    // move to camera bounds
+    // Kill the fighter and move them to camera bounds
     if save_state.state == KillPlayer {
         on_ptrainer_death(module_accessor);
-        SoundModule::stop_all_sound(module_accessor);
-        if status == FIGHTER_STATUS_KIND_REBIRTH || status == FIGHTER_STATUS_KIND_WAIT {
-            save_state.state = PosMove;
-        } else if !is_dead(module_accessor) && !fighter_is_nana {
+        if !is_dead(module_accessor) &&
             // Don't kill Nana again, since she already gets killed by the game from Popo's death
-            // Try moving off-screen so we don't see effects.
-            let pos = Vector3f {
-                x: -300.0,
-                y: -100.0,
-                z: 0.0,
-            };
-            PostureModule::set_pos(module_accessor, &pos);
-
-            // All articles have ID <= 0x25
-            (0..=0x25)
-                // Don't remove crafting table
-                .filter(|article_idx| {
-                    !(fighter_kind == *FIGHTER_KIND_PICKEL
-                        && *article_idx == *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE)
-                })
-                .for_each(|article_idx| {
-                    if ArticleModule::is_exist(module_accessor, article_idx) {
-                        let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
-                        let article_object_id =
-                            Article::get_battle_object_id(article as *mut app::Article);
-                        ArticleModule::remove_exist_object_id(
-                            module_accessor,
-                            article_object_id as u32,
-                        );
-                    }
-                });
-            let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
-            (0..ItemManager::get_num_of_active_item_all(item_mgr)).for_each(|item_idx| {
-                let item = ItemManager::get_active_item(item_mgr, item_idx);
-                if item != 0 {
-                    let item = item as *mut Item;
-                    let item_battle_object_id =
-                        app::lua_bind::Item::get_battle_object_id(item) as u32;
-                    ItemManager::remove_item_from_id(item_mgr, item_battle_object_id);
-                }
-            });
-            MotionAnimcmdModule::set_sleep(module_accessor, true);
-            SoundModule::pause_se_all(module_accessor, true);
-            ControlModule::stop_rumble(module_accessor, true);
-            SoundModule::stop_all_sound(module_accessor);
-            // Return camera to normal when loading save state
-            SlowModule::clear_whole(module_accessor);
-            CameraModule::zoom_out(module_accessor, 0);
-            // Remove blue effect (but does not remove darkened screen)
-            EffectModule::kill_kind(
-                module_accessor,
-                Hash40::new("sys_bg_criticalhit"),
-                false,
-                false,
-            );
-            // Removes the darkened screen from special zooms
-            // If there's a crit that doesn't get removed, it's likely bg_criticalhit2.
-            EffectModule::remove_screen(module_accessor, Hash40::new("bg_criticalhit"), 0);
-            // Remove all quakes to prevent screen shake lingering through load.
-            for quake_kind in *CAMERA_QUAKE_KIND_NONE..=*CAMERA_QUAKE_KIND_MAX {
-                CameraModule::stop_quake(module_accessor, quake_kind);
-            }
-
+            !fighter_is_nana
+        {
+            on_death(fighter_kind, module_accessor);
             StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         }
 
+        save_state.state = WaitForAlive;
+
         return;
+    }
+
+    if save_state.state == WaitForAlive {
+        on_ptrainer_death(module_accessor);
+        if !is_dead(module_accessor) && !fighter_is_nana {
+            on_death(fighter_kind, module_accessor);
+            save_state.state = PosMove;
+        }
     }
 
     // move to correct pos
@@ -596,6 +606,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         MIRROR_STATE = 1.0;
         save_state_player().state = Save;
         save_state_cpu().state = Save;
+        notifications::clear_notifications("Save State");
+        notifications::notification(
+            "Save State".to_string(),
+            format!("Saved Slot {SAVE_STATE_SLOT}"),
+            120,
+        );
     }
 
     if save_state.state == Save && !fighter_is_nana {

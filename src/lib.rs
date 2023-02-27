@@ -4,23 +4,25 @@
 #![feature(once_cell)]
 #![feature(c_variadic)]
 #![allow(
-clippy::borrow_interior_mutable_const,
-clippy::declare_interior_mutable_const,
-clippy::not_unsafe_ptr_arg_deref,
-clippy::missing_safety_doc,
-clippy::wrong_self_convention,
-clippy::option_map_unit_fn,
-clippy::fn_null_check,
-clippy::transmute_num_to_bytes
+    clippy::borrow_interior_mutable_const,
+    clippy::declare_interior_mutable_const,
+    clippy::not_unsafe_ptr_arg_deref,
+    clippy::missing_safety_doc,
+    clippy::wrong_self_convention,
+    clippy::option_map_unit_fn,
+    clippy::fn_null_check,
+    clippy::transmute_num_to_bytes
 )]
 
 use std::fs;
+use std::path::PathBuf;
 
-use skyline::libc::mkdir;
 use skyline::nro::{self, NroInfo};
+use training_mod_consts::LEGACY_TRAINING_MODPACK_ROOT;
 
-use crate::common::*;
 use crate::common::events::events_loop;
+use crate::common::*;
+use crate::consts::TRAINING_MODPACK_ROOT;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
 use crate::menu::quick_menu_loop;
@@ -45,12 +47,6 @@ fn nro_main(nro: &NroInfo<'_>) {
             training::tech::handle_change_status,
         );
     }
-}
-
-macro_rules! c_str {
-    ($l:tt) => {
-        [$l.as_bytes(), "\u{0}".as_bytes()].concat().as_ptr()
-    };
 }
 
 #[skyline::main(name = "training_modpack")]
@@ -79,8 +75,16 @@ pub fn main() {
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification("Open Menu".to_string(), "Special + Uptaunt".to_string(), 120);
-        notification("Save State".to_string(), "Grab + Downtaunt".to_string(), 120);
+        notification(
+            "Open Menu".to_string(),
+            "Special + Uptaunt".to_string(),
+            120,
+        );
+        notification(
+            "Save State".to_string(),
+            "Grab + Downtaunt".to_string(),
+            120,
+        );
         notification("Load State".to_string(), "Grab + Uptaunt".to_string(), 120);
     }
 
@@ -89,14 +93,21 @@ pub fn main() {
     training::training_mods();
     nro::add_hook(nro_main).unwrap();
 
-    unsafe {
-        mkdir(c_str!("sd:/TrainingModpack/"), 777);
-    }
+    fs::create_dir_all(TRAINING_MODPACK_ROOT)
+        .expect("Could not create Training Modpack root folder!");
 
-    let ovl_path = "sd:/switch/.overlays/ovlTrainingModpack.ovl";
-    if fs::metadata(ovl_path).is_ok() {
-        warn!("Removing ovlTrainingModpack.ovl...");
-        fs::remove_file(ovl_path).unwrap_or_else(|_| panic!("Could not remove {}", ovl_path))
+    // Migrate legacy if exists
+    if fs::metadata(LEGACY_TRAINING_MODPACK_ROOT).is_ok() {
+        for entry in fs::read_dir(LEGACY_TRAINING_MODPACK_ROOT).unwrap() {
+            let entry = entry.unwrap();
+            let src_path = &entry.path();
+            let dest_path = &PathBuf::from(TRAINING_MODPACK_ROOT).join(entry.file_name());
+            fs::rename(src_path, dest_path).unwrap_or_else(|e| {
+                error!("Could not move file from {src_path:#?} to {dest_path:#?} with error {e}")
+            });
+        }
+        fs::remove_dir_all(LEGACY_TRAINING_MODPACK_ROOT)
+            .unwrap_or_else(|e| error!("Could not delete legacy Training Modpack folder with error {e}"));
     }
 
     info!("Performing version check...");
