@@ -227,7 +227,7 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32)
                 BUTTON_PRESSES.up.is_pressed = true;
             }
 
-            // For digital triggers, if we see any trigger action it is likely a press
+            // For digital triggers: these at TRIGGER_MAX means we should consider a press
             if controller_is_gcc(*controller_id) {
                 if (*state).LTrigger == 0x7FFF {
                     BUTTON_PRESSES.l.is_pressed = true;
