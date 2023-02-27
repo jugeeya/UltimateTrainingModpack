@@ -24,7 +24,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache 
         with:
-          prefix-key: "checker"
+          prefix-key: "checker-2"
       - name: Clippy
         uses: actions-rs/cargo@v1
         continue-on-error: false
