@@ -181,7 +181,7 @@ pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
     },
 };
 
-pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
+pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32) {
     unsafe {
         let update_count = (*state).updateCount;
         let flags = (*state).Flags;
@@ -227,6 +227,17 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
                 BUTTON_PRESSES.up.is_pressed = true;
             }
 
+            // For digital triggers: these at TRIGGER_MAX means we should consider a press
+            if controller_is_gcc(*controller_id) {
+                if (*state).LTrigger == 0x7FFF {
+                    BUTTON_PRESSES.l.is_pressed = true;
+                }
+
+                if (*state).RTrigger == 0x7FFF {
+                    BUTTON_PRESSES.r.is_pressed = true;
+                }
+            }
+
             // If we're here, remove all other Npad presses...
             // Should we exclude the home button?
             (*state) = NpadGcState::default();
@@ -247,10 +258,14 @@ lazy_static! {
     );
 }
 
+pub unsafe fn controller_is_gcc(controller_id: u32) -> bool {
+    let style_set = GetNpadStyleSet(&controller_id as *const _);
+    (style_set.flags & (1 << 5)) > 0
+}
+
 pub unsafe fn p1_controller_is_gcc() -> bool {
     let p1_controller_id = crate::training::input_delay::p1_controller_id();
-    let p1_style_set = GetNpadStyleSet(&p1_controller_id as *const _);
-    (p1_style_set.flags & (1 << 5)) > 0
+    controller_is_gcc(p1_controller_id)
 }
 
 pub unsafe fn quick_menu_loop() {
