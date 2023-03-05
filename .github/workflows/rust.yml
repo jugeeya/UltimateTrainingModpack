@@ -200,7 +200,7 @@ jobs:
                                       ├── libparam_hook.nro
                                       └── libtraining_modpack.nro
             ``` 
-                      files: >
+          files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact
         uses: actions/upload-artifact@v1
