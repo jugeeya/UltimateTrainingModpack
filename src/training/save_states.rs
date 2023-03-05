@@ -423,6 +423,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         }
 
+        // Nana shouldn't control her state here. Popo will give a signal to have
+        // Nana move into NanaPosMove once he moves.
+        if fighter_is_nana {
+            return;
+        }
+
         save_state.state = WaitForAlive;
 
         return;
