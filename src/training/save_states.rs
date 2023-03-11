@@ -401,7 +401,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && save_state.state == NoAction
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
-    if !is_operation_cpu(module_accessor) {
+    if !is_operation_cpu(module_accessor) && !fighter_is_nana {
         triggered_reset = button_config::combo_passes_exclusive(
             module_accessor,
             button_config::ButtonCombo::LoadState,
@@ -419,12 +419,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Kill the fighter and move them to camera bounds
-    if save_state.state == KillPlayer {
+    if save_state.state == KillPlayer && !fighter_is_nana {
         on_ptrainer_death(module_accessor);
-        if !is_dead(module_accessor) &&
-            // Don't kill Nana again, since she already gets killed by the game from Popo's death
-            !fighter_is_nana
-        {
+        if !is_dead(module_accessor) {
             on_death(fighter_kind, module_accessor);
             StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         }
