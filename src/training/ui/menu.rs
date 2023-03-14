@@ -205,7 +205,7 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
 
                         icon
 
-                        .set_visible(id == &submenu.submenu_id);
+                        .set_visible(false);
 
                 }
 
