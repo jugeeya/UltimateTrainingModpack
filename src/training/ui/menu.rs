@@ -112,10 +112,13 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             // Hide all icon images, and strategically mark the icon that
             // corresponds with a particular button to be visible.
             submenu_ids.iter().for_each(|id| {
-                menu_button
-                    .find_pane_by_name_recursive(id)
-                    .unwrap()
+                // TODO: Break if ID not found on release
+                let icon = menu_button
+                    .find_pane_by_name_recursive(id);
+                if let Some(icon) = icon {
+                    icon
                     .set_visible(id == &submenu.submenu_id);
+                }
             });
 
             menu_button
