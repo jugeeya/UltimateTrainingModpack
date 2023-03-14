@@ -48,6 +48,7 @@ pub struct TrainingModpackMenu {
     pub save_damage_limits_player: DamagePercent,
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
+    pub save_state_slot_enable: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
     pub sdi_state: Direction,
     pub sdi_strength: SdiFrequency,
@@ -123,6 +124,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_damage_limits_player: DamagePercent::default(),
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
+    save_state_slot_enable: OnOff::On,
     save_state_mirroring: SaveStateMirroring::None,
     sdi_state: Direction::empty(),
     sdi_strength: SdiFrequency::None,
@@ -526,6 +528,19 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
         true,
         &(menu.save_state_enable as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
+
+         "Enable Slots",
+
+        "save_state_slot_enable",
+
+        "Save State Slots: Enable save state slots. Switch to a different slot with Shield+Left or Right Taunt.",
+
+        true,
+
+        &(menu.save_state_enable as u32),
+
     );
     save_state_tab.add_submenu_with_toggles::<CharacterItem>(
         "Character Item",
