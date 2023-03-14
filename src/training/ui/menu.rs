@@ -195,10 +195,20 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                 let submenu_ids = app.submenu_ids();
 
                 submenu_ids.iter().for_each(|id| {
-                    menu_button
-                        .find_pane_by_name_recursive(id)
-                        .unwrap()
-                        .set_visible(false)
+                    // TODO: Break if ID not found on release
+
+                    let icon = menu_button
+
+                        .find_pane_by_name_recursive(id);
+
+                    if let Some(icon) = icon {
+
+                        icon
+
+                        .set_visible(false);
+
+                }
+
                 });
 
                 title_text.set_text_string(name);
