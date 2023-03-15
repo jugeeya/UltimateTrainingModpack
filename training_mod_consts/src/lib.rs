@@ -291,14 +291,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     mash_tab.add_submenu_with_toggles::<Action>(
         "Followup Toggles",
         "follow_up",
-        "Followup Toggles: Actions to be performed after the Mash option",
+        "Followup Toggles: Actions to be performed after a Mash option",
         false,
         &(menu.follow_up.bits()),
     );
     mash_tab.add_submenu_with_toggles::<MashTrigger>(
         "Mash Triggers",
         "mash_triggers",
-        "Mash triggers: When the Mash Option will be performed",
+        "Mash triggers: Configure what causes the CPU to perform a Mash option",
         false,
         &(menu.mash_triggers.bits()),
     );
@@ -417,7 +417,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     defensive_tab.add_submenu_with_toggles::<ClatterFrequency>(
         "Clatter Strength",
         "clatter_strength",
-        "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
+        "Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc.",
         true,
         &(menu.clatter_strength as u32),
     );
@@ -467,7 +467,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     defensive_tab.add_submenu_with_toggles::<OnOff>(
         "Crouch",
         "crouch",
-        "Crouch: Should the CPU crouch when on the ground",
+        "Crouch: Have the CPU crouch when on the ground",
         true,
         &(menu.crouch as u32),
     );
@@ -530,14 +530,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     save_state_tab.add_submenu_with_toggles::<CharacterItem>(
         "Character Item",
         "character_item",
-        "Character Item: CPU/Player item to hold when loading a save state",
+        "Character Item: The item to give to the player's fighter when loading a save state",
         true,
         &(menu.character_item as u32),
     );
     save_state_tab.add_submenu_with_toggles::<BuffOption>(
         "Buff Options",
         "buff_state",
-        "Buff Options: Buff(s) to be applied to respective character when loading save states",
+        "Buff Options: Buff(s) to be applied to the respective fighters when loading a save state",
         false,
         &(menu.buff_state.bits()),
     );
@@ -558,7 +558,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Hitbox Visualization",
         "hitbox_vis",
-        "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects",
+        "Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)",
         true,
         &(menu.hitbox_vis as u32),
     );
@@ -572,14 +572,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Stage Hazards",
         "stage_hazards",
-        "Stage Hazards: Should stage hazards be present",
+        "Stage Hazards: Turn stage hazards on/off",
         true,
         &(menu.stage_hazards as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "HUD",
         "hud",
-        "HUD: Turn UI on or off",
+        "HUD: Show/hide elements of the UI",
         true,
         &(menu.hud as u32),
     );
