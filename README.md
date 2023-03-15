@@ -147,7 +147,7 @@ The timing of the CPU option can be influenced by the following settings:
 <details><summary>Click here for setting descriptions...</summary>
 
 | Feature | Description | Options |
-|:---:|:---|:---|
+| : --: | :--- | :--- |
 | Mirroring | Flips save states in the left-right direction across the stage center | None, Alternate, Random |
 | Save Damage | Should save states retain player/CPU damage | Yes, No |
 | Save States Autoload | Load save state when any fighter dies | Yes, No |
@@ -156,8 +156,8 @@ The timing of the CPU option can be influenced by the following settings:
 | Save Damage (Player) | What to use for player's damage on save state load | Default, Save State, Random |
 | Damage Range (Player) | Random percentage for save state load for player | 0 to 150 % |
 | Enable Save States | Should save states be enabled or disabled | Yes, No |
-| Character Item | CPU/Player item to hold when loading a save state | None, Player 1st Variation througher 8th variation, CPU 1st variation through 8th variation 
-| Buff Options | Buff(s) to be applied to respective character when loading save states | Acceleratle, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
+| Character Item | The item to give to the player's fighter when loading a save state | None, Player item (#1 - #8), CPU item (#1 - #8) |
+| Buff Options | Buff(s) to be applied to respective character when loading save states | Accelerate, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
 
 </details>
 
