@@ -111,19 +111,19 @@ fn save_all_btn_config_from_defaults() {
                 press: vec!["UPTAUNT".to_string()],
             },
             save_state: BtnList {
-                hold: vec!["GRAB".to_string()],
+                hold: vec!["SHIELD".to_string()],
                 press: vec!["DOWNTAUNT".to_string()],
             },
             load_state: BtnList {
-                hold: vec!["GRAB".to_string()],
+                hold: vec!["SHIELD".to_string()],
                 press: vec!["UPTAUNT".to_string()],
             },
             previous_save_state_slot: BtnList {
-                hold: vec!["SHIELD".to_string()],
+                hold: vec!["GRAB".to_string()],
                 press: vec!["LEFTTAUNT".to_string()],
             },
             next_save_state_slot: BtnList {
-                hold: vec!["SHIELD".to_string()],
+                hold: vec!["GRAB".to_string()],
                 press: vec!["RIGHTTAUNT".to_string()],
             },
         },
@@ -262,18 +262,18 @@ hold=["SPECIAL",]
 press=["UPTAUNT",]
 
 [button_config.save_state]
-hold=["GRAB",]
+hold=["SHIELD",]
 press=["DOWNTAUNT",]
 
 [button_config.load_state]
-hold=["GRAB",]
+hold=["SHIELD",]
 press=["UPTAUNT",]
 
 [button_config.previous_save_state_slot]
-hold=["SHIELD",]
+hold=["GRAB",]
 press=["LEFTTAUNT",]
 
 [button_config.next_save_state_slot]
-hold=["SHIELD",]
+hold=["GRAB",]
 press=["RIGHTTAUNT",]
 "#;
