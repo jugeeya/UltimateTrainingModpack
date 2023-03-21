@@ -82,10 +82,10 @@ pub fn main() {
         );
         notification(
             "Save State".to_string(),
-            "Grab + Downtaunt".to_string(),
+            "Shield + Downtaunt".to_string(),
             120,
         );
-        notification("Load State".to_string(), "Grab + Uptaunt".to_string(), 120);
+        notification("Load State".to_string(), "Shield + Uptaunt".to_string(), 120);
     }
 
     hitbox_visualizer::hitbox_visualization();
