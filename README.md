@@ -332,6 +332,10 @@ Exact same process as above, but the filepaths are in Ryujinx's mod paths.
                           └── libtraining_modpack.nro
 ```
 
+## Button Configuration
+
+To remap the buttons used for different actions in the modpack such as opening the menu, please open and edit the file `sd:/ultimate/TrainingModpack/training_modpack.toml`.
+
 ## Beta Installation
 
 To install a beta version of the modpack, follow the same procedure using the [latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta) on Github. Beta releases may have additional features and bugfixes, but are subject to change.
