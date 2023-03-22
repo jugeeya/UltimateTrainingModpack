@@ -525,7 +525,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     save_state_tab.add_submenu_with_toggles::<OnOff>(
         "Enable Save States",
         "save_state_enable",
-        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
+        "Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.",
         true,
         &(menu.save_state_enable as u32),
     );
@@ -535,7 +535,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
 
         "save_state_slot_enable",
 
-        "Save State Slots: Enable save state slots. Switch to a different slot with Shield+Left or Right Taunt.",
+        "Save State Slots: Enable save state slots. Switch to a different slot with Grab+Left or Right Taunt.",
 
         true,
 

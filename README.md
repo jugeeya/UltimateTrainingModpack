@@ -163,7 +163,7 @@ The timing of the CPU option can be influenced by the following settings:
 
 #### Save States
 
-At any time in Training Mode, you can press `Grab + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Grab + Up Taunt`. With the mirroring setting, loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
+At any time in Training Mode, you can press `Shield + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Shield + Up Taunt`. With the mirroring setting, loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
 
 You can switch Save State slots by using `Grab + Left Taunt` to switch to a previous slot and `Grab + Right Taunt` to switch to the next. There are 5 slots you can save, and they are persisted between loads of the game!
 
@@ -331,6 +331,10 @@ Exact same process as above, but the filepaths are in Ryujinx's mod paths.
                           ├── libparam_hook.nro
                           └── libtraining_modpack.nro
 ```
+
+## Button Configuration
+
+To remap the buttons used for different actions in the modpack such as opening the menu, please open and edit the file `sd:/ultimate/TrainingModpack/training_modpack.toml`.
 
 ## Beta Installation
 

@@ -392,7 +392,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
-    // Grab + Dpad up: reset state
+    // Reset state
     let autoload_reset = MENU.save_state_autoload == OnOff::On
         && save_state.state == NoAction
         && is_dead(module_accessor);
@@ -605,7 +605,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
     }
 
-    // Grab + Dpad down: Save state
+    // Save state
     if button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::SaveState)
     {
         // Don't begin saving state if Nana's delayed input is captured
