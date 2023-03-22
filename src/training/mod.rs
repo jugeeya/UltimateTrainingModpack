@@ -405,6 +405,17 @@ pub unsafe fn handle_se(
     bool4: bool,
     se_type: enSEType,
 ) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            module_accessor,
+            my_hash,
+            bool1,
+            bool2,
+            bool3,
+            bool4,
+            se_type,
+        );
+    }
     // Make effects silent while we're killing fighters. Stops death explosion and fighter misfoot.
     if save_states::is_killing() {
         let silent_hash = Hash40::new("se_silent");
@@ -441,6 +452,19 @@ pub unsafe fn handle_effect(
     arg8: bool,
     arg9: i32,
 ) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            module_accessor,
+            eff_hash,
+            pos,
+            rot,
+            size,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+        );
+    }
     if save_states::is_killing() {
         // Making the size 0 prevents these effects from being displayed. Fixs throw explosions, ICs squall, etc.
         return original!()(
