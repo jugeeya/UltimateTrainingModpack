@@ -113,8 +113,8 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             // corresponds with a particular button to be visible.
             submenu_ids.iter().for_each(|id| {
                 menu_button
-                    .find_pane_by_name_recursive(id)
-                    .expect("Unable to find icon {} in layout.arc", id)
+                    .find_pane_by_name_recursive(id);
+                    .unwrap_or_else(|| panic!("Unable to find icon {} in layout.arc", id))
                     .set_visible(id == &submenu.submenu_id);
             });
 
@@ -193,9 +193,9 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
 
                 submenu_ids.iter().for_each(|id| {
                     menu_button
-                        .find_pane_by_name_recursive(id)
-                        .expect("Unable to find icon {} in layout.arc", id)
-                        .set_visible(false);
+                        .find_pane_by_name_recursive(id);
+                        .unwrap_or_else(|| panic!("Unable to find icon {} in layout.arc", id))
+                        .set_visible(id == &submenu.submenu_id);
                 });
 
                 title_text.set_text_string(name);
