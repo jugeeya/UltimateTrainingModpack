@@ -195,7 +195,7 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                     menu_button
                         .find_pane_by_name_recursive(id)
                         .unwrap_or_else(|| panic!("Unable to find icon {} in layout.arc", id))
-                        .set_visible(id == &submenu.submenu_id);
+                        .set_visible(false);
                 });
 
                 title_text.set_text_string(name);
