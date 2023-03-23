@@ -103,7 +103,7 @@ jobs:
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
           zip -r training_modpack_beta.zip atmosphere
       - name: Delete Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        uses: dev-drprasad/delete-tag-and-release@v0.2.1
         with:
           tag_name: beta 
           delete_release: true 
