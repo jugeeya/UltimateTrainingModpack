@@ -112,13 +112,10 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             // Hide all icon images, and strategically mark the icon that
             // corresponds with a particular button to be visible.
             submenu_ids.iter().for_each(|id| {
-                // TODO: Break if ID not found on release
-                let icon = menu_button
-                    .find_pane_by_name_recursive(id);
-                if let Some(icon) = icon {
-                    icon
+                menu_button
+                    .find_pane_by_name_recursive(id)
+                    .unwrap_or_else(|| panic!("Unable to find icon {} in layout.arc", id))
                     .set_visible(id == &submenu.submenu_id);
-                }
             });
 
             menu_button
@@ -195,20 +192,10 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                 let submenu_ids = app.submenu_ids();
 
                 submenu_ids.iter().for_each(|id| {
-                    // TODO: Break if ID not found on release
-
-                    let icon = menu_button
-
-                        .find_pane_by_name_recursive(id);
-
-                    if let Some(icon) = icon {
-
-                        icon
-
+                    menu_button
+                        .find_pane_by_name_recursive(id)
+                        .unwrap_or_else(|| panic!("Unable to find icon {} in layout.arc", id))
                         .set_visible(false);
-
-                }
-
                 });
 
                 title_text.set_text_string(name);
@@ -431,9 +418,9 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 
     let (left_tab_key, right_tab_key, save_defaults_key, reset_current_key, reset_all_key) =
         if is_gcc {
-            (l_key, r_key, x_key, y_key, z_key)
+            (l_key, r_key, x_key, z_key, y_key)
         } else {
-            (zl_key, zr_key, x_key, y_key, r_key)
+            (zl_key, zr_key, x_key, r_key, y_key)
         };
 
     [

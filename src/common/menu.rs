@@ -317,7 +317,7 @@ pub unsafe fn quick_menu_loop() {
                 received_input = true;
             });
             button_presses.y.read_press().then(|| {
-                app.reset_current_submenu();
+                app.reset_all_submenus();
                 received_input = true;
             });
             button_presses.l.read_press().then(|| {
@@ -330,7 +330,7 @@ pub unsafe fn quick_menu_loop() {
                 if is_gcc {
                     app.next_tab();
                 } else {
-                    app.reset_all_submenus();
+                    app.reset_current_submenu();
                 }
                 received_input = true;
             });
@@ -344,7 +344,7 @@ pub unsafe fn quick_menu_loop() {
                 if !is_gcc {
                     app.next_tab();
                 } else {
-                    app.reset_all_submenus();
+                    app.reset_current_submenu();
                 }
                 received_input = true;
             });
