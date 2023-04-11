@@ -2,14 +2,14 @@ use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::sv_system;
 use smash::hash40;
-use smash::lib::L2CValue;
 use smash::lib::lua_const::*;
+use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
-use crate::common::*;
 use crate::common::consts::*;
-use crate::training::{frame_counter, save_states};
+use crate::common::*;
 use crate::training::mash;
+use crate::training::{frame_counter, save_states};
 
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
@@ -188,8 +188,9 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // We should hold shield if the state requires it
-    if unsafe { save_states::is_loading() } ||
-        ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+    if unsafe { save_states::is_loading() }
+        || ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state)
+    {
         return false;
     }
 

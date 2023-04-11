@@ -84,7 +84,11 @@ pub fn main() {
             "Shield + Downtaunt".to_string(),
             120,
         );
-        notification("Load State".to_string(), "Shield + Uptaunt".to_string(), 120);
+        notification(
+            "Load State".to_string(),
+            "Shield + Uptaunt".to_string(),
+            120,
+        );
     }
 
     hitbox_visualizer::hitbox_visualization();
@@ -105,8 +109,9 @@ pub fn main() {
                 error!("Could not move file from {src_path:#?} to {dest_path:#?} with error {e}")
             });
         }
-        fs::remove_dir_all(LEGACY_TRAINING_MODPACK_ROOT)
-            .unwrap_or_else(|e| error!("Could not delete legacy Training Modpack folder with error {e}"));
+        fs::remove_dir_all(LEGACY_TRAINING_MODPACK_ROOT).unwrap_or_else(|e| {
+            error!("Could not delete legacy Training Modpack folder with error {e}")
+        });
     }
 
     info!("Performing version check...");

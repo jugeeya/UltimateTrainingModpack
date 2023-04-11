@@ -1,10 +1,10 @@
-use smash::app::BattleObjectModuleAccessor;
 use smash::app::lua_bind::{ControlModule, EffectModule};
+use smash::app::BattleObjectModuleAccessor;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
-use crate::common::*;
 use crate::common::consts::*;
+use crate::common::*;
 use crate::training::mash;
 
 static mut COUNTER: u32 = 0;

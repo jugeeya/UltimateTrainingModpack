@@ -354,7 +354,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     ]
     .contains(&fighter_kind);
 
-    if MENU.save_state_slot_enable == OnOff::On && !is_operation_cpu(module_accessor)
+    if MENU.save_state_slot_enable == OnOff::On
+        && !is_operation_cpu(module_accessor)
         && button_config::combo_passes_exclusive(
             module_accessor,
             button_config::ButtonCombo::PrevSaveStateSlot,
@@ -375,7 +376,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
-    if MENU.save_state_slot_enable == OnOff::On && !is_operation_cpu(module_accessor)
+    if MENU.save_state_slot_enable == OnOff::On
+        && !is_operation_cpu(module_accessor)
         && button_config::combo_passes_exclusive(
             module_accessor,
             button_config::ButtonCombo::NextSaveStateSlot,

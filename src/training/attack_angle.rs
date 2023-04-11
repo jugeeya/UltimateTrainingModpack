@@ -1,7 +1,7 @@
 use smash::app::{self};
 
-use crate::common::*;
 use crate::common::consts::*;
+use crate::common::*;
 
 static mut DIRECTION: AttackAngle = AttackAngle::UP;
 
