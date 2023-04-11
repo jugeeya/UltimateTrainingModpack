@@ -40,14 +40,6 @@ static mut BUTTON_COMBO_CONFIG: BtnComboConfig = BtnComboConfig {
         hold: vec![],
         press: vec![],
     },
-    previous_save_state_slot: BtnList {
-        hold: vec![],
-        press: vec![],
-    },
-    next_save_state_slot: BtnList {
-        hold: vec![],
-        press: vec![],
-    },
 };
 
 #[derive(Debug, EnumIter, PartialEq)]
@@ -55,8 +47,6 @@ pub enum ButtonCombo {
     OpenMenu,
     SaveState,
     LoadState,
-    PrevSaveStateSlot,
-    NextSaveStateSlot,
 }
 
 #[derive(Deserialize, Default)]
@@ -70,8 +60,6 @@ struct BtnComboConfig {
     open_menu: BtnList,
     save_state: BtnList,
     load_state: BtnList,
-    previous_save_state_slot: BtnList,
-    next_save_state_slot: BtnList,
 }
 
 #[derive(Deserialize)]
@@ -118,14 +106,6 @@ fn save_all_btn_config_from_defaults() {
                 hold: vec!["SHIELD".to_string()],
                 press: vec!["UPTAUNT".to_string()],
             },
-            previous_save_state_slot: BtnList {
-                hold: vec!["GRAB".to_string()],
-                press: vec!["LEFTTAUNT".to_string()],
-            },
-            next_save_state_slot: BtnList {
-                hold: vec!["GRAB".to_string()],
-                press: vec!["RIGHTTAUNT".to_string()],
-            },
         },
     };
     unsafe {
@@ -150,8 +130,6 @@ fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
         conf.open_menu,
         conf.save_state,
         conf.load_state,
-        conf.previous_save_state_slot,
-        conf.next_save_state_slot,
     ];
     let bad_keys = configs
         .iter()
@@ -195,14 +173,6 @@ unsafe fn get_combo_keys(combo: ButtonCombo) -> (&'static Vec<String>, &'static 
         ButtonCombo::LoadState => (
             &BUTTON_COMBO_CONFIG.load_state.hold,
             &BUTTON_COMBO_CONFIG.load_state.press,
-        ),
-        ButtonCombo::PrevSaveStateSlot => (
-            &BUTTON_COMBO_CONFIG.previous_save_state_slot.hold,
-            &BUTTON_COMBO_CONFIG.previous_save_state_slot.press,
-        ),
-        ButtonCombo::NextSaveStateSlot => (
-            &BUTTON_COMBO_CONFIG.next_save_state_slot.hold,
-            &BUTTON_COMBO_CONFIG.next_save_state_slot.press,
         ),
     }
 }
@@ -268,12 +238,4 @@ press=["DOWNTAUNT",]
 [button_config.load_state]
 hold=["SHIELD",]
 press=["UPTAUNT",]
-
-[button_config.previous_save_state_slot]
-hold=["GRAB",]
-press=["LEFTTAUNT",]
-
-[button_config.next_save_state_slot]
-hold=["GRAB",]
-press=["RIGHTTAUNT",]
 "#;

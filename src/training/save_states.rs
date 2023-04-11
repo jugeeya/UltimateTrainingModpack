@@ -108,7 +108,6 @@ const NUM_SAVE_STATE_SLOTS: usize = 5;
 lazy_static::lazy_static! {
     static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(load_from_file());
 }
-static mut SAVE_STATE_SLOT: usize = 0;
 
 pub fn load_from_file() -> SaveStateSlots {
     let defaults = SaveStateSlots {
@@ -140,11 +139,11 @@ pub unsafe fn save_to_file() {
 }
 
 unsafe fn save_state_player() -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[SAVE_STATE_SLOT]
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[MENU.save_state_slot]
 }
 
 unsafe fn save_state_cpu() -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[SAVE_STATE_SLOT]
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[MENU.save_state_slot]
 }
 
 // MIRROR_STATE == 1 -> Do not mirror
@@ -353,46 +352,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_WIIFIT,
     ]
     .contains(&fighter_kind);
-
-    if MENU.save_state_slot_enable == OnOff::On
-        && !is_operation_cpu(module_accessor)
-        && button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::PrevSaveStateSlot,
-        )
-    {
-        SAVE_STATE_SLOT = if SAVE_STATE_SLOT == 0 {
-            NUM_SAVE_STATE_SLOTS - 1
-        } else {
-            SAVE_STATE_SLOT - 1
-        };
-        notifications::clear_notifications("Save State");
-        notifications::notification(
-            "Save State".to_string(),
-            format!("Switched to Slot {SAVE_STATE_SLOT}"),
-            120,
-        );
-
-        return;
-    }
-
-    if MENU.save_state_slot_enable == OnOff::On
-        && !is_operation_cpu(module_accessor)
-        && button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::NextSaveStateSlot,
-        )
-    {
-        SAVE_STATE_SLOT = (SAVE_STATE_SLOT + 1) % NUM_SAVE_STATE_SLOTS;
-        notifications::clear_notifications("Save State");
-        notifications::notification(
-            "Save State".to_string(),
-            format!("Switched to Slot {SAVE_STATE_SLOT}"),
-            120,
-        );
-
-        return;
-    }
 
     // Reset state
     let autoload_reset = MENU.save_state_autoload == OnOff::On
@@ -617,7 +576,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
-            format!("Saved Slot {SAVE_STATE_SLOT}"),
+            format!("Saved Slot {}", MENU.save_state_slot),
             120,
         );
     }
