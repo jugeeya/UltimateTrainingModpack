@@ -139,11 +139,11 @@ pub unsafe fn save_to_file() {
 }
 
 unsafe fn save_state_player() -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[MENU.save_state_slot]
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[MENU.save_state_slot as u32 as usize]
 }
 
 unsafe fn save_state_cpu() -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[MENU.save_state_slot]
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[MENU.save_state_slot as u32 as usize]
 }
 
 // MIRROR_STATE == 1 -> Do not mirror
@@ -576,7 +576,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
-            format!("Saved Slot {}", MENU.save_state_slot),
+            format!("Saved Slot {}", MENU.save_state_slot.as_str()),
             120,
         );
     }

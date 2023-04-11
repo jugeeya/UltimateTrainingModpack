@@ -126,11 +126,7 @@ fn save_all_btn_config_from_toml(data: &str) {
 
 fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
     let conf = conf.button_config;
-    let configs = [
-        conf.open_menu,
-        conf.save_state,
-        conf.load_state,
-    ];
+    let configs = [conf.open_menu, conf.save_state, conf.load_state];
     let bad_keys = configs
         .iter()
         .flat_map(|btn_list| {

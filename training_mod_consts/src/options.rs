@@ -1133,7 +1133,9 @@ impl SaveStateSlot {
 
 impl ToggleTrait for SaveStateSlot {
     fn to_toggle_strs() -> Vec<&'static str> {
-        SaveStateSlot::iter().map(|i| i.as_str().unwrap_or("")).collect()
+        SaveStateSlot::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
     }
 
     fn to_toggle_vals() -> Vec<u32> {
