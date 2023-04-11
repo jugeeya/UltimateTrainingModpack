@@ -6,7 +6,6 @@ use smash::lib::lua_const::*;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-
 const fn num_bits<T>() -> u32 {
     (std::mem::size_of::<T>() * 8) as u32
 }

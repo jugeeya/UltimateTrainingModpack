@@ -1,8 +1,8 @@
 use skyline::nn::ui2d::ResColor;
 use training_mod_consts::OnOff;
 
-use crate::common::*;
 use crate::common::consts::FighterId;
+use crate::common::*;
 use crate::training::*;
 
 pub static mut FRAME_ADVANTAGE: i32 = 0;
@@ -57,9 +57,24 @@ fn update_frame_advantage(new_frame_adv: i32) {
                 format!("{FRAME_ADVANTAGE}"),
                 60,
                 match FRAME_ADVANTAGE {
-                    x if x < 0 => ResColor { r: 200, g: 8, b: 8, a: 255 },
-                    x if x == 0 => ResColor { r: 0, g: 0, b: 0, a: 255 },
-                    _ => ResColor { r: 31, g: 198, b: 0, a: 255 },
+                    x if x < 0 => ResColor {
+                        r: 200,
+                        g: 8,
+                        b: 8,
+                        a: 255,
+                    },
+                    x if x == 0 => ResColor {
+                        r: 0,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    },
+                    _ => ResColor {
+                        r: 31,
+                        g: 198,
+                        b: 0,
+                        a: 255,
+                    },
                 },
             );
         }
@@ -83,10 +98,10 @@ pub unsafe fn is_enable_transition_term(
 
     if !PLAYER_ACTIONABLE
         && ((is
-        && actionable_statuses!()
-        .iter()
-        .any(|actionable_transition| *actionable_transition == transition_term))
-        || (CancelModule::is_enable_cancel(module_accessor)))
+            && actionable_statuses!()
+                .iter()
+                .any(|actionable_transition| *actionable_transition == transition_term))
+            || (CancelModule::is_enable_cancel(module_accessor)))
     {
         PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
         PLAYER_ACTIONABLE = true;

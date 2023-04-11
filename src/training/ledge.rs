@@ -1,8 +1,8 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-use crate::common::*;
 use crate::common::consts::*;
+use crate::common::*;
 use crate::training::frame_counter;
 use crate::training::mash;
 

@@ -65,7 +65,9 @@ pub fn get_frame_count(index: usize) -> u32 {
 }
 
 pub fn tick_idx(index: usize) {
-    unsafe { COUNTERS[index] += 1; }
+    unsafe {
+        COUNTERS[index] += 1;
+    }
 }
 
 fn tick() {
