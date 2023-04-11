@@ -8,6 +8,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  rustfmt_check:
+    name: Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install minimal nightly rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          components: rustfmt, clippy
+          default: true
+          target: x86_64-unknown-linux-gnu
+      - name: rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
   checker:
     name: Check, Clippy, Tests
     runs-on: ubuntu-latest
