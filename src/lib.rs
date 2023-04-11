@@ -1,7 +1,6 @@
 #![feature(proc_macro_hygiene)]
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
-#![feature(once_cell)]
 #![feature(c_variadic)]
 #![allow(
     clippy::borrow_interior_mutable_const,
