@@ -371,7 +371,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
             if MENU.save_state_random_slot == OnOff::On {
-                let random_slot = get_random_int(NUM_SAVE_STATE_SLOTS) as usize;
+                let random_slot = get_random_int(NUM_SAVE_STATE_SLOTS as i32) as usize;
                 save_state_player(random_slot).state = KillPlayer;
                 save_state_cpu(random_slot).state = KillPlayer;
             } else {
