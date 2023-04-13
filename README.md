@@ -157,6 +157,7 @@ The timing of the CPU option can be influenced by the following settings:
 | Damage Range (Player) | Random percentage for save state load for player | 0 to 150 % |
 | Enable Save States | Should save states be enabled or disabled | Yes, No |
 | Save State Slot | Save and load states from different slots | 1, 2, 3, 4, 5 |
+| Save State Random Slot | Load from a random slot | Yes, No |
 | Character Item | The item to give to the player's fighter when loading a save state | None, Player item (#1 - #8), CPU item (#1 - #8) |
 | Buff Options | Buff(s) to be applied to respective character when loading save states | Accelerate, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
 

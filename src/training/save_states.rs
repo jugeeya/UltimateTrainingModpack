@@ -638,8 +638,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         );
 
         // If both chars finished saving by now
-        if save_state_player(selected_slot).state != Save 
-            && save_state_cpu(selected_slot).state != Save 
+        if save_state_player(selected_slot).state != Save
+            && save_state_cpu(selected_slot).state != Save
         {
             save_to_file();
         }
