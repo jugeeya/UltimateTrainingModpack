@@ -152,13 +152,16 @@ static mut MIRROR_STATE: f32 = 1.0;
 
 pub unsafe fn is_killing() -> bool {
     let selected_slot = MENU.save_state_slot as u32 as usize;
-    (save_state_player(selected_slot).state == KillPlayer || save_state_player(selected_slot).state == WaitForAlive)
-        || (save_state_cpu(selected_slot).state == KillPlayer || save_state_cpu(selected_slot).state == WaitForAlive)
+    (save_state_player(selected_slot).state == KillPlayer
+        || save_state_player(selected_slot).state == WaitForAlive)
+        || (save_state_cpu(selected_slot).state == KillPlayer
+            || save_state_cpu(selected_slot).state == WaitForAlive)
 }
 
 pub unsafe fn is_loading() -> bool {
     let selected_slot = MENU.save_state_slot as u32 as usize;
-    save_state_player(selected_slot).state != NoAction || save_state_cpu(selected_slot).state != NoAction
+    save_state_player(selected_slot).state != NoAction
+        || save_state_cpu(selected_slot).state != NoAction
 }
 
 pub unsafe fn should_mirror() -> f32 {
@@ -635,7 +638,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         );
 
         // If both chars finished saving by now
-        if save_state_player(selected_slot).state != Save && save_state_cpu(selected_slot).state != Save {
+        if save_state_player(selected_slot).state != Save 
+            && save_state_cpu(selected_slot).state != Save 
+        {
             save_to_file();
         }
     }
