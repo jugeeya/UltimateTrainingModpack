@@ -337,7 +337,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
-    let selected_slot = if MENU.randomize_slots == OnOff::On { 
+    let selected_slot = if MENU.randomize_slots == OnOff::On {
         RANDOM_SLOT
     } else {
         MENU.save_state_slot as u32 as usize
