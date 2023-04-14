@@ -48,7 +48,8 @@ pub struct TrainingModpackMenu {
     pub save_damage_limits_player: DamagePercent,
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
-    pub save_state_slot_enable: OnOff,
+    pub save_state_slot: SaveStateSlot,
+    pub randomize_slots: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
     pub sdi_state: Direction,
     pub sdi_strength: SdiFrequency,
@@ -124,7 +125,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_damage_limits_player: DamagePercent::default(),
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
-    save_state_slot_enable: OnOff::On,
+    save_state_slot: SaveStateSlot::One,
+    randomize_slots: OnOff::Off,
     save_state_mirroring: SaveStateMirroring::None,
     sdi_state: Direction::empty(),
     sdi_strength: SdiFrequency::None,
@@ -529,18 +531,19 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         true,
         &(menu.save_state_enable as u32),
     );
-    save_state_tab.add_submenu_with_toggles::<OnOff>(
-
-         "Enable Slots",
-
-        "save_state_slot_enable",
-
-        "Save State Slots: Enable save state slots. Switch to a different slot with Grab+Left or Right Taunt.",
-
+    save_state_tab.add_submenu_with_toggles::<SaveStateSlot>(
+        "Save State Slot",
+        "save_state_slot",
+        "Save State Slot: Save and load states from different slots.",
         true,
-
-        &(menu.save_state_enable as u32),
-
+        &(menu.save_state_slot as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
+        "Randomize Slots",
+        "randomize_slots",
+        "Randomize Slots: Randomize slot when loading save state.",
+        true,
+        &(menu.randomize_slots as u32),
     );
     save_state_tab.add_submenu_with_toggles::<CharacterItem>(
         "Character Item",

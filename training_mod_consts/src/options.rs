@@ -1105,3 +1105,40 @@ impl SaveDamage {
 
 extra_bitflag_impls! {SaveDamage}
 impl_serde_for_bitflags!(SaveDamage);
+
+/// Save State Slots
+#[repr(i32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum SaveStateSlot {
+    One = 0,
+    Two = 1,
+    Three = 2,
+    Four = 3,
+    Five = 4,
+}
+
+impl SaveStateSlot {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            SaveStateSlot::One => "1",
+            SaveStateSlot::Two => "2",
+            SaveStateSlot::Three => "3",
+            SaveStateSlot::Four => "4",
+            SaveStateSlot::Five => "5",
+        })
+    }
+}
+
+impl ToggleTrait for SaveStateSlot {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        SaveStateSlot::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        SaveStateSlot::iter().map(|i| i as u32).collect()
+    }
+}

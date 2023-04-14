@@ -156,6 +156,8 @@ The timing of the CPU option can be influenced by the following settings:
 | Save Damage (Player) | What to use for player's damage on save state load | Default, Save State, Random |
 | Damage Range (Player) | Random percentage for save state load for player | 0 to 150 % |
 | Enable Save States | Should save states be enabled or disabled | Yes, No |
+| Save State Slot | Save and load states from different slots | 1, 2, 3, 4, 5 |
+| Save State Random Slot | Load from a random slot | Yes, No |
 | Character Item | The item to give to the player's fighter when loading a save state | None, Player item (#1 - #8), CPU item (#1 - #8) |
 | Buff Options | Buff(s) to be applied to respective character when loading save states | Accelerate, Oomph, Psyche Up, Bounce, Arsene, Deep Breathing, Limit, K.O. Punch, Wing |
 
@@ -165,7 +167,7 @@ The timing of the CPU option can be influenced by the following settings:
 
 At any time in Training Mode, you can press `Shield + Down Taunt` to save the state of training mode. This will save the position, state, and damage of each fighter, which can then be reverted to at any time with `Shield + Up Taunt`. With the mirroring setting, loading the save state will flip the positions, allowing you to practice your skills facing both directions. Use this instead of the built-in training mode reset!
 
-You can switch Save State slots by using `Grab + Left Taunt` to switch to a previous slot and `Grab + Right Taunt` to switch to the next. There are 5 slots you can save, and they are persisted between loads of the game!
+You can switch Save State slots by using the associated toggle! There are 5 slots you can save, and they are persisted between loads of the game!
 
 The following attributes are saved in the save states:
 

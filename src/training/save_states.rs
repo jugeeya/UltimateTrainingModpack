@@ -108,7 +108,6 @@ const NUM_SAVE_STATE_SLOTS: usize = 5;
 lazy_static::lazy_static! {
     static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(load_from_file());
 }
-static mut SAVE_STATE_SLOT: usize = 0;
 
 pub fn load_from_file() -> SaveStateSlots {
     let defaults = SaveStateSlots {
@@ -139,25 +138,32 @@ pub unsafe fn save_to_file() {
         .expect("Could not write save state information to file");
 }
 
-unsafe fn save_state_player() -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[SAVE_STATE_SLOT]
+unsafe fn save_state_player(slot: usize) -> &'static mut SavedState {
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[slot]
 }
 
-unsafe fn save_state_cpu() -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[SAVE_STATE_SLOT]
+unsafe fn save_state_cpu(slot: usize) -> &'static mut SavedState {
+    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[slot]
 }
 
 // MIRROR_STATE == 1 -> Do not mirror
 // MIRROR_STATE == -1 -> Do Mirror
 static mut MIRROR_STATE: f32 = 1.0;
 
+static mut RANDOM_SLOT: usize = 0;
+
 pub unsafe fn is_killing() -> bool {
-    (save_state_player().state == KillPlayer || save_state_player().state == WaitForAlive)
-        || (save_state_cpu().state == KillPlayer || save_state_cpu().state == WaitForAlive)
+    let selected_slot = MENU.save_state_slot as u32 as usize;
+    (save_state_player(selected_slot).state == KillPlayer
+        || save_state_player(selected_slot).state == WaitForAlive)
+        || (save_state_cpu(selected_slot).state == KillPlayer
+            || save_state_cpu(selected_slot).state == WaitForAlive)
 }
 
 pub unsafe fn is_loading() -> bool {
-    save_state_player().state != NoAction || save_state_cpu().state != NoAction
+    let selected_slot = MENU.save_state_slot as u32 as usize;
+    save_state_player(selected_slot).state != NoAction
+        || save_state_cpu(selected_slot).state != NoAction
 }
 
 pub unsafe fn should_mirror() -> f32 {
@@ -331,13 +337,19 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
+    let selected_slot = if MENU.randomize_slots == OnOff::On {
+        RANDOM_SLOT
+    } else {
+        MENU.save_state_slot as u32 as usize
+    };
+
     let status = StatusModule::status_kind(module_accessor);
     let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
         == FighterId::CPU as i32;
     let save_state = if is_cpu {
-        save_state_cpu()
+        save_state_cpu(selected_slot)
     } else {
-        save_state_player()
+        save_state_player(selected_slot)
     };
 
     let fighter_kind = app::utility::get_kind(module_accessor);
@@ -354,46 +366,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     ]
     .contains(&fighter_kind);
 
-    if MENU.save_state_slot_enable == OnOff::On
-        && !is_operation_cpu(module_accessor)
-        && button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::PrevSaveStateSlot,
-        )
-    {
-        SAVE_STATE_SLOT = if SAVE_STATE_SLOT == 0 {
-            NUM_SAVE_STATE_SLOTS - 1
-        } else {
-            SAVE_STATE_SLOT - 1
-        };
-        notifications::clear_notifications("Save State");
-        notifications::notification(
-            "Save State".to_string(),
-            format!("Switched to Slot {SAVE_STATE_SLOT}"),
-            120,
-        );
-
-        return;
-    }
-
-    if MENU.save_state_slot_enable == OnOff::On
-        && !is_operation_cpu(module_accessor)
-        && button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::NextSaveStateSlot,
-        )
-    {
-        SAVE_STATE_SLOT = (SAVE_STATE_SLOT + 1) % NUM_SAVE_STATE_SLOTS;
-        notifications::clear_notifications("Save State");
-        notifications::notification(
-            "Save State".to_string(),
-            format!("Switched to Slot {SAVE_STATE_SLOT}"),
-            120,
-        );
-
-        return;
-    }
-
     // Reset state
     let autoload_reset = MENU.save_state_autoload == OnOff::On
         && save_state.state == NoAction
@@ -407,8 +379,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
-            save_state_player().state = KillPlayer;
-            save_state_cpu().state = KillPlayer;
+            let slot = if MENU.randomize_slots == OnOff::On {
+                RANDOM_SLOT = get_random_int(NUM_SAVE_STATE_SLOTS as i32) as usize;
+                RANDOM_SLOT
+            } else {
+                selected_slot
+            };
+
+            save_state_player(slot).state = KillPlayer;
+            save_state_cpu(slot).state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
         return;
@@ -612,12 +591,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
-        save_state_player().state = Save;
-        save_state_cpu().state = Save;
+        save_state_player(MENU.save_state_slot as u32 as usize).state = Save;
+        save_state_cpu(MENU.save_state_slot as u32 as usize).state = Save;
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
-            format!("Saved Slot {SAVE_STATE_SLOT}"),
+            format!("Saved Slot {}", MENU.save_state_slot.as_str().unwrap()),
             120,
         );
     }
@@ -666,7 +645,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         );
 
         // If both chars finished saving by now
-        if save_state_player().state != Save && save_state_cpu().state != Save {
+        if save_state_player(selected_slot).state != Save
+            && save_state_cpu(selected_slot).state != Save
+        {
             save_to_file();
         }
     }
