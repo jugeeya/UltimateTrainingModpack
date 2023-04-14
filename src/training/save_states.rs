@@ -152,8 +152,16 @@ static mut MIRROR_STATE: f32 = 1.0;
 
 static mut RANDOM_SLOT: usize = 0;
 
+unsafe fn get_slot() -> usize {
+    if MENU.randomize_slots == OnOff::On {
+        RANDOM_SLOT
+    } else {
+        MENU.save_state_slot as u32 as usize
+    }
+}
+
 pub unsafe fn is_killing() -> bool {
-    let selected_slot = MENU.save_state_slot as u32 as usize;
+    let selected_slot = get_slot();
     (save_state_player(selected_slot).state == KillPlayer
         || save_state_player(selected_slot).state == WaitForAlive)
         || (save_state_cpu(selected_slot).state == KillPlayer
@@ -161,7 +169,7 @@ pub unsafe fn is_killing() -> bool {
 }
 
 pub unsafe fn is_loading() -> bool {
-    let selected_slot = MENU.save_state_slot as u32 as usize;
+    let selected_slot = get_slot();
     save_state_player(selected_slot).state != NoAction
         || save_state_cpu(selected_slot).state != NoAction
 }
@@ -337,12 +345,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
-    let selected_slot = if MENU.randomize_slots == OnOff::On {
-        RANDOM_SLOT
-    } else {
-        MENU.save_state_slot as u32 as usize
-    };
-
+    let selected_slot = get_slot();
     let status = StatusModule::status_kind(module_accessor);
     let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
         == FighterId::CPU as i32;
