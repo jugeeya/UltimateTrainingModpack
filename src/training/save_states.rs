@@ -150,6 +150,8 @@ unsafe fn save_state_cpu(slot: usize) -> &'static mut SavedState {
 // MIRROR_STATE == -1 -> Do Mirror
 static mut MIRROR_STATE: f32 = 1.0;
 
+static mut RANDOM_SLOT: usize = 0;
+
 pub unsafe fn is_killing() -> bool {
     let selected_slot = MENU.save_state_slot as u32 as usize;
     (save_state_player(selected_slot).state == KillPlayer
@@ -335,7 +337,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         return;
     }
 
-    let selected_slot = MENU.save_state_slot as u32 as usize;
+    let selected_slot = if MENU.randomize_slots == OnOff::On { 
+        RANDOM_SLOT
+    } else {
+        MENU.save_state_slot as u32 as usize
+    };
 
     let status = StatusModule::status_kind(module_accessor);
     let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
@@ -373,14 +379,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
-            if MENU.randomize_slots == OnOff::On {
-                let random_slot = get_random_int(NUM_SAVE_STATE_SLOTS as i32) as usize;
-                save_state_player(random_slot).state = KillPlayer;
-                save_state_cpu(random_slot).state = KillPlayer;
+            let slot = if MENU.randomize_slots == OnOff::On {
+                RANDOM_SLOT = get_random_int(NUM_SAVE_STATE_SLOTS as i32) as usize;
+                RANDOM_SLOT
             } else {
-                save_state_player(selected_slot).state = KillPlayer;
-                save_state_cpu(selected_slot).state = KillPlayer;
-            }
+                selected_slot
+            };
+
+            save_state_player(slot).state = KillPlayer;
+            save_state_cpu(slot).state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
         return;
@@ -584,8 +591,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
-        save_state_player(selected_slot).state = Save;
-        save_state_cpu(selected_slot).state = Save;
+        save_state_player(MENU.save_state_slot as u32 as usize).state = Save;
+        save_state_cpu(MENU.save_state_slot as u32 as usize).state = Save;
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
