@@ -1112,11 +1112,11 @@ impl_serde_for_bitflags!(SaveDamage);
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
 pub enum SaveStateSlot {
-    One = 0x0,
-    Two = 0x1,
-    Three = 0x2,
-    Four = 0x4,
-    Five = 0x8,
+    One = 0,
+    Two = 1,
+    Three = 2,
+    Four = 3,
+    Five = 4,
 }
 
 impl SaveStateSlot {
