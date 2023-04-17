@@ -5,6 +5,7 @@ use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
 use crate::consts::FighterId;
 
 use std::ffi::CStr;
+use std::slice;
 
 pub unsafe fn iterate_anim_list(
     anim_transform_node: &mut AnimTransformNode,
@@ -28,21 +29,37 @@ pub unsafe fn iterate_anim_list(
     }
 }
 
-pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_name: Option<&str>) {
-    let res_animation_block_data_start = anim_transform.res_animation_block as u64;
-    let res_animation_block = &*anim_transform.res_animation_block;
-    let mut anim_cont_offsets = (res_animation_block_data_start
-        + res_animation_block.anim_cont_offsets_offset as u64)
-        as *const u32;
-    for _anim_cont_idx in 0..res_animation_block.anim_cont_count {
-        let anim_cont_offset = *anim_cont_offsets;
-        let res_animation_cont = (res_animation_block_data_start + anim_cont_offset as u64)
-            as *const ResAnimationContent;
+pub fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_name: Option<&str>) {
+    let res_animation_block_data_start = anim_transform.res_animation_block.cast::<u8>();
+    let res_animation_block = unsafe {
+        anim_transform
+            .res_animation_block
+            .as_ref()
+            .expect("Invalid AnimationBlock pointer!")
+    };
 
-        let name = CStr::from_bytes_with_nul(&(*res_animation_cont).name)
+    let anim_cont_offsets: &[u32] = unsafe {
+        slice::from_raw_parts(
+            res_animation_block_data_start
+                .add(res_animation_block.anim_cont_offsets_offset as usize)
+                .cast::<u32>(),
+            res_animation_block.anim_cont_count as usize,
+        )
+    };
+
+    for &offset in anim_cont_offsets {
+        let res_animation_cont = unsafe {
+            res_animation_block_data_start
+                .add(offset as usize)
+                .cast::<ResAnimationContent>()
+                .as_ref()
+                .expect("Invalid AnimationContent pointer!")
+        };
+
+        let name = CStr::from_bytes_with_nul(&res_animation_cont.name)
             .ok()
             .and_then(|s| CStr::to_str(s).ok());
-        let anim_type = (*res_animation_cont).anim_content_type;
+        let anim_type = res_animation_cont.anim_content_type;
 
         if let Some(name) = name {
             // AnimContentType 1 == MATERIAL
@@ -66,8 +83,6 @@ pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_na
                 }
             }
         }
-
-        anim_cont_offsets = anim_cont_offsets.add(1);
     }
 }
 
