@@ -4,6 +4,8 @@ use smash::ui2d::SmashPane;
 use crate::common::{get_player_dmg_digits, is_ready_go, is_training_mode};
 use crate::consts::FighterId;
 
+use std::ffi::CStr;
+
 pub unsafe fn iterate_anim_list(
     anim_transform_node: &mut AnimTransformNode,
     layout_name: Option<&str>,
@@ -37,30 +39,30 @@ pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_na
         let res_animation_cont = (res_animation_block_data_start + anim_cont_offset as u64)
             as *const ResAnimationContent;
 
-        let name = skyline::try_from_c_str((*res_animation_cont).name.as_ptr())
-            .unwrap_or("UNKNOWN".to_string());
+        let name = CStr::from_bytes_with_nul(&(*res_animation_cont).name)
+            .ok()
+            .and_then(|s| CStr::to_str(s).ok());
         let anim_type = (*res_animation_cont).anim_content_type;
 
-        // AnimContentType 1 == MATERIAL
-        if name.starts_with("set_dmg_num") && anim_type == 1 {
-            if let Some(layout_name) = layout_name {
-                let (hundreds, tens, ones, dec) = get_player_dmg_digits(match layout_name {
-                    "p1" => FighterId::Player,
-                    "p2" => FighterId::CPU,
-                    _ => panic!("Unknown layout name: {}", layout_name),
-                });
+        if let Some(name) = name {
+            // AnimContentType 1 == MATERIAL
+            if name.starts_with("set_dmg_num") && anim_type == 1 {
+                if let Some(layout_name) = layout_name {
+                    let (hundreds, tens, ones, dec) = get_player_dmg_digits(match layout_name {
+                        "p1" => FighterId::Player,
+                        "p2" => FighterId::CPU,
+                        _ => panic!("Unknown layout name: {}", layout_name),
+                    });
 
-                if name == "set_dmg_num_3" {
-                    anim_transform.frame = hundreds as f32;
-                }
-                if name == "set_dmg_num_2" {
-                    anim_transform.frame = tens as f32;
-                }
-                if name == "set_dmg_num_1" {
-                    anim_transform.frame = ones as f32;
-                }
-                if name == "set_dmg_num_dec" {
-                    anim_transform.frame = dec as f32;
+                    if name == "set_dmg_num_3" {
+                        anim_transform.frame = hundreds as f32;
+                    } else if name == "set_dmg_num_2" {
+                        anim_transform.frame = tens as f32;
+                    } else if name == "set_dmg_num_1" {
+                        anim_transform.frame = ones as f32;
+                    } else if name == "set_dmg_num_dec" {
+                        anim_transform.frame = dec as f32;
+                    }
                 }
             }
         }
