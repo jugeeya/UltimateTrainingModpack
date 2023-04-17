@@ -58,8 +58,8 @@ struct SavedState {
     steve_state: Option<steve::SteveState>,
 }
 
-macro_rules! default_save_state {
-    () => {
+impl Default for SavedState {
+    fn default() -> Self {
         SavedState {
             x: 0.0,
             y: 0.0,
@@ -94,56 +94,56 @@ macro_rules! default_save_state {
                 shovel_durability: 70.0,
             }),
         }
-    };
+    }
 }
 
-#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+const NUM_SAVE_STATE_SLOTS: usize = 5;
+
+#[derive(Serialize, Deserialize, Copy, Clone, Debug, Default)]
 pub struct SaveStateSlots {
     player: [SavedState; NUM_SAVE_STATE_SLOTS],
     cpu: [SavedState; NUM_SAVE_STATE_SLOTS],
 }
 
-const NUM_SAVE_STATE_SLOTS: usize = 5;
-// I actually had to do it this way, a simple load-from-file in main() caused crashes.
-lazy_static::lazy_static! {
-    static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(load_from_file());
-}
-
-pub fn load_from_file() -> SaveStateSlots {
-    let defaults = SaveStateSlots {
-        player: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
-        cpu: [default_save_state!(); NUM_SAVE_STATE_SLOTS],
-    };
-
-    info!("Checking for previous save state settings in {SAVE_STATES_TOML_PATH}...");
-    if std::fs::metadata(SAVE_STATES_TOML_PATH).is_err() {
-        return defaults;
-    }
-
-    info!("Previous save state settings found. Loading...");
-    if let Ok(data) = std::fs::read_to_string(SAVE_STATES_TOML_PATH) {
-        let input_slots = toml::from_str::<SaveStateSlots>(&data);
-        if let Ok(input_slots) = input_slots {
-            return input_slots;
+impl SaveStateSlots {
+    pub fn from_file(file_path: &str) -> Option<Self> {
+        info!("Checking for previous save state settings in {file_path}...");
+        if std::fs::metadata(file_path).is_err() {
+            None
+        } else {
+            info!("Previous save state settings found. Loading...");
+            std::fs::read_to_string(file_path)
+                .as_deref()
+                .ok()
+                .and_then(|s| toml::from_str(s).ok())
         }
     }
-
-    defaults
 }
 
-pub unsafe fn save_to_file() {
-    let save_states_str = toml::to_string_pretty(&*SAVE_STATE_SLOTS.data_ptr())
+// I actually had to do it this way, a simple load-from-file in main() caused crashes.
+lazy_static::lazy_static! {
+    static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(
+        SaveStateSlots::from_file(SAVE_STATES_TOML_PATH).unwrap_or_default()
+    );
+}
+
+pub fn save_to_file() {
+    let save_states_str = toml::to_string_pretty(&*SAVE_STATE_SLOTS.lock())
         .expect("Error serializing save state information");
     std::fs::write(SAVE_STATES_TOML_PATH, save_states_str)
         .expect("Could not write save state information to file");
 }
 
-unsafe fn save_state_player(slot: usize) -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).player[slot]
+fn save_state_player(slot: usize) -> parking_lot::MappedMutexGuard<'static, SavedState> {
+    parking_lot::MutexGuard::map(SAVE_STATE_SLOTS.lock(), |slots: &mut SaveStateSlots| {
+        &mut slots.player[slot]
+    })
 }
 
-unsafe fn save_state_cpu(slot: usize) -> &'static mut SavedState {
-    &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[slot]
+fn save_state_cpu(slot: usize) -> parking_lot::MappedMutexGuard<'static, SavedState> {
+    parking_lot::MutexGuard::map(SAVE_STATE_SLOTS.lock(), |slots: &mut SaveStateSlots| {
+        &mut slots.cpu[slot]
+    })
 }
 
 // MIRROR_STATE == 1 -> Do not mirror
@@ -349,7 +349,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     let status = StatusModule::status_kind(module_accessor);
     let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
         == FighterId::CPU as i32;
-    let save_state = if is_cpu {
+    let mut save_state = if is_cpu {
         save_state_cpu(selected_slot)
     } else {
         save_state_player(selected_slot)
@@ -388,7 +388,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             } else {
                 selected_slot
             };
-
+            drop(save_state); // Drop our MutexGuard since we need to lock a different slot.
             save_state_player(slot).state = KillPlayer;
             save_state_cpu(slot).state = KillPlayer;
         }
@@ -594,6 +594,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
+        drop(save_state); // Drop our MutexGuard since we need to lock a different slot.
         save_state_player(MENU.save_state_slot as u32 as usize).state = Save;
         save_state_cpu(MENU.save_state_slot as u32 as usize).state = Save;
         notifications::clear_notifications("Save State");
@@ -603,6 +604,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             120,
         );
     }
+
+    // Re-acquire our MutexGuard for the next clause.
+    save_state = if is_cpu {
+        save_state_cpu(selected_slot)
+    } else {
+        save_state_player(selected_slot)
+    };
 
     if save_state.state == Save && !fighter_is_nana {
         // Don't save states with Nana. Should already be fine, just a safety.
@@ -646,6 +654,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             0,
             0,
         );
+
+        drop(save_state); // Drop our MutexGuard since we need to lock the entire struct to serialize.
 
         // If both chars finished saving by now
         if save_state_player(selected_slot).state != Save
