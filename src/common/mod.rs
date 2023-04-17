@@ -232,9 +232,10 @@ pub unsafe fn entry_count() -> i32 {
     FighterManager::entry_count(fighter_manager)
 }
 
-pub unsafe fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
+pub fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
     let module_accessor = get_module_accessor(p);
-    let dmg = DamageModule::damage(module_accessor, 0);
+    // Safety: FFI call with fixed arguments.
+    let dmg = unsafe { DamageModule::damage(module_accessor, 0) };
     let hundreds = dmg as u16 / 100;
     let tens = (dmg as u16 - hundreds * 100) / 10;
     let ones = (dmg as u16) - (hundreds * 100) - (tens * 10);
