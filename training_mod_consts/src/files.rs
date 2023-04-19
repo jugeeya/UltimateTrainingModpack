@@ -12,3 +12,4 @@ pub const LEGACY_MENU_OPTIONS_PATH: &str =
     "sd:/ultimate/TrainingModpack/training_modpack_menu.json";
 pub const MENU_DEFAULT_OPTIONS_PATH: &str =
     "sd:/ultimate/TrainingModpack/training_modpack_menu_defaults.conf";
+pub const UNPACK_PATH: &str = "sd:/";
