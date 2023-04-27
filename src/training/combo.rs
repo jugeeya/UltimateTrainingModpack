@@ -8,8 +8,8 @@ use crate::training::*;
 pub static mut FRAME_ADVANTAGE: i32 = 0;
 static mut PLAYER_ACTIONABLE: bool = false;
 static mut CPU_ACTIONABLE: bool = false;
-static mut PLAYER_ACTIVE_FRAME: u32 = 0;
-static mut CPU_ACTIVE_FRAME: u32 = 0;
+static mut PLAYER_ACTIVE_FRAME: i32 = -1;
+static mut CPU_ACTIVE_FRAME: i32 = -1;
 static mut FRAME_ADVANTAGE_CHECK: bool = false;
 
 static mut FRAME_COUNTER_INDEX: usize = 0;
@@ -25,7 +25,7 @@ unsafe fn _was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor)
     (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
 }
 
-unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+unsafe fn _was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
 }
@@ -102,20 +102,17 @@ pub unsafe fn is_enable_transition_term(
                 .iter()
                 .any(|actionable_transition| *actionable_transition == transition_term))
             || (CancelModule::is_enable_cancel(module_accessor)))
+        && FRAME_ADVANTAGE_CHECK
     {
-        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
+        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX) as i32;
         PLAYER_ACTIONABLE = true;
 
         // if both are now active
-        if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
-            let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-            if was_in_shieldstun(cpu_module_accessor) {
-                update_frame_advantage(
-                    (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32,
-                );
-            }
-
+        if PLAYER_ACTIONABLE && CPU_ACTIONABLE {
+            update_frame_advantage(CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME);
             frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+            CPU_ACTIVE_FRAME = -1;
+            PLAYER_ACTIVE_FRAME = -1;
             FRAME_ADVANTAGE_CHECK = false;
         }
     }
@@ -131,39 +128,40 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
 
-    // Use to factor in that we should only update frame advantage if
-    // there's been a hit that connects
-    // if AttackModule::is_infliction(
-    //     player_module_accessor,
-    //     *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD) {
+    if FRAME_ADVANTAGE_CHECK {
+        // the frame the fighter *becomes* actionable
+        if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) && (CPU_ACTIVE_FRAME == -1) {
+            CPU_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX) as i32;
+        }
 
-    // the frame the fighter *becomes* actionable
-    if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) {
-        CPU_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
-    }
-
-    if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
-        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
+        if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) && (PLAYER_ACTIVE_FRAME == -1) {
+            PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX) as i32;
+        }
     }
 
     CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
     PLAYER_ACTIONABLE = is_actionable(player_module_accessor);
 
-    // if neither are active
-    if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
-        if !FRAME_ADVANTAGE_CHECK {
-            frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(FRAME_COUNTER_INDEX);
+    // Use to factor in that we should only update frame advantage if
+    // there's been a hit that connects
+    if AttackModule::is_infliction(
+        player_module_accessor,
+        *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD) {
+        // if neither are active
+        if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
+            if !FRAME_ADVANTAGE_CHECK {
+                frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+                frame_counter::start_counting(FRAME_COUNTER_INDEX);
+            }
+            FRAME_ADVANTAGE_CHECK = true;
         }
-        FRAME_ADVANTAGE_CHECK = true;
     }
 
     // if both are now active
     if PLAYER_ACTIONABLE && CPU_ACTIONABLE && FRAME_ADVANTAGE_CHECK {
-        if was_in_shieldstun(cpu_module_accessor) {
-            update_frame_advantage((CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32);
-        }
-
+        update_frame_advantage(CPU_ACTIVE_FRAME - PLAYER_ACTIVE_FRAME);
+        CPU_ACTIVE_FRAME = -1;
+        PLAYER_ACTIVE_FRAME = -1;
         frame_counter::stop_counting(FRAME_COUNTER_INDEX);
         FRAME_ADVANTAGE_CHECK = false;
     }
