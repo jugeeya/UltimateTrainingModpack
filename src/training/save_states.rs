@@ -156,7 +156,7 @@ unsafe fn get_slot() -> usize {
     if MENU.randomize_slots == OnOff::On {
         RANDOM_SLOT
     } else {
-        MENU.save_state_slot as u32 as usize
+        MENU.save_state_slot.as_idx() as usize
     }
 }
 
@@ -594,8 +594,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
-        save_state_player(MENU.save_state_slot as u32 as usize).state = Save;
-        save_state_cpu(MENU.save_state_slot as u32 as usize).state = Save;
+        save_state_player(MENU.save_state_slot.as_idx() as usize).state = Save;
+        save_state_cpu(MENU.save_state_slot.as_idx() as usize).state = Save;
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
