@@ -1129,7 +1129,7 @@ impl SaveStateSlot {
             SaveStateSlot::Five => "5",
         })
     }
-    
+
     pub fn as_idx(self) -> u32 {
         log_2(self as i32 as u32)
     }
