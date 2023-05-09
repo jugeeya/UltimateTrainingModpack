@@ -337,6 +337,12 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
 
     min_value_text.set_visible(true);
     max_value_text.set_visible(true);
+
+    // Hide the Icon pane for MinButton and MaxButton
+    [min_button, max_button].iter().for_each(|button| {
+        let icon = button.find_pane_by_name_recursive("Icon").unwrap();
+        icon.set_visible(false);
+    });
 }
 
 pub unsafe fn draw(root_pane: &mut Pane) {
