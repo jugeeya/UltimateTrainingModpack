@@ -296,10 +296,13 @@ unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectMod
 
     // All articles have ID <= 0x25
     (0..=0x25)
-        // Don't remove crafting table
+        // Don't remove crafting table, Mii hats, or Luma
         .filter(|article_idx| {
-            !(fighter_kind == *FIGHTER_KIND_PICKEL
-                && *article_idx == *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE)
+            !(fighter_kind == *FIGHTER_KIND_MIIFIGHTER && *article_idx == *FIGHTER_MIIFIGHTER_GENERATE_ARTICLE_HAT) ||
+            !(fighter_kind == *FIGHTER_KIND_MIISWORDSMAN && *article_idx == *FIGHTER_MIISWORDSMAN_GENERATE_ARTICLE_HAT) ||
+            !(fighter_kind == *FIGHTER_KIND_MIIGUNNER && *article_idx == *FIGHTER_MIIGUNNER_GENERATE_ARTICLE_HAT) ||
+            !(fighter_kind == *FIGHTER_KIND_ROSETTA && *article_idx == *FIGHTER_ROSETTA_GENERATE_ARTICLE_TICO) ||
+            !(fighter_kind == *FIGHTER_KIND_PICKEL && *article_idx == *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE)
         })
         .for_each(|article_idx| {
             if ArticleModule::is_exist(module_accessor, article_idx) {
