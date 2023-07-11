@@ -5,6 +5,7 @@ use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, Item};
 use smash::hash40;
+use smash::cpp::l2c_value::LuaConst;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use training_mod_consts::{CharacterItem, SaveDamage};
@@ -28,6 +29,14 @@ use crate::training::items::apply_item;
 use crate::training::reset;
 use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
+
+const ARTICLE_ALLOWLIST : [(LuaConst, LuaConst); 5] = [
+    (FIGHTER_KIND_MIIFIGHTER, FIGHTER_MIIFIGHTER_GENERATE_ARTICLE_HAT),
+    (FIGHTER_KIND_MIISWORDSMAN, FIGHTER_MIISWORDSMAN_GENERATE_ARTICLE_HAT),
+    (FIGHTER_KIND_MIIGUNNER, FIGHTER_MIIGUNNER_GENERATE_ARTICLE_HAT),
+    (FIGHTER_KIND_ROSETTA, FIGHTER_ROSETTA_GENERATE_ARTICLE_TICO),
+    (FIGHTER_KIND_PICKEL, FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE)
+];
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app14sv_information8stage_idEv"]
@@ -298,11 +307,7 @@ unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectMod
     (0..=0x25)
         // Don't remove crafting table, Mii hats, or Luma
         .filter(|article_idx| {
-            !(fighter_kind == *FIGHTER_KIND_MIIFIGHTER && *article_idx == *FIGHTER_MIIFIGHTER_GENERATE_ARTICLE_HAT) ||
-            !(fighter_kind == *FIGHTER_KIND_MIISWORDSMAN && *article_idx == *FIGHTER_MIISWORDSMAN_GENERATE_ARTICLE_HAT) ||
-            !(fighter_kind == *FIGHTER_KIND_MIIGUNNER && *article_idx == *FIGHTER_MIIGUNNER_GENERATE_ARTICLE_HAT) ||
-            !(fighter_kind == *FIGHTER_KIND_ROSETTA && *article_idx == *FIGHTER_ROSETTA_GENERATE_ARTICLE_TICO) ||
-            !(fighter_kind == *FIGHTER_KIND_PICKEL && *article_idx == *FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE)
+            !ARTICLE_ALLOWLIST.contains(&(fighter_kind, *article_idx))
         })
         .for_each(|article_idx| {
             if ArticleModule::is_exist(module_accessor, article_idx) {
