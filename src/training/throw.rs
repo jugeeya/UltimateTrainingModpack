@@ -147,7 +147,7 @@ pub unsafe fn get_command_flag_throw_direction(
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW_HI,
     ) {
         let cmd = THROW_CASE.into_cmd().unwrap_or(0);
-        mash::buffer_menu_mash();
+        mash::external_buffer_menu_mash(MENU.mash_state.get_random());
         return cmd;
     }
 

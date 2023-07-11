@@ -59,6 +59,19 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub throw_delay: MedDelay,
     pub throw_state: ThrowOption,
+    pub ledge_neutral_override: Action,
+    pub ledge_roll_override: Action,
+    pub ledge_jump_override: Action,
+    pub ledge_attack_override: Action,
+    pub tech_action_override: Action,
+    pub clatter_override: Action,
+    pub tumble_override: Action,
+    pub hitstun_override: Action,
+    pub parry_override: Action,
+    pub block_override: Action,
+    pub footstool_override: Action,
+    pub landing_override: Action,
+    pub trump_override: Action,
 }
 
 #[repr(C)]
@@ -136,6 +149,19 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tech_state: TechFlags::all(),
     throw_delay: MedDelay::empty(),
     throw_state: ThrowOption::NONE,
+    ledge_neutral_override: Action::empty(),
+    ledge_roll_override: Action::empty(),
+    ledge_jump_override: Action::empty(),
+    ledge_attack_override: Action::empty(),
+    tech_action_override: Action::empty(),
+    clatter_override: Action::empty(),
+    tumble_override: Action::empty(),
+    hitstun_override: Action::empty(),
+    parry_override: Action::empty(),
+    block_override: Action::empty(),
+    footstool_override: Action::empty(),
+    landing_override: Action::empty(),
+    trump_override: Action::empty(),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;

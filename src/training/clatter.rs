@@ -5,10 +5,8 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::mash;
 
 static mut COUNTER: u32 = 0;
-static mut WAS_IN_CLATTER_FLAG: bool = false;
 static mut CLATTER_STEP: f32 = 8.0;
 
 unsafe fn do_clatter_input(module_accessor: &mut BattleObjectModuleAccessor) {
@@ -44,13 +42,9 @@ pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
         return;
     }
     if !is_in_clatter(module_accessor) {
-        if WAS_IN_CLATTER_FLAG && MENU.mash_triggers.contains(MashTrigger::CLATTER) {
-            mash::buffer_menu_mash();
-        }
-        WAS_IN_CLATTER_FLAG = false;
+        // Don't do clatter inputs if we're not in clatter
         return;
     }
-    WAS_IN_CLATTER_FLAG = true;
     let repeat = MENU.clatter_strength.into_u32();
 
     COUNTER = (COUNTER + 1) % repeat;
