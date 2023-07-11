@@ -30,6 +30,7 @@ use crate::training::reset;
 use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 
+// Don't remove Mii hats, or Luma, or crafting table
 const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 5] = [
     (
         FIGHTER_KIND_MIIFIGHTER,
@@ -43,9 +44,9 @@ const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 5] = [
         FIGHTER_KIND_MIIGUNNER,
         FIGHTER_MIIGUNNER_GENERATE_ARTICLE_HAT,
     ),
-     (FIGHTER_KIND_ROSETTA, FIGHTER_ROSETTA_GENERATE_ARTICLE_TICO),
+    (FIGHTER_KIND_ROSETTA, FIGHTER_ROSETTA_GENERATE_ARTICLE_TICO),
     (FIGHTER_KIND_PICKEL, FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE),
- ];
+];
 
 extern "C" {
     #[link_name = "\u{1}_ZN3app14sv_information8stage_idEv"]
@@ -314,10 +315,11 @@ unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectMod
 
     // All articles have ID <= 0x25
     (0..=0x25)
-        // Don't remove crafting table, Mii hats, or Luma
-        .filter(|article_idx| !ARTICLE_ALLOWLIST
-                .iter()
-                .any(|article_allowed| article_allowed.0 == fighter_kind && article_allowed.1 == *article_idx))
+        .filter(|article_idx| {
+            !ARTICLE_ALLOWLIST.iter().any(|article_allowed| {
+                article_allowed.0 == fighter_kind && article_allowed.1 == *article_idx
+            })
+        })
         .for_each(|article_idx| {
             if ArticleModule::is_exist(module_accessor, article_idx) {
                 let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
