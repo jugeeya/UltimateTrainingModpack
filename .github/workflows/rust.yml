@@ -50,10 +50,10 @@ jobs:
           command: clippy
           args: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
-        uses: actions-rs/cargo@v1
-        continue-on-error: false
+        uses: ClementTsang/cargo-action@v0.0.3
         with:
-          working-directory: training_mod_tui
+          command: test
+          directory: training_mod_tui
   plugin:
     name: Plugin NRO
     runs-on: ubuntu-latest

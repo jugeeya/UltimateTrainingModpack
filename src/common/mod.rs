@@ -70,8 +70,7 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
 
         let entry_id = app::FighterEntryID(entry_id_int);
         let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
-        let fighter_information =
-            FighterManager::get_fighter_information(mgr, entry_id) as *mut app::FighterInformation;
+        let fighter_information = FighterManager::get_fighter_information(mgr, entry_id);
 
         FighterInformation::is_operation_cpu(fighter_information)
     }

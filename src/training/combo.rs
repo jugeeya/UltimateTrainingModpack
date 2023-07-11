@@ -32,7 +32,7 @@ unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccesso
 
 macro_rules! actionable_statuses {
     () => {
-        vec![
+        [
             FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
             FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
             FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,
