@@ -159,12 +159,14 @@ unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAcces
         } else { return None }
     } else if is_in_clatter(module_accessor) {
         let action = MENU.clatter_override.get_random();
-        if action != Action::empty() { // If we have an override selected, always use it
+        if action != Action::empty() {
             return Some(action);
-        } else if MENU.mash_triggers.contains(MashTrigger::CLATTER) { // If we don't have an override selected, use the regular menu mash if a mash trigger is selected
+        } else if MENU.mash_triggers.contains(MashTrigger::CLATTER) {
             return Some(MENU.mash_state.get_random());
         } else { return None }
     } else if is_in_tumble(module_accessor) {
+        // Note that the tumble check needs to come before hitstun,
+        // otherwise the hitstun check will always return first
         let action = MENU.tumble_override.get_random();
         if action != Action::empty() {
             return Some(action);
@@ -186,10 +188,10 @@ unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAcces
             return Some(MENU.mash_state.get_random());
         } else { return None }
     } else if is_in_shieldstun(module_accessor) {
-        let action = MENU.block_override.get_random();
+        let action = MENU.shieldstun_override.get_random();
         if action != Action::empty() {
             return Some(action);
-        } else if MENU.mash_triggers.contains(MashTrigger::BLOCK) {
+        } else if MENU.mash_triggers.contains(MashTrigger::SHIELDSTUN) {
             return Some(MENU.mash_state.get_random());
         } else { return None }
     } else if is_in_footstool(module_accessor) {

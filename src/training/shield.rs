@@ -238,11 +238,11 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if MENU.mash_triggers.contains(MashTrigger::BLOCK) {
-        if MENU.block_override == Action::empty() {
+    if MENU.mash_triggers.contains(MashTrigger::SHIELDSTUN) {
+        if MENU.shieldstun_override == Action::empty() {
             mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.block_override.get_random())
+            mash::external_buffer_menu_mash(MENU.shieldstun_override.get_random())
         }
     }
     let action = mash::get_current_buffer();

@@ -1014,7 +1014,7 @@ impl ToggleTrait for CharacterItem {
 bitflags! {
     pub struct MashTrigger : u32 {
         const HIT =            0b0000_0000_0000_0000_0001;
-        const BLOCK =          0b0000_0000_0000_0000_0010;
+        const SHIELDSTUN =     0b0000_0000_0000_0000_0010;
         const PARRY =          0b0000_0000_0000_0000_0100;
         const TUMBLE =         0b0000_0000_0000_0000_1000;
         const LANDING =        0b0000_0000_0000_0001_0000;
@@ -1037,7 +1037,7 @@ impl MashTrigger {
     pub fn as_str(self) -> Option<&'static str> {
         Some(match self {
             MashTrigger::HIT => "Hitstun",
-            MashTrigger::BLOCK => "Shieldstun",
+            MashTrigger::SHIELDSTUN => "Shieldstun",
             MashTrigger::PARRY => "Parry",
             MashTrigger::TUMBLE => "Tumble",
             MashTrigger::LANDING => "Landing",
@@ -1060,7 +1060,7 @@ impl MashTrigger {
     pub const fn default() -> MashTrigger {
         // Hit, block, clatter
         MashTrigger::HIT
-            .union(MashTrigger::BLOCK)
+            .union(MashTrigger::SHIELDSTUN)
             .union(MashTrigger::CLATTER)
     }
 }
