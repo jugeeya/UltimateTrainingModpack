@@ -125,9 +125,10 @@ pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -
 }
 
 pub unsafe fn is_in_tech(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let status_kind = StatusModule::status_kind(module_accessor); 
-    (*FIGHTER_STATUS_KIND_DOWN_STAND..=*FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK).contains(&status_kind) ||
-        (*FIGHTER_STATUS_KIND_PASSIVE..=*FIGHTER_STATUS_KIND_PASSIVE_CEIL).contains(&status_kind)
+    let status_kind = StatusModule::status_kind(module_accessor);
+    (*FIGHTER_STATUS_KIND_DOWN_STAND..=*FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK)
+        .contains(&status_kind)
+        || (*FIGHTER_STATUS_KIND_PASSIVE..=*FIGHTER_STATUS_KIND_PASSIVE_CEIL).contains(&status_kind)
 }
 
 pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -224,7 +225,8 @@ pub unsafe fn is_in_tumble(module_accessor: &mut app::BattleObjectModuleAccessor
 pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
 
-    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT).contains(&status_kind)
+    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT)
+        .contains(&status_kind)
 }
 
 // Returns true if a match is currently active

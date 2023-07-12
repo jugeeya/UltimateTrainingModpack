@@ -1,14 +1,14 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
-use crate::common::*;
 use crate::common::consts::*;
-use crate::training::{attack_angle, save_states};
+use crate::common::*;
 use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::frame_counter;
 use crate::training::full_hop;
 use crate::training::shield;
+use crate::training::{attack_angle, save_states};
 
 const DISTANCE_CLOSE_THRESHOLD: f32 = 16.0;
 const DISTANCE_MID_THRESHOLD: f32 = 37.0;
@@ -133,19 +133,19 @@ pub unsafe fn get_command_flag_cat(
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     // Different situations mean we want to change our buffered option, so we check what to buffer every frame
     let buffered_action = get_buffered_action(module_accessor);
-    match buffered_action {
-        Some(action) => {
-            full_reset(); 
-            // we need to clear the queue when adding a mash to the queue, but not necessarily a follow-up.
-            // We need to clear the queue since it'll be trying to buffer that action until it's completed, but now we want
-            //  different things to happen.
-            buffer_menu_mash(action);
-        },
-        None => return,
+    if let Some(action) = buffered_action {
+        full_reset();
+        // we need to clear the queue when adding a mash to the queue, but not necessarily a follow-up.
+        // We need to clear the queue since it'll be trying to buffer that action until it's completed, but now we want
+        //  different things to happen.
+        buffer_menu_mash(action);
     }
 }
 
-unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<Action> {
+unsafe fn get_buffered_action(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> Option<Action> {
+    // TODO: refactor this so it is less repetitive. Maybe a macro is the right tool for this
     if save_states::is_loading() {
         return None;
     }
@@ -153,73 +153,94 @@ unsafe fn get_buffered_action(module_accessor: &mut app::BattleObjectModuleAcces
     if is_in_tech(module_accessor) {
         let action = MENU.tech_action_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::TECH) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_clatter(module_accessor) {
         let action = MENU.clatter_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::CLATTER) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_tumble(module_accessor) {
         // Note that the tumble check needs to come before hitstun,
         // otherwise the hitstun check will always return first
         let action = MENU.tumble_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::TUMBLE) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_hitstun(module_accessor) {
         let action = MENU.hitstun_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::HIT) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_parry(module_accessor) {
         let action = MENU.parry_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::PARRY) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_shieldstun(module_accessor) {
         let action = MENU.shieldstun_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::SHIELDSTUN) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_footstool(module_accessor) {
         let action = MENU.footstool_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::FOOTSTOOL) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_ledgetrump(module_accessor) {
         let action = MENU.trump_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::TRUMP) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if is_in_landing(module_accessor) {
         let action = MENU.landing_override.get_random();
         if action != Action::empty() {
-            return Some(action);
+            Some(action)
         } else if MENU.mash_triggers.contains(MashTrigger::LANDING) {
-            return Some(MENU.mash_state.get_random());
-        } else { return None }
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        }
     } else if (MENU.mash_triggers.contains(MashTrigger::GROUNDED) && is_grounded(module_accessor))
         || (MENU.mash_triggers.contains(MashTrigger::AIRBORNE) && is_airborne(module_accessor))
-        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_CLOSE) && fighter_distance < DISTANCE_CLOSE_THRESHOLD)
-        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID) && fighter_distance < DISTANCE_MID_THRESHOLD)
-        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR) && fighter_distance < DISTANCE_FAR_THRESHOLD)
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_CLOSE)
+            && fighter_distance < DISTANCE_CLOSE_THRESHOLD)
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_MID)
+            && fighter_distance < DISTANCE_MID_THRESHOLD)
+        || (MENU.mash_triggers.contains(MashTrigger::DISTANCE_FAR)
+            && fighter_distance < DISTANCE_FAR_THRESHOLD)
         || MENU.mash_triggers.contains(MashTrigger::ALWAYS)
     {
         Some(MENU.mash_state.get_random())

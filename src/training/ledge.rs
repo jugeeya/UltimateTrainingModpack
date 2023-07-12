@@ -108,7 +108,8 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
             mash::external_buffer_menu_mash(MENU.ledge_roll_override.get_random());
         } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_override != Action::empty() {
             mash::external_buffer_menu_mash(MENU.ledge_jump_override.get_random());
-        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_override != Action::empty() {
+        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_override != Action::empty()
+        {
             mash::external_buffer_menu_mash(MENU.ledge_attack_override.get_random());
         } else {
             mash::external_buffer_menu_mash(MENU.mash_state.get_random());
