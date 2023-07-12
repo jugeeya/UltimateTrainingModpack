@@ -238,8 +238,12 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if MENU.mash_triggers.contains(MashTrigger::BLOCK) {
-        mash::buffer_menu_mash();
+    if MENU.mash_triggers.contains(MashTrigger::SHIELDSTUN) {
+        if MENU.shieldstun_override == Action::empty() {
+            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+        } else {
+            mash::external_buffer_menu_mash(MENU.shieldstun_override.get_random())
+        }
     }
     let action = mash::get_current_buffer();
 
@@ -341,7 +345,30 @@ fn needs_oos_handling_drop_shield() -> bool {
     if action == Action::U_SMASH {
         return true;
     }
+    // Make sure we only flicker shield when Airdodge and Shield mash options are selected
+    if action == Action::AIR_DODGE {
+        let shield_state;
+        unsafe {
+            shield_state = &MENU.shield_state;
+        }
+        // If we're supposed to be holding shield, let airdodge make us drop shield
+        if [Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+            suspend_shield(Action::AIR_DODGE);
+        }
+        return true;
+    }
 
+    if action == Action::SHIELD {
+        let shield_state;
+        unsafe {
+            shield_state = &MENU.shield_state;
+        }
+        // Don't drop shield on shield hit if we're supposed to be holding shield
+        if [Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+            return false;
+        }
+        return true;
+    }
     false
 }
 

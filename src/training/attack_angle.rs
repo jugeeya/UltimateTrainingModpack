@@ -3,7 +3,7 @@ use smash::app::{self};
 use crate::common::consts::*;
 use crate::common::*;
 
-static mut DIRECTION: AttackAngle = AttackAngle::UP;
+static mut DIRECTION: AttackAngle = AttackAngle::NEUTRAL;
 
 pub fn roll_direction() {
     unsafe {

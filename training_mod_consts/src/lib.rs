@@ -59,6 +59,19 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub throw_delay: MedDelay,
     pub throw_state: ThrowOption,
+    pub ledge_neutral_override: Action,
+    pub ledge_roll_override: Action,
+    pub ledge_jump_override: Action,
+    pub ledge_attack_override: Action,
+    pub tech_action_override: Action,
+    pub clatter_override: Action,
+    pub tumble_override: Action,
+    pub hitstun_override: Action,
+    pub parry_override: Action,
+    pub shieldstun_override: Action,
+    pub footstool_override: Action,
+    pub landing_override: Action,
+    pub trump_override: Action,
 }
 
 #[repr(C)]
@@ -136,6 +149,19 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tech_state: TechFlags::all(),
     throw_delay: MedDelay::empty(),
     throw_state: ThrowOption::NONE,
+    ledge_neutral_override: Action::empty(),
+    ledge_roll_override: Action::empty(),
+    ledge_jump_override: Action::empty(),
+    ledge_attack_override: Action::empty(),
+    tech_action_override: Action::empty(),
+    clatter_override: Action::empty(),
+    tumble_override: Action::empty(),
+    hitstun_override: Action::empty(),
+    parry_override: Action::empty(),
+    shieldstun_override: Action::empty(),
+    footstool_override: Action::empty(),
+    landing_override: Action::empty(),
+    trump_override: Action::empty(),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -384,6 +410,104 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.reaction_time.bits()),
     );
     overall_menu.tabs.push(mash_tab);
+
+    let mut override_tab = Tab {
+        tab_id: "override",
+        tab_title: "Override Settings",
+        tab_submenus: Vec::new(),
+    };
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Neutral Getup",
+        "ledge_neutral_override",
+        "Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge",
+        false,
+        &(menu.ledge_neutral_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Roll",
+        "ledge_roll_override",
+        "Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge",
+        false,
+        &(menu.ledge_roll_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Jump",
+        "ledge_jump_override",
+        "Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge",
+        false,
+        &(menu.ledge_jump_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Attack",
+        "ledge_attack_override",
+        "Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge",
+        false,
+        &(menu.ledge_attack_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Tech Action",
+        "tech_action_override",
+        "Tech Action Override: Mash Actions to be performed after any tech action",
+        false,
+        &(menu.tech_action_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Clatter",
+        "clatter_override",
+        "Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)",
+        false,
+        &(menu.clatter_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Tumble",
+        "tumble_override",
+        "Tumble Override: Mash Actions to be performed after exiting a tumble state",
+        false,
+        &(menu.tumble_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Hitstun",
+        "hitstun_override",
+        "Hitstun Override: Mash Actions to be performed after exiting a hitstun state",
+        false,
+        &(menu.hitstun_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Parry",
+        "parry_override",
+        "Parry Override: Mash Actions to be performed after a parry",
+        false,
+        &(menu.parry_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Shieldstun",
+        "shieldstun_override",
+        "Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state",
+        false,
+        &(menu.shieldstun_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Footstool",
+        "footstool_override",
+        "Footstool Override: Mash Actions to be performed after exiting a footstool state",
+        false,
+        &(menu.footstool_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Landing",
+        "landing_override",
+        "Landing Override: Mash Actions to be performed after landing on the ground",
+        false,
+        &(menu.landing_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Trump",
+        "trump_override",
+        "Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state",
+        false,
+        &(menu.trump_override.bits()),
+    );
+    overall_menu.tabs.push(override_tab);
 
     let mut defensive_tab = Tab {
         tab_id: "defensive",

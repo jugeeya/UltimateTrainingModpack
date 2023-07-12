@@ -22,7 +22,7 @@ fn is_current_version(fpath: &str) -> VersionCheck {
         return VersionCheck::NoFile;
     }
 
-    if fs::read_to_string(fpath).unwrap_or("".to_string()) == CURRENT_VERSION {
+    if fs::read_to_string(fpath).unwrap_or_else(|_| "".to_string()) == CURRENT_VERSION {
         VersionCheck::Current
     } else {
         VersionCheck::Update

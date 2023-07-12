@@ -116,10 +116,18 @@ pub fn is_in_shieldstun(module_accessor: &mut app::BattleObjectModuleAccessor) -
     let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
     let prev_status = unsafe { StatusModule::prev_status_kind(module_accessor, 0) };
 
-    // If we are taking shield damage or we are droping shield from taking shield damage we are in hitstun
+    // If we are taking shield damage or we are dropping shield from taking shield damage we are in hitstun
+    // check if we're in first frames of guard off; don't try to mash in parryable frames - is this a problem for jump/grab OoS?
     status_kind == FIGHTER_STATUS_KIND_GUARD_DAMAGE
         || (prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
             && status_kind == FIGHTER_STATUS_KIND_GUARD_OFF)
+}
+
+pub unsafe fn is_in_tech(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let status_kind = StatusModule::status_kind(module_accessor);
+    (*FIGHTER_STATUS_KIND_DOWN_STAND..=*FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK)
+        .contains(&status_kind)
+        || (*FIGHTER_STATUS_KIND_PASSIVE..=*FIGHTER_STATUS_KIND_PASSIVE_CEIL).contains(&status_kind)
 }
 
 pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -216,7 +224,8 @@ pub unsafe fn is_in_tumble(module_accessor: &mut app::BattleObjectModuleAccessor
 pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
 
-    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_LIGHT).contains(&status_kind)
+    (*FIGHTER_STATUS_KIND_LANDING..=*FIGHTER_STATUS_KIND_LANDING_DAMAGE_LIGHT)
+        .contains(&status_kind)
 }
 
 // Returns true if a match is currently active
@@ -225,7 +234,6 @@ pub unsafe fn is_ready_go() -> bool {
     FighterManager::is_ready_go(fighter_manager)
 }
 
-// Returns true if a match is currently active
 pub unsafe fn entry_count() -> i32 {
     let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
     FighterManager::entry_count(fighter_manager)
