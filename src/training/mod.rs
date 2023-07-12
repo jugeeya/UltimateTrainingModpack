@@ -515,7 +515,7 @@ pub fn training_mods() {
 
     // Input Mods
     unsafe {
-        if (add_nn_hid_hook as *const ()).is_null() {
+        if add_nn_hid_hook as *const () == 0 as *const _ {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
         add_nn_hid_hook(input_delay::handle_get_npad_state);
