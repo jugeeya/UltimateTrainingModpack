@@ -9,7 +9,7 @@
     clippy::missing_safety_doc,
     clippy::wrong_self_convention,
     clippy::option_map_unit_fn,
-    clippy::incorrect_fn_null_checks,
+    incorrect_fn_null_checks,
     clippy::transmute_num_to_bytes
 )]
 
