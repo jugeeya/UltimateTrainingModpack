@@ -8,10 +8,7 @@ use smash::lua2cpp::L2CFighterCommon;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::mash;
-use crate::training::{frame_counter, save_states};
-use crate::training::mash;
-use crate::training::input_record;
+use crate::training::{mash, frame_counter, save_states, input_record};
 
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
