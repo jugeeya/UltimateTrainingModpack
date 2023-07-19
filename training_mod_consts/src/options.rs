@@ -6,7 +6,6 @@ use smash::lib::lua_const::*;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-
 const fn num_bits<T>() -> u32 {
     (std::mem::size_of::<T>() * 8) as u32
 }
@@ -1111,6 +1110,48 @@ impl SaveDamage {
 
 extra_bitflag_impls! {SaveDamage}
 impl_serde_for_bitflags!(SaveDamage);
+
+/// Save State Slots
+#[repr(i32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum SaveStateSlot {
+    One = 0x0,
+    Two = 0x1,
+    Three = 0x2,
+    Four = 0x4,
+    Five = 0x8,
+}
+
+impl SaveStateSlot {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            SaveStateSlot::One => "1",
+            SaveStateSlot::Two => "2",
+            SaveStateSlot::Three => "3",
+            SaveStateSlot::Four => "4",
+            SaveStateSlot::Five => "5",
+        })
+    }
+
+    pub fn as_idx(self) -> u32 {
+        log_2(self as i32 as u32)
+    }
+}
+
+impl ToggleTrait for SaveStateSlot {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        SaveStateSlot::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        SaveStateSlot::iter().map(|i| i as u32).collect()
+    }
+}
+
 
 // Input Recording Slot
 #[repr(u32)]

@@ -8,6 +8,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  rustfmt_check:
+    name: Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install minimal nightly rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          components: rustfmt, clippy
+          default: true
+          target: x86_64-unknown-linux-gnu
+      - name: rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
   checker:
     name: Check, Clippy, Tests
     runs-on: ubuntu-latest
@@ -24,7 +42,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache 
         with:
-          prefix-key: "checker"
+          prefix-key: "checker-2"
       - name: Clippy
         uses: actions-rs/cargo@v1
         continue-on-error: false
@@ -32,10 +50,10 @@ jobs:
           command: clippy
           args: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
-        uses: actions-rs/cargo@v1
-        continue-on-error: false
+        uses: ClementTsang/cargo-action@v0.0.3
         with:
-          working-directory: training_mod_tui
+          command: test
+          directory: training_mod_tui
   plugin:
     name: Plugin NRO
     runs-on: ubuntu-latest
@@ -103,7 +121,7 @@ jobs:
           cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
           zip -r training_modpack_beta.zip atmosphere
       - name: Delete Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        uses: dev-drprasad/delete-tag-and-release@v0.2.1
         with:
           tag_name: beta 
           delete_release: true 
@@ -131,15 +149,75 @@ jobs:
             
             *For fuller instructions, please join the [Discord](https://discord.gg/xUZWJ5BWe7) and visit the #setup-and-download channel.*
 
-            - (*Console only*) Install Atmosphere to your hacked Switch. One great guide can be found at https://switch.homebrew.guide/ 
+            The Training Modpack requires the following prerequisite packages:
+
+            * Skyline: https://github.com/skyline-dev/skyline/releases
+              
+              * This is a generic code mod loader for Nintendo Switch games that the Training Modpack uses.
+
+            To install the Training Modpack, download the .zip file from the [latest release page](https://github.com/jugeeya/UltimateTrainingModpack/releases/latest). Extract the files from the .zip file using the file explorer on Windows or Mac, or a program such as 7-zip (windows) or unzip (Linux). 
+
+            ### Installation on Nintendo Switch
+
+            * Atmosphere: https://github.com/Atmosphere-NX/Atmosphere/releases
             
-            - Place the **contents** of the `training_modpack_beta.zip` on the root of your SD card. This means that you first unzip the file, then place its folder on the SD card root. The `atmosphere` folder should be **merged** onto the root of your SD card.
+              * This is the custom firmware that is required for any hacked Switch. One great guide for installation here can be found at https://switch.homebrew.guide/.
+
+            1) Transfer the extracted contents of the TrainingModpack .zip (`atmosphere` folder) onto the root of your SD card, merging the `/atmosphere` folder with the one on your SD card. 
             
-              - *For Ryujinx*: Paste the `contents` folder inside `atmosphere` into `%AppData%/Ryujinx/mods/`
+            2) Similarly, transfer the extracted contents of the Skyline .zip (`exefs` folder) into `sd:/atmosphere/contents/01006A800016E000`.
             
-            - Download Skyline: https://github.com/skyline-dev/skyline/releases. Place the `exefs` folder from the zip into `atmosphere/contents/01006A800016E000` on your SD card.
+            3) No files need to be manually deleted when upgrading from a previous version. 
             
-              - *For Ryujinx*: Paste these files in `%AppData%/Ryujinx/mods/contents/01006a800016e000`
+            4) The The SD card should have the below files at these locations.
+
+            ```
+            SD Card Root
+            └── atmosphere/
+                └── contents/
+                    └── 01006A800016E000/
+                        ├── exefs/
+                        │   ├── subsdk9 
+                        │   └── main.npdm
+                        └── romfs/
+                            └── skyline/
+                                └── plugins/
+                                    ├── libnn_hid_hook.nro
+                                    ├── libnro_hook.nro
+                                    ├── libparam_hook.nro
+                                    └── libtraining_modpack.nro
+            ```
+
+            ### Installation on Ryujinx Emulator on PC
+            
+            Exact same process as above, but the filepaths are in Ryujinx's mod paths.
+
+            1) Extract the contents of the TrainingModpack .zip (`atmosphere` folder). Within that folder, you'll have a `contents` folder. Paste the `contents` folder inside atmosphere into `%AppData%/Ryujinx/mods/`.
+            
+            2) Similarly, extracted contents of the Skyline .zip (`exefs` folder) into into `%AppData%/Ryujinx/mods/contents/01006a800016e000`.
+            
+            3) No files need to be manually deleted when upgrading from a previous version. 
+            
+            4) The Ryujinx mods folder should have the files below at these locations.
+
+            
+            ```
+            %AppData%
+            └── Ryujinx/
+                └── mods/
+                  └── contents/
+                      └── 01006A800016E000/
+                          ├── exefs/
+                          │   ├── subsdk9 
+                          │   └── main.npdm
+                          └── romfs/
+                              └── skyline/
+                                  └── plugins/
+                                      ├── libnn_hid_hook.nro
+                                      ├── libnro_hook.nro
+                                      ├── libparam_hook.nro
+                                      └── libtraining_modpack.nro
+            ``` 
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact

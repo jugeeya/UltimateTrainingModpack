@@ -1,7 +1,6 @@
 #![feature(proc_macro_hygiene)]
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
-#![feature(once_cell)]
 #![feature(c_variadic)]
 #![allow(
     clippy::borrow_interior_mutable_const,
@@ -10,7 +9,7 @@
     clippy::missing_safety_doc,
     clippy::wrong_self_convention,
     clippy::option_map_unit_fn,
-    clippy::fn_null_check,
+    incorrect_fn_null_checks,
     clippy::transmute_num_to_bytes
 )]
 
@@ -82,10 +81,14 @@ pub fn main() {
         );
         notification(
             "Save State".to_string(),
-            "Grab + Downtaunt".to_string(),
+            "Shield + Downtaunt".to_string(),
             120,
         );
-        notification("Load State".to_string(), "Grab + Uptaunt".to_string(), 120);
+        notification(
+            "Load State".to_string(),
+            "Shield + Uptaunt".to_string(),
+            120,
+        );
     }
 
     hitbox_visualizer::hitbox_visualization();
@@ -106,8 +109,9 @@ pub fn main() {
                 error!("Could not move file from {src_path:#?} to {dest_path:#?} with error {e}")
             });
         }
-        fs::remove_dir_all(LEGACY_TRAINING_MODPACK_ROOT)
-            .expect("Could not delete legacy Training Modpack folder!");
+        fs::remove_dir_all(LEGACY_TRAINING_MODPACK_ROOT).unwrap_or_else(|e| {
+            error!("Could not delete legacy Training Modpack folder with error {e}")
+        });
     }
 
     info!("Performing version check...");

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use lazy_static::lazy_static;
-use skyline::nn::hid::GetNpadStyleSet;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
@@ -55,12 +54,18 @@ const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
 };
 
 lazy_static! {
-    static ref GCC_BUTTON_MAPPING: HashMap<&'static str, u16> =
-        HashMap::from([("L", 0xE204), ("R", 0xE205), ("X", 0xE206), ("Z", 0xE208)]);
+    static ref GCC_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
+        ("L", 0xE204),
+        ("R", 0xE205),
+        ("X", 0xE206),
+        ("Y", 0xE207),
+        ("Z", 0xE208)
+    ]);
     static ref PROCON_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
         ("L", 0xE0E4),
         ("R", 0xE0E5),
         ("X", 0xE0E2),
+        ("Y", 0xE0E3),
         ("ZL", 0xE0E6),
         ("ZR", 0xE0E7)
     ]);
@@ -107,11 +112,10 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             // Hide all icon images, and strategically mark the icon that
             // corresponds with a particular button to be visible.
             submenu_ids.iter().for_each(|id| {
-                let pane = menu_button.find_pane_by_name_recursive(id);
-                match pane {
-                    Some(p) => p.set_visible(id == &submenu.submenu_id),
-                    None => (),
-                }
+                menu_button
+                    .find_pane_by_name_recursive(id)
+                    .unwrap_or_else(|| panic!("Unable to find icon {} in layout.arc", id))
+                    .set_visible(id == &submenu.submenu_id);
             });
 
             menu_button
@@ -139,7 +143,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
 
                 title_text.text_shadow_enable(false);
                 title_text.text_outline_enable(false);
-                
+
                 title_text.set_color(178, 199, 211, 255);
             }
 
@@ -188,19 +192,22 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
                 let submenu_ids = app.submenu_ids();
 
                 submenu_ids.iter().for_each(|id| {
-                    let pane = menu_button.find_pane_by_name_recursive(id);
-                    match pane {
-                        Some(p) => p.set_visible(false),
-                        None => (),
-                    }
+                    menu_button
+                        .find_pane_by_name_recursive(id)
+                        .unwrap_or_else(|| panic!("Unable to find icon {} in layout.arc", id))
+                        .set_visible(false);
                 });
 
                 title_text.set_text_string(name);
-                menu_button.find_pane_by_name_recursive("check")
+                menu_button
+                    .find_pane_by_name_recursive("check")
                     .unwrap()
                     .set_visible(true);
 
-                menu_button.find_pane_by_name_recursive("Icon").unwrap().set_visible(*checked);
+                menu_button
+                    .find_pane_by_name_recursive("Icon")
+                    .unwrap()
+                    .set_visible(*checked);
 
                 let title_bg_material = &mut *title_bg.material;
 
@@ -330,29 +337,22 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
 
     min_value_text.set_visible(true);
     max_value_text.set_visible(true);
+
+    // Hide the Icon pane for MinButton and MaxButton
+    [min_button, max_button].iter().for_each(|button| {
+        let icon = button.find_pane_by_name_recursive("Icon").unwrap();
+        icon.set_visible(false);
+    });
 }
 
 pub unsafe fn draw(root_pane: &mut Pane) {
     // Update menu display
     // Grabbing lock as read-only, essentially
     let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
-
-    if let Some(quit_button) = root_pane.find_pane_by_name_recursive("btn_finish") {
-        // Normally at (-804, 640)
-        // Comes down to (-804, 514)
-        if QUICK_MENU_ACTIVE {
-            quit_button.pos_y = 514.0;
-        }
-
+    if let Some(quit_button) = root_pane.find_pane_by_name_recursive("TrModTitle") {
         for quit_txt_s in &["set_txt_00", "set_txt_01"] {
             if let Some(quit_txt) = quit_button.find_pane_by_name_recursive(quit_txt_s) {
-                quit_txt.as_textbox().set_text_string(if QUICK_MENU_ACTIVE {
-                    "Modpack Menu"
-                } else {
-                    // Awkward. We should get the o.g. translation for non-english games
-                    // Or create our own textbox here so we don't step on their toes.
-                    "Quit Training"
-                });
+                quit_txt.as_textbox().set_text_string("Modpack Menu");
             }
         }
     }
@@ -405,17 +405,16 @@ pub unsafe fn draw(root_pane: &mut Pane) {
     };
     let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx]);
 
-    let p1_controller_id = crate::training::input_delay::p1_controller_id();
-    let p1_style_set = GetNpadStyleSet(&p1_controller_id as *const _);
-    let is_gcc = (p1_style_set.flags & (1 << 5)) > 0;
+    let is_gcc = common::menu::p1_controller_is_gcc();
     let button_mapping = if is_gcc {
         GCC_BUTTON_MAPPING.clone()
     } else {
         PROCON_BUTTON_MAPPING.clone()
     };
 
-    let (x_key, l_key, r_key, zl_key, zr_key, z_key) = (
+    let (x_key, y_key, l_key, r_key, zl_key, zr_key, z_key) = (
         button_mapping.get("X"),
+        button_mapping.get("Y"),
         button_mapping.get("L"),
         button_mapping.get("R"),
         button_mapping.get("ZL"),
@@ -425,9 +424,9 @@ pub unsafe fn draw(root_pane: &mut Pane) {
 
     let (left_tab_key, right_tab_key, save_defaults_key, reset_current_key, reset_all_key) =
         if is_gcc {
-            (None, z_key, x_key, l_key, r_key)
+            (l_key, r_key, x_key, z_key, y_key)
         } else {
-            (zl_key, zr_key, x_key, l_key, r_key)
+            (zl_key, zr_key, x_key, r_key, y_key)
         };
 
     [
@@ -467,12 +466,12 @@ pub unsafe fn draw(root_pane: &mut Pane) {
         help_pane.set_text_string(tab_titles[idx]);
     });
     [
-        (save_defaults_key, "SaveDefaults"),
-        (reset_current_key, "ResetCurrentDefaults"),
-        (reset_all_key, "ResetAllDefaults"),
+        (save_defaults_key, "SaveDefaults", "Save Defaults"),
+        (reset_current_key, "ResetCurrentDefaults", "Reset Current"),
+        (reset_all_key, "ResetAllDefaults", "Reset All"),
     ]
     .iter()
-    .for_each(|(key, name)| {
+    .for_each(|(key, name, title)| {
         let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
 
         let icon_pane = key_help_pane
@@ -485,26 +484,11 @@ pub unsafe fn draw(root_pane: &mut Pane) {
         *it = *key.unwrap();
         *(it.add(1)) = 0x0;
 
-        // PascalCase to Title Case
-        let title_case = name
-            .chars()
-            .fold(vec![], |mut acc, ch| {
-                if ch.is_uppercase() {
-                    acc.push(String::new());
-                }
-                if let Some(last) = acc.last_mut() {
-                    last.push(ch);
-                }
-                acc
-            })
-            .into_iter()
-            .collect::<Vec<String>>()
-            .join(" ");
         key_help_pane
             .find_pane_by_name_recursive("set_txt_help")
             .unwrap()
             .as_textbox()
-            .set_text_string(title_case.as_str());
+            .set_text_string(title);
     });
 
     match app.page {

@@ -1,3 +1,4 @@
+#[cfg(feature = "layout_arc_from_file")]
 use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
@@ -14,17 +15,27 @@ pub mod notifications;
 
 #[skyline::hook(offset = 0x4b620)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {
-    let layout_name = &skyline::from_c_str((*layout).layout_name);
+    let layout_name = skyline::from_c_str((*layout).layout_name);
     let root_pane = &mut *(*layout).root_pane;
 
     // Set HUD to invisible if HUD is toggled off
-    if is_training_mode() && is_ready_go() && layout_name != "info_training" {
+    if is_training_mode()
+        && is_ready_go()
+        && [
+            "info_playercursor",
+            "info_playercursor_item",
+            "info_melee",
+            "info_radar_a",
+            "info_radar_b",
+        ]
+        .contains(&layout_name.as_str())
+    {
         // InfluencedAlpha means "Should my children panes' alpha be influenced by mine, as the parent?"
         root_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
         root_pane.set_visible(MENU.hud == OnOff::On);
     }
 
-    damage::draw(root_pane, layout_name);
+    damage::draw(root_pane, &layout_name);
 
     if layout_name == "info_training" {
         display::draw(root_pane);

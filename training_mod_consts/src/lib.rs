@@ -48,6 +48,8 @@ pub struct TrainingModpackMenu {
     pub save_damage_limits_player: DamagePercent,
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
+    pub save_state_slot: SaveStateSlot,
+    pub randomize_slots: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
     pub sdi_state: Direction,
     pub sdi_strength: SdiFrequency,
@@ -57,19 +59,24 @@ pub struct TrainingModpackMenu {
     pub tech_state: TechFlags,
     pub throw_delay: MedDelay,
     pub throw_state: ThrowOption,
+    pub ledge_neutral_override: Action,
+    pub ledge_roll_override: Action,
+    pub ledge_jump_override: Action,
+    pub ledge_attack_override: Action,
+    pub tech_action_override: Action,
+    pub clatter_override: Action,
+    pub tumble_override: Action,
+    pub hitstun_override: Action,
+    pub parry_override: Action,
+    pub shieldstun_override: Action,
+    pub footstool_override: Action,
+    pub landing_override: Action,
+    pub trump_override: Action,
     pub shieldstun_override: Action,
     pub hitstun_override: Action,
     pub parry_override: Action,
     pub footstool_override: Action,
     pub trump_override: Action,
-    pub landing_override: Action,
-    pub ledge_neutral_override: Action,
-    pub ledge_jump_override: Action,
-    pub ledge_roll_override: Action,
-    pub ledge_attack_override: Action,
-    pub tumble_override: Action,
-    pub tech_action_override: Action,
-    pub clatter_override: Action,
     pub save_state_playback: OnOff,
     pub recording_slot: RecordSlot,
     pub playback_slot: PlaybackSlot,
@@ -142,6 +149,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_damage_limits_player: DamagePercent::default(),
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
+    save_state_slot: SaveStateSlot::One,
+    randomize_slots: OnOff::Off,
     save_state_mirroring: SaveStateMirroring::None,
     sdi_state: Direction::empty(),
     sdi_strength: SdiFrequency::None,
@@ -151,19 +160,19 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tech_state: TechFlags::all(),
     throw_delay: MedDelay::empty(),
     throw_state: ThrowOption::NONE,
-    shieldstun_override: Action::empty(),
-    hitstun_override: Action::empty(),
-    parry_override: Action::empty(),
-    footstool_override: Action::empty(),
-    trump_override: Action::empty(),
-    landing_override: Action::empty(),
     ledge_neutral_override: Action::empty(),
-    ledge_jump_override: Action::empty(),
     ledge_roll_override: Action::empty(),
+    ledge_jump_override: Action::empty(),
     ledge_attack_override: Action::empty(),
-    tumble_override: Action::empty(),
     tech_action_override: Action::empty(),
     clatter_override: Action::empty(),
+    tumble_override: Action::empty(),
+    hitstun_override: Action::empty(),
+    parry_override: Action::empty(),
+    shieldstun_override: Action::empty(),
+    footstool_override: Action::empty(),
+    landing_override: Action::empty(),
+    trump_override: Action::empty(),
     save_state_playback: OnOff::Off,
     recording_slot: RecordSlot::S1, // TODO: this is not being set up correctly and is empty on setup
     playback_slot: PlaybackSlot::S1,
@@ -330,14 +339,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     mash_tab.add_submenu_with_toggles::<Action>(
         "Followup Toggles",
         "follow_up",
-        "Followup Toggles: Actions to be performed after the Mash option",
+        "Followup Toggles: Actions to be performed after a Mash option",
         false,
         &(menu.follow_up.bits()),
     );
     mash_tab.add_submenu_with_toggles::<MashTrigger>(
         "Mash Triggers",
         "mash_triggers",
-        "Mash triggers: When the Mash Option will be performed",
+        "Mash triggers: Configure what causes the CPU to perform a Mash option",
         false,
         &(menu.mash_triggers.bits()),
     );
@@ -420,6 +429,104 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     );
     overall_menu.tabs.push(mash_tab);
 
+    let mut override_tab = Tab {
+        tab_id: "override",
+        tab_title: "Override Settings",
+        tab_submenus: Vec::new(),
+    };
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Neutral Getup",
+        "ledge_neutral_override",
+        "Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge",
+        false,
+        &(menu.ledge_neutral_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Roll",
+        "ledge_roll_override",
+        "Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge",
+        false,
+        &(menu.ledge_roll_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Jump",
+        "ledge_jump_override",
+        "Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge",
+        false,
+        &(menu.ledge_jump_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Attack",
+        "ledge_attack_override",
+        "Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge",
+        false,
+        &(menu.ledge_attack_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Tech Action",
+        "tech_action_override",
+        "Tech Action Override: Mash Actions to be performed after any tech action",
+        false,
+        &(menu.tech_action_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Clatter",
+        "clatter_override",
+        "Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)",
+        false,
+        &(menu.clatter_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Tumble",
+        "tumble_override",
+        "Tumble Override: Mash Actions to be performed after exiting a tumble state",
+        false,
+        &(menu.tumble_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Hitstun",
+        "hitstun_override",
+        "Hitstun Override: Mash Actions to be performed after exiting a hitstun state",
+        false,
+        &(menu.hitstun_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Parry",
+        "parry_override",
+        "Parry Override: Mash Actions to be performed after a parry",
+        false,
+        &(menu.parry_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Shieldstun",
+        "shieldstun_override",
+        "Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state",
+        false,
+        &(menu.shieldstun_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Footstool",
+        "footstool_override",
+        "Footstool Override: Mash Actions to be performed after exiting a footstool state",
+        false,
+        &(menu.footstool_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Landing",
+        "landing_override",
+        "Landing Override: Mash Actions to be performed after landing on the ground",
+        false,
+        &(menu.landing_override.bits()),
+    );
+    override_tab.add_submenu_with_toggles::<Action>(
+        "Ledge Trump",
+        "trump_override",
+        "Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state",
+        false,
+        &(menu.trump_override.bits()),
+    );
+    overall_menu.tabs.push(override_tab);
+
     let mut defensive_tab = Tab {
         tab_id: "defensive",
         tab_title: "Defensive Settings",
@@ -456,7 +563,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     defensive_tab.add_submenu_with_toggles::<ClatterFrequency>(
         "Clatter Strength",
         "clatter_strength",
-        "Clatter Strength: Relative strength of the mashing out of grabs, buries, etc.",
+        "Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc.",
         true,
         &(menu.clatter_strength as u32),
     );
@@ -506,7 +613,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     defensive_tab.add_submenu_with_toggles::<OnOff>(
         "Crouch",
         "crouch",
-        "Crouch: Should the CPU crouch when on the ground",
+        "Crouch: Have the CPU crouch when on the ground",
         true,
         &(menu.crouch as u32),
     );
@@ -562,21 +669,35 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     save_state_tab.add_submenu_with_toggles::<OnOff>(
         "Enable Save States",
         "save_state_enable",
-        "Save States: Enable save states! Save a state with Grab+Down Taunt, load it with Grab+Up Taunt.",
+        "Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.",
         true,
         &(menu.save_state_enable as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<SaveStateSlot>(
+        "Save State Slot",
+        "save_state_slot",
+        "Save State Slot: Save and load states from different slots.",
+        true,
+        &(menu.save_state_slot as u32),
+    );
+    save_state_tab.add_submenu_with_toggles::<OnOff>(
+        "Randomize Slots",
+        "randomize_slots",
+        "Randomize Slots: Randomize slot when loading save state.",
+        true,
+        &(menu.randomize_slots as u32),
     );
     save_state_tab.add_submenu_with_toggles::<CharacterItem>(
         "Character Item",
         "character_item",
-        "Character Item: CPU/Player item to hold when loading a save state",
+        "Character Item: The item to give to the player's fighter when loading a save state",
         true,
         &(menu.character_item as u32),
     );
     save_state_tab.add_submenu_with_toggles::<BuffOption>(
         "Buff Options",
         "buff_state",
-        "Buff Options: Buff(s) to be applied to respective character when loading save states",
+        "Buff Options: Buff(s) to be applied to the respective fighters when loading a save state",
         false,
         &(menu.buff_state.bits()),
     );
@@ -597,7 +718,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Hitbox Visualization",
         "hitbox_vis",
-        "Hitbox Visualization: Should hitboxes be displayed, hiding other visual effects",
+        "Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)",
         true,
         &(menu.hitbox_vis as u32),
     );
@@ -611,14 +732,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Stage Hazards",
         "stage_hazards",
-        "Stage Hazards: Should stage hazards be present",
+        "Stage Hazards: Turn stage hazards on/off",
         true,
         &(menu.stage_hazards as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "HUD",
         "hud",
-        "HUD: Turn UI on or off",
+        "HUD: Show/hide elements of the UI",
         true,
         &(menu.hud as u32),
     );

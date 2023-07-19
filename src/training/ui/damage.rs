@@ -38,7 +38,7 @@ pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_na
             as *const ResAnimationContent;
 
         let name = skyline::try_from_c_str((*res_animation_cont).name.as_ptr())
-            .unwrap_or("UNKNOWN".to_string());
+            .unwrap_or_else(|_| "UNKNOWN".to_string());
         let anim_type = (*res_animation_cont).anim_content_type;
 
         // AnimContentType 1 == MATERIAL

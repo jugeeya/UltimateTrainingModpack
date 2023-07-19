@@ -75,11 +75,7 @@ pub unsafe fn generate_hitbox_effects(
         let dist_sq: f32 = x_dist * x_dist + y_dist * y_dist + z_dist * z_dist;
         let dist = dist_sq.sqrt();
         n_effects = ((dist / (size * 1.75)) + 1.0).ceil() as i32; // just enough effects to form a continuous line
-        if n_effects < 2 {
-            n_effects = 2;
-        } else if n_effects > MAX_EFFECTS_PER_HITBOX {
-            n_effects = MAX_EFFECTS_PER_HITBOX;
-        }
+        n_effects = n_effects.clamp(2, MAX_EFFECTS_PER_HITBOX);
     } else {
         x_dist = 0.0;
         y_dist = 0.0;

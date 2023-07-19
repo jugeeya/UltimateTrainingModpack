@@ -2,12 +2,13 @@ use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::sv_system;
 use smash::hash40;
-use smash::lib::L2CValue;
 use smash::lib::lua_const::*;
+use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterCommon;
 
-use crate::common::*;
 use crate::common::consts::*;
+use crate::common::*;
+use crate::training::mash;
 use crate::training::{frame_counter, save_states};
 use crate::training::mash;
 use crate::training::input_record;
@@ -195,8 +196,9 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // We should hold shield if the state requires it
-    if unsafe { save_states::is_loading() } ||
-        ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+    if unsafe { save_states::is_loading() }
+        || ![Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state)
+    {
         return false;
     }
 
@@ -342,6 +344,18 @@ fn needs_oos_handling_drop_shield() -> bool {
     }
 
     if action == Action::U_SMASH {
+        return true;
+    }
+    // Make sure we only flicker shield when Airdodge and Shield mash options are selected
+    if action == Action::AIR_DODGE {
+        let shield_state;
+        unsafe {
+            shield_state = &MENU.shield_state;
+        }
+        // If we're supposed to be holding shield, let airdodge make us drop shield
+        if [Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+            suspend_shield(Action::AIR_DODGE);
+        }
         return true;
     }
 

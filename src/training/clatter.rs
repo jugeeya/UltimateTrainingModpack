@@ -1,10 +1,10 @@
-use smash::app::BattleObjectModuleAccessor;
 use smash::app::lua_bind::{ControlModule, EffectModule};
+use smash::app::BattleObjectModuleAccessor;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
-use crate::common::*;
 use crate::common::consts::*;
+use crate::common::*;
 
 static mut COUNTER: u32 = 0;
 static mut CLATTER_STEP: f32 = 8.0;
@@ -41,11 +41,10 @@ pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
     if !is_training_mode() || !is_operation_cpu(module_accessor) {
         return;
     }
-
-    if !is_in_clatter(module_accessor) { // don't input clatter if we're not in clatter
+    if !is_in_clatter(module_accessor) {
+        // Don't do clatter inputs if we're not in clatter
         return;
     }
-
     let repeat = MENU.clatter_strength.into_u32();
 
     COUNTER = (COUNTER + 1) % repeat;

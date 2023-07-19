@@ -33,12 +33,17 @@ impl Notification {
 pub fn notification(header: String, message: String, len: u32) {
     unsafe {
         let queue = &mut QUEUE;
-        queue.push(Notification::new(header, message, len, ResColor {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 255,
-        }));
+        queue.push(Notification::new(
+            header,
+            message,
+            len,
+            ResColor {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 255,
+            },
+        ));
     }
 }
 

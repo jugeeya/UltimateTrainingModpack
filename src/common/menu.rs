@@ -80,6 +80,7 @@ pub struct ButtonPresses {
     pub a: ButtonPress,
     pub b: ButtonPress,
     pub x: ButtonPress,
+    pub y: ButtonPress,
     pub r: ButtonPress,
     pub l: ButtonPress,
     pub zr: ButtonPress,
@@ -133,6 +134,11 @@ pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
         is_pressed: false,
         lockout_frames: 0,
     },
+    y: ButtonPress {
+        prev_frame_is_pressed: false,
+        is_pressed: false,
+        lockout_frames: 0,
+    },
     r: ButtonPress {
         prev_frame_is_pressed: false,
         is_pressed: false,
@@ -175,12 +181,11 @@ pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
     },
 };
 
-pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
+pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32) {
     unsafe {
         let update_count = (*state).updateCount;
         let flags = (*state).Flags;
         if QUICK_MENU_ACTIVE {
-
             if (*state).Buttons & (1 << 0) > 0 {
                 BUTTON_PRESSES.a.is_pressed = true;
             }
@@ -189,6 +194,9 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
             }
             if (*state).Buttons & (1 << 2) > 0 {
                 BUTTON_PRESSES.x.is_pressed = true;
+            }
+            if (*state).Buttons & (1 << 3) > 0 {
+                BUTTON_PRESSES.y.is_pressed = true;
             }
             if (*state).Buttons & (1 << 6) > 0 {
                 BUTTON_PRESSES.l.is_pressed = true;
@@ -219,6 +227,17 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32
                 BUTTON_PRESSES.up.is_pressed = true;
             }
 
+            // For digital triggers: these at TRIGGER_MAX means we should consider a press
+            if controller_is_gcc(*controller_id) {
+                if (*state).LTrigger == 0x7FFF {
+                    BUTTON_PRESSES.l.is_pressed = true;
+                }
+
+                if (*state).RTrigger == 0x7FFF {
+                    BUTTON_PRESSES.r.is_pressed = true;
+                }
+            }
+
             // If we're here, remove all other Npad presses...
             // Should we exclude the home button?
             (*state) = NpadGcState::default();
@@ -237,6 +256,16 @@ lazy_static! {
             )
         })
     );
+}
+
+pub unsafe fn controller_is_gcc(controller_id: u32) -> bool {
+    let style_set = GetNpadStyleSet(&controller_id as *const _);
+    (style_set.flags & (1 << 5)) > 0
+}
+
+pub unsafe fn p1_controller_is_gcc() -> bool {
+    let p1_controller_id = crate::training::input_delay::p1_controller_id();
+    controller_is_gcc(p1_controller_id)
 }
 
 pub unsafe fn quick_menu_loop() {
@@ -262,6 +291,8 @@ pub unsafe fn quick_menu_loop() {
                 continue;
             }
 
+            let is_gcc = p1_controller_is_gcc();
+
             let app = &mut *QUICK_MENU_APP.data_ptr();
             button_presses.a.read_press().then(|| {
                 app.on_a();
@@ -282,23 +313,39 @@ pub unsafe fn quick_menu_loop() {
                 }
             });
             button_presses.x.read_press().then(|| {
-                app.on_x();
+                app.save_defaults();
+                received_input = true;
+            });
+            button_presses.y.read_press().then(|| {
+                app.reset_all_submenus();
                 received_input = true;
             });
             button_presses.l.read_press().then(|| {
-                app.on_l();
+                if is_gcc {
+                    app.previous_tab();
+                }
                 received_input = true;
             });
             button_presses.r.read_press().then(|| {
-                app.on_r();
+                if is_gcc {
+                    app.next_tab();
+                } else {
+                    app.reset_current_submenu();
+                }
                 received_input = true;
             });
             button_presses.zl.read_press().then(|| {
-                app.on_zl();
+                if !is_gcc {
+                    app.previous_tab();
+                }
                 received_input = true;
             });
             button_presses.zr.read_press().then(|| {
-                app.on_zr();
+                if !is_gcc {
+                    app.next_tab();
+                } else {
+                    app.reset_current_submenu();
+                }
                 received_input = true;
             });
             button_presses.left.read_press().then(|| {
