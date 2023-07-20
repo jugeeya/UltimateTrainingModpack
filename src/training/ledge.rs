@@ -59,6 +59,40 @@ fn roll_ledge_case() {
     }
 }
 
+fn get_ledge_option() -> Option<Action> {
+    unsafe {
+        let mut override_action: Option<Action> = None;
+        let regular_action = if MENU.mash_triggers.contains(MashTrigger::LEDGE) 
+            {Some(MENU.mash_state.get_random())}
+            else {None};
+
+        match LEDGE_CASE {
+            LedgeOption::NEUTRAL => {
+                if MENU.ledge_neutral_override != Action::empty() {
+                    override_action = Some(MENU.ledge_neutral_override.get_random());
+                }
+            }
+            LedgeOption::ROLL => {
+                if MENU.ledge_roll_override != Action::empty() {
+                    override_action = Some(MENU.ledge_roll_override.get_random());
+                }
+            }
+            LedgeOption::JUMP => {
+                if MENU.ledge_jump_override != Action::empty() {
+                    override_action = Some(MENU.ledge_jump_override.get_random());
+                }
+            }
+            LedgeOption::ATTACK => {
+                if MENU.ledge_attack_override != Action::empty() {
+                    override_action = Some(MENU.ledge_attack_override.get_random());
+                }
+            }
+        }
+        return override_action.unwrap_or(regular_action); //TODO: FIX THIS
+    }
+
+}
+
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if StatusModule::situation_kind(module_accessor) != *SITUATION_KIND_CLIFF {
         // No longer on ledge, so re-roll the ledge case and reset the delay counter for next time
@@ -124,20 +158,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         StatusModule::change_status_request_from_script(module_accessor, status, true);
     }
 
-    if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
-        if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_override != Action::empty() {
-            mash::external_buffer_menu_mash(MENU.ledge_neutral_override.get_random());
-        } else if LEDGE_CASE == LedgeOption::ROLL && MENU.ledge_roll_override != Action::empty() {
-            mash::external_buffer_menu_mash(MENU.ledge_roll_override.get_random());
-        } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_override != Action::empty() {
-            mash::external_buffer_menu_mash(MENU.ledge_jump_override.get_random());
-        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_override != Action::empty()
-        {
-            mash::external_buffer_menu_mash(MENU.ledge_attack_override.get_random());
-        } else {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random());
-        }
-    }
+    mash::external_buffer_menu_mash(get_ledge_option());
 }
 
 pub unsafe fn is_enable_transition_term(
