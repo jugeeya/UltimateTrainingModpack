@@ -169,12 +169,12 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     landing_override: Action::empty(),
     trump_override: Action::empty(),
     save_state_playback: OnOff::Off,
-    recording_slot: RecordSlot::S1, // TODO: this is not being set up correctly and is empty on setup
+    recording_slot: RecordSlot::S1,
     playback_slot: PlaybackSlot::S1,
     playback_mash: OnOff::On,
     record_trigger: RecordTrigger::None, //Command?
     hitstun_playback: HitstunPlayback::Hitstun,
-    // TODO: alphabetize
+    // TODO: alphabetize?
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
