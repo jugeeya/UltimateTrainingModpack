@@ -30,6 +30,7 @@ pub mod ui;
 mod air_dodge_direction;
 mod attack_angle;
 mod character_specific;
+mod input_recording;
 mod fast_fall;
 mod full_hop;
 pub mod input_delay;
@@ -77,6 +78,9 @@ pub unsafe fn handle_get_attack_air_kind(
         return ori;
     }
 
+    if input_record::is_playback() {
+        return ori;
+    }
     mash::get_attack_air_kind(module_accessor).unwrap_or(ori)
 }
 
@@ -192,6 +196,15 @@ pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccesso
         return ori;
     }
 
+    let situation_kind = StatusModule::situation_kind(module_accessor);
+    if situation_kind == *SITUATION_KIND_CLIFF {
+        return ori;
+    }
+
+    if input_record::is_playback() {
+        return ori;
+    }
+
     attack_angle::mod_get_stick_dir(module_accessor).unwrap_or(ori)
 }
 
@@ -270,7 +283,7 @@ pub unsafe fn handle_change_motion(
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
 pub unsafe fn handle_is_enable_transition_term(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut app::BattleObjectModuleAccessor,
     transition_term: i32,
 ) -> bool {
     let ori = original!()(module_accessor, transition_term);
@@ -601,5 +614,6 @@ pub fn training_mods() {
     buff::init();
     items::init();
     tech::init();
+    input_record::init();
     ui::init();
 }

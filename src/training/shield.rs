@@ -8,8 +8,7 @@ use smash::lua2cpp::L2CFighterCommon;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::mash;
-use crate::training::{frame_counter, save_states};
+use crate::training::{mash, frame_counter, save_states, input_record};
 
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
@@ -106,7 +105,7 @@ pub unsafe fn get_param_float(
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
-    if !is_operation_cpu(module_accessor) {
+    if !is_operation_cpu(module_accessor) || input_record::is_playback() { // shield normally during playback
         return None;
     }
 
@@ -177,6 +176,12 @@ pub unsafe fn param_installer() {
 }
 
 pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    // Don't let shield override input recording playback
+    unsafe {
+        if input_record::is_playback() || input_record::is_standby() {
+            return false;
+        }
+    }
     // Mash shield
     if mash::request_shield(module_accessor) {
         return true;
@@ -238,13 +243,6 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if MENU.mash_triggers.contains(MashTrigger::SHIELDSTUN) {
-        if MENU.shieldstun_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
-        } else {
-            mash::external_buffer_menu_mash(MENU.shieldstun_override.get_random())
-        }
-    }
     let action = mash::get_current_buffer();
 
     if handle_escape_option(fighter, module_accessor) {
@@ -358,6 +356,19 @@ fn needs_oos_handling_drop_shield() -> bool {
         return true;
     }
 
+    // Make sure we only flicker shield when Airdodge and Shield mash options are selected
+    if action == Action::AIR_DODGE {
+        let shield_state;
+        unsafe {
+            shield_state = &MENU.shield_state;
+        }
+        // If we're supposed to be holding shield, let airdodge make us drop shield
+        if [Shield::Hold, Shield::Infinite, Shield::Constant].contains(shield_state) {
+            suspend_shield(Action::AIR_DODGE);
+        }
+        return true;
+    }
+    
     if action == Action::SHIELD {
         let shield_state;
         unsafe {

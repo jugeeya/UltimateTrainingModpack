@@ -1,80 +1,414 @@
+use smash::app::{BattleObjectModuleAccessor, lua_bind::*, utility};
+use smash::lib::lua_const::*;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use skyline::nn::hid::NpadHandheldState;
-use smash::app::{lua_bind::*, BattleObjectModuleAccessor};
-use smash::lib::lua_const::*;
-
-use InputRecordState::*;
-
-use crate::training::input_delay::p1_controller_id;
-
-lazy_static! {
-    static ref P1_NPAD_STATES: Mutex<[NpadHandheldState; 90]> =
-        Mutex::new([{ NpadHandheldState::default() }; 90]);
-}
-
-pub static mut INPUT_RECORD: InputRecordState = None;
-pub static mut INPUT_RECORD_FRAME: usize = 0;
+use crate::training::input_recording::structures::*;
+use crate::common::consts::{RecordTrigger, HitstunPlayback, FighterId};
+use crate::common::{MENU, get_module_accessor, is_in_hitstun, is_in_shieldstun};
+use crate::training::mash;
 
 #[derive(PartialEq)]
+#[derive(Debug)]
 pub enum InputRecordState {
     None,
+    Pause,
     Record,
     Playback,
 }
 
-pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
-    let entry_id_int = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
+#[derive(PartialEq)]
+#[derive(Debug)]
+pub enum PossessionState {
+    Player,
+    Cpu,
+    Lockout,
+    Standby,
+}
 
-    if entry_id_int == 0 {
+#[derive(PartialEq)]
+#[derive(Copy, Clone)]
+pub enum StartingStatus {
+    Aerial, // FIGHTER_STATUS_KIND_ATTACK_AIR TODO: This shouldn't happen without starting input recording in the air - when would we want this?
+    // Probably should lock input recordings to either the ground or the air
+    Airdodge, // FIGHTER_STATUS_KIND_ESCAPE_AIR, FIGHTER_STATUS_KIND_ESCAPE_AIR_SLIDE
+    // Other statuses cannot be used to hitstun cancel via damage_fly_attack_frame/damage_fly_escape_frame
+    // Some statuses can leave shield earlier though, so we should check for this
+    SpecialHi, // Up B: FIGHTER_STATUS_KIND_SPECIAL_HI, 
+    Jump, // FIGHTER_STATUS_KIND_JUMP_SQUAT
+    DoubleJump, //FIGHTER_STATUS_KIND_JUMP_AERIAL
+    Spotdodge, // FIGHTER_STATUS_KIND_ESCAPE
+    Roll, // FIGHTER_STATUS_KIND_ESCAPE_F, FIGHTER_STATUS_KIND_ESCAPE_B
+    Grab, // FIGHTER_STATUS_KIND_CATCH
+    Other,
+}
+
+use InputRecordState::*;
+use PossessionState::*;
+
+const FINAL_RECORD_MAX: usize = 150; // Maximum length for input recording sequences (capacity)
+const TOTAL_SLOT_COUNT: usize = 5; // Total number of input recording slots
+pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
+pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
+pub static mut INPUT_RECORD_FRAME: usize = 0;
+pub static mut POSSESSION: PossessionState = PossessionState::Player;
+pub static mut LOCKOUT_FRAME: usize = 0;
+pub static mut BUFFER_FRAME: usize = 0;
+pub static mut RECORDED_LR: f32 = 1.0; // The direction the CPU was facing before the current recording was recorded
+pub static mut CURRENT_LR: f32 = 1.0; // The direction the CPU was facing at the beginning of this playback
+pub static mut STARTING_STATUS: i32 = 0; // The first status entered in the recording outside of waits
+                                         //     used to calculate if the input playback should begin before hitstun would normally end (hitstun cancel, monado art?)
+pub static mut CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
+pub static mut CURRENT_PLAYBACK_SLOT: usize = 0; // Which slot is being used for playback right now?
+
+lazy_static! {
+    static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; FINAL_RECORD_MAX]> =
+        Mutex::new([{
+            MappedInputs::default()
+        }; FINAL_RECORD_MAX]);
+    static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
+        Mutex::new([{StartingStatus::Other}; TOTAL_SLOT_COUNT]);
+}
+
+unsafe fn can_transition(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
+    let transition_term = into_transition_term(into_starting_status(STARTING_STATUS));
+    WorkModule::is_enable_transition_term(module_accessor, transition_term)
+}
+
+unsafe fn should_mash_playback() {
+    // Don't want to interrupt recording
+    if is_recording() {
+        return;
+    }
+    if !mash::is_playback_queued() {
+        return;
+    }
+    // playback is queued, so we might want to begin this frame
+    // if we're currently playing back, we don't want to interrupt (this may change for layered multislot playback, but for now this is fine)
+    if is_playback() {
+        return;
+    }
+    let mut should_playback = false;
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    // depending on our current status, we want to wait for different timings to begin playback
+    
+    // TODO: This isn't the best way to write this I'm sure, want to rewrite
+
+    if is_in_hitstun(&mut *cpu_module_accessor) {
+        // if we're in hitstun and want to enter the frame we start hitstop for SDI, start if we're in any damage status instantly
+        if MENU.hitstun_playback == HitstunPlayback::Instant {
+            should_playback = true;
+        }
+        // if we want to wait until we exit hitstop and begin flying away for shield art etc, start if we're not in hitstop
+        if MENU.hitstun_playback == HitstunPlayback::Hitstop && !StopModule::is_stop(cpu_module_accessor) {
+            should_playback = true;
+        }
+        // if we're in hitstun and want to wait till FAF to act, then we want to match our starting status to the correct transition term to see if we can hitstun cancel
+        if MENU.hitstun_playback == HitstunPlayback::Hitstun {
+            if can_transition(cpu_module_accessor) {
+                should_playback = true;
+            }
+        }
+    } else if is_in_shieldstun(&mut *cpu_module_accessor) {
+        // TODO: Add instant shieldstun toggle for shield art out of electric hitstun? Idk that's so specific
+        if can_transition(cpu_module_accessor) {
+            should_playback = true;
+        }
+    } else if can_transition(cpu_module_accessor) {
+        should_playback = true;
+    }
+
+
+    // how do we deal with buffering motion inputs out of shield? You can't complete them in one frame, but they can definitely be buffered during shield drop
+    // probably need a separate standby setting for grounded, aerial, shield, where shield starts once you let go of shield, and aerial keeps you in the air?
+
+    if should_playback {
+        playback();
+    }
+}
+
+// TODO: set up a better match later and make this into one func
+
+fn into_starting_status(status: i32) -> StartingStatus {
+    if status == *FIGHTER_STATUS_KIND_ATTACK_AIR {
+        return StartingStatus::Aerial;
+    } else if (*FIGHTER_STATUS_KIND_ESCAPE_AIR..*FIGHTER_STATUS_KIND_ESCAPE_AIR_SLIDE).contains(&status) {
+        return StartingStatus::Airdodge;
+    } else if status == *FIGHTER_STATUS_KIND_SPECIAL_HI {
+        return StartingStatus::SpecialHi;
+    } else if status == *FIGHTER_STATUS_KIND_JUMP_SQUAT {
+        return StartingStatus::Jump;
+    } else if status == *FIGHTER_STATUS_KIND_JUMP_AERIAL {
+        return StartingStatus::DoubleJump;
+    } else if status == *FIGHTER_STATUS_KIND_ESCAPE {
+        return StartingStatus::Spotdodge;
+    } else if (*FIGHTER_STATUS_KIND_ESCAPE_F..*FIGHTER_STATUS_KIND_ESCAPE_B).contains(&status) {
+        return StartingStatus::Roll;
+    } else if status == *FIGHTER_STATUS_KIND_CATCH {
+        return StartingStatus::Grab;
+    } 
+    StartingStatus::Other
+}
+
+fn into_transition_term(starting_status: StartingStatus) -> i32 {
+    match starting_status {
+        StartingStatus::Aerial => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR,
+        StartingStatus::Airdodge => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR,
+        StartingStatus::Other => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_S, // placeholder - most likely don't want to use this in final build, and have a different set of checks
+        StartingStatus::SpecialHi => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_HI,
+        StartingStatus::Jump => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_SQUAT,
+        StartingStatus::DoubleJump => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_JUMP_AERIAL,
+        StartingStatus::Spotdodge => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,
+        StartingStatus::Roll => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_F,
+        StartingStatus::Grab => *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH,
+    }
+}
+
+pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
+    let entry_id_int =
+            WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
+    let fighter_kind = utility::get_kind(module_accessor);
+    let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
+
+    if entry_id_int == 0 && !fighter_is_nana {
         // Attack + Dpad Right: Playback
         if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
-            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R)
-        {
+            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R) {
+            //crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
             playback();
+            println!("Playback Command Received!"); //debug
         }
         // Attack + Dpad Left: Record
         else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
             && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
+            && MENU.record_trigger == RecordTrigger::Command
         {
-            record();
+           //crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
+           lockout_record();
+           println!("Record Command Received!"); //debug
         }
 
+
+        // may need to move this to another func
         if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-            if INPUT_RECORD_FRAME >= P1_NPAD_STATES.lock().len() - 1 {
-                if INPUT_RECORD == Record {
-                    INPUT_RECORD = Playback;
-                }
+            if INPUT_RECORD_FRAME >= FINAL_RECORD_FRAME - 1 {
+                INPUT_RECORD = None;
+                POSSESSION = Player;
                 INPUT_RECORD_FRAME = 0;
-            } else {
-                INPUT_RECORD_FRAME += 1;
+                if mash::is_playback_queued() {
+                    mash::reset();
+                }
             }
         }
     }
+
+    // Handle Possession Coloring
+    //let model_color_type = *MODEL_COLOR_TYPE_COLOR_BLEND;
+    if entry_id_int == 1 && POSSESSION == Lockout {
+        set_color_rgb_2(module_accessor,0.0,0.0,1.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
+    } else if entry_id_int == 1 && POSSESSION == Standby {
+        set_color_rgb_2(module_accessor,1.0,0.0,1.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
+    } else if entry_id_int == 1 && POSSESSION == Cpu {
+        set_color_rgb_2(module_accessor,1.0,0.0,0.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
+    }
 }
 
-pub unsafe fn record() {
+pub unsafe fn lockout_record() {
+    INPUT_RECORD = Pause;
+    INPUT_RECORD_FRAME = 0;
+    POSSESSION = Lockout;
+    P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
+        *mapped_input = MappedInputs::default();
+    });
+    LOCKOUT_FRAME = 30; // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
+    BUFFER_FRAME = 0;
+    // Store the direction the CPU is facing when we initially record, so we can turn their inputs around if needed
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    RECORDED_LR = PostureModule::lr(cpu_module_accessor);
+    CURRENT_LR = RECORDED_LR;
+}
+
+pub unsafe fn _record() {
     INPUT_RECORD = Record;
-    P1_NPAD_STATES.lock().iter_mut().for_each(|state| {
-        *state = NpadHandheldState::default();
+    POSSESSION = Cpu;
+    // Reset mappings to nothing, and then start recording. Likely want to reset in case we cut off recording early.
+    P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
+        *mapped_input = MappedInputs::default();
     });
     INPUT_RECORD_FRAME = 0;
+    LOCKOUT_FRAME = 0;
+    BUFFER_FRAME = 0;
 }
 
 pub unsafe fn playback() {
+    if INPUT_RECORD == Pause {
+        println!("Tried to playback during lockout!");
+        return;
+    }
     INPUT_RECORD = Playback;
+    POSSESSION = Player;
+    INPUT_RECORD_FRAME = 0;
+    BUFFER_FRAME = 0;
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    CURRENT_LR = PostureModule::lr(cpu_module_accessor);
+}
+
+pub unsafe fn playback_ledge() {
+    if INPUT_RECORD == Pause {
+        println!("Tried to playback during lockout!");
+        return;
+    }
+    INPUT_RECORD = Playback;
+    POSSESSION = Player;
+    INPUT_RECORD_FRAME = 0;
+    BUFFER_FRAME = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
+    // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
+    // Need to buffer 1 less frame for non-lassos
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
+        BUFFER_FRAME -= 1;
+    }
+    CURRENT_LR = PostureModule::lr(cpu_module_accessor);
+}
+
+pub unsafe fn stop_playback() {
+    INPUT_RECORD = None;
     INPUT_RECORD_FRAME = 0;
 }
 
-#[allow(dead_code)]
-pub unsafe fn handle_get_npad_state(state: *mut NpadHandheldState, controller_id: *const u32) {
-    if *controller_id == p1_controller_id() {
+pub unsafe fn is_end_standby() -> bool {
+    // Returns whether we should be done with standby this frame (if the fighter is no longer in a waiting status)
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+    ![
+        *FIGHTER_STATUS_KIND_WAIT,
+        *FIGHTER_STATUS_KIND_CLIFF_WAIT,
+    ]
+    .contains(&status_kind)
+}
+
+static FIM_OFFSET: usize = 0x17504a0; 
+// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
+#[skyline::hook(offset = FIM_OFFSET)]
+unsafe fn handle_final_input_mapping(
+    mappings: *mut ControllerMapping,
+    player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
+    out: *mut MappedInputs,
+    controller_struct: &mut SomeControllerStruct,
+    arg: bool
+) {
+    // go through the original mapping function first
+    let _ret = original!()(mappings, player_idx, out, controller_struct, arg);
+    if player_idx == 0 { // if player 1
         if INPUT_RECORD == Record {
-            P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME] = *state;
+            // check for standby before starting action:
+            if POSSESSION == Standby && is_end_standby() {
+                // last input made us start an action, so start recording and end standby.
+                INPUT_RECORD_FRAME += 1;
+                POSSESSION = Cpu;
+            }
+
+            if INPUT_RECORD_FRAME == 1 {
+                // We're on the second frame of recording, grabbing the status should give us the status that resulted from the first frame of input
+                // We'll want to save this status so that we use the correct TRANSITION TERM for hitstun cancelling out of damage fly
+                let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+                P1_STARTING_STATUSES.lock()[CURRENT_PLAYBACK_SLOT] = into_starting_status(StatusModule::status_kind(cpu_module_accessor));
+                STARTING_STATUS = StatusModule::status_kind(cpu_module_accessor); // TODO: Handle this based on slot later instead
+            }
+
+            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
+            *out = MappedInputs::default(); // don't control player while recording
+            println!("Stored Player Input! Frame: {}",INPUT_RECORD_FRAME);
         }
-    } else if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-        let update_count = (*state).updateCount;
-        *state = P1_NPAD_STATES.lock()[INPUT_RECORD_FRAME];
-        (*state).updateCount = update_count;
+    } 
+}
+
+#[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
+unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
+    call_original!(p_data);
+    let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
+    let controller_no  = (*controller_data).controller_index;
+
+    // Check if we need to begin playback this frame due to a mash toggle
+    // TODO: Setup STARTING_STATUS based on current playback slot here
+
+    // This check prevents out of shield if mash exiting is on
+    if INPUT_RECORD == None {
+        should_mash_playback();
     }
+
+    if INPUT_RECORD == Pause {
+        if LOCKOUT_FRAME > 0 {
+            LOCKOUT_FRAME -= 1;
+        } else if LOCKOUT_FRAME == 0 {
+            INPUT_RECORD = Record;
+            POSSESSION = Standby;
+        } else {
+            println!("LOCKOUT_FRAME OUT OF BOUNDS");
+        }
+    }
+
+    if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+        let x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
+        println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
+        let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
+        
+        if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
+            // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
+            saved_mapped_inputs = MappedInputs::default();
+        }
+
+        (*controller_data).buttons = saved_mapped_inputs.buttons;
+        (*controller_data).stick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32));
+        (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
+        // Clamp stick inputs for separate part of structure
+        const NEUTRAL: f32 = 0.2;
+        const CLAMP_MAX: f32 = 120.0;
+        let clamp_mul = 1.0 / CLAMP_MAX;
+        let mut clamped_lstick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
+        let mut clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
+        clamped_lstick_x = if clamped_lstick_x.abs() >= NEUTRAL { clamped_lstick_x } else { 0.0 };
+        clamped_lstick_y = if clamped_lstick_y.abs() >= NEUTRAL { clamped_lstick_y } else { 0.0 };
+        (*controller_data).clamped_lstick_x = clamped_lstick_x;
+        (*controller_data).clamped_lstick_y = clamped_lstick_y;
+        //println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
+        
+        // Keep counting frames, unless we're in standby waiting for an input, or are buffering an option
+        // When buffering an option, we keep inputting the first frame of input during the buffer window
+        if BUFFER_FRAME > 0 {
+            BUFFER_FRAME -= 1;
+        } else if INPUT_RECORD_FRAME < FINAL_RECORD_FRAME - 1 && POSSESSION != Standby {
+            INPUT_RECORD_FRAME += 1;
+        }
+    } 
+}
+
+pub unsafe fn is_playback() -> bool {
+    INPUT_RECORD == Record || INPUT_RECORD == Playback
+}
+
+pub unsafe fn is_recording() -> bool {
+    INPUT_RECORD == Record
+}
+
+pub unsafe fn is_standby() -> bool {
+    POSSESSION == Standby || POSSESSION == Lockout
+}
+
+extern "C" { // TODO: we should be using this from skyline
+    #[link_name = "\u{1}_ZN3app8lua_bind31ModelModule__set_color_rgb_implEPNS_26BattleObjectModuleAccessorEfffNS_16MODEL_COLOR_TYPEE"]
+    pub fn set_color_rgb_2(
+        arg1: *mut BattleObjectModuleAccessor,
+        arg2: f32,
+        arg3: f32,
+        arg4: f32,
+        arg5: i32,
+    );
+}
+
+pub fn init() {
+    skyline::install_hooks!(
+        set_cpu_controls,
+        handle_final_input_mapping,
+    );
 }

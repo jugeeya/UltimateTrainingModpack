@@ -3,7 +3,7 @@ use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::*;
-use crate::training::frame_counter;
+use crate::training::{frame_counter, input_record};
 
 static mut FRAME_COUNTER: usize = 0;
 
@@ -83,6 +83,9 @@ fn is_correct_status(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 
     unsafe {
         status = StatusModule::status_kind(module_accessor);
+        if input_record::is_playback() {
+            return false;
+        }
     }
 
     // Allow fast fall when falling

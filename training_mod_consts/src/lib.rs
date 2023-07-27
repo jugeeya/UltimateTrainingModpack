@@ -72,6 +72,12 @@ pub struct TrainingModpackMenu {
     pub footstool_override: Action,
     pub landing_override: Action,
     pub trump_override: Action,
+    pub save_state_playback: OnOff,
+    pub recording_slot: RecordSlot,
+    pub playback_slot: PlaybackSlot,
+    pub playback_mash: OnOff,
+    pub record_trigger: RecordTrigger,
+    pub hitstun_playback: HitstunPlayback,
 }
 
 #[repr(C)]
@@ -162,6 +168,13 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     footstool_override: Action::empty(),
     landing_override: Action::empty(),
     trump_override: Action::empty(),
+    save_state_playback: OnOff::Off,
+    recording_slot: RecordSlot::S1,
+    playback_slot: PlaybackSlot::S1,
+    playback_mash: OnOff::On,
+    record_trigger: RecordTrigger::None, //Command?
+    hitstun_playback: HitstunPlayback::Hitstun,
+    // TODO: alphabetize?
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -726,6 +739,55 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.hud as u32),
     );
     overall_menu.tabs.push(misc_tab);
+
+    let mut input_tab = Tab {
+        tab_id: "input",
+        tab_title: "Input Recording",
+        tab_submenus: Vec::new(),
+    };
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Save State Playback",
+        "save_state_playback",
+        "Save State Playback: Begin recorded input playback upon loading a save state",
+        true,
+        &(menu.save_state_playback as u32),
+    );
+    input_tab.add_submenu_with_toggles::<RecordSlot>(
+        "Recording Slot",
+        "recording_slot",
+        "Recording Slot: Choose which slot to record into",
+        true,
+        &(menu.recording_slot as u32),
+    );
+    input_tab.add_submenu_with_toggles::<PlaybackSlot>( // TODO: This menu should really be a submenu inside Action menus, probably want to be able to customize for each action
+        "Playback Slots",
+        "playback_slot",
+        "Playback Slots: Choose which slots to choose between for playback when this action is triggered",
+        false,
+        &(menu.playback_slot.bits() as u32),
+    );
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Mash Ends Playback",
+        "playback_mash",
+        "Mash Ends Playback: End input recording playback when a mash trigger occurs",
+        true,
+        &(menu.playback_mash as u32),
+    );
+    input_tab.add_submenu_with_toggles::<RecordTrigger>(
+        "Recording Trigger",
+        "record_trigger",
+        "Recording Trigger: What condition is required to begin recording input",
+        true,
+        &(menu.record_trigger as u32),
+    );
+    input_tab.add_submenu_with_toggles::<HitstunPlayback>(
+        "Hitstun Playback Trigger",
+        "hitstun_playback",
+        "Hitstun Playback Trigger: When to begin playing back inputs on hitstun mash trigger",
+        true,
+        &(menu.hitstun_playback as u32),
+    );
+    overall_menu.tabs.push(input_tab);
 
     overall_menu
 }

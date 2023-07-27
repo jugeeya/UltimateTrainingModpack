@@ -18,10 +18,13 @@ use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::SaveStateMirroring;
+use crate::common::consts::RecordTrigger;
+//TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
+use crate::training::input_record;
 use crate::training::buff;
 use crate::training::character_specific::steve;
 use crate::training::charge::{self, ChargeState};
@@ -54,7 +57,7 @@ extern "C" {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Copy, Clone, Debug)]
-enum SaveState {
+pub enum SaveState {
     Save,
     NoAction,
     KillPlayer,
@@ -65,18 +68,19 @@ enum SaveState {
 }
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
-struct SavedState {
-    x: f32,
-    y: f32,
-    percent: f32,
-    lr: f32,
-    situation_kind: i32,
-    state: SaveState,
-    fighter_kind: i32,
-    charge: ChargeState,
-    steve_state: Option<steve::SteveState>,
+pub struct SavedState {
+    pub x: f32,
+    pub y: f32,
+    pub percent: f32,
+    pub lr: f32,
+    pub situation_kind: i32,
+    pub state: SaveState,
+    pub fighter_kind: i32,
+    pub charge: ChargeState,
+    pub steve_state: Option<steve::SteveState>,
 }
 
+#[macro_export]
 macro_rules! default_save_state {
     () => {
         SavedState {
@@ -393,7 +397,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && save_state.state == NoAction
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
-    if !is_operation_cpu(module_accessor) {
+    if !is_operation_cpu(module_accessor) && !fighter_is_nana {
         triggered_reset = button_config::combo_passes_exclusive(
             module_accessor,
             button_config::ButtonCombo::LoadState,
@@ -412,16 +416,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state_cpu(slot).state = KillPlayer;
         }
         MIRROR_STATE = should_mirror();
+        // end input recording playback
+        input_record::stop_playback();
         return;
     }
 
     // Kill the fighter and move them to camera bounds
-    if save_state.state == KillPlayer {
+    if save_state.state == KillPlayer && !fighter_is_nana {
         on_ptrainer_death(module_accessor);
-        if !is_dead(module_accessor) &&
-            // Don't kill Nana again, since she already gets killed by the game from Popo's death
-            !fighter_is_nana
-        {
+        if !is_dead(module_accessor) {
             on_death(fighter_kind, module_accessor);
             StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
         }
@@ -593,6 +596,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
         if prev_status_kind == FIGHTER_STATUS_KIND_REBIRTH && fighter_is_popo {
             save_state.state = NanaPosMove;
+        }
+
+        // if we're recording on state load, record
+        if MENU.record_trigger == RecordTrigger::SaveState {
+            input_record::lockout_record();
+        }
+        // otherwise, begin input recording playback if selected
+        else if MENU.save_state_playback == OnOff::On {
+            input_record::playback();
         }
 
         return;

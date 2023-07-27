@@ -191,6 +191,7 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
         const WAIT = 0x10;
+        const PLAYBACK = 0x20;
     }
 }
 
@@ -204,6 +205,7 @@ impl LedgeOption {
                 LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
                 LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
+                LedgeOption::PLAYBACK => *FIGHTER_STATUS_KIND_NONE,
                 _ => return None,
             })
         }
@@ -219,6 +221,7 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
+            LedgeOption::PLAYBACK => "Input Playback",
             _ => return None,
         })
     }
@@ -411,6 +414,7 @@ bitflags! {
         // TODO: Make work
         const DASH = 0x0080_0000;
         const DASH_ATTACK = 0x0100_0000;
+        const PLAYBACK = 0x0200_0000;
     }
 }
 
@@ -459,6 +463,7 @@ impl Action {
             Action::GRAB => "Grab",
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
+            Action::PLAYBACK => "Input Playback",
             _ => return None,
         })
     }
@@ -1144,5 +1149,172 @@ impl ToggleTrait for SaveStateSlot {
 
     fn to_toggle_vals() -> Vec<u32> {
         SaveStateSlot::iter().map(|i| i as u32).collect()
+    }
+}
+
+
+// Input Recording Slot
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum RecordSlot {
+    S1 = 0x1,
+    S2 = 0x2,
+    S3 = 0x4,
+    S4 = 0x8,
+    S5 = 0x10,
+}
+
+impl RecordSlot {
+    pub fn into_int(self) -> Option<u32> { // TODO: Do I need an into_int here?
+        #[cfg(feature = "smash")]
+        {
+            Some(match self {
+                RecordSlot::S1 => 1,
+                RecordSlot::S2 => 2,
+                RecordSlot::S3 => 3,
+                RecordSlot::S4 => 4,
+                RecordSlot::S5 => 5,
+            })
+        }
+
+        #[cfg(not(feature = "smash"))]
+        None
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            RecordSlot::S1 => "Slot One",
+            RecordSlot::S2 => "Slot Two",
+            RecordSlot::S3 => "Slot Three",
+            RecordSlot::S4 => "Slot Four",
+            RecordSlot::S5 => "Slot Five",
+        })
+    }
+}
+
+impl ToggleTrait for RecordSlot {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        RecordSlot::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        RecordSlot::iter().map(|i| i as u32).collect()
+    }
+}
+
+// Input Playback Slot
+bitflags! {
+    pub struct PlaybackSlot : u32
+    {
+        const S1 = 0x1;
+        const S2 = 0x2;
+        const S3 = 0x4;
+        const S4 = 0x8;
+        const S5 = 0x10;
+    }
+}
+
+impl PlaybackSlot {
+    pub fn into_int(self) -> Option<u32> {
+        #[cfg(feature = "smash")]
+        {
+            Some(match self {
+                PlaybackSlot::S1 => 1,
+                PlaybackSlot::S2 => 2,
+                PlaybackSlot::S3 => 3,
+                PlaybackSlot::S4 => 4,
+                PlaybackSlot::S5 => 5,
+                _ => return None,
+            })
+        }
+
+        #[cfg(not(feature = "smash"))]
+        None
+    }
+
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            PlaybackSlot::S1 => "Slot One",
+            PlaybackSlot::S2 => "Slot Two",
+            PlaybackSlot::S3 => "Slot Three",
+            PlaybackSlot::S4 => "Slot Four",
+            PlaybackSlot::S5 => "Slot Five",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {PlaybackSlot}
+impl_serde_for_bitflags!(PlaybackSlot);
+
+// Input Recording Trigger Type
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum RecordTrigger {
+    None = 0,
+    Command = 0x1,
+    SaveState = 0x2,
+    Ledge = 0x4,
+}
+
+impl RecordTrigger {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            RecordTrigger::None => "None",
+            RecordTrigger::Command => "Button Combination",
+            RecordTrigger::SaveState => "Save State Load",
+            RecordTrigger::Ledge => "Ledge Grab",
+        })
+    }
+}
+
+impl ToggleTrait for RecordTrigger {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        RecordTrigger::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        RecordTrigger::iter().map(|i| i as u32).collect()
+    }
+}
+
+// If doing input recording out of hitstun, when does playback begin after?
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum HitstunPlayback { // Should these start at 0? All of my new menu structs need some review, I'm just doing whatever atm
+    Hitstun = 0x1,
+    Hitstop = 0x2,
+    Instant = 0x4,
+}
+
+impl HitstunPlayback {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            HitstunPlayback::Hitstun => "As Hitstun Ends",
+            HitstunPlayback::Hitstop => "As Hitstop Ends",
+            HitstunPlayback::Instant => "As Hitstop Begins",
+        })
+    }
+}
+
+impl ToggleTrait for HitstunPlayback {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        HitstunPlayback::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        HitstunPlayback::iter().map(|i| i as u32).collect()
     }
 }

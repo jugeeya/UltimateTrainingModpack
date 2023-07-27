@@ -1,5 +1,6 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+use crate::training::input_record;
 
 use crate::common::*;
 
@@ -64,6 +65,10 @@ unsafe fn should_return_none_in_check_button(
     // Only need to hold during jump squat
     let status_kind = StatusModule::status_kind(module_accessor);
     if status_kind != FIGHTER_STATUS_KIND_JUMP_SQUAT {
+        return true;
+    }
+
+    if input_record::is_playback() {
         return true;
     }
 

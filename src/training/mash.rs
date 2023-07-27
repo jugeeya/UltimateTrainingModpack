@@ -7,6 +7,7 @@ use crate::training::character_specific;
 use crate::training::fast_fall;
 use crate::training::frame_counter;
 use crate::training::full_hop;
+use crate::training::input_record;
 use crate::training::shield;
 use crate::training::{attack_angle, save_states};
 
@@ -22,6 +23,10 @@ static mut FALLING_AERIAL: bool = false;
 static mut AERIAL_DELAY_COUNTER: usize = 0;
 static mut AERIAL_DELAY: u32 = 0;
 
+pub fn is_playback_queued() -> bool {
+    get_current_buffer() == Action::PLAYBACK
+}
+
 pub fn buffer_action(action: Action) {
     unsafe {
         if !QUEUE.is_empty() {
@@ -31,6 +36,20 @@ pub fn buffer_action(action: Action) {
 
     if action == Action::empty() {
         return;
+    }
+   
+    // We want to allow for triggering a mash to end playback for neutral playbacks, but not for SDI/disadv playbacks
+    unsafe { 
+         // exit playback if we want to perform mash actions out of it
+         // TODO: Figure out some way to deal with trying to playback into another playback
+        if MENU.playback_mash == OnOff::On && !input_record::is_recording() && !input_record::is_standby() && !is_playback_queued() && action != Action::PLAYBACK {
+            println!("Stopping mash playback for menu option!");
+            input_record::stop_playback();
+        }
+        // if we don't want to leave playback on mash actions, then don't perform the mash
+        if input_record::is_playback() {
+            return;
+        }
     }
 
     attack_angle::roll_direction();
@@ -71,7 +90,7 @@ pub fn get_current_buffer() -> Action {
     }
 }
 
-fn reset() {
+pub fn reset() {
     unsafe {
         QUEUE.pop();
     }
@@ -324,6 +343,10 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
             try_change_status(module_accessor, dash_status, dash_transition);
 
             get_flag(module_accessor, *FIGHTER_STATUS_KIND_DASH, 0)
+        }
+        Action::PLAYBACK => {
+            // Because these status changes take place after we would receive input from the controller, we need to queue input playback 1 frame before we can act
+            return 0; // We don't ever want to explicitly provide any command flags here; if we're trying to do input recording, the playback handles it all
         }
         _ => get_attack_flag(module_accessor, action),
     }
