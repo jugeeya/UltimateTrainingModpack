@@ -1065,6 +1065,7 @@ impl MashTrigger {
     pub const fn default() -> MashTrigger {
         // Hit, block, clatter
         MashTrigger::HIT
+            .union(MashTrigger::TUMBLE)
             .union(MashTrigger::SHIELDSTUN)
             .union(MashTrigger::CLATTER)
     }
