@@ -3,9 +3,7 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::frame_counter;
-use crate::training::mash;
-use crate::training::input_record;
+use crate::training::{frame_counter, mash, input_record};
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
