@@ -87,8 +87,11 @@ fn get_ledge_option() -> Option<Action> {
                     override_action = Some(MENU.ledge_attack_override.get_random());
                 }
             }
+            _ => {
+                override_action = None;
+            }
         }
-        return override_action.unwrap_or(regular_action); //TODO: FIX THIS
+        return override_action.or(regular_action);
     }
 
 }
@@ -158,7 +161,10 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         StatusModule::change_status_request_from_script(module_accessor, status, true);
     }
 
-    mash::external_buffer_menu_mash(get_ledge_option());
+    let ledge_option: Option<Action> = get_ledge_option();
+    if ledge_option.is_some() {
+        mash::external_buffer_menu_mash(ledge_option.unwrap());
+    }
 }
 
 pub unsafe fn is_enable_transition_term(

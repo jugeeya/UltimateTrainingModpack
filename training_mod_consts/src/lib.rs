@@ -73,8 +73,8 @@ pub struct TrainingModpackMenu {
     pub landing_override: Action,
     pub trump_override: Action,
     pub save_state_playback: OnOff,
-    pub recording_slot: RecordSlot,
-    pub playback_slot: PlaybackSlot,
+    //pub recording_slot: RecordSlot,
+    //pub playback_slot: PlaybackSlot,
     pub playback_mash: OnOff,
     pub record_trigger: RecordTrigger,
     pub hitstun_playback: HitstunPlayback,
@@ -169,8 +169,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     landing_override: Action::empty(),
     trump_override: Action::empty(),
     save_state_playback: OnOff::Off,
-    recording_slot: RecordSlot::S1, // TODO: this is not being set up correctly and is empty on setup
-    playback_slot: PlaybackSlot::S1,
+    //recording_slot: RecordSlot::S1,
+    //playback_slot: PlaybackSlot::S1,
     playback_mash: OnOff::On,
     record_trigger: RecordTrigger::None, //Command?
     hitstun_playback: HitstunPlayback::Hitstun,
@@ -752,20 +752,20 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         true,
         &(menu.save_state_playback as u32),
     );
-    input_tab.add_submenu_with_toggles::<RecordSlot>(
-        "Recording Slot",
-        "recording_slot",
-        "Recording Slot: Choose which slot to record into",
-        true,
-        &(menu.recording_slot as u32),
-    );
-    input_tab.add_submenu_with_toggles::<PlaybackSlot>( // TODO: This menu should really be a submenu inside Action menus, probably want to be able to customize for each action
-        "Playback Slots",
-        "playback_slot",
-        "Playback Slots: Choose which slots to choose between for playback when this action is triggered",
-        false,
-        &(menu.playback_slot.bits() as u32),
-    );
+    // input_tab.add_submenu_with_toggles::<RecordSlot>(
+    //     "Recording Slot",
+    //     "recording_slot",
+    //     "Recording Slot: Choose which slot to record into",
+    //     true,
+    //     &(menu.recording_slot as u32),
+    // );
+    // input_tab.add_submenu_with_toggles::<PlaybackSlot>( // TODO: This menu should really be a submenu inside Action menus, probably want to be able to customize for each action
+    //     "Playback Slots",
+    //     "playback_slot",
+    //     "Playback Slots: Choose which slots to choose between for playback when this action is triggered",
+    //     false,
+    //     &(menu.playback_slot.bits() as u32),
+    // );
     input_tab.add_submenu_with_toggles::<OnOff>(
         "Mash Ends Playback",
         "playback_mash",
