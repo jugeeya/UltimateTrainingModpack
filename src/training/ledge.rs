@@ -3,9 +3,7 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::frame_counter;
-use crate::training::mash;
-use crate::training::input_record;
+use crate::training::{frame_counter, mash, input_record};
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
@@ -57,6 +55,43 @@ fn roll_ledge_case() {
 
         LEDGE_CASE = MENU.ledge_state.get_random();
     }
+}
+
+fn get_ledge_option() -> Option<Action> {
+    unsafe {
+        let mut override_action: Option<Action> = None;
+        let regular_action = if MENU.mash_triggers.contains(MashTrigger::LEDGE) 
+            {Some(MENU.mash_state.get_random())}
+            else {None};
+
+        match LEDGE_CASE {
+            LedgeOption::NEUTRAL => {
+                if MENU.ledge_neutral_override != Action::empty() {
+                    override_action = Some(MENU.ledge_neutral_override.get_random());
+                }
+            }
+            LedgeOption::ROLL => {
+                if MENU.ledge_roll_override != Action::empty() {
+                    override_action = Some(MENU.ledge_roll_override.get_random());
+                }
+            }
+            LedgeOption::JUMP => {
+                if MENU.ledge_jump_override != Action::empty() {
+                    override_action = Some(MENU.ledge_jump_override.get_random());
+                }
+            }
+            LedgeOption::ATTACK => {
+                if MENU.ledge_attack_override != Action::empty() {
+                    override_action = Some(MENU.ledge_attack_override.get_random());
+                }
+            }
+            _ => {
+                override_action = None;
+            }
+        }
+        return override_action.or(regular_action);
+    }
+
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -124,19 +159,9 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         StatusModule::change_status_request_from_script(module_accessor, status, true);
     }
 
-    if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
-        if LEDGE_CASE == LedgeOption::NEUTRAL && MENU.ledge_neutral_override != Action::empty() {
-            mash::external_buffer_menu_mash(MENU.ledge_neutral_override.get_random());
-        } else if LEDGE_CASE == LedgeOption::ROLL && MENU.ledge_roll_override != Action::empty() {
-            mash::external_buffer_menu_mash(MENU.ledge_roll_override.get_random());
-        } else if LEDGE_CASE == LedgeOption::JUMP && MENU.ledge_jump_override != Action::empty() {
-            mash::external_buffer_menu_mash(MENU.ledge_jump_override.get_random());
-        } else if LEDGE_CASE == LedgeOption::ATTACK && MENU.ledge_attack_override != Action::empty()
-        {
-            mash::external_buffer_menu_mash(MENU.ledge_attack_override.get_random());
-        } else {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random());
-        }
+    let ledge_option: Option<Action> = get_ledge_option();
+    if ledge_option.is_some() {
+        mash::external_buffer_menu_mash(ledge_option.unwrap());
     }
 }
 
