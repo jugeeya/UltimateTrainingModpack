@@ -227,13 +227,13 @@ pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32)
                 BUTTON_PRESSES.up.is_pressed = true;
             }
 
-            // For digital triggers: these at TRIGGER_MAX means we should consider a press
+            // For digital triggers: these pressed 1/3 of the way mean we should consider a press
             if controller_is_gcc(*controller_id) {
-                if (*state).LTrigger == 0x7FFF {
+                if (*state).LTrigger >= 0x2AAA {
                     BUTTON_PRESSES.l.is_pressed = true;
                 }
 
-                if (*state).RTrigger == 0x7FFF {
+                if (*state).RTrigger >= 0x2AAA {
                     BUTTON_PRESSES.r.is_pressed = true;
                 }
             }
