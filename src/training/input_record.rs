@@ -45,6 +45,8 @@ pub enum StartingStatus {
 use InputRecordState::*;
 use PossessionState::*;
 
+const STICK_NEUTRAL: f32 = 0.2;
+const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
 const FINAL_RECORD_MAX: usize = 150; // Maximum length for input recording sequences (capacity)
 const TOTAL_SLOT_COUNT: usize = 5; // Total number of input recording slots
 pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
@@ -278,19 +280,16 @@ pub unsafe fn stop_playback() {
 
 pub unsafe fn is_end_standby() -> bool {
     // Returns whether we should be done with standby this frame (if any significant controller input has been made)
-    // TODO: Reuse NEUTRAL/CLAMP_MAX/clamp_mul?
     let first_frame_input = P1_FINAL_MAPPING.lock()[0];
-    const NEUTRAL: f32 = 0.2;
-    const CLAMP_MAX: f32 = 120.0;
-    let clamp_mul = 1.0 / CLAMP_MAX;
-    let clamped_lstick_x = ((first_frame_input.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
-    let clamped_lstick_y = ((first_frame_input.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
-    let clamped_rstick_x = ((first_frame_input.rstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
-    let clamped_rstick_y = ((first_frame_input.rstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
+
+    let clamped_lstick_x = ((first_frame_input.lstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+    let clamped_lstick_y = ((first_frame_input.lstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+    let clamped_rstick_x = ((first_frame_input.rstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+    let clamped_rstick_y = ((first_frame_input.rstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
     let buttons_pressed = first_frame_input.buttons != Buttons::NONE;
-    let lstick_movement = clamped_lstick_x.abs() >= NEUTRAL || clamped_lstick_y.abs() >= NEUTRAL;
-    let rstick_movement = clamped_rstick_x.abs() >= NEUTRAL || clamped_rstick_y.abs() >= NEUTRAL;
+    let lstick_movement = clamped_lstick_x.abs() >= STICK_NEUTRAL || clamped_lstick_y.abs() >= STICK_NEUTRAL;
+    let rstick_movement = clamped_rstick_x.abs() >= STICK_NEUTRAL || clamped_rstick_y.abs() >= STICK_NEUTRAL;
     lstick_movement || rstick_movement || buttons_pressed
 }
 
@@ -369,13 +368,10 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         (*controller_data).stick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) / (i8::MAX as f32));
         (*controller_data).stick_y = (saved_mapped_inputs.lstick_y as f32) / (i8::MAX as f32);
         // Clamp stick inputs for separate part of structure
-        const NEUTRAL: f32 = 0.2;
-        const CLAMP_MAX: f32 = 120.0;
-        let clamp_mul = 1.0 / CLAMP_MAX;
-        let mut clamped_lstick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) * clamp_mul).clamp(-1.0, 1.0);
-        let mut clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * clamp_mul).clamp(-1.0, 1.0);
-        clamped_lstick_x = if clamped_lstick_x.abs() >= NEUTRAL { clamped_lstick_x } else { 0.0 };
-        clamped_lstick_y = if clamped_lstick_y.abs() >= NEUTRAL { clamped_lstick_y } else { 0.0 };
+        let mut clamped_lstick_x = x_input_multiplier * ((saved_mapped_inputs.lstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        let mut clamped_lstick_y = ((saved_mapped_inputs.lstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        clamped_lstick_x = if clamped_lstick_x.abs() >= STICK_NEUTRAL { clamped_lstick_x } else { 0.0 };
+        clamped_lstick_y = if clamped_lstick_y.abs() >= STICK_NEUTRAL { clamped_lstick_y } else { 0.0 };
         (*controller_data).clamped_lstick_x = clamped_lstick_x;
         (*controller_data).clamped_lstick_y = clamped_lstick_y;
         //println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
