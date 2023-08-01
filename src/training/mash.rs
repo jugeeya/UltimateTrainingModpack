@@ -23,8 +23,35 @@ static mut FALLING_AERIAL: bool = false;
 static mut AERIAL_DELAY_COUNTER: usize = 0;
 static mut AERIAL_DELAY: u32 = 0;
 
+// Track if we're about to do another command flag cat run in the same frame for a dash or dash attack
+static mut IS_TRANSITIONING_DASH: bool = false; 
+
+unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let current_status = StatusModule::status_kind(module_accessor);
+    let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
+    let is_dash_attacking = current_status == *FIGHTER_STATUS_KIND_ATTACK_DASH;
+    let can_cancel_dash_attack = WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH_DASH);
+    // We have to check the frame since the transition term is wrong early in the dash attack
+    let motion_frame = MotionModule::frame(module_accessor);
+    is_dashing || (is_dash_attacking && (can_cancel_dash_attack || motion_frame <= 2.0))
+}
+
+unsafe fn dash_transition_check(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    IS_TRANSITIONING_DASH &= is_dashing_for_dash_attack(module_accessor);
+}
+
 pub fn is_playback_queued() -> bool {
     get_current_buffer() == Action::PLAYBACK
+}
+
+pub unsafe fn is_dashing_for_dash_attack(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> bool {
+    let current_status = StatusModule::status_kind(module_accessor);
+    let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
+    let action = get_current_buffer();
+    // Return true if we're trying to dash attack and we're dashing
+    action == Action::DASH_ATTACK && is_dashing
 }
 
 pub fn buffer_action(action: Action) {
@@ -42,7 +69,7 @@ pub fn buffer_action(action: Action) {
     unsafe { 
          // exit playback if we want to perform mash actions out of it
          // TODO: Figure out some way to deal with trying to playback into another playback
-        if MENU.playback_mash == OnOff::On && !input_record::is_recording() && !input_record::is_standby() && !is_playback_queued() && action != Action::PLAYBACK {
+        if MENU.playback_mash == OnOff::On && input_record::is_playback() && !input_record::is_recording() && !input_record::is_standby() && !is_playback_queued() && action != Action::PLAYBACK {
             println!("Stopping mash playback for menu option!");
             input_record::stop_playback();
         }
@@ -145,19 +172,23 @@ pub unsafe fn get_command_flag_cat(
     }
 
     check_buffer(module_accessor);
-
+    // Make sure our dash transition variable is the correct value
+    dash_transition_check(module_accessor);
     perform_action(module_accessor)
 }
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     // Different situations mean we want to change our buffered option, so we check what to buffer every frame
     let buffered_action = get_buffered_action(module_accessor);
+    // Don't reset the buffer if we're currently beginning a dash attack, since commands can interrupt it into roll and grab
     if let Some(action) = buffered_action {
-        full_reset();
-        // we need to clear the queue when adding a mash to the queue, but not necessarily a follow-up.
-        // We need to clear the queue since it'll be trying to buffer that action until it's completed, but now we want
-        //  different things to happen.
-        buffer_menu_mash(action);
+        if !is_beginning_dash_attack(module_accessor) {
+            full_reset();
+            // we need to clear the queue when adding a mash to the queue, but not necessarily a follow-up.
+            // We need to clear the queue since it'll be trying to buffer that action until it's completed, but now we want
+            //  different things to happen.
+            buffer_menu_mash(action);
+        }
     }
 }
 
@@ -445,28 +476,35 @@ unsafe fn get_attack_flag(
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
         }
-        // TODO: Make it work, without being 1 frame late
         Action::DASH_ATTACK => {
-            let current_status = StatusModule::status_kind(module_accessor);
-            let dash_status = *FIGHTER_STATUS_KIND_DASH;
-            let is_dashing = current_status == dash_status;
-
             // Start Dash First
-            if !is_dashing {
-                let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
+            let current_status = StatusModule::status_kind(module_accessor);
+            let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
+            let is_dash_attacking = current_status == *FIGHTER_STATUS_KIND_ATTACK_DASH;
 
-                try_change_status(module_accessor, dash_status, dash_transition);
+            if !is_dashing && !is_dash_attacking {
+                let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
+                try_change_status(module_accessor, *FIGHTER_STATUS_KIND_DASH, dash_transition);
                 return 0;
             }
-
+            
+            command_flag = 0;
             status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
 
-            let transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_DASH;
-            try_change_status(module_accessor, status, transition);
+            // Once we're dashing, make sure one frame passes and then we dash attack
+            let curr_motion_kind = MotionModule::motion_kind(module_accessor);
+            let is_motion_dash = curr_motion_kind == smash::hash40("dash");
+            let motion_frame = MotionModule::frame(module_accessor);
 
-            //@TODO find out how to properly reset, since the status just returns FIGHTER_STATUS_KIND_DASH
-
-            return 0;
+            if current_status == *FIGHTER_STATUS_KIND_DASH && motion_frame == 0.0 && is_motion_dash {
+                if !IS_TRANSITIONING_DASH {
+                    // The first time these conditions are met, we aren't ready to begin dash attacking, so get ready to transition next frame
+                    IS_TRANSITIONING_DASH = true;
+                } else {
+                    // Begin dash attacking now that we've dashed for one frame
+                    StatusModule::change_status_request_from_script(module_accessor, status, true);
+                }
+            }
         }
         _ => return 0,
     }
@@ -567,9 +605,18 @@ unsafe fn get_flag(
 ) -> i32 {
     // let current_status = StatusModule::prev_status_kind(module_accessor,0);
     let current_status = StatusModule::status_kind(module_accessor);
+    println!("Current Status: {}, Expected Status: {}", current_status, expected_status);
     if current_status == expected_status {
         // Reset Buffer
         reset();
+    }
+
+    // Workaround for dash attack
+    if current_status == *FIGHTER_STATUS_KIND_DASH {
+        // Prevent dashes from being interrupted through command_flag by mash options
+        //  We don't want to input commands since we handle dash attacks via status transitions
+        //  buffer_menu_mash can be called multiple times a frame during status transitions, so we need this
+        return 0;
     }
 
     // Workaround for Character specific status

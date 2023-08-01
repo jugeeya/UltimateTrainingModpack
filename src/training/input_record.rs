@@ -59,7 +59,7 @@ pub static mut RECORDED_LR: f32 = 1.0; // The direction the CPU was facing befor
 pub static mut CURRENT_LR: f32 = 1.0; // The direction the CPU was facing at the beginning of this playback
 pub static mut STARTING_STATUS: i32 = 0; // The first status entered in the recording outside of waits
                                          //     used to calculate if the input playback should begin before hitstun would normally end (hitstun cancel, monado art?)
-pub static mut CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
+pub static mut _CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
 pub static mut CURRENT_PLAYBACK_SLOT: usize = 0; // Which slot is being used for playback right now?
 
 lazy_static! {
