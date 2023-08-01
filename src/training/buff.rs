@@ -64,8 +64,8 @@ fn get_spell_vec() -> Vec<BuffOption> {
         let menu_iter = menu_buff.iter();
         let mut spell_buff: Vec<BuffOption> = Vec::new();
         for buff in menu_iter {
-            if buff.into_int().unwrap_or(1) != 1 {
-                // all non-spells into_int as 1
+            if buff.into_int().unwrap_or(1) >= 0xA {
+                // all non-spells into_int as less than this value
                 spell_buff.push(*buff);
             }
         }
@@ -83,6 +83,8 @@ pub unsafe fn handle_buffs(
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
+    CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
+    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, etc.)
 
     let menu_vec = MENU.buff_state.to_vec();
 
@@ -98,8 +100,9 @@ pub unsafe fn handle_buffs(
         return buff_mac(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_EDGE && menu_vec.contains(&BuffOption::WING) {
         return buff_sepiroth(module_accessor, percent);
+    } else if fighter_kind == *FIGHTER_KIND_SHULK {
+        return buff_shulk(module_accessor, status);
     }
-
     true
 }
 
@@ -113,6 +116,10 @@ unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, statu
     }
     if get_buff_rem(module_accessor) <= 0 {
         // If there are no buffs selected/left, we're done
+        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
+            // Need to wait 3 frames to make sure we stop the spell SFX, since it's a bit delayed
+            return false;
+        }
         return true;
     }
     buff_hero_single(module_accessor, status, buff_vec);
@@ -185,11 +192,20 @@ unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 }
 
 unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    WorkModule::set_float(
-        module_accessor,
-        100.0,
-        *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE,
-    );
+    if !is_buffing(module_accessor) {
+        // Only need to set KO gauge once
+        start_buff(module_accessor);
+        WorkModule::set_float(
+            module_accessor,
+            100.0,
+            *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE,
+        );
+    }
+    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+        // Need to wait 2 frames to make sure we stop the KO sound, since it's a bit delayed
+        return false;
+    }
+    
     // Trying to stop KO Punch from playing seems to make it play multiple times in rapid succession
     // Look at 0x7100c44b60 for the func that handles this
     // Need to figure out how to update the KO meter if this is fixed
@@ -221,14 +237,77 @@ unsafe fn buff_sepiroth(
     false
 }
 
+unsafe fn buff_shulk(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    status: i32,
+) -> bool {
+    if frame_counter::should_delay(4_u32, BUFF_DELAY_COUNTER) {
+        // Need to continue to be buffing to make sure we stop "JUMP!" voice line
+        return false;
+    }
+    // if is_buffing(module_accessor) {
+    //     if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+    //         // Need to wait 2 frames to make sure we stop SFX
+    //         return false;
+    //     }
+    //     return true;
+    // }
+    let menu_vec = MENU.buff_state.to_vec();
+    let current_menu_art;
+    if menu_vec.contains(&BuffOption::MONAD_JUMP) {
+        current_menu_art = BuffOption::MONAD_JUMP;
+    } else if menu_vec.contains(&BuffOption::MONAD_SPEED) {
+        current_menu_art = BuffOption::MONAD_SPEED;
+    } else if menu_vec.contains(&BuffOption::MONAD_SHIELD) {
+        current_menu_art = BuffOption::MONAD_SHIELD;
+    } else if menu_vec.contains(&BuffOption::MONAD_BUSTER) {
+        current_menu_art = BuffOption::MONAD_BUSTER;
+    } else if menu_vec.contains(&BuffOption::MONAD_SMASH) {
+        current_menu_art = BuffOption::MONAD_SMASH;
+    } else {
+        // No Monado Arts selected in the buff menu, so we don't need to buff
+        return true;
+    }
+    start_buff(module_accessor);
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+    if prev_status_kind == FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
+        return true;
+        //start_buff(module_accessor);
+    } 
+    if status != FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
+        WorkModule::set_int(
+            module_accessor,
+            current_menu_art.into_int().unwrap(),
+            *FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_TYPE_SELECT,
+        );
+        WorkModule::set_int(
+            module_accessor,
+            29,
+            *FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_SELECT_TIMER,
+        );
+        WorkModule::on_flag(
+            module_accessor,
+            *FIGHTER_SHULK_INSTANCE_WORK_ID_FLAG_SPECIAL_N_SELECT,
+        );
+        StatusModule::change_status_force(
+            module_accessor,
+            *FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION,
+            true,
+        );
+    } else {
+        MotionModule::set_rate(module_accessor, 40.0);
+    }
+    false
+}
+
 unsafe fn buff_wiifit(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     status: i32,
     percent: f32,
 ) -> bool {
     if is_buffing(module_accessor) {
-        if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
-            // Need to wait 2 frames to make sure we stop breathing SFX
+        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
+            // Need to wait 3 frames to make sure we stop breathing SFX
             return false;
         }
         // Deep Breathing can heal, so we need to reset the damage

@@ -588,6 +588,11 @@ bitflags! {
         const LIMIT = 0x40;
         const KO = 0x80;
         const WING = 0x100;
+        const MONAD_JUMP = 0x200;
+        const MONAD_SPEED = 0x400;
+        const MONAD_SHIELD = 0x800;
+        const MONAD_BUSTER = 0x1000;
+        const MONAD_SMASH = 0x2000;
     }
 }
 
@@ -605,6 +610,11 @@ impl BuffOption {
                 BuffOption::LIMIT => 1,
                 BuffOption::KO => 1,
                 BuffOption::WING => 1,
+                BuffOption::MONAD_JUMP => *FIGHTER_SHULK_MONAD_TYPE_JUMP,
+                BuffOption::MONAD_SPEED => *FIGHTER_SHULK_MONAD_TYPE_SPEED,
+                BuffOption::MONAD_SHIELD => *FIGHTER_SHULK_MONAD_TYPE_SHIELD,
+                BuffOption::MONAD_BUSTER=> *FIGHTER_SHULK_MONAD_TYPE_BUSTER,
+                BuffOption::MONAD_SMASH => *FIGHTER_SHULK_MONAD_TYPE_SMASH,
                 _ => return None,
             })
         }
@@ -624,6 +634,11 @@ impl BuffOption {
             BuffOption::LIMIT => "Limit Break",
             BuffOption::KO => "KO Punch",
             BuffOption::WING => "1-Winged Angel",
+            BuffOption::MONAD_JUMP => "Jump",
+            BuffOption::MONAD_SPEED => "Speed",
+            BuffOption::MONAD_SHIELD => "Shield",
+            BuffOption::MONAD_BUSTER=> "Buster",
+            BuffOption::MONAD_SMASH => "Smash",
             _ => return None,
         })
     }
