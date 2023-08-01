@@ -1,5 +1,3 @@
-use std::f32::consts::E;
-
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
@@ -25,7 +23,7 @@ static mut FALLING_AERIAL: bool = false;
 static mut AERIAL_DELAY_COUNTER: usize = 0;
 static mut AERIAL_DELAY: u32 = 0;
 
-// tracks if we're about to do another command flag cat run in the same frame for a dash attack
+// Track if we're about to do another command flag cat run in the same frame for a dash or dash attack
 static mut IS_TRANSITIONING_DASH: bool = false; 
 
 unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -33,13 +31,13 @@ unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModule
     let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
     let is_dash_attacking = current_status == *FIGHTER_STATUS_KIND_ATTACK_DASH;
     let can_cancel_dash_attack = WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH_DASH);
-    println!("Catch Transition: {}, CatchDash Transition: {}",WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH),WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH_DASH));
+    // We have to check the frame since the transition term is wrong early in the dash attack
     let motion_frame = MotionModule::frame(module_accessor);
     is_dashing || (is_dash_attacking && (can_cancel_dash_attack || motion_frame <= 2.0))
 }
 
 unsafe fn dash_transition_check(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    IS_TRANSITIONING_DASH &= is_dashing_for_dash_attack(module_accessor, get_current_buffer());
+    IS_TRANSITIONING_DASH &= is_dashing_for_dash_attack(module_accessor);
 }
 
 pub fn is_playback_queued() -> bool {
@@ -48,15 +46,12 @@ pub fn is_playback_queued() -> bool {
 
 pub unsafe fn is_dashing_for_dash_attack(
     module_accessor: &mut app::BattleObjectModuleAccessor,
-    action: Action
 ) -> bool {
-    //let curr_motion_kind = MotionModule::motion_kind(module_accessor);
-    //let is_motion_dash_attack = curr_motion_kind == smash::hash40("attack_dash");
     let current_status = StatusModule::status_kind(module_accessor);
     let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
-    // We're trying to dash attack, we're dashing, and not in the dash attack animation
-
-    action == Action::DASH_ATTACK && is_dashing// && !is_motion_dash_attack
+    let action = get_current_buffer();
+    // Return true if we're trying to dash attack and we're dashing
+    action == Action::DASH_ATTACK && is_dashing
 }
 
 pub fn buffer_action(action: Action) {
@@ -177,14 +172,15 @@ pub unsafe fn get_command_flag_cat(
     }
 
     check_buffer(module_accessor);
-    dash_transition_check(module_accessor); // make sure our dash transition variable is the correct value
+    // Make sure our dash transition variable is the correct value
+    dash_transition_check(module_accessor);
     perform_action(module_accessor)
 }
 
 unsafe fn check_buffer(module_accessor: &mut app::BattleObjectModuleAccessor) {
     // Different situations mean we want to change our buffered option, so we check what to buffer every frame
     let buffered_action = get_buffered_action(module_accessor);
-    // Don't reset the buffer if we're currently dashing to try to dash attack
+    // Don't reset the buffer if we're currently beginning a dash attack, since commands can interrupt it into roll and grab
     if let Some(action) = buffered_action {
         if !is_beginning_dash_attack(module_accessor) {
             full_reset();
@@ -480,55 +476,32 @@ unsafe fn get_attack_flag(
             command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_ATTACK_LW3;
             status = *FIGHTER_STATUS_KIND_ATTACK_LW3;
         }
-        // TODO: Make it work, without being 1 frame late
         Action::DASH_ATTACK => {
+            // Start Dash First
             let current_status = StatusModule::status_kind(module_accessor);
             let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
             let is_dash_attacking = current_status == *FIGHTER_STATUS_KIND_ATTACK_DASH;
 
-            print!("Status: {}, ", current_status);
-            let curr_motion_kind = MotionModule::motion_kind(module_accessor);
-            let is_motion_dash_attack = curr_motion_kind == smash::hash40("attack_dash");
-            let is_motion_dash = curr_motion_kind == smash::hash40("dash");
-            if is_motion_dash_attack {
-                print!("Motion: Dash Attack, ");
-            } else if is_motion_dash {
-                print!("Motion: Dash, ");
-            }
-            else {
-                print!("Motion: Other, ");
-            }
-            
-            let motion_frame = MotionModule::frame(module_accessor);
-            let prev_motion_frame = MotionModule::prev_frame(module_accessor); // 0,0 on first and second frame of 
-            println!("Frame: {}, PrevFrame: {}",motion_frame,prev_motion_frame);
-
-
-            // Start Dash First
             if !is_dashing && !is_dash_attacking {
                 let dash_transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_DASH;
                 try_change_status(module_accessor, *FIGHTER_STATUS_KIND_DASH, dash_transition);
-                // if current_status == *FIGHTER_STATUS_KIND_DASH {
-                //     MotionModule::set_frame(module_accessor, 0.01, true); // maybe needs to be false, unknown arg3
-                //     // TODO: just changed this, try seeing if the next frame it corrects back to 0 and current or previous frame get changed
-                //     // may need to set motion rate to 1.0?
-                // }
                 return 0;
             }
-
-            // TODO: Fix mash trigger close overriding when hitstun is over? unsure what's happening with this
+            
             command_flag = 0;
-            //command_flag = *FIGHTER_PAD_CMD_CAT1_FLAG_DASH;
             status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
 
-            let transition = *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_DASH;
+            // Once we're dashing, make sure one frame passes and then we dash attack
+            let curr_motion_kind = MotionModule::motion_kind(module_accessor);
+            let is_motion_dash = curr_motion_kind == smash::hash40("dash");
+            let motion_frame = MotionModule::frame(module_accessor);
+
             if current_status == *FIGHTER_STATUS_KIND_DASH && motion_frame == 0.0 && is_motion_dash {
                 if !IS_TRANSITIONING_DASH {
+                    // The first time these conditions are met, we aren't ready to begin dash attacking, so get ready to transition next frame
                     IS_TRANSITIONING_DASH = true;
-                    println!("First Command Flag Cat Call on Dash Attack, not transitioning!");
                 } else {
-                    println!("Second call, Trying to dash attack!");
-                    //try_change_status(module_accessor, status, transition);
+                    // Begin dash attacking now that we've dashed for one frame
                     StatusModule::change_status_request_from_script(module_accessor, status, true);
                 }
             }
@@ -636,12 +609,6 @@ unsafe fn get_flag(
     if current_status == expected_status {
         // Reset Buffer
         reset();
-    }
-
-    // Workaround to let dropping shield count as shielding
-    if current_status == 30 && expected_status == 27 {
-        //reset(); // TODO: Figure out if I need this here TODO: see if I can remove all of this
-        return 0;
     }
 
     // Workaround for dash attack
