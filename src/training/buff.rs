@@ -241,17 +241,6 @@ unsafe fn buff_shulk(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     status: i32,
 ) -> bool {
-    if frame_counter::should_delay(4_u32, BUFF_DELAY_COUNTER) {
-        // Need to continue to be buffing to make sure we stop "JUMP!" voice line
-        return false;
-    }
-    // if is_buffing(module_accessor) {
-    //     if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
-    //         // Need to wait 2 frames to make sure we stop SFX
-    //         return false;
-    //     }
-    //     return true;
-    // }
     let menu_vec = MENU.buff_state.to_vec();
     let current_menu_art;
     if menu_vec.contains(&BuffOption::MONAD_JUMP) {
@@ -271,8 +260,11 @@ unsafe fn buff_shulk(
     start_buff(module_accessor);
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
     if prev_status_kind == FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
+        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
+            // Need to continue to be buffing to make sure we stop "JUMP!" voice line
+            return false;
+        }
         return true;
-        //start_buff(module_accessor);
     } 
     if status != FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
         WorkModule::set_int(
@@ -306,8 +298,8 @@ unsafe fn buff_wiifit(
     percent: f32,
 ) -> bool {
     if is_buffing(module_accessor) {
-        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
-            // Need to wait 3 frames to make sure we stop breathing SFX
+        if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+            // Need to wait 2 frames to make sure we stop breathing SFX
             return false;
         }
         // Deep Breathing can heal, so we need to reset the damage
