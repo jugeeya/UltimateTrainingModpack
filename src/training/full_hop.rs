@@ -1,6 +1,6 @@
+use crate::training::input_record;
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
-use crate::training::input_record;
 
 use crate::common::*;
 

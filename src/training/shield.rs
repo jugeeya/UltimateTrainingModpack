@@ -8,7 +8,7 @@ use smash::lua2cpp::L2CFighterCommon;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::{mash, frame_counter, save_states, input_record};
+use crate::training::{frame_counter, input_record, mash, save_states};
 
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
@@ -105,7 +105,8 @@ pub unsafe fn get_param_float(
     param_type: u64,
     param_hash: u64,
 ) -> Option<f32> {
-    if !is_operation_cpu(module_accessor) || input_record::is_playback() { // shield normally during playback
+    if !is_operation_cpu(module_accessor) || input_record::is_playback() {
+        // shield normally during playback
         return None;
     }
 
@@ -368,7 +369,7 @@ fn needs_oos_handling_drop_shield() -> bool {
         }
         return true;
     }
-    
+
     if action == Action::SHIELD {
         let shield_state;
         unsafe {

@@ -1153,7 +1153,6 @@ impl ToggleTrait for SaveStateSlot {
     }
 }
 
-
 // Input Recording Slot
 #[repr(u32)]
 #[derive(
@@ -1280,7 +1279,8 @@ impl ToggleTrait for RecordTrigger {
 #[derive(
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
-pub enum HitstunPlayback { // Should these start at 0? All of my new menu structs need some review, I'm just doing whatever atm
+pub enum HitstunPlayback {
+    // Should these start at 0? All of my new menu structs need some review, I'm just doing whatever atm
     Hitstun = 0x1,
     Hitstop = 0x2,
     Instant = 0x4,
