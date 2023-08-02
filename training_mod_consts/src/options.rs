@@ -1168,20 +1168,14 @@ pub enum RecordSlot {
 }
 
 impl RecordSlot {
-    pub fn into_int(self) -> Option<u32> { // TODO: Do I need an into_int here?
-        #[cfg(feature = "smash")]
-        {
-            Some(match self {
-                RecordSlot::S1 => 1,
-                RecordSlot::S2 => 2,
-                RecordSlot::S3 => 3,
-                RecordSlot::S4 => 4,
-                RecordSlot::S5 => 5,
-            })
+    pub fn into_idx(self) -> usize {
+        match self {
+            RecordSlot::S1 => 0,
+            RecordSlot::S2 => 1,
+            RecordSlot::S3 => 2,
+            RecordSlot::S4 => 3,
+            RecordSlot::S5 => 4,
         }
-
-        #[cfg(not(feature = "smash"))]
-        None
     }
 
     pub fn as_str(self) -> Option<&'static str> {
@@ -1220,21 +1214,15 @@ bitflags! {
 }
 
 impl PlaybackSlot {
-    pub fn into_int(self) -> Option<u32> {
-        #[cfg(feature = "smash")]
-        {
-            Some(match self {
-                PlaybackSlot::S1 => 1,
-                PlaybackSlot::S2 => 2,
-                PlaybackSlot::S3 => 3,
-                PlaybackSlot::S4 => 4,
-                PlaybackSlot::S5 => 5,
-                _ => return None,
-            })
-        }
-
-        #[cfg(not(feature = "smash"))]
-        None
+    pub fn into_idx(self) -> Option<usize> {
+        Some(match self {
+            PlaybackSlot::S1 => 0,
+            PlaybackSlot::S2 => 1,
+            PlaybackSlot::S3 => 2,
+            PlaybackSlot::S4 => 3,
+            PlaybackSlot::S5 => 4,
+            _ => return None,
+        })
     }
 
     pub fn as_str(self) -> Option<&'static str> {
