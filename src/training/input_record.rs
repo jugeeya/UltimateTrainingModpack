@@ -290,7 +290,7 @@ pub unsafe fn is_end_standby() -> bool {
     let clamped_rstick_x = ((first_frame_input.rstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
     let clamped_rstick_y = ((first_frame_input.rstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
-    let buttons_pressed = first_frame_input.buttons.is_empty();
+    let buttons_pressed = !first_frame_input.buttons.is_empty();
     let lstick_movement = clamped_lstick_x.abs() >= STICK_NEUTRAL || clamped_lstick_y.abs() >= STICK_NEUTRAL;
     let rstick_movement = clamped_rstick_x.abs() >= STICK_NEUTRAL || clamped_rstick_y.abs() >= STICK_NEUTRAL;
     lstick_movement || rstick_movement || buttons_pressed
