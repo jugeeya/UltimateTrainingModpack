@@ -24,13 +24,16 @@ static mut AERIAL_DELAY_COUNTER: usize = 0;
 static mut AERIAL_DELAY: u32 = 0;
 
 // Track if we're about to do another command flag cat run in the same frame for a dash or dash attack
-static mut IS_TRANSITIONING_DASH: bool = false; 
+static mut IS_TRANSITIONING_DASH: bool = false;
 
 unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let current_status = StatusModule::status_kind(module_accessor);
     let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
     let is_dash_attacking = current_status == *FIGHTER_STATUS_KIND_ATTACK_DASH;
-    let can_cancel_dash_attack = WorkModule::is_enable_transition_term(module_accessor, *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH_DASH);
+    let can_cancel_dash_attack = WorkModule::is_enable_transition_term(
+        module_accessor,
+        *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CATCH_DASH,
+    );
     // We have to check the frame since the transition term is wrong early in the dash attack
     let motion_frame = MotionModule::frame(module_accessor);
     is_dashing || (is_dash_attacking && (can_cancel_dash_attack || motion_frame <= 2.0))
@@ -64,12 +67,18 @@ pub fn buffer_action(action: Action) {
     if action == Action::empty() {
         return;
     }
-   
+
     // We want to allow for triggering a mash to end playback for neutral playbacks, but not for SDI/disadv playbacks
-    unsafe { 
-         // exit playback if we want to perform mash actions out of it
-         // TODO: Figure out some way to deal with trying to playback into another playback
-        if MENU.playback_mash == OnOff::On && input_record::is_playback() && !input_record::is_recording() && !input_record::is_standby() && !is_playback_queued() && action != Action::PLAYBACK {
+    unsafe {
+        // exit playback if we want to perform mash actions out of it
+        // TODO: Figure out some way to deal with trying to playback into another playback
+        if MENU.playback_mash == OnOff::On
+            && input_record::is_playback()
+            && !input_record::is_recording()
+            && !input_record::is_standby()
+            && !is_playback_queued()
+            && action != Action::PLAYBACK
+        {
             println!("Stopping mash playback for menu option!");
             input_record::stop_playback();
         }
@@ -487,7 +496,7 @@ unsafe fn get_attack_flag(
                 try_change_status(module_accessor, *FIGHTER_STATUS_KIND_DASH, dash_transition);
                 return 0;
             }
-            
+
             command_flag = 0;
             status = *FIGHTER_STATUS_KIND_ATTACK_DASH;
 
@@ -496,7 +505,8 @@ unsafe fn get_attack_flag(
             let is_motion_dash = curr_motion_kind == smash::hash40("dash");
             let motion_frame = MotionModule::frame(module_accessor);
 
-            if current_status == *FIGHTER_STATUS_KIND_DASH && motion_frame == 0.0 && is_motion_dash {
+            if current_status == *FIGHTER_STATUS_KIND_DASH && motion_frame == 0.0 && is_motion_dash
+            {
                 if !IS_TRANSITIONING_DASH {
                     // The first time these conditions are met, we aren't ready to begin dash attacking, so get ready to transition next frame
                     IS_TRANSITIONING_DASH = true;
@@ -605,7 +615,10 @@ unsafe fn get_flag(
 ) -> i32 {
     // let current_status = StatusModule::prev_status_kind(module_accessor,0);
     let current_status = StatusModule::status_kind(module_accessor);
-    println!("Current Status: {}, Expected Status: {}", current_status, expected_status);
+    println!(
+        "Current Status: {}, Expected Status: {}",
+        current_status, expected_status
+    );
     if current_status == expected_status {
         // Reset Buffer
         reset();
