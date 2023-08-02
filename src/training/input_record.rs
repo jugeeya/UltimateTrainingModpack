@@ -59,14 +59,14 @@ pub static mut RECORDED_LR: f32 = 1.0; // The direction the CPU was facing befor
 pub static mut CURRENT_LR: f32 = 1.0; // The direction the CPU was facing at the beginning of this playback
 pub static mut STARTING_STATUS: i32 = 0; // The first status entered in the recording outside of waits
                                          //     used to calculate if the input playback should begin before hitstun would normally end (hitstun cancel, monado art?)
-pub static mut _CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
+pub static mut CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
 pub static mut CURRENT_PLAYBACK_SLOT: usize = 0; // Which slot is being used for playback right now?
 
 lazy_static! {
-    static ref P1_FINAL_MAPPING: Mutex<[MappedInputs; FINAL_RECORD_MAX]> =
-        Mutex::new([{
+    static ref P1_FINAL_MAPPING: Mutex<[[MappedInputs; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]> =
+        Mutex::new([[{
             MappedInputs::default()
-        }; FINAL_RECORD_MAX]);
+        }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
     static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
         Mutex::new([{StartingStatus::Other}; TOTAL_SLOT_COUNT]);
 }
@@ -105,10 +105,8 @@ unsafe fn should_mash_playback() {
             should_playback = true;
         }
         // if we're in hitstun and want to wait till FAF to act, then we want to match our starting status to the correct transition term to see if we can hitstun cancel
-        if MENU.hitstun_playback == HitstunPlayback::Hitstun {
-            if can_transition(cpu_module_accessor) {
-                should_playback = true;
-            }
+        if MENU.hitstun_playback == HitstunPlayback::Hitstun && can_transition(cpu_module_accessor) {
+            should_playback = true;
         }
     } else if is_in_shieldstun(&mut *cpu_module_accessor) {
         // TODO: Add instant shieldstun toggle for shield art out of electric hitstun? Idk that's so specific
@@ -171,6 +169,8 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     let fighter_kind = utility::get_kind(module_accessor);
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
 
+    CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx();
+
     if entry_id_int == 0 && !fighter_is_nana {
         // Attack + Dpad Right: Playback
         if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
@@ -218,7 +218,7 @@ pub unsafe fn lockout_record() {
     INPUT_RECORD = Pause;
     INPUT_RECORD_FRAME = 0;
     POSSESSION = Lockout;
-    P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
+    P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT].iter_mut().for_each(|mapped_input| {
         *mapped_input = MappedInputs::default();
     });
     LOCKOUT_FRAME = 30; // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
@@ -233,7 +233,7 @@ pub unsafe fn _record() {
     INPUT_RECORD = Record;
     POSSESSION = Cpu;
     // Reset mappings to nothing, and then start recording. Likely want to reset in case we cut off recording early.
-    P1_FINAL_MAPPING.lock().iter_mut().for_each(|mapped_input| {
+    P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT].iter_mut().for_each(|mapped_input| {
         *mapped_input = MappedInputs::default();
     });
     INPUT_RECORD_FRAME = 0;
@@ -246,6 +246,7 @@ pub unsafe fn playback() {
         println!("Tried to playback during lockout!");
         return;
     }
+    CURRENT_PLAYBACK_SLOT = MENU.playback_slot.get_random().into_idx().unwrap();
     INPUT_RECORD = Playback;
     POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
@@ -280,7 +281,7 @@ pub unsafe fn stop_playback() {
 
 pub unsafe fn is_end_standby() -> bool {
     // Returns whether we should be done with standby this frame (if any significant controller input has been made)
-    let first_frame_input = P1_FINAL_MAPPING.lock()[0];
+    let first_frame_input = P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][0];
 
     let clamped_lstick_x = ((first_frame_input.lstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
     let clamped_lstick_y = ((first_frame_input.lstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
@@ -322,7 +323,7 @@ unsafe fn handle_final_input_mapping(
                 STARTING_STATUS = StatusModule::status_kind(cpu_module_accessor); // TODO: Handle this based on slot later instead
             }
 
-            P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME] = *out;
+            P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::default(); // don't control player while recording
             println!("Stored Player Input! Frame: {}",INPUT_RECORD_FRAME);
         }
@@ -357,7 +358,12 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
         let x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
         println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
-        let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[INPUT_RECORD_FRAME];
+        
+        let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[if INPUT_RECORD == Record {
+            CURRENT_RECORD_SLOT
+        } else {
+            CURRENT_PLAYBACK_SLOT
+        }][INPUT_RECORD_FRAME];
         
         if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
             // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
