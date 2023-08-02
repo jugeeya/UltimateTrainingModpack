@@ -43,7 +43,7 @@ pub fn buffer_action(action: Action) {
          // exit playback if we want to perform mash actions out of it
          // TODO: Figure out some way to deal with trying to playback into another playback
         if MENU.playback_mash == OnOff::On && !input_record::is_recording() && !input_record::is_standby() && !is_playback_queued() && action != Action::PLAYBACK {
-            println!("Stopping mash playback for menu option!");
+            //println!("Stopping mash playback for menu option!");
             input_record::stop_playback();
         }
         // if we don't want to leave playback on mash actions, then don't perform the mash

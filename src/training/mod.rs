@@ -7,7 +7,7 @@ use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::{
-    dev_config, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+    dev_config, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, is_operation_cpu,
 };
 use crate::hitbox_visualizer;
 use crate::logging::*;
@@ -566,6 +566,40 @@ pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     }
 }
 
+static GET_INT_OFFSET: usize = 0x04e45e0;
+#[skyline::hook(offset = GET_INT_OFFSET)]
+pub unsafe fn handle_get_int(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    address: i32,
+) -> i32 {
+    if !is_training_mode() {
+        original!()(module_accessor, address);
+    }
+    let ori = original!()(module_accessor, address);
+    if address == *FIGHTER_INSTANCE_WORK_ID_INT_SHULK_MONAD_ARTS_DAMAGE_FLASH_FRAME && ori == 3 {
+        println!("Address Match Flash Frame is 3!");
+        skyline::logging::print_stack_trace();
+    }
+    ori
+}
+
+static GET_FLOAT_OFFSET: usize = 0x04e4400;
+#[skyline::hook(offset = GET_FLOAT_OFFSET)]
+pub unsafe fn handle_get_float(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    address: i32,
+) -> f32 {
+    if !is_training_mode() {
+        original!()(module_accessor, address);
+    }
+    let ori = original!()(module_accessor, address);
+    if address == *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE && app::utility::get_kind(module_accessor) == *FIGHTER_KIND_LITTLEMAC && ori >= 95.0 {
+        println!("Address Match KO GAGE Float!");
+        skyline::logging::print_stack_trace();
+    }
+    ori
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -653,6 +687,9 @@ pub fn training_mods() {
         clatter::hook_start_clatter,
         // Buff SFX
         handle_fighter_play_se,
+        // debug
+        handle_get_int,
+        handle_get_float,
     );
 
     combo::init();
