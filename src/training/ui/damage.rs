@@ -69,7 +69,7 @@ pub unsafe fn parse_anim_transform(anim_transform: &mut AnimTransform, layout_na
     }
 }
 
-pub unsafe fn draw(root_pane: &mut Pane, layout_name: &str) {
+pub unsafe fn draw(root_pane: &Pane, layout_name: &str) {
     // Update percentage display as soon as possible on death
     if is_training_mode() && is_ready_go() && layout_name == "info_melee" {
         for player_name in &["p1", "p2"] {

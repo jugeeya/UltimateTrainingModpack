@@ -89,7 +89,7 @@ fn get_ledge_option() -> Option<Action> {
                 override_action = None;
             }
         }
-        return override_action.or(regular_action);
+        override_action.or(regular_action)
     }
 
 }
@@ -110,6 +110,9 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let flag_cliff =
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
+    // Allow this because sometimes we want to make sure our NNSDK doesn't have
+    // an erroneous definition
+    #[allow(clippy::unnecessary_cast)]
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
     let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
     let should_buffer;
@@ -159,9 +162,8 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         StatusModule::change_status_request_from_script(module_accessor, status, true);
     }
 
-    let ledge_option: Option<Action> = get_ledge_option();
-    if ledge_option.is_some() {
-        mash::external_buffer_menu_mash(ledge_option.unwrap());
+    if let Some(ledge_option) = get_ledge_option() {
+        mash::external_buffer_menu_mash(ledge_option);
     }
 }
 
@@ -198,8 +200,10 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     unsafe {
         let current_frame = MotionModule::frame(module_accessor) as i32;
         // Frame 18 is right before actionability for cliff catch
+        #[allow(clippy::unnecessary_cast)]
         let just_grabbed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_CATCH) && current_frame == 18;
         // Needs to be a frame earlier for lasso grabs
+        #[allow(clippy::unnecessary_cast)]
         let just_lassoed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_WAIT) && current_frame == 17;
         // Begin recording on ledge if this is the recording trigger
         if (just_grabbed_ledge || just_lassoed_ledge) && MENU.record_trigger == RecordTrigger::Ledge && !input_record::is_standby() {
