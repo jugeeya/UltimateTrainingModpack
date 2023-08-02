@@ -71,7 +71,7 @@ lazy_static! {
     ]);
 }
 
-unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
+unsafe fn render_submenu_page(app: &App, root_pane: &Pane) {
     let tab_selected = app.tab_selected();
     let tab = app.menu_items.get(tab_selected).unwrap();
     let submenu_ids = app.submenu_ids();
@@ -113,9 +113,8 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
             // corresponds with a particular button to be visible.
             submenu_ids.iter().for_each(|id| {
                 let pane = menu_button.find_pane_by_name_recursive(id);
-                match pane {
-                    Some(p) => p.set_visible(id == &submenu.submenu_id),
-                    None => (),
+                if let Some(p) = pane {
+                    p.set_visible(id == &submenu.submenu_id);
                 }
             });
 
@@ -156,7 +155,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &mut Pane) {
         });
 }
 
-unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
+unsafe fn render_toggle_page(app: &App, root_pane: &Pane) {
     let (_title, _help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
     (0..sub_menu_str_lists.len()).for_each(|list_section| {
         let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
@@ -194,9 +193,8 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
 
                 submenu_ids.iter().for_each(|id| {
                     let pane = menu_button.find_pane_by_name_recursive(id);
-                    match pane {
-                        Some(p) => p.set_visible(false),
-                        None => (),
+                    if let Some(p) = pane {
+                        p.set_visible(false);
                     }
                 });
 
@@ -234,7 +232,7 @@ unsafe fn render_toggle_page(app: &App, root_pane: &mut Pane) {
     });
 }
 
-unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
+unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
     let (title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
     let selected_min = gauge_vals.selected_min;
     let selected_max = gauge_vals.selected_max;
@@ -347,7 +345,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &mut Pane) {
     });
 }
 
-pub unsafe fn draw(root_pane: &mut Pane) {
+pub unsafe fn draw(root_pane: &Pane) {
     // Update menu display
     // Grabbing lock as read-only, essentially
     let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();

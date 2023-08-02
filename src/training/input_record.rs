@@ -2,6 +2,7 @@ use smash::app::{BattleObjectModuleAccessor, lua_bind::*, utility};
 use smash::lib::lua_const::*;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
+use std::cmp::Ordering;
 use crate::training::input_recording::structures::*;
 use crate::common::consts::{RecordTrigger, HitstunPlayback, FighterId};
 use crate::common::{MENU, get_module_accessor, is_in_hitstun, is_in_shieldstun};
@@ -164,6 +165,9 @@ fn into_transition_term(starting_status: StartingStatus) -> i32 {
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
+    // Allow this because sometimes we want to make sure our NNSDK doesn't have
+    // an erroneous definition
+    #[allow(clippy::unnecessary_cast)]
     let entry_id_int =
             WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID) as i32;
     let fighter_kind = utility::get_kind(module_accessor);
@@ -191,14 +195,12 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
 
         // may need to move this to another func
-        if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-            if INPUT_RECORD_FRAME >= FINAL_RECORD_FRAME - 1 {
-                INPUT_RECORD = None;
-                POSSESSION = Player;
-                INPUT_RECORD_FRAME = 0;
-                if mash::is_playback_queued() {
-                    mash::reset();
-                }
+        if (INPUT_RECORD == Record || INPUT_RECORD == Playback) && INPUT_RECORD_FRAME >= FINAL_RECORD_FRAME - 1 {
+            INPUT_RECORD = None;
+            POSSESSION = Player;
+            INPUT_RECORD_FRAME = 0;
+            if mash::is_playback_queued() {
+                mash::reset();
             }
         }
     }
@@ -288,7 +290,7 @@ pub unsafe fn is_end_standby() -> bool {
     let clamped_rstick_x = ((first_frame_input.rstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
     let clamped_rstick_y = ((first_frame_input.rstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
-    let buttons_pressed = first_frame_input.buttons != Buttons::NONE;
+    let buttons_pressed = first_frame_input.buttons.is_empty();
     let lstick_movement = clamped_lstick_x.abs() >= STICK_NEUTRAL || clamped_lstick_y.abs() >= STICK_NEUTRAL;
     let rstick_movement = clamped_rstick_x.abs() >= STICK_NEUTRAL || clamped_rstick_y.abs() >= STICK_NEUTRAL;
     lstick_movement || rstick_movement || buttons_pressed
@@ -305,7 +307,7 @@ unsafe fn handle_final_input_mapping(
     arg: bool
 ) {
     // go through the original mapping function first
-    let _ret = original!()(mappings, player_idx, out, controller_struct, arg);
+    original!()(mappings, player_idx, out, controller_struct, arg);
     if player_idx == 0 { // if player 1
         if INPUT_RECORD == Record {
             // check for standby before starting action:
@@ -345,13 +347,13 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     }
 
     if INPUT_RECORD == Pause {
-        if LOCKOUT_FRAME > 0 {
-            LOCKOUT_FRAME -= 1;
-        } else if LOCKOUT_FRAME == 0 {
-            INPUT_RECORD = Record;
-            POSSESSION = Standby;
-        } else {
-            println!("LOCKOUT_FRAME OUT OF BOUNDS");
+        match LOCKOUT_FRAME.cmp(&0) {
+            Ordering::Greater => LOCKOUT_FRAME -= 1,
+            Ordering::Equal => {
+                INPUT_RECORD = Record;
+                POSSESSION = Standby;
+            },
+            Ordering::Less => println!("LOCKOUT_FRAME OUT OF BOUNDS")
         }
     }
 

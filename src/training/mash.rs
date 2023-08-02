@@ -377,7 +377,7 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
         }
         Action::PLAYBACK => {
             // Because these status changes take place after we would receive input from the controller, we need to queue input playback 1 frame before we can act
-            return 0; // We don't ever want to explicitly provide any command flags here; if we're trying to do input recording, the playback handles it all
+            0 // We don't ever want to explicitly provide any command flags here; if we're trying to do input recording, the playback handles it all
         }
         _ => get_attack_flag(module_accessor, action),
     }

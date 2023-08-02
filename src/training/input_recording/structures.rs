@@ -36,7 +36,7 @@ impl ControlModuleInternal {
     pub fn _clear(&mut self) { // Try to nullify controls so we can't control player 1 during recording
         self.stick_x = 0.0;
         self.stick_y = 0.0;
-        self.buttons = Buttons::NONE;
+        self.buttons = Buttons::empty();
         self.clamped_lstick_x = 0.0;
         self.clamped_lstick_y = 0.0;
         self.clamped_rstick_x = 0.0;
@@ -162,7 +162,6 @@ pub struct ControllerMapping {
 //type Buttons = u32; // may need to actually implement (like label and such)? Not for now though
 bitflags! {
     pub struct Buttons: u32 {
-        const NONE        = 0x0; // does adding this cause problems?
         const ATTACK      = 0x1;
         const SPECIAL     = 0x2;
         const JUMP        = 0x4;
@@ -251,7 +250,7 @@ pub struct MappedInputs {
 impl MappedInputs { // pub needed?
     pub fn default() -> MappedInputs {
         MappedInputs {
-            buttons: Buttons::NONE,
+            buttons: Buttons::empty(),
             lstick_x: 0,
             lstick_y: 0,
             rstick_x: 0,
