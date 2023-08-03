@@ -9,7 +9,7 @@
     clippy::missing_safety_doc,
     clippy::wrong_self_convention,
     clippy::option_map_unit_fn,
-    incorrect_fn_null_checks,
+    clippy::incorrect_fn_null_checks,
     clippy::transmute_num_to_bytes
 )]
 
@@ -17,6 +17,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
+
 use training_mod_consts::LEGACY_TRAINING_MODPACK_ROOT;
 
 use crate::common::events::events_loop;

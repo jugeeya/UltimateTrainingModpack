@@ -180,7 +180,7 @@ pub fn smash_version() -> String {
     unsafe {
         oe::GetDisplayVersion(&mut smash_version);
 
-        std::ffi::CStr::from_ptr(smash_version.name.as_ptr() as *const i8)
+        std::ffi::CStr::from_ptr(smash_version.name.as_ptr() as *const u8)
             .to_string_lossy()
             .into_owned()
     }
