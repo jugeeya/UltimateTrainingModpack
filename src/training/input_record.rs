@@ -206,7 +206,6 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     }
 
     // Handle Possession Coloring
-    //let model_color_type = *MODEL_COLOR_TYPE_COLOR_BLEND;
     if entry_id_int == 1 && POSSESSION == Lockout {
         set_color_rgb_2(module_accessor,0.0,0.0,1.0,*MODEL_COLOR_TYPE_COLOR_BLEND);
     } else if entry_id_int == 1 && POSSESSION == Standby {
@@ -290,9 +289,13 @@ pub unsafe fn is_end_standby() -> bool {
     let clamped_rstick_x = ((first_frame_input.rstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
     let clamped_rstick_y = ((first_frame_input.rstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
-    let buttons_pressed = first_frame_input.buttons.is_empty();
-    let lstick_movement = clamped_lstick_x.abs() >= STICK_NEUTRAL || clamped_lstick_y.abs() >= STICK_NEUTRAL;
-    let rstick_movement = clamped_rstick_x.abs() >= STICK_NEUTRAL || clamped_rstick_y.abs() >= STICK_NEUTRAL;
+    // No buttons pressed or just flick jump-- if they really did a stick jump, we'd have lstick movement as well
+    let buttons_pressed = !(first_frame_input.buttons.is_empty() || first_frame_input.buttons == Buttons::FLICK_JUMP);
+    let lstick_movement = (clamped_lstick_x.abs() >= STICK_NEUTRAL) || (clamped_lstick_y.abs() >= STICK_NEUTRAL);
+    let rstick_movement = (clamped_rstick_x.abs() >= STICK_NEUTRAL) || (clamped_rstick_y.abs() >= STICK_NEUTRAL);
+    dbg!(first_frame_input.buttons, clamped_lstick_x, clamped_lstick_y, clamped_rstick_x, clamped_rstick_y);
+    dbg!(buttons_pressed, lstick_movement, rstick_movement);
+
     lstick_movement || rstick_movement || buttons_pressed
 }
 
