@@ -271,7 +271,11 @@ pub unsafe fn playback() {
         println!("Tried to playback during lockout!");
         return;
     }
-    CURRENT_PLAYBACK_SLOT = MENU.playback_slot.get_random().into_idx().unwrap();
+    if MENU.playback_slot.is_empty() {
+        println!("Tried to playback without a slot selected!");
+        return;
+    }
+    CURRENT_PLAYBACK_SLOT = MENU.playback_slot.get_random().into_idx().unwrap_or(0);
     INPUT_RECORD = Playback;
     POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
@@ -317,7 +321,9 @@ pub unsafe fn is_end_standby() -> bool {
     let clamped_rstick_y =
         ((first_frame_input.rstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
-    let buttons_pressed = !first_frame_input.buttons.is_empty();
+    // No buttons pressed or just flick jump-- if they really did a stick jump, we'd have lstick movement as well
+    let buttons_pressed =
+        !(first_frame_input.buttons.is_empty() || first_frame_input.buttons == Buttons::FLICK_JUMP);
     let lstick_movement =
         clamped_lstick_x.abs() >= STICK_NEUTRAL || clamped_lstick_y.abs() >= STICK_NEUTRAL;
     let rstick_movement =
