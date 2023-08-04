@@ -1,4 +1,5 @@
-use crate::common::consts::{FighterId, HitstunPlayback, RecordTrigger};
+use crate::common::button_config;
+use crate::common::consts::{FighterId, HitstunPlayback};
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
 use crate::training::input_recording::structures::*;
 use crate::training::mash;
@@ -177,19 +178,19 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx();
 
     if entry_id_int == 0 && !fighter_is_nana {
-        // Attack + Dpad Right: Playback
-        if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
-            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_R)
-        {
+        if button_config::combo_passes_exclusive(
+            module_accessor,
+            button_config::ButtonCombo::InputPlayback,
+        ) {
             //crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
             playback();
             println!("Playback Command Received!"); //debug
         }
         // Attack + Dpad Left: Record
-        else if ControlModule::check_button_on(module_accessor, *CONTROL_PAD_BUTTON_ATTACK)
-            && ControlModule::check_button_trigger(module_accessor, *CONTROL_PAD_BUTTON_APPEAL_S_L)
-            && MENU.record_trigger == RecordTrigger::Command
-        {
+        else if button_config::combo_passes_exclusive(
+            module_accessor,
+            button_config::ButtonCombo::InputRecord,
+        ) {
             //crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
             lockout_record();
             println!("Record Command Received!"); //debug
