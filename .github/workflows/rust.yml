@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install minimal nightly rust
-        uses: actions-rs/toolchain@v1
+        uses: ructions/toolchain@v2
         with:
           profile: minimal
           toolchain: nightly
@@ -22,7 +22,7 @@ jobs:
           default: true
           target: x86_64-unknown-linux-gnu
       - name: rustfmt
-        uses: actions-rs/cargo@v1
+        uses: ructions/cargo@v2
         with:
           command: fmt
           args: --all -- --check
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install minimal nightly rust
-        uses: actions-rs/toolchain@v1
+        uses: ructions/toolchain@v2
         with:
           profile: minimal
           toolchain: nightly
@@ -44,7 +44,7 @@ jobs:
         with:
           prefix-key: "checker-2"
       - name: Clippy
-        uses: actions-rs/cargo@v1
+        uses: ructions/cargo@v2
         continue-on-error: false
         with:
           command: clippy
