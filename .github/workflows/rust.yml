@@ -14,33 +14,28 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
           target: x86_64-unknown-linux-gnu
       - name: Check Formatting
-        run: cargo fmt --all -- --check
+        run: rustfmt --all -- --check
   checker:
     name: Check, Clippy, Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
-          toolchain: nightly
           components: rustfmt, clippy
-          default: true
           target: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache 
         with:
           prefix-key: "checker-2"
       - name: Clippy
-        run: cargo xtask clippy
-        env:
-          RUSTFLAGS: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
+        run: clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
         uses: ClementTsang/cargo-action@v0.0.3
         with:
