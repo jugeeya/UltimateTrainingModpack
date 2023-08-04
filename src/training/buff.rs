@@ -58,33 +58,18 @@ pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor
     BUFF_REMAINING_PLAYER
 }
 
-fn get_spell_vec() -> Vec<BuffOption> {
-    unsafe {
-        let menu_buff = MENU.buff_state.to_vec();
-        let menu_iter = menu_buff.iter();
-        let mut spell_buff: Vec<BuffOption> = Vec::new();
-        for buff in menu_iter {
-            if buff.into_int().unwrap_or(1) >= 0xA {
-                // all non-spells into_int as less than this value
-                spell_buff.push(*buff);
-            }
-        }
-        spell_buff
-    }
-}
-
 pub unsafe fn handle_buffs(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
     status: i32,
     percent: f32,
 ) -> bool {
+    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
     SoundModule::stop_all_sound(module_accessor); // silences buff sfx other than KO Punch
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
-                                                                     // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
 
     let menu_vec = MENU.buff_state.to_vec();
 
@@ -107,7 +92,7 @@ pub unsafe fn handle_buffs(
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let buff_vec = get_spell_vec();
+    let buff_vec = MENU.buff_state.hero_buffs().to_vec();
     if !is_buffing(module_accessor) {
         // Initial set up for spells
         start_buff(module_accessor);
@@ -234,19 +219,8 @@ unsafe fn buff_sepiroth(
 }
 
 unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let menu_vec = MENU.buff_state.to_vec();
-    let current_menu_art;
-    if menu_vec.contains(&BuffOption::MONAD_JUMP) {
-        current_menu_art = BuffOption::MONAD_JUMP;
-    } else if menu_vec.contains(&BuffOption::MONAD_SPEED) {
-        current_menu_art = BuffOption::MONAD_SPEED;
-    } else if menu_vec.contains(&BuffOption::MONAD_SHIELD) {
-        current_menu_art = BuffOption::MONAD_SHIELD;
-    } else if menu_vec.contains(&BuffOption::MONAD_BUSTER) {
-        current_menu_art = BuffOption::MONAD_BUSTER;
-    } else if menu_vec.contains(&BuffOption::MONAD_SMASH) {
-        current_menu_art = BuffOption::MONAD_SMASH;
-    } else {
+    let current_art = MENU.buff_state.shulk_buffs().get_random();
+    if current_art == BuffOption::empty() {
         // No Monado Arts selected in the buff menu, so we don't need to buff
         return true;
     }
@@ -262,7 +236,7 @@ unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, stat
     if status != FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
         WorkModule::set_int(
             module_accessor,
-            current_menu_art.into_int().unwrap(),
+            current_art.into_int().unwrap(),
             *FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_TYPE_SELECT,
         );
         WorkModule::set_int(

@@ -642,6 +642,25 @@ impl BuffOption {
             _ => return None,
         })
     }
+
+    pub fn hero_buffs(self) -> BuffOption {
+        // Return a struct with only Hero's selected buffs
+        let hero_buffs_bitflags = BuffOption::ACCELERATLE
+            .union(BuffOption::OOMPH)
+            .union(BuffOption::BOUNCE)
+            .union(BuffOption::PSYCHE);
+        self.intersection(hero_buffs_bitflags)
+    }
+
+    pub fn shulk_buffs(self) -> BuffOption {
+        // Return a struct with only Shulk's selected arts
+        let shulk_buffs_bitflags = BuffOption::MONAD_JUMP
+            .union(BuffOption::MONAD_SPEED)
+            .union(BuffOption::MONAD_SHIELD)
+            .union(BuffOption::MONAD_BUSTER)
+            .union(BuffOption::MONAD_SMASH);
+        self.intersection(shulk_buffs_bitflags)
+    }
 }
 
 extra_bitflag_impls! {BuffOption}
