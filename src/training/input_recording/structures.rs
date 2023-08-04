@@ -1,15 +1,14 @@
 #![allow(dead_code)] // TODO: Yeah don't do this
-use bitflags::bitflags;
-use crate::common::release::CURRENT_VERSION;
 use crate::common::events::smash_version;
+use crate::common::release::CURRENT_VERSION;
 use crate::training::save_states::SavedState;
+use bitflags::bitflags;
 use training_mod_consts::TrainingModpackMenu;
 
 use crate::default_save_state;
 use crate::training::character_specific::steve;
 use crate::training::charge::ChargeState;
 use crate::training::save_states::SaveState::NoAction;
-
 
 // Need to define necesary structures here. Probably should move to consts or something. Realistically, should be in skyline smash prob tho.
 
@@ -33,10 +32,11 @@ pub struct ControlModuleInternal {
 }
 
 impl ControlModuleInternal {
-    pub fn _clear(&mut self) { // Try to nullify controls so we can't control player 1 during recording
+    pub fn _clear(&mut self) {
+        // Try to nullify controls so we can't control player 1 during recording
         self.stick_x = 0.0;
         self.stick_y = 0.0;
-        self.buttons = Buttons::NONE;
+        self.buttons = Buttons::empty();
         self.clamped_lstick_x = 0.0;
         self.clamped_lstick_y = 0.0;
         self.clamped_rstick_x = 0.0;
@@ -46,7 +46,8 @@ impl ControlModuleInternal {
 
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
-pub struct ControlModuleStored { // Custom type for saving only necessary controls/not saving vtable
+pub struct ControlModuleStored {
+    // Custom type for saving only necessary controls/not saving vtable
     pub buttons: Buttons,
     pub stick_x: f32,
     pub stick_y: f32,
@@ -72,12 +73,12 @@ pub enum ControllerStyle {
     RightJoycon = 0x4,
     ProController = 0x5,
     DebugPad = 0x6, // probably
-    GCController = 0x7
+    GCController = 0x7,
 }
 
 #[repr(C)]
 pub struct AutorepeatInfo {
-    field: [u8; 0x18]
+    field: [u8; 0x18],
 }
 
 // Can map any of these over any button - what does this mean?
@@ -155,14 +156,12 @@ pub struct ControllerMapping {
     pub _31: u8,
     pub _32: u8,
     pub is_absmash: bool,
-    pub _34: [u8; 0x1C]
+    pub _34: [u8; 0x1C],
 }
-
 
 //type Buttons = u32; // may need to actually implement (like label and such)? Not for now though
 bitflags! {
     pub struct Buttons: u32 {
-        const NONE        = 0x0; // does adding this cause problems?
         const ATTACK      = 0x1;
         const SPECIAL     = 0x2;
         const JUMP        = 0x4;
@@ -227,14 +226,14 @@ pub struct Controller {
     pub is_right_wired: bool,
     pub _x_c1: [u8; 3],
     pub npad_number: u32,
-    pub _x_c8: [u8; 8]
+    pub _x_c8: [u8; 8],
 }
 
 // SomeControllerStruct used in hooked function - need to ask blujay what this is again
 #[repr(C)]
 pub struct SomeControllerStruct {
     padding: [u8; 0x10],
-    controller: &'static mut Controller
+    controller: &'static mut Controller,
 }
 
 // Define struct used for final controller inputs
@@ -245,17 +244,18 @@ pub struct MappedInputs {
     pub lstick_x: i8,
     pub lstick_y: i8,
     pub rstick_x: i8,
-    pub rstick_y: i8
+    pub rstick_y: i8,
 }
 
-impl MappedInputs { // pub needed?
+impl MappedInputs {
+    // pub needed?
     pub fn default() -> MappedInputs {
         MappedInputs {
-            buttons: Buttons::NONE,
+            buttons: Buttons::empty(),
             lstick_x: 0,
             lstick_y: 0,
             rstick_x: 0,
-            rstick_y: 0
+            rstick_y: 0,
         }
     }
 }
@@ -274,11 +274,11 @@ pub struct Scenario {
     pub menu: TrainingModpackMenu,
     pub save_states: Vec<SavedState>,
     pub player_char: i32, // fighter_kind
-    pub cpu_char: i32, // fighter_kind
-    pub stage: i32, // index of stage, but -1 = random
+    pub cpu_char: i32,    // fighter_kind
+    pub stage: i32,       // index of stage, but -1 = random
     pub title: String,
     pub description: String,
-    pub mod_version: String, 
+    pub mod_version: String,
     pub smash_version: String,
     // depending on version, we need to modify newly added menu options, so that regardless of their defaults they reflect the previous version to minimize breakage of old scenarios
     //      we may also add more scenario parts to the struct in the future etc.
@@ -286,7 +286,6 @@ pub struct Scenario {
     // datetime?
     // author?
     // mirroring?
-    
 }
 
 impl Scenario {

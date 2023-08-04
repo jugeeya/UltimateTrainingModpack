@@ -63,7 +63,7 @@ fn update_frame_advantage(new_frame_adv: i32) {
                         b: 8,
                         a: 255,
                     },
-                    x if x == 0 => ResColor {
+                    0 => ResColor {
                         r: 0,
                         g: 0,
                         b: 0,

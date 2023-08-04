@@ -31,7 +31,7 @@ pub fn is_training_mode() -> bool {
     true
 }
 
-pub fn get_category(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
+pub fn get_category(module_accessor: &app::BattleObjectModuleAccessor) -> i32 {
     (module_accessor.info >> 28) as u8 as i32
 }
 
@@ -51,7 +51,7 @@ pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModul
     }
 }
 
-pub fn is_fighter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub fn is_fighter(module_accessor: &app::BattleObjectModuleAccessor) -> bool {
     get_category(module_accessor) == BATTLE_OBJECT_CATEGORY_FIGHTER
 }
 
