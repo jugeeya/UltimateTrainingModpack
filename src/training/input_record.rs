@@ -469,15 +469,19 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
 
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
         let mut x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
-        // Don't flip Shulk's dial inputs
+                                                               // Don't flip Shulk's dial inputs
         let cpu_module_accessor = get_module_accessor(FighterId::CPU);
         let fighter_kind = utility::get_kind(&mut *cpu_module_accessor);
         if fighter_kind == *FIGHTER_KIND_SHULK {
-            let circle_menu_flag = WorkModule::is_flag(&mut *cpu_module_accessor, *FIGHTER_SHULK_INSTANCE_WORK_ID_FLAG_SPECIAL_N_CIRCLE_MENU);
-            if circle_menu_flag { // While in dial, don't flip horizontal inputs
+            let circle_menu_flag = WorkModule::is_flag(
+                &mut *cpu_module_accessor,
+                *FIGHTER_SHULK_INSTANCE_WORK_ID_FLAG_SPECIAL_N_CIRCLE_MENU,
+            );
+            if circle_menu_flag {
+                // While in dial, don't flip horizontal inputs
                 x_input_multiplier = 1.0;
             }
-            // If we have issues with the frame after the dial comes out, change condition to 
+            // If we have issues with the frame after the dial comes out, change condition to
             //  circle_menu_flag && FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_DECIDE_INTERVAL_FRAME > 1
         }
         println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);

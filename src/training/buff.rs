@@ -84,7 +84,7 @@ pub unsafe fn handle_buffs(
     MotionAnimcmdModule::set_sleep(module_accessor, false);
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
-    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
+                                                                     // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
 
     let menu_vec = MENU.buff_state.to_vec();
 
@@ -233,10 +233,7 @@ unsafe fn buff_sepiroth(
     false
 }
 
-unsafe fn buff_shulk(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    status: i32,
-) -> bool {
+unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
     let menu_vec = MENU.buff_state.to_vec();
     let current_menu_art;
     if menu_vec.contains(&BuffOption::MONAD_JUMP) {
@@ -261,7 +258,7 @@ unsafe fn buff_shulk(
             return false;
         }
         return true;
-    } 
+    }
     if status != FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
         WorkModule::set_int(
             module_accessor,

@@ -613,7 +613,7 @@ impl BuffOption {
                 BuffOption::MONAD_JUMP => *FIGHTER_SHULK_MONAD_TYPE_JUMP,
                 BuffOption::MONAD_SPEED => *FIGHTER_SHULK_MONAD_TYPE_SPEED,
                 BuffOption::MONAD_SHIELD => *FIGHTER_SHULK_MONAD_TYPE_SHIELD,
-                BuffOption::MONAD_BUSTER=> *FIGHTER_SHULK_MONAD_TYPE_BUSTER,
+                BuffOption::MONAD_BUSTER => *FIGHTER_SHULK_MONAD_TYPE_BUSTER,
                 BuffOption::MONAD_SMASH => *FIGHTER_SHULK_MONAD_TYPE_SMASH,
                 _ => return None,
             })
@@ -637,7 +637,7 @@ impl BuffOption {
             BuffOption::MONAD_JUMP => "Jump",
             BuffOption::MONAD_SPEED => "Speed",
             BuffOption::MONAD_SHIELD => "Shield",
-            BuffOption::MONAD_BUSTER=> "Buster",
+            BuffOption::MONAD_BUSTER => "Buster",
             BuffOption::MONAD_SMASH => "Smash",
             _ => return None,
         })

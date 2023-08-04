@@ -1,14 +1,14 @@
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
-use smash::app::{self, enSEType, utility, lua_bind::*};
+use smash::app::{self, enSEType, lua_bind::*, utility};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::{
-    dev_config, menu, is_training_mode, get_module_accessor, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, 
-    consts::FighterId, consts::MENU, consts::BuffOption
+    consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
+    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
 };
 use crate::hitbox_visualizer;
 use crate::logging::*;
@@ -126,13 +126,13 @@ fn once_per_frame_per_fighter(
             let status = StatusModule::status_kind(module_accessor);
             let gage_max_keep = WorkModule::get_int(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_KO_GAGE_MAX_KEEP_FRAME);
             let select_timer = WorkModule::get_int(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_SPECIAL_N2_HIT_FRAME);
-            
+
             let max_effect_flag = WorkModule::is_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_REQUEST_KO_GAUGE_MAX_EFFECT);
             let mesh_flag = WorkModule::is_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_DAMAGE_MESH);
 
             let gage_max_keep = WorkModule::get_float(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_KO_GAGE_MAX_KEEP_FRAME);
             let select_timer = WorkModule::get_float(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_SPECIAL_N2_HIT_FRAME);
-        
+
             // may need to check out his status flags and not just work insts
             println!("Status: {:x}, Counter: {}, Select_Timer: {}, Decide_Interval_Frame: {}, SNType: {}, SNTypeSelect: {}, Sel_F: {}, Active_F: {}, SelButton: {}, Circ Menu: {}",
             status, counter, select_timer, decide_interval_frame, special_n_type, special_n_type_select, select_flag, active_flag, select_button_push_flag, circle_menu_flag
@@ -497,7 +497,7 @@ pub unsafe fn handle_fighter_play_se(
             se_type,
         );
     }
-    
+
     // Supress Buff Sound Effects while buffing
     if buff::is_buffing(module_accessor) {
         let silent_hash = Hash40::new("se_silent");
@@ -592,7 +592,7 @@ static REUSED_UI_OFFSET: usize = 0x068cd80;
 #[skyline::hook(offset = REUSED_UI_OFFSET)]
 pub unsafe fn handle_reused_ui(
     fighter_data: *mut u32, // a pointer to length 4 data in the Fighter's FighterEntry in the FighterManager
-    mut param_2: u32, // In Little Mac's case, the meter value as an integer
+    mut param_2: u32,       // In Little Mac's case, the meter value as an integer
 ) {
     if !is_training_mode() {
         original!()(fighter_data, param_2);
@@ -604,13 +604,15 @@ pub unsafe fn handle_reused_ui(
         let player_fighter_kind = utility::get_kind(player_module_accessor);
         let cpu_fighter_kind = utility::get_kind(cpu_module_accessor);
         // If Little Mac is in the game and we're buffing him, set the meter to 100
-        if (player_fighter_kind == *FIGHTER_KIND_LITTLEMAC || cpu_fighter_kind == *FIGHTER_KIND_LITTLEMAC) && MENU.buff_state.to_vec().contains(&BuffOption::KO) {
+        if (player_fighter_kind == *FIGHTER_KIND_LITTLEMAC
+            || cpu_fighter_kind == *FIGHTER_KIND_LITTLEMAC)
+            && MENU.buff_state.to_vec().contains(&BuffOption::KO)
+        {
             param_2 = 100;
         }
     }
 
-    let ori = original!()(fighter_data, param_2);
-    ori
+    original!()(fighter_data, param_2)
 }
 
 #[allow(improper_ctypes)]
