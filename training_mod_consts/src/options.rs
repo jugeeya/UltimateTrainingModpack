@@ -191,7 +191,11 @@ bitflags! {
         const JUMP = 0x4;
         const ATTACK = 0x8;
         const WAIT = 0x10;
-        const PLAYBACK = 0x20;
+        const PLAYBACK_1 = 0x20;
+        const PLAYBACK_2 = 0x40;
+        const PLAYBACK_3 = 0x80;
+        const PLAYBACK_4 = 0x100;
+        const PLAYBACK_5 = 0x200;
     }
 }
 
@@ -205,7 +209,11 @@ impl LedgeOption {
                 LedgeOption::JUMP => *FIGHTER_STATUS_KIND_CLIFF_JUMP1,
                 LedgeOption::ATTACK => *FIGHTER_STATUS_KIND_CLIFF_ATTACK,
                 LedgeOption::WAIT => *FIGHTER_STATUS_KIND_CLIFF_WAIT,
-                LedgeOption::PLAYBACK => *FIGHTER_STATUS_KIND_NONE,
+                LedgeOption::PLAYBACK_1
+                | LedgeOption::PLAYBACK_2
+                | LedgeOption::PLAYBACK_3
+                | LedgeOption::PLAYBACK_4
+                | LedgeOption::PLAYBACK_5 => *FIGHTER_STATUS_KIND_NONE,
                 _ => return None,
             })
         }
@@ -221,10 +229,41 @@ impl LedgeOption {
             LedgeOption::JUMP => "Jump",
             LedgeOption::ATTACK => "Getup Attack",
             LedgeOption::WAIT => "Wait",
-            LedgeOption::PLAYBACK => "Input Playback",
+            LedgeOption::PLAYBACK_1 => "Playback Slot 1",
+            LedgeOption::PLAYBACK_2 => "Playback Slot 2",
+            LedgeOption::PLAYBACK_3 => "Playback Slot 3",
+            LedgeOption::PLAYBACK_4 => "Playback Slot 4",
+            LedgeOption::PLAYBACK_5 => "Playback Slot 5",
+
             _ => return None,
         })
     }
+
+    pub fn is_playback(self) -> bool {
+        match self {
+            LedgeOption::PLAYBACK_1
+            | LedgeOption::PLAYBACK_2
+            | LedgeOption::PLAYBACK_3
+            | LedgeOption::PLAYBACK_4
+            | LedgeOption::PLAYBACK_5 => true,
+            _ => false,
+        }
+    }
+
+    pub fn playback_slot(self) -> usize {
+        match self {
+            LedgeOption::PLAYBACK_1 => 0,
+            LedgeOption::PLAYBACK_2 => 1,
+            LedgeOption::PLAYBACK_3 => 2,
+            LedgeOption::PLAYBACK_4 => 3,
+            LedgeOption::PLAYBACK_5 => 4,
+            _ => panic!(
+                "Invalid LedgeOption playback slot: {}",
+                self.as_str().unwrap()
+            ),
+        }
+    }
+
     pub const fn default() -> LedgeOption {
         // Neutral,Roll,Jump,Attack (everything except wait)
         LedgeOption::NEUTRAL
@@ -414,7 +453,11 @@ bitflags! {
         // TODO: Make work
         const DASH = 0x0080_0000;
         const DASH_ATTACK = 0x0100_0000;
-        const PLAYBACK = 0x0200_0000;
+        const PLAYBACK_1 = 0x0200_0000;
+        const PLAYBACK_2 = 0x0400_0000;
+        const PLAYBACK_3 = 0x0800_0000;
+        const PLAYBACK_4 = 0x1000_0000;
+        const PLAYBACK_5 = 0x2000_0000;
     }
 }
 
@@ -463,9 +506,35 @@ impl Action {
             Action::GRAB => "Grab",
             Action::DASH => "Dash",
             Action::DASH_ATTACK => "Dash Attack",
-            Action::PLAYBACK => "Input Playback",
+            Action::PLAYBACK_1 => "Playback Slot 1",
+            Action::PLAYBACK_2 => "Playback Slot 2",
+            Action::PLAYBACK_3 => "Playback Slot 3",
+            Action::PLAYBACK_4 => "Playback Slot 4",
+            Action::PLAYBACK_5 => "Playback Slot 5",
             _ => return None,
         })
+    }
+
+    pub fn is_playback(self) -> bool {
+        match self {
+            Action::PLAYBACK_1
+            | Action::PLAYBACK_2
+            | Action::PLAYBACK_3
+            | Action::PLAYBACK_4
+            | Action::PLAYBACK_5 => true,
+            _ => false,
+        }
+    }
+
+    pub fn playback_slot(self) -> usize {
+        match self {
+            Action::PLAYBACK_1 => 0,
+            Action::PLAYBACK_2 => 1,
+            Action::PLAYBACK_3 => 2,
+            Action::PLAYBACK_4 => 3,
+            Action::PLAYBACK_5 => 4,
+            _ => panic!("Invalid Action playback slot: {}", self.as_str().unwrap()),
+        }
     }
 }
 

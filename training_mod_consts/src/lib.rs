@@ -766,7 +766,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         true,
         &(menu.save_state_playback as u32),
     );
-    input_tab.add_submenu_with_toggles::<PlaybackSlot>( // TODO: This menu should really be a submenu inside Action menus, probably want to be able to customize for each action
+    input_tab.add_submenu_with_toggles::<PlaybackSlot>(
         "Playback Slots",
         "playback_slot",
         "Playback Slots: Choose which slots to choose between for playback when this action is triggered",

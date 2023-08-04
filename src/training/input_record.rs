@@ -123,7 +123,7 @@ unsafe fn should_mash_playback() {
     // probably need a separate standby setting for grounded, aerial, shield, where shield starts once you let go of shield, and aerial keeps you in the air?
 
     if should_playback {
-        playback();
+        playback(mash::queued_playback_slot());
     }
 }
 
@@ -183,7 +183,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             button_config::ButtonCombo::InputPlayback,
         ) {
             //crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
-            playback();
+            playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
             println!("Playback Command Received!"); //debug
         }
         // Attack + Dpad Left: Record
@@ -304,7 +304,7 @@ pub unsafe fn _record() {
     BUFFER_FRAME = 0;
 }
 
-pub unsafe fn playback() {
+pub unsafe fn playback(slot: usize) {
     if INPUT_RECORD == Pause {
         println!("Tried to playback during lockout!");
         return;
@@ -327,7 +327,7 @@ pub unsafe fn playback() {
         },
     );
 
-    CURRENT_PLAYBACK_SLOT = MENU.playback_slot.get_random().into_idx().unwrap_or(0);
+    CURRENT_PLAYBACK_SLOT = slot;
     INPUT_RECORD = Playback;
     POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
@@ -336,7 +336,7 @@ pub unsafe fn playback() {
     CURRENT_LR = PostureModule::lr(cpu_module_accessor);
 }
 
-pub unsafe fn playback_ledge() {
+pub unsafe fn playback_ledge(slot: usize) {
     if INPUT_RECORD == Pause {
         println!("Tried to playback during lockout!");
         return;
@@ -359,7 +359,7 @@ pub unsafe fn playback_ledge() {
         },
     );
 
-    CURRENT_PLAYBACK_SLOT = MENU.playback_slot.get_random().into_idx().unwrap_or(0);
+    CURRENT_PLAYBACK_SLOT = slot;
 
     INPUT_RECORD = Playback;
     POSSESSION = Player;
