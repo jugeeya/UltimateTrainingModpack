@@ -587,40 +587,6 @@ pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     }
 }
 
-static GET_INT_OFFSET: usize = 0x04e45e0;
-#[skyline::hook(offset = GET_INT_OFFSET)]
-pub unsafe fn handle_get_int(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    address: i32,
-) -> i32 {
-    if !is_training_mode() {
-        original!()(module_accessor, address);
-    }
-    let ori = original!()(module_accessor, address);
-    if address == *FIGHTER_INSTANCE_WORK_ID_INT_SHULK_MONAD_ARTS_DAMAGE_FLASH_FRAME && ori == 3 {
-        println!("Address Match Flash Frame is 3!");
-        skyline::logging::print_stack_trace();
-    }
-    ori
-}
-
-static GET_FLOAT_OFFSET: usize = 0x04e4400;
-#[skyline::hook(offset = GET_FLOAT_OFFSET)]
-pub unsafe fn handle_get_float(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    address: i32,
-) -> f32 {
-    if !is_training_mode() {
-        original!()(module_accessor, address);
-    }
-    let ori = original!()(module_accessor, address);
-    if address == *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE && app::utility::get_kind(module_accessor) == *FIGHTER_KIND_LITTLEMAC && ori >= 95.0 {
-        println!("Address Match KO GAGE Float!");
-        skyline::logging::print_stack_trace();
-    }
-    ori
-}
-
 static REUSED_UI_OFFSET: usize = 0x068cd80;
 // A function reused by many functions to update UI. Called to update at least Little Mac's meter.
 #[skyline::hook(offset = REUSED_UI_OFFSET)]
