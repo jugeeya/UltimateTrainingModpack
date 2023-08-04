@@ -13,38 +13,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install minimal nightly rust
-        uses: ructions/toolchain@v1
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: nightly
-          components: rustfmt, clippy
-          default: true
+          components: rustfmt
           target: x86_64-unknown-linux-gnu
-      - name: rustfmt
-        uses: ructions/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: Check Formatting
+        run: cargo fmt --all -- --check
   checker:
     name: Check, Clippy, Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install minimal nightly rust
-        uses: ructions/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          components: rustfmt, clippy
-          default: true
-          target: x86_64-unknown-linux-gnu
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --all-targets
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache 
         with:
           prefix-key: "checker-2"
       - name: Clippy
-        uses: ructions/cargo@v1
+      - uses: dtolnay/rust-toolchain@stable
         continue-on-error: false
         with:
           command: clippy
