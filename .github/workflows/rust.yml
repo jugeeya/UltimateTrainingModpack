@@ -12,7 +12,7 @@ jobs:
     name: Code Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install minimal nightly rust
         uses: actions-rs/toolchain@v1
         with:
@@ -30,7 +30,7 @@ jobs:
     name: Check, Clippy, Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install minimal nightly rust
         uses: actions-rs/toolchain@v1
         with:
@@ -60,7 +60,7 @@ jobs:
     container:
       image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache
         with:
@@ -71,7 +71,7 @@ jobs:
         env:
           HOME: /root
       - name: Upload plugin artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
@@ -82,7 +82,7 @@ jobs:
     container:
       image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache
         with:
@@ -93,7 +93,7 @@ jobs:
         env:
           HOME: /root
       - name: Upload plugin (outside training mode) artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: plugin_outside_training_mode
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
@@ -105,7 +105,7 @@ jobs:
       - plugin
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Prepare zip
         id: prepare_zip
         env:
@@ -221,7 +221,7 @@ jobs:
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: full_build
           path: training_modpack_beta.zip 
