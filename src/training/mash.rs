@@ -80,9 +80,10 @@ pub fn buffer_action(action: Action) {
             && action != Action::PLAYBACK
         {
             //println!("Stopping mash playback for menu option!");
-        // if we don't want to leave playback on mash actions, then don't perform the mash
-        if input_record::is_playback() {
-            return;
+            // if we don't want to leave playback on mash actions, then don't perform the mash
+            if input_record::is_playback() {
+                return;
+            }
         }
     }
 
