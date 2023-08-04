@@ -224,6 +224,14 @@ pub unsafe fn get_param_int(
                     *FIGHTER_INSTANCE_WORK_ID_INT_HIT_STOP_IGNORE_JOSTLE_FRAME,
                 );
             }
+            // Remove Shulk Monado Art Damage Effects
+            WorkModule::set_int(
+                module_accessor,
+                0,
+                *FIGHTER_INSTANCE_WORK_ID_INT_SHULK_MONAD_ARTS_DAMAGE_FLASH_FRAME,
+            );
+            EffectModule::remove_common(module_accessor, Hash40::new("monad_arts_damage_buster"));
+            EffectModule::remove_common(module_accessor, Hash40::new("monad_arts_damage_smash"));
             return Some(1);
         }
         if param_hash == hash40("rebirth_move_frame") {
@@ -389,6 +397,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_LITTLEMAC,
         *FIGHTER_KIND_EDGE,
         *FIGHTER_KIND_WIIFIT,
+        *FIGHTER_KIND_SHULK,
     ]
     .contains(&fighter_kind);
 

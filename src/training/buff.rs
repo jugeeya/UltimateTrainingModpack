@@ -58,31 +58,18 @@ pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor
     BUFF_REMAINING_PLAYER
 }
 
-fn get_spell_vec() -> Vec<BuffOption> {
-    unsafe {
-        let menu_buff = MENU.buff_state.to_vec();
-        let menu_iter = menu_buff.iter();
-        let mut spell_buff: Vec<BuffOption> = Vec::new();
-        for buff in menu_iter {
-            if buff.into_int().unwrap_or(1) != 1 {
-                // all non-spells into_int as 1
-                spell_buff.push(*buff);
-            }
-        }
-        spell_buff
-    }
-}
-
 pub unsafe fn handle_buffs(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
     status: i32,
     percent: f32,
 ) -> bool {
+    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
     SoundModule::stop_all_sound(module_accessor); // silences buff sfx other than KO Punch
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
+    CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
 
     let menu_vec = MENU.buff_state.to_vec();
 
@@ -98,13 +85,14 @@ pub unsafe fn handle_buffs(
         return buff_mac(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_EDGE && menu_vec.contains(&BuffOption::WING) {
         return buff_sepiroth(module_accessor, percent);
+    } else if fighter_kind == *FIGHTER_KIND_SHULK {
+        return buff_shulk(module_accessor, status);
     }
-
     true
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let buff_vec = get_spell_vec();
+    let buff_vec = MENU.buff_state.hero_buffs().to_vec();
     if !is_buffing(module_accessor) {
         // Initial set up for spells
         start_buff(module_accessor);
@@ -113,6 +101,10 @@ unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, statu
     }
     if get_buff_rem(module_accessor) <= 0 {
         // If there are no buffs selected/left, we're done
+        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
+            // Need to wait 3 frames to make sure we stop the spell SFX, since it's a bit delayed
+            return false;
+        }
         return true;
     }
     buff_hero_single(module_accessor, status, buff_vec);
@@ -185,14 +177,19 @@ unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 }
 
 unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    WorkModule::set_float(
-        module_accessor,
-        100.0,
-        *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE,
-    );
-    // Trying to stop KO Punch from playing seems to make it play multiple times in rapid succession
-    // Look at 0x7100c44b60 for the func that handles this
-    // Need to figure out how to update the KO meter if this is fixed
+    if !is_buffing(module_accessor) {
+        // Only need to set KO gauge once
+        start_buff(module_accessor);
+        WorkModule::set_float(
+            module_accessor,
+            100.0,
+            *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE,
+        );
+    }
+    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+        // Need to wait 2 frames to make sure we stop the KO sound, since it's a bit delayed
+        return false;
+    }
     true
 }
 
@@ -217,6 +214,47 @@ unsafe fn buff_sepiroth(
     } else {
         // if we're not in wing, add damage
         DamageModule::add_damage(module_accessor, 1000.0, 0);
+    }
+    false
+}
+
+unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
+    let current_art = MENU.buff_state.shulk_buffs().get_random();
+    if current_art == BuffOption::empty() {
+        // No Monado Arts selected in the buff menu, so we don't need to buff
+        return true;
+    }
+    start_buff(module_accessor);
+    let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
+    if prev_status_kind == FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
+        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
+            // Need to continue to be buffing to make sure we stop "JUMP!" voice line
+            return false;
+        }
+        return true;
+    }
+    if status != FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
+        WorkModule::set_int(
+            module_accessor,
+            current_art.into_int().unwrap(),
+            *FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_TYPE_SELECT,
+        );
+        WorkModule::set_int(
+            module_accessor,
+            29,
+            *FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_SELECT_TIMER,
+        );
+        WorkModule::on_flag(
+            module_accessor,
+            *FIGHTER_SHULK_INSTANCE_WORK_ID_FLAG_SPECIAL_N_SELECT,
+        );
+        StatusModule::change_status_force(
+            module_accessor,
+            *FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION,
+            true,
+        );
+    } else {
+        MotionModule::set_rate(module_accessor, 40.0);
     }
     false
 }

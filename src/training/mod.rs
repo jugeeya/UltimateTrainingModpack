@@ -1,13 +1,14 @@
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
-use smash::app::{self, enSEType, lua_bind::*};
+use smash::app::{self, enSEType, lua_bind::*, utility};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::{
-    dev_config, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+    consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
+    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
 };
 use crate::hitbox_visualizer;
 use crate::logging::*;
@@ -118,6 +119,26 @@ fn once_per_frame_per_fighter(
     if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
+
+    /*unsafe {
+        let fighter_kind = app::utility::get_kind(module_accessor);
+        if fighter_kind == *FIGHTER_KIND_LITTLEMAC {
+            let status = StatusModule::status_kind(module_accessor);
+            let gage_max_keep = WorkModule::get_int(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_KO_GAGE_MAX_KEEP_FRAME);
+            let select_timer = WorkModule::get_int(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_SPECIAL_N2_HIT_FRAME);
+
+            let max_effect_flag = WorkModule::is_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_REQUEST_KO_GAUGE_MAX_EFFECT);
+            let mesh_flag = WorkModule::is_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_DAMAGE_MESH);
+
+            let gage_max_keep = WorkModule::get_float(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_KO_GAGE_MAX_KEEP_FRAME);
+            let select_timer = WorkModule::get_float(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_SPECIAL_N2_HIT_FRAME);
+
+            // may need to check out his status flags and not just work insts
+            println!("Status: {:x}, Counter: {}, Select_Timer: {}, Decide_Interval_Frame: {}, SNType: {}, SNTypeSelect: {}, Sel_F: {}, Active_F: {}, SelButton: {}, Circ Menu: {}",
+            status, counter, select_timer, decide_interval_frame, special_n_type, special_n_type_select, select_flag, active_flag, select_button_push_flag, circle_menu_flag
+            );
+        }
+    }*/
 
     unsafe {
         if menu::menu_condition(module_accessor) {
@@ -453,6 +474,54 @@ pub unsafe fn handle_se(
     )
 }
 
+static PLAY_SE_OFFSET: usize = 0x04cf6a0;
+// fighters don't use the symbol and go straight through their vtable to this function
+#[skyline::hook(offset = PLAY_SE_OFFSET)]
+pub unsafe fn handle_fighter_play_se(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    my_hash: Hash40,
+    bool1: bool,
+    bool2: bool,
+    bool3: bool,
+    bool4: bool,
+    se_type: enSEType,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            module_accessor,
+            my_hash,
+            bool1,
+            bool2,
+            bool3,
+            bool4,
+            se_type,
+        );
+    }
+
+    // Supress Buff Sound Effects while buffing
+    if buff::is_buffing(module_accessor) {
+        let silent_hash = Hash40::new("se_silent");
+        return original!()(
+            module_accessor,
+            silent_hash,
+            bool1,
+            bool2,
+            bool3,
+            bool4,
+            se_type,
+        );
+    }
+    original!()(
+        module_accessor,
+        my_hash,
+        bool1,
+        bool2,
+        bool3,
+        bool4,
+        se_type,
+    )
+}
+
 #[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_effect(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -518,6 +587,34 @@ pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     }
 }
 
+static REUSED_UI_OFFSET: usize = 0x068cd80;
+// A function reused by many functions to update UI. Called to update at least Little Mac's meter.
+#[skyline::hook(offset = REUSED_UI_OFFSET)]
+pub unsafe fn handle_reused_ui(
+    fighter_data: *mut u32, // a pointer to length 4 data in the Fighter's FighterEntry in the FighterManager
+    mut param_2: u32,       // In Little Mac's case, the meter value as an integer
+) {
+    if !is_training_mode() {
+        original!()(fighter_data, param_2);
+    }
+
+    if save_states::is_loading() {
+        let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
+        let cpu_module_accessor = &mut *get_module_accessor(FighterId::CPU);
+        let player_fighter_kind = utility::get_kind(player_module_accessor);
+        let cpu_fighter_kind = utility::get_kind(cpu_module_accessor);
+        // If Little Mac is in the game and we're buffing him, set the meter to 100
+        if (player_fighter_kind == *FIGHTER_KIND_LITTLEMAC
+            || cpu_fighter_kind == *FIGHTER_KIND_LITTLEMAC)
+            && MENU.buff_state.to_vec().contains(&BuffOption::KO)
+        {
+            param_2 = 100;
+        }
+    }
+
+    original!()(fighter_data, param_2)
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -528,12 +625,13 @@ pub fn training_mods() {
 
     // Input Mods
     unsafe {
-        if (add_nn_hid_hook as *const ()).is_null() {
+        if let Some(_f) = (add_nn_hid_hook as *const ()).as_ref() {
+            add_nn_hid_hook(input_delay::handle_get_npad_state);
+            add_nn_hid_hook(menu::handle_get_npad_state);
+            add_nn_hid_hook(dev_config::handle_get_npad_state);
+        } else {
             panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
         }
-        add_nn_hid_hook(input_delay::handle_get_npad_state);
-        add_nn_hid_hook(menu::handle_get_npad_state);
-        add_nn_hid_hook(dev_config::handle_get_npad_state);
     }
 
     unsafe {
@@ -591,6 +689,7 @@ pub fn training_mods() {
         // Buffs
         handle_add_limit,
         handle_check_doyle_summon_dispatch,
+        handle_reused_ui,
         handle_req_screen,
         // Stale Moves
         stale_handle,
@@ -603,6 +702,8 @@ pub fn training_mods() {
         handle_star_ko,
         // Clatter
         clatter::hook_start_clatter,
+        // Buff SFX
+        handle_fighter_play_se,
     );
 
     combo::init();
