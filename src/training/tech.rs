@@ -40,7 +40,7 @@ pub unsafe fn handle_change_status(
 }
 
 unsafe fn mod_handle_change_status(
-    fighter: &mut L2CFighterBase,
+    fighter: &L2CFighterBase,
     status_kind: &mut L2CValue,
     unk: &mut L2CValue,
 ) {

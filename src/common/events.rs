@@ -40,10 +40,11 @@ pub struct Uuid {
 
 impl Uuid {
     pub fn to_str(&self) -> String {
-        self.data
-            .iter()
-            .map(|i| format!("{i:02x}"))
-            .collect::<String>()
+        use std::fmt::Write;
+        self.data.iter().fold(String::new(), |mut output, b| {
+            let _ = write!(output, "{b:02x}");
+            output
+        })
     }
 }
 

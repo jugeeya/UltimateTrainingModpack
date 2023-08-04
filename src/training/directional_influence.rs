@@ -45,7 +45,7 @@ pub unsafe fn handle_correct_damage_vector_common(
     original!()(fighter, arg1)
 }
 
-unsafe fn mod_handle_di(fighter: &mut L2CFighterCommon, _arg1: L2CValue) {
+unsafe fn mod_handle_di(fighter: &L2CFighterCommon, _arg1: L2CValue) {
     if MENU.di_state == Direction::empty() {
         return;
     }

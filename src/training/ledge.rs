@@ -3,7 +3,7 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::{frame_counter, mash, input_record};
+use crate::training::{frame_counter, input_record, mash};
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
@@ -60,9 +60,11 @@ fn roll_ledge_case() {
 fn get_ledge_option() -> Option<Action> {
     unsafe {
         let mut override_action: Option<Action> = None;
-        let regular_action = if MENU.mash_triggers.contains(MashTrigger::LEDGE) 
-            {Some(MENU.mash_state.get_random())}
-            else {None};
+        let regular_action = if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
+            Some(MENU.mash_state.get_random())
+        } else {
+            None
+        };
 
         match LEDGE_CASE {
             LedgeOption::NEUTRAL => {
@@ -89,9 +91,8 @@ fn get_ledge_option() -> Option<Action> {
                 override_action = None;
             }
         }
-        return override_action.or(regular_action);
+        override_action.or(regular_action)
     }
-
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -110,14 +111,21 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let flag_cliff =
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
+    // Allow this because sometimes we want to make sure our NNSDK doesn't have
+    // an erroneous definition
+    #[allow(clippy::unnecessary_cast)]
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
     let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
     let should_buffer;
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
 
-    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT && prev_status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH { // For regular ledge grabs, we were just in catch and want to buffer on this frame
+    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT
+        && prev_status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH
+    {
+        // For regular ledge grabs, we were just in catch and want to buffer on this frame
         should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
-    } else if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT { // otherwise we're in "wait" from grabbing with lasso, so we want to buffer on frame
+    } else if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT {
+        // otherwise we're in "wait" from grabbing with lasso, so we want to buffer on frame
         should_buffer = (LEDGE_DELAY == 0) && (current_frame == 18) && (flag_cliff);
     } else {
         should_buffer = false;
@@ -129,7 +137,11 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     ) {
         // Not able to take any action yet
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
-        if should_buffer_playback && LEDGE_CASE == LedgeOption::PLAYBACK && MENU.record_trigger != RecordTrigger::Ledge && MENU.ledge_delay != LongDelay::empty() {
+        if should_buffer_playback
+            && LEDGE_CASE == LedgeOption::PLAYBACK
+            && MENU.record_trigger != RecordTrigger::Ledge
+            && MENU.ledge_delay != LongDelay::empty()
+        {
             input_record::playback_ledge();
             return;
         }
@@ -159,9 +171,8 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         StatusModule::change_status_request_from_script(module_accessor, status, true);
     }
 
-    let ledge_option: Option<Action> = get_ledge_option();
-    if ledge_option.is_some() {
-        mash::external_buffer_menu_mash(ledge_option.unwrap());
+    if let Some(ledge_option) = get_ledge_option() {
+        mash::external_buffer_menu_mash(ledge_option);
     }
 }
 
@@ -181,7 +192,8 @@ pub unsafe fn is_enable_transition_term(
     }
 
     // Disallow the default cliff-climb if we are waiting or we wait as part of a recording
-    if (LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
+    if (LEDGE_CASE == LedgeOption::WAIT
+        || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
         && term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
     {
         return Some(false);
@@ -193,16 +205,25 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     if !is_operation_cpu(module_accessor) {
         return;
     }
-    
+
     // Set up check for beginning of ledge grab
     unsafe {
         let current_frame = MotionModule::frame(module_accessor) as i32;
         // Frame 18 is right before actionability for cliff catch
-        let just_grabbed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_CATCH) && current_frame == 18;
+        #[allow(clippy::unnecessary_cast)]
+        let just_grabbed_ledge = (StatusModule::status_kind(module_accessor) as i32
+            == *FIGHTER_STATUS_KIND_CLIFF_CATCH)
+            && current_frame == 18;
         // Needs to be a frame earlier for lasso grabs
-        let just_lassoed_ledge = (StatusModule::status_kind(module_accessor) as i32 == *FIGHTER_STATUS_KIND_CLIFF_WAIT) && current_frame == 17;
+        #[allow(clippy::unnecessary_cast)]
+        let just_lassoed_ledge = (StatusModule::status_kind(module_accessor) as i32
+            == *FIGHTER_STATUS_KIND_CLIFF_WAIT)
+            && current_frame == 17;
         // Begin recording on ledge if this is the recording trigger
-        if (just_grabbed_ledge || just_lassoed_ledge) && MENU.record_trigger == RecordTrigger::Ledge && !input_record::is_standby() {
+        if (just_grabbed_ledge || just_lassoed_ledge)
+            && MENU.record_trigger == RecordTrigger::Ledge
+            && !input_record::is_standby()
+        {
             input_record::lockout_record();
             return;
         }

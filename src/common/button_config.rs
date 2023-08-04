@@ -40,6 +40,14 @@ static mut BUTTON_COMBO_CONFIG: BtnComboConfig = BtnComboConfig {
         hold: vec![],
         press: vec![],
     },
+    input_record: BtnList {
+        hold: vec![],
+        press: vec![],
+    },
+    input_playback: BtnList {
+        hold: vec![],
+        press: vec![],
+    },
 };
 
 #[derive(Debug, EnumIter, PartialEq)]
@@ -47,6 +55,8 @@ pub enum ButtonCombo {
     OpenMenu,
     SaveState,
     LoadState,
+    InputRecord,
+    InputPlayback,
 }
 
 #[derive(Deserialize, Default)]
@@ -60,6 +70,8 @@ struct BtnComboConfig {
     open_menu: BtnList,
     save_state: BtnList,
     load_state: BtnList,
+    input_record: BtnList,
+    input_playback: BtnList,
 }
 
 #[derive(Deserialize)]
@@ -105,6 +117,14 @@ fn save_all_btn_config_from_defaults() {
             load_state: BtnList {
                 hold: vec!["SHIELD".to_string()],
                 press: vec!["UPTAUNT".to_string()],
+            },
+            input_record: BtnList {
+                hold: vec!["ATTACK".to_string()],
+                press: vec!["LEFTTAUNT".to_string()],
+            },
+            input_playback: BtnList {
+                hold: vec!["ATTACK".to_string()],
+                press: vec!["RIGHTTAUNT".to_string()],
             },
         },
     };
@@ -170,6 +190,14 @@ unsafe fn get_combo_keys(combo: ButtonCombo) -> (&'static Vec<String>, &'static 
             &BUTTON_COMBO_CONFIG.load_state.hold,
             &BUTTON_COMBO_CONFIG.load_state.press,
         ),
+        ButtonCombo::InputRecord => (
+            &BUTTON_COMBO_CONFIG.input_record.hold,
+            &BUTTON_COMBO_CONFIG.input_record.press,
+        ),
+        ButtonCombo::InputPlayback => (
+            &BUTTON_COMBO_CONFIG.input_playback.hold,
+            &BUTTON_COMBO_CONFIG.input_playback.press,
+        ),
     }
 }
 
@@ -234,4 +262,12 @@ press=["DOWNTAUNT",]
 [button_config.load_state]
 hold=["SHIELD",]
 press=["UPTAUNT",]
+
+[button_config.input_record]
+hold=["ATTACK",]
+press=["LEFTTAUNT",]
+
+[button_config.input_playback]
+hold=["ATTACK",]
+press=["RIGHTTAUNT",]
 "#;
