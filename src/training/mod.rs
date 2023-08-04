@@ -7,7 +7,7 @@ use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::{
-    dev_config, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, is_operation_cpu, get_module_accessor, 
+    dev_config, menu, is_training_mode, get_module_accessor, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, 
     consts::FighterId, consts::MENU, consts::BuffOption
 };
 use crate::hitbox_visualizer;
