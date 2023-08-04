@@ -2,8 +2,10 @@ use crate::common::consts::{FighterId, HitstunPlayback, RecordTrigger};
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
 use crate::training::input_recording::structures::*;
 use crate::training::mash;
+use crate::training::ui::notifications::{clear_notifications, color_notification};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
+use skyline::nn::ui2d::ResColor;
 use smash::app::{lua_bind::*, utility, BattleObjectModuleAccessor};
 use smash::lib::lua_const::*;
 use std::cmp::Ordering;
@@ -207,8 +209,19 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     }
 
     // Handle Possession Coloring
-    //let model_color_type = *MODEL_COLOR_TYPE_COLOR_BLEND;
     if entry_id_int == 1 && POSSESSION == Lockout {
+        clear_notifications("Input Recording");
+        color_notification(
+            "Input Recording".to_string(),
+            "Lockout".to_owned(),
+            60,
+            ResColor {
+                r: 200,
+                g: 8,
+                b: 8,
+                a: 255,
+            },
+        );
         set_color_rgb_2(
             module_accessor,
             0.0,
@@ -217,6 +230,18 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
     } else if entry_id_int == 1 && POSSESSION == Standby {
+        clear_notifications("Input Recording");
+        color_notification(
+            "Input Recording".to_string(),
+            "Standby".to_owned(),
+            60,
+            ResColor {
+                r: 200,
+                g: 8,
+                b: 200,
+                a: 255,
+            },
+        );
         set_color_rgb_2(
             module_accessor,
             1.0,
@@ -225,6 +250,18 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
     } else if entry_id_int == 1 && POSSESSION == Cpu {
+        clear_notifications("Input Recording");
+        color_notification(
+            "Input Recording".to_string(),
+            "Recording".to_owned(),
+            60,
+            ResColor {
+                r: 200,
+                g: 8,
+                b: 8,
+                a: 255,
+            },
+        );
         set_color_rgb_2(
             module_accessor,
             1.0,
@@ -275,6 +312,20 @@ pub unsafe fn playback() {
         println!("Tried to playback without a slot selected!");
         return;
     }
+
+    clear_notifications("Input Recording");
+    color_notification(
+        "Input Recording".to_string(),
+        "Playback".to_owned(),
+        60,
+        ResColor {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 255,
+        },
+    );
+
     CURRENT_PLAYBACK_SLOT = MENU.playback_slot.get_random().into_idx().unwrap_or(0);
     INPUT_RECORD = Playback;
     POSSESSION = Player;
@@ -289,6 +340,26 @@ pub unsafe fn playback_ledge() {
         println!("Tried to playback during lockout!");
         return;
     }
+    if MENU.playback_slot.is_empty() {
+        println!("Tried to playback without a slot selected!");
+        return;
+    }
+
+    clear_notifications("Input Recording");
+    color_notification(
+        "Input Recording".to_string(),
+        "Playback".to_owned(),
+        60,
+        ResColor {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 255,
+        },
+    );
+
+    CURRENT_PLAYBACK_SLOT = MENU.playback_slot.get_random().into_idx().unwrap_or(0);
+
     INPUT_RECORD = Playback;
     POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
