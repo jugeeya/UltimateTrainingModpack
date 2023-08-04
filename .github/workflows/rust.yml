@@ -25,18 +25,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --all-targets
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          profile: minimal
+          toolchain: nightly
+          components: rustfmt, clippy
+          default: true
+          target: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache 
         with:
           prefix-key: "checker-2"
       - name: Clippy
-      - uses: dtolnay/rust-toolchain@stable
-        continue-on-error: false
-        with:
-          command: clippy
-          args: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
+        run: cargo xtask clippy
+        env:
+          RUSTFLAGS: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
         uses: ClementTsang/cargo-action@v0.0.3
         with:
