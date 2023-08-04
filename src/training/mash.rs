@@ -57,16 +57,6 @@ pub unsafe fn is_dashing_for_dash_attack(
     action == Action::DASH_ATTACK && is_dashing
 }
 
-pub unsafe fn is_dashing_for_dash_attack(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> bool {
-    let current_status = StatusModule::status_kind(module_accessor);
-    let is_dashing = current_status == *FIGHTER_STATUS_KIND_DASH;
-    let action = get_current_buffer();
-    // Return true if we're trying to dash attack and we're dashing
-    action == Action::DASH_ATTACK && is_dashing
-}
-
 pub fn buffer_action(action: Action) {
     unsafe {
         if !QUEUE.is_empty() {
