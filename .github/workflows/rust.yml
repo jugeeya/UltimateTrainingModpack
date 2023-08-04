@@ -12,43 +12,30 @@ jobs:
     name: Code Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install minimal nightly rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
-          toolchain: nightly
-          components: rustfmt, clippy
-          default: true
+          components: rustfmt
           target: x86_64-unknown-linux-gnu
-      - name: rustfmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: Check Formatting
+        run: cargo fmt --all -- --check
   checker:
     name: Check, Clippy, Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install minimal nightly rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
-          toolchain: nightly
           components: rustfmt, clippy
-          default: true
           target: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache 
         with:
           prefix-key: "checker-2"
       - name: Clippy
-        uses: actions-rs/cargo@v1
-        continue-on-error: false
-        with:
-          command: clippy
-          args: --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
+        run: cargo clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
         uses: ClementTsang/cargo-action@v0.0.3
         with:
@@ -60,7 +47,7 @@ jobs:
     container:
       image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache
         with:
@@ -71,7 +58,7 @@ jobs:
         env:
           HOME: /root
       - name: Upload plugin artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
@@ -82,7 +69,7 @@ jobs:
     container:
       image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache
         with:
@@ -93,7 +80,7 @@ jobs:
         env:
           HOME: /root
       - name: Upload plugin (outside training mode) artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: plugin_outside_training_mode
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
@@ -105,7 +92,7 @@ jobs:
       - plugin
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Prepare zip
         id: prepare_zip
         env:
@@ -221,7 +208,7 @@ jobs:
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: full_build
           path: training_modpack_beta.zip 
