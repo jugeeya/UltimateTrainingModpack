@@ -44,7 +44,11 @@ unsafe fn dash_transition_check(module_accessor: &mut app::BattleObjectModuleAcc
 }
 
 pub fn is_playback_queued() -> bool {
-    get_current_buffer() == Action::PLAYBACK
+    get_current_buffer().is_playback()
+}
+
+pub fn queued_playback_slot() -> usize {
+    get_current_buffer().playback_slot()
 }
 
 pub unsafe fn is_dashing_for_dash_attack(
@@ -77,7 +81,7 @@ pub fn buffer_action(action: Action) {
             && !input_record::is_recording()
             && !input_record::is_standby()
             && !is_playback_queued()
-            && action != Action::PLAYBACK
+            && !action.is_playback()
         {
             //println!("Stopping mash playback for menu option!");
             // if we don't want to leave playback on mash actions, then don't perform the mash
@@ -383,7 +387,11 @@ unsafe fn perform_action(module_accessor: &mut app::BattleObjectModuleAccessor) 
 
             get_flag(module_accessor, *FIGHTER_STATUS_KIND_DASH, 0)
         }
-        Action::PLAYBACK => {
+        Action::PLAYBACK_1
+        | Action::PLAYBACK_2
+        | Action::PLAYBACK_3
+        | Action::PLAYBACK_4
+        | Action::PLAYBACK_5 => {
             // Because these status changes take place after we would receive input from the controller, we need to queue input playback 1 frame before we can act
             0 // We don't ever want to explicitly provide any command flags here; if we're trying to do input recording, the playback handles it all
         }

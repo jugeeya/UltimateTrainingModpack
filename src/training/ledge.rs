@@ -138,11 +138,11 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         // Not able to take any action yet
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
         if should_buffer_playback
-            && LEDGE_CASE == LedgeOption::PLAYBACK
+            && LEDGE_CASE.is_playback()
             && MENU.record_trigger != RecordTrigger::Ledge
             && MENU.ledge_delay != LongDelay::empty()
         {
-            input_record::playback_ledge();
+            input_record::playback_ledge(LEDGE_CASE.playback_slot());
             return;
         }
         // This check isn't reliable for buffered options in time, so don't return if we need to buffer an option this frame
@@ -163,9 +163,9 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
 
     let status = LEDGE_CASE.into_status().unwrap_or(0);
 
-    if LEDGE_CASE == LedgeOption::PLAYBACK {
+    if LEDGE_CASE.is_playback() {
         if MENU.record_trigger != RecordTrigger::Ledge {
-            input_record::playback();
+            input_record::playback(LEDGE_CASE.playback_slot());
         }
     } else {
         StatusModule::change_status_request_from_script(module_accessor, status, true);
