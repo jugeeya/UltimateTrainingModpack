@@ -84,7 +84,7 @@ pub unsafe fn handle_buffs(
     MotionAnimcmdModule::set_sleep(module_accessor, false);
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
-    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, etc.)
+    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
 
     let menu_vec = MENU.buff_state.to_vec();
 
@@ -205,10 +205,6 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
         // Need to wait 2 frames to make sure we stop the KO sound, since it's a bit delayed
         return false;
     }
-    
-    // Trying to stop KO Punch from playing seems to make it play multiple times in rapid succession
-    // Look at 0x7100c44b60 for the func that handles this
-    // Need to figure out how to update the KO meter if this is fixed
     true
 }
 
