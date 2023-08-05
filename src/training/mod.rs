@@ -120,26 +120,6 @@ fn once_per_frame_per_fighter(
         return;
     }
 
-    /*unsafe {
-        let fighter_kind = app::utility::get_kind(module_accessor);
-        if fighter_kind == *FIGHTER_KIND_LITTLEMAC {
-            let status = StatusModule::status_kind(module_accessor);
-            let gage_max_keep = WorkModule::get_int(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_KO_GAGE_MAX_KEEP_FRAME);
-            let select_timer = WorkModule::get_int(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_SPECIAL_N2_HIT_FRAME);
-
-            let max_effect_flag = WorkModule::is_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_REQUEST_KO_GAUGE_MAX_EFFECT);
-            let mesh_flag = WorkModule::is_flag(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLAG_DAMAGE_MESH);
-
-            let gage_max_keep = WorkModule::get_float(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_KO_GAGE_MAX_KEEP_FRAME);
-            let select_timer = WorkModule::get_float(module_accessor, *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_INT_SPECIAL_N2_HIT_FRAME);
-
-            // may need to check out his status flags and not just work insts
-            println!("Status: {:x}, Counter: {}, Select_Timer: {}, Decide_Interval_Frame: {}, SNType: {}, SNTypeSelect: {}, Sel_F: {}, Active_F: {}, SelButton: {}, Circ Menu: {}",
-            status, counter, select_timer, decide_interval_frame, special_n_type, special_n_type_select, select_flag, active_flag, select_button_push_flag, circle_menu_flag
-            );
-        }
-    }*/
-
     unsafe {
         if menu::menu_condition(module_accessor) {
             menu::spawn_menu();
@@ -404,6 +384,37 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
         return 4294967295;
     }
     ori
+}
+
+#[skyline::hook(offset = 0x03ff9a0)]
+pub unsafe fn handle_add_damage(
+    damage_module: *mut u64, // DamageModule
+    mut damage_to_add: f32,
+    param_2: i32,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(damage_module, damage_to_add, param_2);
+    }
+    //let module_accessor_pointer_pointer = work_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor;
+    let player_module_accessor = get_module_accessor(FighterId::Player);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    //let module_accessor_pointer_pointer = damage_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor;
+    let player_damage_module_ref = (player_module_accessor as u64 + 0x98);
+    let player_damage_module_loc = *(player_damage_module_ref as *const u64);
+    //println!("player_module_accessor: {:p}, cpu_module_accessor: {:p}, work_module: {:p}, module_accessor_pointer_pointer: {:p}", player_module_accessor, cpu_module_accessor, work_module, module_accessor_pointer_pointer);
+    println!("player_module_accessor: {:p}, cpu_module_accessor: {:p}, damage_module: {:p}", player_module_accessor, cpu_module_accessor, damage_module);
+    
+    println!("player_damage_module_ref: {}, player_damage_module_loc: {}", player_damage_module_ref, player_damage_module_loc);
+    
+    
+    /*
+    //let module_accessor: &mut app::BattleObjectModuleAccessor = &mut *(work_module.byte_add(0x8) as *mut app::BattleObjectModuleAccessor); // The owner of the WorkModule is right after its vtable
+    println!("Fighter: {}, is_buffing: {}, damage_to_add: {}", utility::get_kind(module_accessor), buff::is_buffing(module_accessor), damage_to_add);
+    // Prevent Wii Fit Deep Breathing from Healing on Save State Load
+    if utility::get_kind(module_accessor) == *FIGHTER_KIND_WIIFIT && buff::is_buffing(module_accessor) && damage_to_add == -2.0 {
+        damage_to_add = 0.0;
+    } */
+    original!()(damage_module, damage_to_add, param_2)
 }
 
 // Set Stale Moves to On
@@ -691,6 +702,9 @@ pub fn training_mods() {
         handle_check_doyle_summon_dispatch,
         handle_reused_ui,
         handle_req_screen,
+        handle_add_damage,
+        // Buff SFX
+        handle_fighter_play_se,
         // Stale Moves
         stale_handle,
         stale_menu_handle,
@@ -702,8 +716,6 @@ pub fn training_mods() {
         handle_star_ko,
         // Clatter
         clatter::hook_start_clatter,
-        // Buff SFX
-        handle_fighter_play_se,
     );
 
     combo::init();

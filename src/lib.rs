@@ -2,6 +2,7 @@
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
 #![feature(c_variadic)]
+#![feature(pointer_byte_offsets)]
 #![allow(
     clippy::borrow_interior_mutable_const,
     clippy::declare_interior_mutable_const,
