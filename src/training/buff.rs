@@ -62,7 +62,6 @@ pub unsafe fn handle_buffs(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
     status: i32,
-    percent: f32,
 ) -> bool {
     // Future Enhancements:
     // - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
@@ -86,7 +85,7 @@ pub unsafe fn handle_buffs(
     } else if fighter_kind == *FIGHTER_KIND_LITTLEMAC && menu_vec.contains(&BuffOption::KO) {
         return buff_mac(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_EDGE && menu_vec.contains(&BuffOption::WING) {
-        return buff_sepiroth(module_accessor, percent);
+        return buff_sepiroth(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_SHULK {
         return buff_shulk(module_accessor, status);
     }
@@ -195,27 +194,36 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
     true
 }
 
-unsafe fn buff_sepiroth(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    percent: f32,
-) -> bool {
-    start_buff(module_accessor);
-    if WorkModule::get_int(
-        module_accessor,
-        *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_WING_STATE,
-    ) == 1
-    {
-        // Once we're in wing, heal to correct damage
-        DamageModule::heal(
+unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if !is_buffing(module_accessor) {
+        // To ensure Sephiroth gains Wing, we set flags for Sephiroth being in a Stamina Mode Sudden Death match.
+        // The function that checks whether to start giving Sephiroth Wing every frame also checks for this exact
+        //  scenario. We do this because inline hooking it with the current version of skyline crashes the game,
+        //  likely due to the hook clobbering some of the floating point registers that we need for later.
+        WorkModule::on_flag(
             module_accessor,
-            -1.0 * DamageModule::damage(module_accessor, 0),
-            0,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_IS_RULE_HP,
         );
-        DamageModule::add_damage(module_accessor, percent, 0);
+        WorkModule::on_flag(
+            module_accessor,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_SUDDEN_DEATH,
+        );
+    }
+    start_buff(module_accessor);
+    if WorkModule::is_flag(
+        module_accessor,
+        *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_ONE_WINGED_ACTIVATED,
+    ) {
+        // Wing is activated, so we turn off these flags so future deaths don't spawn Sephiroth in with Wing
+        WorkModule::off_flag(
+            module_accessor,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_IS_RULE_HP,
+        );
+        WorkModule::off_flag(
+            module_accessor,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_SUDDEN_DEATH,
+        );
         return true;
-    } else {
-        // if we're not in wing, add damage
-        DamageModule::add_damage(module_accessor, 1000.0, 0);
     }
     false
 }
@@ -261,10 +269,7 @@ unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, stat
     false
 }
 
-unsafe fn buff_wiifit(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    status: i32,
-) -> bool {
+unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
     if !is_buffing(module_accessor) {
         start_buff(module_accessor);
     }

@@ -395,9 +395,12 @@ pub unsafe fn handle_add_damage(
     if !is_training_mode() {
         return original!()(damage_module, damage_to_add, param_2);
     }
-    let module_accessor = &mut **(damage_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor);
+    let module_accessor =
+        &mut **(damage_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor);
     // Prevent Wii Fit Deep Breathing from Healing on Save State Load
-    if utility::get_kind(module_accessor) == *FIGHTER_KIND_WIIFIT && buff::is_buffing(module_accessor) {
+    if utility::get_kind(module_accessor) == *FIGHTER_KIND_WIIFIT
+        && buff::is_buffing(module_accessor)
+    {
         damage_to_add = 0.0;
     }
     original!()(damage_module, damage_to_add, param_2)
