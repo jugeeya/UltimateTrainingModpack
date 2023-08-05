@@ -622,10 +622,6 @@ unsafe fn get_flag(
 ) -> i32 {
     // let current_status = StatusModule::prev_status_kind(module_accessor,0);
     let current_status = StatusModule::status_kind(module_accessor);
-    println!(
-        "Current Status: {}, Expected Status: {}",
-        current_status, expected_status
-    );
     if current_status == expected_status {
         // Reset Buffer
         reset();

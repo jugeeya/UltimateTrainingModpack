@@ -62,9 +62,10 @@ pub unsafe fn handle_buffs(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
     status: i32,
-    percent: f32,
 ) -> bool {
-    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
+    // Future Enhancements:
+    // - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
+    // - Ensure IS_BUFFING_CPU && IS_BUFFING_PLAYER are set to false on leaving training mode
     SoundModule::stop_all_sound(module_accessor); // silences buff sfx other than KO Punch
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);
@@ -78,13 +79,13 @@ pub unsafe fn handle_buffs(
     } else if fighter_kind == *FIGHTER_KIND_JACK && menu_vec.contains(&BuffOption::ARSENE) {
         return buff_joker(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_WIIFIT && menu_vec.contains(&BuffOption::BREATHING) {
-        return buff_wiifit(module_accessor, status, percent);
+        return buff_wiifit(module_accessor, status);
     } else if fighter_kind == *FIGHTER_KIND_CLOUD && menu_vec.contains(&BuffOption::LIMIT) {
         return buff_cloud(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_LITTLEMAC && menu_vec.contains(&BuffOption::KO) {
         return buff_mac(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_EDGE && menu_vec.contains(&BuffOption::WING) {
-        return buff_sepiroth(module_accessor, percent);
+        return buff_sepiroth(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_SHULK {
         return buff_shulk(module_accessor, status);
     }
@@ -193,27 +194,36 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
     true
 }
 
-unsafe fn buff_sepiroth(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    percent: f32,
-) -> bool {
-    start_buff(module_accessor);
-    if WorkModule::get_int(
-        module_accessor,
-        *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_WING_STATE,
-    ) == 1
-    {
-        // Once we're in wing, heal to correct damage
-        DamageModule::heal(
+unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if !is_buffing(module_accessor) {
+        // To ensure Sephiroth gains Wing, we set flags for Sephiroth being in a Stamina Mode Sudden Death match.
+        // The function that checks whether to start giving Sephiroth Wing every frame also checks for this exact
+        //  scenario. We do this because inline hooking it with the current version of skyline crashes the game,
+        //  likely due to the hook clobbering some of the floating point registers that we need for later.
+        WorkModule::on_flag(
             module_accessor,
-            -1.0 * DamageModule::damage(module_accessor, 0),
-            0,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_IS_RULE_HP,
         );
-        DamageModule::add_damage(module_accessor, percent, 0);
+        WorkModule::on_flag(
+            module_accessor,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_SUDDEN_DEATH,
+        );
+    }
+    start_buff(module_accessor);
+    if WorkModule::is_flag(
+        module_accessor,
+        *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_ONE_WINGED_ACTIVATED,
+    ) {
+        // Wing is activated, so we turn off these flags so future deaths don't spawn Sephiroth in with Wing
+        WorkModule::off_flag(
+            module_accessor,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_IS_RULE_HP,
+        );
+        WorkModule::off_flag(
+            module_accessor,
+            *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_SUDDEN_DEATH,
+        );
         return true;
-    } else {
-        // if we're not in wing, add damage
-        DamageModule::add_damage(module_accessor, 1000.0, 0);
     }
     false
 }
@@ -259,29 +269,13 @@ unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, stat
     false
 }
 
-unsafe fn buff_wiifit(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    status: i32,
-    percent: f32,
-) -> bool {
-    if is_buffing(module_accessor) {
-        if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
-            // Need to wait 2 frames to make sure we stop breathing SFX
-            return false;
-        }
-        // Deep Breathing can heal, so we need to reset the damage
-        DamageModule::heal(
-            module_accessor,
-            -1.0 * DamageModule::damage(module_accessor, 0),
-            0,
-        );
-        DamageModule::add_damage(module_accessor, percent, 0);
-        return true;
+unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
+    if !is_buffing(module_accessor) {
+        start_buff(module_accessor);
     }
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
     if prev_status_kind == FIGHTER_WIIFIT_STATUS_KIND_SPECIAL_LW_SUCCESS {
-        start_buff(module_accessor);
-        return false;
+        return true;
     }
     if status != FIGHTER_WIIFIT_STATUS_KIND_SPECIAL_LW_SUCCESS {
         StatusModule::change_status_force(
