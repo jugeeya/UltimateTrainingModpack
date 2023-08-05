@@ -316,8 +316,7 @@ pub unsafe fn playback(slot: usize) {
     );
 
     CURRENT_PLAYBACK_SLOT = slot;
-    CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT];
-
+    CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
     INPUT_RECORD = Playback;
     POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
@@ -350,6 +349,8 @@ pub unsafe fn playback_ledge(slot: usize) {
     );
 
     CURRENT_PLAYBACK_SLOT = slot;
+    CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
+    
 
     INPUT_RECORD = Playback;
     POSSESSION = Player;
