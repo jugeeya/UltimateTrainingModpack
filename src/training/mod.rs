@@ -350,6 +350,16 @@ pub unsafe fn handle_add_limit(
     original!()(add_limit, module_accessor, is_special_lw)
 }
 
+// Make sure we try to activate Wing if we're buffing
+static WING_IS_NEEDED_OFFSET: usize = 0x9dd3c4;
+// 48 59 07 36     tbz        w8,#0x0,LAB_71009dbeec
+#[skyline::hook(offset = WING_IS_NEEDED_OFFSET, inline)]
+unsafe fn handle_wing_is_needed(ctx: &mut InlineCtx) {
+    let w8 = ctx.registers[8].w.as_mut();
+    // grab the module_accessor, get if is_buffing(), if true, then make w8 a value that the tbz reads to not branch (probably 1)
+    println!("w8: {:x}", *w8);
+}
+
 #[skyline::hook(replace = EffectModule::req_screen)] // hooked to prevent the screen from darkening when loading a save state with One-Winged Angel
 pub unsafe fn handle_req_screen(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -689,6 +699,7 @@ pub fn training_mods() {
         handle_reused_ui,
         handle_req_screen,
         handle_add_damage,
+        handle_wing_is_needed,
         // Buff SFX
         handle_fighter_play_se,
         // Stale Moves
