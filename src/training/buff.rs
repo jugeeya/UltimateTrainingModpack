@@ -64,7 +64,9 @@ pub unsafe fn handle_buffs(
     status: i32,
     percent: f32,
 ) -> bool {
-    // Future Enhancement - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
+    // Future Enhancements:
+    // - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
+    // - Ensure IS_BUFFING_CPU && IS_BUFFING_PLAYER are set to false on leaving training mode
     SoundModule::stop_all_sound(module_accessor); // silences buff sfx other than KO Punch
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);

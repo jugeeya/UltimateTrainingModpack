@@ -395,25 +395,11 @@ pub unsafe fn handle_add_damage(
     if !is_training_mode() {
         return original!()(damage_module, damage_to_add, param_2);
     }
-    //let module_accessor_pointer_pointer = work_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor;
-    let player_module_accessor = get_module_accessor(FighterId::Player);
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-    //let module_accessor_pointer_pointer = damage_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor;
-    let player_damage_module_ref = (player_module_accessor as u64 + 0x98);
-    let player_damage_module_loc = *(player_damage_module_ref as *const u64);
-    //println!("player_module_accessor: {:p}, cpu_module_accessor: {:p}, work_module: {:p}, module_accessor_pointer_pointer: {:p}", player_module_accessor, cpu_module_accessor, work_module, module_accessor_pointer_pointer);
-    println!("player_module_accessor: {:p}, cpu_module_accessor: {:p}, damage_module: {:p}", player_module_accessor, cpu_module_accessor, damage_module);
-    
-    println!("player_damage_module_ref: {}, player_damage_module_loc: {}", player_damage_module_ref, player_damage_module_loc);
-    
-    
-    /*
-    //let module_accessor: &mut app::BattleObjectModuleAccessor = &mut *(work_module.byte_add(0x8) as *mut app::BattleObjectModuleAccessor); // The owner of the WorkModule is right after its vtable
-    println!("Fighter: {}, is_buffing: {}, damage_to_add: {}", utility::get_kind(module_accessor), buff::is_buffing(module_accessor), damage_to_add);
+    let module_accessor = &mut **(damage_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor);
     // Prevent Wii Fit Deep Breathing from Healing on Save State Load
-    if utility::get_kind(module_accessor) == *FIGHTER_KIND_WIIFIT && buff::is_buffing(module_accessor) && damage_to_add == -2.0 {
+    if utility::get_kind(module_accessor) == *FIGHTER_KIND_WIIFIT && buff::is_buffing(module_accessor) {
         damage_to_add = 0.0;
-    } */
+    }
     original!()(damage_module, damage_to_add, param_2)
 }
 
