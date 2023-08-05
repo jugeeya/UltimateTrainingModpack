@@ -184,6 +184,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             module_accessor,
             button_config::ButtonCombo::InputPlayback,
         ) {
+
             playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
         }
         // Attack + Dpad Left: Record
@@ -290,6 +291,7 @@ pub unsafe fn lockout_record() {
     CURRENT_LR = RECORDED_LR;
 }
 
+
 pub unsafe fn playback(slot: usize) {
     if INPUT_RECORD == Pause {
         println!("Tried to playback during lockout!");
@@ -315,6 +317,7 @@ pub unsafe fn playback(slot: usize) {
 
     CURRENT_PLAYBACK_SLOT = slot;
     CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT];
+
     INPUT_RECORD = Playback;
     POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
