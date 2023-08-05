@@ -1410,3 +1410,61 @@ impl ToggleTrait for HitstunPlayback {
         HitstunPlayback::iter().map(|i| i as u32).collect()
     }
 }
+
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum RecordingFrames {
+    F60 = 0x1,
+    F90 = 0x2,
+    F120 = 0x4,
+    F150 = 0x8,
+    F180 = 0x10,
+    F210 = 0x20,
+    F240 = 0x40,
+    F300 = 0x80,
+    F360 = 0x100,
+    F420 = 0x200,
+    F480 = 0x400,
+    F540 = 0x800,
+    F600 = 0x1000,
+}
+
+impl RecordingFrames {
+    pub fn as_str(self) -> Option<&'static str> {
+        use RecordingFrames::*;
+        Some(match self {
+            F60 => "60",
+            F90 => "90",
+            F120 => "120",
+            F150 => "150",
+            F180 => "180",
+            F210 => "210",
+            F240 => "240",
+            F300 => "300",
+            F360 => "360",
+            F420 => "420",
+            F480 => "480",
+            F540 => "540",
+            F600 => "600",
+            _ => return None,
+        })
+    }
+
+    pub fn into_frames(self) -> usize {
+        (log_2(self as u32) as usize * 30) + 60
+    }
+}
+
+impl ToggleTrait for RecordingFrames {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        RecordingFrames::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        RecordingFrames::iter().map(|i| i as u32).collect()
+    }
+}
