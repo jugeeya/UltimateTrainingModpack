@@ -200,12 +200,22 @@ unsafe fn buff_sepiroth(
     percent: f32,
 ) -> bool {
     start_buff(module_accessor);
-    if WorkModule::is_flag(
+    if WorkModule::get_int(
         module_accessor,
-        *FIGHTER_EDGE_INSTANCE_WORK_ID_FLAG_ONE_WINGED_ACTIVATED,
-    ) {
-        // Wing is activated, so we're done buffing
+        *FIGHTER_EDGE_INSTANCE_WORK_ID_INT_ONE_WINGED_WING_STATE,
+    ) == 1
+    {
+        // Once we're in wing, heal to correct damage
+        DamageModule::heal(
+            module_accessor,
+            -1.0 * DamageModule::damage(module_accessor, 0),
+            0,
+        );
+        DamageModule::add_damage(module_accessor, percent, 0);
         return true;
+    } else {
+        // if we're not in wing, add damage
+        DamageModule::add_damage(module_accessor, 1000.0, 0);
     }
     false
 }
