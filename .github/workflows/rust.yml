@@ -35,7 +35,7 @@ jobs:
         with:
           prefix-key: "checker-2"
       - name: Clippy
-        run: cargo skyline update-std && cargo clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
+        run: cargo install cargo-skyline && cargo skyline update-std && cargo clippy --all-targets --all-features --target=x86_64-unknown-linux-gnu -- -D warnings
       - name: TUI Test
         uses: ClementTsang/cargo-action@v0.0.3
         with:
