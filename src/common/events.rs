@@ -3,6 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
+use skyline::libc;
 use skyline::libc::c_void;
 use skyline::nn::{account, oe, time};
 
@@ -180,7 +181,7 @@ pub fn smash_version() -> String {
     unsafe {
         oe::GetDisplayVersion(&mut smash_version);
 
-        std::ffi::CStr::from_ptr(smash_version.name.as_ptr() as *const i8)
+        std::ffi::CStr::from_ptr(smash_version.name.as_ptr() as *const libc::c_char)
             .to_string_lossy()
             .into_owned()
     }
