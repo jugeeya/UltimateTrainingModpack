@@ -53,12 +53,10 @@ jobs:
       - name: Install Skyline
         run: |
           cargo install cargo-skyline
-          cargo skyline update-std
+          cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
         run: cargo-skyline skyline build --release
-        env:
-          HOME: /root
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v3
         with:
