@@ -29,15 +29,13 @@ minreq = { version = "2", features = ["https-native", "json-using-serde"] }
 sarc = { version = "1.2.0", features = [], default_features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-toml = "0.7.3"
+toml = "0.5.9"
 training_mod_consts = { path = "training_mod_consts" }
 training_mod_tui = { path = "training_mod_tui" }
 native-tls = { version = "0.2.11", features = ["vendored"] }
 log = "0.4.17"
 byte-unit = "4.0.18"
-regex = "1.7.3"
 zip = { version = "0.6", default-features = false, features = ["deflate"]}
-toml_edit = "0.19.8"
 
 
 [patch.crates-io]
