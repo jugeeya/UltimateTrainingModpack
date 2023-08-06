@@ -76,8 +76,7 @@ jobs:
         with:
           prefix-key: "plugin"
       - name: Build outside_training_mode NRO
-        run: |
-          cargo-skyline skyline build --release --features outside_training_mode
+        run: cargo-skyline skyline build --release --features outside_training_mode
         env:
           HOME: /root
       - name: Upload plugin (outside training mode) artifact
