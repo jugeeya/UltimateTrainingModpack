@@ -55,7 +55,7 @@ jobs:
           prefix-key: "plugin"
       - name: Build release NRO
         id: build_release
-        run: cargo skyline build --release
+        run: cargo-skyline skyline build --release
         env:
           HOME: /root
       - name: Upload plugin artifact
