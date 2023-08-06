@@ -5,11 +5,12 @@ use smash::app::{self, enSEType, lua_bind::*, utility};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
-
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
 };
+#[allow(unused_imports)]
+use crate::common::print_fighter_info;
 use crate::hitbox_visualizer;
 use crate::logging::*;
 use crate::training::character_specific::items;
