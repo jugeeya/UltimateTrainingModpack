@@ -184,7 +184,6 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             module_accessor,
             button_config::ButtonCombo::InputPlayback,
         ) {
-
             playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
         }
         // Attack + Dpad Left: Record
@@ -281,7 +280,7 @@ pub unsafe fn lockout_record() {
         .for_each(|mapped_input| {
             *mapped_input = MappedInputs::default();
         });
-    CURRENT_FRAME_LENGTH = MENU.recording_frames as usize;
+    CURRENT_FRAME_LENGTH = MENU.recording_frames.into_frames();
     P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
     LOCKOUT_FRAME = 30; // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
     BUFFER_FRAME = 0;
@@ -290,7 +289,6 @@ pub unsafe fn lockout_record() {
     RECORDED_LR = PostureModule::lr(cpu_module_accessor);
     CURRENT_LR = RECORDED_LR;
 }
-
 
 pub unsafe fn playback(slot: usize) {
     if INPUT_RECORD == Pause {
@@ -350,7 +348,6 @@ pub unsafe fn playback_ledge(slot: usize) {
 
     CURRENT_PLAYBACK_SLOT = slot;
     CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
-    
 
     INPUT_RECORD = Playback;
     POSSESSION = Player;
