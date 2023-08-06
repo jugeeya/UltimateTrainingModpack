@@ -50,8 +50,7 @@ jobs:
         with:
           target: x86_64-unknown-linux-gnu
       - name: Install Skyline
-        run: |
-          cargo install cargo-skyline
+        run: cargo install cargo-skyline
       - name: Build release NRO
         id: build_release
         run: cargo-skyline skyline build --release
