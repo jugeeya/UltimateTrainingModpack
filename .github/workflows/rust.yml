@@ -45,14 +45,15 @@ jobs:
   plugin:
     name: Plugin NRO
     runs-on: ubuntu-latest
-    container:
-      image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
-        name: Rust Cache
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          prefix-key: "plugin"
+          target: x86_64-unknown-linux-gnu
+      - name: Install Skyline
+        run: |
+          cargo install cargo-skyline
+          cargo skyline update-std
       - name: Build release NRO
         id: build_release
         run: cargo-skyline skyline build --release
