@@ -1,5 +1,5 @@
 use std::convert::TryInto;
-use std::ffi::{c_char,c_void};
+use std::ffi::{c_char, c_void};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use once_cell::sync::OnceCell;
