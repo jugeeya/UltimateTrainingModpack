@@ -282,6 +282,7 @@ pub unsafe fn get_fighter_distance() -> f32 {
 //     ],
 // );
 #[allow(dead_code)] // We won't be using this function in builds, but we don't want to be warned about it
+#[allow(clippy::too_many_arguments)] // This function has so many arguments so it's easy to quickly fill them in when debugging with the analyzer
 pub fn print_fighter_info(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     title: &str,
@@ -343,7 +344,6 @@ pub fn print_fighter_info(
         // End Line
         println!("|");
     }
-    return;
 }
 
 // From https://github.com/chrispo-git/ult-s/blob/cc1c3060ed83f6d33f39964e84f9c32c07a17bae/src/controls/util.rs#L106
