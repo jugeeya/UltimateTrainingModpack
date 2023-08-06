@@ -1,6 +1,6 @@
 use smash::app::{self, lua_bind::*, utility};
 use smash::hash40;
-use smash::lib::{LuaConst, lua_const::*};
+use smash::lib::{lua_const::*, LuaConst};
 use smash::lua2cpp::L2CFighterCommon;
 
 pub use crate::common::consts::MENU;
@@ -307,22 +307,37 @@ pub fn print_fighter_info(
         }
         // Print Status:
         if print_status {
-            print!("FIGHTER_STATUS: {}, ", StatusModule::status_kind(module_accessor));
+            print!(
+                "FIGHTER_STATUS: {}, ",
+                StatusModule::status_kind(module_accessor)
+            );
         }
 
         // Print Work Ints:
         for work_int_pair in work_int_pairs {
-            print!("{}: {}, ", work_int_pair.0, WorkModule::get_int(module_accessor, *(work_int_pair.1)));
+            print!(
+                "{}: {}, ",
+                work_int_pair.0,
+                WorkModule::get_int(module_accessor, *(work_int_pair.1))
+            );
         }
 
         // Print Work Floats:
         for work_float_pair in work_float_pairs {
-            print!("{}: {}, ", work_float_pair.0, WorkModule::get_float(module_accessor, *(work_float_pair.1)));
+            print!(
+                "{}: {}, ",
+                work_float_pair.0,
+                WorkModule::get_float(module_accessor, *(work_float_pair.1))
+            );
         }
 
         // Print Work Flags:
         for work_flag_pair in work_flag_pairs {
-            print!("{}: {}, ", work_flag_pair.0, WorkModule::is_flag(module_accessor, *(work_flag_pair.1)));
+            print!(
+                "{}: {}, ",
+                work_flag_pair.0,
+                WorkModule::is_flag(module_accessor, *(work_flag_pair.1))
+            );
         }
 
         // End Line
