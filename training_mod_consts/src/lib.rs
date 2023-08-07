@@ -77,6 +77,7 @@ pub struct TrainingModpackMenu {
     pub playback_slot: PlaybackSlot,
     pub playback_mash: OnOff,
     pub record_trigger: RecordTrigger,
+    pub recording_frames: RecordingFrames,
     pub hitstun_playback: HitstunPlayback,
 }
 
@@ -173,6 +174,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     playback_slot: PlaybackSlot::S1,
     playback_mash: OnOff::On,
     record_trigger: RecordTrigger::None, //Command?
+    recording_frames: RecordingFrames::F150,
     hitstun_playback: HitstunPlayback::Hitstun,
     // TODO: alphabetize
 };
@@ -758,6 +760,13 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         "Recording Trigger: What condition is required to begin recording input",
         true,
         &(menu.record_trigger as u32),
+    );
+    input_tab.add_submenu_with_toggles::<RecordingFrames>(
+        "Recording Frames",
+        "recording_frames",
+        "Recording Frames: Number of frames to record for in the current slot",
+        true,
+        &(menu.recording_frames as u32),
     );
     input_tab.add_submenu_with_toggles::<OnOff>(
         "Save State Playback",
