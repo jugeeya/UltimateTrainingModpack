@@ -51,6 +51,7 @@ pub struct TrainingModpackMenu {
     pub save_state_slot: SaveStateSlot,
     pub randomize_slots: OnOff,
     pub save_state_mirroring: SaveStateMirroring,
+    pub save_state_playback: PlaybackSlot,
     pub sdi_state: Direction,
     pub sdi_strength: SdiFrequency,
     pub shield_state: Shield,
@@ -72,13 +73,13 @@ pub struct TrainingModpackMenu {
     pub footstool_override: Action,
     pub landing_override: Action,
     pub trump_override: Action,
-    pub save_state_playback: OnOff,
     pub recording_slot: RecordSlot,
-    pub playback_slot: PlaybackSlot,
-    pub playback_mash: OnOff,
     pub record_trigger: RecordTrigger,
     pub recording_frames: RecordingFrames,
+    pub playback_button_combination: PlaybackSlot,
     pub hitstun_playback: HitstunPlayback,
+    pub playback_mash: OnOff,
+    pub playback_loop: OnOff,
 }
 
 #[repr(C)]
@@ -148,6 +149,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_slot: SaveStateSlot::One,
     randomize_slots: OnOff::Off,
     save_state_mirroring: SaveStateMirroring::None,
+    save_state_playback: PlaybackSlot::S1,
     sdi_state: Direction::empty(),
     sdi_strength: SdiFrequency::None,
     shield_state: Shield::None,
@@ -169,14 +171,13 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     footstool_override: Action::empty(),
     landing_override: Action::empty(),
     trump_override: Action::empty(),
-    save_state_playback: OnOff::Off,
     recording_slot: RecordSlot::S1,
-    playback_slot: PlaybackSlot::S1,
-    playback_mash: OnOff::On,
-    record_trigger: RecordTrigger::None, //Command?
     recording_frames: RecordingFrames::F150,
+    record_trigger: RecordTrigger::None,
+    playback_button_combination: PlaybackSlot::S1,
     hitstun_playback: HitstunPlayback::Hitstun,
-    // TODO: alphabetize
+    playback_mash: OnOff::On,
+    playback_loop: OnOff::Off,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -698,6 +699,13 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         false,
         &(menu.buff_state.bits()),
     );
+    save_state_tab.add_submenu_with_toggles::<PlaybackSlot>(
+        "Save State Playback",
+        "save_state_playback",
+        "Save State Playback: Choose which slots to playback input recording upon loading a save state",
+        false,
+        &(menu.save_state_playback.bits() as u32),
+    );
     overall_menu.tabs.push(save_state_tab);
 
     let mut misc_tab = Tab {
@@ -768,33 +776,33 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         true,
         &(menu.recording_frames as u32),
     );
-    input_tab.add_submenu_with_toggles::<OnOff>(
-        "Save State Playback",
-        "save_state_playback",
-        "Save State Playback: Begin recorded input playback upon loading a save state",
-        true,
-        &(menu.save_state_playback as u32),
-    );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
-        "Playback Slots",
-        "playback_slot",
-        "Playback Slots: Choose which slots to choose between for playback when this action is triggered",
+        "Playback Button Combination",
+        "playback_button_combination",
+        "Playback Button Combination: Choose which slots to playback input recording upon pressing button combination (Default: Attack+Right Taunt)",
         false,
-        &(menu.playback_slot.bits() as u32),
-    );
-    input_tab.add_submenu_with_toggles::<OnOff>(
-        "Mash Ends Playback",
-        "playback_mash",
-        "Mash Ends Playback: End input recording playback when a mash trigger occurs",
-        true,
-        &(menu.playback_mash as u32),
+        &(menu.playback_button_combination.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<HitstunPlayback>(
         "Playback Hitstun Timing",
         "hitstun_playback",
-        "Playback Hitstun Timing: When to begin playing back inputs on hitstun mash trigger",
+        "Playback Hitstun Timing: When to begin playing back inputs when a hitstun mash trigger occurs",
         true,
         &(menu.hitstun_playback as u32),
+    );
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Playback Mash Interrupt",
+        "playback_mash",
+        "Playback Mash Interrupt: End input playback when a mash trigger occurs",
+        true,
+        &(menu.playback_mash as u32),
+    );
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Playback Loop",
+        "playback_loop",
+        "Playback Loop: Repeat triggered input playbacks indefinitely",
+        true,
+        &(menu.playback_loop as u32),
     );
     overall_menu.tabs.push(input_tab);
 
