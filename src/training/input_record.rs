@@ -48,9 +48,8 @@ use PossessionState::*;
 
 const STICK_NEUTRAL: f32 = 0.2;
 const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
-const FINAL_RECORD_MAX: usize = 150; // Maximum length for input recording sequences (capacity)
+const FINAL_RECORD_MAX: usize = 600; // Maximum length for input recording sequences (capacity)
 const TOTAL_SLOT_COUNT: usize = 5; // Total number of input recording slots
-pub static mut FINAL_RECORD_FRAME: usize = FINAL_RECORD_MAX; // The final frame to play back of the currently recorded sequence (size)
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
 pub static mut INPUT_RECORD_FRAME: usize = 0;
 pub static mut POSSESSION: PossessionState = PossessionState::Player;
@@ -62,10 +61,13 @@ pub static mut STARTING_STATUS: i32 = 0; // The first status entered in the reco
                                          //     used to calculate if the input playback should begin before hitstun would normally end (hitstun cancel, monado art?)
 pub static mut CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
 pub static mut CURRENT_PLAYBACK_SLOT: usize = 0; // Which slot is being used for playback right now?
+pub static mut CURRENT_FRAME_LENGTH: usize = 60;
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[[MappedInputs; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]> =
         Mutex::new([[{ MappedInputs::default() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
+    static ref P1_FRAME_LENGTH_MAPPING: Mutex<[usize; TOTAL_SLOT_COUNT]> =
+        Mutex::new([60usize; TOTAL_SLOT_COUNT]);
     static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
         Mutex::new([{ StartingStatus::Other }; TOTAL_SLOT_COUNT]);
 }
@@ -182,23 +184,19 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             module_accessor,
             button_config::ButtonCombo::InputPlayback,
         ) {
-            //crate::common::raygun_printer::print_string(&mut *module_accessor, "PLAYBACK");
             playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
-            println!("Playback Command Received!"); //debug
         }
         // Attack + Dpad Left: Record
         else if button_config::combo_passes_exclusive(
             module_accessor,
             button_config::ButtonCombo::InputRecord,
         ) {
-            //crate::common::raygun_printer::print_string(&mut *module_accessor, "RECORDING");
             lockout_record();
-            println!("Record Command Received!"); //debug
         }
 
         // may need to move this to another func
         if (INPUT_RECORD == Record || INPUT_RECORD == Playback)
-            && INPUT_RECORD_FRAME >= FINAL_RECORD_FRAME - 1
+            && INPUT_RECORD_FRAME >= CURRENT_FRAME_LENGTH - 1
         {
             INPUT_RECORD = None;
             POSSESSION = Player;
@@ -283,26 +281,14 @@ pub unsafe fn lockout_record() {
         .for_each(|mapped_input| {
             *mapped_input = MappedInputs::default();
         });
+    CURRENT_FRAME_LENGTH = MENU.recording_frames.into_frames();
+    P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
     LOCKOUT_FRAME = 30; // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
     BUFFER_FRAME = 0;
     // Store the direction the CPU is facing when we initially record, so we can turn their inputs around if needed
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     RECORDED_LR = PostureModule::lr(cpu_module_accessor);
     CURRENT_LR = RECORDED_LR;
-}
-
-pub unsafe fn _record() {
-    INPUT_RECORD = Record;
-    POSSESSION = Cpu;
-    // Reset mappings to nothing, and then start recording. Likely want to reset in case we cut off recording early.
-    P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT]
-        .iter_mut()
-        .for_each(|mapped_input| {
-            *mapped_input = MappedInputs::default();
-        });
-    INPUT_RECORD_FRAME = 0;
-    LOCKOUT_FRAME = 0;
-    BUFFER_FRAME = 0;
 }
 
 pub unsafe fn playback(slot: usize) {
@@ -318,6 +304,7 @@ pub unsafe fn playback(slot: usize) {
     clear_notifications("Input Recording");
 
     CURRENT_PLAYBACK_SLOT = slot;
+    CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
     INPUT_RECORD = Playback;
     POSSESSION = Player;
     INPUT_RECORD_FRAME = 0;
@@ -337,6 +324,7 @@ pub unsafe fn playback_ledge(slot: usize) {
     }
 
     CURRENT_PLAYBACK_SLOT = slot;
+    CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
 
     INPUT_RECORD = Playback;
     POSSESSION = Player;
