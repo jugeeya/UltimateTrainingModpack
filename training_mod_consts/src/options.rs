@@ -257,7 +257,7 @@ impl LedgeOption {
             LedgeOption::PLAYBACK_3 => 2,
             LedgeOption::PLAYBACK_4 => 3,
             LedgeOption::PLAYBACK_5 => 4,
-            _ => return None
+            _ => return None,
         })
     }
 

@@ -1,5 +1,5 @@
 use crate::common::button_config;
-use crate::common::consts::{OnOff, FighterId, HitstunPlayback};
+use crate::common::consts::{FighterId, HitstunPlayback, OnOff};
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
 use crate::training::input_recording::structures::*;
 use crate::training::mash;
@@ -334,8 +334,8 @@ pub unsafe fn playback_ledge(slot: Option<usize>) {
     let did_playback = playback(slot);
     if did_playback {
         BUFFER_FRAME = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
-                        // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
-                        // Need to buffer 1 less frame for non-lassos
+                          // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
+                          // Need to buffer 1 less frame for non-lassos
         let cpu_module_accessor = get_module_accessor(FighterId::CPU);
         let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
         if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
