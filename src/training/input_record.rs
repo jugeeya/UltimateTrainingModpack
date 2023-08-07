@@ -203,6 +203,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             INPUT_RECORD = None;
             POSSESSION = Player;
             INPUT_RECORD_FRAME = 0;
+            clear_notifications("Input Recording");
             if mash::is_playback_queued() {
                 mash::reset();
             }
@@ -217,9 +218,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             "Lockout".to_owned(),
             60,
             ResColor {
-                r: 200,
+                r: 8,
                 g: 8,
-                b: 8,
+                b: 200,
                 a: 255,
             },
         );
@@ -315,17 +316,6 @@ pub unsafe fn playback(slot: usize) {
     }
 
     clear_notifications("Input Recording");
-    color_notification(
-        "Input Recording".to_string(),
-        "Playback".to_owned(),
-        60,
-        ResColor {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 255,
-        },
-    );
 
     CURRENT_PLAYBACK_SLOT = slot;
     INPUT_RECORD = Playback;
@@ -345,19 +335,6 @@ pub unsafe fn playback_ledge(slot: usize) {
         println!("Tried to playback without a slot selected!");
         return;
     }
-
-    clear_notifications("Input Recording");
-    color_notification(
-        "Input Recording".to_string(),
-        "Playback".to_owned(),
-        60,
-        ResColor {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 255,
-        },
-    );
 
     CURRENT_PLAYBACK_SLOT = slot;
 
@@ -525,6 +502,20 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         if BUFFER_FRAME > 0 {
             BUFFER_FRAME -= 1;
         } else if INPUT_RECORD_FRAME < FINAL_RECORD_FRAME - 1 && POSSESSION != Standby {
+            if INPUT_RECORD == Playback {
+                clear_notifications("Input Recording");
+                color_notification(
+                    "Input Recording".to_string(),
+                    "Playback".to_owned(),
+                    60,
+                    ResColor {
+                        r: 0,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    },
+                );
+            }
             INPUT_RECORD_FRAME += 1;
         }
     }
