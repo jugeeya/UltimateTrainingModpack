@@ -250,18 +250,15 @@ impl LedgeOption {
         }
     }
 
-    pub fn playback_slot(self) -> usize {
-        match self {
+    pub fn playback_slot(self) -> Option<usize> {
+        Some(match self {
             LedgeOption::PLAYBACK_1 => 0,
             LedgeOption::PLAYBACK_2 => 1,
             LedgeOption::PLAYBACK_3 => 2,
             LedgeOption::PLAYBACK_4 => 3,
             LedgeOption::PLAYBACK_5 => 4,
-            _ => panic!(
-                "Invalid LedgeOption playback slot: {}",
-                self.as_str().unwrap()
-            ),
-        }
+            _ => return None
+        })
     }
 
     pub const fn default() -> LedgeOption {

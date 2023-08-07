@@ -1,5 +1,5 @@
 use crate::common::button_config;
-use crate::common::consts::{FighterId, HitstunPlayback};
+use crate::common::consts::{OnOff, FighterId, HitstunPlayback};
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
 use crate::training::input_recording::structures::*;
 use crate::training::mash;
@@ -125,7 +125,7 @@ unsafe fn should_mash_playback() {
     // probably need a separate standby setting for grounded, aerial, shield, where shield starts once you let go of shield, and aerial keeps you in the air?
 
     if should_playback {
-        playback(mash::queued_playback_slot());
+        playback(Some(mash::queued_playback_slot()));
     }
 }
 
@@ -184,7 +184,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             module_accessor,
             button_config::ButtonCombo::InputPlayback,
         ) {
-            playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
+            playback(MENU.playback_button_combination.get_random().into_idx());
         }
         // Attack + Dpad Left: Record
         else if button_config::combo_passes_exclusive(
@@ -203,6 +203,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             INPUT_RECORD_FRAME = 0;
             if mash::is_playback_queued() {
                 mash::reset();
+            }
+            if MENU.playback_loop == OnOff::On {
+                playback(Some(CURRENT_PLAYBACK_SLOT));
             }
         }
     }
@@ -290,15 +293,17 @@ pub unsafe fn lockout_record() {
     CURRENT_LR = RECORDED_LR;
 }
 
-pub unsafe fn playback(slot: usize) {
+// Returns whether we did playback
+pub unsafe fn playback(slot: Option<usize>) -> bool {
     if INPUT_RECORD == Pause {
         println!("Tried to playback during lockout!");
-        return;
+        return false;
     }
-    if MENU.playback_slot.is_empty() {
+    if slot.is_none() {
         println!("Tried to playback without a slot selected!");
-        return;
+        return false;
     }
+    let slot = slot.unwrap();
 
     clear_notifications("Input Recording");
     color_notification(
@@ -321,46 +326,22 @@ pub unsafe fn playback(slot: usize) {
     BUFFER_FRAME = 0;
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     CURRENT_LR = PostureModule::lr(cpu_module_accessor);
+
+    true
 }
 
-pub unsafe fn playback_ledge(slot: usize) {
-    if INPUT_RECORD == Pause {
-        println!("Tried to playback during lockout!");
-        return;
+pub unsafe fn playback_ledge(slot: Option<usize>) {
+    let did_playback = playback(slot);
+    if did_playback {
+        BUFFER_FRAME = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
+                        // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
+                        // Need to buffer 1 less frame for non-lassos
+        let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+        let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+        if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
+            BUFFER_FRAME -= 1;
+        }
     }
-    if MENU.playback_slot.is_empty() {
-        println!("Tried to playback without a slot selected!");
-        return;
-    }
-
-    clear_notifications("Input Recording");
-    color_notification(
-        "Input Recording".to_string(),
-        "Playback".to_owned(),
-        60,
-        ResColor {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 255,
-        },
-    );
-
-    CURRENT_PLAYBACK_SLOT = slot;
-    CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
-
-    INPUT_RECORD = Playback;
-    POSSESSION = Player;
-    INPUT_RECORD_FRAME = 0;
-    BUFFER_FRAME = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
-                      // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
-                      // Need to buffer 1 less frame for non-lassos
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-    let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
-    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
-        BUFFER_FRAME -= 1;
-    }
-    CURRENT_LR = PostureModule::lr(cpu_module_accessor);
 }
 
 pub unsafe fn stop_playback() {

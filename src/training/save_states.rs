@@ -614,8 +614,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             input_record::lockout_record();
         }
         // otherwise, begin input recording playback if selected
-        else if MENU.save_state_playback == OnOff::On {
-            input_record::playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
+        else if !MENU.save_state_playback.is_empty() {
+            input_record::playback(MENU.save_state_playback.get_random().into_idx());
         }
 
         return;
