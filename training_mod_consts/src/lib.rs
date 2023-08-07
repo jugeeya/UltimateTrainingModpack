@@ -700,9 +700,9 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.buff_state.bits()),
     );
     save_state_tab.add_submenu_with_toggles::<PlaybackSlot>(
-        "Save State Playback Slot",
+        "Save State Playback",
         "save_state_playback",
-        "Save State Playback Slot: Choose which slots to playback input recording upon loading a save state",
+        "Save State Playback: Choose which slots to playback input recording upon loading a save state",
         false,
         &(menu.save_state_playback.bits() as u32),
     );
@@ -777,9 +777,9 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.recording_frames as u32),
     );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
-        "Playback Button Combination Slots",
+        "Playback Button Combination",
         "playback_button_combination",
-        "Playback Button Combination Slots: Choose which slots to playback input recording upon pressing button combination (Default: Attack+Right Taunt)",
+        "Playback Button Combination: Choose which slots to playback input recording upon pressing button combination (Default: Attack+Right Taunt)",
         false,
         &(menu.playback_button_combination.bits() as u32),
     );
