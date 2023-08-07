@@ -102,6 +102,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         reset_ledge_delay();
         return;
     }
+    println!("Situation cliff, forcing option!");
 
     // Need to roll ledge delay so we know if getup needs to be buffered
     roll_ledge_delay();
@@ -135,6 +136,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_ATTACK,
     ) {
+        println!("Can't ATTACK transition"); // TODO: getting stuck here
         // Not able to take any action yet
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
         if should_buffer_playback
@@ -155,16 +157,20 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         // Do nothing, but don't reset the ledge case.
         return;
     }
+    
+    println!("About to delay!");
 
     if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
         // Not yet time to perform the ledge action
+        println!("Delaying, counter: {}", LEDGE_DELAY_COUNTER);
         return;
     }
 
     let status = LEDGE_CASE.into_status().unwrap_or(0);
-
+    println!("About to check playback!");
     if LEDGE_CASE.is_playback() {
         if MENU.record_trigger != RecordTrigger::Ledge {
+            println!("Playback ledge!");
             input_record::playback(LEDGE_CASE.playback_slot());
         }
     } else {
@@ -191,9 +197,10 @@ pub unsafe fn is_enable_transition_term(
         return None;
     }
 
-    // Disallow the default cliff-climb if we are waiting or we wait as part of a recording
+    // Disallow the default cliff-climb if we are waiting or we didn't get up during a recording
     if (LEDGE_CASE == LedgeOption::WAIT
         || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
+        || LEDGE_CASE.is_playback() && !input_record::is_playback()
         && term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
     {
         return Some(false);

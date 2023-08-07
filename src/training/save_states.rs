@@ -511,12 +511,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 save_state.state = NoAction;
             }
         } else if save_state.situation_kind == SITUATION_KIND_CLIFF {
-            if status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
+            if status != FIGHTER_STATUS_KIND_FALL
+                && status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
                 && status != FIGHTER_STATUS_KIND_CLIFF_CATCH
             {
                 StatusModule::change_status_request(
                     module_accessor,
-                    *FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE,
+                    *FIGHTER_STATUS_KIND_FALL,
                     false,
                 );
             } else {
@@ -611,8 +612,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if MENU.record_trigger == RecordTrigger::SaveState {
             input_record::lockout_record();
         }
-        // otherwise, begin input recording playback if selected
-        else if MENU.save_state_playback == OnOff::On {
+        // otherwise, begin input recording playback if selected 
+        // for ledge, don't do this - if you want playback on a ledge, you have to set it as a ledge option,
+        // otherwise there too many edge cases here
+        else if MENU.save_state_playback == OnOff::On && save_state.situation_kind != SITUATION_KIND_CLIFF {
             input_record::playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
         }
 
@@ -649,15 +652,17 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         save_state.state = NoAction;
 
         save_state.x = PostureModule::pos_x(module_accessor);
-        save_state.y = PostureModule::pos_y(module_accessor);
+        println!("PosY: {}", PostureModule::pos_y(module_accessor));
+        if save_state.situation_kind == SITUATION_KIND_CLIFF {
+            // Modify y position so that all characters grab the ledge properly
+            save_state.y = PostureModule::pos_y(module_accessor) + 5.0;
+        } else {
+            save_state.y = PostureModule::pos_y(module_accessor);
+        }
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
-        save_state.situation_kind =
-            if StatusModule::situation_kind(module_accessor) == *SITUATION_KIND_CLIFF {
-                *SITUATION_KIND_AIR
-            } else {
-                StatusModule::situation_kind(module_accessor)
-            };
+        save_state.situation_kind = StatusModule::situation_kind(module_accessor);
+
         // Always store fighter kind so that charges are handled properly
         save_state.fighter_kind = app::utility::get_kind(module_accessor);
         save_state.charge = charge::get_charge(module_accessor, fighter_kind);
