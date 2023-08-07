@@ -489,7 +489,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         // When buffering an option, we keep inputting the first frame of input during the buffer window
         if BUFFER_FRAME > 0 {
             BUFFER_FRAME -= 1;
-        } else if INPUT_RECORD_FRAME < FINAL_RECORD_FRAME - 1 && POSSESSION != Standby {
+        } else if INPUT_RECORD_FRAME < CURRENT_FRAME_LENGTH - 1 && POSSESSION != Standby {
             if INPUT_RECORD == Playback {
                 clear_notifications("Input Recording");
                 color_notification(
