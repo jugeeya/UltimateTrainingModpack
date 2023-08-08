@@ -25,11 +25,11 @@ pub fn button_mapping(
         },
         ButtonConfig::ZL => match style {
             GCController => b.l() || b.real_digital_l(),
-            _ => b.zl(),
+            _ => b.zl() || b.left_sl() || b.right_sl(),
         },
         ButtonConfig::ZR => match style {
             GCController => b.r() || b.real_digital_r(),
-            _ => b.zr(),
+            _ => b.zr() || b.left_sr() || b.right_sr(),
         },
         ButtonConfig::DpadUp => b.dpad_up(),
         ButtonConfig::DpadDown => b.dpad_down(),
