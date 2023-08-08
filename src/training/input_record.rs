@@ -1,7 +1,7 @@
 use crate::common::button_config;
 use crate::common::consts::{FighterId, HitstunPlayback, OnOff};
+use crate::common::input::*;
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
-use crate::training::input_recording::structures::*;
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
 use lazy_static::lazy_static;
@@ -372,18 +372,7 @@ pub unsafe fn is_end_standby() -> bool {
     lstick_movement || rstick_movement || buttons_pressed
 }
 
-static FIM_OFFSET: usize = 0x17504a0;
-// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
-#[skyline::hook(offset = FIM_OFFSET)]
-unsafe fn handle_final_input_mapping(
-    mappings: *mut ControllerMapping,
-    player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
-    out: *mut MappedInputs,
-    controller_struct: &mut SomeControllerStruct,
-    arg: bool,
-) {
-    // go through the original mapping function first
-    original!()(mappings, player_idx, out, controller_struct, arg);
+pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
     if player_idx == 0 {
         // if player 1
         if INPUT_RECORD == Record {
@@ -524,5 +513,5 @@ extern "C" {
 }
 
 pub fn init() {
-    skyline::install_hooks!(set_cpu_controls, handle_final_input_mapping,);
+    skyline::install_hooks!(set_cpu_controls);
 }
