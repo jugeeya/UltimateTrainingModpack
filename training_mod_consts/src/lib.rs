@@ -80,6 +80,16 @@ pub struct TrainingModpackMenu {
     pub hitstun_playback: HitstunPlayback,
     pub playback_mash: OnOff,
     pub playback_loop: OnOff,
+    pub menu_open_hold: ButtonConfig,
+    pub menu_open_press: ButtonConfig,
+    pub save_state_save_hold: ButtonConfig,
+    pub save_state_save_press: ButtonConfig,
+    pub save_state_load_hold: ButtonConfig,
+    pub save_state_load_press: ButtonConfig,
+    pub input_record_hold: ButtonConfig,
+    pub input_record_press: ButtonConfig,
+    pub input_playback_hold: ButtonConfig,
+    pub input_playback_press: ButtonConfig,
 }
 
 #[repr(C)]
@@ -178,6 +188,16 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
     playback_loop: OnOff::Off,
+    menu_open_hold: ButtonConfig::B,
+    menu_open_press: ButtonConfig::DpadUp,
+    save_state_save_hold: ButtonConfig::L,
+    save_state_save_press: ButtonConfig::DpadDown,
+    save_state_load_hold: ButtonConfig::L,
+    save_state_load_press: ButtonConfig::DpadUp,
+    input_record_hold: ButtonConfig::R,
+    input_record_press: ButtonConfig::DpadDown,
+    input_playback_hold: ButtonConfig::R,
+    input_playback_press: ButtonConfig::DpadUp,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -805,6 +825,83 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.playback_loop as u32),
     );
     overall_menu.tabs.push(input_tab);
+
+    let mut button_tab = Tab {
+        tab_id: "button",
+        tab_title: "Button Config",
+        tab_submenus: Vec::new(),
+    };
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Menu Open: Hold",
+        "menu_open_hold",
+        "Menu Open: Hold: Which button to hold down before pressing Menu Open: Press",
+        true,
+        &(menu.menu_open_hold as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Menu Open: Press",
+        "menu_open_press",
+        "Menu Open: Press: Which button to press after holding Menu Open: Hold",
+        true,
+        &(menu.menu_open_press as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Save: Hold",
+        "save_state_save_hold",
+        "Save State Save: Hold: Which button to hold down before pressing Save State Save: Press",
+        true,
+        &(menu.save_state_save_hold as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Save: Press",
+        "save_state_save_press",
+        "Save State Save: Press: Which button to press after holding Save State Save: Hold",
+        true,
+        &(menu.save_state_save_press as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Load: Hold",
+        "save_state_load_hold",
+        "Save State Load: Hold: Which button to hold down before pressing Save State Load: Press",
+        true,
+        &(menu.save_state_load_hold as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Load: Press",
+        "save_state_load_press",
+        "Save State Load: Press: Which button to press after holding Save State Load: Hold",
+        true,
+        &(menu.save_state_load_press as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Record: Hold",
+        "input_record_hold",
+        "Input Record: Hold: Which button to hold down before pressing Input Record: Press",
+        true,
+        &(menu.input_record_hold as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Record: Press",
+        "input_record_press",
+        "Input Record: Press: Which button to press after holding Input Record: Hold",
+        true,
+        &(menu.input_record_hold as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Playback: Hold",
+        "input_playback_hold",
+        "Input Playback: Hold: Which button to hold down before pressing Input Playback: Press",
+        true,
+        &(menu.input_playback_hold as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Playback: Press",
+        "input_playback_press",
+        "Input Playback: Press: Which button to press after holding Input Playback: Hold",
+        true,
+        &(menu.input_playback_press as u32),
+    );
+    overall_menu.tabs.push(button_tab);
 
     overall_menu
 }

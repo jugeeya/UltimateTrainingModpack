@@ -74,21 +74,6 @@ pub fn main() {
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification(
-            "Open Menu".to_string(),
-            "Special + Uptaunt".to_string(),
-            120,
-        );
-        notification(
-            "Save State".to_string(),
-            "Shield + Downtaunt".to_string(),
-            120,
-        );
-        notification(
-            "Load State".to_string(),
-            "Shield + Uptaunt".to_string(),
-            120,
-        );
     }
 
     hitbox_visualizer::hitbox_visualization();
@@ -118,7 +103,55 @@ pub fn main() {
     release::version_check();
 
     menu::load_from_file();
-    button_config::load_from_file();
+
+    unsafe {
+        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+        notification(
+            "Open Menu".to_string(),
+            format!(
+                "{} + {}",
+                MENU.menu_open_hold.as_str(),
+                MENU.menu_open_press.as_str()
+            ),
+            120,
+        );
+        notification(
+            "Save State".to_string(),
+            format!(
+                "{} + {}",
+                MENU.save_state_save_hold.as_str(),
+                MENU.save_state_save_press.as_str()
+            ),
+            120,
+        );
+        notification(
+            "Load State".to_string(),
+            format!(
+                "{} + {}",
+                MENU.save_state_load_hold.as_str(),
+                MENU.save_state_load_press.as_str()
+            ),
+            120,
+        );
+        notification(
+            "Input Record".to_string(),
+            format!(
+                "{} + {}",
+                MENU.input_record_hold.as_str(),
+                MENU.input_record_press.as_str()
+            ),
+            120,
+        );
+        notification(
+            "Input Playback".to_string(),
+            format!(
+                "{} + {}",
+                MENU.input_playback_hold.as_str(),
+                MENU.input_playback_press.as_str()
+            ),
+            120,
+        );
+    }
 
     std::thread::spawn(events_loop);
 
