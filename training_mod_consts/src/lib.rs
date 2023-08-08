@@ -885,7 +885,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         "input_record_press",
         "Input Record: Press: Which button to press after holding Input Record: Hold",
         true,
-        &(menu.input_record_hold as u32),
+        &(menu.input_record_press as u32),
     );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
         "Input Playback: Hold",
