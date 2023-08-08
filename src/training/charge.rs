@@ -126,6 +126,27 @@ pub unsafe fn get_charge(
         );
         charge_state.int_x(my_charge)
     }
+    // Olimar Pikmin
+    else if fighter_kind == FIGHTER_KIND_PIKMIN {
+        // First we loop through each Pikmin, getting them and then deleting them until they no longer exist
+        while ArticleModule::is_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) {
+            let article: u64 = ArticleModule::get_article(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN);
+            let article_object_id = Article::get_battle_object_id(article as *mut app::Article);
+            
+            println!("Pikmin color = {}", );
+            ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
+        }
+        // Next, we respawn the Pikmin in case we don't want to load state yet
+        
+        WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_HOLD_INDEX;
+        
+        
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE,
+        );
+        charge_state.float_x(pikmin_first)
+    }
     // Lucario Aura Sphere
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
         let my_charge = WorkModule::get_int(
