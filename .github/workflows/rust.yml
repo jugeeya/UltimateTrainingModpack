@@ -55,7 +55,9 @@ jobs:
           prefix-key: "plugin"
           cache-all-crates: true
       - name: Install Skyline
-        run: cargo install cargo-skyline
+        run: |
+          cargo install cargo-skyline
+          cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
         run: cargo-skyline skyline build --release
@@ -79,7 +81,9 @@ jobs:
           prefix-key: "plugin"
           cache-all-crates: true
       - name: Install Skyline
-        run: cargo install cargo-skyline
+        run: |
+          cargo install cargo-skyline
+          cargo-skyline skyline update-std
       - name: Build outside_training_mode NRO
         run: cargo-skyline skyline build --release --features outside_training_mode
         env:
