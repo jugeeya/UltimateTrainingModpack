@@ -607,7 +607,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if prev_status_kind == FIGHTER_STATUS_KIND_REBIRTH && fighter_is_popo {
             save_state.state = NanaPosMove;
         }
-
         // otherwise, begin input recording playback if selected
         else if !MENU.save_state_playback.is_empty() {
             input_record::playback(MENU.save_state_playback.get_random().into_idx());
