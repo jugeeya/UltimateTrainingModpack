@@ -239,13 +239,13 @@ fn combo_passes(combo: ButtonCombo) -> bool {
         let p1_controller_state = *P1_CONTROLLER_STATE.data_ptr();
         let this_combo_passes = hold.iter().all(|hold| {
             button_mapping(
-                &*hold.to_uppercase(),
+                &hold.to_uppercase(),
                 p1_controller_state.style,
                 p1_controller_state.current_buttons,
             )
         }) && press.iter().all(|hold| {
             button_mapping(
-                &*hold.to_uppercase(),
+                &hold.to_uppercase(),
                 p1_controller_state.style,
                 p1_controller_state.just_down,
             )
@@ -258,7 +258,7 @@ fn combo_passes(combo: ButtonCombo) -> bool {
 pub fn combo_passes_exclusive(combo: ButtonCombo) -> bool {
     let other_combo_passes = ButtonCombo::iter()
         .filter(|other_combo| *other_combo != combo)
-        .any(|other_combo| combo_passes(other_combo));
+        .any(combo_passes);
     combo_passes(combo) && !other_combo_passes
 }
 

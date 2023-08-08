@@ -65,7 +65,7 @@ pub static mut CURRENT_FRAME_LENGTH: usize = 60;
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[[MappedInputs; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]> =
-        Mutex::new([[{ MappedInputs::default() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
+        Mutex::new([[{ MappedInputs::empty() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
     static ref P1_FRAME_LENGTH_MAPPING: Mutex<[usize; TOTAL_SLOT_COUNT]> =
         Mutex::new([60usize; TOTAL_SLOT_COUNT]);
     static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
@@ -275,7 +275,7 @@ pub unsafe fn lockout_record() {
     P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT]
         .iter_mut()
         .for_each(|mapped_input| {
-            *mapped_input = MappedInputs::default();
+            *mapped_input = MappedInputs::empty();
         });
     CURRENT_FRAME_LENGTH = MENU.recording_frames.into_frames();
     P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
@@ -388,7 +388,7 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
             }
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
-            *out = MappedInputs::default(); // don't control player while recording
+            *out = MappedInputs::empty(); // don't control player while recording
             println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
     }
@@ -446,7 +446,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
 
         if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
             // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
-            saved_mapped_inputs = MappedInputs::default();
+            saved_mapped_inputs = MappedInputs::empty();
         }
 
         (*controller_data).buttons = saved_mapped_inputs.buttons;

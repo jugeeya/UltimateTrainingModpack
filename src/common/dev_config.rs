@@ -55,7 +55,7 @@ impl DevConfig {
     }
 }
 
-pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeControllerStruct) {
+pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &SomeControllerStruct) {
     let current_buttons = controller_struct.controller.current_buttons;
     if player_idx == 0 && current_buttons.l() && current_buttons.r() && current_buttons.a() {
         let mut dev_config = DEV_CONFIG.lock();

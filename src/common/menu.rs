@@ -90,7 +90,7 @@ lazy_static! {
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
-    controller_struct: &mut SomeControllerStruct,
+    controller_struct: &SomeControllerStruct,
     out: *mut MappedInputs,
 ) {
     unsafe {
@@ -98,7 +98,7 @@ pub fn handle_final_input_mapping(
             *P1_CONTROLLER_STATE.lock() = *controller_struct.controller;
             if QUICK_MENU_ACTIVE {
                 // If we're here, remove all other presses
-                *out = MappedInputs::default();
+                *out = MappedInputs::empty();
             }
         }
     }

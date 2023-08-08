@@ -18,7 +18,7 @@ pub fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
             let actual_mapping = *out;
 
             if delayed_mappings.len() < MENU.input_delay.into_delay() as usize {
-                *out = MappedInputs::default();
+                *out = MappedInputs::empty();
             } else if let Some(delayed_mapping) = delayed_mappings.back() {
                 *out = *delayed_mapping;
             }
