@@ -44,19 +44,23 @@ jobs:
   plugin:
     name: Plugin NRO
     runs-on: ubuntu-latest
-    container:
-      image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          target: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache
         with:
           prefix-key: "plugin"
+          cache-all-crates: true
+      - name: Install Skyline
+        run: |
+          cargo install cargo-skyline
+          cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
         run: cargo-skyline skyline build --release
-        env:
-          HOME: /root
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v3
         with:
@@ -66,19 +70,22 @@ jobs:
     name: Plugin NRO (Outside Training Mode)
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    container:
-      image: jugeeya/cargo-skyline:3.2.0-no-dkp
     steps:
       - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          target: x86_64-unknown-linux-gnu
       - uses: Swatinem/rust-cache@v2
         name: Rust Cache
         with:
           prefix-key: "plugin"
-      - name: Build outside_training_mode NRO
+          cache-all-crates: true
+      - name: Install Skyline
         run: |
-          cargo-skyline skyline build --release --features outside_training_mode
-        env:
-          HOME: /root
+          cargo install cargo-skyline
+          cargo-skyline skyline update-std
+      - name: Build outside_training_mode NRO
+        run: cargo-skyline skyline build --release --features outside_training_mode
       - name: Upload plugin (outside training mode) artifact
         uses: actions/upload-artifact@v3
         with:
