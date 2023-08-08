@@ -7,6 +7,7 @@ use training_mod_consts::MenuJsonStruct;
 
 use training_mod_tui::AppPage;
 
+use crate::common::button_config::button_mapping;
 use crate::common::*;
 use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
@@ -127,15 +128,15 @@ pub unsafe fn quick_menu_loop() {
             }
 
             let p1_controller_state = *P1_CONTROLLER_STATE.data_ptr();
-            let is_gcc = p1_controller_state.style == ControllerStyle::GCController;
+            let style = p1_controller_state.style;
             let button_presses = p1_controller_state.just_down;
 
             let app = &mut *QUICK_MENU_APP.data_ptr();
-            button_presses.a().then(|| {
+            button_mapping(ButtonConfig::A, style, button_presses).then(|| {
                 app.on_a();
                 received_input = true;
             });
-            button_presses.b().then(|| {
+            button_mapping(ButtonConfig::B, style, button_presses).then(|| {
                 received_input = true;
                 if app.page != AppPage::SUBMENU {
                     app.on_b()
@@ -148,58 +149,49 @@ pub unsafe fn quick_menu_loop() {
                     EVENT_QUEUE.push(Event::menu_open(menu_json));
                 }
             });
-            button_presses.x().then(|| {
+            button_mapping(ButtonConfig::X, style, button_presses).then(|| {
                 app.save_defaults();
                 received_input = true;
             });
-            button_presses.y().then(|| {
+            button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
                 app.reset_all_submenus();
                 received_input = true;
             });
-            (button_presses.l() || button_presses.real_digital_l()).then(|| {
-                if is_gcc {
-                    app.previous_tab();
-                }
+
+            button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
+                app.previous_tab();
                 received_input = true;
             });
-            (button_presses.r() || button_presses.real_digital_r()).then(|| {
-                if is_gcc {
-                    app.next_tab();
-                } else {
-                    app.reset_current_submenu();
-                }
+            button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
+                app.next_tab();
                 received_input = true;
             });
-            button_presses.zl().then(|| {
-                if !is_gcc {
-                    app.previous_tab();
-                }
+            button_mapping(ButtonConfig::R, style, button_presses).then(|| {
+                app.reset_current_submenu();
                 received_input = true;
             });
-            button_presses.zr().then(|| {
-                if !is_gcc {
-                    app.next_tab();
-                } else {
-                    app.reset_current_submenu();
-                }
-                received_input = true;
-            });
-            button_presses.l_left().then(|| {
-                app.on_left();
-                received_input = true;
-            });
-            button_presses.l_right().then(|| {
-                app.on_right();
-                received_input = true;
-            });
-            button_presses.l_up().then(|| {
-                app.on_up();
-                received_input = true;
-            });
-            button_presses.l_down().then(|| {
-                app.on_down();
-                received_input = true;
-            });
+
+            (button_presses.dpad_left() || button_presses.l_left() || button_presses.r_left())
+                .then(|| {
+                    app.on_left();
+                    received_input = true;
+                });
+            (button_presses.dpad_right() || button_presses.l_right() || button_presses.r_right())
+                .then(|| {
+                    app.on_right();
+                    received_input = true;
+                });
+            (button_presses.dpad_up() || button_presses.l_up() || button_presses.r_up()).then(
+                || {
+                    app.on_up();
+                    received_input = true;
+                },
+            );
+            (button_presses.dpad_down() || button_presses.l_down() || button_presses.r_down())
+                .then(|| {
+                    app.on_down();
+                    received_input = true;
+                });
 
             if received_input {
                 received_input = false;

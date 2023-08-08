@@ -5,7 +5,11 @@ use crate::input::{ControllerStyle::*, *};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-fn button_mapping(button_config: ButtonConfig, style: ControllerStyle, b: ButtonBitfield) -> bool {
+pub fn button_mapping(
+    button_config: ButtonConfig,
+    style: ControllerStyle,
+    b: ButtonBitfield,
+) -> bool {
     match button_config {
         ButtonConfig::A => b.a(),
         ButtonConfig::B => b.b(),
