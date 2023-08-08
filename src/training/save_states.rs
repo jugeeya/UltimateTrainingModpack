@@ -17,7 +17,6 @@ use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
-use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
@@ -609,10 +608,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state.state = NanaPosMove;
         }
 
-        // if we're recording on state load, record
-        if MENU.record_trigger == RecordTrigger::SaveState {
-            input_record::lockout_record();
-        }
         // otherwise, begin input recording playback if selected
         else if !MENU.save_state_playback.is_empty() {
             input_record::playback(MENU.save_state_playback.get_random().into_idx());

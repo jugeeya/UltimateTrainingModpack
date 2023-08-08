@@ -186,11 +186,12 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         ) {
             playback(MENU.playback_button_combination.get_random().into_idx());
         }
-        // Attack + Dpad Left: Record
-        else if button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::InputRecord,
-        ) {
+        else if MENU.record_trigger == OnOff::On
+            && button_config::combo_passes_exclusive(
+                module_accessor,
+                button_config::ButtonCombo::InputRecord,
+            )
+        {
             lockout_record();
         }
 
