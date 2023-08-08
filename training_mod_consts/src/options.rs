@@ -1447,22 +1447,22 @@ impl ToggleTrait for RecordingFrames {
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
 pub enum ButtonConfig {
-    A =            0b0000_0000_0000_0000_0001,
-    B =            0b0000_0000_0000_0000_0010,
-    X =            0b0000_0000_0000_0000_0100,
-    Y =            0b0000_0000_0000_0000_1000,
-    L =            0b0000_0000_0000_0001_0000,
-    R =            0b0000_0000_0000_0010_0000,
-    ZL =           0b0000_0000_0000_0100_0000,
-    ZR =           0b0000_0000_0000_1000_0000,
-    DpadUp =       0b0000_0000_0001_0000_0000,
-    DpadDown =     0b0000_0000_0010_0000_0000,
-    DpadLeft =     0b0000_0000_0100_0000_0000,
-    DpadRight =    0b0000_0000_1000_0000_0000,
-    Plus =         0b0000_0001_0000_0000_0000,
-    Minus =        0b0000_0010_0000_0000_0000,
-    LStick =       0b0000_0100_0000_0000_0000,
-    RStick =       0b0000_1000_0000_0000_0000,
+    A = 0b0000_0000_0000_0000_0001,
+    B = 0b0000_0000_0000_0000_0010,
+    X = 0b0000_0000_0000_0000_0100,
+    Y = 0b0000_0000_0000_0000_1000,
+    L = 0b0000_0000_0000_0001_0000,
+    R = 0b0000_0000_0000_0010_0000,
+    ZL = 0b0000_0000_0000_0100_0000,
+    ZR = 0b0000_0000_0000_1000_0000,
+    DpadUp = 0b0000_0000_0001_0000_0000,
+    DpadDown = 0b0000_0000_0010_0000_0000,
+    DpadLeft = 0b0000_0000_0100_0000_0000,
+    DpadRight = 0b0000_0000_1000_0000_0000,
+    Plus = 0b0000_0001_0000_0000_0000,
+    Minus = 0b0000_0010_0000_0000_0000,
+    LStick = 0b0000_0100_0000_0000_0000,
+    RStick = 0b0000_1000_0000_0000_0000,
 }
 
 impl ButtonConfig {
@@ -1491,9 +1491,7 @@ impl ButtonConfig {
 
 impl ToggleTrait for ButtonConfig {
     fn to_toggle_strs() -> Vec<&'static str> {
-        ButtonConfig::iter()
-            .map(|i| i.as_str())
-            .collect()
+        ButtonConfig::iter().map(|i| i.as_str()).collect()
     }
 
     fn to_toggle_vals() -> Vec<u32> {
