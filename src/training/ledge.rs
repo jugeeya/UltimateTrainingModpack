@@ -139,7 +139,6 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
         if should_buffer_playback
             && LEDGE_CASE.is_playback()
-            && MENU.record_trigger != RecordTrigger::Ledge
             && MENU.ledge_delay != LongDelay::empty()
         {
             input_record::playback_ledge(LEDGE_CASE.playback_slot());
@@ -164,9 +163,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let status = LEDGE_CASE.into_status().unwrap_or(0);
 
     if LEDGE_CASE.is_playback() {
-        if MENU.record_trigger != RecordTrigger::Ledge {
-            input_record::playback(LEDGE_CASE.playback_slot());
-        }
+        input_record::playback(LEDGE_CASE.playback_slot());
     } else {
         StatusModule::change_status_request_from_script(module_accessor, status, true);
     }
@@ -208,25 +205,6 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
 
     // Set up check for beginning of ledge grab
     unsafe {
-        let current_frame = MotionModule::frame(module_accessor) as i32;
-        // Frame 18 is right before actionability for cliff catch
-        #[allow(clippy::unnecessary_cast)]
-        let just_grabbed_ledge = (StatusModule::status_kind(module_accessor) as i32
-            == *FIGHTER_STATUS_KIND_CLIFF_CATCH)
-            && current_frame == 18;
-        // Needs to be a frame earlier for lasso grabs
-        #[allow(clippy::unnecessary_cast)]
-        let just_lassoed_ledge = (StatusModule::status_kind(module_accessor) as i32
-            == *FIGHTER_STATUS_KIND_CLIFF_WAIT)
-            && current_frame == 17;
-        // Begin recording on ledge if this is the recording trigger
-        if (just_grabbed_ledge || just_lassoed_ledge)
-            && MENU.record_trigger == RecordTrigger::Ledge
-            && !input_record::is_standby()
-        {
-            input_record::lockout_record();
-            return;
-        }
         // Behave normally if we're playing back recorded inputs or controlling the cpu
         if input_record::is_playback() {
             return;
