@@ -94,6 +94,7 @@ macro_rules! default_save_state {
             charge: ChargeState {
                 int_x: None,
                 int_y: None,
+                int_z: None,
                 float_x: None,
                 float_y: None,
                 float_z: None,

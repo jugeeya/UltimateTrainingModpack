@@ -290,9 +290,9 @@ pub fn print_fighter_info(
     cpu_only: bool,
     print_fighter_kind: bool,
     print_status: bool,
-    work_int_pairs: Vec<(&str, LuaConst)>,
-    work_float_pairs: Vec<(&str, LuaConst)>,
-    work_flag_pairs: Vec<(&str, LuaConst)>,
+    work_int_pairs: Vec<(&str, i32)>,
+    work_float_pairs: Vec<(&str, i32)>,
+    work_flag_pairs: Vec<(&str, i32)>,
 ) {
     unsafe {
         // Don't print for fighters we don't want to
@@ -319,7 +319,7 @@ pub fn print_fighter_info(
             print!(
                 "{}: {}, ",
                 work_int_pair.0,
-                WorkModule::get_int(module_accessor, *(work_int_pair.1))
+                WorkModule::get_int(module_accessor, (work_int_pair.1))
             );
         }
 
@@ -328,7 +328,7 @@ pub fn print_fighter_info(
             print!(
                 "{}: {}, ",
                 work_float_pair.0,
-                WorkModule::get_float(module_accessor, *(work_float_pair.1))
+                WorkModule::get_float(module_accessor, (work_float_pair.1))
             );
         }
 
@@ -337,7 +337,7 @@ pub fn print_fighter_info(
             print!(
                 "{}: {}, ",
                 work_flag_pair.0,
-                WorkModule::is_flag(module_accessor, *(work_flag_pair.1))
+                WorkModule::is_flag(module_accessor, (work_flag_pair.1))
             );
         }
 

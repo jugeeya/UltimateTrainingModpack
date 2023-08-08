@@ -616,6 +616,21 @@ pub unsafe fn handle_reused_ui(
     original!()(fighter_data, param_2)
 }
 
+static ARTICLE_GET_INT_OFFSET: usize = 0x3d5920;
+
+#[skyline::hook(offset = ARTICLE_GET_INT_OFFSET)]
+pub unsafe fn handle_article_get_int(
+    article_module: *mut app::BattleObjectModuleAccessor, // *mut ArticleModule
+    generate_article: i32,
+    address: i32,
+) -> i32 {
+    original!()(
+        article_module,
+        generate_article,
+        address
+    )
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -706,6 +721,8 @@ pub fn training_mods() {
         handle_star_ko,
         // Clatter
         clatter::hook_start_clatter,
+        // Charge
+        handle_article_get_int,
     );
 
     combo::init();

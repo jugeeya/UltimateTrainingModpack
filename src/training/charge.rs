@@ -2,15 +2,25 @@ use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+use crate::training::handle_article_get_int;
+use crate::print_fighter_info;
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
     pub int_x: Option<i32>,
     pub int_y: Option<i32>,
+    pub int_z: Option<i32>,
     pub float_x: Option<f32>,
     pub float_y: Option<f32>,
     pub float_z: Option<f32>,
     pub has_charge: Option<bool>,
+}
+
+pub fn get_pikmin_prev(variation: i32) -> i32 {
+    if variation > 0 { 
+        return variation - 1; 
+    }
+    4
 }
 
 impl ChargeState {
@@ -36,6 +46,13 @@ impl ChargeState {
 
     fn float_z(mut self, float_z: f32) -> Self {
         self.float_z = Some(float_z);
+        self
+    }
+
+    fn set_pikmin(mut self, pikmin_1: Option<i32>, pikmin_2: Option<i32>, pikmin_3: Option<i32>) -> Self {
+        self.int_x = pikmin_1;
+        self.int_y = pikmin_2;
+        self.int_z = pikmin_3;
         self
     }
 
@@ -128,24 +145,58 @@ pub unsafe fn get_charge(
     }
     // Olimar Pikmin
     else if fighter_kind == FIGHTER_KIND_PIKMIN {
+        let mut pikmin_array: [Option<i32>; 3] = [None; 3];
         // First we loop through each Pikmin, getting them and then deleting them until they no longer exist
         while ArticleModule::is_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) {
             let article: u64 = ArticleModule::get_article(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN);
+            let pikmin_variation = handle_article_get_int(
+                *((module_accessor as *mut app::BattleObjectModuleAccessor) as *mut *mut app::BattleObjectModuleAccessor).byte_add(0x98),
+                // the above points to an ArticleModule, not a boma
+                *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN,
+                *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION
+            );
+            let pikmin_index = handle_article_get_int(
+                *((module_accessor as *mut app::BattleObjectModuleAccessor) as *mut *mut app::BattleObjectModuleAccessor).byte_add(0x98),
+                // the above points to an ArticleModule, not a boma
+                *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN,
+                *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_HOLD_INDEX
+            );
+            pikmin_array[pikmin_index as usize] = Some(pikmin_variation);
             let article_object_id = Article::get_battle_object_id(article as *mut app::Article);
-            
-            println!("Pikmin color = {}", );
             ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
         }
-        // Next, we respawn the Pikmin in case we don't want to load state yet
-        
-        WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_HOLD_INDEX;
-        
-        
-        let my_charge = WorkModule::get_int(
-            module_accessor,
-            *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE,
-        );
-        charge_state.float_x(pikmin_first)
+        let charge = charge_state.set_pikmin(pikmin_array[0], pikmin_array[1], pikmin_array[2]);
+        charge.int_x.map(|pikmin_1| {
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
+            ArticleModule::generate_article(
+                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                0,
+                false,
+                -1
+            );
+        });
+        charge.int_y.map(|pikmin_2| {
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
+            ArticleModule::generate_article(
+                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                0,
+                false,
+                -1
+            );
+        });
+        charge.int_z.map(|pikmin_3| {
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
+            ArticleModule::generate_article(
+                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                0,
+                false,
+                -1
+            );
+        });
+        charge
     }
     // Lucario Aura Sphere
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
@@ -536,6 +587,45 @@ pub unsafe fn handle_charge(
             if water_charge == 45 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
+        });
+    }
+    // Olimar Pikmin - 0 to 4
+    else if fighter_kind == FIGHTER_KIND_PIKMIN {
+        charge.int_x.map(|pikmin_1| {
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
+            ArticleModule::generate_article(
+                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                0,
+                false,
+                -1
+            );
+            // Increase Motion Rate of Pikmin to have them instantly spawn in
+            let pikmin_boma = app::sv_battle_object::module_accessor(
+                WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_0) as u32
+            );
+            WorkModule::set_float(pikmin_boma, 40.0, *WEAPON_PIKMIN_PIKMIN_STATUS_PULL_OUT_START_WORK_FLOAT_MOT_RATE);
+            MotionModule::set_rate(pikmin_boma, 40.0);
+        });
+        charge.int_y.map(|pikmin_2| {
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
+            ArticleModule::generate_article(
+                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                0,
+                false,
+                -1
+            );
+        });
+        charge.int_z.map(|pikmin_3| {
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
+            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
+            ArticleModule::generate_article(
+                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                0,
+                false,
+                -1
+            );
         });
     }
     // Lucario Aura Sphere - 0 to 90, Boolean
