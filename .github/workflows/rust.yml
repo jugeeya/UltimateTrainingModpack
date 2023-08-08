@@ -86,8 +86,6 @@ jobs:
           cargo-skyline skyline update-std
       - name: Build outside_training_mode NRO
         run: cargo-skyline skyline build --release --features outside_training_mode
-        env:
-          HOME: /root
       - name: Upload plugin (outside training mode) artifact
         uses: actions/upload-artifact@v3
         with:
