@@ -1466,7 +1466,6 @@ pub enum ButtonConfig {
 }
 
 impl ButtonConfig {
-    // Should we use the font glyphs? Or do that special casing in the menu?
     pub fn as_str(self) -> &'static str {
         match self {
             ButtonConfig::A => "A",
@@ -1486,6 +1485,28 @@ impl ButtonConfig {
             ButtonConfig::LStick => "Left Stick Press",
             ButtonConfig::RStick => "Right Stick Press",
         }
+    }
+
+    pub fn from_name(name: &str) -> Option<ButtonConfig> {
+        Some(match name {
+            "A" => ButtonConfig::A,
+            "B" => ButtonConfig::B,
+            "X" => ButtonConfig::X,
+            "Y" => ButtonConfig::Y,
+            "Pro L" => ButtonConfig::L,
+            "Pro R; GCC Z" => ButtonConfig::R,
+            "Pro ZL; GCC L" => ButtonConfig::ZL,
+            "Pro ZR; GCC R" => ButtonConfig::ZR,
+            "DPad Up" => ButtonConfig::DpadUp,
+            "DPad Down" => ButtonConfig::DpadDown,
+            "DPad Left" => ButtonConfig::DpadLeft,
+            "DPad Right" => ButtonConfig::DpadRight,
+            "Plus" => ButtonConfig::Plus,
+            "Minus" => ButtonConfig::Minus,
+            "Left Stick Press" => ButtonConfig::LStick,
+            "Right Stick Press" => ButtonConfig::RStick,
+            _ => return None,
+        })
     }
 }
 

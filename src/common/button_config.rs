@@ -42,6 +42,125 @@ pub fn button_mapping(
     }
 }
 
+pub fn name_to_font_glyph(name: &str, style: ControllerStyle) -> Option<u16> {
+    let is_gcc = style == ControllerStyle::GCController;
+    let button = ButtonConfig::from_name(name)?;
+    Some(match button {
+        ButtonConfig::A => {
+            if is_gcc {
+                0xE202
+            } else {
+                0xE0E0
+            }
+        }
+        ButtonConfig::B => {
+            if is_gcc {
+                0xE203
+            } else {
+                0xE0E1
+            }
+        }
+        ButtonConfig::X => {
+            if is_gcc {
+                0xE206
+            } else {
+                0xE0E2
+            }
+        }
+        ButtonConfig::Y => {
+            if is_gcc {
+                0xE207
+            } else {
+                0xE0E3
+            }
+        }
+        ButtonConfig::L => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE0E4
+            }
+        }
+        ButtonConfig::R => {
+            if is_gcc {
+                0xE205
+            } else {
+                0xE0E5
+            }
+        }
+        ButtonConfig::ZL => {
+            if is_gcc {
+                0xE204
+            } else {
+                0xE0E6
+            }
+        }
+        ButtonConfig::ZR => {
+            if is_gcc {
+                0xE208
+            } else {
+                0xE0E7
+            }
+        }
+        ButtonConfig::DpadUp => {
+            if is_gcc {
+                0xE209
+            } else {
+                0xE0EB
+            }
+        }
+        ButtonConfig::DpadDown => {
+            if is_gcc {
+                0xE20A
+            } else {
+                0xE0EC
+            }
+        }
+        ButtonConfig::DpadLeft => {
+            if is_gcc {
+                0xE20B
+            } else {
+                0xE0ED
+            }
+        }
+        ButtonConfig::DpadRight => {
+            if is_gcc {
+                0xE20C
+            } else {
+                0xE0EE
+            }
+        }
+        ButtonConfig::Plus => {
+            if is_gcc {
+                0xE20D
+            } else {
+                0xE0EF
+            }
+        }
+        ButtonConfig::Minus => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE0F0
+            }
+        }
+        ButtonConfig::LStick => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE104
+            }
+        }
+        ButtonConfig::RStick => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE105
+            }
+        }
+    })
+}
+
 #[derive(Debug, EnumIter, PartialEq)]
 pub enum ButtonCombo {
     OpenMenu,

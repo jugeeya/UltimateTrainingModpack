@@ -1,12 +1,18 @@
-use std::collections::HashMap;
-
 use lazy_static::lazy_static;
+use parking_lot::Mutex;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
 use training_mod_tui::{App, AppPage};
 
-use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
+use crate::common::button_config::name_to_font_glyph;
+use crate::{common, common::menu::QUICK_MENU_ACTIVE};
+
+// TODO: Let's just use the icon font for all text
+lazy_static! {
+    static ref ICON_FONT: Mutex<u64> = Mutex::new(0);
+    static ref NORMAL_FONT: Mutex<u64> = Mutex::new(0);
+}
 
 pub static NUM_MENU_TEXT_OPTIONS: usize = 33;
 pub static _NUM_MENU_TABS: usize = 3;
@@ -52,24 +58,6 @@ const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
     b: 7,
     a: 255,
 };
-
-lazy_static! {
-    static ref GCC_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
-        ("L", 0xE204),
-        ("R", 0xE205),
-        ("X", 0xE206),
-        ("Y", 0xE207),
-        ("Z", 0xE208)
-    ]);
-    static ref PROCON_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
-        ("L", 0xE0E4),
-        ("R", 0xE0E5),
-        ("X", 0xE0E2),
-        ("Y", 0xE0E3),
-        ("ZL", 0xE0E6),
-        ("ZR", 0xE0E7)
-    ]);
-}
 
 unsafe fn render_submenu_page(app: &App, root_pane: &Pane) {
     let tab_selected = app.tab_selected();
@@ -198,7 +186,20 @@ unsafe fn render_toggle_page(app: &App, root_pane: &Pane) {
                     }
                 });
 
-                title_text.set_text_string(name);
+                let p1_controller_style = (*common::menu::P1_CONTROLLER_STATE.data_ptr()).style;
+                let potential_font_glyph = name_to_font_glyph(name, p1_controller_style);
+                if let Some(font_glyph) = potential_font_glyph {
+                    title_text.p_font = *ICON_FONT.data_ptr() as *const libc::c_void;
+                    title_text.set_text_string("");
+
+                    let it = title_text.text_buf as *mut u16;
+                    title_text.text_len = 1;
+                    *it = font_glyph;
+                    *(it.add(1)) = 0x0;
+                } else {
+                    // title_text.p_font = *NORMAL_FONT.data_ptr() as *const libc::c_void;
+                    title_text.set_text_string(name);
+                }
                 menu_button
                     .find_pane_by_name_recursive("check")
                     .unwrap()
@@ -405,30 +406,15 @@ pub unsafe fn draw(root_pane: &Pane) {
     };
     let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx]);
 
-    let is_gcc =
-        (*common::menu::P1_CONTROLLER_STATE.data_ptr()).style == ControllerStyle::GCController;
-    let button_mapping = if is_gcc {
-        GCC_BUTTON_MAPPING.clone()
-    } else {
-        PROCON_BUTTON_MAPPING.clone()
-    };
+    let p1_controller_style = (*common::menu::P1_CONTROLLER_STATE.data_ptr()).style;
 
-    let (x_key, y_key, l_key, r_key, zl_key, zr_key, z_key) = (
-        button_mapping.get("X"),
-        button_mapping.get("Y"),
-        button_mapping.get("L"),
-        button_mapping.get("R"),
-        button_mapping.get("ZL"),
-        button_mapping.get("ZR"),
-        button_mapping.get("Z"),
+    let (left_tab_key, right_tab_key, save_defaults_key, reset_current_key, reset_all_key) = (
+        name_to_font_glyph("Pro ZL; GCC L", p1_controller_style),
+        name_to_font_glyph("Pro ZR; GCC R", p1_controller_style),
+        name_to_font_glyph("X", p1_controller_style),
+        name_to_font_glyph("Pro R; GCC Z", p1_controller_style),
+        name_to_font_glyph("Y", p1_controller_style),
     );
-
-    let (left_tab_key, right_tab_key, save_defaults_key, reset_current_key, reset_all_key) =
-        if is_gcc {
-            (l_key, r_key, x_key, z_key, y_key)
-        } else {
-            (zl_key, zr_key, x_key, r_key, y_key)
-        };
 
     [
         (left_tab_key, "LeftTab"),
@@ -449,12 +435,13 @@ pub unsafe fn draw(root_pane: &Pane) {
             .unwrap()
             .as_textbox();
         icon_pane.set_text_string("");
+        *ICON_FONT.lock() = icon_pane.p_font as u64;
 
         // Left/Right tabs have keys
         if let Some(key) = key {
             let it = icon_pane.text_buf as *mut u16;
             icon_pane.text_len = 1;
-            *it = **key;
+            *it = *key;
             *(it.add(1)) = 0x0;
         }
 
@@ -465,6 +452,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             help_pane.set_color(255, 255, 0, 255);
         }
         help_pane.set_text_string(tab_titles[idx]);
+        *NORMAL_FONT.lock() = help_pane.p_font as u64;
     });
     [
         (save_defaults_key, "SaveDefaults", "Save Defaults"),
@@ -482,7 +470,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         icon_pane.set_text_string("");
         let it = icon_pane.text_buf as *mut u16;
         icon_pane.text_len = 1;
-        *it = *key.unwrap();
+        *it = key.unwrap();
         *(it.add(1)) = 0x0;
 
         key_help_pane
