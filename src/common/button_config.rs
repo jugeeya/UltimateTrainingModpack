@@ -1,32 +1,60 @@
-use std::collections::HashMap;
 use std::fs;
 
+use crate::common::menu::P1_CONTROLLER_STATE;
 use crate::consts::TRAINING_MODPACK_TOML_PATH;
+use crate::input::{ControllerStyle::*, *};
 
-use lazy_static::lazy_static;
 use log::info;
 use serde::Deserialize;
-use smash::app::lua_bind::ControlModule;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use toml;
 
-lazy_static! {
-    // Using the LuaConst names wasn't working for some reason...
-    static ref BUTTON_MAPPING: HashMap<&'static str, i32> = HashMap::from([
-        ("ATTACK", 0),  // *CONTROL_PAD_BUTTON_ATTACK
-        ("SPECIAL", 1), // *CONTROL_PAD_BUTTON_SPECIAL
-        ("SHIELD", 3), // *CONTROL_PAD_BUTTON_GUARD
-        ("GRAB", 9), // *CONTROL_PAD_BUTTON_CATCH
-        ("JUMP", 2), // *CONTROL_PAD_BUTTON_JUMP
-        ("UPTAUNT", 5), // *CONTROL_PAD_BUTTON_APPEAL_HI
-        ("DOWNTAUNT", 6), // *CONTROL_PAD_BUTTON_APPEAL_LW
-        ("LEFTTAUNT", 7), // *CONTROL_PAD_BUTTON_APPEAL_S_L
-        ("RIGHTTAUNT", 8), // *CONTROL_PAD_BUTTON_APPEAL_S_R
-        ("SHARESTOCK", 0xD), // *CONTROL_PAD_BUTTON_STOCK_SHARE
-        ("JUMPMINI", 0xA), // *CONTROL_PAD_BUTTON_JUMP_MINI
-    ]);
+const BUTTON_MAPPINGS: [&str; 12] = [
+    "A",
+    "B",
+    "X",
+    "Y",
+    "L",
+    "R",
+    "ZL",
+    "ZR",
+    "DPAD_UP",
+    "DPAD_DOWN",
+    "DPAD_LEFT",
+    "DPAD_RIGHT",
+];
+
+fn button_mapping(name: &str, style: ControllerStyle, b: ButtonBitfield) -> bool {
+    match name {
+        "A" => b.a(),
+        "B" => b.b(),
+        "X" => b.x(),
+        "Y" => b.y(),
+        "L" => match style {
+            GCController => false,
+            _ => b.l(),
+        },
+        "R" => match style {
+            GCController => b.zr(),
+            _ => b.r(),
+        },
+        "ZL" => match style {
+            GCController => b.l() || b.real_digital_l(),
+            _ => b.zl(),
+        },
+        "ZR" => match style {
+            GCController => b.r() || b.real_digital_r(),
+            _ => b.zr(),
+        },
+        "DPAD_UP" => b.dpad_up(),
+        "DPAD_DOWN" => b.dpad_down(),
+        "DPAD_LEFT" => b.dpad_left(),
+        "DPAD_RIGHT" => b.dpad_right(),
+        _ => panic!("Invalid button name: {}", name),
+    }
 }
+
 static mut BUTTON_COMBO_CONFIG: BtnComboConfig = BtnComboConfig {
     open_menu: BtnList {
         hold: vec![],
@@ -107,24 +135,24 @@ fn save_all_btn_config_from_defaults() {
     let conf = TopLevelBtnComboConfig {
         button_config: BtnComboConfig {
             open_menu: BtnList {
-                hold: vec!["SPECIAL".to_string()],
-                press: vec!["UPTAUNT".to_string()],
+                hold: vec!["B".to_string()],
+                press: vec!["DPAD_UP".to_string()],
             },
             save_state: BtnList {
-                hold: vec!["SHIELD".to_string()],
-                press: vec!["DOWNTAUNT".to_string()],
+                hold: vec!["ZL".to_string()],
+                press: vec!["DPAD_DOWN".to_string()],
             },
             load_state: BtnList {
-                hold: vec!["SHIELD".to_string()],
-                press: vec!["UPTAUNT".to_string()],
+                hold: vec!["ZL".to_string()],
+                press: vec!["DPAD_UP".to_string()],
             },
             input_record: BtnList {
-                hold: vec!["ATTACK".to_string()],
-                press: vec!["LEFTTAUNT".to_string()],
+                hold: vec!["ZR".to_string()],
+                press: vec!["DPAD_LEFT".to_string()],
             },
             input_playback: BtnList {
-                hold: vec!["ATTACK".to_string()],
-                press: vec!["RIGHTTAUNT".to_string()],
+                hold: vec!["ZR".to_string()],
+                press: vec!["DPAD_RIGHT".to_string()],
             },
         },
     };
@@ -146,7 +174,13 @@ fn save_all_btn_config_from_toml(data: &str) {
 
 fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
     let conf = conf.button_config;
-    let configs = [conf.open_menu, conf.save_state, conf.load_state];
+    let configs = [
+        conf.open_menu,
+        conf.save_state,
+        conf.load_state,
+        conf.input_record,
+        conf.input_playback,
+    ];
     let bad_keys = configs
         .iter()
         .flat_map(|btn_list| {
@@ -154,7 +188,7 @@ fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
                 .hold
                 .iter()
                 .chain(btn_list.press.iter())
-                .filter(|x| !BUTTON_MAPPING.contains_key(x.to_uppercase().as_str()))
+                .filter(|x| !BUTTON_MAPPINGS.contains(&x.to_uppercase().as_str()))
         })
         .collect::<Vec<&String>>();
 
@@ -165,9 +199,7 @@ fn validate_config(conf: TopLevelBtnComboConfig) -> bool {
             &format!(
                 "The following keys are invalid in\n{}:\n\
                 {:?}\n\nPossible Keys: {:#?}\0",
-                TRAINING_MODPACK_TOML_PATH,
-                &bad_keys,
-                BUTTON_MAPPING.keys()
+                TRAINING_MODPACK_TOML_PATH, &bad_keys, BUTTON_MAPPINGS
             ),
         );
         false
@@ -201,73 +233,72 @@ unsafe fn get_combo_keys(combo: ButtonCombo) -> (&'static Vec<String>, &'static 
     }
 }
 
-fn combo_passes(
-    module_accessor: *mut smash::app::BattleObjectModuleAccessor,
-    combo: ButtonCombo,
-) -> bool {
+fn combo_passes(combo: ButtonCombo) -> bool {
     unsafe {
         let (hold, press) = get_combo_keys(combo);
-        let this_combo_passes = hold
-            .iter()
-            .map(|hold| *BUTTON_MAPPING.get(&*hold.to_uppercase()).unwrap())
-            .all(|hold| ControlModule::check_button_on(module_accessor, hold))
-            && press
-                .iter()
-                .map(|press| *BUTTON_MAPPING.get(&*press.to_uppercase()).unwrap())
-                .all(|press| ControlModule::check_button_trigger(module_accessor, press));
+        let p1_controller_state = *P1_CONTROLLER_STATE.data_ptr();
+        let this_combo_passes = hold.iter().all(|hold| {
+            button_mapping(
+                &*hold.to_uppercase(),
+                p1_controller_state.style,
+                p1_controller_state.current_buttons,
+            )
+        }) && press.iter().all(|hold| {
+            button_mapping(
+                &*hold.to_uppercase(),
+                p1_controller_state.style,
+                p1_controller_state.just_down,
+            )
+        });
 
         this_combo_passes
     }
 }
 
-pub fn combo_passes_exclusive(
-    module_accessor: *mut smash::app::BattleObjectModuleAccessor,
-    combo: ButtonCombo,
-) -> bool {
+pub fn combo_passes_exclusive(combo: ButtonCombo) -> bool {
     let other_combo_passes = ButtonCombo::iter()
         .filter(|other_combo| *other_combo != combo)
-        .any(|other_combo| combo_passes(module_accessor, other_combo));
-    combo_passes(module_accessor, combo) && !other_combo_passes
+        .any(|other_combo| combo_passes(other_combo));
+    combo_passes(combo) && !other_combo_passes
 }
 
 const DEFAULT_BTN_CONFIG: &str = r#"[button_config]
 # Available Options:
 #
-# ATTACK
-# SPECIAL
-# SHIELD
-# GRAB
-# JUMP
-# UPTAUNT
-# DOWNTAUNT
-# LEFTTAUNT
-# RIGHTTAUNT
-# SHARESTOCK
-# JUMPMINI
+# DPAD_UP
+# DPAD_RIGHT
+# DPAD_DOWN
+# DPAD_LEFT
+# A
+# B
+# X
+# Y
+# L
+# R
+# ZL
+# ZR
 #
 # It is recommended to only put one button in the "press" section for each button
 # combination, but you can add several buttons to "hold" like this:
-# hold=["ATTACK", "SPECIAL",]
+# hold=["A", "B",]
 #
-# SHARESTOCK is typically A+B
-# JUMPMINI is the combination of two jump buttons
 [button_config.open_menu]
-hold=["SPECIAL",]
-press=["UPTAUNT",]
+hold=["B",]
+press=["DPAD_UP",]
 
 [button_config.save_state]
-hold=["SHIELD",]
-press=["DOWNTAUNT",]
+hold=["ZL",]
+press=["DPAD_DOWN",]
 
 [button_config.load_state]
-hold=["SHIELD",]
-press=["UPTAUNT",]
+hold=["ZL",]
+press=["DPAD_UP",]
 
 [button_config.input_record]
-hold=["ATTACK",]
-press=["LEFTTAUNT",]
+hold=["ZR",]
+press=["DPAD_LEFT",]
 
 [button_config.input_playback]
-hold=["ATTACK",]
-press=["RIGHTTAUNT",]
+hold=["ZR",]
+press=["DPAD_RIGHT",]
 "#;

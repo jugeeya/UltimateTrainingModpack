@@ -19,8 +19,8 @@ pub static mut FRAME_COUNTER: u32 = 0;
 const MENU_CLOSE_WAIT_FRAMES: u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
-pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::OpenMenu)
+pub unsafe fn menu_condition() -> bool {
+    button_config::combo_passes_exclusive(button_config::ButtonCombo::OpenMenu)
 }
 
 pub fn load_from_file() {
@@ -94,10 +94,12 @@ pub fn handle_final_input_mapping(
     out: *mut MappedInputs,
 ) {
     unsafe {
-        if QUICK_MENU_ACTIVE && player_idx == 0 {
+        if player_idx == 0 {
             *P1_CONTROLLER_STATE.lock() = *controller_struct.controller;
-            // If we're here, remove all other presses
-            *out = MappedInputs::default();
+            if QUICK_MENU_ACTIVE {
+                // If we're here, remove all other presses
+                *out = MappedInputs::default();
+            }
         }
     }
 }
@@ -154,13 +156,13 @@ pub unsafe fn quick_menu_loop() {
                 app.reset_all_submenus();
                 received_input = true;
             });
-            button_presses.l().then(|| {
+            (button_presses.l() || button_presses.real_digital_l()).then(|| {
                 if is_gcc {
                     app.previous_tab();
                 }
                 received_input = true;
             });
-            button_presses.r().then(|| {
+            (button_presses.r() || button_presses.real_digital_r()).then(|| {
                 if is_gcc {
                     app.next_tab();
                 } else {

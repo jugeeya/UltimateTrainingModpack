@@ -120,7 +120,7 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
-        if menu::menu_condition(module_accessor) {
+        if menu::menu_condition() {
             menu::spawn_menu();
         }
 
