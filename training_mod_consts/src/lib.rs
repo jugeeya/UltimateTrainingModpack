@@ -80,16 +80,11 @@ pub struct TrainingModpackMenu {
     pub hitstun_playback: HitstunPlayback,
     pub playback_mash: OnOff,
     pub playback_loop: OnOff,
-    pub menu_open_hold: ButtonConfig,
-    pub menu_open_press: ButtonConfig,
-    pub save_state_save_hold: ButtonConfig,
-    pub save_state_save_press: ButtonConfig,
-    pub save_state_load_hold: ButtonConfig,
-    pub save_state_load_press: ButtonConfig,
-    pub input_record_hold: ButtonConfig,
-    pub input_record_press: ButtonConfig,
-    pub input_playback_hold: ButtonConfig,
-    pub input_playback_press: ButtonConfig,
+    pub menu_open: ButtonConfig,
+    pub save_state_save: ButtonConfig,
+    pub save_state_load: ButtonConfig,
+    pub input_record: ButtonConfig,
+    pub input_playback: ButtonConfig,
 }
 
 #[repr(C)]
@@ -188,16 +183,11 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
     playback_loop: OnOff::Off,
-    menu_open_hold: ButtonConfig::B,
-    menu_open_press: ButtonConfig::DpadUp,
-    save_state_save_hold: ButtonConfig::ZL,
-    save_state_save_press: ButtonConfig::DpadDown,
-    save_state_load_hold: ButtonConfig::ZL,
-    save_state_load_press: ButtonConfig::DpadUp,
-    input_record_hold: ButtonConfig::ZR,
-    input_record_press: ButtonConfig::DpadDown,
-    input_playback_hold: ButtonConfig::ZR,
-    input_playback_press: ButtonConfig::DpadUp,
+    menu_open: ButtonConfig::B.union(ButtonConfig::DPAD_UP),
+    save_state_save: ButtonConfig::ZL.union(ButtonConfig::DPAD_DOWN),
+    save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
+    input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
+    input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -832,74 +822,40 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         tab_submenus: Vec::new(),
     };
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Menu Open: Hold",
-        "menu_open_hold",
-        "Menu Open: Hold: Which button to hold down before pressing Menu Open: Press",
-        true,
-        &(menu.menu_open_hold as u32),
+        "Menu Open",
+        "menu_open",
+        "Menu Open: Hold: Hold any one button and press the others to trigger",
+        false,
+        &(menu.menu_open.bits() as u32),
     );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Menu Open: Press",
-        "menu_open_press",
-        "Menu Open: Press: Which button to press after holding Menu Open: Hold",
-        true,
-        &(menu.menu_open_press as u32),
+        "Save State Save",
+        "save_state_save",
+        "Save State Save: Hold any one button and press the others to trigger",
+        false,
+        &(menu.save_state_save.bits() as u32),
+    );
+
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Load",
+        "save_state_load",
+        "Save State Load: Hold any one button and press the others to trigger",
+        false,
+        &(menu.save_state_load.bits() as u32),
     );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Save: Hold",
-        "save_state_save_hold",
-        "Save State Save: Hold: Which button to hold down before pressing Save State Save: Press",
-        true,
-        &(menu.save_state_save_hold as u32),
+        "Input Record",
+        "input_record",
+        "Input Record: Hold any one button and press the others to trigger",
+        false,
+        &(menu.input_record.bits() as u32),
     );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Save: Press",
-        "save_state_save_press",
-        "Save State Save: Press: Which button to press after holding Save State Save: Hold",
-        true,
-        &(menu.save_state_save_press as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Load: Hold",
-        "save_state_load_hold",
-        "Save State Load: Hold: Which button to hold down before pressing Save State Load: Press",
-        true,
-        &(menu.save_state_load_hold as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Load: Press",
-        "save_state_load_press",
-        "Save State Load: Press: Which button to press after holding Save State Load: Hold",
-        true,
-        &(menu.save_state_load_press as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Record: Hold",
-        "input_record_hold",
-        "Input Record: Hold: Which button to hold down before pressing Input Record: Press",
-        true,
-        &(menu.input_record_hold as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Record: Press",
-        "input_record_press",
-        "Input Record: Press: Which button to press after holding Input Record: Hold",
-        true,
-        &(menu.input_record_press as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Playback: Hold",
-        "input_playback_hold",
-        "Input Playback: Hold: Which button to hold down before pressing Input Playback: Press",
-        true,
-        &(menu.input_playback_hold as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Playback: Press",
-        "input_playback_press",
-        "Input Playback: Press: Which button to press after holding Input Playback: Hold",
-        true,
-        &(menu.input_playback_press as u32),
+        "Input Playback",
+        "input_playback",
+        "Input Playback: Hold any one button and press the others to trigger",
+        false,
+        &(menu.input_playback.bits() as u32),
     );
     overall_menu.tabs.push(button_tab);
 

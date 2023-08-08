@@ -31,14 +31,15 @@ pub fn button_mapping(
             GCController => b.r() || b.real_digital_r(),
             _ => b.zr() || b.left_sr() || b.right_sr(),
         },
-        ButtonConfig::DpadUp => b.dpad_up(),
-        ButtonConfig::DpadDown => b.dpad_down(),
-        ButtonConfig::DpadLeft => b.dpad_left(),
-        ButtonConfig::DpadRight => b.dpad_right(),
-        ButtonConfig::Plus => b.plus(),
-        ButtonConfig::Minus => b.minus(),
-        ButtonConfig::LStick => b.stick_l(),
-        ButtonConfig::RStick => b.stick_r(),
+        ButtonConfig::DPAD_UP => b.dpad_up(),
+        ButtonConfig::DPAD_DOWN => b.dpad_down(),
+        ButtonConfig::DPAD_LEFT => b.dpad_left(),
+        ButtonConfig::DPAD_RIGHT => b.dpad_right(),
+        ButtonConfig::PLUS => b.plus(),
+        ButtonConfig::MINUS => b.minus(),
+        ButtonConfig::LSTICK => b.stick_l(),
+        ButtonConfig::RSTICK => b.stick_r(),
+        _ => false,
     }
 }
 
@@ -102,62 +103,63 @@ pub fn name_to_font_glyph(name: &str, style: ControllerStyle) -> Option<u16> {
                 0xE0E7
             }
         }
-        ButtonConfig::DpadUp => {
+        ButtonConfig::DPAD_UP => {
             if is_gcc {
                 0xE209
             } else {
                 0xE0EB
             }
         }
-        ButtonConfig::DpadDown => {
+        ButtonConfig::DPAD_DOWN => {
             if is_gcc {
                 0xE20A
             } else {
                 0xE0EC
             }
         }
-        ButtonConfig::DpadLeft => {
+        ButtonConfig::DPAD_LEFT => {
             if is_gcc {
                 0xE20B
             } else {
                 0xE0ED
             }
         }
-        ButtonConfig::DpadRight => {
+        ButtonConfig::DPAD_RIGHT => {
             if is_gcc {
                 0xE20C
             } else {
                 0xE0EE
             }
         }
-        ButtonConfig::Plus => {
+        ButtonConfig::PLUS => {
             if is_gcc {
                 0xE20D
             } else {
                 0xE0EF
             }
         }
-        ButtonConfig::Minus => {
+        ButtonConfig::MINUS => {
             if is_gcc {
                 return None;
             } else {
                 0xE0F0
             }
         }
-        ButtonConfig::LStick => {
+        ButtonConfig::LSTICK => {
             if is_gcc {
                 return None;
             } else {
                 0xE104
             }
         }
-        ButtonConfig::RStick => {
+        ButtonConfig::RSTICK => {
             if is_gcc {
                 return None;
             } else {
                 0xE105
             }
         }
+        _ => return None,
     })
 }
 
@@ -170,30 +172,44 @@ pub enum ButtonCombo {
     InputPlayback,
 }
 
-unsafe fn get_combo_keys(combo: ButtonCombo) -> (ButtonConfig, ButtonConfig) {
+unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     match combo {
-        ButtonCombo::OpenMenu => (MENU.menu_open_hold, MENU.menu_open_press),
-        ButtonCombo::SaveState => (MENU.save_state_save_hold, MENU.save_state_save_press),
-        ButtonCombo::LoadState => (MENU.save_state_load_hold, MENU.save_state_load_press),
-        ButtonCombo::InputRecord => (MENU.input_record_hold, MENU.input_record_press),
-        ButtonCombo::InputPlayback => (MENU.input_playback_hold, MENU.input_playback_press),
+        ButtonCombo::OpenMenu => MENU.menu_open,
+        ButtonCombo::SaveState => MENU.save_state_save,
+        ButtonCombo::LoadState => MENU.save_state_load,
+        ButtonCombo::InputRecord => MENU.input_record,
+        ButtonCombo::InputPlayback => MENU.input_playback,
     }
 }
 
 fn combo_passes(combo: ButtonCombo) -> bool {
     unsafe {
-        let (hold, press) = get_combo_keys(combo);
+        let combo_keys = get_combo_keys(combo).to_vec();
         let p1_controller_state = *P1_CONTROLLER_STATE.data_ptr();
 
-        button_mapping(
-            hold,
-            p1_controller_state.style,
-            p1_controller_state.current_buttons,
-        ) && button_mapping(
-            press,
-            p1_controller_state.style,
-            p1_controller_state.just_down,
-        )
+        let mut this_combo_passes = false;
+
+        for hold_button in &combo_keys[..] {
+            if button_mapping(
+                *hold_button,
+                p1_controller_state.style,
+                p1_controller_state.current_buttons,
+            ) && combo_keys
+                .iter()
+                .filter(|press_button| **press_button != *hold_button)
+                .all(|press_button| {
+                    button_mapping(
+                        *press_button,
+                        p1_controller_state.style,
+                        p1_controller_state.just_down,
+                    )
+                })
+            {
+                this_combo_passes = true;
+            }
+        }
+
+        this_combo_passes
     }
 }
 
