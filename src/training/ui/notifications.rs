@@ -20,12 +20,15 @@ impl Notification {
         }
     }
 
+    pub fn tick(&mut self) {
+        self.length -= 1;
+    }
+
     // Returns: has_completed
-    pub fn tick(&mut self) -> bool {
+    pub fn check_completed(&mut self) -> bool {
         if self.length <= 1 {
             return true;
         }
-        self.length -= 1;
         false
     }
 }

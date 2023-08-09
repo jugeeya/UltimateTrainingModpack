@@ -134,7 +134,6 @@ fn once_per_frame_per_fighter(
     }
 
     fast_fall::get_command_flag_cat(module_accessor);
-    frame_counter::get_command_flag_cat(module_accessor);
     ledge::get_command_flag_cat(module_accessor);
     shield::get_command_flag_cat(module_accessor);
     directional_influence::get_command_flag_cat(module_accessor);
@@ -615,6 +614,22 @@ pub unsafe fn handle_reused_ui(
     original!()(fighter_data, param_2)
 }
 
+// Instruction run on the completion of the CPU Control function
+static OPCF_OFFSET: usize = 0x06b7fdc;
+
+// One instruction after the CPU Control function completes
+#[skyline::hook(offset = OPCF_OFFSET, inline)]
+unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
+    frame_counter::tick();
+    // Tick notifications
+    let queue = &mut ui::notifications::QUEUE;
+    let notification = queue.first();
+    if !notification.is_none() {
+        let notification = queue.first_mut().unwrap();
+        notification.tick();
+    }
+}
+
 #[allow(improper_ctypes)]
 extern "C" {
     fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
@@ -705,6 +720,8 @@ pub fn training_mods() {
         handle_star_ko,
         // Clatter
         clatter::hook_start_clatter,
+        // Notifications
+        handle_once_per_cpu_frame,
     );
 
     combo::init();

@@ -66,6 +66,7 @@ pub unsafe fn handle_buffs(
     // Future Enhancements:
     // - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
     // - Ensure IS_BUFFING_CPU && IS_BUFFING_PLAYER are set to false on leaving training mode
+    // - Deal With Arsene!/Shulk Art SFX with a different function than below to keep the reset SFX on state load
     SoundModule::stop_all_sound(module_accessor); // silences buff sfx other than KO Punch
     ControlModule::stop_rumble(module_accessor, false);
     MotionAnimcmdModule::set_sleep(module_accessor, false);
