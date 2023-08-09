@@ -272,7 +272,8 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         );
     } else if entry_id_int == 1 && POSSESSION == Player && INPUT_RECORD == Playback {
         // Displays if the inputs from the current frame were a result of playback
-        if INPUT_RECORD_FRAME == 0 || INPUT_RECORD_FRAME == 1 { // can be either, seems like a thread issue
+        if INPUT_RECORD_FRAME == 0 || INPUT_RECORD_FRAME == 1 {
+            // can be either, seems like a thread issue
             clear_notifications("Input Recording");
             color_notification(
                 "Input Recording".to_string(),
@@ -417,6 +418,7 @@ unsafe fn handle_final_input_mapping(
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::default(); // don't control player while recording
+
             //println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
     }
