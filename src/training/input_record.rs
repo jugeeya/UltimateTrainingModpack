@@ -183,9 +183,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         if button_config::combo_passes_exclusive(button_config::ButtonCombo::InputPlayback) {
             playback(MENU.playback_button_combination.get_random().into_idx());
         } else if MENU.record_trigger.contains(RecordTrigger::COMMAND)
-            && button_config::combo_passes_exclusive(
-                button_config::ButtonCombo::InputRecord,
-            )
+            && button_config::combo_passes_exclusive(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
         }
