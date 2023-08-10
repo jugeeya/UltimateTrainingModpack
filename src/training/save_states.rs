@@ -471,7 +471,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
 
-        let pos = if MIRROR_STATE == -1.0 {
+        let mut pos = if MIRROR_STATE == -1.0 {
             Vector3f {
                 x: MIRROR_STATE * (save_state.x - get_stage_offset(stage_id())),
                 y: save_state.y,
@@ -485,6 +485,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
         };
 
+        // Adjust fighter y position if they won't grab ledge when they should
+        adjust_ledge_pos(&mut pos, save_state.fighter_kind, save_state.situation_kind);
         let lr = MIRROR_STATE * save_state.lr;
         PostureModule::set_pos(module_accessor, &pos);
         PostureModule::set_lr(module_accessor, lr);
@@ -650,15 +652,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == Save && !fighter_is_nana {
         // Don't save states with Nana. Should already be fine, just a safety.
         save_state.state = NoAction;
-
         save_state.x = PostureModule::pos_x(module_accessor);
-        println!("PosY: {}", PostureModule::pos_y(module_accessor));
-        if save_state.situation_kind == SITUATION_KIND_CLIFF {
-            // Modify y position so that all characters grab the ledge properly
-            save_state.y = PostureModule::pos_y(module_accessor) + 5.0;
-        } else {
-            save_state.y = PostureModule::pos_y(module_accessor);
-        }
+        save_state.y = PostureModule::pos_y(module_accessor);
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
         save_state.situation_kind = StatusModule::situation_kind(module_accessor);
@@ -698,5 +693,42 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         {
             save_to_file();
         }
+    }
+}
+
+fn adjust_ledge_pos(pos: &mut Vector3f, fighter_kind: i32, situation_kind: i32) {
+    // Adjusts save states for fighters who have grabbed the ledge
+    if situation_kind != SITUATION_KIND_CLIFF {
+        return;
+    }
+    
+    let fighter_needs_ledge_adjust_far = [
+        *FIGHTER_KIND_DONKEY,
+        *FIGHTER_KIND_DEDEDE,
+        *FIGHTER_KIND_KROOL,
+    ]
+    .contains(&fighter_kind);
+
+    let fighter_needs_ledge_adjust_medium = [
+        *FIGHTER_KIND_SAMUS,
+        *FIGHTER_KIND_SAMUSD,
+        *FIGHTER_KIND_MEWTWO,
+        *FIGHTER_KIND_DOLLY,
+    ]
+    .contains(&fighter_kind);
+
+    let fighter_needs_ledge_adjust_slight = [
+        *FIGHTER_KIND_KOOPA,
+        *FIGHTER_KIND_ELIGHT,
+        *FIGHTER_KIND_SNAKE,
+    ]
+    .contains(&fighter_kind);
+
+    if fighter_needs_ledge_adjust_far {
+        pos.y += 6.0;
+    } else if fighter_needs_ledge_adjust_medium {
+        pos.y += 4.0;
+    } if fighter_needs_ledge_adjust_slight {
+        pos.y += 2.0;
     }
 }
