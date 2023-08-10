@@ -198,10 +198,9 @@ pub unsafe fn is_enable_transition_term(
     }
 
     // Disallow the default cliff-climb if we are waiting or we didn't get up during a recording
-    if (LEDGE_CASE == LedgeOption::WAIT
-        || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
-        || LEDGE_CASE.is_playback() && !input_record::is_playback()
-        && term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
+    if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB &&
+        ((LEDGE_CASE == LedgeOption::WAIT || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
+        || (LEDGE_CASE.is_playback() && !input_record::is_playback()))
     {
         return Some(false);
     }

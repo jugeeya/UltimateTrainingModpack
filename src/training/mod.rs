@@ -296,7 +296,9 @@ pub unsafe fn handle_is_enable_transition_term(
 
     combo::is_enable_transition_term(module_accessor, transition_term, ori);
     match ledge::is_enable_transition_term(module_accessor, transition_term) {
-        Some(r) => r,
+        Some(r) => {
+            return r;
+        },
         None => ori,
     }
 }
