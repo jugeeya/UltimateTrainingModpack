@@ -331,7 +331,7 @@ pub unsafe fn playback_ledge(slot: Option<usize>) {
                           // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
                           // Need to buffer 1 less frame for non-lassos
         let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-        let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+        let status_kind = StatusModule::status_kind(cpu_module_accessor);
         if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
             BUFFER_FRAME -= 1;
         }
@@ -444,18 +444,16 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         // Prevent us from falling off of the ledge in standby
         if StatusModule::status_kind(cpu_module_accessor) == *FIGHTER_STATUS_KIND_CLIFF_WAIT
             && is_standby()
-        {
-            if WorkModule::get_int(
+            && WorkModule::get_int(
                 cpu_module_accessor,
                 *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
             ) < 50
-            {
-                WorkModule::set_int(
-                    cpu_module_accessor,
-                    200,
-                    *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
-                ); // TODO: make this 360
-            }
+        {
+            WorkModule::set_int(
+                cpu_module_accessor,
+                200,
+                *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
+            );
         }
 
         println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
