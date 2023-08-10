@@ -1,26 +1,28 @@
+use std::collections::HashMap;
 use std::fs;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use skyline::nn::hid::{GetNpadStyleSet, NpadGcState};
+use skyline::nn::hid::GetNpadStyleSet;
 use training_mod_consts::MenuJsonStruct;
 
 use training_mod_tui::AppPage;
 
+use crate::common::button_config::button_mapping;
 use crate::common::*;
 use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
+use crate::input::*;
 use crate::logging::*;
 
 // This is a special frame counter that will tick on draw()
 // We'll count how long the menu has been open
 pub static mut FRAME_COUNTER: u32 = 0;
-const MENU_INPUT_WAIT_FRAMES: u32 = 30;
 const MENU_CLOSE_WAIT_FRAMES: u32 = 60;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
-pub unsafe fn menu_condition(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::OpenMenu)
+pub unsafe fn menu_condition() -> bool {
+    button_config::combo_passes_exclusive(button_config::ButtonCombo::OpenMenu)
 }
 
 pub fn load_from_file() {
@@ -76,177 +78,6 @@ pub fn spawn_menu() {
     }
 }
 
-pub struct ButtonPresses {
-    pub a: ButtonPress,
-    pub b: ButtonPress,
-    pub x: ButtonPress,
-    pub y: ButtonPress,
-    pub r: ButtonPress,
-    pub l: ButtonPress,
-    pub zr: ButtonPress,
-    pub zl: ButtonPress,
-    pub left: ButtonPress,
-    pub right: ButtonPress,
-    pub up: ButtonPress,
-    pub down: ButtonPress,
-}
-
-pub struct ButtonPress {
-    pub prev_frame_is_pressed: bool,
-    pub is_pressed: bool,
-    pub lockout_frames: usize,
-}
-
-impl ButtonPress {
-    pub fn read_press(&mut self) -> bool {
-        let is_pressed = self.is_pressed;
-        if self.is_pressed {
-            self.is_pressed = false;
-            if self.lockout_frames == 0 {
-                self.prev_frame_is_pressed = true;
-                self.lockout_frames = 10;
-                return true;
-            }
-        }
-
-        if self.lockout_frames > 0 {
-            self.lockout_frames -= 1;
-        }
-
-        self.prev_frame_is_pressed = is_pressed;
-        false
-    }
-}
-
-pub static mut BUTTON_PRESSES: ButtonPresses = ButtonPresses {
-    a: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    b: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    x: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    y: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    r: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    l: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    zr: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    zl: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    left: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    right: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    up: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-    down: ButtonPress {
-        prev_frame_is_pressed: false,
-        is_pressed: false,
-        lockout_frames: 0,
-    },
-};
-
-pub fn handle_get_npad_state(state: *mut NpadGcState, controller_id: *const u32) {
-    unsafe {
-        let update_count = (*state).updateCount;
-        let flags = (*state).Flags;
-        if QUICK_MENU_ACTIVE {
-            if (*state).Buttons & (1 << 0) > 0 {
-                BUTTON_PRESSES.a.is_pressed = true;
-            }
-            if (*state).Buttons & (1 << 1) > 0 {
-                BUTTON_PRESSES.b.is_pressed = true;
-            }
-            if (*state).Buttons & (1 << 2) > 0 {
-                BUTTON_PRESSES.x.is_pressed = true;
-            }
-            if (*state).Buttons & (1 << 3) > 0 {
-                BUTTON_PRESSES.y.is_pressed = true;
-            }
-            if (*state).Buttons & (1 << 6) > 0 {
-                BUTTON_PRESSES.l.is_pressed = true;
-            }
-            if (*state).Buttons & (1 << 7) > 0 {
-                BUTTON_PRESSES.r.is_pressed = true;
-            }
-            // Special case for frame-by-frame
-            if FRAME_COUNTER > MENU_INPUT_WAIT_FRAMES && (*state).Buttons & (1 << 8) > 0 {
-                BUTTON_PRESSES.zl.is_pressed = true;
-            }
-            if (*state).Buttons & (1 << 9) > 0 {
-                BUTTON_PRESSES.zr.is_pressed = true;
-            }
-            if (*state).Buttons & ((1 << 12) | (1 << 16)) > 0 {
-                BUTTON_PRESSES.left.is_pressed = true;
-            }
-            if (*state).Buttons & ((1 << 14) | (1 << 18)) > 0 {
-                BUTTON_PRESSES.right.is_pressed = true;
-            }
-            if (*state).Buttons & ((1 << 15) | (1 << 19)) > 0 {
-                BUTTON_PRESSES.down.is_pressed = true;
-            }
-            // Special case for "UP" in menu open button combo
-            if FRAME_COUNTER > MENU_INPUT_WAIT_FRAMES
-                && (*state).Buttons & ((1 << 13) | (1 << 17)) > 0
-            {
-                BUTTON_PRESSES.up.is_pressed = true;
-            }
-
-            // For digital triggers: these pressed 1/3 of the way mean we should consider a press
-            if controller_is_gcc(*controller_id) {
-                if (*state).LTrigger >= 0x2AAA {
-                    BUTTON_PRESSES.l.is_pressed = true;
-                }
-
-                if (*state).RTrigger >= 0x2AAA {
-                    BUTTON_PRESSES.r.is_pressed = true;
-                }
-            }
-
-            // If we're here, remove all other Npad presses...
-            // Should we exclude the home button?
-            (*state) = NpadGcState::default();
-            (*state).updateCount = update_count;
-            (*state).Flags = flags;
-        }
-    }
-}
-
 lazy_static! {
     pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
         training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
@@ -256,118 +87,173 @@ lazy_static! {
             )
         })
     );
+    pub static ref P1_CONTROLLER_STATE: Mutex<Controller> = Mutex::new(Controller::default());
 }
 
-pub unsafe fn controller_is_gcc(controller_id: u32) -> bool {
-    let style_set = GetNpadStyleSet(&controller_id as *const _);
-    (style_set.flags & (1 << 5)) > 0
+#[derive(Eq, PartialEq, Hash, Copy, Clone)]
+enum DirectionButton {
+    DpadLeft,
+    LLeft,
+    RLeft,
+    DpadDown,
+    LDown,
+    RDown,
+    DpadRight,
+    LRight,
+    RRight,
+    DpadUp,
+    LUp,
+    RUp,
 }
 
-pub unsafe fn p1_controller_is_gcc() -> bool {
-    let p1_controller_id = crate::training::input_delay::p1_controller_id();
-    controller_is_gcc(p1_controller_id)
-}
+pub fn handle_final_input_mapping(
+    player_idx: i32,
+    controller_struct: &SomeControllerStruct,
+    out: *mut MappedInputs,
+) {
+    unsafe {
+        if player_idx == 0 {
+            *P1_CONTROLLER_STATE.lock() = *controller_struct.controller;
+            if QUICK_MENU_ACTIVE {
+                // If we're here, remove all other presses
+                *out = MappedInputs::empty();
 
-pub unsafe fn quick_menu_loop() {
-    loop {
-        std::thread::sleep(std::time::Duration::from_secs(10));
-        let button_presses = &mut BUTTON_PRESSES;
-        let mut received_input = true;
-        loop {
-            std::thread::sleep(std::time::Duration::from_millis(16));
+                let mut received_input = false;
 
-            if !QUICK_MENU_ACTIVE {
-                continue;
-            }
+                const DIRECTION_HOLD_REPEAT_FRAMES: u32 = 20;
+                use DirectionButton::*;
+                let directions = [
+                    DpadLeft, LLeft, RLeft, DpadDown, LDown, RDown, DpadRight, LRight, RRight,
+                    DpadUp, LUp, RUp,
+                ];
+                let mut direction_hold_frames: HashMap<DirectionButton, u32> =
+                    directions.iter().map(|config| (*config, 0)).collect();
 
-            // Check for all controllers unplugged
-            let mut potential_controller_ids = (0..8).collect::<Vec<u32>>();
-            potential_controller_ids.push(0x20);
-            if potential_controller_ids
-                .iter()
-                .all(|i| GetNpadStyleSet(i as *const _).flags == 0)
-            {
-                QUICK_MENU_ACTIVE = false;
-                continue;
-            }
-
-            let is_gcc = p1_controller_is_gcc();
-
-            let app = &mut *QUICK_MENU_APP.data_ptr();
-            button_presses.a.read_press().then(|| {
-                app.on_a();
-                received_input = true;
-            });
-            let b_press = &mut button_presses.b;
-            b_press.read_press().then(|| {
-                received_input = true;
-                if app.page != AppPage::SUBMENU {
-                    app.on_b()
-                } else if FRAME_COUNTER > MENU_CLOSE_WAIT_FRAMES {
-                    // Leave menu.
+                // Check for all controllers unplugged
+                let mut potential_controller_ids = (0..8).collect::<Vec<u32>>();
+                potential_controller_ids.push(0x20);
+                if potential_controller_ids
+                    .iter()
+                    .all(|i| GetNpadStyleSet(i as *const _).flags == 0)
+                {
                     QUICK_MENU_ACTIVE = false;
-                    FRAME_COUNTER = 0;
-                    let menu_json = app.get_menu_selections();
-                    set_menu_from_json(&menu_json);
-                    EVENT_QUEUE.push(Event::menu_open(menu_json));
+                    return;
                 }
-            });
-            button_presses.x.read_press().then(|| {
-                app.save_defaults();
-                received_input = true;
-            });
-            button_presses.y.read_press().then(|| {
-                app.reset_all_submenus();
-                received_input = true;
-            });
-            button_presses.l.read_press().then(|| {
-                if is_gcc {
-                    app.previous_tab();
-                }
-                received_input = true;
-            });
-            button_presses.r.read_press().then(|| {
-                if is_gcc {
-                    app.next_tab();
-                } else {
-                    app.reset_current_submenu();
-                }
-                received_input = true;
-            });
-            button_presses.zl.read_press().then(|| {
-                if !is_gcc {
-                    app.previous_tab();
-                }
-                received_input = true;
-            });
-            button_presses.zr.read_press().then(|| {
-                if !is_gcc {
-                    app.next_tab();
-                } else {
-                    app.reset_current_submenu();
-                }
-                received_input = true;
-            });
-            button_presses.left.read_press().then(|| {
-                app.on_left();
-                received_input = true;
-            });
-            button_presses.right.read_press().then(|| {
-                app.on_right();
-                received_input = true;
-            });
-            button_presses.up.read_press().then(|| {
-                app.on_up();
-                received_input = true;
-            });
-            button_presses.down.read_press().then(|| {
-                app.on_down();
-                received_input = true;
-            });
 
-            if received_input {
-                received_input = false;
-                set_menu_from_json(&app.get_menu_selections());
+                let p1_controller_state = *P1_CONTROLLER_STATE.data_ptr();
+                let style = p1_controller_state.style;
+                let button_presses = p1_controller_state.just_down;
+
+                let button_current_held = p1_controller_state.current_buttons;
+                let button_released = p1_controller_state.just_release;
+                direction_hold_frames
+                    .iter_mut()
+                    .for_each(|(direction, frames)| {
+                        let (still_held, released) = match direction {
+                            DpadLeft => {
+                                (button_current_held.dpad_left(), button_released.dpad_left())
+                            }
+                            LLeft => (button_current_held.l_left(), button_released.l_left()),
+                            RLeft => (button_current_held.r_left(), button_released.r_left()),
+                            DpadDown => {
+                                (button_current_held.dpad_down(), button_released.dpad_down())
+                            }
+                            LDown => (button_current_held.l_down(), button_released.l_down()),
+                            RDown => (button_current_held.r_down(), button_released.r_down()),
+                            DpadRight => (
+                                button_current_held.dpad_right(),
+                                button_released.dpad_right(),
+                            ),
+                            LRight => (button_current_held.l_right(), button_released.l_right()),
+                            RRight => (button_current_held.r_right(), button_released.r_right()),
+                            DpadUp => (button_current_held.dpad_up(), button_released.dpad_up()),
+                            LUp => (button_current_held.l_up(), button_released.l_up()),
+                            RUp => (button_current_held.r_up(), button_released.r_up()),
+                        };
+                        if still_held {
+                            *frames += 1;
+                        }
+
+                        if released {
+                            *frames = 0;
+                        }
+                    });
+
+                let app = &mut *QUICK_MENU_APP.data_ptr();
+                button_mapping(ButtonConfig::A, style, button_presses).then(|| {
+                    app.on_a();
+                    received_input = true;
+                });
+                button_mapping(ButtonConfig::B, style, button_presses).then(|| {
+                    received_input = true;
+                    if app.page != AppPage::SUBMENU {
+                        app.on_b()
+                    } else if FRAME_COUNTER > MENU_CLOSE_WAIT_FRAMES {
+                        // Leave menu.
+                        QUICK_MENU_ACTIVE = false;
+                        FRAME_COUNTER = 0;
+                        let menu_json = app.get_menu_selections();
+                        set_menu_from_json(&menu_json);
+                        EVENT_QUEUE.push(Event::menu_open(menu_json));
+                    }
+                });
+                button_mapping(ButtonConfig::X, style, button_presses).then(|| {
+                    app.save_defaults();
+                    received_input = true;
+                });
+                button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
+                    app.reset_all_submenus();
+                    received_input = true;
+                });
+
+                button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
+                    app.previous_tab();
+                    received_input = true;
+                });
+                button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
+                    app.next_tab();
+                    received_input = true;
+                });
+                button_mapping(ButtonConfig::R, style, button_presses).then(|| {
+                    app.reset_current_submenu();
+                    received_input = true;
+                });
+
+                let hold_condition = |direction_button| {
+                    direction_hold_frames[direction_button] > DIRECTION_HOLD_REPEAT_FRAMES
+                };
+                (button_presses.dpad_left()
+                    || button_presses.l_left()
+                    || button_presses.r_left()
+                    || [DpadLeft, LLeft, RLeft].iter().any(hold_condition))
+                .then(|| {
+                    app.on_left();
+                });
+                (button_presses.dpad_right()
+                    || button_presses.l_right()
+                    || button_presses.r_right()
+                    || [DpadRight, LRight, RRight].iter().any(hold_condition))
+                .then(|| {
+                    app.on_right();
+                });
+                (button_presses.dpad_up()
+                    || button_presses.l_up()
+                    || button_presses.r_up()
+                    || [DpadUp, LUp, RUp].iter().any(hold_condition))
+                .then(|| {
+                    app.on_up();
+                });
+                (button_presses.dpad_down()
+                    || button_presses.l_down()
+                    || button_presses.r_down()
+                    || [DpadDown, LDown, RDown].iter().any(hold_condition))
+                .then(|| {
+                    app.on_down();
+                });
+
+                if received_input {
+                    set_menu_from_json(&app.get_menu_selections());
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ pub mod button_config;
 pub mod consts;
 pub mod dev_config;
 pub mod events;
+pub mod input;
 pub mod menu;
 pub mod raygun_printer;
 pub mod release;

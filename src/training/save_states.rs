@@ -410,10 +410,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
     if !is_operation_cpu(module_accessor) && !fighter_is_nana {
-        triggered_reset = button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::LoadState,
-        );
+        triggered_reset =
+            button_config::combo_passes_exclusive(button_config::ButtonCombo::LoadState);
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
@@ -641,8 +639,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Save state
-    if button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::SaveState)
-    {
+    if button_config::combo_passes_exclusive(button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
         save_state_player(MENU.save_state_slot.as_idx() as usize).state = Save;
