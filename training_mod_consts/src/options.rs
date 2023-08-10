@@ -250,18 +250,15 @@ impl LedgeOption {
         }
     }
 
-    pub fn playback_slot(self) -> usize {
-        match self {
+    pub fn playback_slot(self) -> Option<usize> {
+        Some(match self {
             LedgeOption::PLAYBACK_1 => 0,
             LedgeOption::PLAYBACK_2 => 1,
             LedgeOption::PLAYBACK_3 => 2,
             LedgeOption::PLAYBACK_4 => 3,
             LedgeOption::PLAYBACK_5 => 4,
-            _ => panic!(
-                "Invalid LedgeOption playback slot: {}",
-                self.as_str().unwrap()
-            ),
-        }
+            _ => return None,
+        })
     }
 
     pub const fn default() -> LedgeOption {
@@ -1341,41 +1338,6 @@ impl PlaybackSlot {
 
 extra_bitflag_impls! {PlaybackSlot}
 impl_serde_for_bitflags!(PlaybackSlot);
-
-// Input Recording Trigger Type
-#[repr(u32)]
-#[derive(
-    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
-)]
-pub enum RecordTrigger {
-    None = 0,
-    Command = 0x1,
-    SaveState = 0x2,
-    Ledge = 0x4,
-}
-
-impl RecordTrigger {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            RecordTrigger::None => "None",
-            RecordTrigger::Command => "Button Combination",
-            RecordTrigger::SaveState => "Save State Load",
-            RecordTrigger::Ledge => "Ledge Grab",
-        })
-    }
-}
-
-impl ToggleTrait for RecordTrigger {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        RecordTrigger::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
-    fn to_toggle_vals() -> Vec<u32> {
-        RecordTrigger::iter().map(|i| i as u32).collect()
-    }
-}
 
 // If doing input recording out of hitstun, when does playback begin after?
 #[repr(u32)]
