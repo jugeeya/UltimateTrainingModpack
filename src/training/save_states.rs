@@ -18,6 +18,7 @@ use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
 use crate::common::consts::RecordTrigger;
+use crate::common::consts::PlaybackSlot;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
@@ -34,7 +35,7 @@ use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 
 // Don't remove Mii hats, or Luma, or crafting table
-const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 5] = [
+const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 7] = [
     (
         FIGHTER_KIND_MIIFIGHTER,
         FIGHTER_MIIFIGHTER_GENERATE_ARTICLE_HAT,
@@ -49,6 +50,8 @@ const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 5] = [
     ),
     (FIGHTER_KIND_ROSETTA, FIGHTER_ROSETTA_GENERATE_ARTICLE_TICO),
     (FIGHTER_KIND_PICKEL, FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE),
+    (FIGHTER_KIND_ELIGHT, FIGHTER_ELIGHT_GENERATE_ARTICLE_ESWORD),
+    (FIGHTER_KIND_EFLAME, FIGHTER_EFLAME_GENERATE_ARTICLE_ESWORD),
 ];
 
 extern "C" {
@@ -611,14 +614,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // if we're recording on state load, record
-        if MENU.record_trigger == RecordTrigger::SaveState {
+        if MENU.record_trigger == RecordTrigger::SAVESTATE {
             input_record::lockout_record();
+            return;
         }
         // otherwise, begin input recording playback if selected 
         // for ledge, don't do this - if you want playback on a ledge, you have to set it as a ledge option,
         // otherwise there too many edge cases here
-        else if MENU.save_state_playback == OnOff::On && save_state.situation_kind != SITUATION_KIND_CLIFF {
-            input_record::playback(MENU.playback_slot.get_random().into_idx().unwrap_or(0));
+        else if MENU.save_state_playback.get_random() != PlaybackSlot::empty() && save_state.situation_kind != SITUATION_KIND_CLIFF {
+            input_record::playback(MENU.save_state_playback.get_random().into_idx());
         }
 
         return;

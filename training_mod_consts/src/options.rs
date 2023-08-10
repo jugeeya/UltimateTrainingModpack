@@ -250,18 +250,15 @@ impl LedgeOption {
         }
     }
 
-    pub fn playback_slot(self) -> usize {
-        match self {
+    pub fn playback_slot(self) -> Option<usize> {
+        Some(match self {
             LedgeOption::PLAYBACK_1 => 0,
             LedgeOption::PLAYBACK_2 => 1,
             LedgeOption::PLAYBACK_3 => 2,
             LedgeOption::PLAYBACK_4 => 3,
             LedgeOption::PLAYBACK_5 => 4,
-            _ => panic!(
-                "Invalid LedgeOption playback slot: {}",
-                self.as_str().unwrap()
-            ),
-        }
+            _ => return None,
+        })
     }
 
     pub const fn default() -> LedgeOption {
@@ -1342,41 +1339,6 @@ impl PlaybackSlot {
 extra_bitflag_impls! {PlaybackSlot}
 impl_serde_for_bitflags!(PlaybackSlot);
 
-// Input Recording Trigger Type
-#[repr(u32)]
-#[derive(
-    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
-)]
-pub enum RecordTrigger {
-    None = 0,
-    Command = 0x1,
-    SaveState = 0x2,
-    Ledge = 0x4,
-}
-
-impl RecordTrigger {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            RecordTrigger::None => "None",
-            RecordTrigger::Command => "Button Combination",
-            RecordTrigger::SaveState => "Save State Load",
-            RecordTrigger::Ledge => "Ledge Grab",
-        })
-    }
-}
-
-impl ToggleTrait for RecordTrigger {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        RecordTrigger::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
-    fn to_toggle_vals() -> Vec<u32> {
-        RecordTrigger::iter().map(|i| i as u32).collect()
-    }
-}
-
 // If doing input recording out of hitstun, when does playback begin after?
 #[repr(u32)]
 #[derive(
@@ -1408,5 +1370,96 @@ impl ToggleTrait for HitstunPlayback {
 
     fn to_toggle_vals() -> Vec<u32> {
         HitstunPlayback::iter().map(|i| i as u32).collect()
+    }
+}
+
+// Input Recording Trigger Type
+bitflags! {
+    pub struct RecordTrigger : u32
+    {
+        const COMMAND = 0x1;
+        const SAVESTATE = 0x2;
+    }
+}
+
+impl RecordTrigger {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            RecordTrigger::COMMAND => "Button Combination",
+            RecordTrigger::SAVESTATE => "Save State Load",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {RecordTrigger}
+impl_serde_for_bitflags!(RecordTrigger);
+
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum RecordingFrames {
+    F60 = 0x1,
+    F90 = 0x2,
+    F120 = 0x4,
+    F150 = 0x8,
+    F180 = 0x10,
+    F210 = 0x20,
+    F240 = 0x40,
+    F270 = 0x80,
+    F300 = 0x100,
+    F330 = 0x200,
+    F360 = 0x400,
+    F390 = 0x800,
+    F420 = 0x1000,
+    F450 = 0x2000,
+    F480 = 0x4000,
+    F510 = 0x8000,
+    F540 = 0x10000,
+    F570 = 0x20000,
+    F600 = 0x40000,
+}
+
+impl RecordingFrames {
+    pub fn as_str(self) -> Option<&'static str> {
+        use RecordingFrames::*;
+        Some(match self {
+            F60 => "60",
+            F90 => "90",
+            F120 => "120",
+            F150 => "150",
+            F180 => "180",
+            F210 => "210",
+            F240 => "240",
+            F270 => "270",
+            F300 => "300",
+            F330 => "330",
+            F360 => "360",
+            F390 => "390",
+            F420 => "420",
+            F450 => "450",
+            F480 => "480",
+            F510 => "510",
+            F540 => "540",
+            F570 => "570",
+            F600 => "600",
+        })
+    }
+
+    pub fn into_frames(self) -> usize {
+        (log_2(self as u32) as usize * 30) + 60
+    }
+}
+
+impl ToggleTrait for RecordingFrames {
+    fn to_toggle_strs() -> Vec<&'static str> {
+        RecordingFrames::iter()
+            .map(|i| i.as_str().unwrap_or(""))
+            .collect()
+    }
+
+    fn to_toggle_vals() -> Vec<u32> {
+        RecordingFrames::iter().map(|i| i as u32).collect()
     }
 }
