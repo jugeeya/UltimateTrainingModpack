@@ -25,7 +25,6 @@ use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
-use crate::menu::quick_menu_loop;
 use crate::training::ui::notifications::notification;
 
 pub mod common;
@@ -160,6 +159,4 @@ pub fn main() {
     }
 
     std::thread::spawn(events_loop);
-
-    std::thread::spawn(|| unsafe { quick_menu_loop() });
 }
