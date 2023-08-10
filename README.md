@@ -147,7 +147,7 @@ The timing of the CPU option can be influenced by the following settings:
 <details><summary>Click here for setting descriptions...</summary>
 
 | Feature | Description | Options |
-| : --: | :--- | :--- |
+| :---: | :--- | :--- |
 | Mirroring | Flips save states in the left-right direction across the stage center | None, Alternate, Random |
 | Save Damage | Should save states retain player/CPU damage | Yes, No |
 | Save States Autoload | Load save state when any fighter dies | Yes, No |
