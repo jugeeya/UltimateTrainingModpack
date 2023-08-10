@@ -17,8 +17,8 @@ use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
-use crate::common::consts::RecordTrigger;
 use crate::common::consts::PlaybackSlot;
+use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
@@ -618,10 +618,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             input_record::lockout_record();
             return;
         }
-        // otherwise, begin input recording playback if selected 
+        // otherwise, begin input recording playback if selected
         // for ledge, don't do this - if you want playback on a ledge, you have to set it as a ledge option,
         // otherwise there too many edge cases here
-        else if MENU.save_state_playback.get_random() != PlaybackSlot::empty() && save_state.situation_kind != SITUATION_KIND_CLIFF {
+        else if MENU.save_state_playback.get_random() != PlaybackSlot::empty()
+            && save_state.situation_kind != SITUATION_KIND_CLIFF
+        {
             input_record::playback(MENU.save_state_playback.get_random().into_idx());
         }
 
@@ -705,7 +707,7 @@ fn adjust_ledge_pos(pos: &mut Vector3f, fighter_kind: i32, situation_kind: i32) 
     if situation_kind != SITUATION_KIND_CLIFF {
         return;
     }
-    
+
     let fighter_needs_ledge_adjust_far = [
         *FIGHTER_KIND_DONKEY,
         *FIGHTER_KIND_DEDEDE,
@@ -732,7 +734,8 @@ fn adjust_ledge_pos(pos: &mut Vector3f, fighter_kind: i32, situation_kind: i32) 
         pos.y += 6.0;
     } else if fighter_needs_ledge_adjust_medium {
         pos.y += 4.0;
-    } if fighter_needs_ledge_adjust_slight {
+    }
+    if fighter_needs_ledge_adjust_slight {
         pos.y += 2.0;
     }
 }

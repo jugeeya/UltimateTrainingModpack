@@ -1,5 +1,3 @@
-#[allow(unused_imports)]
-use crate::common::print_fighter_info;
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
@@ -296,9 +294,7 @@ pub unsafe fn handle_is_enable_transition_term(
 
     combo::is_enable_transition_term(module_accessor, transition_term, ori);
     match ledge::is_enable_transition_term(module_accessor, transition_term) {
-        Some(r) => {
-            return r;
-        },
+        Some(r) => r,
         None => ori,
     }
 }

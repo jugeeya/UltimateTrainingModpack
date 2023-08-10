@@ -412,7 +412,6 @@ unsafe fn handle_final_input_mapping(
         if POSSESSION == Lockout {
             *out = MappedInputs::default();
         }
-        
     }
 }
 
@@ -444,7 +443,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
 
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
         let mut x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
-        // Don't flip Shulk's dial inputs
+                                                               // Don't flip Shulk's dial inputs
         let fighter_kind = utility::get_kind(&mut *cpu_module_accessor);
         if fighter_kind == *FIGHTER_KIND_SHULK {
             let circle_menu_flag = WorkModule::is_flag(
@@ -460,9 +459,19 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         }
 
         // Prevent us from falling off of the ledge in standby
-        if StatusModule::status_kind(cpu_module_accessor) == *FIGHTER_STATUS_KIND_CLIFF_WAIT && is_standby() {
-            if WorkModule::get_int(cpu_module_accessor, *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME) < 50 {
-                WorkModule::set_int(cpu_module_accessor, 200, *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME); // TODO: make this 360
+        if StatusModule::status_kind(cpu_module_accessor) == *FIGHTER_STATUS_KIND_CLIFF_WAIT
+            && is_standby()
+        {
+            if WorkModule::get_int(
+                cpu_module_accessor,
+                *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
+            ) < 50
+            {
+                WorkModule::set_int(
+                    cpu_module_accessor,
+                    200,
+                    *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
+                ); // TODO: make this 360
             }
         }
 
