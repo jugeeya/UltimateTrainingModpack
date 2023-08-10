@@ -3,9 +3,9 @@ use std::fs;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use serde::Deserialize;
-use skyline::nn::hid::NpadGcState;
 use toml;
 
+use crate::common::input::*;
 use crate::consts::DEV_TOML_PATH;
 use crate::logging::info;
 
@@ -55,17 +55,9 @@ impl DevConfig {
     }
 }
 
-pub fn handle_get_npad_state(state: *mut NpadGcState, _controller_id: *const u32) {
-    let a_press = 1 << 0;
-    let l_press = 1 << 6;
-    let r_press = 1 << 7;
-    let buttons;
-    unsafe {
-        buttons = (*state).Buttons;
-    }
-
-    // Occurs on L+R+A
-    if (buttons & a_press > 0) && (buttons & l_press > 0) && (buttons & r_press > 0) {
+pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &SomeControllerStruct) {
+    let current_buttons = controller_struct.controller.current_buttons;
+    if player_idx == 0 && current_buttons.l() && current_buttons.r() && current_buttons.a() {
         let mut dev_config = DEV_CONFIG.lock();
         *dev_config = DevConfig::load_from_toml();
     }

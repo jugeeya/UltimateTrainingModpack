@@ -1,7 +1,7 @@
 use crate::common::button_config;
 use crate::common::consts::{FighterId, HitstunPlayback, OnOff};
+use crate::common::input::*;
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
-use crate::training::input_recording::structures::*;
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
 use lazy_static::lazy_static;
@@ -65,7 +65,7 @@ pub static mut CURRENT_FRAME_LENGTH: usize = 60;
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[[MappedInputs; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]> =
-        Mutex::new([[{ MappedInputs::default() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
+        Mutex::new([[{ MappedInputs::empty() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
     static ref P1_FRAME_LENGTH_MAPPING: Mutex<[usize; TOTAL_SLOT_COUNT]> =
         Mutex::new([60usize; TOTAL_SLOT_COUNT]);
     static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
@@ -180,16 +180,10 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx();
 
     if entry_id_int == 0 && !fighter_is_nana {
-        if button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::InputPlayback,
-        ) {
+        if button_config::combo_passes_exclusive(button_config::ButtonCombo::InputPlayback) {
             playback(MENU.playback_button_combination.get_random().into_idx());
         } else if MENU.record_trigger == OnOff::On
-            && button_config::combo_passes_exclusive(
-                module_accessor,
-                button_config::ButtonCombo::InputRecord,
-            )
+            && button_config::combo_passes_exclusive(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
         }
@@ -281,7 +275,7 @@ pub unsafe fn lockout_record() {
     P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT]
         .iter_mut()
         .for_each(|mapped_input| {
-            *mapped_input = MappedInputs::default();
+            *mapped_input = MappedInputs::empty();
         });
     CURRENT_FRAME_LENGTH = MENU.recording_frames.into_frames();
     P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
@@ -372,18 +366,7 @@ pub unsafe fn is_end_standby() -> bool {
     lstick_movement || rstick_movement || buttons_pressed
 }
 
-static FIM_OFFSET: usize = 0x17504a0;
-// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
-#[skyline::hook(offset = FIM_OFFSET)]
-unsafe fn handle_final_input_mapping(
-    mappings: *mut ControllerMapping,
-    player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
-    out: *mut MappedInputs,
-    controller_struct: &mut SomeControllerStruct,
-    arg: bool,
-) {
-    // go through the original mapping function first
-    original!()(mappings, player_idx, out, controller_struct, arg);
+pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
     if player_idx == 0 {
         // if player 1
         if INPUT_RECORD == Record {
@@ -405,7 +388,7 @@ unsafe fn handle_final_input_mapping(
             }
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
-            *out = MappedInputs::default(); // don't control player while recording
+            *out = MappedInputs::empty(); // don't control player while recording
             println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
     }
@@ -463,7 +446,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
 
         if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
             // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
-            saved_mapped_inputs = MappedInputs::default();
+            saved_mapped_inputs = MappedInputs::empty();
         }
 
         (*controller_data).buttons = saved_mapped_inputs.buttons;
@@ -524,5 +507,5 @@ extern "C" {
 }
 
 pub fn init() {
-    skyline::install_hooks!(set_cpu_controls, handle_final_input_mapping,);
+    skyline::install_hooks!(set_cpu_controls);
 }
