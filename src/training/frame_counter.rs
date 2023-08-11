@@ -1,6 +1,3 @@
-use crate::common::*;
-use crate::training::*;
-
 static mut SHOULD_COUNT: Vec<bool> = vec![];
 static mut COUNTERS: Vec<u32> = vec![];
 
@@ -70,7 +67,7 @@ pub fn tick_idx(index: usize) {
     }
 }
 
-fn tick() {
+pub fn tick() {
     unsafe {
         for (index, _frame) in COUNTERS.iter().enumerate() {
             if !SHOULD_COUNT[index] {
@@ -87,12 +84,4 @@ pub fn reset_all() {
             full_reset(index);
         }
     }
-}
-
-pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if !is_operation_cpu(module_accessor) {
-        return;
-    }
-
-    tick();
 }

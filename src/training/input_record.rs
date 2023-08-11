@@ -187,7 +187,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         {
             lockout_record();
         }
-
+        if INPUT_RECORD == None {
+            clear_notifications("Input Recording");
+        }
         // may need to move this to another func
         if (INPUT_RECORD == Record || INPUT_RECORD == Playback)
             && INPUT_RECORD_FRAME >= CURRENT_FRAME_LENGTH - 1
@@ -212,9 +214,9 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             "Lockout".to_owned(),
             60,
             ResColor {
-                r: 200,
+                r: 8,
                 g: 8,
-                b: 8,
+                b: 200,
                 a: 255,
             },
         );
@@ -265,6 +267,23 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
             0.0,
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
+    } else if entry_id_int == 1 && POSSESSION == Player && INPUT_RECORD == Playback {
+        // Displays if the inputs from the current frame were a result of playback
+        if INPUT_RECORD_FRAME == 0 || INPUT_RECORD_FRAME == 1 {
+            // can be either, seems like a thread issue
+            clear_notifications("Input Recording");
+            color_notification(
+                "Input Recording".to_string(),
+                "Playback".to_owned(),
+                CURRENT_FRAME_LENGTH as u32,
+                ResColor {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
+            );
+        }
     }
 }
 
@@ -298,19 +317,6 @@ pub unsafe fn playback(slot: Option<usize>) -> bool {
         return false;
     }
     let slot = slot.unwrap();
-
-    clear_notifications("Input Recording");
-    color_notification(
-        "Input Recording".to_string(),
-        "Playback".to_owned(),
-        60,
-        ResColor {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 255,
-        },
-    );
 
     CURRENT_PLAYBACK_SLOT = slot;
     CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
@@ -389,7 +395,8 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::empty(); // don't control player while recording
-            println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
+
+            //println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
         // Don't allow for player input during Lockout
         if POSSESSION == Lockout {
@@ -402,7 +409,7 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
 unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     call_original!(p_data);
     let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
-    let controller_no = (*controller_data).controller_index;
+    let _controller_no = (*controller_data).controller_index;
 
     // Check if we need to begin playback this frame due to a mash toggle
     // TODO: Setup STARTING_STATUS based on current playback slot here
@@ -425,8 +432,9 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     }
 
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
-        let mut x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
-                                                               // Don't flip Shulk's dial inputs
+        // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
+        let mut x_input_multiplier = RECORDED_LR * CURRENT_LR;
+        // Don't flip Shulk's dial inputs
         let fighter_kind = utility::get_kind(&mut *cpu_module_accessor);
         if fighter_kind == *FIGHTER_KIND_SHULK {
             let circle_menu_flag = WorkModule::is_flag(
@@ -440,7 +448,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             // If we have issues with the frame after the dial comes out, change condition to
             //  circle_menu_flag && FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_DECIDE_INTERVAL_FRAME > 1
         }
-
         // Prevent us from falling off of the ledge in standby
         if StatusModule::status_kind(cpu_module_accessor) == *FIGHTER_STATUS_KIND_CLIFF_WAIT
             && is_standby()
@@ -456,7 +463,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             );
         }
 
-        println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
+        //println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
 
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[if INPUT_RECORD == Record {
             CURRENT_RECORD_SLOT

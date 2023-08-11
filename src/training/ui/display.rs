@@ -53,7 +53,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     text.set_color(color.r, color.g, color.b, color.a);
 
     let notification = queue.first_mut().unwrap();
-    let has_completed = notification.tick();
+    let has_completed = notification.check_completed();
     if has_completed {
         queue.remove(0);
     }
