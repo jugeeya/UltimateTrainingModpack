@@ -623,7 +623,7 @@ unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
     // Tick notifications
     let queue = &mut ui::notifications::QUEUE;
     let notification = queue.first();
-    if !notification.is_none() {
+    if notification.is_some() {
         let notification = queue.first_mut().unwrap();
         notification.tick();
     }

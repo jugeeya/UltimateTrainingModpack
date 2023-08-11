@@ -395,6 +395,7 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::empty(); // don't control player while recording
+
             //println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
         // Don't allow for player input during Lockout
