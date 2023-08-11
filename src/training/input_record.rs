@@ -1,7 +1,7 @@
 use crate::common::button_config;
-use crate::common::consts::{FighterId, HitstunPlayback, OnOff};
+use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
+use crate::common::input::*;
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
-use crate::training::input_recording::structures::*;
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
 use lazy_static::lazy_static;
@@ -65,7 +65,7 @@ pub static mut CURRENT_FRAME_LENGTH: usize = 60;
 
 lazy_static! {
     static ref P1_FINAL_MAPPING: Mutex<[[MappedInputs; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]> =
-        Mutex::new([[{ MappedInputs::default() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
+        Mutex::new([[{ MappedInputs::empty() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
     static ref P1_FRAME_LENGTH_MAPPING: Mutex<[usize; TOTAL_SLOT_COUNT]> =
         Mutex::new([60usize; TOTAL_SLOT_COUNT]);
     static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
@@ -180,16 +180,10 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx();
 
     if entry_id_int == 0 && !fighter_is_nana {
-        if button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::InputPlayback,
-        ) {
+        if button_config::combo_passes_exclusive(button_config::ButtonCombo::InputPlayback) {
             playback(MENU.playback_button_combination.get_random().into_idx());
-        } else if MENU.record_trigger == OnOff::On
-            && button_config::combo_passes_exclusive(
-                module_accessor,
-                button_config::ButtonCombo::InputRecord,
-            )
+        } else if MENU.record_trigger.contains(RecordTrigger::COMMAND)
+            && button_config::combo_passes_exclusive(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
         }
@@ -300,7 +294,7 @@ pub unsafe fn lockout_record() {
     P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT]
         .iter_mut()
         .for_each(|mapped_input| {
-            *mapped_input = MappedInputs::default();
+            *mapped_input = MappedInputs::empty();
         });
     CURRENT_FRAME_LENGTH = MENU.recording_frames.into_frames();
     P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
@@ -343,7 +337,7 @@ pub unsafe fn playback_ledge(slot: Option<usize>) {
                           // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
                           // Need to buffer 1 less frame for non-lassos
         let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-        let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+        let status_kind = StatusModule::status_kind(cpu_module_accessor);
         if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
             BUFFER_FRAME -= 1;
         }
@@ -378,18 +372,7 @@ pub unsafe fn is_end_standby() -> bool {
     lstick_movement || rstick_movement || buttons_pressed
 }
 
-static FIM_OFFSET: usize = 0x17504a0;
-// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
-#[skyline::hook(offset = FIM_OFFSET)]
-unsafe fn handle_final_input_mapping(
-    mappings: *mut ControllerMapping,
-    player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
-    out: *mut MappedInputs,
-    controller_struct: &mut SomeControllerStruct,
-    arg: bool,
-) {
-    // go through the original mapping function first
-    original!()(mappings, player_idx, out, controller_struct, arg);
+pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
     if player_idx == 0 {
         // if player 1
         if INPUT_RECORD == Record {
@@ -411,9 +394,12 @@ unsafe fn handle_final_input_mapping(
             }
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
-            *out = MappedInputs::default(); // don't control player while recording
-
+            *out = MappedInputs::empty(); // don't control player while recording
             //println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
+        }
+        // Don't allow for player input during Lockout
+        if POSSESSION == Lockout {
+            *out = MappedInputs::empty();
         }
     }
 }
@@ -432,6 +418,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         should_mash_playback();
     }
 
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     if INPUT_RECORD == Pause {
         match LOCKOUT_FRAME.cmp(&0) {
             Ordering::Greater => LOCKOUT_FRAME -= 1,
@@ -447,7 +434,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
         let mut x_input_multiplier = RECORDED_LR * CURRENT_LR;
         // Don't flip Shulk's dial inputs
-        let cpu_module_accessor = get_module_accessor(FighterId::CPU);
         let fighter_kind = utility::get_kind(&mut *cpu_module_accessor);
         if fighter_kind == *FIGHTER_KIND_SHULK {
             let circle_menu_flag = WorkModule::is_flag(
@@ -461,7 +447,23 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             // If we have issues with the frame after the dial comes out, change condition to
             //  circle_menu_flag && FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_DECIDE_INTERVAL_FRAME > 1
         }
-        // println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", _controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
+        // Prevent us from falling off of the ledge in standby
+        if StatusModule::status_kind(cpu_module_accessor) == *FIGHTER_STATUS_KIND_CLIFF_WAIT
+            && is_standby()
+            && WorkModule::get_int(
+                cpu_module_accessor,
+                *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
+            ) < 50
+        {
+            WorkModule::set_int(
+                cpu_module_accessor,
+                200,
+                *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
+            );
+        }
+
+        //println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
+
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[if INPUT_RECORD == Record {
             CURRENT_RECORD_SLOT
         } else {
@@ -470,7 +472,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
 
         if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
             // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
-            saved_mapped_inputs = MappedInputs::default();
+            saved_mapped_inputs = MappedInputs::empty();
         }
 
         (*controller_data).buttons = saved_mapped_inputs.buttons;
@@ -531,5 +533,5 @@ extern "C" {
 }
 
 pub fn init() {
-    skyline::install_hooks!(set_cpu_controls, handle_final_input_mapping,);
+    skyline::install_hooks!(set_cpu_controls);
 }

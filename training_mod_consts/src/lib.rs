@@ -74,12 +74,17 @@ pub struct TrainingModpackMenu {
     pub landing_override: Action,
     pub trump_override: Action,
     pub recording_slot: RecordSlot,
-    pub record_trigger: OnOff,
+    pub record_trigger: RecordTrigger,
     pub recording_frames: RecordingFrames,
     pub playback_button_combination: PlaybackSlot,
     pub hitstun_playback: HitstunPlayback,
     pub playback_mash: OnOff,
     pub playback_loop: OnOff,
+    pub menu_open: ButtonConfig,
+    pub save_state_save: ButtonConfig,
+    pub save_state_load: ButtonConfig,
+    pub input_record: ButtonConfig,
+    pub input_playback: ButtonConfig,
 }
 
 #[repr(C)]
@@ -149,7 +154,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_slot: SaveStateSlot::One,
     randomize_slots: OnOff::Off,
     save_state_mirroring: SaveStateMirroring::None,
-    save_state_playback: PlaybackSlot::S1,
+    save_state_playback: PlaybackSlot::empty(),
     sdi_state: Direction::empty(),
     sdi_strength: SdiFrequency::None,
     shield_state: Shield::None,
@@ -173,11 +178,16 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     trump_override: Action::empty(),
     recording_slot: RecordSlot::S1,
     recording_frames: RecordingFrames::F150,
-    record_trigger: OnOff::On,
+    record_trigger: RecordTrigger::COMMAND,
     playback_button_combination: PlaybackSlot::S1,
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
     playback_loop: OnOff::Off,
+    menu_open: ButtonConfig::B.union(ButtonConfig::DPAD_UP),
+    save_state_save: ButtonConfig::ZL.union(ButtonConfig::DPAD_DOWN),
+    save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
+    input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
+    input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -762,12 +772,12 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         true,
         &(menu.recording_slot as u32),
     );
-    input_tab.add_submenu_with_toggles::<OnOff>(
+    input_tab.add_submenu_with_toggles::<RecordTrigger>(
         "Recording Trigger",
         "record_trigger",
-        "Recording Trigger: Whether to begin recording via button combination (Default: Attack+Left Taunt)",
-        true,
-        &(menu.record_trigger as u32),
+        "Recording Trigger: Whether to begin recording via button combination (Default: Attack+Left Taunt) or upon loading a Save State",
+        false,
+        &(menu.record_trigger.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordingFrames>(
         "Recording Frames",
@@ -805,6 +815,49 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.playback_loop as u32),
     );
     overall_menu.tabs.push(input_tab);
+
+    let mut button_tab = Tab {
+        tab_id: "button",
+        tab_title: "Button Config",
+        tab_submenus: Vec::new(),
+    };
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Menu Open",
+        "menu_open",
+        "Menu Open: Hold: Hold any one button and press the others to trigger",
+        false,
+        &(menu.menu_open.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Save",
+        "save_state_save",
+        "Save State Save: Hold any one button and press the others to trigger",
+        false,
+        &(menu.save_state_save.bits() as u32),
+    );
+
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Load",
+        "save_state_load",
+        "Save State Load: Hold any one button and press the others to trigger",
+        false,
+        &(menu.save_state_load.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Record",
+        "input_record",
+        "Input Record: Hold any one button and press the others to trigger",
+        false,
+        &(menu.input_record.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Playback",
+        "input_playback",
+        "Input Playback: Hold any one button and press the others to trigger",
+        false,
+        &(menu.input_playback.bits() as u32),
+    );
+    overall_menu.tabs.push(button_tab);
 
     overall_menu
 }

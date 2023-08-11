@@ -17,6 +17,8 @@ use crate::common::consts::get_random_float;
 use crate::common::consts::get_random_int;
 use crate::common::consts::FighterId;
 use crate::common::consts::OnOff;
+use crate::common::consts::PlaybackSlot;
+use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
@@ -408,10 +410,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
     if !is_operation_cpu(module_accessor) && !fighter_is_nana {
-        triggered_reset = button_config::combo_passes_exclusive(
-            module_accessor,
-            button_config::ButtonCombo::LoadState,
-        );
+        triggered_reset =
+            button_config::combo_passes_exclusive(button_config::ButtonCombo::LoadState);
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
@@ -472,7 +472,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         ControlModule::stop_rumble(module_accessor, false);
         KineticModule::clear_speed_all(module_accessor);
 
-        let pos = if MIRROR_STATE == -1.0 {
+        let mut pos = if MIRROR_STATE == -1.0 {
             Vector3f {
                 x: MIRROR_STATE * (save_state.x - get_stage_offset(stage_id())),
                 y: save_state.y,
@@ -486,6 +486,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
         };
 
+        // Adjust fighter y position if they won't grab ledge when they should
+        adjust_ledge_pos(&mut pos, save_state.fighter_kind, save_state.situation_kind);
         let lr = MIRROR_STATE * save_state.lr;
         PostureModule::set_pos(module_accessor, &pos);
         PostureModule::set_lr(module_accessor, lr);
@@ -512,12 +514,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 save_state.state = NoAction;
             }
         } else if save_state.situation_kind == SITUATION_KIND_CLIFF {
-            if status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
+            if status != FIGHTER_STATUS_KIND_FALL
+                && status != FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE
                 && status != FIGHTER_STATUS_KIND_CLIFF_CATCH
             {
                 StatusModule::change_status_request(
                     module_accessor,
-                    *FIGHTER_STATUS_KIND_CLIFF_CATCH_MOVE,
+                    *FIGHTER_STATUS_KIND_FALL,
                     false,
                 );
             } else {
@@ -607,8 +610,18 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if prev_status_kind == FIGHTER_STATUS_KIND_REBIRTH && fighter_is_popo {
             save_state.state = NanaPosMove;
         }
+
+        // if we're recording on state load, record
+        if MENU.record_trigger.contains(RecordTrigger::SAVESTATE) {
+            input_record::lockout_record();
+            return;
+        }
         // otherwise, begin input recording playback if selected
-        else if !MENU.save_state_playback.is_empty() {
+        // for ledge, don't do this - if you want playback on a ledge, you have to set it as a ledge option,
+        // otherwise there too many edge cases here
+        else if MENU.save_state_playback.get_random() != PlaybackSlot::empty()
+            && save_state.situation_kind != SITUATION_KIND_CLIFF
+        {
             input_record::playback(MENU.save_state_playback.get_random().into_idx());
         }
 
@@ -626,8 +639,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Save state
-    if button_config::combo_passes_exclusive(module_accessor, button_config::ButtonCombo::SaveState)
-    {
+    if button_config::combo_passes_exclusive(button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
         save_state_player(MENU.save_state_slot.as_idx() as usize).state = Save;
@@ -643,17 +655,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == Save && !fighter_is_nana {
         // Don't save states with Nana. Should already be fine, just a safety.
         save_state.state = NoAction;
-
         save_state.x = PostureModule::pos_x(module_accessor);
         save_state.y = PostureModule::pos_y(module_accessor);
         save_state.lr = PostureModule::lr(module_accessor);
         save_state.percent = DamageModule::damage(module_accessor, 0);
-        save_state.situation_kind =
-            if StatusModule::situation_kind(module_accessor) == *SITUATION_KIND_CLIFF {
-                *SITUATION_KIND_AIR
-            } else {
-                StatusModule::situation_kind(module_accessor)
-            };
+        save_state.situation_kind = StatusModule::situation_kind(module_accessor);
+
         // Always store fighter kind so that charges are handled properly
         save_state.fighter_kind = app::utility::get_kind(module_accessor);
         save_state.charge = charge::get_charge(module_accessor, fighter_kind);
@@ -689,5 +696,43 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         {
             save_to_file();
         }
+    }
+}
+
+fn adjust_ledge_pos(pos: &mut Vector3f, fighter_kind: i32, situation_kind: i32) {
+    // Adjusts save states for fighters who have grabbed the ledge
+    if situation_kind != SITUATION_KIND_CLIFF {
+        return;
+    }
+
+    let fighter_needs_ledge_adjust_far = [
+        *FIGHTER_KIND_DONKEY,
+        *FIGHTER_KIND_DEDEDE,
+        *FIGHTER_KIND_KROOL,
+    ]
+    .contains(&fighter_kind);
+
+    let fighter_needs_ledge_adjust_medium = [
+        *FIGHTER_KIND_SAMUS,
+        *FIGHTER_KIND_SAMUSD,
+        *FIGHTER_KIND_MEWTWO,
+        *FIGHTER_KIND_DOLLY,
+    ]
+    .contains(&fighter_kind);
+
+    let fighter_needs_ledge_adjust_slight = [
+        *FIGHTER_KIND_KOOPA,
+        *FIGHTER_KIND_ELIGHT,
+        *FIGHTER_KIND_SNAKE,
+    ]
+    .contains(&fighter_kind);
+
+    if fighter_needs_ledge_adjust_far {
+        pos.y += 6.0;
+    } else if fighter_needs_ledge_adjust_medium {
+        pos.y += 4.0;
+    }
+    if fighter_needs_ledge_adjust_slight {
+        pos.y += 2.0;
     }
 }

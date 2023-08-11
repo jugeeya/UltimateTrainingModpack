@@ -1373,6 +1373,28 @@ impl ToggleTrait for HitstunPlayback {
     }
 }
 
+// Input Recording Trigger Type
+bitflags! {
+    pub struct RecordTrigger : u32
+    {
+        const COMMAND = 0x1;
+        const SAVESTATE = 0x2;
+    }
+}
+
+impl RecordTrigger {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            RecordTrigger::COMMAND => "Button Combination",
+            RecordTrigger::SAVESTATE => "Save State Load",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {RecordTrigger}
+impl_serde_for_bitflags!(RecordTrigger);
+
 #[repr(u32)]
 #[derive(
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
@@ -1441,3 +1463,52 @@ impl ToggleTrait for RecordingFrames {
         RecordingFrames::iter().map(|i| i as u32).collect()
     }
 }
+
+bitflags! {
+    pub struct  ButtonConfig : u32 {
+        const A = 0b0000_0000_0000_0000_0001;
+        const B = 0b0000_0000_0000_0000_0010;
+        const X = 0b0000_0000_0000_0000_0100;
+        const Y = 0b0000_0000_0000_0000_1000;
+        const L = 0b0000_0000_0000_0001_0000;
+        const R = 0b0000_0000_0000_0010_0000;
+        const ZL = 0b0000_0000_0000_0100_0000;
+        const ZR = 0b0000_0000_0000_1000_0000;
+        const DPAD_UP = 0b0000_0000_0001_0000_0000;
+        const DPAD_DOWN = 0b0000_0000_0010_0000_0000;
+        const DPAD_LEFT = 0b0000_0000_0100_0000_0000;
+        const DPAD_RIGHT = 0b0000_0000_1000_0000_0000;
+        const PLUS = 0b0000_0001_0000_0000_0000;
+        const MINUS = 0b0000_0010_0000_0000_0000;
+        const LSTICK = 0b0000_0100_0000_0000_0000;
+        const RSTICK = 0b0000_1000_0000_0000_0000;
+    }
+}
+
+impl ButtonConfig {
+    // Should we use the font glyphs? Or do that special casing in the menu?
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            ButtonConfig::A => "A",
+            ButtonConfig::B => "B",
+            ButtonConfig::X => "X",
+            ButtonConfig::Y => "Y",
+            ButtonConfig::L => "Pro L",
+            ButtonConfig::R => "Pro R; GCC Z",
+            ButtonConfig::ZL => "Pro ZL; GCC L",
+            ButtonConfig::ZR => "Pro ZR; GCC R",
+            ButtonConfig::DPAD_UP => "DPad Up",
+            ButtonConfig::DPAD_DOWN => "DPad Down",
+            ButtonConfig::DPAD_LEFT => "DPad Left",
+            ButtonConfig::DPAD_RIGHT => "DPad Right",
+            ButtonConfig::PLUS => "Plus",
+            ButtonConfig::MINUS => "Minus",
+            ButtonConfig::LSTICK => "Left Stick Press",
+            ButtonConfig::RSTICK => "Right Stick Press",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {ButtonConfig}
+impl_serde_for_bitflags!(ButtonConfig);

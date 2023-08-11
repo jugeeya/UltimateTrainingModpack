@@ -1,4 +1,5 @@
 #![feature(proc_macro_hygiene)]
+#![feature(iter_intersperse)]
 #![feature(const_mut_refs)]
 #![feature(exclusive_range_pattern)]
 #![feature(c_variadic)]
@@ -24,7 +25,6 @@ use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
-use crate::menu::quick_menu_loop;
 use crate::training::ui::notifications::notification;
 
 pub mod common;
@@ -74,21 +74,6 @@ pub fn main() {
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification(
-            "Open Menu".to_string(),
-            "Special + Uptaunt".to_string(),
-            120,
-        );
-        notification(
-            "Save State".to_string(),
-            "Shield + Downtaunt".to_string(),
-            120,
-        );
-        notification(
-            "Load State".to_string(),
-            "Shield + Uptaunt".to_string(),
-            120,
-        );
     }
 
     hitbox_visualizer::hitbox_visualization();
@@ -118,9 +103,60 @@ pub fn main() {
     release::version_check();
 
     menu::load_from_file();
-    button_config::load_from_file();
+
+    unsafe {
+        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+        notification(
+            "Open Menu".to_string(),
+            MENU.menu_open
+                .to_vec()
+                .iter()
+                .map(|button| button.as_str().unwrap())
+                .intersperse(" + ")
+                .collect(),
+            120,
+        );
+        notification(
+            "Save State".to_string(),
+            MENU.save_state_save
+                .to_vec()
+                .iter()
+                .map(|button| button.as_str().unwrap())
+                .intersperse(" + ")
+                .collect(),
+            120,
+        );
+        notification(
+            "Load State".to_string(),
+            MENU.save_state_load
+                .to_vec()
+                .iter()
+                .map(|button| button.as_str().unwrap())
+                .intersperse(" + ")
+                .collect(),
+            120,
+        );
+        notification(
+            "Input Record".to_string(),
+            MENU.input_record
+                .to_vec()
+                .iter()
+                .map(|button| button.as_str().unwrap())
+                .intersperse(" + ")
+                .collect(),
+            120,
+        );
+        notification(
+            "Input Playback".to_string(),
+            MENU.input_playback
+                .to_vec()
+                .iter()
+                .map(|button| button.as_str().unwrap())
+                .intersperse(" + ")
+                .collect(),
+            120,
+        );
+    }
 
     std::thread::spawn(events_loop);
-
-    std::thread::spawn(|| unsafe { quick_menu_loop() });
 }

@@ -10,6 +10,7 @@ pub mod button_config;
 pub mod consts;
 pub mod dev_config;
 pub mod events;
+pub mod input;
 pub mod menu;
 pub mod raygun_printer;
 pub mod release;
@@ -96,7 +97,7 @@ pub fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
 
 pub fn is_in_hitstun(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
-    // TODO: Need to add EWGF'd out of shield to this?
+    // TODO: Need to add lightly hit off of ledge to this?
     (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&status_kind)
 }
 
