@@ -1,10 +1,3 @@
-use skyline::hooks::{getRegionAddress, InlineCtx, Region};
-use skyline::nn::ro::LookupSymbol;
-use smash::app::{self, enSEType, lua_bind::*, utility};
-use smash::lib::lua_const::*;
-use smash::params::*;
-use smash::phx::{Hash40, Vector3f};
-
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
@@ -13,6 +6,12 @@ use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
 use crate::training::character_specific::items;
+use skyline::hooks::{getRegionAddress, InlineCtx, Region};
+use skyline::nn::ro::LookupSymbol;
+use smash::app::{self, enSEType, lua_bind::*, utility};
+use smash::lib::lua_const::*;
+use smash::params::*;
+use smash::phx::{Hash40, Vector3f};
 
 pub mod buff;
 pub mod charge;

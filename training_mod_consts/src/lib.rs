@@ -74,7 +74,7 @@ pub struct TrainingModpackMenu {
     pub landing_override: Action,
     pub trump_override: Action,
     pub recording_slot: RecordSlot,
-    pub record_trigger: OnOff,
+    pub record_trigger: RecordTrigger,
     pub recording_frames: RecordingFrames,
     pub playback_button_combination: PlaybackSlot,
     pub hitstun_playback: HitstunPlayback,
@@ -178,7 +178,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     trump_override: Action::empty(),
     recording_slot: RecordSlot::S1,
     recording_frames: RecordingFrames::F150,
-    record_trigger: OnOff::On,
+    record_trigger: RecordTrigger::COMMAND,
     playback_button_combination: PlaybackSlot::S1,
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
@@ -772,12 +772,12 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         true,
         &(menu.recording_slot as u32),
     );
-    input_tab.add_submenu_with_toggles::<OnOff>(
+    input_tab.add_submenu_with_toggles::<RecordTrigger>(
         "Recording Trigger",
         "record_trigger",
-        "Recording Trigger: Whether to begin recording via button combination (Default: Attack+Left Taunt)",
-        true,
-        &(menu.record_trigger as u32),
+        "Recording Trigger: Whether to begin recording via button combination (Default: Attack+Left Taunt) or upon loading a Save State",
+        false,
+        &(menu.record_trigger.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordingFrames>(
         "Recording Frames",

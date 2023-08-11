@@ -102,7 +102,6 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         reset_ledge_delay();
         return;
     }
-
     // Need to roll ledge delay so we know if getup needs to be buffered
     roll_ledge_delay();
     roll_ledge_case();
@@ -161,7 +160,6 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     }
 
     let status = LEDGE_CASE.into_status().unwrap_or(0);
-
     if LEDGE_CASE.is_playback() {
         input_record::playback(LEDGE_CASE.playback_slot());
     } else {
@@ -188,10 +186,11 @@ pub unsafe fn is_enable_transition_term(
         return None;
     }
 
-    // Disallow the default cliff-climb if we are waiting or we wait as part of a recording
-    if (LEDGE_CASE == LedgeOption::WAIT
-        || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
-        && term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
+    // Disallow the default cliff-climb if we are waiting or we didn't get up during a recording
+    if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
+        && ((LEDGE_CASE == LedgeOption::WAIT
+            || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
+            || (LEDGE_CASE.is_playback() && !input_record::is_playback()))
     {
         return Some(false);
     }

@@ -1,5 +1,5 @@
 use crate::common::button_config;
-use crate::common::consts::{FighterId, HitstunPlayback, OnOff};
+use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
 use crate::common::input::*;
 use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
 use crate::training::mash;
@@ -182,7 +182,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     if entry_id_int == 0 && !fighter_is_nana {
         if button_config::combo_passes_exclusive(button_config::ButtonCombo::InputPlayback) {
             playback(MENU.playback_button_combination.get_random().into_idx());
-        } else if MENU.record_trigger == OnOff::On
+        } else if MENU.record_trigger.contains(RecordTrigger::COMMAND)
             && button_config::combo_passes_exclusive(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
@@ -331,7 +331,7 @@ pub unsafe fn playback_ledge(slot: Option<usize>) {
                           // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
                           // Need to buffer 1 less frame for non-lassos
         let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-        let status_kind = StatusModule::status_kind(cpu_module_accessor) as i32;
+        let status_kind = StatusModule::status_kind(cpu_module_accessor);
         if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
             BUFFER_FRAME -= 1;
         }
@@ -391,6 +391,10 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
             *out = MappedInputs::empty(); // don't control player while recording
             println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
+        // Don't allow for player input during Lockout
+        if POSSESSION == Lockout {
+            *out = MappedInputs::empty();
+        }
     }
 }
 
@@ -408,6 +412,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         should_mash_playback();
     }
 
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     if INPUT_RECORD == Pause {
         match LOCKOUT_FRAME.cmp(&0) {
             Ordering::Greater => LOCKOUT_FRAME -= 1,
@@ -422,7 +427,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     if INPUT_RECORD == Record || INPUT_RECORD == Playback {
         let mut x_input_multiplier = RECORDED_LR * CURRENT_LR; // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
                                                                // Don't flip Shulk's dial inputs
-        let cpu_module_accessor = get_module_accessor(FighterId::CPU);
         let fighter_kind = utility::get_kind(&mut *cpu_module_accessor);
         if fighter_kind == *FIGHTER_KIND_SHULK {
             let circle_menu_flag = WorkModule::is_flag(
@@ -436,6 +440,22 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             // If we have issues with the frame after the dial comes out, change condition to
             //  circle_menu_flag && FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_DECIDE_INTERVAL_FRAME > 1
         }
+
+        // Prevent us from falling off of the ledge in standby
+        if StatusModule::status_kind(cpu_module_accessor) == *FIGHTER_STATUS_KIND_CLIFF_WAIT
+            && is_standby()
+            && WorkModule::get_int(
+                cpu_module_accessor,
+                *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
+            ) < 50
+        {
+            WorkModule::set_int(
+                cpu_module_accessor,
+                200,
+                *FIGHTER_STATUS_CLIFF_WORK_INT_CATCH_REST_TIME,
+            );
+        }
+
         println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
 
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[if INPUT_RECORD == Record {

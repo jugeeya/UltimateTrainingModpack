@@ -1373,6 +1373,28 @@ impl ToggleTrait for HitstunPlayback {
     }
 }
 
+// Input Recording Trigger Type
+bitflags! {
+    pub struct RecordTrigger : u32
+    {
+        const COMMAND = 0x1;
+        const SAVESTATE = 0x2;
+    }
+}
+
+impl RecordTrigger {
+    pub fn as_str(self) -> Option<&'static str> {
+        Some(match self {
+            RecordTrigger::COMMAND => "Button Combination",
+            RecordTrigger::SAVESTATE => "Save State Load",
+            _ => return None,
+        })
+    }
+}
+
+extra_bitflag_impls! {RecordTrigger}
+impl_serde_for_bitflags!(RecordTrigger);
+
 #[repr(u32)]
 #[derive(
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
