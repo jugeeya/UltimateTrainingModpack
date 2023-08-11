@@ -405,8 +405,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     };
     let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx]);
 
-    let is_gcc =
-        (*common::menu::P1_CONTROLLER_STATE.data_ptr()).style == ControllerStyle::GCController;
+    let is_gcc = (*common::menu::P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
         GCC_BUTTON_MAPPING.clone()
     } else {

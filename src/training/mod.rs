@@ -1,3 +1,4 @@
+use crate::common::button_config;
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
@@ -628,6 +629,7 @@ unsafe fn handle_final_input_mapping(
     if !is_training_mode() {
         return;
     }
+    button_config::handle_final_input_mapping(player_idx, controller_struct);
     menu::handle_final_input_mapping(player_idx, controller_struct, out);
     dev_config::handle_final_input_mapping(player_idx, controller_struct);
     input_delay::handle_final_input_mapping(player_idx, out);

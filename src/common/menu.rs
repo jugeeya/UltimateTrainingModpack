@@ -78,18 +78,6 @@ pub fn spawn_menu() {
     }
 }
 
-lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
-        training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
-            (
-                ui_menu(DEFAULTS_MENU),
-                serde_json::to_string(&DEFAULTS_MENU).unwrap(),
-            )
-        })
-    );
-    pub static ref P1_CONTROLLER_STATE: Mutex<Controller> = Mutex::new(Controller::default());
-}
-
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
 enum DirectionButton {
     DpadLeft,
@@ -106,6 +94,36 @@ enum DirectionButton {
     RUp,
 }
 
+lazy_static! {
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
+        training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
+            (
+                ui_menu(DEFAULTS_MENU),
+                serde_json::to_string(&DEFAULTS_MENU).unwrap(),
+            )
+        })
+    );
+    pub static ref P1_CONTROLLER_STYLE: Mutex<ControllerStyle> =
+        Mutex::new(ControllerStyle::default());
+    static ref DIRECTION_HOLD_FRAMES: Mutex<HashMap<DirectionButton, u32>> = {
+        use DirectionButton::*;
+        Mutex::new(HashMap::from([
+            (DpadLeft, 0),
+            (LLeft, 0),
+            (RLeft, 0),
+            (DpadDown, 0),
+            (LDown, 0),
+            (RDown, 0),
+            (DpadRight, 0),
+            (LRight, 0),
+            (RRight, 0),
+            (DpadUp, 0),
+            (LUp, 0),
+            (RUp, 0),
+        ]))
+    };
+}
+
 pub fn handle_final_input_mapping(
     player_idx: i32,
     controller_struct: &SomeControllerStruct,
@@ -113,7 +131,8 @@ pub fn handle_final_input_mapping(
 ) {
     unsafe {
         if player_idx == 0 {
-            *P1_CONTROLLER_STATE.lock() = *controller_struct.controller;
+            let p1_controller = *controller_struct.controller;
+            *P1_CONTROLLER_STYLE.lock() = p1_controller.style;
             if QUICK_MENU_ACTIVE {
                 // If we're here, remove all other presses
                 *out = MappedInputs::empty();
@@ -122,12 +141,7 @@ pub fn handle_final_input_mapping(
 
                 const DIRECTION_HOLD_REPEAT_FRAMES: u32 = 20;
                 use DirectionButton::*;
-                let directions = [
-                    DpadLeft, LLeft, RLeft, DpadDown, LDown, RDown, DpadRight, LRight, RRight,
-                    DpadUp, LUp, RUp,
-                ];
-                let mut direction_hold_frames: HashMap<DirectionButton, u32> =
-                    directions.iter().map(|config| (*config, 0)).collect();
+                let direction_hold_frames = &mut *DIRECTION_HOLD_FRAMES.lock();
 
                 // Check for all controllers unplugged
                 let mut potential_controller_ids = (0..8).collect::<Vec<u32>>();
@@ -140,41 +154,30 @@ pub fn handle_final_input_mapping(
                     return;
                 }
 
-                let p1_controller_state = *P1_CONTROLLER_STATE.data_ptr();
-                let style = p1_controller_state.style;
-                let button_presses = p1_controller_state.just_down;
+                let style = p1_controller.style;
+                let button_presses = p1_controller.just_down;
 
-                let button_current_held = p1_controller_state.current_buttons;
-                let button_released = p1_controller_state.just_release;
+                let button_current_held = p1_controller.current_buttons;
                 direction_hold_frames
                     .iter_mut()
                     .for_each(|(direction, frames)| {
-                        let (still_held, released) = match direction {
-                            DpadLeft => {
-                                (button_current_held.dpad_left(), button_released.dpad_left())
-                            }
-                            LLeft => (button_current_held.l_left(), button_released.l_left()),
-                            RLeft => (button_current_held.r_left(), button_released.r_left()),
-                            DpadDown => {
-                                (button_current_held.dpad_down(), button_released.dpad_down())
-                            }
-                            LDown => (button_current_held.l_down(), button_released.l_down()),
-                            RDown => (button_current_held.r_down(), button_released.r_down()),
-                            DpadRight => (
-                                button_current_held.dpad_right(),
-                                button_released.dpad_right(),
-                            ),
-                            LRight => (button_current_held.l_right(), button_released.l_right()),
-                            RRight => (button_current_held.r_right(), button_released.r_right()),
-                            DpadUp => (button_current_held.dpad_up(), button_released.dpad_up()),
-                            LUp => (button_current_held.l_up(), button_released.l_up()),
-                            RUp => (button_current_held.r_up(), button_released.r_up()),
+                        let still_held = match direction {
+                            DpadLeft => button_current_held.dpad_left(),
+                            LLeft => button_current_held.l_left(),
+                            RLeft => button_current_held.r_left(),
+                            DpadDown => button_current_held.dpad_down(),
+                            LDown => button_current_held.l_down(),
+                            RDown => button_current_held.r_down(),
+                            DpadRight => button_current_held.dpad_right(),
+                            LRight => button_current_held.l_right(),
+                            RRight => button_current_held.r_right(),
+                            DpadUp => button_current_held.dpad_up(),
+                            LUp => button_current_held.l_up(),
+                            RUp => button_current_held.r_up(),
                         };
                         if still_held {
                             *frames += 1;
-                        }
-
-                        if released {
+                        } else {
                             *frames = 0;
                         }
                     });
@@ -227,6 +230,7 @@ pub fn handle_final_input_mapping(
                     || button_presses.r_left()
                     || [DpadLeft, LLeft, RLeft].iter().any(hold_condition))
                 .then(|| {
+                    received_input = true;
                     app.on_left();
                 });
                 (button_presses.dpad_right()
@@ -234,6 +238,7 @@ pub fn handle_final_input_mapping(
                     || button_presses.r_right()
                     || [DpadRight, LRight, RRight].iter().any(hold_condition))
                 .then(|| {
+                    received_input = true;
                     app.on_right();
                 });
                 (button_presses.dpad_up()
@@ -241,6 +246,7 @@ pub fn handle_final_input_mapping(
                     || button_presses.r_up()
                     || [DpadUp, LUp, RUp].iter().any(hold_condition))
                 .then(|| {
+                    received_input = true;
                     app.on_up();
                 });
                 (button_presses.dpad_down()
@@ -248,10 +254,12 @@ pub fn handle_final_input_mapping(
                     || button_presses.r_down()
                     || [DpadDown, LDown, RDown].iter().any(hold_condition))
                 .then(|| {
+                    received_input = true;
                     app.on_down();
                 });
 
                 if received_input {
+                    direction_hold_frames.iter_mut().for_each(|(_, f)| *f = 0);
                     set_menu_from_json(&app.get_menu_selections());
                 }
             }
