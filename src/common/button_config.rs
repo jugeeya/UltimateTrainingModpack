@@ -1,7 +1,10 @@
-use crate::common::menu::P1_CONTROLLER_STATE;
+use std::collections::HashMap;
+
 use crate::common::*;
 use crate::input::{ControllerStyle::*, *};
 
+use lazy_static::lazy_static;
+use parking_lot::Mutex;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -43,7 +46,7 @@ pub fn button_mapping(
     }
 }
 
-#[derive(Debug, EnumIter, PartialEq)]
+#[derive(Debug, EnumIter, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum ButtonCombo {
     OpenMenu,
     SaveState,
@@ -62,27 +65,32 @@ unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     }
 }
 
-fn combo_passes(combo: ButtonCombo) -> bool {
+lazy_static! {
+    static ref BUTTON_COMBO_REQUESTS: Mutex<HashMap<ButtonCombo, bool>> =
+        Mutex::new(HashMap::from([
+            (ButtonCombo::OpenMenu, false),
+            (ButtonCombo::SaveState, false),
+            (ButtonCombo::LoadState, false),
+            (ButtonCombo::InputRecord, false),
+            (ButtonCombo::InputPlayback, false),
+        ]));
+}
+
+fn combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
         let combo_keys = get_combo_keys(combo).to_vec();
-        let p1_controller_state = *P1_CONTROLLER_STATE.data_ptr();
-
         let mut this_combo_passes = false;
 
         for hold_button in &combo_keys[..] {
             if button_mapping(
                 *hold_button,
-                p1_controller_state.style,
-                p1_controller_state.current_buttons,
+                p1_controller.style,
+                p1_controller.current_buttons,
             ) && combo_keys
                 .iter()
                 .filter(|press_button| **press_button != *hold_button)
                 .all(|press_button| {
-                    button_mapping(
-                        *press_button,
-                        p1_controller_state.style,
-                        p1_controller_state.just_down,
-                    )
+                    button_mapping(*press_button, p1_controller.style, p1_controller.just_down)
                 })
             {
                 this_combo_passes = true;
@@ -93,9 +101,39 @@ fn combo_passes(combo: ButtonCombo) -> bool {
     }
 }
 
-pub fn combo_passes_exclusive(combo: ButtonCombo) -> bool {
+pub fn _combo_passes_exclusive(p1_controller: Controller, combo: ButtonCombo) -> bool {
     let other_combo_passes = ButtonCombo::iter()
         .filter(|other_combo| *other_combo != combo)
-        .any(combo_passes);
-    combo_passes(combo) && !other_combo_passes
+        .any(|other_combo| combo_passes(p1_controller, other_combo));
+    combo_passes(p1_controller, combo) && !other_combo_passes
+}
+
+pub fn combo_passes_exclusive(combo: ButtonCombo) -> bool {
+    unsafe {
+        let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.data_ptr();
+        let passes = button_combo_requests.get_mut(&combo);
+        let mut did_pass = false;
+        if let Some(passes) = passes {
+            if *passes {
+                did_pass = true;
+            }
+            *passes = false;
+        }
+
+        did_pass
+    }
+}
+
+pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &SomeControllerStruct) {
+    if player_idx == 0 {
+        let p1_controller = *controller_struct.controller;
+        let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.lock();
+        button_combo_requests
+            .iter_mut()
+            .for_each(|(combo, is_request)| {
+                if !*is_request {
+                    *is_request = _combo_passes_exclusive(p1_controller, *combo);
+                }
+            })
+    }
 }
