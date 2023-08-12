@@ -6,7 +6,7 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
 use training_mod_tui::{App, AppPage};
 
-use crate::{common, common::menu::QUICK_MENU_ACTIVE};
+use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
 pub static NUM_MENU_TEXT_OPTIONS: usize = 33;
 pub static _NUM_MENU_TABS: usize = 3;
@@ -405,7 +405,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     };
     let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx]);
 
-    let is_gcc = common::menu::p1_controller_is_gcc();
+    let is_gcc = (*common::menu::P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
         GCC_BUTTON_MAPPING.clone()
     } else {

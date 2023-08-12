@@ -1,14 +1,13 @@
-#[allow(unused_imports)]
-use crate::common::print_fighter_info;
+use crate::common::button_config;
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
 };
 use crate::hitbox_visualizer;
+use crate::input::*;
 use crate::logging::*;
 use crate::training::character_specific::items;
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
-use skyline::nn::hid::*;
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, enSEType, lua_bind::*, utility};
 use smash::lib::lua_const::*;
@@ -36,7 +35,6 @@ mod fast_fall;
 mod full_hop;
 pub mod input_delay;
 mod input_record;
-mod input_recording;
 mod mash;
 mod reset;
 pub mod save_states;
@@ -122,7 +120,7 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
-        if menu::menu_condition(module_accessor) {
+        if menu::menu_condition() {
             menu::spawn_menu();
         }
 
@@ -135,7 +133,6 @@ fn once_per_frame_per_fighter(
     }
 
     fast_fall::get_command_flag_cat(module_accessor);
-    frame_counter::get_command_flag_cat(module_accessor);
     ledge::get_command_flag_cat(module_accessor);
     shield::get_command_flag_cat(module_accessor);
     directional_influence::get_command_flag_cat(module_accessor);
@@ -523,6 +520,79 @@ pub unsafe fn handle_fighter_play_se(
     )
 }
 
+static FOLLOW_REQ_OFFSET: usize = 0x044f860;
+#[skyline::hook(offset = FOLLOW_REQ_OFFSET)] // hooked to prevent score gfx from playing when loading save states
+pub unsafe fn handle_effect_follow(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    eff_hash: Hash40,
+    eff_hash2: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    size: f32,
+    arg5: bool,
+    arg6: u32,
+    arg7: i32,
+    arg8: i32,
+    arg9: i32,
+    arg10: i32,
+    arg11: bool,
+    arg12: bool,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            module_accessor,
+            eff_hash,
+            eff_hash2,
+            pos,
+            rot,
+            size,
+            arg5,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+            arg10,
+            arg11,
+            arg12,
+        );
+    }
+    // Prevent the score GFX from playing on the CPU when loading save state during hitstop
+    if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
+        return original!()(
+            module_accessor,
+            eff_hash,
+            eff_hash2,
+            pos,
+            rot,
+            0.0,
+            arg5,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+            arg10,
+            arg11,
+            arg12,
+        );
+    }
+    original!()(
+        module_accessor,
+        eff_hash,
+        eff_hash2,
+        pos,
+        rot,
+        size,
+        arg5,
+        arg6,
+        arg7,
+        arg8,
+        arg9,
+        arg10,
+        arg11,
+        arg12,
+    )
+}
+
 #[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_effect(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -548,8 +618,8 @@ pub unsafe fn handle_effect(
             arg9,
         );
     }
-    if save_states::is_killing() {
-        // Making the size 0 prevents these effects from being displayed. Fixs throw explosions, ICs squall, etc.
+    if save_states::is_loading() && !buff::is_buffing(module_accessor) {
+        // Making the size 0 prevents these effects from being displayed. Fixes throw explosions, ICs squall, etc.
         return original!()(
             module_accessor,
             eff_hash,
@@ -631,24 +701,46 @@ pub unsafe fn handle_article_get_int(
     )
 }
 
-#[allow(improper_ctypes)]
-extern "C" {
-    fn add_nn_hid_hook(callback: fn(*mut NpadGcState, *const u32));
+// Instruction run on the completion of the CPU Control function
+static OPCF_OFFSET: usize = 0x06b7fdc;
+
+// One instruction after the CPU Control function completes
+#[skyline::hook(offset = OPCF_OFFSET, inline)]
+unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
+    frame_counter::tick();
+    // Tick notifications
+    let queue = &mut ui::notifications::QUEUE;
+    let notification = queue.first();
+    if notification.is_some() {
+        let notification = queue.first_mut().unwrap();
+        notification.tick();
+    }
+}
+
+static FIM_OFFSET: usize = 0x17504a0;
+// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
+#[skyline::hook(offset = FIM_OFFSET)]
+unsafe fn handle_final_input_mapping(
+    mappings: *mut ControllerMapping,
+    player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
+    out: *mut MappedInputs,
+    controller_struct: &mut SomeControllerStruct,
+    arg: bool,
+) {
+    // go through the original mapping function first
+    original!()(mappings, player_idx, out, controller_struct, arg);
+    if !is_training_mode() {
+        return;
+    }
+    button_config::handle_final_input_mapping(player_idx, controller_struct);
+    menu::handle_final_input_mapping(player_idx, controller_struct, out);
+    dev_config::handle_final_input_mapping(player_idx, controller_struct);
+    input_delay::handle_final_input_mapping(player_idx, out);
+    input_record::handle_final_input_mapping(player_idx, out);
 }
 
 pub fn training_mods() {
     info!("Applying training mods.");
-
-    // Input Mods
-    unsafe {
-        if let Some(_f) = (add_nn_hid_hook as *const ()).as_ref() {
-            add_nn_hid_hook(input_delay::handle_get_npad_state);
-            add_nn_hid_hook(menu::handle_get_npad_state);
-            add_nn_hid_hook(dev_config::handle_get_npad_state);
-        } else {
-            panic!("The NN-HID hook plugin could not be found and is required to add NRO hooks. Make sure libnn_hid_hook.nro is installed.");
-        }
-    }
 
     unsafe {
         LookupSymbol(
@@ -717,10 +809,15 @@ pub fn training_mods() {
         handle_se,
         // Death GFX
         handle_effect,
+        handle_effect_follow,
         // Star KO turn off
         handle_star_ko,
         // Clatter
         clatter::hook_start_clatter,
+        // Notifications
+        handle_once_per_cpu_frame,
+        // Input
+        handle_final_input_mapping,
         // Charge
         handle_article_get_int,
     );
