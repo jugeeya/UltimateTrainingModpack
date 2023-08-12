@@ -235,6 +235,7 @@ pub unsafe fn get_param_int(
             );
             EffectModule::remove_common(module_accessor, Hash40::new("monad_arts_damage_buster"));
             EffectModule::remove_common(module_accessor, Hash40::new("monad_arts_damage_smash"));
+            // TODO: We should try to remove all effects here
             return Some(1);
         }
         if param_hash == hash40("rebirth_move_frame") {
@@ -432,17 +433,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // Kill the fighter and move them to camera bounds
+    // Note: Nana shouldn't control her state here. Popo will give a signal to have
+    // Nana move into NanaPosMove once he moves.
     if save_state.state == KillPlayer && !fighter_is_nana {
         on_ptrainer_death(module_accessor);
         if !is_dead(module_accessor) {
             on_death(fighter_kind, module_accessor);
             StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
-        }
-
-        // Nana shouldn't control her state here. Popo will give a signal to have
-        // Nana move into NanaPosMove once he moves.
-        if fighter_is_nana {
-            return;
         }
 
         save_state.state = WaitForAlive;
