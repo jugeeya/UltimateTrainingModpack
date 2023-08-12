@@ -436,7 +436,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         on_ptrainer_death(module_accessor);
         if !is_dead(module_accessor) {
             on_death(fighter_kind, module_accessor);
-            StatusModule::change_status_request(module_accessor, *FIGHTER_STATUS_KIND_DEAD, false);
+            StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
         }
 
         // Nana shouldn't control her state here. Popo will give a signal to have
