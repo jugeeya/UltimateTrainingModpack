@@ -189,7 +189,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
     input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
-    crop_recording: OnOff::Off,
+    crop_recording: OnOff::On,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
