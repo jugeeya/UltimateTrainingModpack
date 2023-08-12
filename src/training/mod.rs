@@ -520,6 +520,79 @@ pub unsafe fn handle_fighter_play_se(
     )
 }
 
+static FOLLOW_REQ_OFFSET: usize = 0x044f860;
+#[skyline::hook(offset = FOLLOW_REQ_OFFSET)] // hooked to prevent score gfx from playing when loading save states
+pub unsafe fn handle_effect_follow(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    eff_hash: Hash40,
+    eff_hash2: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    size: f32,
+    arg5: bool,
+    arg6: u32,
+    arg7: i32,
+    arg8: i32,
+    arg9: i32,
+    arg10: i32,
+    arg11: bool,
+    arg12: bool,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            module_accessor,
+            eff_hash,
+            eff_hash2,
+            pos,
+            rot,
+            size,
+            arg5,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+            arg10,
+            arg11,
+            arg12,
+        );
+    }
+    // Prevent the score GFX from playing on the CPU when loading save state during hitstop
+    if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
+        return original!()(
+            module_accessor,
+            eff_hash,
+            eff_hash2,
+            pos,
+            rot,
+            0.0,
+            arg5,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+            arg10,
+            arg11,
+            arg12,
+        );
+    }
+    original!()(
+        module_accessor,
+        eff_hash,
+        eff_hash2,
+        pos,
+        rot,
+        size,
+        arg5,
+        arg6,
+        arg7,
+        arg8,
+        arg9,
+        arg10,
+        arg11,
+        arg12,
+    )
+}
+
 #[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_effect(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -545,8 +618,8 @@ pub unsafe fn handle_effect(
             arg9,
         );
     }
-    if save_states::is_killing() {
-        // Making the size 0 prevents these effects from being displayed. Fixs throw explosions, ICs squall, etc.
+    if save_states::is_loading() && !buff::is_buffing(module_accessor) {
+        // Making the size 0 prevents these effects from being displayed. Fixes throw explosions, ICs squall, etc.
         return original!()(
             module_accessor,
             eff_hash,
@@ -721,6 +794,7 @@ pub fn training_mods() {
         handle_se,
         // Death GFX
         handle_effect,
+        handle_effect_follow,
         // Star KO turn off
         handle_star_ko,
         // Clatter
