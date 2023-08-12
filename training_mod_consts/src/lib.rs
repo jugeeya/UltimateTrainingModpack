@@ -85,6 +85,7 @@ pub struct TrainingModpackMenu {
     pub save_state_load: ButtonConfig,
     pub input_record: ButtonConfig,
     pub input_playback: ButtonConfig,
+    pub crop_recording: OnOff,
 }
 
 #[repr(C)]
@@ -188,6 +189,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
     input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
+    crop_recording: OnOff::Off,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -813,6 +815,13 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         "Playback Loop: Repeat triggered input playbacks indefinitely",
         true,
         &(menu.playback_loop as u32),
+    );
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Crop Recording",
+        "crop_recording",
+        "Crop Recording: Remove neutral input frames at the end of your recording",
+        true,
+        &(menu.crop_recording as u32),
     );
     overall_menu.tabs.push(input_tab);
 

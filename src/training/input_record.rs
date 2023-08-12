@@ -190,18 +190,32 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         if INPUT_RECORD == None {
             clear_notifications("Input Recording");
         }
-        // may need to move this to another func
+        // Handle recording end
         if (INPUT_RECORD == Record || INPUT_RECORD == Playback)
             && INPUT_RECORD_FRAME >= CURRENT_FRAME_LENGTH - 1
         {
-            INPUT_RECORD = None;
             POSSESSION = Player;
-            INPUT_RECORD_FRAME = 0;
             if mash::is_playback_queued() {
                 mash::reset();
             }
-            if MENU.playback_loop == OnOff::On {
+
+            // If we need to crop the recording for neutral input
+            // INPUT_RECORD_FRAME must be > 0 to prevent bounding errors
+            if INPUT_RECORD == Record && MENU.crop_recording == OnOff::On && INPUT_RECORD_FRAME > 0 {
+                while INPUT_RECORD_FRAME > 0 && is_input_neutral(INPUT_RECORD_FRAME - 1) {
+                    // Discard frames at the end of the recording until the last frame with input
+                    INPUT_RECORD_FRAME -= 1;
+                }
+                CURRENT_FRAME_LENGTH = INPUT_RECORD_FRAME;
+                P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
+            }
+
+            INPUT_RECORD_FRAME = 0;
+
+            if MENU.playback_loop == OnOff::On && INPUT_RECORD == Playback {
                 playback(Some(CURRENT_PLAYBACK_SLOT));
+            } else {
+                INPUT_RECORD = None;
             }
         }
     }
@@ -349,27 +363,27 @@ pub unsafe fn stop_playback() {
     INPUT_RECORD_FRAME = 0;
 }
 
-pub unsafe fn is_end_standby() -> bool {
+pub unsafe fn is_input_neutral(input_frame: usize) -> bool {
     // Returns whether we should be done with standby this frame (if any significant controller input has been made)
-    let first_frame_input = P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][0];
+    let frame_input = P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][input_frame];
 
     let clamped_lstick_x =
-        ((first_frame_input.lstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        ((frame_input.lstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
     let clamped_lstick_y =
-        ((first_frame_input.lstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        ((frame_input.lstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
     let clamped_rstick_x =
-        ((first_frame_input.rstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        ((frame_input.rstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
     let clamped_rstick_y =
-        ((first_frame_input.rstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        ((frame_input.rstick_y as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
     // No buttons pressed or just flick jump-- if they really did a stick jump, we'd have lstick movement as well
     let buttons_pressed =
-        !(first_frame_input.buttons.is_empty() || first_frame_input.buttons == Buttons::FLICK_JUMP);
+        !(frame_input.buttons.is_empty() || frame_input.buttons == Buttons::FLICK_JUMP);
     let lstick_movement =
         clamped_lstick_x.abs() >= STICK_NEUTRAL || clamped_lstick_y.abs() >= STICK_NEUTRAL;
     let rstick_movement =
         clamped_rstick_x.abs() >= STICK_NEUTRAL || clamped_rstick_y.abs() >= STICK_NEUTRAL;
-    lstick_movement || rstick_movement || buttons_pressed
+    !(lstick_movement || rstick_movement || buttons_pressed)
 }
 
 pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
@@ -377,7 +391,7 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
         // if player 1
         if INPUT_RECORD == Record {
             // check for standby before starting action:
-            if POSSESSION == Standby && is_end_standby() {
+            if POSSESSION == Standby && !is_input_neutral(0) {
                 // last input made us start an action, so start recording and end standby.
                 INPUT_RECORD_FRAME += 1;
                 POSSESSION = Cpu;
