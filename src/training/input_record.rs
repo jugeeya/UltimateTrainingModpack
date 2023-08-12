@@ -201,7 +201,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
             // If we need to crop the recording for neutral input
             // INPUT_RECORD_FRAME must be > 0 to prevent bounding errors
-            if INPUT_RECORD == Record && MENU.crop_recording == OnOff::On && INPUT_RECORD_FRAME > 0
+            if INPUT_RECORD == Record && MENU.recording_crop == OnOff::On && INPUT_RECORD_FRAME > 0
             {
                 while INPUT_RECORD_FRAME > 0 && is_input_neutral(INPUT_RECORD_FRAME - 1) {
                     // Discard frames at the end of the recording until the last frame with input

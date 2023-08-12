@@ -85,7 +85,7 @@ pub struct TrainingModpackMenu {
     pub save_state_load: ButtonConfig,
     pub input_record: ButtonConfig,
     pub input_playback: ButtonConfig,
-    pub crop_recording: OnOff,
+    pub recording_crop: OnOff,
 }
 
 #[repr(C)]
@@ -189,7 +189,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
     input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
-    crop_recording: OnOff::On,
+    recording_crop: OnOff::On,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -817,11 +817,11 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
         &(menu.playback_loop as u32),
     );
     input_tab.add_submenu_with_toggles::<OnOff>(
-        "Crop Recording",
-        "crop_recording",
-        "Crop Recording: Remove neutral input frames at the end of your recording",
+        "Recording Crop",
+        "recording_crop",
+        "Recording Crop: Remove neutral input frames at the end of your recording",
         true,
-        &(menu.crop_recording as u32),
+        &(menu.recording_crop as u32),
     );
     overall_menu.tabs.push(input_tab);
 
