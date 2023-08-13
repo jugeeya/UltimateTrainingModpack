@@ -4,11 +4,11 @@ use lazy_static::lazy_static;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
-use training_mod_tui::{App, AppPage};
+use training_mod_tui::{App, AppPage, NUM_LISTS};
 
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
-pub static NUM_MENU_TEXT_OPTIONS: usize = 33;
+pub static NUM_MENU_TEXT_OPTIONS: usize = 32;
 pub static _NUM_MENU_TABS: usize = 3;
 
 const BG_LEFT_ON_WHITE_COLOR: ResColor = ResColor {
@@ -367,17 +367,17 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     // Make all invisible first
     (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {
-        let col_idx = idx % 3;
-        let row_idx = idx / 3;
+        let col_idx = idx % NUM_LISTS;
+        let row_idx = idx / NUM_LISTS;
 
         let menu_button_row = root_pane
             .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row_idx}").as_str())
-            .unwrap();
+            .expect(format!("Unable to find TrModMenuButtonRow{row_idx}").as_str());
         menu_button_row.set_visible(false);
 
         let menu_button = menu_button_row
             .find_pane_by_name_recursive(format!("Button{col_idx}").as_str())
-            .unwrap();
+            .expect(format!("Unable to find Button{col_idx}").as_str());
         menu_button.set_visible(false);
 
         menu_button

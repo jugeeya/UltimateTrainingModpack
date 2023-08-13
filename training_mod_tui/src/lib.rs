@@ -20,7 +20,9 @@ mod list;
 use crate::gauge::{DoubleEndedGauge, GaugeState};
 use crate::list::{MultiStatefulList, StatefulList};
 
-static NX_TUI_WIDTH: u16 = 66;
+static NX_TUI_WIDTH: u16 = 240;
+// Number of lists per page
+pub const NUM_LISTS: usize = 4;
 
 #[derive(PartialEq)]
 pub enum AppPage {
@@ -44,13 +46,11 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     pub fn new(menu: UiMenu<'a>, default_menu: (UiMenu<'a>, String)) -> App<'a> {
-        let num_lists = 3;
-
         let mut menu_items_stateful = HashMap::new();
         menu.tabs.iter().for_each(|tab| {
             menu_items_stateful.insert(
                 tab.tab_title,
-                MultiStatefulList::with_items(tab.tab_submenus.clone(), num_lists),
+                MultiStatefulList::with_items(tab.tab_submenus.clone(), NUM_LISTS),
             );
         });
 
@@ -86,8 +86,8 @@ impl<'a> App<'a> {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles = MultiStatefulList::with_items(
                     toggles,
-                    if selected_sub_menu.toggles.len() >= 3 {
-                        3
+                    if selected_sub_menu.toggles.len() >= NUM_LISTS {
+                        NUM_LISTS
                     } else {
                         selected_sub_menu.toggles.len()
                     },
@@ -877,12 +877,16 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let list_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(
-            [
-                Constraint::Percentage(33),
-                Constraint::Percentage(33),
-                Constraint::Percentage(33),
-            ]
-            .as_ref(),
+            (0..NUM_LISTS)
+                .into_iter()
+                .map(|_idx| Constraint::Percentage((100.0 / NUM_LISTS as f32) as u16))
+                .collect::<Vec<Constraint>>()
+                // [
+                //     Constraint::Percentage(33),
+                //     Constraint::Percentage(33),
+                //     Constraint::Percentage(33),
+                // ]
+                .as_ref(),
         )
         .split(vertical_chunks[1]);
 

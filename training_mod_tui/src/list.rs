@@ -45,12 +45,11 @@ impl<T: Clone> MultiStatefulList<T> {
     pub fn with_items(items: Vec<T>, num_lists: usize) -> MultiStatefulList<T> {
         let lists = (0..num_lists)
             .map(|list_section| {
-                let list_section_min_idx =
-                    (items.len() as f32 / num_lists as f32).ceil() as usize * list_section;
-                let list_section_max_idx = std::cmp::min(
-                    (items.len() as f32 / num_lists as f32).ceil() as usize * (list_section + 1),
-                    items.len(),
-                );
+                // Try to evenly chunk
+                let list_size = (items.len() as f32 / num_lists as f32).ceil() as usize;
+                let list_section_min_idx = std::cmp::min(list_size * list_section, items.len());
+                let list_section_max_idx =
+                    std::cmp::min(list_size * (list_section + 1), items.len());
                 let mut state = ListState::default();
                 if list_section == 0 {
                     // Enforce state as first of list
@@ -89,10 +88,15 @@ impl<T: Clone> MultiStatefulList<T> {
 
     pub fn previous(&mut self) {
         let (list_section, _) = self.idx_to_list_idx(self.state);
-        let (last_list_section, last_list_idx) = (
-            self.lists.len() - 1,
-            self.lists[self.lists.len() - 1].items.len() - 1,
-        );
+        let mut last_list_section = self.lists.len() - 1;
+        let mut last_list_size = self.lists[last_list_section].items.len();
+
+        while last_list_size == 0 {
+            last_list_section -= 1;
+            last_list_size = self.lists[last_list_section].items.len();
+        }
+
+        let last_list_idx = last_list_size - 1;
 
         self.lists[list_section].unselect();
         let state = if self.state == 0 {
@@ -108,9 +112,14 @@ impl<T: Clone> MultiStatefulList<T> {
 
     pub fn next_list(&mut self) {
         let (list_section, list_idx) = self.idx_to_list_idx(self.state);
-        let next_list_section = (list_section + 1) % self.lists.len();
-        let next_list_idx = if list_idx > self.lists[next_list_section].items.len() - 1 {
-            self.lists[next_list_section].items.len() - 1
+        let mut next_list_section = (list_section + 1) % self.lists.len();
+        let mut next_list_len = self.lists[next_list_section].items.len();
+        while next_list_len == 0 {
+            next_list_section = (next_list_section + 1) % self.lists.len();
+            next_list_len = self.lists[next_list_section].items.len();
+        }
+        let next_list_idx = if list_idx > next_list_len - 1 {
+            next_list_len - 1
         } else {
             list_idx
         };
@@ -126,14 +135,19 @@ impl<T: Clone> MultiStatefulList<T> {
 
     pub fn previous_list(&mut self) {
         let (list_section, list_idx) = self.idx_to_list_idx(self.state);
-        let prev_list_section = if list_section == 0 {
+        let mut prev_list_section = if list_section == 0 {
             self.lists.len() - 1
         } else {
             list_section - 1
         };
 
-        let prev_list_idx = if list_idx > self.lists[prev_list_section].items.len() - 1 {
-            self.lists[prev_list_section].items.len() - 1
+        let mut prev_list_len = self.lists[prev_list_section].items.len();
+        while prev_list_len == 0 {
+            prev_list_section -= 1;
+            prev_list_len = self.lists[prev_list_section].items.len();
+        }
+        let prev_list_idx = if list_idx > prev_list_len - 1 {
+            prev_list_len - 1
         } else {
             list_idx
         };
