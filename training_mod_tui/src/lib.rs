@@ -881,11 +881,6 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
                 .into_iter()
                 .map(|_idx| Constraint::Percentage((100.0 / NUM_LISTS as f32) as u16))
                 .collect::<Vec<Constraint>>()
-                // [
-                //     Constraint::Percentage(33),
-                //     Constraint::Percentage(33),
-                //     Constraint::Percentage(33),
-                // ]
                 .as_ref(),
         )
         .split(vertical_chunks[1]);

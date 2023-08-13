@@ -4,7 +4,7 @@ use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use training_mod_consts::{OnOff, MENU};
 
-use crate::common::{is_ready_go, is_training_mode};
+use crate::common::{is_ready_go, is_training_mode, menu::QUICK_MENU_ACTIVE};
 #[cfg(feature = "layout_arc_from_file")]
 use crate::consts::LAYOUT_ARC_PATH;
 
@@ -32,7 +32,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     {
         // InfluencedAlpha means "Should my children panes' alpha be influenced by mine, as the parent?"
         root_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
-        root_pane.set_visible(MENU.hud == OnOff::On);
+        root_pane.set_visible(MENU.hud == OnOff::On && !QUICK_MENU_ACTIVE);
     }
 
     damage::draw(root_pane, &layout_name);

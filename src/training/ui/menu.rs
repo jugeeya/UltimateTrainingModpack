@@ -386,6 +386,14 @@ pub unsafe fn draw(root_pane: &Pane) {
             .set_visible(false);
     });
 
+    // Make normal training panes invisible if we're active
+    // InfluencedAlpha means "Should my children panes' alpha be influenced by mine, as the parent?"
+    let status_r_pane = root_pane
+        .find_pane_by_name_recursive("status_R")
+        .expect("Unable to find status_R pane");
+    // status_r_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
+    status_r_pane.set_visible(!QUICK_MENU_ACTIVE);
+
     root_pane
         .find_pane_by_name_recursive("TrModSlider")
         .unwrap()

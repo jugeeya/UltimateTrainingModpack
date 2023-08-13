@@ -1,7 +1,7 @@
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
-use crate::training::ui;
+use crate::{common::menu::QUICK_MENU_ACTIVE, training::ui};
 
 macro_rules! display_parent_fmt {
     ($x:ident) => {
@@ -30,7 +30,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
         .unwrap()
-        .set_visible(notification.is_some());
+        .set_visible(notification.is_some() && !QUICK_MENU_ACTIVE);
     if notification.is_none() {
         return;
     }
