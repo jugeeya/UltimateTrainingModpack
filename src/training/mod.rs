@@ -739,6 +739,17 @@ unsafe fn handle_final_input_mapping(
     input_record::handle_final_input_mapping(player_idx, out);
 }
 
+static BOMA_OFFSET: usize = 0x15cf1b0;
+
+#[skyline::hook(offset = BOMA_OFFSET)]
+pub unsafe fn handle_get_module_accessor(
+    battle_object_id: u32,
+) -> *mut app::BattleObjectModuleAccessor { // technically a *
+    original!()(
+        battle_object_id
+    )
+}
+
 pub fn training_mods() {
     info!("Applying training mods.");
 
@@ -820,6 +831,7 @@ pub fn training_mods() {
         handle_final_input_mapping,
         // Charge
         handle_article_get_int,
+        handle_get_module_accessor,
     );
 
     combo::init();

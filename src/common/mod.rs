@@ -1,6 +1,6 @@
 use smash::app::{self, lua_bind::*, utility};
 use smash::hash40;
-use smash::lib::{lua_const::*, LuaConst};
+use smash::lib::lua_const::*;
 use smash::lua2cpp::L2CFighterCommon;
 
 pub use crate::common::consts::MENU;
@@ -320,7 +320,7 @@ pub fn print_fighter_info(
             print!(
                 "{}: {}, ",
                 work_int_pair.0,
-                WorkModule::get_int(module_accessor, (work_int_pair.1))
+                WorkModule::get_int(module_accessor, work_int_pair.1)
             );
         }
 
@@ -329,7 +329,7 @@ pub fn print_fighter_info(
             print!(
                 "{}: {}, ",
                 work_float_pair.0,
-                WorkModule::get_float(module_accessor, (work_float_pair.1))
+                WorkModule::get_float(module_accessor, work_float_pair.1)
             );
         }
 
@@ -338,7 +338,7 @@ pub fn print_fighter_info(
             print!(
                 "{}: {}, ",
                 work_flag_pair.0,
-                WorkModule::is_flag(module_accessor, (work_flag_pair.1))
+                WorkModule::is_flag(module_accessor, work_flag_pair.1)
             );
         }
 

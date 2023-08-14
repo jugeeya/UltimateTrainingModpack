@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use crate::training::handle_article_get_int;
+use crate::training::{handle_article_get_int, handle_get_module_accessor};
 use crate::print_fighter_info;
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
@@ -14,13 +14,6 @@ pub struct ChargeState {
     pub float_y: Option<f32>,
     pub float_z: Option<f32>,
     pub has_charge: Option<bool>,
-}
-
-pub fn get_pikmin_prev(variation: i32) -> i32 {
-    if variation > 0 { 
-        return variation - 1; 
-    }
-    4
 }
 
 impl ChargeState {
@@ -60,6 +53,50 @@ impl ChargeState {
         self.has_charge = Some(has_charge);
         self
     }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct TroopsManager {
+    pub unk: [i8; 0x90], // 90 bytes of unknown padding
+    pub boma_pikmin_1: *mut app::BattleObjectModuleAccessor, // @ 0x90
+    pub boma_pikmin_2: *mut app::BattleObjectModuleAccessor, // @ 0x98
+    pub boma_pikmin_3: *mut app::BattleObjectModuleAccessor, // @ 0xa0
+}
+
+pub fn get_pikmin_prev(variation: i32) -> i32 {
+    if variation > 0 { 
+        return variation - 1; 
+    }
+    4
+}
+
+pub unsafe fn speed_up_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    // Increase Motion Rate of Pikmin to have them instantly spawn in
+    // FIGHTER_PIKMIN_INSTANCE_WORK_INT_TROOPS_MANAGER_ADDRESS:
+    //let troops_manager = WorkModule::get_int(module_accessor, 0x100000C0) as *mut TroopsManager;
+    //let pikmin_1_boma = &mut *(*troops_manager).boma_pikmin_1;
+    // still crashes - unknown
+    // let troops_manager_addr = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut *mut app::BattleObjectModuleAccessor;
+    // let pikmin_1_boma_ptr_ptr = troops_manager_addr.byte_add(0x90);
+    // let pikmin_1_boma_ptr = *pikmin_1_boma_ptr_ptr;
+    // let pikmin_1_boma_ref = &mut *pikmin_1_boma_ptr;
+    //above crashes if you try to print the status of the boma - investigate
+
+    let troops_manager_addr = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut *mut u32;
+    let pikmin_1_boma_ptr_ptr = troops_manager_addr.byte_add(0x90);
+    //let _pikmin_count_for_move = *(troops_manager_addr.byte_add(0x80) as *mut u32);
+    //println!("pikmin_count: {}", pikmin_count);
+    let pikmin_1_boid_ptr = (*pikmin_1_boma_ptr_ptr).byte_add(0x8);
+    let pikmin_1_boid = *pikmin_1_boid_ptr;
+    let pikmin_1_boma = handle_get_module_accessor(pikmin_1_boid);
+    let pikmin_1_test = *(pikmin_1_boma.byte_add(0x8) as *mut u32);
+    
+    println!("pikmin_1_boid: {}, test: {}", pikmin_1_boid, pikmin_1_test);
+    //ArticleModule::set_rate(module_accessor, 0, 40.0);
+
+
+    //WorkModule::set_float(pikmin_1_boma, 40.0, *WEAPON_PIKMIN_PIKMIN_STATUS_PULL_OUT_START_WORK_FLOAT_MOT_RATE);
+    //MotionModule::set_rate(pikmin_1_boma, 40.0);
 }
 
 pub unsafe fn get_charge(
@@ -170,7 +207,7 @@ pub unsafe fn get_charge(
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
             ArticleModule::generate_article(
-                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                module_accessor as *mut app::BattleObjectModuleAccessor,
                 0,
                 false,
                 -1
@@ -180,7 +217,7 @@ pub unsafe fn get_charge(
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
             ArticleModule::generate_article(
-                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                module_accessor as *mut app::BattleObjectModuleAccessor,
                 0,
                 false,
                 -1
@@ -190,7 +227,7 @@ pub unsafe fn get_charge(
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
             ArticleModule::generate_article(
-                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                module_accessor as *mut app::BattleObjectModuleAccessor,
                 0,
                 false,
                 -1
@@ -595,23 +632,18 @@ pub unsafe fn handle_charge(
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
             ArticleModule::generate_article(
-                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                module_accessor as *mut app::BattleObjectModuleAccessor,
                 0,
                 false,
                 -1
             );
-            // Increase Motion Rate of Pikmin to have them instantly spawn in
-            let pikmin_boma = app::sv_battle_object::module_accessor(
-                WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_0) as u32
-            );
-            WorkModule::set_float(pikmin_boma, 40.0, *WEAPON_PIKMIN_PIKMIN_STATUS_PULL_OUT_START_WORK_FLOAT_MOT_RATE);
-            MotionModule::set_rate(pikmin_boma, 40.0);
+            speed_up_pikmin(module_accessor);
         });
         charge.int_y.map(|pikmin_2| {
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
             ArticleModule::generate_article(
-                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                module_accessor as *mut app::BattleObjectModuleAccessor,
                 0,
                 false,
                 -1
@@ -621,7 +653,7 @@ pub unsafe fn handle_charge(
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
             ArticleModule::generate_article(
-                (module_accessor as *mut app::BattleObjectModuleAccessor),
+                module_accessor as *mut app::BattleObjectModuleAccessor,
                 0,
                 false,
                 -1
