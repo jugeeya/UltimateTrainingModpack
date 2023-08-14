@@ -28,7 +28,7 @@ fn test_backend_setup<'a>(
     Box<dyn Error>,
 > {
     let app = training_mod_tui::App::<'a>::new(ui_menu, menu_defaults);
-    let backend = tui::backend::TestBackend::new(75, 15);
+    let backend = tui::backend::TestBackend::new(120, 15);
     let terminal = Terminal::new(backend)?;
     let mut state = tui::widgets::ListState::default();
     state.select(Some(1));
