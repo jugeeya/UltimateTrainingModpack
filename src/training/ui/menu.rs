@@ -372,12 +372,12 @@ pub unsafe fn draw(root_pane: &Pane) {
 
         let menu_button_row = root_pane
             .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row_idx}").as_str())
-            .expect(format!("Unable to find TrModMenuButtonRow{row_idx}").as_str());
+            .unwrap_or_else(|| format!("Unable to find TrModMenuButtonRow{row_idx}").as_str());
         menu_button_row.set_visible(false);
 
         let menu_button = menu_button_row
             .find_pane_by_name_recursive(format!("Button{col_idx}").as_str())
-            .expect(format!("Unable to find Button{col_idx}").as_str());
+            .unwrap_or_else(|| format!("Unable to find Button{col_idx}").as_str());
         menu_button.set_visible(false);
 
         menu_button
