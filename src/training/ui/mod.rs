@@ -2,6 +2,7 @@
 use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
+use smash::ui2d::SmashTextBox;
 use training_mod_consts::{OnOff, MENU};
 
 use crate::common::{is_ready_go, is_training_mode, menu::QUICK_MENU_ACTIVE};
@@ -13,6 +14,19 @@ mod display;
 mod input_log;
 mod menu;
 pub mod notifications;
+
+pub unsafe fn set_icon_text(pane: &mut TextBox, icons: Vec<u16>) {
+    pane.set_text_string("");
+
+    let it = pane.text_buf as *mut u16;
+    pane.text_len = icons.len() as u16;
+    for (idx, icon) in icons.iter().enumerate() {
+        *(it.add(idx)) = *icon;
+    }
+
+    // Add nullptr at end to be sure
+    *(it.add(icons.len())) = 0x0;
+}
 
 #[skyline::hook(offset = 0x4b620)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {

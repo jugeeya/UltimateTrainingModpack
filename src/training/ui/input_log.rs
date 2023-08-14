@@ -11,6 +11,8 @@ use crate::{
     training::input_log::P1_INPUT_MAPPINGS,
 };
 
+use super::set_icon_text;
+
 macro_rules! log_parent_fmt {
     ($x:ident) => {
         format!("TrModInputLog{}", $x).as_str()
@@ -49,16 +51,30 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     input_pane.set_text_string("NONE");
 
+    let mut glyphs = vec![];
     if first_log.buttons.contains(Buttons::ATTACK) {
         let potential_font_glyph = name_to_font_glyph(ButtonConfig::A, *p1_style_ptr);
         if let Some(font_glyph) = potential_font_glyph {
-            input_pane.set_text_string("");
-
-            let it = input_pane.text_buf as *mut u16;
-            input_pane.text_len = 1;
-            *it = font_glyph;
-            *(it.add(1)) = 0x0;
+            glyphs.push(font_glyph);
         }
+    }
+
+    if first_log.buttons.contains(Buttons::SPECIAL) {
+        let potential_font_glyph = name_to_font_glyph(ButtonConfig::B, *p1_style_ptr);
+        if let Some(font_glyph) = potential_font_glyph {
+            glyphs.push(font_glyph);
+        }
+    }
+
+    if first_log.buttons.contains(Buttons::JUMP) {
+        let potential_font_glyph = name_to_font_glyph(ButtonConfig::X, *p1_style_ptr);
+        if let Some(font_glyph) = potential_font_glyph {
+            glyphs.push(font_glyph);
+        }
+    }
+
+    if !glyphs.is_empty() {
+        set_icon_text(input_pane, glyphs);
     }
 
     log_pane

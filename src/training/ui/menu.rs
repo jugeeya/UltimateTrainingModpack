@@ -8,6 +8,8 @@ use training_mod_tui::{App, AppPage, NUM_LISTS};
 
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
+use super::set_icon_text;
+
 pub static NUM_MENU_TEXT_OPTIONS: usize = 32;
 pub static _NUM_MENU_TABS: usize = 3;
 
@@ -459,10 +461,7 @@ pub unsafe fn draw(root_pane: &Pane) {
 
         // Left/Right tabs have keys
         if let Some(key) = key {
-            let it = icon_pane.text_buf as *mut u16;
-            icon_pane.text_len = 1;
-            *it = **key;
-            *(it.add(1)) = 0x0;
+            set_icon_text(icon_pane, vec![**key]);
         }
 
         if *name == "CurrentTab" {
@@ -486,11 +485,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             .find_pane_by_name_recursive("set_txt_icon")
             .unwrap()
             .as_textbox();
-        icon_pane.set_text_string("");
-        let it = icon_pane.text_buf as *mut u16;
-        icon_pane.text_len = 1;
-        *it = *key.unwrap();
-        *(it.add(1)) = 0x0;
+        set_icon_text(icon_pane, vec![*key.unwrap()]);
 
         key_help_pane
             .find_pane_by_name_recursive("set_txt_help")
