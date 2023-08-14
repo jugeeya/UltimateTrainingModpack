@@ -34,6 +34,7 @@ mod character_specific;
 mod fast_fall;
 mod full_hop;
 pub mod input_delay;
+mod input_log;
 mod input_record;
 mod mash;
 mod reset;
@@ -712,15 +713,34 @@ unsafe fn handle_final_input_mapping(
     controller_struct: &mut SomeControllerStruct,
     arg: bool,
 ) {
-    // go through the original mapping function first
+    // Order of hooks here REALLY matters. Tread lightly
+
+    // Go through the original mapping function first
     original!()(mappings, player_idx, out, controller_struct, arg);
     if !is_training_mode() {
         return;
     }
+
+    // Grab button input requests from player
+    // Non-mutable pull
     button_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Grab menu inputs from player
+    // Non-mutable pull
     menu::handle_final_input_mapping(player_idx, controller_struct, out);
+
+    // Check if we should apply hot reload configs
+    // Non-mutable pull
     dev_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Potentially apply input delay
+    // MUTATES controller state
     input_delay::handle_final_input_mapping(player_idx, out);
+
+    input_log::handle_final_input_mapping(player_idx, out);
+
+    // Potentially apply input recording, thus with delay
+    // MUTATES controller state
     input_record::handle_final_input_mapping(player_idx, out);
 }
 

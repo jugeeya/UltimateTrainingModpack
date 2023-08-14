@@ -1,5 +1,8 @@
 $IP=(Test-Connection -ComputerName (hostname) -Count 1  | Select -ExpandProperty IPV4Address).IPAddressToString
 cargo skyline build --release --features layout_arc_from_file
+if (($lastexitcode -ne 0)) {
+    exit $lastexitcode
+}
 
 # Set up symlinks
 $RYUJINX_LAYOUT_ARC_PATH="C:\Users\Josh\AppData\Roaming\Ryujinx\sdcard\ultimate\TrainingModpack\layout.arc"

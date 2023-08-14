@@ -10,6 +10,7 @@ use crate::consts::LAYOUT_ARC_PATH;
 
 mod damage;
 mod display;
+mod input_log;
 mod menu;
 pub mod notifications;
 
@@ -38,6 +39,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     damage::draw(root_pane, &layout_name);
 
     if layout_name == "info_training" {
+        input_log::draw(root_pane);
         display::draw(root_pane);
         menu::draw(root_pane);
     }

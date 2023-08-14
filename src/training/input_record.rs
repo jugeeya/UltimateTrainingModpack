@@ -1,7 +1,9 @@
 use crate::common::button_config;
 use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
 use crate::common::input::*;
-use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
+use crate::common::{
+    get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
+};
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
 use lazy_static::lazy_static;
@@ -434,7 +436,14 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         should_mash_playback();
     }
 
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
+
+    // Sometimes we can try to grab their module accessor before they are valid?
+    if cpu_module_accessor.is_none() {
+        return;
+    }
+    let cpu_module_accessor = cpu_module_accessor.unwrap();
+
     if INPUT_RECORD == Pause {
         match LOCKOUT_FRAME.cmp(&0) {
             Ordering::Greater => LOCKOUT_FRAME -= 1,
