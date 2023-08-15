@@ -461,7 +461,7 @@ pub unsafe fn draw(root_pane: &Pane) {
 
         // Left/Right tabs have keys
         if let Some(key) = key {
-            set_icon_text(icon_pane, vec![**key]);
+            set_icon_text(icon_pane, &vec![**key]);
         }
 
         if *name == "CurrentTab" {
@@ -485,7 +485,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             .find_pane_by_name_recursive("set_txt_icon")
             .unwrap()
             .as_textbox();
-        set_icon_text(icon_pane, vec![*key.unwrap()]);
+        set_icon_text(icon_pane, &vec![*key.unwrap()]);
 
         key_help_pane
             .find_pane_by_name_recursive("set_txt_help")

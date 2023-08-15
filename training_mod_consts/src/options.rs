@@ -28,6 +28,7 @@ pub trait SliderTrait {
 }
 
 // bitflag helper function macro
+#[macro_export]
 macro_rules! extra_bitflag_impls {
     ($e:ty) => {
         impl core::fmt::Display for $e {

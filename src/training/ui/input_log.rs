@@ -11,7 +11,7 @@ use crate::{
     training::input_log::P1_INPUT_MAPPINGS,
 };
 
-use super::set_icon_text;
+use super::set_colored_icon_text;
 
 macro_rules! log_parent_fmt {
     ($x:ident) => {
@@ -44,37 +44,137 @@ pub unsafe fn draw(root_pane: &Pane) {
         return;
     }
 
-    let input_pane = log_pane
-        .find_pane_by_name_recursive("InputTxt")
-        .unwrap()
-        .as_textbox();
+    let icons = first_log
+        .buttons
+        .to_vec()
+        .iter()
+        .filter_map(|button| {
+            Some(match *button {
+                Buttons::ATTACK | Buttons::ATTACK_RAW => (
+                    name_to_font_glyph(ButtonConfig::A, *p1_style_ptr),
+                    ResColor {
+                        r: 0,
+                        g: 255,
+                        b: 0,
+                        a: 255,
+                    },
+                ),
+                Buttons::SPECIAL | Buttons::SPECIAL_RAW | Buttons::SPECIAL_RAW2 => (
+                    name_to_font_glyph(ButtonConfig::B, *p1_style_ptr),
+                    ResColor {
+                        r: 0,
+                        g: 255,
+                        b: 0,
+                        a: 255,
+                    },
+                ),
+                Buttons::JUMP | Buttons::FLICK_JUMP => (
+                    name_to_font_glyph(ButtonConfig::X, *p1_style_ptr),
+                    ResColor {
+                        r: 255,
+                        g: 255,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                Buttons::GUARD | Buttons::GUARD_HOLD => (
+                    name_to_font_glyph(ButtonConfig::L, *p1_style_ptr),
+                    ResColor {
+                        r: 0,
+                        g: 0,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                Buttons::CATCH => (
+                    name_to_font_glyph(ButtonConfig::ZR, *p1_style_ptr),
+                    ResColor {
+                        r: 255,
+                        g: 0,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                Buttons::STOCK_SHARE => (
+                    name_to_font_glyph(ButtonConfig::PLUS, *p1_style_ptr),
+                    ResColor {
+                        r: 255,
+                        g: 255,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                Buttons::APPEAL_HI => (
+                    name_to_font_glyph(ButtonConfig::DPAD_UP, *p1_style_ptr),
+                    ResColor {
+                        r: 255,
+                        g: 255,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                Buttons::APPEAL_LW => (
+                    name_to_font_glyph(ButtonConfig::DPAD_DOWN, *p1_style_ptr),
+                    ResColor {
+                        r: 255,
+                        g: 255,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                Buttons::APPEAL_SL => (
+                    name_to_font_glyph(ButtonConfig::DPAD_LEFT, *p1_style_ptr),
+                    ResColor {
+                        r: 255,
+                        g: 255,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                Buttons::APPEAL_SR => (
+                    name_to_font_glyph(ButtonConfig::DPAD_RIGHT, *p1_style_ptr),
+                    ResColor {
+                        r: 255,
+                        g: 255,
+                        b: 255,
+                        a: 255,
+                    },
+                ),
+                _ => return None,
+            })
+        })
+        .filter_map(|(icon_opt, color)| {
+            if let Some(icon) = icon_opt {
+                return Some((icon, color));
+            }
 
-    input_pane.set_text_string("NONE");
+            None
+        })
+        .collect::<Vec<(u16, ResColor)>>();
 
-    let mut glyphs = vec![];
-    if first_log.buttons.contains(Buttons::ATTACK) {
-        let potential_font_glyph = name_to_font_glyph(ButtonConfig::A, *p1_style_ptr);
-        if let Some(font_glyph) = potential_font_glyph {
-            glyphs.push(font_glyph);
-        }
+    // Empty them first
+    const NUM_ICON_SLOTS: usize = 5;
+    for idx in 0..NUM_ICON_SLOTS {
+        let input_pane = log_pane
+            .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
+            .unwrap()
+            .as_textbox();
+
+        input_pane.set_text_string("");
     }
 
-    if first_log.buttons.contains(Buttons::SPECIAL) {
-        let potential_font_glyph = name_to_font_glyph(ButtonConfig::B, *p1_style_ptr);
-        if let Some(font_glyph) = potential_font_glyph {
-            glyphs.push(font_glyph);
+    for (idx, icon) in icons.iter().enumerate() {
+        // todo: handle this better
+        if idx >= NUM_ICON_SLOTS {
+            continue;
         }
-    }
 
-    if first_log.buttons.contains(Buttons::JUMP) {
-        let potential_font_glyph = name_to_font_glyph(ButtonConfig::X, *p1_style_ptr);
-        if let Some(font_glyph) = potential_font_glyph {
-            glyphs.push(font_glyph);
-        }
-    }
+        let input_pane = log_pane
+            .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
+            .unwrap()
+            .as_textbox();
 
-    if !glyphs.is_empty() {
-        set_icon_text(input_pane, glyphs);
+        set_colored_icon_text(input_pane, &vec![icon.0], icon.1);
     }
 
     log_pane

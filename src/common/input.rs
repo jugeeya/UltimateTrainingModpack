@@ -1,6 +1,7 @@
 #![allow(dead_code)] // TODO: Yeah don't do this
 use bitflags::bitflags;
 use modular_bitfield::{bitfield, specifiers::*};
+use training_mod_consts::extra_bitflag_impls;
 
 // Need to define necesary structures here. Probably should move to consts or something. Realistically, should be in skyline smash prob tho.
 
@@ -211,6 +212,16 @@ bitflags! {
         const SPECIAL_RAW2 = 0x20000;
     }
 }
+
+// This requires some imports to work
+use training_mod_consts::{random_option, ToggleTrait};
+impl Buttons {
+    fn as_str(self) -> Option<&'static str> {
+        todo!();
+    }
+}
+
+extra_bitflag_impls!(Buttons);
 
 // Controller class used internally by the game
 #[derive(Debug, Default, Copy, Clone)]
