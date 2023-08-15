@@ -36,6 +36,7 @@ native-tls = { version = "0.2.11", features = ["vendored"] }
 log = "0.4.17"
 byte-unit = "4.0.18"
 zip = { version = "0.6", default-features = false, features = ["deflate"]}
+anyhow = "1.0.72"
 
 
 [patch.crates-io]

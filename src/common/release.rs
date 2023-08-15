@@ -1,41 +1,11 @@
 use crate::consts::*;
 use crate::logging::*;
+use anyhow::{anyhow, Result};
 use serde_json::Value;
-use std::fs;
-use std::fs::File;
+use std::io::ErrorKind;
 use zip::ZipArchive;
 
-pub const CURRENT_VERSION: &str = "stable";
-
-#[derive(PartialEq)]
-enum UpdatePolicy {
-    Stable,
-    Beta,
-    Disabled,
-}
-
-impl UpdatePolicy {
-    fn default() -> UpdatePolicy {
-        UpdatePolicy::Stable
-    }
-
-    fn from_str(s: &str) -> Option<UpdatePolicy> {
-        match s.to_lowercase().as_ref() {
-            "stable" => Some(UpdatePolicy::Stable),
-            "beta" => Some(UpdatePolicy::Beta),
-            "disabled" => Some(UpdatePolicy::Disabled),
-            _ => None,
-        }
-    }
-
-    fn to_str(self: &UpdatePolicy) -> &str {
-        match self {
-            UpdatePolicy::Stable => "stable",
-            UpdatePolicy::Beta => "beta",
-            UpdatePolicy::Disabled => "disabled",
-        }
-    }
-}
+pub const CURRENT_VERSION: &str = "1979-05-27T07:32:00Z";
 
 #[derive(Debug)]
 pub struct Release {
@@ -46,37 +16,27 @@ pub struct Release {
 
 impl Release {
     /// Downloads and installs the release
-    pub fn install(self: &Release) -> bool {
+    pub fn install(self: &Release) -> Result<()> {
         info!("URL: {}", &self.url);
-        let asset = minreq::get(&self.url)
+        let response = minreq::get(&self.url)
             .with_header("User-Agent", "UltimateTrainingModpack")
-            .with_header("Accept", "application/octet-stream");
-        info!("Finished building request, sending...");
-        match asset.send_lazy() {
-            Ok(response) => {
-                info!("Ok response! Status Code: {}", &response.status_code);
-                let mut vec = Vec::new();
-                for result in response {
-                    let (byte, length) = result.unwrap();
-                    vec.reserve(length);
-                    vec.push(byte);
-                }
-                fs::write("sd:/temp.zip", vec).expect("could not write to file");
-                let f = File::open("sd:/temp.zip").expect("Could not open zip file");
-                // If these lines are uncommented then we get a malloc crash before the request is even sent. Why?
-                // let mut zip = ZipArchive::new(&f).unwrap();
-                // zip.extract(UNPACK_PATH)
-                //     .expect("Could not unzip asset");
-                info!("Installed, restarting...");
-                unsafe {
-                    skyline::nn::oe::RequestToRelaunchApplication();
-                }
-                true
-            }
-            Err(e) => {
-                error!("{:?}", e);
-                false
-            }
+            .with_header("Accept", "application/octet-stream")
+            .send_lazy()?;
+        info!(
+            "Ok response from Github. Status Code: {}",
+            &response.status_code
+        );
+        let mut vec = Vec::new();
+        for result in response {
+            let (byte, length) = result?;
+            vec.reserve(length);
+            vec.push(byte);
+        }
+        let mut zip = ZipArchive::new(std::io::Cursor::new(vec))?;
+        zip.extract(UNPACK_PATH)?;
+        info!("Installed, restarting...");
+        unsafe {
+            skyline::nn::oe::RequestToRelaunchApplication();
         }
     }
 
@@ -85,36 +45,37 @@ impl Release {
     }
 }
 
-fn get_update_policy() -> UpdatePolicy {
-    // TODO
-    UpdatePolicy::default()
+/// Attempts to load the update policy from file
+/// If the file does not exist, creates a default and loads that
+fn get_update_policy() -> Result<UpdatePolicy> {
+    let config = TrainingModpackConfig::load();
+    match config {
+        Ok(c) => Ok(c.update.policy),
+        Err(e) => {
+            if e.downcast_ref() == Some(&ErrorKind::NotFound) {
+                TrainingModpackConfig::create_new()?;
+                get_update_policy()
+            } else {
+                Err(e)
+            }
+        }
+    }
+    // Ok(UpdatePolicy::default())
 }
 
-fn get_release(beta: bool) -> Option<Release> {
+fn get_release(beta: bool) -> Result<Release> {
     // Get the list of releases from Github
-    // let url = format!(
-    //     "https://api.github.com/repos/{}/{}/releases",
-    //     env!("AUTHOR"),
-    //     env!("REPO_NAME")
-    // );
-    // let response = minreq::get(url)
-    //     .with_header("User-Agent", env!("USER_AGENT"))
-    //     .with_header("Accept", "application/json")
-    //     .send();
-    // if response.is_err() {
-    //     error!("{}", response.unwrap_err());
-    //     return None;
-    // }
+    let url = format!(
+        "https://api.github.com/repos/{}/{}/releases",
+        env!("AUTHOR"),
+        env!("REPO_NAME")
+    );
+    let response = minreq::get(url)
+        .with_header("User-Agent", env!("USER_AGENT"))
+        .with_header("Accept", "application/json")
+        .send()?;
 
-    let response_text = include_str!("release_example.json");
-    //let json: Vec<Value> = match serde_json::from_str(response.unwrap().as_str().unwrap()) {
-    let json: Vec<Value> = match serde_json::from_str(response_text) {
-        Ok(response) => response,
-        Err(_) => {
-            error!("Failed to parse Github JSON Response");
-            return None;
-        }
-    };
+    let json: Vec<Value> = serde_json::from_str(response.as_str()?)?;
 
     // Parse the list to determine the latest stable and beta release
     let mut stable_release: Option<Release> = None;
@@ -122,12 +83,20 @@ fn get_release(beta: bool) -> Option<Release> {
     for release in json.into_iter() {
         // The list is ordered by date w/ most recent releases first
         // so we only need to get the first of each type
-        let is_prerelease = release["prerelease"].as_bool().unwrap();
+        let is_prerelease = release["prerelease"]
+            .as_bool()
+            .ok_or_else(|| anyhow!("prerelease is not a bool"))?;
         if is_prerelease && beta_release.is_none() {
             // Assumes that the first asset exists and is the right one
-            let url = release["assets"][0]["url"].as_str().unwrap();
-            let tag = release["tag_name"].as_str().unwrap();
-            let published_at = release["published_at"].as_str().unwrap();
+            let url = release["assets"][0]["url"]
+                .as_str()
+                .ok_or_else(|| anyhow!("Could not parse beta asset url"))?;
+            let tag = release["tag_name"]
+                .as_str()
+                .ok_or_else(|| anyhow!("Could not parse beta asset tag_name"))?;
+            let published_at = release["published_at"]
+                .as_str()
+                .ok_or_else(|| anyhow!("Could not parse beta asset published_at"))?;
             beta_release = Some(Release {
                 url: url.to_string(),
                 tag: tag.to_string(),
@@ -135,9 +104,15 @@ fn get_release(beta: bool) -> Option<Release> {
             });
         } else if !is_prerelease && stable_release.is_none() {
             // Assumes that the first asset exists and is the right one
-            let url = release["assets"][0]["url"].as_str().unwrap();
-            let tag = release["tag_name"].as_str().unwrap();
-            let published_at = release["published_at"].as_str().unwrap();
+            let url = release["assets"][0]["url"]
+                .as_str()
+                .ok_or_else(|| anyhow!("Could not parse stable asset url"))?;
+            let tag = release["tag_name"]
+                .as_str()
+                .ok_or_else(|| anyhow!("Could not parse stable asset tag_name"))?;
+            let published_at = release["published_at"]
+                .as_str()
+                .ok_or_else(|| anyhow!("Could not parse stable asset published_at"))?;
             stable_release = Some(Release {
                 url: url.to_string(),
                 tag: tag.to_string(),
@@ -150,12 +125,13 @@ fn get_release(beta: bool) -> Option<Release> {
         }
     }
     if beta && beta_release.is_some() {
-        Some(beta_release.unwrap())
+        Ok(beta_release.unwrap())
     } else if !beta && stable_release.is_some() {
-        Some(stable_release.unwrap())
+        Ok(stable_release.unwrap())
     } else {
-        error!("The specified release was not found in the GitHub JSON response!");
-        None
+        Err(anyhow!(
+            "The specified release was not found in the GitHub JSON response!"
+        ))
     }
 }
 
@@ -164,26 +140,30 @@ fn user_wants_to_install() -> bool {
     true
 }
 
-pub fn version_check() {
-    let update_policy = get_update_policy();
+pub fn perform_version_check() {
+    let update_policy = get_update_policy().expect("Could not get update policy!");
     info!("Update Policy is {}", update_policy.to_str());
-    let release_to_apply: Option<Release> = match update_policy {
+    let release_to_apply = match update_policy {
         UpdatePolicy::Stable => get_release(false),
         UpdatePolicy::Beta => get_release(true),
         UpdatePolicy::Disabled => {
             // User does not want to update at all
-            info!("Updates are disabled per UpdatePolicy");
-            None
+            Err(anyhow!("Updates are disabled per UpdatePolicy"))
         }
     };
 
     // Perform Update
-    if let Some(release) = release_to_apply {
-        if user_wants_to_install() {
-            info!("Installing update: {}", &release.to_string());
-            release.install();
+    match release_to_apply {
+        Ok(release) => {
+            if user_wants_to_install() {
+                info!("Installing update: {}", &release.to_string());
+                if let Err(e) = release.install() {
+                    error!("Failed to install the update. Reason: {:?}", e);
+                }
+            }
         }
-    } else {
-        error!("Could not get release from github!");
+        Err(e) => {
+            error!("Could not get release from github! Reason: {:?}", e);
+        }
     }
 }

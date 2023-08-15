@@ -13,6 +13,8 @@ pub mod options;
 pub use options::*;
 pub mod files;
 pub use files::*;
+pub mod config;
+pub use config::*;
 
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
