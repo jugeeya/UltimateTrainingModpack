@@ -35,6 +35,7 @@ impl TrainingModpackConfig {
 
     /// Creates a default config and saves to file
     /// Returns Err if the file already exists
+    /// TODO!() Ask user for preference instead of using default
     pub fn create_new() -> Result<()> {
         if fs::metadata(TRAINING_MODPACK_TOML_PATH).is_ok() {
             Err(Error::from(ErrorKind::AlreadyExists).into())

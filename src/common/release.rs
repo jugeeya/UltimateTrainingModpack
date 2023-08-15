@@ -2,7 +2,7 @@ use crate::consts::*;
 use crate::logging::*;
 use anyhow::{anyhow, Result};
 use serde_json::Value;
-use std::io::ErrorKind;
+use std::io::{Error, ErrorKind};
 use zip::ZipArchive;
 
 pub const CURRENT_VERSION: &str = "1979-05-27T07:32:00Z";
@@ -38,6 +38,7 @@ impl Release {
         unsafe {
             skyline::nn::oe::RequestToRelaunchApplication();
         }
+        Ok(()) // Unreachable but whatever
     }
 
     pub fn to_string(self: &Release) -> String {
@@ -50,17 +51,23 @@ impl Release {
 fn get_update_policy() -> Result<UpdatePolicy> {
     let config = TrainingModpackConfig::load();
     match config {
-        Ok(c) => Ok(c.update.policy),
-        Err(e) => {
-            if e.downcast_ref() == Some(&ErrorKind::NotFound) {
-                TrainingModpackConfig::create_new()?;
-                get_update_policy()
-            } else {
-                Err(e)
-            }
+        Ok(c) => {
+            info!("Config file found and parsed. Loading...");
+            Ok(c.update.policy)
         }
+        Err(e)
+            if e.is::<Error>()
+                && e.downcast_ref::<Error>().unwrap().kind() == ErrorKind::NotFound =>
+        {
+            warn!("No config file found, creating default...");
+            TrainingModpackConfig::create_new()?;
+            get_update_policy()
+        }
+        Err(e) => {
+            // Some other error, re-raise it
+            Err(e)
+        },
     }
-    // Ok(UpdatePolicy::default())
 }
 
 fn get_release(beta: bool) -> Result<Release> {
