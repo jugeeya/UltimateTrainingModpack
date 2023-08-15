@@ -737,7 +737,7 @@ unsafe fn handle_final_input_mapping(
     // MUTATES controller state
     input_delay::handle_final_input_mapping(player_idx, out);
 
-    input_log::handle_final_input_mapping(player_idx, out);
+    input_log::handle_final_input_mapping(player_idx, controller_struct, out);
 
     // Potentially apply input recording, thus with delay
     // MUTATES controller state

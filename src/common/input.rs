@@ -191,6 +191,7 @@ pub struct ControllerMapping {
 
 //type Buttons = u32; // may need to actually implement (like label and such)? Not for now though
 bitflags! {
+    #[derive(Default)]
     pub struct Buttons: u32 {
         const ATTACK      = 0x1;
         const SPECIAL     = 0x2;
@@ -278,7 +279,7 @@ pub struct SomeControllerStruct {
 }
 
 // Define struct used for final controller inputs
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct MappedInputs {
     pub buttons: Buttons,

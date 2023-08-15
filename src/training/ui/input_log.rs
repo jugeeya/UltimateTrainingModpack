@@ -9,7 +9,7 @@ use crate::{
         input::Buttons,
         menu::{P1_CONTROLLER_STYLE, QUICK_MENU_ACTIVE},
     },
-    training::input_log::P1_INPUT_MAPPINGS,
+    training::input_log::{InputLog, P1_INPUT_LOGS},
 };
 
 use super::set_colored_icon_text;
@@ -20,32 +20,21 @@ macro_rules! log_parent_fmt {
     };
 }
 
-pub unsafe fn draw(root_pane: &Pane) {
-    let log_number = 0;
+unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     let log_pane = root_pane
-        .find_pane_by_name_recursive(log_parent_fmt!(log_number))
+        .find_pane_by_name_recursive(log_parent_fmt!(log_idx))
         .unwrap();
 
     // TODO: And menu option for input log is on
     log_pane.set_visible(!QUICK_MENU_ACTIVE);
-
-    let logs_ptr = P1_INPUT_MAPPINGS.data_ptr();
-    if logs_ptr.is_null() {
-        return;
-    }
-    let logs = &*logs_ptr;
-    let first_log = logs.front();
-    if first_log.is_none() {
-        return;
-    }
-    let first_log = first_log.unwrap();
 
     let p1_style_ptr = P1_CONTROLLER_STYLE.data_ptr();
     if p1_style_ptr.is_null() {
         return;
     }
 
-    let icons = first_log
+    let icons = log
+        .smash_inputs
         .buttons
         .to_vec()
         .iter()
@@ -69,10 +58,10 @@ pub unsafe fn draw(root_pane: &Pane) {
                         a: 255,
                     },
                 ),
-                Buttons::JUMP | Buttons::FLICK_JUMP => (
+                Buttons::JUMP => (
                     name_to_font_glyph(ButtonConfig::X, *p1_style_ptr),
                     ResColor {
-                        r: 255,
+                        r: 0,
                         g: 255,
                         b: 255,
                         a: 255,
@@ -179,9 +168,26 @@ pub unsafe fn draw(root_pane: &Pane) {
         set_colored_icon_text(input_pane, &vec![icon.0], icon.1);
     }
 
+    let frame_text = if log.frames > 0 {
+        format!("{}", log.frames)
+    } else {
+        "".to_string()
+    };
     log_pane
         .find_pane_by_name_recursive("FrameTxt")
         .unwrap()
         .as_textbox()
-        .set_text_string(format!("{}", logs.len()).as_str());
+        .set_text_string(frame_text.as_str());
+}
+
+pub unsafe fn draw(root_pane: &Pane) {
+    let logs_ptr = P1_INPUT_LOGS.data_ptr();
+    if logs_ptr.is_null() {
+        return;
+    }
+    let logs = &*logs_ptr;
+
+    for (log_idx, log) in logs.iter().enumerate() {
+        draw_log(root_pane, log_idx, log);
+    }
 }

@@ -50,7 +50,8 @@ pub fn name_to_font_glyph(button: ButtonConfig, style: ControllerStyle) -> Optio
     let is_gcc = style == ControllerStyle::GCController;
     Some(match button {
         ButtonConfig::A => 0xE0E0,
-        ButtonConfig::B => 0xE0E1,
+        // TODO: Find one that works in training...
+        ButtonConfig::B => 0xE0E0,
         ButtonConfig::X => {
             if is_gcc {
                 0xE206
@@ -97,28 +98,28 @@ pub fn name_to_font_glyph(button: ButtonConfig, style: ControllerStyle) -> Optio
             if is_gcc {
                 0xE209
             } else {
-                0xE0EB
+                0xE079
             }
         }
         ButtonConfig::DPAD_DOWN => {
             if is_gcc {
                 0xE20A
             } else {
-                0xE0EC
+                0xE07A
             }
         }
         ButtonConfig::DPAD_LEFT => {
             if is_gcc {
                 0xE20B
             } else {
-                0xE0ED
+                0xE07B
             }
         }
         ButtonConfig::DPAD_RIGHT => {
             if is_gcc {
                 0xE20C
             } else {
-                0xE0EE
+                0xE07C
             }
         }
         ButtonConfig::PLUS => {
