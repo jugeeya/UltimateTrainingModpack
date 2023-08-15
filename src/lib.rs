@@ -75,10 +75,10 @@ pub fn main() {
     info!("Performing version check...");
     let _updater = std::thread::Builder::new()
         .stack_size(0x20000)
-        .spawn(|| {
-            release::version_check();
-        })
-        .unwrap();
+        .spawn(move || {
+            release::perform_version_check();
+        }).unwrap();
+    let _result = _updater.join();
 
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
