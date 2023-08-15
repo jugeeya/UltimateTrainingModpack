@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_consts::ButtonConfig;
@@ -62,8 +63,8 @@ pub unsafe fn draw(root_pane: &Pane) {
                 Buttons::SPECIAL | Buttons::SPECIAL_RAW | Buttons::SPECIAL_RAW2 => (
                     name_to_font_glyph(ButtonConfig::B, *p1_style_ptr),
                     ResColor {
-                        r: 0,
-                        g: 255,
+                        r: 255,
+                        g: 0,
                         b: 0,
                         a: 255,
                     },
@@ -98,7 +99,7 @@ pub unsafe fn draw(root_pane: &Pane) {
                 Buttons::STOCK_SHARE => (
                     name_to_font_glyph(ButtonConfig::PLUS, *p1_style_ptr),
                     ResColor {
-                        r: 255,
+                        r: 0,
                         g: 255,
                         b: 255,
                         a: 255,
@@ -107,7 +108,7 @@ pub unsafe fn draw(root_pane: &Pane) {
                 Buttons::APPEAL_HI => (
                     name_to_font_glyph(ButtonConfig::DPAD_UP, *p1_style_ptr),
                     ResColor {
-                        r: 255,
+                        r: 0,
                         g: 255,
                         b: 255,
                         a: 255,
@@ -116,7 +117,7 @@ pub unsafe fn draw(root_pane: &Pane) {
                 Buttons::APPEAL_LW => (
                     name_to_font_glyph(ButtonConfig::DPAD_DOWN, *p1_style_ptr),
                     ResColor {
-                        r: 255,
+                        r: 0,
                         g: 255,
                         b: 255,
                         a: 255,
@@ -125,7 +126,7 @@ pub unsafe fn draw(root_pane: &Pane) {
                 Buttons::APPEAL_SL => (
                     name_to_font_glyph(ButtonConfig::DPAD_LEFT, *p1_style_ptr),
                     ResColor {
-                        r: 255,
+                        r: 0,
                         g: 255,
                         b: 255,
                         a: 255,
@@ -134,7 +135,7 @@ pub unsafe fn draw(root_pane: &Pane) {
                 Buttons::APPEAL_SR => (
                     name_to_font_glyph(ButtonConfig::DPAD_RIGHT, *p1_style_ptr),
                     ResColor {
-                        r: 255,
+                        r: 0,
                         g: 255,
                         b: 255,
                         a: 255,
@@ -150,6 +151,7 @@ pub unsafe fn draw(root_pane: &Pane) {
 
             None
         })
+        .unique_by(|(icon, _)| *icon)
         .collect::<Vec<(u16, ResColor)>>();
 
     // Empty them first
