@@ -302,7 +302,6 @@ SD Card Root
             └── romfs/
                 └── skyline/
                     └── plugins/
-                        ├── libnn_hid_hook.nro
                         ├── libnro_hook.nro
                         ├── libparam_hook.nro
                         └── libtraining_modpack.nro
@@ -328,7 +327,6 @@ Exact same process as above, but the filepaths are in Ryujinx's mod paths.
               └── romfs/
                   └── skyline/
                       └── plugins/
-                          ├── libnn_hid_hook.nro
                           ├── libnro_hook.nro
                           ├── libparam_hook.nro
                           └── libtraining_modpack.nro
@@ -396,7 +394,6 @@ To install a beta version of the modpack, follow the same procedure using the [l
 
     Removing the Training Modpack is as simple as deleting the files and folders that are associated with the modpack, listed below:
     `SD:/atmosphere/contents/01006A800016E000/manual_html/html-document/training_modpack.htdocs/`
-    `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnn_hid_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnro_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libparam_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`
