@@ -423,6 +423,10 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
 #[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
 unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     call_original!(p_data);
+    if !is_training_mode() {
+        return;
+    }
+    
     let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
     let _controller_no = (*controller_data).controller_index;
 
