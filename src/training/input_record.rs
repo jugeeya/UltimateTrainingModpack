@@ -428,7 +428,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     if !is_training_mode() {
         return;
     }
-  
+    
     let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
     let _controller_no = (*controller_data).controller_index;
 
