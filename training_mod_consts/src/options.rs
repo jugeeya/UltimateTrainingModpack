@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
+use std::fmt;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -21,6 +22,7 @@ fn log_2(x: u32) -> u32 {
 pub trait ToggleTrait {
     fn to_toggle_strs() -> Vec<&'static str>;
     fn to_toggle_vals() -> Vec<u32>;
+    fn to_toggle_strings() -> Vec<String>;
 }
 
 pub trait SliderTrait {
@@ -80,6 +82,11 @@ macro_rules! extra_bitflag_impls {
             fn to_toggle_vals() -> Vec<u32> {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.bits() as u32).collect()
+            }
+
+            fn to_toggle_strings() -> Vec<String> {
+                let all_options = <$e>::all().to_vec();
+                all_options.iter().map(|i| i.to_string()).collect()
             }
         }
     }
@@ -346,6 +353,12 @@ impl Shield {
     }
 }
 
+impl fmt::Display for Shield {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
+    }
+}
+
 impl ToggleTrait for Shield {
     fn to_toggle_strs() -> Vec<&'static str> {
         Shield::iter().map(|i| i.as_str().unwrap_or("")).collect()
@@ -353,6 +366,9 @@ impl ToggleTrait for Shield {
 
     fn to_toggle_vals() -> Vec<u32> {
         Shield::iter().map(|i| i as u32).collect()
+    }
+    fn to_toggle_strings() -> Vec<String> {
+        Shield::iter().map(|i| i.to_string()).collect()
     }
 }
 
@@ -377,6 +393,12 @@ impl SaveStateMirroring {
     }
 }
 
+impl fmt::Display for SaveStateMirroring {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
+    }
+}
+
 impl ToggleTrait for SaveStateMirroring {
     fn to_toggle_strs() -> Vec<&'static str> {
         SaveStateMirroring::iter()
@@ -386,6 +408,10 @@ impl ToggleTrait for SaveStateMirroring {
 
     fn to_toggle_vals() -> Vec<u32> {
         SaveStateMirroring::iter().map(|i| i as u32).collect()
+    }
+
+    fn to_toggle_strings() -> Vec<String> {
+        SaveStateMirroring::iter().map(|i| i.to_string()).collect()
     }
 }
 
@@ -419,6 +445,9 @@ impl ToggleTrait for OnOff {
     }
     fn to_toggle_vals() -> Vec<u32> {
         vec![0, 1]
+    }
+    fn to_toggle_strings() -> Vec<String> {
+        vec!["Off".to_string(), "On".to_string()]
     }
 }
 
@@ -1006,6 +1035,16 @@ impl ToggleTrait for SdiFrequency {
     fn to_toggle_vals() -> Vec<u32> {
         SdiFrequency::iter().map(|i| i as u32).collect()
     }
+
+    fn to_toggle_strings() -> Vec<String> {
+        SdiFrequency::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+impl fmt::Display for SdiFrequency {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
+    }
 }
 
 #[repr(u32)]
@@ -1048,6 +1087,16 @@ impl ToggleTrait for ClatterFrequency {
 
     fn to_toggle_vals() -> Vec<u32> {
         ClatterFrequency::iter().map(|i| i as u32).collect()
+    }
+
+    fn to_toggle_strings() -> Vec<String> {
+        ClatterFrequency::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+impl fmt::Display for ClatterFrequency {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1113,6 +1162,16 @@ impl ToggleTrait for CharacterItem {
 
     fn to_toggle_vals() -> Vec<u32> {
         CharacterItem::iter().map(|i| i as u32).collect()
+    }
+
+    fn to_toggle_strings() -> Vec<String> {
+        CharacterItem::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+impl fmt::Display for CharacterItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1251,6 +1310,16 @@ impl ToggleTrait for SaveStateSlot {
     fn to_toggle_vals() -> Vec<u32> {
         SaveStateSlot::iter().map(|i| i as u32).collect()
     }
+
+    fn to_toggle_strings() -> Vec<String> {
+        SaveStateSlot::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+impl fmt::Display for SaveStateSlot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
+    }
 }
 
 // Input Recording Slot
@@ -1297,6 +1366,16 @@ impl ToggleTrait for RecordSlot {
 
     fn to_toggle_vals() -> Vec<u32> {
         RecordSlot::iter().map(|i| i as u32).collect()
+    }
+
+    fn to_toggle_strings() -> Vec<String> {
+        RecordSlot::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+impl fmt::Display for RecordSlot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1370,6 +1449,16 @@ impl ToggleTrait for HitstunPlayback {
 
     fn to_toggle_vals() -> Vec<u32> {
         HitstunPlayback::iter().map(|i| i as u32).collect()
+    }
+
+    fn to_toggle_strings() -> Vec<String> {
+        HitstunPlayback::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+impl fmt::Display for HitstunPlayback {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1462,6 +1551,16 @@ impl ToggleTrait for RecordingFrames {
     fn to_toggle_vals() -> Vec<u32> {
         RecordingFrames::iter().map(|i| i as u32).collect()
     }
+
+    fn to_toggle_strings() -> Vec<String> {
+        RecordingFrames::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+impl fmt::Display for RecordingFrames {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str().unwrap())
+    }
 }
 
 bitflags! {
@@ -1507,6 +1606,13 @@ impl ButtonConfig {
             ButtonConfig::RSTICK => "Right Stick Press",
             _ => return None,
         })
+    }
+    pub fn combination_string(&self) -> String {
+        self.to_vec()
+            .iter()
+            .map(|button| button.as_str().unwrap())
+            .intersperse(" + ")
+            .collect::<String>()
     }
 }
 

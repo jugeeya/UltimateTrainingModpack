@@ -5,7 +5,6 @@ use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
 use training_mod_consts::MenuJsonStruct;
-
 use training_mod_tui::AppPage;
 
 use crate::common::button_config::button_mapping;
@@ -95,7 +94,7 @@ enum DirectionButton {
 }
 
 lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App> = Mutex::new(
         training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
             (
                 ui_menu(DEFAULTS_MENU),
