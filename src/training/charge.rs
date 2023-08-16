@@ -95,7 +95,7 @@ pub unsafe fn speed_up_pikmin(module_accessor: &mut app::BattleObjectModuleAcces
     //ArticleModule::set_rate(module_accessor, 0, 40.0);
 
 
-    //WorkModule::set_float(pikmin_1_boma, 40.0, *WEAPON_PIKMIN_PIKMIN_STATUS_PULL_OUT_START_WORK_FLOAT_MOT_RATE);
+    //ArticleModule::set_float(module_accessor, 40.0, *WEAPON_PIKMIN_PIKMIN_STATUS_PULL_OUT_START_WORK_FLOAT_MOT_RATE); // TODO - Hook and try!!! how to specify pikmin?
     //MotionModule::set_rate(pikmin_1_boma, 40.0);
 }
 
