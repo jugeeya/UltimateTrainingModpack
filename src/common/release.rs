@@ -1,4 +1,5 @@
 use crate::consts::*;
+use crate::dialog;
 use crate::logging::*;
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
@@ -39,6 +40,11 @@ impl Release {
         let mut zip = ZipArchive::new(std::io::Cursor::new(vec))?;
         zip.extract(UNPACK_PATH)?;
         // TODO!() set last_update_version
+        dialog::dialog_ok(
+            "The Training Modpack has been updated.\n\n\
+            Your game will now restart."
+                .to_string(),
+        );
         info!("Installed, restarting...");
         unsafe {
             skyline::nn::oe::RequestToRelaunchApplication();
@@ -55,7 +61,7 @@ impl Release {
         // alphabetical order == chronological order
         //
         // https://datatracker.ietf.org/doc/html/rfc3339#section-5.1
-        self.published_at.as_str() < &CURRENT_VERSION
+        self.published_at.as_str() < CURRENT_VERSION.as_str()
     }
 }
 
@@ -156,8 +162,12 @@ fn get_release(beta: bool) -> Result<Release> {
 }
 
 fn user_wants_to_install() -> bool {
-    // TODO
-    true
+    dialog::yes_no(
+        "There is a new update available for the Training Modpack. \n\n\
+        Do you want to install it?"
+            .to_string(),
+        true,
+    )
 }
 
 fn get_current_version() -> Result<String> {
@@ -207,6 +217,8 @@ pub fn perform_version_check() {
                 if let Err(e) = release.install() {
                     error!("Failed to install the update. Reason: {:?}", e);
                 }
+            } else {
+                info!("User declined the update.");
             }
         }
         Err(e) => {
