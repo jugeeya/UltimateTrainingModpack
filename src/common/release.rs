@@ -1,11 +1,15 @@
 use crate::consts::*;
 use crate::logging::*;
 use anyhow::{anyhow, Result};
+use lazy_static::lazy_static;
 use serde_json::Value;
 use std::io::{Error, ErrorKind};
 use zip::ZipArchive;
 
-pub const CURRENT_VERSION: &str = "1979-05-27T07:32:00Z";
+lazy_static! {
+    pub static ref CURRENT_VERSION: String =
+        get_current_version().expect("Could not determine current version!");
+}
 
 #[derive(Debug)]
 pub struct Release {
@@ -34,15 +38,24 @@ impl Release {
         }
         let mut zip = ZipArchive::new(std::io::Cursor::new(vec))?;
         zip.extract(UNPACK_PATH)?;
+        // TODO!() set last_update_version
         info!("Installed, restarting...");
         unsafe {
             skyline::nn::oe::RequestToRelaunchApplication();
         }
-        Ok(()) // Unreachable but whatever
+        // Don't need a return type here because it is unreachable
     }
 
     pub fn to_string(self: &Release) -> String {
         format!("{} - {}", self.tag, self.published_at)
+    }
+
+    pub fn is_newer_than_installed(self: &Release) -> bool {
+        // String comparison is good enough because for RFC3339 format,
+        // alphabetical order == chronological order
+        //
+        // https://datatracker.ietf.org/doc/html/rfc3339#section-5.1
+        self.published_at.as_str() < &CURRENT_VERSION
     }
 }
 
@@ -66,7 +79,7 @@ fn get_update_policy() -> Result<UpdatePolicy> {
         Err(e) => {
             // Some other error, re-raise it
             Err(e)
-        },
+        }
     }
 }
 
@@ -147,10 +160,32 @@ fn user_wants_to_install() -> bool {
     true
 }
 
+fn get_current_version() -> Result<String> {
+    let config = TrainingModpackConfig::load();
+    match config {
+        Ok(c) => {
+            info!("Config file found and parsed. Loading...");
+            Ok(c.update.last_update_version)
+        }
+        Err(e)
+            if e.is::<Error>()
+                && e.downcast_ref::<Error>().unwrap().kind() == ErrorKind::NotFound =>
+        {
+            warn!("No config file found, creating default...");
+            TrainingModpackConfig::create_new()?;
+            get_current_version()
+        }
+        Err(e) => {
+            // Some other error, re-raise it
+            Err(e)
+        }
+    }
+}
+
 pub fn perform_version_check() {
     let update_policy = get_update_policy().expect("Could not get update policy!");
     info!("Update Policy is {}", update_policy.to_str());
-    let release_to_apply = match update_policy {
+    let mut release_to_apply = match update_policy {
         UpdatePolicy::Stable => get_release(false),
         UpdatePolicy::Beta => get_release(true),
         UpdatePolicy::Disabled => {
@@ -158,6 +193,11 @@ pub fn perform_version_check() {
             Err(anyhow!("Updates are disabled per UpdatePolicy"))
         }
     };
+    if release_to_apply.is_ok() && release_to_apply.as_ref().unwrap().is_newer_than_installed() {
+        let published_at = release_to_apply.unwrap().published_at.clone();
+        let current_version = CURRENT_VERSION.clone();
+        release_to_apply = Err(anyhow!("Update is not newer than the current installed version.\nUpdate: {:?}\nInstalled: {:?}", published_at, current_version))
+    }
 
     // Perform Update
     match release_to_apply {
@@ -170,7 +210,7 @@ pub fn perform_version_check() {
             }
         }
         Err(e) => {
-            error!("Could not get release from github! Reason: {:?}", e);
+            error!("Did not install update. Reason: {:?}", e);
         }
     }
 }

@@ -4,9 +4,12 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use toml::value::Datetime;
 
+use skyline::nn::time;
+
 use std::fs;
 use std::io::{Error, ErrorKind};
 use std::str::FromStr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Top level struct which represents the entirety of the modpack config
 /// (Does not include in-game menu settings)
@@ -25,13 +28,14 @@ impl TrainingModpackConfig {
 
     /// Attempts to load the config from file
     pub fn load() -> Result<TrainingModpackConfig> {
-    if fs::metadata(TRAINING_MODPACK_TOML_PATH).is_ok() {
-        let toml_config_str = fs::read_to_string(TRAINING_MODPACK_TOML_PATH)?;
-        let parsed = toml::from_str::<TrainingModpackConfig> (&toml_config_str)?;
-        Ok(parsed)
-    } else {
-        Err(Error::from(ErrorKind::NotFound).into())
-    }}
+        if fs::metadata(TRAINING_MODPACK_TOML_PATH).is_ok() {
+            let toml_config_str = fs::read_to_string(TRAINING_MODPACK_TOML_PATH)?;
+            let parsed = toml::from_str::<TrainingModpackConfig>(&toml_config_str)?;
+            Ok(parsed)
+        } else {
+            Err(Error::from(ErrorKind::NotFound).into())
+        }
+    }
 
     /// Creates a default config and saves to file
     /// Returns Err if the file already exists
@@ -48,18 +52,77 @@ impl TrainingModpackConfig {
     }
 }
 
+/// Since we can't rely on most time based libraries, this is a seconds -> date/time string based on the `chrono` crates implementation
+/// God bless blujay and Raytwo
+/// https://github.com/Raytwo/ARCropolis/blob/9dc1d59d1e8a3dcac433b10a90bb5b3fabad6c00/src/logging.rs#L15-L49
+fn format_time_string(seconds: u64) -> String {
+    let leapyear = |year| -> bool { year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) };
+
+    static YEAR_TABLE: [[u64; 12]; 2] = [
+        [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+        [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+    ];
+
+    let mut year = 1970;
+
+    let seconds_in_day = seconds % 86400;
+    let mut day_number = seconds / 86400;
+
+    let sec = seconds_in_day % 60;
+    let min = (seconds_in_day % 3600) / 60;
+    let hours = seconds_in_day / 3600;
+    loop {
+        let year_length = if leapyear(year) { 366 } else { 365 };
+
+        if day_number >= year_length {
+            day_number -= year_length;
+            year += 1;
+        } else {
+            break;
+        }
+    }
+    let mut month = 0;
+    while day_number >= YEAR_TABLE[if leapyear(year) { 1 } else { 0 }][month] {
+        day_number -= YEAR_TABLE[if leapyear(year) { 1 } else { 0 }][month];
+        month += 1;
+    }
+
+    format!(
+        "{:04}-{:02}-{:02}:{:02}:{:02}:{:02}Z",
+        year,
+        month + 1,
+        day_number + 1,
+        hours,
+        min,
+        sec
+    )
+}
+
+fn now_utc() -> String {
+    unsafe {
+        time::Initialize();
+    }
+    let current_epoch_seconds = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_secs();
+    format_time_string(current_epoch_seconds)
+}
+
 /// Config section for the automatic updater
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdaterConfig {
     pub policy: UpdatePolicy,
-    pub last_update_version: Datetime,
+    pub last_update_version: String,
 }
 
 impl UpdaterConfig {
     pub fn default() -> UpdaterConfig {
+        let time = now_utc();
+        println!("Current time: {}", &time);
         UpdaterConfig {
             policy: UpdatePolicy::default(),
-            last_update_version: Datetime::from_str("1970-01-01T00:00:00Z").unwrap(),
+            last_update_version: now_utc(),
         }
     }
 }
