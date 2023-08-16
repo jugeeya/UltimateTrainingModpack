@@ -22,7 +22,7 @@ pub struct Release {
 impl Release {
     /// Downloads and installs the release
     pub fn install(self: &Release) -> Result<()> {
-        info!("URL: {}", &self.url);
+        info!("Installing asset from URL: {}", &self.url);
         let response = minreq::get(&self.url)
             .with_header("User-Agent", "UltimateTrainingModpack")
             .with_header("Accept", "application/octet-stream")
@@ -49,14 +49,14 @@ impl Release {
         unsafe {
             skyline::nn::oe::RequestToRelaunchApplication();
         }
-        // Don't need a return type here because it is unreachable
+        // Don't need a return type here because this area is unreachable
     }
 
     pub fn to_string(self: &Release) -> String {
         format!("{} - {}", self.tag, self.published_at)
     }
 
-    pub fn is_newer_than_installed(self: &Release) -> bool {
+    pub fn is_older_than_installed(self: &Release) -> bool {
         // String comparison is good enough because for RFC3339 format,
         // alphabetical order == chronological order
         //
@@ -66,26 +66,40 @@ impl Release {
 }
 
 /// Attempts to load the update policy from file
-/// If the file does not exist, creates a default and loads that
-fn get_update_policy() -> Result<UpdatePolicy> {
-    let config = TrainingModpackConfig::load();
-    match config {
-        Ok(c) => {
-            info!("Config file found and parsed. Loading...");
-            Ok(c.update.policy)
-        }
-        Err(e)
-            if e.is::<Error>()
-                && e.downcast_ref::<Error>().unwrap().kind() == ErrorKind::NotFound =>
+/// If the file does not exist, asks the user for their preference and saves it
+fn get_update_policy() -> UpdatePolicy {
+    let config =
+        TrainingModpackConfig::load_or_create().expect("Could not load or create config file!");
+    let policy = config.update.policy;
+    policy.unwrap_or_else(|| {
+        let p = ask_for_update_policy();
+        TrainingModpackConfig::change_update_policy(&p).expect("Could not change update policy!");
+        p
+    })
+}
+
+/// Asks the user what the update policy should be
+/// Emulator users automatically returns UpdatePolicy::Stable
+fn ask_for_update_policy() -> UpdatePolicy {
+    if dialog::yes_no(
+        "Would you like to receive automatic updates for the Training Modpack?".to_string(),
+        true,
+    ) {
+        match dialog::left_right(
+            "Which sort of automatic updates would you like to receive?".to_string(),
+            "Stable".to_string(),
+            "Beta".to_string(),
+            "Disabled".to_string(),
+            "Stable".to_string(),
+        )
+        .as_str()
         {
-            warn!("No config file found, creating default...");
-            TrainingModpackConfig::create_new()?;
-            get_update_policy()
+            "Stable" => UpdatePolicy::Stable,
+            "Beta" => UpdatePolicy::Beta,
+            _ => UpdatePolicy::Disabled,
         }
-        Err(e) => {
-            // Some other error, re-raise it
-            Err(e)
-        }
+    } else {
+        UpdatePolicy::Disabled
     }
 }
 
@@ -182,7 +196,7 @@ fn get_current_version() -> Result<String> {
                 && e.downcast_ref::<Error>().unwrap().kind() == ErrorKind::NotFound =>
         {
             warn!("No config file found, creating default...");
-            TrainingModpackConfig::create_new()?;
+            TrainingModpackConfig::create_default()?;
             get_current_version()
         }
         Err(e) => {
@@ -193,7 +207,7 @@ fn get_current_version() -> Result<String> {
 }
 
 pub fn perform_version_check() {
-    let update_policy = get_update_policy().expect("Could not get update policy!");
+    let update_policy = get_update_policy();
     info!("Update Policy is {}", update_policy.to_str());
     let mut release_to_apply = match update_policy {
         UpdatePolicy::Stable => get_release(false),
@@ -203,10 +217,16 @@ pub fn perform_version_check() {
             Err(anyhow!("Updates are disabled per UpdatePolicy"))
         }
     };
-    if release_to_apply.is_ok() && release_to_apply.as_ref().unwrap().is_newer_than_installed() {
+    if release_to_apply.is_ok() && release_to_apply.as_ref().unwrap().is_older_than_installed() {
         let published_at = release_to_apply.unwrap().published_at.clone();
         let current_version = CURRENT_VERSION.clone();
-        release_to_apply = Err(anyhow!("Update is not newer than the current installed version.\nUpdate: {:?}\nInstalled: {:?}", published_at, current_version))
+        release_to_apply = Err(anyhow!(
+            "Update is not newer than the current installed version.\n\
+                Update: {:?}\n\
+                Installed: {:?}",
+            published_at,
+            current_version
+        ))
     }
 
     // Perform Update

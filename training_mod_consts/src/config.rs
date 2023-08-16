@@ -2,25 +2,23 @@ use crate::files::*;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use toml::value::Datetime;
 
 use skyline::nn::time;
 
 use std::fs;
 use std::io::{Error, ErrorKind};
-use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Top level struct which represents the entirety of the modpack config
 /// (Does not include in-game menu settings)
 /// Each field here is a section of training_modpack.toml
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct TrainingModpackConfig {
     pub update: UpdaterConfig,
 }
 
 impl TrainingModpackConfig {
-    pub fn default() -> TrainingModpackConfig {
+    pub fn new() -> TrainingModpackConfig {
         TrainingModpackConfig {
             update: UpdaterConfig::default(),
         }
@@ -37,18 +35,44 @@ impl TrainingModpackConfig {
         }
     }
 
+    pub fn load_or_create() -> Result<TrainingModpackConfig> {
+        match TrainingModpackConfig::load() {
+            Ok(c) => Ok(c),
+            Err(e)
+                if e.is::<Error>()
+                    && e.downcast_ref::<Error>().unwrap().kind() == ErrorKind::NotFound =>
+            {
+                TrainingModpackConfig::create_default()?;
+                TrainingModpackConfig::load()
+            }
+            Err(e) => {
+                // Some other error, re-raise it
+                Err(e)
+            }
+        }
+    }
+
     /// Creates a default config and saves to file
     /// Returns Err if the file already exists
-    /// TODO!() Ask user for preference instead of using default
-    pub fn create_new() -> Result<()> {
+    pub fn create_default() -> Result<()> {
         if fs::metadata(TRAINING_MODPACK_TOML_PATH).is_ok() {
             Err(Error::from(ErrorKind::AlreadyExists).into())
         } else {
-            let default_config: TrainingModpackConfig = TrainingModpackConfig::default();
+            let default_config: TrainingModpackConfig = TrainingModpackConfig::new();
             let contents = toml::to_string(&default_config)?;
             fs::write(TRAINING_MODPACK_TOML_PATH, contents)?;
             Ok(())
         }
+    }
+
+    pub fn change_update_policy(update_policy: &UpdatePolicy) -> Result<()> {
+        // TODO!()
+        Ok(())
+    }
+
+    pub fn change_last_update_version(last_update_version: &str) -> Result<()> {
+        // TODO!()
+        Ok(())
     }
 }
 
@@ -110,9 +134,9 @@ fn now_utc() -> String {
 }
 
 /// Config section for the automatic updater
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct UpdaterConfig {
-    pub policy: UpdatePolicy,
+    pub policy: Option<UpdatePolicy>,
     pub last_update_version: String,
 }
 
@@ -121,13 +145,13 @@ impl UpdaterConfig {
         let time = now_utc();
         println!("Current time: {}", &time);
         UpdaterConfig {
-            policy: UpdatePolicy::default(),
+            policy: None,
             last_update_version: now_utc(),
         }
     }
 }
 
-#[derive(PartialEq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Serialize, Deserialize, Clone)]
 pub enum UpdatePolicy {
     Stable,
     Beta,
