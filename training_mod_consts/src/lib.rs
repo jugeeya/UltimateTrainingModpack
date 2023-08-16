@@ -791,7 +791,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     input_tab.add_submenu_with_toggles::<RecordTrigger>(
         "Recording Trigger".to_string(),
         "record_trigger".to_string(),
-        format!("Recording Trigger: Whether to begin recording via button combination (Default: {} or upon loading a Save State", menu.input_record.combination_string()),
+        format!("Recording Trigger: Whether to begin recording via button combination ({}) or upon loading a Save State", menu.input_record.combination_string()),
         false,
         &(menu.record_trigger.bits() as u32),
     );
@@ -805,7 +805,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
         "Playback Button Combination".to_string(),
         "playback_button_combination".to_string(),
-        format!("Playback Button Combination: Choose which slots to playback input recording upon pressing button combination (Default: {})", menu.input_playback.combination_string()),
+        format!("Playback Button Combination: Choose which slots to playback input recording upon pressing button combination ({})", menu.input_playback.combination_string()),
         false,
         &(menu.playback_button_combination.bits() as u32),
     );
