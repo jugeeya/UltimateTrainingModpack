@@ -29,7 +29,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     log_pane.set_visible(!QUICK_MENU_ACTIVE);
     if log.ttl < 100 {
         // Fade out
-        let alpha = (log.ttl as f32 / 100.0) as u8 * 255;
+        let alpha = (log.ttl as f32 / 100.0 * 255.0) as u8;
         log_pane.alpha = alpha;
         log_pane.global_alpha = alpha;
     } else {
@@ -163,15 +163,14 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         input_pane.set_text_string("");
     }
 
-    let lstick_x = match log.smash_binned_lstick() {
-        (DirectionStrength::Strong, angle) if angle > 0.0 => ">>",
-        (DirectionStrength::Weak, angle) if angle > 0.0 => ">",
-        (DirectionStrength::Weak, angle) if angle < 0.0 => "<",
-        (DirectionStrength::Strong, angle) if angle < 0.0 => "<<",
-        _ => "",
+    let (lstick_strength, lstick_angle) = log.smash_binned_lstick();
+    let lstick_icon = match lstick_strength {
+        DirectionStrength::Strong => ">>",
+        DirectionStrength::Weak => ">",
+        DirectionStrength::None => "",
     };
 
-    let lstick_icon_exists = !lstick_x.is_empty();
+    let lstick_icon_exists = !lstick_icon.is_empty();
     if lstick_icon_exists {
         let input_pane = log_pane
             .find_pane_by_name_recursive("InputTxt0")
@@ -180,7 +179,8 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
 
         input_pane.set_default_material_colors();
         input_pane.set_color(255, 255, 255, 255);
-        input_pane.set_text_string(lstick_x);
+        input_pane.set_text_string(lstick_icon);
+        input_pane.rot_z = lstick_angle;
     }
 
     for (idx, icon) in icons.iter().enumerate() {
@@ -198,11 +198,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         set_colored_icon_text(input_pane, &vec![icon.0], icon.1);
     }
 
-    let frame_text = if log.frames > 0 {
-        format!("{}", log.frames)
-    } else {
-        "".to_string()
-    };
+    let frame_text = format!("{}", log.frames);
     log_pane
         .find_pane_by_name_recursive("FrameTxt")
         .unwrap()

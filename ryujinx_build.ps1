@@ -26,4 +26,4 @@ if(-not(Test-path $RYUJINX_PLUGIN_PATH -PathType leaf))
 }
 
 C:\Users\Josh\Documents\Games\Ryujinx\publish\Ryujinx.exe "C:\Users\Josh\Documents\Games\ROMs\Super Smash Bros Ultimate [Base Game]\Super Smash Bros Ultimate[01006A800016E000][US][v0].nsp"
-cargo skyline listen --ip=$IP
+# cargo skyline listen --ip=$IP

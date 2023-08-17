@@ -216,9 +216,9 @@ bitflags! {
 
 // This requires some imports to work
 use training_mod_consts::{random_option, ToggleTrait};
-impl Buttons {
-    fn as_str(self) -> Option<&'static str> {
-        todo!();
+impl std::fmt::Display for Buttons {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
     }
 }
 

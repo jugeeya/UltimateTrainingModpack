@@ -8,7 +8,7 @@ static mut FRAME_COUNTER: usize = 0;
 
 pub fn init() {
     unsafe {
-        FRAME_COUNTER = frame_counter::register_counter();
+        FRAME_COUNTER = frame_counter::register_counter_no_reset();
         frame_counter::start_counting(FRAME_COUNTER);
     }
 }
@@ -87,6 +87,8 @@ pub fn handle_final_input_mapping(
     unsafe {
         if player_idx == 0 {
             let current_frame = frame_counter::get_frame_count(FRAME_COUNTER);
+            // We should always be counting
+            frame_counter::start_counting(FRAME_COUNTER);
 
             let potential_input_log = InputLog {
                 ttl: 600,
@@ -94,6 +96,8 @@ pub fn handle_final_input_mapping(
                 raw_inputs: *controller_struct.controller,
                 smash_inputs: *out,
             };
+
+            let mut should_update_ttl = true;
 
             let input_logs = &mut *P1_INPUT_LOGS.lock();
             let latest_input_log = input_logs.first_mut().unwrap();
@@ -104,12 +108,15 @@ pub fn handle_final_input_mapping(
                 frame_counter::tick_idx(FRAME_COUNTER);
                 insert_in_front(input_logs, potential_input_log);
             } else {
+                let prev_frames = latest_input_log.frames;
+                // Only update TTL if we are on a new frame according to the latest log
+                should_update_ttl = prev_frames != current_frame;
                 latest_input_log.frames = std::cmp::min(current_frame, 99);
             }
 
             // For the remainder, decrease TTL
             for input_log in input_logs.iter_mut().take(NUM_LOGS).skip(1) {
-                if input_log.ttl > 0 {
+                if input_log.ttl > 0 && should_update_ttl {
                     input_log.ttl -= 1;
                 }
             }
