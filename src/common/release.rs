@@ -1,6 +1,6 @@
 use std::fs;
 
-use skyline_web::DialogOk;
+use skyline_web::dialog_ok::DialogOk;
 
 use crate::consts::{
     LEGACY_MENU_OPTIONS_PATH, MENU_DEFAULT_OPTIONS_PATH, MENU_OPTIONS_PATH, VERSION_TXT_PATH,
