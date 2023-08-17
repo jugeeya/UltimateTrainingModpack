@@ -20,7 +20,6 @@ fn log_2(x: u32) -> u32 {
 }
 
 pub trait ToggleTrait {
-    fn to_toggle_strs() -> Vec<&'static str>;
     fn to_toggle_vals() -> Vec<u32>;
     fn to_toggle_strings() -> Vec<String>;
 }
@@ -32,12 +31,6 @@ pub trait SliderTrait {
 // bitflag helper function macro
 macro_rules! extra_bitflag_impls {
     ($e:ty) => {
-        impl core::fmt::Display for $e {
-            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-                core::fmt::Debug::fmt(self, f)
-            }
-        }
-
         impl $e {
             pub fn to_vec(&self) -> Vec::<$e> {
                 let mut vec = Vec::<$e>::new();
@@ -74,11 +67,6 @@ macro_rules! extra_bitflag_impls {
             }
         }
         impl ToggleTrait for $e {
-            fn to_toggle_strs() -> Vec<&'static str> {
-                let all_options = <$e>::all().to_vec();
-                all_options.iter().map(|i| i.as_str().unwrap_or("")).collect()
-            }
-
             fn to_toggle_vals() -> Vec<u32> {
                 let all_options = <$e>::all().to_vec();
                 all_options.iter().map(|i| i.bits() as u32).collect()
@@ -86,7 +74,7 @@ macro_rules! extra_bitflag_impls {
 
             fn to_toggle_strings() -> Vec<String> {
                 let all_options = <$e>::all().to_vec();
-                all_options.iter().map(|i| i.as_str().unwrap_or(" ").to_string()).collect()
+                all_options.iter().map(|i| i.to_string()).collect()
             }
         }
     }
@@ -167,22 +155,28 @@ impl Direction {
             _ => 0,
         }
     }
+}
 
-    fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            Direction::OUT => "Away",
-            Direction::UP_OUT => "Up and Away",
-            Direction::UP => "Up",
-            Direction::UP_IN => "Up and In",
-            Direction::IN => "In",
-            Direction::DOWN_IN => "Down and In",
-            Direction::DOWN => "Down",
-            Direction::DOWN_OUT => "Down and Away",
-            Direction::NEUTRAL => "Neutral",
-            Direction::LEFT => "Left",
-            Direction::RIGHT => "Right",
-            _ => return None,
-        })
+impl fmt::Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                Direction::OUT => "Away",
+                Direction::UP_OUT => "Up and Away",
+                Direction::UP => "Up",
+                Direction::UP_IN => "Up and In",
+                Direction::IN => "In",
+                Direction::DOWN_IN => "Down and In",
+                Direction::DOWN => "Down",
+                Direction::DOWN_OUT => "Down and Away",
+                Direction::NEUTRAL => "Neutral",
+                Direction::LEFT => "Left",
+                Direction::RIGHT => "Right",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -229,23 +223,6 @@ impl LedgeOption {
         None
     }
 
-    fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            LedgeOption::NEUTRAL => "Neutral Getup",
-            LedgeOption::ROLL => "Roll",
-            LedgeOption::JUMP => "Jump",
-            LedgeOption::ATTACK => "Getup Attack",
-            LedgeOption::WAIT => "Wait",
-            LedgeOption::PLAYBACK_1 => "Playback Slot 1",
-            LedgeOption::PLAYBACK_2 => "Playback Slot 2",
-            LedgeOption::PLAYBACK_3 => "Playback Slot 3",
-            LedgeOption::PLAYBACK_4 => "Playback Slot 4",
-            LedgeOption::PLAYBACK_5 => "Playback Slot 5",
-
-            _ => return None,
-        })
-    }
-
     pub fn is_playback(self) -> bool {
         match self {
             LedgeOption::PLAYBACK_1
@@ -277,6 +254,28 @@ impl LedgeOption {
     }
 }
 
+impl fmt::Display for LedgeOption {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                LedgeOption::NEUTRAL => "Neutral Getup",
+                LedgeOption::ROLL => "Roll",
+                LedgeOption::JUMP => "Jump",
+                LedgeOption::ATTACK => "Getup Attack",
+                LedgeOption::WAIT => "Wait",
+                LedgeOption::PLAYBACK_1 => "Playback Slot 1",
+                LedgeOption::PLAYBACK_2 => "Playback Slot 2",
+                LedgeOption::PLAYBACK_3 => "Playback Slot 3",
+                LedgeOption::PLAYBACK_4 => "Playback Slot 4",
+                LedgeOption::PLAYBACK_5 => "Playback Slot 5",
+                _ => "Multiple Selected",
+            }
+        )
+    }
+}
+
 extra_bitflag_impls! {LedgeOption}
 impl_serde_for_bitflags!(LedgeOption);
 
@@ -290,15 +289,19 @@ bitflags! {
     }
 }
 
-impl TechFlags {
-    fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            TechFlags::NO_TECH => "No Tech",
-            TechFlags::ROLL_F => "Roll Forwards",
-            TechFlags::ROLL_B => "Roll Backwards",
-            TechFlags::IN_PLACE => "Tech In Place",
-            _ => return None,
-        })
+impl fmt::Display for TechFlags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                TechFlags::NO_TECH => "No Tech",
+                TechFlags::ROLL_F => "Roll Forwards",
+                TechFlags::ROLL_B => "Roll Backwards",
+                TechFlags::IN_PLACE => "Tech In Place",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -315,15 +318,19 @@ bitflags! {
     }
 }
 
-impl MissTechFlags {
-    fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            MissTechFlags::GETUP => "Neutral Getup",
-            MissTechFlags::ATTACK => "Getup Attack",
-            MissTechFlags::ROLL_F => "Roll Forwards",
-            MissTechFlags::ROLL_B => "Roll Backwards",
-            _ => return None,
-        })
+impl fmt::Display for MissTechFlags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                MissTechFlags::GETUP => "Neutral Getup",
+                MissTechFlags::ATTACK => "Getup Attack",
+                MissTechFlags::ROLL_F => "Roll Forwards",
+                MissTechFlags::ROLL_B => "Roll Backwards",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -342,28 +349,22 @@ pub enum Shield {
     Constant = 0x4,
 }
 
-impl Shield {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            Shield::None => "None",
-            Shield::Infinite => "Infinite",
-            Shield::Hold => "Hold",
-            Shield::Constant => "Constant",
-        })
-    }
-}
-
 impl fmt::Display for Shield {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
+        write!(
+            f,
+            "{}",
+            match *self {
+                Shield::None => "None",
+                Shield::Infinite => "Infinite",
+                Shield::Hold => "Hold",
+                Shield::Constant => "Constant",
+            }
+        )
     }
 }
 
 impl ToggleTrait for Shield {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        Shield::iter().map(|i| i.as_str().unwrap_or("")).collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         Shield::iter().map(|i| i as u32).collect()
     }
@@ -383,29 +384,21 @@ pub enum SaveStateMirroring {
     Random = 0x2,
 }
 
-impl SaveStateMirroring {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            SaveStateMirroring::None => "None",
-            SaveStateMirroring::Alternate => "Alternate",
-            SaveStateMirroring::Random => "Random",
-        })
-    }
-}
-
 impl fmt::Display for SaveStateMirroring {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
+        write!(
+            f,
+            "{}",
+            match *self {
+                SaveStateMirroring::None => "None",
+                SaveStateMirroring::Alternate => "Alternate",
+                SaveStateMirroring::Random => "Random",
+            }
+        )
     }
 }
 
 impl ToggleTrait for SaveStateMirroring {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        SaveStateMirroring::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         SaveStateMirroring::iter().map(|i| i as u32).collect()
     }
@@ -430,19 +423,22 @@ impl OnOff {
             _ => None,
         }
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            OnOff::Off => "Off",
-            OnOff::On => "On",
-        })
+impl fmt::Display for OnOff {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                OnOff::Off => "Off",
+                OnOff::On => "On",
+            }
+        )
     }
 }
 
 impl ToggleTrait for OnOff {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        vec!["Off", "On"]
-    }
     fn to_toggle_vals() -> Vec<u32> {
         vec![0, 1]
     }
@@ -505,42 +501,6 @@ impl Action {
         None
     }
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            Action::AIR_DODGE => "Airdodge",
-            Action::JUMP => "Jump",
-            Action::SHIELD => "Shield",
-            Action::SPOT_DODGE => "Spotdodge",
-            Action::ROLL_F => "Roll Forwards",
-            Action::ROLL_B => "Roll Backwards",
-            Action::NAIR => "Neutral Aerial",
-            Action::FAIR => "Forward Aerial",
-            Action::BAIR => "Backward Aerial",
-            Action::UAIR => "Up Aerial",
-            Action::DAIR => "Down Aerial",
-            Action::NEUTRAL_B => "Neutral Special",
-            Action::SIDE_B => "Side Special",
-            Action::UP_B => "Up Special",
-            Action::DOWN_B => "Down Special",
-            Action::F_SMASH => "Forward Smash",
-            Action::U_SMASH => "Up Smash",
-            Action::D_SMASH => "Down Smash",
-            Action::JAB => "Jab",
-            Action::F_TILT => "Forward Tilt",
-            Action::U_TILT => "Up Tilt",
-            Action::D_TILT => "Down Tilt",
-            Action::GRAB => "Grab",
-            Action::DASH => "Dash",
-            Action::DASH_ATTACK => "Dash Attack",
-            Action::PLAYBACK_1 => "Playback Slot 1",
-            Action::PLAYBACK_2 => "Playback Slot 2",
-            Action::PLAYBACK_3 => "Playback Slot 3",
-            Action::PLAYBACK_4 => "Playback Slot 4",
-            Action::PLAYBACK_5 => "Playback Slot 5",
-            _ => return None,
-        })
-    }
-
     pub fn is_playback(self) -> bool {
         match self {
             Action::PLAYBACK_1
@@ -559,8 +519,50 @@ impl Action {
             Action::PLAYBACK_3 => 2,
             Action::PLAYBACK_4 => 3,
             Action::PLAYBACK_5 => 4,
-            _ => panic!("Invalid Action playback slot: {}", self.as_str().unwrap()),
+            _ => panic!("Invalid Action playback slot: {}", self.to_string()),
         }
+    }
+}
+
+impl fmt::Display for Action {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                Action::AIR_DODGE => "Airdodge",
+                Action::JUMP => "Jump",
+                Action::SHIELD => "Shield",
+                Action::SPOT_DODGE => "Spotdodge",
+                Action::ROLL_F => "Roll Forwards",
+                Action::ROLL_B => "Roll Backwards",
+                Action::NAIR => "Neutral Aerial",
+                Action::FAIR => "Forward Aerial",
+                Action::BAIR => "Backward Aerial",
+                Action::UAIR => "Up Aerial",
+                Action::DAIR => "Down Aerial",
+                Action::NEUTRAL_B => "Neutral Special",
+                Action::SIDE_B => "Side Special",
+                Action::UP_B => "Up Special",
+                Action::DOWN_B => "Down Special",
+                Action::F_SMASH => "Forward Smash",
+                Action::U_SMASH => "Up Smash",
+                Action::D_SMASH => "Down Smash",
+                Action::JAB => "Jab",
+                Action::F_TILT => "Forward Tilt",
+                Action::U_TILT => "Up Tilt",
+                Action::D_TILT => "Down Tilt",
+                Action::GRAB => "Grab",
+                Action::DASH => "Dash",
+                Action::DASH_ATTACK => "Dash Attack",
+                Action::PLAYBACK_1 => "Playback Slot 1",
+                Action::PLAYBACK_2 => "Playback Slot 2",
+                Action::PLAYBACK_3 => "Playback Slot 3",
+                Action::PLAYBACK_4 => "Playback Slot 4",
+                Action::PLAYBACK_5 => "Playback Slot 5",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -575,14 +577,18 @@ bitflags! {
     }
 }
 
-impl AttackAngle {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            AttackAngle::NEUTRAL => "Neutral",
-            AttackAngle::UP => "Up",
-            AttackAngle::DOWN => "Down",
-            _ => return None,
-        })
+impl fmt::Display for AttackAngle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                AttackAngle::NEUTRAL => "Neutral",
+                AttackAngle::UP => "Up",
+                AttackAngle::DOWN => "Down",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -625,6 +631,12 @@ bitflags! {
     }
 }
 
+impl Delay {
+    pub fn into_delay(&self) -> u32 {
+        self.to_index()
+    }
+}
+
 // Throw Option
 bitflags! {
     pub struct ThrowOption : u32
@@ -654,16 +666,22 @@ impl ThrowOption {
         #[cfg(not(feature = "smash"))]
         None
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            ThrowOption::NONE => "None",
-            ThrowOption::FORWARD => "Forward Throw",
-            ThrowOption::BACKWARD => "Back Throw",
-            ThrowOption::UP => "Up Throw",
-            ThrowOption::DOWN => "Down Throw",
-            _ => return None,
-        })
+impl fmt::Display for ThrowOption {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                ThrowOption::NONE => "None",
+                ThrowOption::FORWARD => "Forward Throw",
+                ThrowOption::BACKWARD => "Back Throw",
+                ThrowOption::UP => "Up Throw",
+                ThrowOption::DOWN => "Down Throw",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -718,26 +736,6 @@ impl BuffOption {
         None
     }
 
-    fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            BuffOption::ACCELERATLE => "Acceleratle",
-            BuffOption::OOMPH => "Oomph",
-            BuffOption::BOUNCE => "Bounce",
-            BuffOption::PSYCHE => "Psyche Up",
-            BuffOption::BREATHING => "Deep Breathing",
-            BuffOption::ARSENE => "Arsene",
-            BuffOption::LIMIT => "Limit Break",
-            BuffOption::KO => "KO Punch",
-            BuffOption::WING => "1-Winged Angel",
-            BuffOption::MONAD_JUMP => "Jump",
-            BuffOption::MONAD_SPEED => "Speed",
-            BuffOption::MONAD_SHIELD => "Shield",
-            BuffOption::MONAD_BUSTER => "Buster",
-            BuffOption::MONAD_SMASH => "Smash",
-            _ => return None,
-        })
-    }
-
     pub fn hero_buffs(self) -> BuffOption {
         // Return a struct with only Hero's selected buffs
         let hero_buffs_bitflags = BuffOption::ACCELERATLE
@@ -758,49 +756,75 @@ impl BuffOption {
     }
 }
 
+impl fmt::Display for BuffOption {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                BuffOption::ACCELERATLE => "Acceleratle",
+                BuffOption::OOMPH => "Oomph",
+                BuffOption::BOUNCE => "Bounce",
+                BuffOption::PSYCHE => "Psyche Up",
+                BuffOption::BREATHING => "Deep Breathing",
+                BuffOption::ARSENE => "Arsene",
+                BuffOption::LIMIT => "Limit Break",
+                BuffOption::KO => "KO Punch",
+                BuffOption::WING => "1-Winged Angel",
+                BuffOption::MONAD_JUMP => "Jump",
+                BuffOption::MONAD_SPEED => "Speed",
+                BuffOption::MONAD_SHIELD => "Shield",
+                BuffOption::MONAD_BUSTER => "Buster",
+                BuffOption::MONAD_SMASH => "Smash",
+                _ => "Multiple Selected",
+            }
+        )
+    }
+}
+
 extra_bitflag_impls! {BuffOption}
 impl_serde_for_bitflags!(BuffOption);
 
-impl Delay {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            Delay::D0 => "0",
-            Delay::D1 => "1",
-            Delay::D2 => "2",
-            Delay::D3 => "3",
-            Delay::D4 => "4",
-            Delay::D5 => "5",
-            Delay::D6 => "6",
-            Delay::D7 => "7",
-            Delay::D8 => "8",
-            Delay::D9 => "9",
-            Delay::D10 => "10",
-            Delay::D11 => "11",
-            Delay::D12 => "12",
-            Delay::D13 => "13",
-            Delay::D14 => "14",
-            Delay::D15 => "15",
-            Delay::D16 => "16",
-            Delay::D17 => "17",
-            Delay::D18 => "18",
-            Delay::D19 => "19",
-            Delay::D20 => "20",
-            Delay::D21 => "21",
-            Delay::D22 => "22",
-            Delay::D23 => "23",
-            Delay::D24 => "24",
-            Delay::D25 => "25",
-            Delay::D26 => "26",
-            Delay::D27 => "27",
-            Delay::D28 => "28",
-            Delay::D29 => "29",
-            Delay::D30 => "30",
-            _ => return None,
-        })
-    }
-
-    pub fn into_delay(&self) -> u32 {
-        self.to_index()
+impl fmt::Display for Delay {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                Delay::D0 => "0",
+                Delay::D1 => "1",
+                Delay::D2 => "2",
+                Delay::D3 => "3",
+                Delay::D4 => "4",
+                Delay::D5 => "5",
+                Delay::D6 => "6",
+                Delay::D7 => "7",
+                Delay::D8 => "8",
+                Delay::D9 => "9",
+                Delay::D10 => "10",
+                Delay::D11 => "11",
+                Delay::D12 => "12",
+                Delay::D13 => "13",
+                Delay::D14 => "14",
+                Delay::D15 => "15",
+                Delay::D16 => "16",
+                Delay::D17 => "17",
+                Delay::D18 => "18",
+                Delay::D19 => "19",
+                Delay::D20 => "20",
+                Delay::D21 => "21",
+                Delay::D22 => "22",
+                Delay::D23 => "23",
+                Delay::D24 => "24",
+                Delay::D25 => "25",
+                Delay::D26 => "26",
+                Delay::D27 => "27",
+                Delay::D28 => "28",
+                Delay::D29 => "29",
+                Delay::D30 => "30",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -844,45 +868,51 @@ bitflags! {
 }
 
 impl MedDelay {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            MedDelay::D0 => "0",
-            MedDelay::D5 => "5",
-            MedDelay::D10 => "10",
-            MedDelay::D15 => "15",
-            MedDelay::D20 => "20",
-            MedDelay::D25 => "25",
-            MedDelay::D30 => "30",
-            MedDelay::D35 => "35",
-            MedDelay::D40 => "40",
-            MedDelay::D45 => "45",
-            MedDelay::D50 => "50",
-            MedDelay::D55 => "55",
-            MedDelay::D60 => "60",
-            MedDelay::D65 => "65",
-            MedDelay::D70 => "70",
-            MedDelay::D75 => "75",
-            MedDelay::D80 => "80",
-            MedDelay::D85 => "85",
-            MedDelay::D90 => "90",
-            MedDelay::D95 => "95",
-            MedDelay::D100 => "100",
-            MedDelay::D105 => "105",
-            MedDelay::D110 => "110",
-            MedDelay::D115 => "115",
-            MedDelay::D120 => "120",
-            MedDelay::D125 => "125",
-            MedDelay::D130 => "130",
-            MedDelay::D135 => "135",
-            MedDelay::D140 => "140",
-            MedDelay::D145 => "145",
-            MedDelay::D150 => "150",
-            _ => return None,
-        })
-    }
-
     pub fn into_meddelay(&self) -> u32 {
         self.to_index() * 5
+    }
+}
+
+impl fmt::Display for MedDelay {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                MedDelay::D0 => "0",
+                MedDelay::D5 => "5",
+                MedDelay::D10 => "10",
+                MedDelay::D15 => "15",
+                MedDelay::D20 => "20",
+                MedDelay::D25 => "25",
+                MedDelay::D30 => "30",
+                MedDelay::D35 => "35",
+                MedDelay::D40 => "40",
+                MedDelay::D45 => "45",
+                MedDelay::D50 => "50",
+                MedDelay::D55 => "55",
+                MedDelay::D60 => "60",
+                MedDelay::D65 => "65",
+                MedDelay::D70 => "70",
+                MedDelay::D75 => "75",
+                MedDelay::D80 => "80",
+                MedDelay::D85 => "85",
+                MedDelay::D90 => "90",
+                MedDelay::D95 => "95",
+                MedDelay::D100 => "100",
+                MedDelay::D105 => "105",
+                MedDelay::D110 => "110",
+                MedDelay::D115 => "115",
+                MedDelay::D120 => "120",
+                MedDelay::D125 => "125",
+                MedDelay::D130 => "130",
+                MedDelay::D135 => "135",
+                MedDelay::D140 => "140",
+                MedDelay::D145 => "145",
+                MedDelay::D150 => "150",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -926,45 +956,51 @@ bitflags! {
 }
 
 impl LongDelay {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            LongDelay::D0 => "0",
-            LongDelay::D10 => "10",
-            LongDelay::D20 => "20",
-            LongDelay::D30 => "30",
-            LongDelay::D40 => "40",
-            LongDelay::D50 => "50",
-            LongDelay::D60 => "60",
-            LongDelay::D70 => "70",
-            LongDelay::D80 => "80",
-            LongDelay::D90 => "90",
-            LongDelay::D100 => "100",
-            LongDelay::D110 => "110",
-            LongDelay::D120 => "120",
-            LongDelay::D130 => "130",
-            LongDelay::D140 => "140",
-            LongDelay::D150 => "150",
-            LongDelay::D160 => "160",
-            LongDelay::D170 => "170",
-            LongDelay::D180 => "180",
-            LongDelay::D190 => "190",
-            LongDelay::D200 => "200",
-            LongDelay::D210 => "210",
-            LongDelay::D220 => "220",
-            LongDelay::D230 => "230",
-            LongDelay::D240 => "240",
-            LongDelay::D250 => "250",
-            LongDelay::D260 => "260",
-            LongDelay::D270 => "270",
-            LongDelay::D280 => "280",
-            LongDelay::D290 => "290",
-            LongDelay::D300 => "300",
-            _ => return None,
-        })
-    }
-
     pub fn into_longdelay(&self) -> u32 {
         self.to_index() * 10
+    }
+}
+
+impl fmt::Display for LongDelay {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                LongDelay::D0 => "0",
+                LongDelay::D10 => "10",
+                LongDelay::D20 => "20",
+                LongDelay::D30 => "30",
+                LongDelay::D40 => "40",
+                LongDelay::D50 => "50",
+                LongDelay::D60 => "60",
+                LongDelay::D70 => "70",
+                LongDelay::D80 => "80",
+                LongDelay::D90 => "90",
+                LongDelay::D100 => "100",
+                LongDelay::D110 => "110",
+                LongDelay::D120 => "120",
+                LongDelay::D130 => "130",
+                LongDelay::D140 => "140",
+                LongDelay::D150 => "150",
+                LongDelay::D160 => "160",
+                LongDelay::D170 => "170",
+                LongDelay::D180 => "180",
+                LongDelay::D190 => "190",
+                LongDelay::D200 => "200",
+                LongDelay::D210 => "210",
+                LongDelay::D220 => "220",
+                LongDelay::D230 => "230",
+                LongDelay::D240 => "240",
+                LongDelay::D250 => "250",
+                LongDelay::D260 => "260",
+                LongDelay::D270 => "270",
+                LongDelay::D280 => "280",
+                LongDelay::D290 => "290",
+                LongDelay::D300 => "300",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -985,12 +1021,19 @@ impl BoolFlag {
     pub fn into_bool(self) -> bool {
         matches!(self, BoolFlag::TRUE)
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            BoolFlag::TRUE => "True",
-            _ => "False",
-        })
+impl fmt::Display for BoolFlag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                BoolFlag::TRUE => "True",
+                BoolFlag::FALSE => "False",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -1014,36 +1057,30 @@ impl SdiFrequency {
             SdiFrequency::High => 4,
         }
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            SdiFrequency::None => "None",
-            SdiFrequency::Normal => "Normal",
-            SdiFrequency::Medium => "Medium",
-            SdiFrequency::High => "High",
-        })
+impl fmt::Display for SdiFrequency {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                SdiFrequency::None => "None",
+                SdiFrequency::Normal => "Normal",
+                SdiFrequency::Medium => "Medium",
+                SdiFrequency::High => "High",
+            }
+        )
     }
 }
 
 impl ToggleTrait for SdiFrequency {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        SdiFrequency::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         SdiFrequency::iter().map(|i| i as u32).collect()
     }
 
     fn to_toggle_strings() -> Vec<String> {
         SdiFrequency::iter().map(|i| i.to_string()).collect()
-    }
-}
-
-impl fmt::Display for SdiFrequency {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1067,36 +1104,30 @@ impl ClatterFrequency {
             ClatterFrequency::High => 2,
         }
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            ClatterFrequency::None => "None",
-            ClatterFrequency::Normal => "Normal",
-            ClatterFrequency::Medium => "Medium",
-            ClatterFrequency::High => "High",
-        })
+impl fmt::Display for ClatterFrequency {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                ClatterFrequency::None => "None",
+                ClatterFrequency::Normal => "Normal",
+                ClatterFrequency::Medium => "Medium",
+                ClatterFrequency::High => "High",
+            }
+        )
     }
 }
 
 impl ToggleTrait for ClatterFrequency {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        ClatterFrequency::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         ClatterFrequency::iter().map(|i| i as u32).collect()
     }
 
     fn to_toggle_strings() -> Vec<String> {
         ClatterFrequency::iter().map(|i| i.to_string()).collect()
-    }
-}
-
-impl fmt::Display for ClatterFrequency {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1129,49 +1160,43 @@ impl CharacterItem {
     pub fn as_idx(self) -> u32 {
         log_2(self as i32 as u32)
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            CharacterItem::PlayerVariation1 => "Player 1st Var.",
-            CharacterItem::PlayerVariation2 => "Player 2nd Var.",
-            CharacterItem::PlayerVariation3 => "Player 3rd Var.",
-            CharacterItem::PlayerVariation4 => "Player 4th Var.",
-            CharacterItem::PlayerVariation5 => "Player 5th Var.",
-            CharacterItem::PlayerVariation6 => "Player 6th Var.",
-            CharacterItem::PlayerVariation7 => "Player 7th Var.",
-            CharacterItem::PlayerVariation8 => "Player 8th Var.",
-            CharacterItem::CpuVariation1 => "CPU 1st Var.",
-            CharacterItem::CpuVariation2 => "CPU 2nd Var.",
-            CharacterItem::CpuVariation3 => "CPU 3rd Var.",
-            CharacterItem::CpuVariation4 => "CPU 4th Var.",
-            CharacterItem::CpuVariation5 => "CPU 5th Var.",
-            CharacterItem::CpuVariation6 => "CPU 6th Var.",
-            CharacterItem::CpuVariation7 => "CPU 7th Var.",
-            CharacterItem::CpuVariation8 => "CPU 8th Var.",
-            _ => "None",
-        })
+impl fmt::Display for CharacterItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                CharacterItem::PlayerVariation1 => "Player 1st Var.",
+                CharacterItem::PlayerVariation2 => "Player 2nd Var.",
+                CharacterItem::PlayerVariation3 => "Player 3rd Var.",
+                CharacterItem::PlayerVariation4 => "Player 4th Var.",
+                CharacterItem::PlayerVariation5 => "Player 5th Var.",
+                CharacterItem::PlayerVariation6 => "Player 6th Var.",
+                CharacterItem::PlayerVariation7 => "Player 7th Var.",
+                CharacterItem::PlayerVariation8 => "Player 8th Var.",
+                CharacterItem::CpuVariation1 => "CPU 1st Var.",
+                CharacterItem::CpuVariation2 => "CPU 2nd Var.",
+                CharacterItem::CpuVariation3 => "CPU 3rd Var.",
+                CharacterItem::CpuVariation4 => "CPU 4th Var.",
+                CharacterItem::CpuVariation5 => "CPU 5th Var.",
+                CharacterItem::CpuVariation6 => "CPU 6th Var.",
+                CharacterItem::CpuVariation7 => "CPU 7th Var.",
+                CharacterItem::CpuVariation8 => "CPU 8th Var.",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
 impl ToggleTrait for CharacterItem {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        CharacterItem::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         CharacterItem::iter().map(|i| i as u32).collect()
     }
 
     fn to_toggle_strings() -> Vec<String> {
         CharacterItem::iter().map(|i| i.to_string()).collect()
-    }
-}
-
-impl fmt::Display for CharacterItem {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1198,35 +1223,41 @@ bitflags! {
 }
 
 impl MashTrigger {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            MashTrigger::HIT => "Hitstun",
-            MashTrigger::SHIELDSTUN => "Shieldstun",
-            MashTrigger::PARRY => "Parry",
-            MashTrigger::TUMBLE => "Tumble",
-            MashTrigger::LANDING => "Landing",
-            MashTrigger::TRUMP => "Ledge Trump",
-            MashTrigger::FOOTSTOOL => "Footstool",
-            MashTrigger::CLATTER => "Clatter",
-            MashTrigger::LEDGE => "Ledge Option",
-            MashTrigger::TECH => "Tech Option",
-            MashTrigger::MISTECH => "Mistech Option",
-            MashTrigger::GROUNDED => "Grounded",
-            MashTrigger::AIRBORNE => "Airborne",
-            MashTrigger::DISTANCE_CLOSE => "Distance: Close",
-            MashTrigger::DISTANCE_MID => "Distance: Mid",
-            MashTrigger::DISTANCE_FAR => "Distance: Far",
-            MashTrigger::ALWAYS => "Always",
-            _ => return None,
-        })
-    }
-
     pub const fn default() -> MashTrigger {
         // Hit, block, clatter
         MashTrigger::HIT
             .union(MashTrigger::TUMBLE)
             .union(MashTrigger::SHIELDSTUN)
             .union(MashTrigger::CLATTER)
+    }
+}
+
+impl fmt::Display for MashTrigger {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                MashTrigger::HIT => "Hitstun",
+                MashTrigger::SHIELDSTUN => "Shieldstun",
+                MashTrigger::PARRY => "Parry",
+                MashTrigger::TUMBLE => "Tumble",
+                MashTrigger::LANDING => "Landing",
+                MashTrigger::TRUMP => "Ledge Trump",
+                MashTrigger::FOOTSTOOL => "Footstool",
+                MashTrigger::CLATTER => "Clatter",
+                MashTrigger::LEDGE => "Ledge Option",
+                MashTrigger::TECH => "Tech Option",
+                MashTrigger::MISTECH => "Mistech Option",
+                MashTrigger::GROUNDED => "Grounded",
+                MashTrigger::AIRBORNE => "Airborne",
+                MashTrigger::DISTANCE_CLOSE => "Distance: Close",
+                MashTrigger::DISTANCE_MID => "Distance: Mid",
+                MashTrigger::DISTANCE_FAR => "Distance: Far",
+                MashTrigger::ALWAYS => "Always",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -1257,14 +1288,18 @@ bitflags! {
     }
 }
 
-impl SaveDamage {
-    fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            SaveDamage::DEFAULT => "Default",
-            SaveDamage::SAVED => "Save State",
-            SaveDamage::RANDOM => "Random Value",
-            _ => return None,
-        })
+impl fmt::Display for SaveDamage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                SaveDamage::DEFAULT => "Default",
+                SaveDamage::SAVED => "Save State",
+                SaveDamage::RANDOM => "Random Value",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -1285,40 +1320,34 @@ pub enum SaveStateSlot {
 }
 
 impl SaveStateSlot {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            SaveStateSlot::One => "1",
-            SaveStateSlot::Two => "2",
-            SaveStateSlot::Three => "3",
-            SaveStateSlot::Four => "4",
-            SaveStateSlot::Five => "5",
-        })
-    }
-
     pub fn as_idx(self) -> u32 {
         log_2(self as i32 as u32)
     }
 }
 
-impl ToggleTrait for SaveStateSlot {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        SaveStateSlot::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
+impl fmt::Display for SaveStateSlot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                SaveStateSlot::One => "1",
+                SaveStateSlot::Two => "2",
+                SaveStateSlot::Three => "3",
+                SaveStateSlot::Four => "4",
+                SaveStateSlot::Five => "5",
+            }
+        )
     }
+}
 
+impl ToggleTrait for SaveStateSlot {
     fn to_toggle_vals() -> Vec<u32> {
         SaveStateSlot::iter().map(|i| i as u32).collect()
     }
 
     fn to_toggle_strings() -> Vec<String> {
         SaveStateSlot::iter().map(|i| i.to_string()).collect()
-    }
-}
-
-impl fmt::Display for SaveStateSlot {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1345,37 +1374,31 @@ impl RecordSlot {
             RecordSlot::S5 => 4,
         }
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            RecordSlot::S1 => "Slot One",
-            RecordSlot::S2 => "Slot Two",
-            RecordSlot::S3 => "Slot Three",
-            RecordSlot::S4 => "Slot Four",
-            RecordSlot::S5 => "Slot Five",
-        })
+impl fmt::Display for RecordSlot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                RecordSlot::S1 => "Slot One",
+                RecordSlot::S2 => "Slot Two",
+                RecordSlot::S3 => "Slot Three",
+                RecordSlot::S4 => "Slot Four",
+                RecordSlot::S5 => "Slot Five",
+            }
+        )
     }
 }
 
 impl ToggleTrait for RecordSlot {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        RecordSlot::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         RecordSlot::iter().map(|i| i as u32).collect()
     }
 
     fn to_toggle_strings() -> Vec<String> {
         RecordSlot::iter().map(|i| i.to_string()).collect()
-    }
-}
-
-impl fmt::Display for RecordSlot {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
     }
 }
 
@@ -1402,16 +1425,22 @@ impl PlaybackSlot {
             _ => return None,
         })
     }
+}
 
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            PlaybackSlot::S1 => "Slot One",
-            PlaybackSlot::S2 => "Slot Two",
-            PlaybackSlot::S3 => "Slot Three",
-            PlaybackSlot::S4 => "Slot Four",
-            PlaybackSlot::S5 => "Slot Five",
-            _ => return None,
-        })
+impl fmt::Display for PlaybackSlot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                PlaybackSlot::S1 => "Slot One",
+                PlaybackSlot::S2 => "Slot Two",
+                PlaybackSlot::S3 => "Slot Three",
+                PlaybackSlot::S4 => "Slot Four",
+                PlaybackSlot::S5 => "Slot Five",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -1430,23 +1459,7 @@ pub enum HitstunPlayback {
     Instant = 0x4,
 }
 
-impl HitstunPlayback {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            HitstunPlayback::Hitstun => "As Hitstun Ends",
-            HitstunPlayback::Hitstop => "As Hitstop Ends",
-            HitstunPlayback::Instant => "As Hitstop Begins",
-        })
-    }
-}
-
 impl ToggleTrait for HitstunPlayback {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        HitstunPlayback::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         HitstunPlayback::iter().map(|i| i as u32).collect()
     }
@@ -1458,7 +1471,15 @@ impl ToggleTrait for HitstunPlayback {
 
 impl fmt::Display for HitstunPlayback {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
+        write!(
+            f,
+            "{}",
+            match *self {
+                HitstunPlayback::Hitstun => "As Hitstun Ends",
+                HitstunPlayback::Hitstop => "As Hitstop Ends",
+                HitstunPlayback::Instant => "As Hitstop Begins",
+            }
+        )
     }
 }
 
@@ -1471,13 +1492,17 @@ bitflags! {
     }
 }
 
-impl RecordTrigger {
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            RecordTrigger::COMMAND => "Button Combination",
-            RecordTrigger::SAVESTATE => "Save State Load",
-            _ => return None,
-        })
+impl fmt::Display for RecordTrigger {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                RecordTrigger::COMMAND => "Button Combination",
+                RecordTrigger::SAVESTATE => "Save State Load",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
@@ -1511,43 +1536,12 @@ pub enum RecordingFrames {
 }
 
 impl RecordingFrames {
-    pub fn as_str(self) -> Option<&'static str> {
-        use RecordingFrames::*;
-        Some(match self {
-            F60 => "60",
-            F90 => "90",
-            F120 => "120",
-            F150 => "150",
-            F180 => "180",
-            F210 => "210",
-            F240 => "240",
-            F270 => "270",
-            F300 => "300",
-            F330 => "330",
-            F360 => "360",
-            F390 => "390",
-            F420 => "420",
-            F450 => "450",
-            F480 => "480",
-            F510 => "510",
-            F540 => "540",
-            F570 => "570",
-            F600 => "600",
-        })
-    }
-
     pub fn into_frames(self) -> usize {
         (log_2(self as u32) as usize * 30) + 60
     }
 }
 
 impl ToggleTrait for RecordingFrames {
-    fn to_toggle_strs() -> Vec<&'static str> {
-        RecordingFrames::iter()
-            .map(|i| i.as_str().unwrap_or(""))
-            .collect()
-    }
-
     fn to_toggle_vals() -> Vec<u32> {
         RecordingFrames::iter().map(|i| i as u32).collect()
     }
@@ -1559,7 +1553,32 @@ impl ToggleTrait for RecordingFrames {
 
 impl fmt::Display for RecordingFrames {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str().unwrap())
+        use RecordingFrames::*;
+        write!(
+            f,
+            "{}",
+            match self {
+                F60 => "60",
+                F90 => "90",
+                F120 => "120",
+                F150 => "150",
+                F180 => "180",
+                F210 => "210",
+                F240 => "240",
+                F270 => "270",
+                F300 => "300",
+                F330 => "330",
+                F360 => "360",
+                F390 => "390",
+                F420 => "420",
+                F450 => "450",
+                F480 => "480",
+                F510 => "510",
+                F540 => "540",
+                F570 => "570",
+                F600 => "600",
+            }
+        )
     }
 }
 
@@ -1585,34 +1604,40 @@ bitflags! {
 }
 
 impl ButtonConfig {
-    // Should we use the font glyphs? Or do that special casing in the menu?
-    pub fn as_str(self) -> Option<&'static str> {
-        Some(match self {
-            ButtonConfig::A => "A",
-            ButtonConfig::B => "B",
-            ButtonConfig::X => "X",
-            ButtonConfig::Y => "Y",
-            ButtonConfig::L => "Pro L",
-            ButtonConfig::R => "Pro R; GCC Z",
-            ButtonConfig::ZL => "Pro ZL; GCC L",
-            ButtonConfig::ZR => "Pro ZR; GCC R",
-            ButtonConfig::DPAD_UP => "DPad Up",
-            ButtonConfig::DPAD_DOWN => "DPad Down",
-            ButtonConfig::DPAD_LEFT => "DPad Left",
-            ButtonConfig::DPAD_RIGHT => "DPad Right",
-            ButtonConfig::PLUS => "Plus",
-            ButtonConfig::MINUS => "Minus",
-            ButtonConfig::LSTICK => "Left Stick Press",
-            ButtonConfig::RSTICK => "Right Stick Press",
-            _ => return None,
-        })
-    }
     pub fn combination_string(&self) -> String {
         self.to_vec()
             .iter()
-            .map(|button| button.as_str().unwrap())
-            .intersperse(" + ")
+            .map(|button| button.to_string())
+            .intersperse(" + ".to_owned())
             .collect::<String>()
+    }
+}
+
+impl fmt::Display for ButtonConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                ButtonConfig::A => "A",
+                ButtonConfig::B => "B",
+                ButtonConfig::X => "X",
+                ButtonConfig::Y => "Y",
+                ButtonConfig::L => "Pro L",
+                ButtonConfig::R => "Pro R; GCC Z",
+                ButtonConfig::ZL => "Pro ZL; GCC L",
+                ButtonConfig::ZR => "Pro ZR; GCC R",
+                ButtonConfig::DPAD_UP => "DPad Up",
+                ButtonConfig::DPAD_DOWN => "DPad Down",
+                ButtonConfig::DPAD_LEFT => "DPad Left",
+                ButtonConfig::DPAD_RIGHT => "DPad Right",
+                ButtonConfig::PLUS => "Plus",
+                ButtonConfig::MINUS => "Minus",
+                ButtonConfig::LSTICK => "Left Stick Press",
+                ButtonConfig::RSTICK => "Right Stick Press",
+                _ => "Multiple Selected",
+            }
+        )
     }
 }
 
