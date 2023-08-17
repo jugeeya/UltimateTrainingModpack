@@ -86,7 +86,7 @@ macro_rules! extra_bitflag_impls {
 
             fn to_toggle_strings() -> Vec<String> {
                 let all_options = <$e>::all().to_vec();
-                all_options.iter().map(|i| i.to_string()).collect()
+                all_options.iter().map(|i| i.as_str().unwrap_or(" ").to_string()).collect()
             }
         }
     }

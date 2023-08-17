@@ -187,6 +187,37 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[test]
+fn test_toggle_naming() -> Result<(), Box<dyn Error>> {
+    let menu;
+    let mut prev_menu;
+    let menu_defaults;
+    unsafe {
+        prev_menu = MENU.clone();
+        menu = ui_menu(MENU);
+        menu_defaults = (ui_menu(MENU), serde_json::to_string(&MENU).unwrap());
+    }
+
+    let (mut terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+    // Enter Mash Toggles
+    app.on_a();
+    // Set Mash Airdodge
+    app.on_a();
+
+    let frame_res = terminal.draw(|f| training_mod_tui::ui(f, &mut app))?;
+    let mut full_frame_buffer = String::new();
+    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
+        full_frame_buffer.push_str(&cell.symbol);
+        if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+            full_frame_buffer.push_str("\n");
+        }
+    }
+    full_frame_buffer.push_str("\n");
+    assert!(full_frame_buffer.contains("Airdodge"));
+
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
     let inputs = args.get(1);
