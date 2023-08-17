@@ -66,12 +66,18 @@ impl TrainingModpackConfig {
     }
 
     pub fn change_update_policy(update_policy: &UpdatePolicy) -> Result<()> {
-        // TODO!()
+        let mut config = TrainingModpackConfig::load()?;
+        config.update.policy = Some(update_policy.clone());
+        let contents = toml::to_string(&config)?;
+        fs::write(TRAINING_MODPACK_TOML_PATH, contents)?;
         Ok(())
     }
 
     pub fn change_last_update_version(last_update_version: &str) -> Result<()> {
-        // TODO!()
+        let mut config = TrainingModpackConfig::load()?;
+        config.update.last_update_version = last_update_version.to_string();
+        let contents = toml::to_string(&config)?;
+        fs::write(TRAINING_MODPACK_TOML_PATH, contents)?;
         Ok(())
     }
 }
@@ -112,7 +118,7 @@ fn format_time_string(seconds: u64) -> String {
     }
 
     format!(
-        "{:04}-{:02}-{:02}:{:02}:{:02}:{:02}Z",
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
         year,
         month + 1,
         day_number + 1,

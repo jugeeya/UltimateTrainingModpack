@@ -3,13 +3,14 @@ use crate::dialog;
 use crate::logging::*;
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
+use parking_lot::Mutex;
 use serde_json::Value;
 use std::io::{Error, ErrorKind};
 use zip::ZipArchive;
 
 lazy_static! {
-    pub static ref CURRENT_VERSION: String =
-        get_current_version().expect("Could not determine current version!");
+    pub static ref CURRENT_VERSION: Mutex<String> =
+        Mutex::new(get_current_version().expect("Could not determine current version!"));
 }
 
 #[derive(Debug)]
@@ -39,7 +40,7 @@ impl Release {
         }
         let mut zip = ZipArchive::new(std::io::Cursor::new(vec))?;
         zip.extract(UNPACK_PATH)?;
-        // TODO!() set last_update_version
+        TrainingModpackConfig::change_last_update_version(&self.published_at)?;
         dialog::dialog_ok(
             "The Training Modpack has been updated.\n\n\
             Your game will now restart."
@@ -61,7 +62,8 @@ impl Release {
         // alphabetical order == chronological order
         //
         // https://datatracker.ietf.org/doc/html/rfc3339#section-5.1
-        self.published_at.as_str() < CURRENT_VERSION.as_str()
+        let current_version = CURRENT_VERSION.lock();
+        self.published_at.as_str() < current_version.as_str()
     }
 }
 
@@ -160,7 +162,7 @@ fn get_release(beta: bool) -> Result<Release> {
             });
         }
         if beta_release.is_some() && stable_release.is_some() {
-            // Don't iterate needlessly
+            // Don't iterate needlessly, we already found both releases
             break;
         }
     }
@@ -217,17 +219,19 @@ pub fn perform_version_check() {
             Err(anyhow!("Updates are disabled per UpdatePolicy"))
         }
     };
-    if release_to_apply.is_ok() && release_to_apply.as_ref().unwrap().is_older_than_installed() {
-        let published_at = release_to_apply.unwrap().published_at.clone();
-        let current_version = CURRENT_VERSION.clone();
-        release_to_apply = Err(anyhow!(
-            "Update is not newer than the current installed version.\n\
-                Update: {:?}\n\
-                Installed: {:?}",
-            published_at,
-            current_version
-        ))
+    if release_to_apply.is_ok() {
+        let published_at = release_to_apply.as_ref().unwrap().published_at.clone();
+        let current_version = CURRENT_VERSION.lock();
+        info!("Current version: {}", current_version);
+        info!("Githubs version: {}", published_at);
+        drop(current_version); // Explicitly unlock since we also acquire a lock in is_older_than_installed()
+        if release_to_apply.as_ref().unwrap().is_older_than_installed() {
+            release_to_apply = Err(anyhow!(
+                "Update is not newer than the current installed version.",
+            ))
+        }
     }
+    warn!("Releasing lock in perform_version_check");
 
     // Perform Update
     match release_to_apply {
