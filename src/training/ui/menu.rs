@@ -107,7 +107,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &Pane) {
             let submenu = &list.items[list_idx];
             let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
 
-            title_text.set_text_string(submenu.submenu_title);
+            title_text.set_text_string(submenu.submenu_title.as_str());
 
             // In the actual 'layout.arc' file, every icon image is stacked
             // into a single container pane, with each image directly on top of another.
@@ -130,7 +130,7 @@ unsafe fn render_submenu_page(app: &App, root_pane: &Pane) {
                     .find_pane_by_name_recursive("FooterTxt")
                     .unwrap()
                     .as_textbox()
-                    .set_text_string(submenu.help_text);
+                    .set_text_string(submenu.help_text.as_str());
 
                 title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
                 title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
@@ -252,7 +252,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
         .find_pane_by_name_recursive("Header")
         .unwrap()
         .as_textbox();
-    header.set_text_string(title);
+    header.set_text_string(title.as_str());
     let min_button = slider_pane
         .find_pane_by_name_recursive("MinButton")
         .unwrap()
@@ -413,7 +413,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     } else {
         tab_selected + 1
     };
-    let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx]);
+    let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx].clone());
 
     let is_gcc = (*common::menu::P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
@@ -470,7 +470,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             help_pane.set_default_material_colors();
             help_pane.set_color(255, 255, 0, 255);
         }
-        help_pane.set_text_string(tab_titles[idx]);
+        help_pane.set_text_string(tab_titles[idx].as_str());
     });
     [
         (save_defaults_key, "SaveDefaults", "Save Defaults"),

@@ -1,3 +1,4 @@
+#![feature(iter_intersperse)]
 #[macro_use]
 extern crate bitflags;
 
@@ -111,8 +112,8 @@ pub enum SubMenuType {
 }
 
 impl SubMenuType {
-    pub fn from_str(s: &str) -> SubMenuType {
-        match s {
+    pub fn from_string(s: &String) -> SubMenuType {
+        match s.as_str() {
             "toggle" => SubMenuType::TOGGLE,
             "slider" => SubMenuType::SLIDER,
             _ => panic!("Unexpected SubMenuType!"),
@@ -203,25 +204,25 @@ pub struct Slider {
 }
 
 #[derive(Clone, Serialize)]
-pub struct Toggle<'a> {
+pub struct Toggle {
     pub toggle_value: u32,
-    pub toggle_title: &'a str,
+    pub toggle_title: String,
     pub checked: bool,
 }
 
 #[derive(Clone, Serialize)]
-pub struct SubMenu<'a> {
-    pub submenu_title: &'a str,
-    pub submenu_id: &'a str,
-    pub help_text: &'a str,
+pub struct SubMenu {
+    pub submenu_title: String,
+    pub submenu_id: String,
+    pub help_text: String,
     pub is_single_option: bool,
-    pub toggles: Vec<Toggle<'a>>,
+    pub toggles: Vec<Toggle>,
     pub slider: Option<Slider>,
-    pub _type: &'a str,
+    pub _type: String,
 }
 
-impl<'a> SubMenu<'a> {
-    pub fn add_toggle(&mut self, toggle_value: u32, toggle_title: &'a str, checked: bool) {
+impl SubMenu {
+    pub fn add_toggle(&mut self, toggle_value: u32, toggle_title: String, checked: bool) {
         self.toggles.push(Toggle {
             toggle_value,
             toggle_title,
@@ -229,12 +230,12 @@ impl<'a> SubMenu<'a> {
         });
     }
     pub fn new_with_toggles<T: ToggleTrait>(
-        submenu_title: &'a str,
-        submenu_id: &'a str,
-        help_text: &'a str,
+        submenu_title: String,
+        submenu_id: String,
+        help_text: String,
         is_single_option: bool,
         initial_value: &u32,
-    ) -> SubMenu<'a> {
+    ) -> SubMenu {
         let mut instance = SubMenu {
             submenu_title: submenu_title,
             submenu_id: submenu_id,
@@ -242,15 +243,15 @@ impl<'a> SubMenu<'a> {
             is_single_option: is_single_option,
             toggles: Vec::new(),
             slider: None,
-            _type: "toggle",
+            _type: "toggle".to_string(),
         };
 
         let values = T::to_toggle_vals();
-        let titles = T::to_toggle_strs();
+        let titles = T::to_toggle_strings();
         for i in 0..values.len() {
             let checked: bool =
                 (values[i] & initial_value) > 0 || (!values[i] == 0 && initial_value == &0);
-            instance.add_toggle(values[i], titles[i], checked);
+            instance.add_toggle(values[i], titles[i].clone(), checked);
         }
         // Select the first option if there's nothing selected atm but it's a single option submenu
         if is_single_option && instance.toggles.iter().all(|t| !t.checked) {
@@ -259,12 +260,12 @@ impl<'a> SubMenu<'a> {
         instance
     }
     pub fn new_with_slider<S: SliderTrait>(
-        submenu_title: &'a str,
-        submenu_id: &'a str,
-        help_text: &'a str,
+        submenu_title: String,
+        submenu_id: String,
+        help_text: String,
         initial_lower_value: &u32,
         initial_upper_value: &u32,
-    ) -> SubMenu<'a> {
+    ) -> SubMenu {
         let min_max = S::get_limits();
         SubMenu {
             submenu_title: submenu_title,
@@ -278,31 +279,31 @@ impl<'a> SubMenu<'a> {
                 abs_min: min_max.0,
                 abs_max: min_max.1,
             }),
-            _type: "slider",
+            _type: "slider".to_string(),
         }
     }
 }
 
 #[derive(Serialize, Clone)]
-pub struct Tab<'a> {
-    pub tab_id: &'a str,
-    pub tab_title: &'a str,
-    pub tab_submenus: Vec<SubMenu<'a>>,
+pub struct Tab {
+    pub tab_id: String,
+    pub tab_title: String,
+    pub tab_submenus: Vec<SubMenu>,
 }
 
-impl<'a> Tab<'a> {
+impl Tab {
     pub fn add_submenu_with_toggles<T: ToggleTrait>(
         &mut self,
-        submenu_title: &'a str,
-        submenu_id: &'a str,
-        help_text: &'a str,
+        submenu_title: String,
+        submenu_id: String,
+        help_text: String,
         is_single_option: bool,
         initial_value: &u32,
     ) {
         self.tab_submenus.push(SubMenu::new_with_toggles::<T>(
-            submenu_title,
-            submenu_id,
-            help_text,
+            submenu_title.to_string(),
+            submenu_id.to_string(),
+            help_text.to_string(),
             is_single_option,
             initial_value,
         ));
@@ -310,16 +311,16 @@ impl<'a> Tab<'a> {
 
     pub fn add_submenu_with_slider<S: SliderTrait>(
         &mut self,
-        submenu_title: &'a str,
-        submenu_id: &'a str,
-        help_text: &'a str,
+        submenu_title: String,
+        submenu_id: String,
+        help_text: String,
         initial_lower_value: &u32,
         initial_upper_value: &u32,
     ) {
         self.tab_submenus.push(SubMenu::new_with_slider::<S>(
-            submenu_title,
-            submenu_id,
-            help_text,
+            submenu_title.to_string(),
+            submenu_id.to_string(),
+            help_text.to_string(),
             initial_lower_value,
             initial_upper_value,
         ))
@@ -327,542 +328,555 @@ impl<'a> Tab<'a> {
 }
 
 #[derive(Serialize, Clone)]
-pub struct UiMenu<'a> {
-    pub tabs: Vec<Tab<'a>>,
+pub struct UiMenu {
+    pub tabs: Vec<Tab>,
 }
 
-pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu<'static> {
+pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     let mut overall_menu = UiMenu { tabs: Vec::new() };
 
     let mut mash_tab = Tab {
-        tab_id: "mash",
-        tab_title: "Mash Settings",
+        tab_id: "mash".to_string(),
+        tab_title: "Mash Settings".to_string(),
         tab_submenus: Vec::new(),
     };
     mash_tab.add_submenu_with_toggles::<Action>(
-        "Mash Toggles",
-        "mash_state",
-        "Mash Toggles: Actions to be performed as soon as possible",
+        "Mash Toggles".to_string(),
+        "mash_state".to_string(),
+        "Mash Toggles: Actions to be performed as soon as possible".to_string(),
         false,
         &(menu.mash_state.bits()),
     );
     mash_tab.add_submenu_with_toggles::<Action>(
-        "Followup Toggles",
-        "follow_up",
-        "Followup Toggles: Actions to be performed after a Mash option",
+        "Followup Toggles".to_string(),
+        "follow_up".to_string(),
+        "Followup Toggles: Actions to be performed after a Mash option".to_string(),
         false,
         &(menu.follow_up.bits()),
     );
     mash_tab.add_submenu_with_toggles::<MashTrigger>(
-        "Mash Triggers",
-        "mash_triggers",
-        "Mash triggers: Configure what causes the CPU to perform a Mash option",
+        "Mash Triggers".to_string(),
+        "mash_triggers".to_string(),
+        "Mash triggers: Configure what causes the CPU to perform a Mash option".to_string(),
         false,
         &(menu.mash_triggers.bits()),
     );
     mash_tab.add_submenu_with_toggles::<AttackAngle>(
-        "Attack Angle",
-        "attack_angle",
-        "Attack Angle: For attacks that can be angled, such as some forward tilts",
+        "Attack Angle".to_string(),
+        "attack_angle".to_string(),
+        "Attack Angle: For attacks that can be angled, such as some forward tilts".to_string(),
         false,
         &(menu.attack_angle.bits()),
     );
     mash_tab.add_submenu_with_toggles::<ThrowOption>(
-        "Throw Options",
-        "throw_state",
-        "Throw Options: Throw to be performed when a grab is landed",
+        "Throw Options".to_string(),
+        "throw_state".to_string(),
+        "Throw Options: Throw to be performed when a grab is landed".to_string(),
         false,
         &(menu.throw_state.bits()),
     );
     mash_tab.add_submenu_with_toggles::<MedDelay>(
-        "Throw Delay",
-        "throw_delay",
-        "Throw Delay: How many frames to delay the throw option",
+        "Throw Delay".to_string(),
+        "throw_delay".to_string(),
+        "Throw Delay: How many frames to delay the throw option".to_string(),
         false,
         &(menu.throw_delay.bits()),
     );
     mash_tab.add_submenu_with_toggles::<MedDelay>(
-        "Pummel Delay",
-        "pummel_delay",
-        "Pummel Delay: How many frames after a grab to wait before starting to pummel",
+        "Pummel Delay".to_string(),
+        "pummel_delay".to_string(),
+        "Pummel Delay: How many frames after a grab to wait before starting to pummel".to_string(),
         false,
         &(menu.pummel_delay.bits()),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
-        "Falling Aerials",
-        "falling_aerials",
-        "Falling Aerials: Should aerials be performed when rising or when falling",
+        "Falling Aerials".to_string(),
+        "falling_aerials".to_string(),
+        "Falling Aerials: Should aerials be performed when rising or when falling".to_string(),
         false,
         &(menu.falling_aerials.bits()),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
-        "Full Hop",
-        "full_hop",
-        "Full Hop: Should the CPU perform a full hop or a short hop",
+        "Full Hop".to_string(),
+        "full_hop".to_string(),
+        "Full Hop: Should the CPU perform a full hop or a short hop".to_string(),
         false,
         &(menu.full_hop.bits()),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
-        "Aerial Delay",
-        "aerial_delay",
-        "Aerial Delay: How long to delay a Mash aerial attack",
+        "Aerial Delay".to_string(),
+        "aerial_delay".to_string(),
+        "Aerial Delay: How long to delay a Mash aerial attack".to_string(),
         false,
         &(menu.aerial_delay.bits()),
     );
     mash_tab.add_submenu_with_toggles::<BoolFlag>(
-        "Fast Fall",
-        "fast_fall",
-        "Fast Fall: Should the CPU fastfall during a jump",
+        "Fast Fall".to_string(),
+        "fast_fall".to_string(),
+        "Fast Fall: Should the CPU fastfall during a jump".to_string(),
         false,
         &(menu.fast_fall.bits()),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
-        "Fast Fall Delay",
-        "fast_fall_delay",
-        "Fast Fall Delay: How many frames the CPU should delay their fastfall",
+        "Fast Fall Delay".to_string(),
+        "fast_fall_delay".to_string(),
+        "Fast Fall Delay: How many frames the CPU should delay their fastfall".to_string(),
         false,
         &(menu.fast_fall_delay.bits()),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
-        "OoS Offset",
-        "oos_offset",
-        "OoS Offset: How many times the CPU shield can be hit before performing a Mash option",
+        "OoS Offset".to_string(),
+        "oos_offset".to_string(),
+        "OoS Offset: How many times the CPU shield can be hit before performing a Mash option"
+            .to_string(),
         false,
         &(menu.oos_offset.bits()),
     );
     mash_tab.add_submenu_with_toggles::<Delay>(
-        "Reaction Time",
-        "reaction_time",
-        "Reaction Time: How many frames to delay before performing a mash option",
+        "Reaction Time".to_string(),
+        "reaction_time".to_string(),
+        "Reaction Time: How many frames to delay before performing a mash option".to_string(),
         false,
         &(menu.reaction_time.bits()),
     );
     overall_menu.tabs.push(mash_tab);
 
     let mut override_tab = Tab {
-        tab_id: "override",
-        tab_title: "Override Settings",
+        tab_id: "override".to_string(),
+        tab_title: "Override Settings".to_string(),
         tab_submenus: Vec::new(),
     };
     override_tab.add_submenu_with_toggles::<Action>(
-        "Ledge Neutral Getup",
-        "ledge_neutral_override",
-        "Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge",
+        "Ledge Neutral Getup".to_string(),
+        "ledge_neutral_override".to_string(),
+        "Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge"
+            .to_string(),
         false,
         &(menu.ledge_neutral_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Ledge Roll",
-        "ledge_roll_override",
-        "Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge",
+        "Ledge Roll".to_string(),
+        "ledge_roll_override".to_string(),
+        "Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge"
+            .to_string(),
         false,
         &(menu.ledge_roll_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Ledge Jump",
-        "ledge_jump_override",
-        "Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge",
+        "Ledge Jump".to_string(),
+        "ledge_jump_override".to_string(),
+        "Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge"
+            .to_string(),
         false,
         &(menu.ledge_jump_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Ledge Attack",
-        "ledge_attack_override",
-        "Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge",
+        "Ledge Attack".to_string(),
+        "ledge_attack_override".to_string(),
+        "Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge"
+            .to_string(),
         false,
         &(menu.ledge_attack_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Tech Action",
-        "tech_action_override",
-        "Tech Action Override: Mash Actions to be performed after any tech action",
+        "Tech Action".to_string(),
+        "tech_action_override".to_string(),
+        "Tech Action Override: Mash Actions to be performed after any tech action".to_string(),
         false,
         &(menu.tech_action_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Clatter",
-        "clatter_override",
-        "Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)",
+        "Clatter".to_string(),
+        "clatter_override".to_string(),
+        "Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab.to_string(), bury, etc)".to_string(),
         false,
         &(menu.clatter_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Tumble",
-        "tumble_override",
-        "Tumble Override: Mash Actions to be performed after exiting a tumble state",
+        "Tumble".to_string(),
+        "tumble_override".to_string(),
+        "Tumble Override: Mash Actions to be performed after exiting a tumble state".to_string(),
         false,
         &(menu.tumble_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Hitstun",
-        "hitstun_override",
-        "Hitstun Override: Mash Actions to be performed after exiting a hitstun state",
+        "Hitstun".to_string(),
+        "hitstun_override".to_string(),
+        "Hitstun Override: Mash Actions to be performed after exiting a hitstun state".to_string(),
         false,
         &(menu.hitstun_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Parry",
-        "parry_override",
-        "Parry Override: Mash Actions to be performed after a parry",
+        "Parry".to_string(),
+        "parry_override".to_string(),
+        "Parry Override: Mash Actions to be performed after a parry".to_string(),
         false,
         &(menu.parry_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Shieldstun",
-        "shieldstun_override",
-        "Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state",
+        "Shieldstun".to_string(),
+        "shieldstun_override".to_string(),
+        "Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state"
+            .to_string(),
         false,
         &(menu.shieldstun_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Footstool",
-        "footstool_override",
-        "Footstool Override: Mash Actions to be performed after exiting a footstool state",
+        "Footstool".to_string(),
+        "footstool_override".to_string(),
+        "Footstool Override: Mash Actions to be performed after exiting a footstool state"
+            .to_string(),
         false,
         &(menu.footstool_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Landing",
-        "landing_override",
-        "Landing Override: Mash Actions to be performed after landing on the ground",
+        "Landing".to_string(),
+        "landing_override".to_string(),
+        "Landing Override: Mash Actions to be performed after landing on the ground".to_string(),
         false,
         &(menu.landing_override.bits()),
     );
     override_tab.add_submenu_with_toggles::<Action>(
-        "Ledge Trump",
-        "trump_override",
-        "Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state",
+        "Ledge Trump".to_string(),
+        "trump_override".to_string(),
+        "Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state"
+            .to_string(),
         false,
         &(menu.trump_override.bits()),
     );
     overall_menu.tabs.push(override_tab);
 
     let mut defensive_tab = Tab {
-        tab_id: "defensive",
-        tab_title: "Defensive Settings",
+        tab_id: "defensive".to_string(),
+        tab_title: "Defensive Settings".to_string(),
         tab_submenus: Vec::new(),
     };
     defensive_tab.add_submenu_with_toggles::<Direction>(
-        "Airdodge Direction",
-        "air_dodge_dir",
-        "Airdodge Direction: Direction to angle airdodges",
+        "Airdodge Direction".to_string(),
+        "air_dodge_dir".to_string(),
+        "Airdodge Direction: Direction to angle airdodges".to_string(),
         false,
         &(menu.air_dodge_dir.bits()),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
-        "DI Direction",
-        "di_state",
-        "DI Direction: Direction to angle the directional influence during hitlag",
+        "DI Direction".to_string(),
+        "di_state".to_string(),
+        "DI Direction: Direction to angle the directional influence during hitlag".to_string(),
         false,
         &(menu.di_state.bits()),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
-        "SDI Direction",
-        "sdi_state",
-        "SDI Direction: Direction to angle the smash directional influence during hitlag",
+        "SDI Direction".to_string(),
+        "sdi_state".to_string(),
+        "SDI Direction: Direction to angle the smash directional influence during hitlag"
+            .to_string(),
         false,
         &(menu.sdi_state.bits()),
     );
     defensive_tab.add_submenu_with_toggles::<SdiFrequency>(
-        "SDI Strength",
-        "sdi_strength",
-        "SDI Strength: Relative strength of the smash directional influence inputs",
+        "SDI Strength".to_string(),
+        "sdi_strength".to_string(),
+        "SDI Strength: Relative strength of the smash directional influence inputs".to_string(),
         true,
         &(menu.sdi_strength as u32),
     );
     defensive_tab.add_submenu_with_toggles::<ClatterFrequency>(
-        "Clatter Strength",
-        "clatter_strength",
-        "Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc.",
+        "Clatter Strength".to_string(),
+        "clatter_strength".to_string(),
+        "Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc."
+            .to_string(),
         true,
         &(menu.clatter_strength as u32),
     );
     defensive_tab.add_submenu_with_toggles::<LedgeOption>(
-        "Ledge Options",
-        "ledge_state",
-        "Ledge Options: Actions to be taken when on the ledge",
+        "Ledge Options".to_string(),
+        "ledge_state".to_string(),
+        "Ledge Options: Actions to be taken when on the ledge".to_string(),
         false,
         &(menu.ledge_state.bits()),
     );
     defensive_tab.add_submenu_with_toggles::<LongDelay>(
-        "Ledge Delay",
-        "ledge_delay",
-        "Ledge Delay: How many frames to delay the ledge option",
+        "Ledge Delay".to_string(),
+        "ledge_delay".to_string(),
+        "Ledge Delay: How many frames to delay the ledge option".to_string(),
         false,
         &(menu.ledge_delay.bits()),
     );
     defensive_tab.add_submenu_with_toggles::<TechFlags>(
-        "Tech Options",
-        "tech_state",
-        "Tech Options: Actions to take when slammed into a hard surface",
+        "Tech Options".to_string(),
+        "tech_state".to_string(),
+        "Tech Options: Actions to take when slammed into a hard surface".to_string(),
         false,
         &(menu.tech_state.bits()),
     );
     defensive_tab.add_submenu_with_toggles::<MissTechFlags>(
-        "Mistech Options",
-        "miss_tech_state",
-        "Mistech Options: Actions to take after missing a tech",
+        "Mistech Options".to_string(),
+        "miss_tech_state".to_string(),
+        "Mistech Options: Actions to take after missing a tech".to_string(),
         false,
         &(menu.miss_tech_state.bits()),
     );
     defensive_tab.add_submenu_with_toggles::<Shield>(
-        "Shield Toggles",
-        "shield_state",
-        "Shield Toggles: CPU Shield Behavior",
+        "Shield Toggles".to_string(),
+        "shield_state".to_string(),
+        "Shield Toggles: CPU Shield Behavior".to_string(),
         true,
         &(menu.shield_state as u32),
     );
     defensive_tab.add_submenu_with_toggles::<Direction>(
-        "Shield Tilt",
-        "shield_tilt",
-        "Shield Tilt: Direction to tilt the shield",
+        "Shield Tilt".to_string(),
+        "shield_tilt".to_string(),
+        "Shield Tilt: Direction to tilt the shield".to_string(),
         false, // TODO: Should this be true?
         &(menu.shield_tilt.bits()),
     );
 
     defensive_tab.add_submenu_with_toggles::<OnOff>(
-        "Crouch",
-        "crouch",
-        "Crouch: Have the CPU crouch when on the ground",
+        "Crouch".to_string(),
+        "crouch".to_string(),
+        "Crouch: Have the CPU crouch when on the ground".to_string(),
         true,
         &(menu.crouch as u32),
     );
     overall_menu.tabs.push(defensive_tab);
 
     let mut save_state_tab = Tab {
-        tab_id: "save_state",
-        tab_title: "Save States",
+        tab_id: "save_state".to_string(),
+        tab_title: "Save States".to_string(),
         tab_submenus: Vec::new(),
     };
     save_state_tab.add_submenu_with_toggles::<SaveStateMirroring>(
-        "Mirroring",
-        "save_state_mirroring",
-        "Mirroring: Flips save states in the left-right direction across the stage center",
+        "Mirroring".to_string(),
+        "save_state_mirroring".to_string(),
+        "Mirroring: Flips save states in the left-right direction across the stage center"
+            .to_string(),
         true,
         &(menu.save_state_mirroring as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
-        "Auto Save States",
-        "save_state_autoload",
-        "Auto Save States: Load save state when any fighter dies",
+        "Auto Save States".to_string(),
+        "save_state_autoload".to_string(),
+        "Auto Save States: Load save state when any fighter dies".to_string(),
         true,
         &(menu.save_state_autoload as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveDamage>(
-        "Save Dmg (CPU)",
-        "save_damage_cpu",
-        "Save Damage: Should save states retain CPU damage",
+        "Save Dmg (CPU)".to_string(),
+        "save_damage_cpu".to_string(),
+        "Save Damage: Should save states retain CPU damage".to_string(),
         true,
         &(menu.save_damage_cpu.bits()),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
-        "Dmg Range (CPU)",
-        "save_damage_limits_cpu",
-        "Limits on random damage to apply to the CPU when loading a save state",
+        "Dmg Range (CPU)".to_string(),
+        "save_damage_limits_cpu".to_string(),
+        "Limits on random damage to apply to the CPU when loading a save state".to_string(),
         &(menu.save_damage_limits_cpu.0 as u32),
         &(menu.save_damage_limits_cpu.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveDamage>(
-        "Save Dmg (Player)",
-        "save_damage_player",
-        "Save Damage: Should save states retain player damage",
+        "Save Dmg (Player)".to_string(),
+        "save_damage_player".to_string(),
+        "Save Damage: Should save states retain player damage".to_string(),
         true,
         &(menu.save_damage_player.bits() as u32),
     );
     save_state_tab.add_submenu_with_slider::<DamagePercent>(
-        "Dmg Range (Player)",
-        "save_damage_limits_player",
-        "Limits on random damage to apply to the player when loading a save state",
+        "Dmg Range (Player)".to_string(),
+        "save_damage_limits_player".to_string(),
+        "Limits on random damage to apply to the player when loading a save state".to_string(),
         &(menu.save_damage_limits_player.0 as u32),
         &(menu.save_damage_limits_player.1 as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
-        "Enable Save States",
-        "save_state_enable",
-        "Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.",
+        "Enable Save States".to_string(),
+        "save_state_enable".to_string(),
+        "Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.".to_string(),
         true,
         &(menu.save_state_enable as u32),
     );
     save_state_tab.add_submenu_with_toggles::<SaveStateSlot>(
-        "Save State Slot",
-        "save_state_slot",
-        "Save State Slot: Save and load states from different slots.",
+        "Save State Slot".to_string(),
+        "save_state_slot".to_string(),
+        "Save State Slot: Save and load states from different slots.".to_string(),
         true,
         &(menu.save_state_slot as u32),
     );
     save_state_tab.add_submenu_with_toggles::<OnOff>(
-        "Randomize Slots",
-        "randomize_slots",
-        "Randomize Slots: Randomize slot when loading save state.",
+        "Randomize Slots".to_string(),
+        "randomize_slots".to_string(),
+        "Randomize Slots: Randomize slot when loading save state.".to_string(),
         true,
         &(menu.randomize_slots as u32),
     );
     save_state_tab.add_submenu_with_toggles::<CharacterItem>(
-        "Character Item",
-        "character_item",
-        "Character Item: The item to give to the player's fighter when loading a save state",
+        "Character Item".to_string(),
+        "character_item".to_string(),
+        "Character Item: The item to give to the player's fighter when loading a save state"
+            .to_string(),
         true,
         &(menu.character_item as u32),
     );
     save_state_tab.add_submenu_with_toggles::<BuffOption>(
-        "Buff Options",
-        "buff_state",
-        "Buff Options: Buff(s) to be applied to the respective fighters when loading a save state",
+        "Buff Options".to_string(),
+        "buff_state".to_string(),
+        "Buff Options: Buff(s) to be applied to the respective fighters when loading a save state"
+            .to_string(),
         false,
         &(menu.buff_state.bits()),
     );
     save_state_tab.add_submenu_with_toggles::<PlaybackSlot>(
-        "Save State Playback",
-        "save_state_playback",
-        "Save State Playback: Choose which slots to playback input recording upon loading a save state",
+        "Save State Playback".to_string(),
+        "save_state_playback".to_string(),
+        "Save State Playback: Choose which slots to playback input recording upon loading a save state".to_string(),
         false,
         &(menu.save_state_playback.bits() as u32),
     );
     overall_menu.tabs.push(save_state_tab);
 
     let mut misc_tab = Tab {
-        tab_id: "misc",
-        tab_title: "Misc Settings",
+        tab_id: "misc".to_string(),
+        tab_title: "Misc Settings".to_string(),
         tab_submenus: Vec::new(),
     };
     misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Frame Advantage",
-        "frame_advantage",
-        "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable",
+        "Frame Advantage".to_string(),
+        "frame_advantage".to_string(),
+        "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable".to_string(),
         true,
         &(menu.frame_advantage as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Hitbox Visualization",
-        "hitbox_vis",
-        "Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)",
+        "Hitbox Visualization".to_string(),
+        "hitbox_vis".to_string(),
+        "Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)".to_string(),
         true,
         &(menu.hitbox_vis as u32),
     );
     misc_tab.add_submenu_with_toggles::<Delay>(
-        "Input Delay",
-        "input_delay",
-        "Input Delay: Frames to delay player inputs by",
+        "Input Delay".to_string(),
+        "input_delay".to_string(),
+        "Input Delay: Frames to delay player inputs by".to_string(),
         true,
         &(menu.input_delay.bits()),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Stage Hazards",
-        "stage_hazards",
-        "Stage Hazards: Turn stage hazards on/off",
+        "Stage Hazards".to_string(),
+        "stage_hazards".to_string(),
+        "Stage Hazards: Turn stage hazards on/off".to_string(),
         true,
         &(menu.stage_hazards as u32),
     );
     misc_tab.add_submenu_with_toggles::<OnOff>(
-        "HUD",
-        "hud",
-        "HUD: Show/hide elements of the UI",
+        "HUD".to_string(),
+        "hud".to_string(),
+        "HUD: Show/hide elements of the UI".to_string(),
         true,
         &(menu.hud as u32),
     );
     overall_menu.tabs.push(misc_tab);
 
     let mut input_tab = Tab {
-        tab_id: "input",
-        tab_title: "Input Recording",
+        tab_id: "input".to_string(),
+        tab_title: "Input Recording".to_string(),
         tab_submenus: Vec::new(),
     };
     input_tab.add_submenu_with_toggles::<RecordSlot>(
-        "Recording Slot",
-        "recording_slot",
-        "Recording Slot: Choose which slot to record into",
+        "Recording Slot".to_string(),
+        "recording_slot".to_string(),
+        "Recording Slot: Choose which slot to record into".to_string(),
         true,
         &(menu.recording_slot as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordTrigger>(
-        "Recording Trigger",
-        "record_trigger",
-        "Recording Trigger: Whether to begin recording via button combination (Default: Attack+Left Taunt) or upon loading a Save State",
+        "Recording Trigger".to_string(),
+        "record_trigger".to_string(),
+        format!("Recording Trigger: Whether to begin recording via button combination ({}) or upon loading a Save State", menu.input_record.combination_string()),
         false,
         &(menu.record_trigger.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordingFrames>(
-        "Recording Frames",
-        "recording_frames",
-        "Recording Frames: Number of frames to record for in the current slot",
+        "Recording Frames".to_string(),
+        "recording_frames".to_string(),
+        "Recording Frames: Number of frames to record for in the current slot".to_string(),
         true,
         &(menu.recording_frames as u32),
     );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
-        "Playback Button Combination",
-        "playback_button_combination",
-        "Playback Button Combination: Choose which slots to playback input recording upon pressing button combination (Default: Attack+Right Taunt)",
+        "Playback Button Combination".to_string(),
+        "playback_button_combination".to_string(),
+        format!("Playback Button Combination: Choose which slots to playback input recording upon pressing button combination ({})", menu.input_playback.combination_string()),
         false,
         &(menu.playback_button_combination.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<HitstunPlayback>(
-        "Playback Hitstun Timing",
-        "hitstun_playback",
-        "Playback Hitstun Timing: When to begin playing back inputs when a hitstun mash trigger occurs",
+        "Playback Hitstun Timing".to_string(),
+        "hitstun_playback".to_string(),
+        "Playback Hitstun Timing: When to begin playing back inputs when a hitstun mash trigger occurs".to_string(),
         true,
         &(menu.hitstun_playback as u32),
     );
     input_tab.add_submenu_with_toggles::<OnOff>(
-        "Playback Mash Interrupt",
-        "playback_mash",
-        "Playback Mash Interrupt: End input playback when a mash trigger occurs",
+        "Playback Mash Interrupt".to_string(),
+        "playback_mash".to_string(),
+        "Playback Mash Interrupt: End input playback when a mash trigger occurs".to_string(),
         true,
         &(menu.playback_mash as u32),
     );
     input_tab.add_submenu_with_toggles::<OnOff>(
-        "Playback Loop",
-        "playback_loop",
-        "Playback Loop: Repeat triggered input playbacks indefinitely",
+        "Playback Loop".to_string(),
+        "playback_loop".to_string(),
+        "Playback Loop: Repeat triggered input playbacks indefinitely".to_string(),
         true,
         &(menu.playback_loop as u32),
     );
     input_tab.add_submenu_with_toggles::<OnOff>(
-        "Recording Crop",
-        "recording_crop",
-        "Recording Crop: Remove neutral input frames at the end of your recording",
+        "Recording Crop".to_string(),
+        "recording_crop".to_string(),
+        "Recording Crop: Remove neutral input frames at the end of your recording".to_string(),
         true,
         &(menu.recording_crop as u32),
     );
     overall_menu.tabs.push(input_tab);
 
     let mut button_tab = Tab {
-        tab_id: "button",
-        tab_title: "Button Config",
+        tab_id: "button".to_string(),
+        tab_title: "Button Config".to_string(),
         tab_submenus: Vec::new(),
     };
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Menu Open",
-        "menu_open",
-        "Menu Open: Hold: Hold any one button and press the others to trigger",
+        "Menu Open".to_string(),
+        "menu_open".to_string(),
+        "Menu Open: Hold: Hold any one button and press the others to trigger".to_string(),
         false,
         &(menu.menu_open.bits() as u32),
     );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Save",
-        "save_state_save",
-        "Save State Save: Hold any one button and press the others to trigger",
+        "Save State Save".to_string(),
+        "save_state_save".to_string(),
+        "Save State Save: Hold any one button and press the others to trigger".to_string(),
         false,
         &(menu.save_state_save.bits() as u32),
     );
 
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Load",
-        "save_state_load",
-        "Save State Load: Hold any one button and press the others to trigger",
+        "Save State Load".to_string(),
+        "save_state_load".to_string(),
+        "Save State Load: Hold any one button and press the others to trigger".to_string(),
         false,
         &(menu.save_state_load.bits() as u32),
     );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Record",
-        "input_record",
-        "Input Record: Hold any one button and press the others to trigger",
+        "Input Record".to_string(),
+        "input_record".to_string(),
+        "Input Record: Hold any one button and press the others to trigger".to_string(),
         false,
         &(menu.input_record.bits() as u32),
     );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Playback",
-        "input_playback",
-        "Input Playback: Hold any one button and press the others to trigger",
+        "Input Playback".to_string(),
+        "input_playback".to_string(),
+        "Input Playback: Hold any one button and press the others to trigger".to_string(),
         false,
         &(menu.input_playback.bits() as u32),
     );

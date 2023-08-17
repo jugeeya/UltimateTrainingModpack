@@ -106,54 +106,25 @@ pub fn main() {
 
     unsafe {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification(
-            "Open Menu".to_string(),
-            MENU.menu_open
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
-            120,
-        );
+        notification("Open Menu".to_string(), MENU.menu_open.to_string(), 120);
         notification(
             "Save State".to_string(),
-            MENU.save_state_save
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.save_state_save.to_string(),
             120,
         );
         notification(
             "Load State".to_string(),
-            MENU.save_state_load
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.save_state_load.to_string(),
             120,
         );
         notification(
             "Input Record".to_string(),
-            MENU.input_record
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.input_record.to_string(),
             120,
         );
         notification(
             "Input Playback".to_string(),
-            MENU.input_playback
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.input_playback.to_string(),
             120,
         );
     }

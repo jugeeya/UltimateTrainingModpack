@@ -1,17 +1,22 @@
-use crate::common::button_config;
-use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
-use crate::common::input::*;
-use crate::common::{
-    get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
-};
-use crate::training::mash;
-use crate::training::ui::notifications::{clear_notifications, color_notification};
+use std::cmp::Ordering;
+
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::ui2d::ResColor;
 use smash::app::{lua_bind::*, utility, BattleObjectModuleAccessor};
 use smash::lib::lua_const::*;
-use std::cmp::Ordering;
+
+use InputRecordState::*;
+use PossessionState::*;
+
+use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
+use crate::common::input::*;
+use crate::common::{button_config, is_training_mode};
+use crate::common::{
+    get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
+};
+use crate::training::mash;
+use crate::training::ui::notifications::{clear_notifications, color_notification};
 
 #[derive(PartialEq, Debug)]
 pub enum InputRecordState {
@@ -44,9 +49,6 @@ pub enum StartingStatus {
     Grab,       // FIGHTER_STATUS_KIND_CATCH
     Other,
 }
-
-use InputRecordState::*;
-use PossessionState::*;
 
 const STICK_NEUTRAL: f32 = 0.2;
 const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
@@ -425,6 +427,10 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
 #[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
 unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     call_original!(p_data);
+    if !is_training_mode() {
+        return;
+    }
+
     let controller_data = *p_data.add(1) as *mut ControlModuleInternal;
     let _controller_no = (*controller_data).controller_index;
 

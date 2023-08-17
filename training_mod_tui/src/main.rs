@@ -17,17 +17,17 @@ use tui::Terminal;
 
 use training_mod_consts::*;
 
-fn test_backend_setup<'a>(
-    ui_menu: UiMenu<'a>,
-    menu_defaults: (UiMenu<'a>, String),
+fn test_backend_setup(
+    ui_menu: UiMenu,
+    menu_defaults: (UiMenu, String),
 ) -> Result<
     (
         Terminal<training_mod_tui::TestBackend>,
-        training_mod_tui::App<'a>,
+        training_mod_tui::App,
     ),
     Box<dyn Error>,
 > {
-    let app = training_mod_tui::App::<'a>::new(ui_menu, menu_defaults);
+    let app = training_mod_tui::App::new(ui_menu, menu_defaults);
     let backend = tui::backend::TestBackend::new(120, 15);
     let terminal = Terminal::new(backend)?;
     let mut state = tui::widgets::ListState::default();
