@@ -187,6 +187,23 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn _get_frame_buffer(
+    mut terminal: Terminal<training_mod_tui::TestBackend>,
+    mut app: training_mod_tui::App,
+) -> Result<String, Box<dyn Error>> {
+    let frame_res = terminal.draw(|f| training_mod_tui::ui(f, &mut app))?;
+    let mut full_frame_buffer = String::new();
+    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
+        full_frame_buffer.push_str(&cell.symbol);
+        if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+            full_frame_buffer.push_str("\n");
+        }
+    }
+    full_frame_buffer.push_str("\n");
+
+    Ok(full_frame_buffer)
+}
+
 #[test]
 fn test_toggle_naming() -> Result<(), Box<dyn Error>> {
     let menu;
@@ -204,16 +221,8 @@ fn test_toggle_naming() -> Result<(), Box<dyn Error>> {
     // Set Mash Airdodge
     app.on_a();
 
-    let frame_res = terminal.draw(|f| training_mod_tui::ui(f, &mut app))?;
-    let mut full_frame_buffer = String::new();
-    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
-        full_frame_buffer.push_str(&cell.symbol);
-        if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
-            full_frame_buffer.push_str("\n");
-        }
-    }
-    full_frame_buffer.push_str("\n");
-    assert!(full_frame_buffer.contains("Airdodge"));
+    let frame_buffer = _get_frame_buffer(terminal, app)?;
+    assert!(frame_buffer.contains("Airdodge"));
 
     Ok(())
 }
