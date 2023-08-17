@@ -737,6 +737,7 @@ unsafe fn handle_final_input_mapping(
     // MUTATES controller state
     input_delay::handle_final_input_mapping(player_idx, out);
 
+    // Read potentially delayed state for loggers
     input_log::handle_final_input_mapping(player_idx, controller_struct, out);
 
     // Potentially apply input recording, thus with delay
@@ -834,6 +835,7 @@ pub fn training_mods() {
     buff::init();
     items::init();
     tech::init();
+    input_log::init();
     input_record::init();
     ui::init();
 }

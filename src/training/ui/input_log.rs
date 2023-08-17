@@ -9,7 +9,7 @@ use crate::{
         input::Buttons,
         menu::{P1_CONTROLLER_STYLE, QUICK_MENU_ACTIVE},
     },
-    training::input_log::{InputLog, P1_INPUT_LOGS},
+    training::input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS},
 };
 
 use super::set_colored_icon_text;
@@ -27,6 +27,15 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
 
     // TODO: And menu option for input log is on
     log_pane.set_visible(!QUICK_MENU_ACTIVE);
+    if log.ttl < 100 {
+        // Fade out
+        let alpha = (log.ttl as f32 / 100.0) as u8 * 255;
+        log_pane.alpha = alpha;
+        log_pane.global_alpha = alpha;
+    } else {
+        log_pane.alpha = 255;
+        log_pane.global_alpha = 255;
+    }
 
     let p1_style_ptr = P1_CONTROLLER_STYLE.data_ptr();
     if p1_style_ptr.is_null() {
@@ -154,7 +163,28 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         input_pane.set_text_string("");
     }
 
+    let lstick_x = match log.smash_binned_lstick() {
+        (DirectionStrength::Strong, angle) if angle > 0.0 => ">>",
+        (DirectionStrength::Weak, angle) if angle > 0.0 => ">",
+        (DirectionStrength::Weak, angle) if angle < 0.0 => "<",
+        (DirectionStrength::Strong, angle) if angle < 0.0 => "<<",
+        _ => "",
+    };
+
+    let lstick_icon_exists = !lstick_x.is_empty();
+    if lstick_icon_exists {
+        let input_pane = log_pane
+            .find_pane_by_name_recursive("InputTxt0")
+            .unwrap()
+            .as_textbox();
+
+        input_pane.set_default_material_colors();
+        input_pane.set_color(255, 255, 255, 255);
+        input_pane.set_text_string(lstick_x);
+    }
+
     for (idx, icon) in icons.iter().enumerate() {
+        let idx = if lstick_icon_exists { idx + 1 } else { idx };
         // todo: handle this better
         if idx >= NUM_ICON_SLOTS {
             continue;
