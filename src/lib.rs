@@ -77,7 +77,8 @@ pub fn main() {
         .stack_size(0x20000)
         .spawn(move || {
             release::perform_version_check();
-        }).unwrap();
+        })
+        .unwrap();
     let _result = _updater.join();
 
     unsafe {
