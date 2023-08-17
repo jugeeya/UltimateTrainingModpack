@@ -644,7 +644,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
-            format!("Saved Slot {}", MENU.save_state_slot.as_str().unwrap()),
+            format!("Saved Slot {}", MENU.save_state_slot),
             120,
         );
     }
