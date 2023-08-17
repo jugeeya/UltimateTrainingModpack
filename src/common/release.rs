@@ -38,15 +38,20 @@ impl Release {
             vec.reserve(length);
             vec.push(byte);
         }
+        info!("Finished receiving .zip file from GitHub.");
+        info!("Unpacking .zip file...");
         let mut zip = ZipArchive::new(std::io::Cursor::new(vec))?;
         zip.extract(UNPACK_PATH)?;
+        info!("Finished unpacking update");
+
+        info!("Updating config file with last update time...");
         TrainingModpackConfig::change_last_update_version(&self.published_at)?;
         dialog::dialog_ok(
             "The Training Modpack has been updated.\n\n\
             Your game will now restart."
                 .to_string(),
         );
-        info!("Installed, restarting...");
+        info!("Finished. Restarting...");
         unsafe {
             skyline::nn::oe::RequestToRelaunchApplication();
         }
@@ -74,6 +79,7 @@ fn get_update_policy() -> UpdatePolicy {
         TrainingModpackConfig::load_or_create().expect("Could not load or create config file!");
     let policy = config.update.policy;
     policy.unwrap_or_else(|| {
+        warn!("Update policy not found. Asking user for their preference...");
         let p = ask_for_update_policy();
         TrainingModpackConfig::change_update_policy(&p).expect("Could not change update policy!");
         p
@@ -223,15 +229,14 @@ pub fn perform_version_check() {
         let published_at = release_to_apply.as_ref().unwrap().published_at.clone();
         let current_version = CURRENT_VERSION.lock();
         info!("Current version: {}", current_version);
-        info!("Githubs version: {}", published_at);
-        drop(current_version); // Explicitly unlock since we also acquire a lock in is_older_than_installed()
+        info!("Github  version: {}", published_at);
+        drop(current_version); // Explicitly unlock, since we also acquire a lock in is_older_than_installed()
         if release_to_apply.as_ref().unwrap().is_older_than_installed() {
             release_to_apply = Err(anyhow!(
-                "Update is not newer than the current installed version.",
+                "Update is older than the current installed version.",
             ))
         }
     }
-    warn!("Releasing lock in perform_version_check");
 
     // Perform Update
     match release_to_apply {
@@ -246,7 +251,7 @@ pub fn perform_version_check() {
             }
         }
         Err(e) => {
-            error!("Did not install update. Reason: {:?}", e);
+            warn!("Did not install update. Reason: {:?}", e);
         }
     }
 }
