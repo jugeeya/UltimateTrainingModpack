@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_unwrap)]
 use crate::consts::*;
 use crate::dialog;
 use crate::logging::*;
