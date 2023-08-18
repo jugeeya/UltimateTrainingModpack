@@ -9,6 +9,7 @@ use crate::common::consts::*;
 pub mod button_config;
 pub mod consts;
 pub mod dev_config;
+pub mod dialog;
 pub mod events;
 pub mod input;
 pub mod menu;
