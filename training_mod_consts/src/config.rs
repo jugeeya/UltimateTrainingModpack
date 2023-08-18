@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use skyline::nn::time;
 
 use std::fs;
-use std::io::{Error, ErrorKind};
+use std::io;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Top level struct which represents the entirety of the modpack config
@@ -31,23 +31,29 @@ impl TrainingModpackConfig {
             let parsed = toml::from_str::<TrainingModpackConfig>(&toml_config_str)?;
             Ok(parsed)
         } else {
-            Err(Error::from(ErrorKind::NotFound).into())
+            Err(io::Error::from(io::ErrorKind::NotFound).into())
         }
     }
 
     pub fn load_or_create() -> Result<TrainingModpackConfig> {
         match TrainingModpackConfig::load() {
             Ok(c) => Ok(c),
-            Err(e)
-                if e.is::<Error>()
-                    && e.downcast_ref::<Error>().unwrap().kind() == ErrorKind::NotFound =>
-            {
-                TrainingModpackConfig::create_default()?;
-                TrainingModpackConfig::load()
-            }
             Err(e) => {
-                // Some other error, re-raise it
-                Err(e)
+                if e.is::<io::Error>()
+                    && e.downcast_ref::<io::Error>().unwrap().kind() == io::ErrorKind::NotFound
+                {
+                    // No config file exists already
+                    TrainingModpackConfig::create_default()?;
+                    TrainingModpackConfig::load()
+                } else if e.is::<toml::de::Error>() {
+                    // A config file exists but its not in the right format
+                    fs::remove_file(TRAINING_MODPACK_TOML_PATH)?;
+                    TrainingModpackConfig::create_default()?;
+                    TrainingModpackConfig::load()
+                } else {
+                    // Some other error, re-raise it
+                    Err(e)
+                }
             }
         }
     }
@@ -56,7 +62,7 @@ impl TrainingModpackConfig {
     /// Returns Err if the file already exists
     pub fn create_default() -> Result<()> {
         if fs::metadata(TRAINING_MODPACK_TOML_PATH).is_ok() {
-            Err(Error::from(ErrorKind::AlreadyExists).into())
+            Err(io::Error::from(io::ErrorKind::AlreadyExists).into())
         } else {
             let default_config: TrainingModpackConfig = TrainingModpackConfig::new();
             let contents = toml::to_string(&default_config)?;
