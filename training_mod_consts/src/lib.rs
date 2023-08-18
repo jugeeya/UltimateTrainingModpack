@@ -14,6 +14,8 @@ pub mod options;
 pub use options::*;
 pub mod files;
 pub use files::*;
+pub mod config;
+pub use config::*;
 
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
@@ -87,6 +89,7 @@ pub struct TrainingModpackMenu {
     pub input_record: ButtonConfig,
     pub input_playback: ButtonConfig,
     pub recording_crop: OnOff,
+    pub update_policy: UpdatePolicy,
 }
 
 #[repr(C)]
@@ -191,6 +194,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
     input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
     recording_crop: OnOff::On,
+    update_policy: UpdatePolicy::default(),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -773,6 +777,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         "HUD: Show/hide elements of the UI".to_string(),
         true,
         &(menu.hud as u32),
+    );
+    misc_tab.add_submenu_with_toggles::<UpdatePolicy>(
+        "Auto-Update".to_string(),
+        "update_policy".to_string(),
+        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)"
+            .to_string(),
+        true,
+        &(menu.update_policy as u32),
     );
     overall_menu.tabs.push(misc_tab);
 
