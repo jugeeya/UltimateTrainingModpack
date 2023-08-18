@@ -1663,3 +1663,43 @@ impl fmt::Display for ButtonConfig {
 
 extra_bitflag_impls! {ButtonConfig}
 impl_serde_for_bitflags!(ButtonConfig);
+
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum UpdatePolicy {
+    Stable,
+    Beta,
+    Disabled,
+}
+
+impl UpdatePolicy {
+    pub const fn default() -> UpdatePolicy {
+        UpdatePolicy::Stable
+    }
+}
+
+impl fmt::Display for UpdatePolicy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                UpdatePolicy::Stable => "Stable",
+                UpdatePolicy::Beta => "Beta",
+                UpdatePolicy::Disabled => "Disabled",
+            }
+        )
+    }
+}
+
+impl ToggleTrait for UpdatePolicy {
+    fn to_toggle_vals() -> Vec<u32> {
+        UpdatePolicy::iter().map(|i| i as u32).collect()
+    }
+
+    fn to_toggle_strings() -> Vec<String> {
+        UpdatePolicy::iter().map(|i| i.to_string()).collect()
+    }
+}

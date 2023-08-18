@@ -151,7 +151,7 @@ impl Event {
                 device_id: DEVICE_ID.get().unwrap().to_string(),
                 event_time,
                 session_id: SESSION_ID.get().unwrap().to_string(),
-                mod_version: CURRENT_VERSION.to_string(),
+                mod_version: CURRENT_VERSION.lock().to_string(),
                 smash_version: smash_version(),
                 ..Default::default()
             }
