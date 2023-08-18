@@ -1,18 +1,14 @@
+use std::collections::VecDeque;
+
 use itertools::Itertools;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use training_mod_consts::ButtonConfig;
+use training_mod_consts::{InputDisplay, MENU};
 
 use crate::{
-    common::{
-        button_config::name_to_font_glyph,
-        input::Buttons,
-        menu::{P1_CONTROLLER_STYLE, QUICK_MENU_ACTIVE},
-    },
+    common::{input::Buttons, menu::QUICK_MENU_ACTIVE},
     training::input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS},
 };
-
-use super::set_colored_icon_text;
 
 macro_rules! log_parent_fmt {
     ($x:ident) => {
@@ -20,13 +16,110 @@ macro_rules! log_parent_fmt {
     };
 }
 
+const GREEN: ResColor = ResColor {
+    r: 0,
+    g: 255,
+    b: 0,
+    a: 255,
+};
+
+const RED: ResColor = ResColor {
+    r: 255,
+    g: 0,
+    b: 0,
+    a: 255,
+};
+
+const CYAN: ResColor = ResColor {
+    r: 0,
+    g: 255,
+    b: 255,
+    a: 255,
+};
+
+const BLUE: ResColor = ResColor {
+    r: 0,
+    g: 255,
+    b: 0,
+    a: 255,
+};
+
+const PURPLE: ResColor = ResColor {
+    r: 255,
+    g: 0,
+    b: 255,
+    a: 255,
+};
+
+const YELLOW: ResColor = ResColor {
+    r: 255,
+    g: 255,
+    b: 0,
+    a: 255,
+};
+
+const WHITE: ResColor = ResColor {
+    r: 255,
+    g: 255,
+    b: 255,
+    a: 255,
+};
+
+fn smash_inputs(log: &InputLog) -> VecDeque<(&str, ResColor)> {
+    let mut icons = log
+        .smash_inputs
+        .buttons
+        .to_vec()
+        .iter()
+        .filter_map(|button| {
+            Some(match *button {
+                Buttons::ATTACK | Buttons::ATTACK_RAW => ("A", GREEN),
+                Buttons::SPECIAL | Buttons::SPECIAL_RAW | Buttons::SPECIAL_RAW2 => ("B", RED),
+                Buttons::JUMP => ("X", CYAN),
+                Buttons::GUARD | Buttons::GUARD_HOLD => ("L", BLUE),
+                Buttons::CATCH => ("ZR", PURPLE),
+                Buttons::STOCK_SHARE => ("+", WHITE),
+                Buttons::APPEAL_HI => ("^", WHITE),
+                Buttons::APPEAL_LW => ("v", WHITE),
+                Buttons::APPEAL_SL => (">", WHITE),
+                Buttons::APPEAL_SR => ("<", WHITE),
+                _ => return None,
+            })
+        })
+        .unique_by(|(s, _)| *s)
+        .collect::<VecDeque<(&str, ResColor)>>();
+
+    let (rstick_strength, _rstick_angle) = log.smash_binned_rstick();
+    let rstick_icon = match rstick_strength {
+        DirectionStrength::Strong => ">>",
+        DirectionStrength::Weak => ">",
+        DirectionStrength::None => "",
+    };
+
+    if !rstick_icon.is_empty() {
+        icons.push_front((rstick_icon, YELLOW));
+    }
+
+    let (lstick_strength, _lstick_angle) = log.smash_binned_lstick();
+    let lstick_icon = match lstick_strength {
+        DirectionStrength::Strong => ">>",
+        DirectionStrength::Weak => ">",
+        DirectionStrength::None => "",
+    };
+
+    if !lstick_icon.is_empty() {
+        icons.push_front((lstick_icon, WHITE));
+    }
+
+    icons
+}
+
 unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     let log_pane = root_pane
         .find_pane_by_name_recursive(log_parent_fmt!(log_idx))
         .unwrap();
 
-    // TODO: And menu option for input log is on
-    log_pane.set_visible(!QUICK_MENU_ACTIVE);
+    log_pane.set_visible(!QUICK_MENU_ACTIVE && MENU.input_display != InputDisplay::None);
     if log.ttl < 100 {
         // Fade out
         let alpha = (log.ttl as f32 / 100.0 * 255.0) as u8;
@@ -37,120 +130,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         log_pane.global_alpha = 255;
     }
 
-    let p1_style_ptr = P1_CONTROLLER_STYLE.data_ptr();
-    if p1_style_ptr.is_null() {
-        return;
-    }
-
-    let icons = log
-        .smash_inputs
-        .buttons
-        .to_vec()
-        .iter()
-        .filter_map(|button| {
-            Some(match *button {
-                Buttons::ATTACK | Buttons::ATTACK_RAW => (
-                    name_to_font_glyph(ButtonConfig::A, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 255,
-                        b: 0,
-                        a: 255,
-                    },
-                ),
-                Buttons::SPECIAL | Buttons::SPECIAL_RAW | Buttons::SPECIAL_RAW2 => (
-                    name_to_font_glyph(ButtonConfig::B, *p1_style_ptr),
-                    ResColor {
-                        r: 255,
-                        g: 0,
-                        b: 0,
-                        a: 255,
-                    },
-                ),
-                Buttons::JUMP => (
-                    name_to_font_glyph(ButtonConfig::X, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                Buttons::GUARD | Buttons::GUARD_HOLD => (
-                    name_to_font_glyph(ButtonConfig::L, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 0,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                Buttons::CATCH => (
-                    name_to_font_glyph(ButtonConfig::ZR, *p1_style_ptr),
-                    ResColor {
-                        r: 255,
-                        g: 0,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                Buttons::STOCK_SHARE => (
-                    name_to_font_glyph(ButtonConfig::PLUS, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                Buttons::APPEAL_HI => (
-                    name_to_font_glyph(ButtonConfig::DPAD_UP, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                Buttons::APPEAL_LW => (
-                    name_to_font_glyph(ButtonConfig::DPAD_DOWN, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                Buttons::APPEAL_SL => (
-                    name_to_font_glyph(ButtonConfig::DPAD_LEFT, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                Buttons::APPEAL_SR => (
-                    name_to_font_glyph(ButtonConfig::DPAD_RIGHT, *p1_style_ptr),
-                    ResColor {
-                        r: 0,
-                        g: 255,
-                        b: 255,
-                        a: 255,
-                    },
-                ),
-                _ => return None,
-            })
-        })
-        .filter_map(|(icon_opt, color)| {
-            if let Some(icon) = icon_opt {
-                return Some((icon, color));
-            }
-
-            None
-        })
-        .unique_by(|(icon, _)| *icon)
-        .collect::<Vec<(u16, ResColor)>>();
+    let icons = smash_inputs(log);
 
     // Empty them first
     const NUM_ICON_SLOTS: usize = 5;
@@ -163,28 +143,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         input_pane.set_text_string("");
     }
 
-    let (lstick_strength, lstick_angle) = log.smash_binned_lstick();
-    let lstick_icon = match lstick_strength {
-        DirectionStrength::Strong => ">>",
-        DirectionStrength::Weak => ">",
-        DirectionStrength::None => "",
-    };
-
-    let lstick_icon_exists = !lstick_icon.is_empty();
-    if lstick_icon_exists {
-        let input_pane = log_pane
-            .find_pane_by_name_recursive("InputTxt0")
-            .unwrap()
-            .as_textbox();
-
-        input_pane.set_default_material_colors();
-        input_pane.set_color(255, 255, 255, 255);
-        input_pane.set_text_string(lstick_icon);
-        input_pane.rot_z = lstick_angle;
-    }
-
     for (idx, icon) in icons.iter().enumerate() {
-        let idx = if lstick_icon_exists { idx + 1 } else { idx };
         // todo: handle this better
         if idx >= NUM_ICON_SLOTS {
             continue;
@@ -195,7 +154,9 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
             .unwrap()
             .as_textbox();
 
-        set_colored_icon_text(input_pane, &vec![icon.0], icon.1);
+        input_pane.set_text_string(icon.0);
+        input_pane.set_default_material_colors();
+        input_pane.set_color(icon.1.r, icon.1.g, icon.1.b, icon.1.a);
     }
 
     let frame_text = format!("{}", log.frames);

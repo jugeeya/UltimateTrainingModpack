@@ -35,6 +35,7 @@ pub struct TrainingModpackMenu {
     pub frame_advantage: OnOff,
     pub full_hop: BoolFlag,
     pub hitbox_vis: OnOff,
+    pub input_display: InputDisplay,
     pub hud: OnOff,
     pub input_delay: Delay,
     pub ledge_delay: LongDelay,
@@ -140,6 +141,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     frame_advantage: OnOff::Off,
     full_hop: BoolFlag::TRUE,
     hitbox_vis: OnOff::On,
+    input_display: InputDisplay::Smash,
     hud: OnOff::On,
     input_delay: Delay::D0,
     ledge_delay: LongDelay::empty(),
@@ -756,6 +758,13 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         "Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)".to_string(),
         true,
         &(menu.hitbox_vis as u32),
+    );
+    misc_tab.add_submenu_with_toggles::<InputDisplay>(
+        "Input Display".to_string(),
+        "input_display".to_string(),
+        "Input Display: Log inputs in a queue on the left of the screen".to_string(),
+        true,
+        &(menu.input_display as u32),
     );
     misc_tab.add_submenu_with_toggles::<Delay>(
         "Input Delay".to_string(),

@@ -15,12 +15,6 @@ mod input_log;
 mod menu;
 pub mod notifications;
 
-pub unsafe fn set_colored_icon_text(pane: &mut TextBox, icons: &Vec<u16>, color: ResColor) {
-    pane.set_default_material_colors();
-    pane.set_color(color.r, color.g, color.b, color.a);
-    set_icon_text(pane, icons);
-}
-
 pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
     pane.set_text_string("");
 
