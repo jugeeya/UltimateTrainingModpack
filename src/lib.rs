@@ -71,6 +71,16 @@ pub fn main() {
     init_logger().unwrap();
 
     info!("Initialized.");
+
+    info!("Performing version check...");
+    let _updater = std::thread::Builder::new()
+        .stack_size(0x20000)
+        .spawn(move || {
+            release::perform_version_check();
+        })
+        .unwrap();
+    let _result = _updater.join();
+
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
@@ -98,9 +108,6 @@ pub fn main() {
             error!("Could not delete legacy Training Modpack folder with error {e}")
         });
     }
-
-    info!("Performing version check...");
-    release::version_check();
 
     menu::load_from_file();
 

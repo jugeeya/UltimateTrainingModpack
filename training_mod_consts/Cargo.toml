@@ -15,7 +15,10 @@ serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1.8"
 serde_json = "1"
 bitflags_serde_shim = "0.2"
+skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
 skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git", optional = true }
+toml = "0.5.9"
+anyhow = "1.0.72"
 
 [features]
 default = ["smash"]
