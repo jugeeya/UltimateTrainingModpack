@@ -17,6 +17,26 @@ if(-not(Test-path $RYUJINX_LAYOUT_ARC_PATH -PathType leaf))
 
 $RYUJINX_PLUGIN_PATH="C:\Users\Josh\AppData\Roaming\Ryujinx\mods\contents\01006a800016e000\romfs\skyline\plugins\libtraining_modpack.nro"
 $LOCAL_PLUGIN_PATH="C:\Users\Josh\Documents\Games\UltimateTrainingModpack\target\aarch64-skyline-switch\release\libtraining_modpack.nro"
+
+$RYUJINX_EXE_PATH="C:\Users\Josh\Documents\Games\Ryujinx\publish\Ryujinx.exe"
+$SMASH_NSP_PATH='C:\Users\Josh\Documents\Games\ROMs\Super Smash Bros Ultimate [Base Game]\Super Smash Bros Ultimate[01006A800016E000][US][v0].nsp'
+
+
+$IP=(Test-Connection -ComputerName (hostname) -Count 1  | Select -ExpandProperty IPV4Address).IPAddressToString
+cargo skyline build --release --features layout_arc_from_file
+if (($lastexitcode -ne 0)) {
+    exit $lastexitcode
+}
+
+# Set up symlinks
+if(-not(Test-path $RYUJINX_LAYOUT_ARC_PATH -PathType leaf))
+{
+    New-Item -ItemType SymbolicLink -Path $RYUJINX_LAYOUT_ARC_PATH -Target $LOCAL_LAYOUT_ARC_PATH
+    if (($lastexitcode -ne 0)) {
+        exit $lastexitcode
+    }
+}
+
 if(-not(Test-path $RYUJINX_PLUGIN_PATH -PathType leaf))
 {
     New-Item -ItemType SymbolicLink -Path $RYUJINX_PLUGIN_PATH -Target $LOCAL_PLUGIN_PATH
@@ -25,5 +45,21 @@ if(-not(Test-path $RYUJINX_PLUGIN_PATH -PathType leaf))
     }
 }
 
-C:\Users\Josh\Documents\Games\Ryujinx\publish\Ryujinx.exe "C:\Users\Josh\Documents\Games\ROMs\Super Smash Bros Ultimate [Base Game]\Super Smash Bros Ultimate[01006A800016E000][US][v0].nsp"
-# cargo skyline listen --ip=$IP
+try {
+    # Start the process asynchronously
+    $process = Start-Process -FilePath $RYUJINX_EXE_PATH -ArgumentList `"$SMASH_NSP_PATH`" -PassThru
+
+    # Store the process ID
+    $global:process = $process.Id
+
+    echo "Starting cargo skyline listen..."
+    cargo skyline listen --ip=$IP
+    # Makes no sense, but we need this line for logs to show up. Lol
+    echo "Finishing cargo skyline listen..."
+}
+finally {
+    # Interrupts to the script should kill Ryujinx as well
+    if ($global:process -ne $null) {
+        Stop-Process -Id $global:process -Force
+    }
+}
