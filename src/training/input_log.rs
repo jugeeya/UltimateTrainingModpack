@@ -99,18 +99,18 @@ fn bin_stick_values(x: f32, y: f32) -> (DirectionStrength, f32) {
             (x, y) if y.abs() < STICK_NEUTRAL => match x {
                 x if x > STICK_NEUTRAL => 0.0,
                 x if x < STICK_NEUTRAL * 1.0 => 180.0,
-                _ => 0.0, // Invalid
+                _ => 0.0, // Invalid, we'll have DirectionStrength::None
             },
             (x, y) if x.abs() < STICK_NEUTRAL => match y {
                 y if y > STICK_NEUTRAL => 90.0,
                 y if y < STICK_NEUTRAL * -1.0 => 270.0,
-                _ => 0.0, // Invalid
+                _ => 0.0, // Invalid, we'll have DirectionStrength::None
             },
             (x, y) if x > STICK_NEUTRAL && y > STICK_NEUTRAL => 45.0,
             (x, y) if x < STICK_NEUTRAL * -1.0 && y > STICK_NEUTRAL => 135.0,
             (x, y) if x < STICK_NEUTRAL * -1.0 && y < STICK_NEUTRAL * -1.0 => 225.0,
             (x, y) if x > STICK_NEUTRAL && y < STICK_NEUTRAL * -1.0 => 315.0,
-            _ => 0.0, // Invalid
+            _ => 0.0, // Invalid, we'll have DirectionStrength::None
         },
     )
 }
