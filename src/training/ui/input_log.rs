@@ -15,25 +15,45 @@ macro_rules! log_parent_fmt {
     };
 }
 
-fn smash_inputs(log: &InputLog) -> VecDeque<(&str, ResColor)> {
+fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
     let mut icons = log.button_icons();
 
-    let (rstick_strength, _rstick_angle) = log.binned_rstick();
-    let rstick_icon = match rstick_strength {
-        DirectionStrength::Strong => ">>",
-        DirectionStrength::Weak => ">",
-        DirectionStrength::None => "",
+    let (rstick_strength, rstick_angle) = log.binned_rstick();
+    let rstick_icon = if rstick_strength != DirectionStrength::None {
+        match rstick_angle as u32 {
+            0 => ">",
+            45 => "^>",
+            90 => "^",
+            135 => "<^",
+            180 => "<",
+            225 => "<v",
+            270 => "v",
+            315 => "v>",
+            _ => "?",
+        }
+    } else {
+        ""
     };
 
     if !rstick_icon.is_empty() {
         icons.push_front((rstick_icon, YELLOW));
     }
 
-    let (lstick_strength, _lstick_angle) = log.binned_lstick();
-    let lstick_icon = match lstick_strength {
-        DirectionStrength::Strong => ">>",
-        DirectionStrength::Weak => ">",
-        DirectionStrength::None => "",
+    let (lstick_strength, lstick_angle) = log.binned_lstick();
+    let lstick_icon = if lstick_strength != DirectionStrength::None {
+        match lstick_angle as u32 {
+            0 => ">",
+            45 => "^>",
+            90 => "^",
+            135 => "<^",
+            180 => "<",
+            225 => "<v",
+            270 => "v",
+            315 => "v>",
+            _ => "?",
+        }
+    } else {
+        ""
     };
 
     if !lstick_icon.is_empty() {
@@ -52,9 +72,11 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     if MENU.input_display == InputDisplay::None {
         return;
     }
-    if log.ttl < 100 {
-        // Fade out
-        let alpha = (log.ttl as f32 / 100.0 * 255.0) as u8;
+    const FADE_FRAMES: u32 = 200;
+    if log.ttl < FADE_FRAMES {
+        // Logarithmic fade out
+        let alpha =
+            ((255.0 / (FADE_FRAMES as f32 + 1.0).log10()) * (log.ttl as f32 + 1.0).log10()) as u8;
         log_pane.alpha = alpha;
         log_pane.global_alpha = alpha;
     } else {
@@ -62,7 +84,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         log_pane.global_alpha = 255;
     }
 
-    let icons = smash_inputs(log);
+    let icons = get_input_icons(log);
 
     // Empty them first
     const NUM_ICON_SLOTS: usize = 5;

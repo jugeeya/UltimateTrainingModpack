@@ -7,7 +7,10 @@ use parking_lot::Mutex;
 use skyline::nn::ui2d::ResColor;
 use training_mod_consts::{InputDisplay, MENU};
 
-use super::frame_counter;
+use super::{
+    frame_counter,
+    input_record::{STICK_CLAMP_MULTIPLIER, STICK_NEUTRAL},
+};
 
 const GREEN: ResColor = ResColor {
     r: 0,
@@ -69,7 +72,7 @@ pub fn init() {
 
 pub const NUM_LOGS: usize = 10;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum DirectionStrength {
     None,
     Weak,
@@ -85,7 +88,6 @@ pub struct InputLog {
 }
 
 fn bin_stick_values(x: f32, y: f32) -> (DirectionStrength, f32) {
-    let angle = y.atan2(x).to_degrees();
     let length = (x * x + y * y).sqrt();
     (
         match length.abs() {
@@ -93,7 +95,23 @@ fn bin_stick_values(x: f32, y: f32) -> (DirectionStrength, f32) {
             x if x > 0.2 => DirectionStrength::Weak,
             _ => DirectionStrength::None,
         },
-        angle,
+        match (x, y) {
+            (x, y) if y.abs() < STICK_NEUTRAL => match x {
+                x if x > STICK_NEUTRAL => 0.0,
+                x if x < STICK_NEUTRAL * 1.0 => 180.0,
+                _ => 0.0, // Invalid
+            },
+            (x, y) if x.abs() < STICK_NEUTRAL => match y {
+                y if y > STICK_NEUTRAL => 90.0,
+                y if y < STICK_NEUTRAL * -1.0 => 270.0,
+                _ => 0.0, // Invalid
+            },
+            (x, y) if x > STICK_NEUTRAL && y > STICK_NEUTRAL => 45.0,
+            (x, y) if x < STICK_NEUTRAL * -1.0 && y > STICK_NEUTRAL => 135.0,
+            (x, y) if x < STICK_NEUTRAL * -1.0 && y < STICK_NEUTRAL * -1.0 => 225.0,
+            (x, y) if x > STICK_NEUTRAL && y < STICK_NEUTRAL * -1.0 => 315.0,
+            _ => 0.0, // Invalid
+        },
     )
 }
 
@@ -206,15 +224,15 @@ impl InputLog {
     }
 
     fn smash_binned_lstick(&self) -> (DirectionStrength, f32) {
-        let x = self.smash_inputs.lstick_x as f32;
-        let y = self.smash_inputs.lstick_y as f32;
+        let x = (self.smash_inputs.lstick_x as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        let y = (self.smash_inputs.lstick_y as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
         bin_stick_values(x, y)
     }
 
     fn smash_binned_rstick(&self) -> (DirectionStrength, f32) {
-        let x = self.smash_inputs.rstick_x as f32;
-        let y = self.smash_inputs.rstick_y as f32;
+        let x = (self.smash_inputs.rstick_x as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
+        let y = (self.smash_inputs.rstick_y as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
 
         bin_stick_values(x, y)
     }
@@ -226,17 +244,11 @@ impl InputLog {
     }
 
     fn raw_binned_lstick(&self) -> (DirectionStrength, f32) {
-        let x = self.raw_inputs.left_stick_x;
-        let y = self.raw_inputs.left_stick_y;
-
-        bin_stick_values(x, y)
+        bin_stick_values(self.raw_inputs.left_stick_x, self.raw_inputs.left_stick_y)
     }
 
     fn raw_binned_rstick(&self) -> (DirectionStrength, f32) {
-        let x = self.raw_inputs.right_stick_x;
-        let y = self.raw_inputs.right_stick_y;
-
-        bin_stick_values(x, y)
+        bin_stick_values(self.raw_inputs.right_stick_x, self.raw_inputs.right_stick_y)
     }
 }
 
@@ -292,8 +304,8 @@ pub fn handle_final_input_mapping(
                 latest_input_log.frames = std::cmp::min(current_frame, 99);
             }
 
-            // For the remainder, decrease TTL
-            for input_log in input_logs.iter_mut().take(NUM_LOGS).skip(1) {
+            // Decrease TTL
+            for input_log in input_logs.iter_mut().take(NUM_LOGS) {
                 if input_log.ttl > 0 && should_update_ttl {
                     input_log.ttl -= 1;
                 }

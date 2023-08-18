@@ -1,19 +1,8 @@
-$IP=(Test-Connection -ComputerName (hostname) -Count 1  | Select -ExpandProperty IPV4Address).IPAddressToString
-cargo skyline build --release --features layout_arc_from_file
-if (($lastexitcode -ne 0)) {
-    exit $lastexitcode
-}
-
-# Set up symlinks
+# Change these to match your local
+# The first time you run this, in order to set up the symlinks, you may have to be an administrator
+# to write the files. Powershell is dumb.
 $RYUJINX_LAYOUT_ARC_PATH="C:\Users\Josh\AppData\Roaming\Ryujinx\sdcard\ultimate\TrainingModpack\layout.arc"
 $LOCAL_LAYOUT_ARC_PATH="C:\Users\Josh\Documents\Games\UltimateTrainingModpack\src\static\layout.arc"
-if(-not(Test-path $RYUJINX_LAYOUT_ARC_PATH -PathType leaf))
-{
-    New-Item -ItemType SymbolicLink -Path $RYUJINX_LAYOUT_ARC_PATH -Target $LOCAL_LAYOUT_ARC_PATH
-    if (($lastexitcode -ne 0)) {
-        exit $lastexitcode
-    }
-}
 
 $RYUJINX_PLUGIN_PATH="C:\Users\Josh\AppData\Roaming\Ryujinx\mods\contents\01006a800016e000\romfs\skyline\plugins\libtraining_modpack.nro"
 $LOCAL_PLUGIN_PATH="C:\Users\Josh\Documents\Games\UltimateTrainingModpack\target\aarch64-skyline-switch\release\libtraining_modpack.nro"

@@ -50,8 +50,8 @@ pub enum StartingStatus {
     Other,
 }
 
-const STICK_NEUTRAL: f32 = 0.2;
-const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
+pub const STICK_NEUTRAL: f32 = 0.2;
+pub const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
 const FINAL_RECORD_MAX: usize = 600; // Maximum length for input recording sequences (capacity)
 const TOTAL_SLOT_COUNT: usize = 5; // Total number of input recording slots
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
