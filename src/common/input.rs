@@ -267,7 +267,7 @@ pub struct SomeControllerStruct {
 }
 
 // Define struct used for final controller inputs
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(C)]
 pub struct MappedInputs {
     pub buttons: Buttons,

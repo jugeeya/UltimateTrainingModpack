@@ -81,7 +81,6 @@ pub struct TrainingModpackMenu {
     pub hitstun_playback: HitstunPlayback,
     pub playback_mash: OnOff,
     pub playback_loop: OnOff,
-    pub menu_open: ButtonConfig,
     pub save_state_save: ButtonConfig,
     pub save_state_load: ButtonConfig,
     pub input_record: ButtonConfig,
@@ -185,7 +184,6 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
     playback_loop: OnOff::Off,
-    menu_open: ButtonConfig::B.union(ButtonConfig::DPAD_UP),
     save_state_save: ButtonConfig::ZL.union(ButtonConfig::DPAD_DOWN),
     save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
@@ -844,13 +842,6 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         tab_title: "Button Config".to_string(),
         tab_submenus: Vec::new(),
     };
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Menu Open".to_string(),
-        "menu_open".to_string(),
-        "Menu Open: Hold: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.menu_open.bits() as u32),
-    );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
         "Save State Save".to_string(),
         "save_state_save".to_string(),
