@@ -55,7 +55,7 @@ pub struct ControlModuleStored {
 
 /// Re-ordered bitfield the game uses for buttons
 #[bitfield]
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct ButtonBitfield {
     pub dpad_up: bool,
