@@ -65,6 +65,19 @@ macro_rules! extra_bitflag_impls {
                     }
                 }
             }
+
+            pub fn combination_string(&self) -> String {
+                // Avoid infinite recursion lol
+                if self.to_vec().len() <= 1 {
+                    return "".to_string();
+                }
+
+                self.to_vec()
+                    .iter()
+                    .map(|item| item.to_string())
+                    .intersperse(" + ".to_owned())
+                    .collect::<String>()
+            }
         }
         impl ToggleTrait for $e {
             fn to_toggle_vals() -> Vec<u32> {
@@ -159,6 +172,7 @@ impl Direction {
 
 impl fmt::Display for Direction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -174,7 +188,7 @@ impl fmt::Display for Direction {
                 Direction::NEUTRAL => "Neutral",
                 Direction::LEFT => "Left",
                 Direction::RIGHT => "Right",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -256,6 +270,7 @@ impl LedgeOption {
 
 impl fmt::Display for LedgeOption {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -270,7 +285,7 @@ impl fmt::Display for LedgeOption {
                 LedgeOption::PLAYBACK_3 => "Playback Slot 3",
                 LedgeOption::PLAYBACK_4 => "Playback Slot 4",
                 LedgeOption::PLAYBACK_5 => "Playback Slot 5",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -291,6 +306,7 @@ bitflags! {
 
 impl fmt::Display for TechFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -299,7 +315,7 @@ impl fmt::Display for TechFlags {
                 TechFlags::ROLL_F => "Roll Forwards",
                 TechFlags::ROLL_B => "Roll Backwards",
                 TechFlags::IN_PLACE => "Tech In Place",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -320,6 +336,7 @@ bitflags! {
 
 impl fmt::Display for MissTechFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -328,7 +345,7 @@ impl fmt::Display for MissTechFlags {
                 MissTechFlags::ATTACK => "Getup Attack",
                 MissTechFlags::ROLL_F => "Roll Forwards",
                 MissTechFlags::ROLL_B => "Roll Backwards",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -526,6 +543,7 @@ impl Action {
 
 impl fmt::Display for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -560,7 +578,7 @@ impl fmt::Display for Action {
                 Action::PLAYBACK_3 => "Playback Slot 3",
                 Action::PLAYBACK_4 => "Playback Slot 4",
                 Action::PLAYBACK_5 => "Playback Slot 5",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -579,6 +597,7 @@ bitflags! {
 
 impl fmt::Display for AttackAngle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -586,7 +605,7 @@ impl fmt::Display for AttackAngle {
                 AttackAngle::NEUTRAL => "Neutral",
                 AttackAngle::UP => "Up",
                 AttackAngle::DOWN => "Down",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -670,6 +689,7 @@ impl ThrowOption {
 
 impl fmt::Display for ThrowOption {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -679,7 +699,7 @@ impl fmt::Display for ThrowOption {
                 ThrowOption::BACKWARD => "Back Throw",
                 ThrowOption::UP => "Up Throw",
                 ThrowOption::DOWN => "Down Throw",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -758,6 +778,7 @@ impl BuffOption {
 
 impl fmt::Display for BuffOption {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -776,7 +797,7 @@ impl fmt::Display for BuffOption {
                 BuffOption::MONAD_SHIELD => "Shield",
                 BuffOption::MONAD_BUSTER => "Buster",
                 BuffOption::MONAD_SMASH => "Smash",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -787,6 +808,7 @@ impl_serde_for_bitflags!(BuffOption);
 
 impl fmt::Display for Delay {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -822,7 +844,7 @@ impl fmt::Display for Delay {
                 Delay::D28 => "28",
                 Delay::D29 => "29",
                 Delay::D30 => "30",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -875,6 +897,7 @@ impl MedDelay {
 
 impl fmt::Display for MedDelay {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -910,7 +933,7 @@ impl fmt::Display for MedDelay {
                 MedDelay::D140 => "140",
                 MedDelay::D145 => "145",
                 MedDelay::D150 => "150",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -963,6 +986,7 @@ impl LongDelay {
 
 impl fmt::Display for LongDelay {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -998,7 +1022,7 @@ impl fmt::Display for LongDelay {
                 LongDelay::D280 => "280",
                 LongDelay::D290 => "290",
                 LongDelay::D300 => "300",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -1025,13 +1049,14 @@ impl BoolFlag {
 
 impl fmt::Display for BoolFlag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
             match *self {
                 BoolFlag::TRUE => "True",
                 BoolFlag::FALSE => "False",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -1184,7 +1209,7 @@ impl fmt::Display for CharacterItem {
                 CharacterItem::CpuVariation6 => "CPU 6th Var.",
                 CharacterItem::CpuVariation7 => "CPU 7th Var.",
                 CharacterItem::CpuVariation8 => "CPU 8th Var.",
-                _ => "Multiple Selected",
+                CharacterItem::None => "None",
             }
         )
     }
@@ -1234,6 +1259,7 @@ impl MashTrigger {
 
 impl fmt::Display for MashTrigger {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -1255,7 +1281,7 @@ impl fmt::Display for MashTrigger {
                 MashTrigger::DISTANCE_MID => "Distance: Mid",
                 MashTrigger::DISTANCE_FAR => "Distance: Far",
                 MashTrigger::ALWAYS => "Always",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -1290,6 +1316,7 @@ bitflags! {
 
 impl fmt::Display for SaveDamage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -1297,7 +1324,7 @@ impl fmt::Display for SaveDamage {
                 SaveDamage::DEFAULT => "Default",
                 SaveDamage::SAVED => "Save State",
                 SaveDamage::RANDOM => "Random Value",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -1429,6 +1456,7 @@ impl PlaybackSlot {
 
 impl fmt::Display for PlaybackSlot {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -1438,7 +1466,7 @@ impl fmt::Display for PlaybackSlot {
                 PlaybackSlot::S3 => "Slot Three",
                 PlaybackSlot::S4 => "Slot Four",
                 PlaybackSlot::S5 => "Slot Five",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -1494,13 +1522,14 @@ bitflags! {
 
 impl fmt::Display for RecordTrigger {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
             match *self {
                 RecordTrigger::COMMAND => "Button Combination",
                 RecordTrigger::SAVESTATE => "Save State Load",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
@@ -1603,18 +1632,9 @@ bitflags! {
     }
 }
 
-impl ButtonConfig {
-    pub fn combination_string(&self) -> String {
-        self.to_vec()
-            .iter()
-            .map(|button| button.to_string())
-            .intersperse(" + ".to_owned())
-            .collect::<String>()
-    }
-}
-
 impl fmt::Display for ButtonConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
@@ -1635,7 +1655,7 @@ impl fmt::Display for ButtonConfig {
                 ButtonConfig::MINUS => "Minus",
                 ButtonConfig::LSTICK => "Left Stick Press",
                 ButtonConfig::RSTICK => "Right Stick Press",
-                _ => "Multiple Selected",
+                _ => combination_string.as_str(),
             }
         )
     }
