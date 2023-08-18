@@ -779,9 +779,10 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         &(menu.hud as u32),
     );
     misc_tab.add_submenu_with_toggles::<UpdatePolicy>(
-        "Auto-Update".to_string(), 
-        "update_policy".to_string(), 
-        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)".to_string(),
+        "Auto-Update".to_string(),
+        "update_policy".to_string(),
+        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)"
+            .to_string(),
         true,
         &(menu.update_policy as u32),
     );

@@ -1644,7 +1644,6 @@ impl fmt::Display for ButtonConfig {
 extra_bitflag_impls! {ButtonConfig}
 impl_serde_for_bitflags!(ButtonConfig);
 
-
 #[repr(u32)]
 #[derive(
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
