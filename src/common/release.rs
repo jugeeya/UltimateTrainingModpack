@@ -12,7 +12,7 @@ use zip::ZipArchive;
 
 lazy_static! {
     pub static ref CURRENT_VERSION: Mutex<String> =
-        Mutex::new(get_current_version().expect("Could not determine current version!"));
+        Mutex::new(get_current_version().unwrap_or("".to_string()));
 }
 
 #[derive(Debug)]
