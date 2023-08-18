@@ -106,7 +106,7 @@ pub fn main() {
 
     unsafe {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification("Open Menu".to_string(), MENU.menu_open.to_string(), 120);
+        notification("Open Menu".to_string(), "Start".to_string(), 120);
         notification(
             "Save State".to_string(),
             MENU.save_state_save.to_string(),
