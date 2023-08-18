@@ -465,6 +465,23 @@ To build the entire modpack including supporting files, use the steps in the [Gi
 ## Prerequisites
 - Stable Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
 
+## Development Tips
+
+### Ryujinx
+
+Developing on Ryujinx on Windows is very easy and has a streamlined script in [ryujinx_build.ps1](./ryujinx_build.ps1).
+
+1. Drag-and-drop the normal beta at the Ryujinx paths as described in Installation.
+2. Delete the `libtraining_modpack.nro` that is used in those paths.
+3. Edit the paths at the top of the file to match your local filesystem
+4. On your first run, you may have to run the script as Administrator in order to set up the symlinks to this repo's built files.
+    - Both the plugin and the [layout.arc](./src/static/layout.arc) will be sourced automatically via symlink
+5. Run the script to iterate and develop.
+    - Logs will be printed to console. 
+    - Since we are using the feature `layout-arc-from-file`, you can edit [layout.arc](./src/static/layout.arc) in real-time with Switch Toolbox and reload training mode without rebooting to view your changes.
+    - If you'd like to exit, you can CTRL+C the script and Ryujinx will also close.
+
+
 <a name="beta-changelog"/>
 
 # Beta Changelog
