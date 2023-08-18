@@ -102,14 +102,18 @@ pub fn main() {
 
     menu::load_from_file();
 
-    info!("Performing version check...");
-    let _updater = std::thread::Builder::new()
-        .stack_size(0x20000)
-        .spawn(move || {
-            release::perform_version_check();
-        })
-        .unwrap();
-    let _result = _updater.join();
+    if !is_emulator() {
+        info!("Performing version check...");
+        let _updater = std::thread::Builder::new()
+            .stack_size(0x20000)
+            .spawn(move || {
+                release::perform_version_check();
+            })
+            .unwrap();
+        let _result = _updater.join();
+    } else {
+        info!("Skipping version check because we are using an emulator");
+    }
 
     unsafe {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
