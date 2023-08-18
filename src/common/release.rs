@@ -1,4 +1,5 @@
 #![allow(clippy::unnecessary_unwrap)]
+use crate::MENU;
 use crate::consts::*;
 use crate::dialog;
 use crate::logging::*;
@@ -9,7 +10,6 @@ use serde_json::Value;
 use std::io::{Error, ErrorKind};
 use zip::ZipArchive;
 
-use skyline_web::dialog_ok::DialogOk;
 lazy_static! {
     pub static ref CURRENT_VERSION: Mutex<String> =
         Mutex::new(get_current_version().expect("Could not determine current version!"));
@@ -74,43 +74,8 @@ impl Release {
     }
 }
 
-/// Attempts to load the update policy from file
-/// If the file does not exist, asks the user for their preference and saves it
 fn get_update_policy() -> UpdatePolicy {
-    let config =
-        TrainingModpackConfig::load_or_create().expect("Could not load or create config file!");
-    let policy = config.update.policy;
-    policy.unwrap_or_else(|| {
-        warn!("Update policy not found. Asking user for their preference...");
-        let p = ask_for_update_policy();
-        TrainingModpackConfig::change_update_policy(&p).expect("Could not change update policy!");
-        p
-    })
-}
-
-/// Asks the user what the update policy should be
-/// Emulator users automatically returns UpdatePolicy::Stable
-fn ask_for_update_policy() -> UpdatePolicy {
-    if dialog::yes_no(
-        "Would you like to receive automatic updates for the Training Modpack?".to_string(),
-        true,
-    ) {
-        match dialog::left_right(
-            "Which sort of automatic updates would you like to receive?".to_string(),
-            "Stable".to_string(),
-            "Beta".to_string(),
-            "Disabled".to_string(),
-            "Stable".to_string(),
-        )
-        .as_str()
-        {
-            "Stable" => UpdatePolicy::Stable,
-            "Beta" => UpdatePolicy::Beta,
-            _ => UpdatePolicy::Disabled,
-        }
-    } else {
-        UpdatePolicy::Disabled
-    }
+    unsafe { MENU.update_policy }
 }
 
 fn get_release(beta: bool) -> Result<Release> {
@@ -218,7 +183,7 @@ fn get_current_version() -> Result<String> {
 
 pub fn perform_version_check() {
     let update_policy = get_update_policy();
-    info!("Update Policy is {}", update_policy.to_str());
+    info!("Update Policy is {}", update_policy);
     let mut release_to_apply = match update_policy {
         UpdatePolicy::Stable => get_release(false),
         UpdatePolicy::Beta => get_release(true),

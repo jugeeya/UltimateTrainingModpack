@@ -65,14 +65,6 @@ impl TrainingModpackConfig {
         }
     }
 
-    pub fn change_update_policy(update_policy: &UpdatePolicy) -> Result<()> {
-        let mut config = TrainingModpackConfig::load()?;
-        config.update.policy = Some(update_policy.clone());
-        let contents = toml::to_string(&config)?;
-        fs::write(TRAINING_MODPACK_TOML_PATH, contents)?;
-        Ok(())
-    }
-
     pub fn change_last_update_version(last_update_version: &str) -> Result<()> {
         let mut config = TrainingModpackConfig::load()?;
         config.update.last_update_version = last_update_version.to_string();
@@ -142,38 +134,13 @@ fn now_utc() -> String {
 /// Config section for the automatic updater
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UpdaterConfig {
-    pub policy: Option<UpdatePolicy>,
     pub last_update_version: String,
 }
 
 impl UpdaterConfig {
     pub fn default() -> UpdaterConfig {
-        let time = now_utc();
-        println!("Current time: {}", &time);
         UpdaterConfig {
-            policy: None,
             last_update_version: now_utc(),
-        }
-    }
-}
-
-#[derive(PartialEq, Serialize, Deserialize, Clone)]
-pub enum UpdatePolicy {
-    Stable,
-    Beta,
-    Disabled,
-}
-
-impl UpdatePolicy {
-    pub fn default() -> UpdatePolicy {
-        UpdatePolicy::Stable
-    }
-
-    pub fn to_str(self: &UpdatePolicy) -> &str {
-        match self {
-            UpdatePolicy::Stable => "Stable",
-            UpdatePolicy::Beta => "Beta",
-            UpdatePolicy::Disabled => "Disabled",
         }
     }
 }

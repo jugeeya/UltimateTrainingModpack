@@ -72,15 +72,6 @@ pub fn main() {
 
     info!("Initialized.");
 
-    info!("Performing version check...");
-    let _updater = std::thread::Builder::new()
-        .stack_size(0x20000)
-        .spawn(move || {
-            release::perform_version_check();
-        })
-        .unwrap();
-    let _result = _updater.join();
-
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
@@ -110,6 +101,15 @@ pub fn main() {
     }
 
     menu::load_from_file();
+
+    info!("Performing version check...");
+    let _updater = std::thread::Builder::new()
+        .stack_size(0x20000)
+        .spawn(move || {
+            release::perform_version_check();
+        })
+        .unwrap();
+    let _result = _updater.join();
 
     unsafe {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
