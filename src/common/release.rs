@@ -7,12 +7,11 @@ use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use serde_json::Value;
-use std::io::{Error, ErrorKind};
 use zip::ZipArchive;
 
 lazy_static! {
     pub static ref CURRENT_VERSION: Mutex<String> =
-        Mutex::new(get_current_version().expect("Could not determine current version!"));
+        Mutex::new(get_current_version().expect("Could not find current modpack version!\n"));
 }
 
 #[derive(Debug)]
@@ -160,19 +159,11 @@ fn user_wants_to_install() -> bool {
 }
 
 fn get_current_version() -> Result<String> {
-    let config = TrainingModpackConfig::load();
+    let config = TrainingModpackConfig::load_or_create();
     match config {
         Ok(c) => {
             info!("Config file found and parsed. Loading...");
             Ok(c.update.last_update_version)
-        }
-        Err(e)
-            if e.is::<Error>()
-                && e.downcast_ref::<Error>().unwrap().kind() == ErrorKind::NotFound =>
-        {
-            warn!("No config file found, creating default...");
-            TrainingModpackConfig::create_default()?;
-            get_current_version()
         }
         Err(e) => {
             // Some other error, re-raise it
