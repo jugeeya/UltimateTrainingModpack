@@ -53,6 +53,8 @@ const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
     a: 255,
 };
 
+pub static mut VANILLA_MENU_ACTIVE: bool = false;
+
 lazy_static! {
     static ref GCC_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
         ("L", 0xE204),
@@ -346,6 +348,15 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
+    // Determine if we're in the menu by seeing if the "help" footer has
+    // begun moving upward. It starts at -80 and moves to 0 over 10 frames
+    // in info_training_in_menu.bflan
+    VANILLA_MENU_ACTIVE = root_pane
+        .find_pane_by_name_recursive("L_staying_help")
+        .unwrap()
+        .pos_y
+        != -80.0;
+
     // Update menu display
     // Grabbing lock as read-only, essentially
     let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();

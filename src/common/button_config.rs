@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::common::*;
 use crate::input::{ControllerStyle::*, *};
+use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -143,7 +144,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         } else {
             if *start_hold_frames > 0 {
                 // Here, we just finished holding start
-                if *start_hold_frames < 10 {
+                if *start_hold_frames < 10 && unsafe { !VANILLA_MENU_ACTIVE } {
                     // If we held for fewer than 10 frames, let's open the training mod menu
                     start_menu_request = true;
                 } else if unsafe { !QUICK_MENU_ACTIVE } {
@@ -151,6 +152,9 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
                     // So long as our menu isn't active
                     p1_controller.current_buttons.set_plus(true);
                     p1_controller.just_down.set_plus(true);
+                    unsafe {
+                        VANILLA_MENU_ACTIVE = true;
+                    }
                 }
             }
             *start_hold_frames = 0;

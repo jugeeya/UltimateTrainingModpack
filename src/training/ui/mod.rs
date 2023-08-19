@@ -10,7 +10,7 @@ use crate::consts::LAYOUT_ARC_PATH;
 
 mod damage;
 mod display;
-mod menu;
+pub mod menu;
 pub mod notifications;
 
 #[skyline::hook(offset = 0x4b620)]
