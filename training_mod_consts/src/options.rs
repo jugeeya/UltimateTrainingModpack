@@ -440,6 +440,13 @@ impl OnOff {
             _ => None,
         }
     }
+
+    pub fn as_bool(self) -> Option<bool> {
+        Some(match self {
+            OnOff::Off => false,
+            OnOff::On => true,
+        })
+    }
 }
 
 impl fmt::Display for OnOff {
@@ -452,13 +459,6 @@ impl fmt::Display for OnOff {
                 OnOff::On => "On",
             }
         )
-    }
-
-    pub fn as_bool(self) -> Option<bool> {
-        Some(match self {
-            OnOff::Off => false,
-            OnOff::On => true,
-        })
     }
 }
 
