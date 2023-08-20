@@ -476,7 +476,7 @@ static PLAY_SE_OFFSET: usize = 0x04cf6a0;
 // fighters don't use the symbol and go straight through their vtable to this function
 #[skyline::hook(offset = PLAY_SE_OFFSET)]
 pub unsafe fn handle_fighter_play_se(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    sound_module: u64, // pointer to fighter's SoundModule
     my_hash: Hash40,
     bool1: bool,
     bool2: bool,
@@ -485,22 +485,14 @@ pub unsafe fn handle_fighter_play_se(
     se_type: enSEType,
 ) -> u64 {
     if !is_training_mode() {
-        return original!()(
-            module_accessor,
-            my_hash,
-            bool1,
-            bool2,
-            bool3,
-            bool4,
-            se_type,
-        );
+        return original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type);
     }
 
     // Supress Buff Sound Effects while buffing
-    if buff::is_buffing(module_accessor) {
+    if buff::is_buffing_any() {
         let silent_hash = Hash40::new("se_silent");
         return original!()(
-            module_accessor,
+            sound_module,
             silent_hash,
             bool1,
             bool2,
@@ -509,15 +501,7 @@ pub unsafe fn handle_fighter_play_se(
             se_type,
         );
     }
-    original!()(
-        module_accessor,
-        my_hash,
-        bool1,
-        bool2,
-        bool3,
-        bool4,
-        se_type,
-    )
+    original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
 static FOLLOW_REQ_OFFSET: usize = 0x044f860;
