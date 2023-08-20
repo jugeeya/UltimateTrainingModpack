@@ -5,7 +5,7 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_consts::{InputDisplay, MENU};
 
 use crate::{
-    common::menu::QUICK_MENU_ACTIVE,
+    common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
     training::input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS, WHITE, YELLOW},
 };
 
@@ -119,6 +119,12 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         .unwrap()
         .as_textbox()
         .set_text_string(frame_text.as_str());
+
+    log_pane
+        .find_pane_by_name_recursive("StatusTxt")
+        .unwrap()
+        .as_textbox()
+        .set_text_string(status_display_name(log.fighter_kind, log.status).as_str());
 }
 
 pub unsafe fn draw(root_pane: &Pane) {

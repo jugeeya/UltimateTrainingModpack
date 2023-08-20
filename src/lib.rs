@@ -18,7 +18,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
-use training_mod_consts::LEGACY_TRAINING_MODPACK_ROOT;
+use training_mod_consts::{extra_bitflag_impls, LEGACY_TRAINING_MODPACK_ROOT};
 
 use crate::common::events::events_loop;
 use crate::common::*;

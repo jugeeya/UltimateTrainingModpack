@@ -1,11 +1,12 @@
 use itertools::Itertools;
 use std::collections::VecDeque;
 
-use crate::common::input::*;
+use crate::common::{input::*, try_get_module_accessor};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::ui2d::ResColor;
-use training_mod_consts::{InputDisplay, MENU};
+use smash::app::{lua_bind::*, utility};
+use training_mod_consts::{FighterId, InputDisplay, MENU};
 
 use super::{
     frame_counter,
@@ -85,6 +86,8 @@ pub struct InputLog {
     pub frames: u32,
     pub raw_inputs: Controller,
     pub smash_inputs: MappedInputs,
+    pub status: i32,
+    pub fighter_kind: i32,
 }
 
 fn bin_stick_values(x: f32, y: f32) -> (DirectionStrength, f32) {
@@ -221,6 +224,7 @@ impl InputLog {
         self.smash_inputs.buttons != other.smash_inputs.buttons
             || self.smash_binned_lstick() != other.smash_binned_lstick()
             || self.smash_binned_rstick() != other.smash_binned_rstick()
+            || self.status != other.status
     }
 
     fn smash_binned_lstick(&self) -> (DirectionStrength, f32) {
@@ -277,6 +281,12 @@ pub fn handle_final_input_mapping(
         }
 
         if player_idx == 0 {
+            let module_accessor = try_get_module_accessor(FighterId::Player);
+            if module_accessor.is_none() {
+                return;
+            }
+            let module_accessor = module_accessor.unwrap();
+
             let current_frame = frame_counter::get_frame_count(FRAME_COUNTER);
             // We should always be counting
             frame_counter::start_counting(FRAME_COUNTER);
@@ -286,6 +296,8 @@ pub fn handle_final_input_mapping(
                 frames: 1,
                 raw_inputs: *controller_struct.controller,
                 smash_inputs: *out,
+                status: StatusModule::status_kind(module_accessor),
+                fighter_kind: utility::get_kind(&mut *module_accessor),
             };
 
             let mut should_update_ttl = true;

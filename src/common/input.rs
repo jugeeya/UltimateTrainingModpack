@@ -1,7 +1,7 @@
 #![allow(dead_code)] // TODO: Yeah don't do this
+use crate::extra_bitflag_impls;
 use bitflags::bitflags;
 use modular_bitfield::{bitfield, specifiers::*};
-use training_mod_consts::extra_bitflag_impls;
 
 // Need to define necesary structures here. Probably should move to consts or something. Realistically, should be in skyline smash prob tho.
 
