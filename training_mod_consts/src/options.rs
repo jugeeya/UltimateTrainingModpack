@@ -437,6 +437,13 @@ impl OnOff {
             OnOff::On => "On",
         })
     }
+
+    pub fn as_bool(self) -> Option<bool> {
+        Some(match self {
+            OnOff::Off => false,
+            OnOff::On => true,
+        })
+    }
 }
 
 impl ToggleTrait for OnOff {
