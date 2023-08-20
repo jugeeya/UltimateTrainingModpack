@@ -783,14 +783,16 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Dodge Staling".to_string(),
         "stale_dodges".to_string(),
-        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use".to_string(),
+        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use"
+            .to_string(),
         true,
         &(menu.stale_dodges as u32),
     );
     misc_tab.add_submenu_with_toggles::<UpdatePolicy>(
         "Auto-Update".to_string(),
         "update_policy".to_string(),
-        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)".to_string(),
+        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)"
+            .to_string(),
         true,
         &(menu.update_policy as u32),
     );
