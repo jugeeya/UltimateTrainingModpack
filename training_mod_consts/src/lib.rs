@@ -14,6 +14,8 @@ pub mod options;
 pub use options::*;
 pub mod files;
 pub use files::*;
+pub mod config;
+pub use config::*;
 
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
@@ -88,6 +90,7 @@ pub struct TrainingModpackMenu {
     pub input_playback: ButtonConfig,
     pub recording_crop: OnOff,
     pub stale_dodges: OnOff,
+    pub update_policy: UpdatePolicy,
 }
 
 #[repr(C)]
@@ -193,6 +196,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
     recording_crop: OnOff::On,
     stale_dodges: OnOff::On,
+    update_policy: UpdatePolicy::default(),
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -779,10 +783,16 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Dodge Staling".to_string(),
         "stale_dodges".to_string(),
-        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use"
-            .to_string(),
+        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use".to_string(),
         true,
         &(menu.stale_dodges as u32),
+    );
+    misc_tab.add_submenu_with_toggles::<UpdatePolicy>(
+        "Auto-Update".to_string(),
+        "update_policy".to_string(),
+        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)".to_string(),
+        true,
+        &(menu.update_policy as u32),
     );
     overall_menu.tabs.push(misc_tab);
 
