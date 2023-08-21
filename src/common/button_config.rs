@@ -60,8 +60,8 @@ pub enum ButtonCombo {
 
 unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     match combo {
-        // For OpenMenu, make it impossible to press so we can just use start press
-        ButtonCombo::OpenMenu => ButtonConfig::all(),
+        // For OpenMenu, have a default in addition to accepting start press
+        ButtonCombo::OpenMenu => ButtonConfig::B.union(ButtonConfig::DPAD_UP),
         ButtonCombo::SaveState => MENU.save_state_save,
         ButtonCombo::LoadState => MENU.save_state_load,
         ButtonCombo::InputRecord => MENU.input_record,
@@ -134,30 +134,32 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         let p1_controller = &mut *controller_struct.controller;
         let mut start_menu_request = false;
 
-        let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
-        if p1_controller.current_buttons.plus() {
-            *start_hold_frames += 1;
-            p1_controller.previous_buttons.set_plus(false);
-            p1_controller.current_buttons.set_plus(false);
-            p1_controller.just_down.set_plus(false);
-            p1_controller.just_release.set_plus(false);
-        } else {
-            if *start_hold_frames > 0 {
-                // Here, we just finished holding start
-                if *start_hold_frames < 10 && unsafe { !VANILLA_MENU_ACTIVE } {
-                    // If we held for fewer than 10 frames, let's open the training mod menu
-                    start_menu_request = true;
-                } else if unsafe { !QUICK_MENU_ACTIVE } {
-                    // Otherwise, let's let the game know that we had pressed start
-                    // So long as our menu isn't active
-                    p1_controller.current_buttons.set_plus(true);
-                    p1_controller.just_down.set_plus(true);
-                    unsafe {
-                        VANILLA_MENU_ACTIVE = true;
+        if unsafe { MENU.menu_open_start_press == OnOff::On } {
+            let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
+            if p1_controller.current_buttons.plus() {
+                *start_hold_frames += 1;
+                p1_controller.previous_buttons.set_plus(false);
+                p1_controller.current_buttons.set_plus(false);
+                p1_controller.just_down.set_plus(false);
+                p1_controller.just_release.set_plus(false);
+            } else {
+                if *start_hold_frames > 0 {
+                    // Here, we just finished holding start
+                    if *start_hold_frames < 10 && unsafe { !VANILLA_MENU_ACTIVE } {
+                        // If we held for fewer than 10 frames, let's open the training mod menu
+                        start_menu_request = true;
+                    } else if unsafe { !QUICK_MENU_ACTIVE } {
+                        // Otherwise, let's let the game know that we had pressed start
+                        // So long as our menu isn't active
+                        p1_controller.current_buttons.set_plus(true);
+                        p1_controller.just_down.set_plus(true);
+                        unsafe {
+                            VANILLA_MENU_ACTIVE = true;
+                        }
                     }
                 }
+                *start_hold_frames = 0;
             }
-            *start_hold_frames = 0;
         }
 
         let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.lock();

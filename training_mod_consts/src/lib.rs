@@ -83,6 +83,7 @@ pub struct TrainingModpackMenu {
     pub hitstun_playback: HitstunPlayback,
     pub playback_mash: OnOff,
     pub playback_loop: OnOff,
+    pub menu_open_start_press: OnOff,
     pub save_state_save: ButtonConfig,
     pub save_state_load: ButtonConfig,
     pub input_record: ButtonConfig,
@@ -187,6 +188,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
     playback_loop: OnOff::Off,
+    menu_open_start_press: OnOff::On,
     save_state_save: ButtonConfig::ZL.union(ButtonConfig::DPAD_DOWN),
     save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
@@ -854,6 +856,13 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         tab_title: "Button Config".to_string(),
         tab_submenus: Vec::new(),
     };
+    button_tab.add_submenu_with_toggles::<OnOff>(
+        "Menu Open Start Press".to_string(),
+        "menu_open_start_press".to_string(),
+        "Menu Open Start Press: Press start to open the mod menu. To open the original menu, hold start.\nThe default menu open option is always available as Hold B + Press DPad Up.".to_string(),
+        true,
+        &(menu.menu_open_start_press as u32),
+    );
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
         "Save State Save".to_string(),
         "save_state_save".to_string(),
@@ -861,7 +870,6 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         false,
         &(menu.save_state_save.bits() as u32),
     );
-
     button_tab.add_submenu_with_toggles::<ButtonConfig>(
         "Save State Load".to_string(),
         "save_state_load".to_string(),

@@ -372,9 +372,6 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("TrModMenu")
         .unwrap()
         .set_visible(QUICK_MENU_ACTIVE);
-    if QUICK_MENU_ACTIVE {
-        common::menu::FRAME_COUNTER += 1;
-    }
 
     // Make all invisible first
     (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {
