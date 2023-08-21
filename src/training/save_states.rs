@@ -439,7 +439,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         on_ptrainer_death(module_accessor);
         if !is_dead(module_accessor) {
             on_death(fighter_kind, module_accessor);
-            StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
+            let status_kind = StatusModule::status_kind(module_accessor);
+            let is_grabbed = (*FIGHTER_STATUS_KIND_CAPTURE_PULLED..*FIGHTER_STATUS_KIND_CAPTURE_JUMP).contains(&status_kind);
+            if !is_grabbed {
+                StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
+            }
+            
         }
 
         save_state.state = WaitForAlive;
