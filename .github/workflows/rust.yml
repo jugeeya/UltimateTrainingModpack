@@ -60,7 +60,7 @@ jobs:
           cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
-        run: cargo-skyline skyline build --release
+        run: RUSTFLAGS=-g cargo-skyline skyline build --release
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v3
         with:
@@ -85,7 +85,7 @@ jobs:
           cargo install cargo-skyline
           cargo-skyline skyline update-std
       - name: Build outside_training_mode NRO
-        run: cargo-skyline skyline build --release --features outside_training_mode
+        run: RUSTFLAGS=-g cargo-skyline skyline build --release --features outside_training_mode
       - name: Upload plugin (outside training mode) artifact
         uses: actions/upload-artifact@v3
         with:

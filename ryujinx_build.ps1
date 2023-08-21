@@ -12,6 +12,9 @@ $SMASH_NSP_PATH='C:\Users\Josh\Documents\Games\ROMs\Super Smash Bros Ultimate [B
 
 
 $IP=(Test-Connection -ComputerName (hostname) -Count 1  | Select -ExpandProperty IPV4Address).IPAddressToString
+
+# Set symbols flag
+$env:RUSTFLAGS="-g"
 cargo skyline build --release --features layout_arc_from_file
 if (($lastexitcode -ne 0)) {
     exit $lastexitcode
