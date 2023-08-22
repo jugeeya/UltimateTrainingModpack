@@ -644,6 +644,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         true,
         &(menu.crouch as u32),
     );
+    defensive_tab.add_submenu_with_toggles::<OnOff>(
+        "Dodge Staling".to_string(),
+        "stale_dodges".to_string(),
+        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use"
+            .to_string(),
+        true,
+        &(menu.stale_dodges as u32),
+    );
     overall_menu.tabs.push(defensive_tab);
 
     let mut save_state_tab = Tab {
@@ -779,14 +787,6 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         "HUD: Show/hide elements of the UI".to_string(),
         true,
         &(menu.hud as u32),
-    );
-    misc_tab.add_submenu_with_toggles::<OnOff>(
-        "Dodge Staling".to_string(),
-        "stale_dodges".to_string(),
-        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use"
-            .to_string(),
-        true,
-        &(menu.stale_dodges as u32),
     );
     misc_tab.add_submenu_with_toggles::<UpdatePolicy>(
         "Auto-Update".to_string(),
