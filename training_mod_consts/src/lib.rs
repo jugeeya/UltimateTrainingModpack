@@ -339,6 +339,48 @@ pub struct UiMenu {
 pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     let mut overall_menu = UiMenu { tabs: Vec::new() };
 
+    let mut button_tab = Tab {
+        tab_id: "button".to_string(),
+        tab_title: "Button Config".to_string(),
+        tab_submenus: Vec::new(),
+    };
+    button_tab.add_submenu_with_toggles::<OnOff>(
+        "Menu Open Start Press".to_string(),
+        "menu_open_start_press".to_string(),
+        "Menu Open Start Press: Press start to open the mod menu. To open the original menu, hold start.\nThe default menu open option is always available as Hold B + Press DPad Up.".to_string(),
+        true,
+        &(menu.menu_open_start_press as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Save".to_string(),
+        "save_state_save".to_string(),
+        "Save State Save: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.save_state_save.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Load".to_string(),
+        "save_state_load".to_string(),
+        "Save State Load: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.save_state_load.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Record".to_string(),
+        "input_record".to_string(),
+        "Input Record: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.input_record.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Playback".to_string(),
+        "input_playback".to_string(),
+        "Input Playback: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.input_playback.bits() as u32),
+    );
+    overall_menu.tabs.push(button_tab);
+
     let mut mash_tab = Tab {
         tab_id: "mash".to_string(),
         tab_title: "Mash Settings".to_string(),
@@ -850,48 +892,6 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         &(menu.recording_crop as u32),
     );
     overall_menu.tabs.push(input_tab);
-
-    let mut button_tab = Tab {
-        tab_id: "button".to_string(),
-        tab_title: "Button Config".to_string(),
-        tab_submenus: Vec::new(),
-    };
-    button_tab.add_submenu_with_toggles::<OnOff>(
-        "Menu Open Start Press".to_string(),
-        "menu_open_start_press".to_string(),
-        "Menu Open Start Press: Press start to open the mod menu. To open the original menu, hold start.\nThe default menu open option is always available as Hold B + Press DPad Up.".to_string(),
-        true,
-        &(menu.menu_open_start_press as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Save".to_string(),
-        "save_state_save".to_string(),
-        "Save State Save: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.save_state_save.bits() as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Load".to_string(),
-        "save_state_load".to_string(),
-        "Save State Load: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.save_state_load.bits() as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Record".to_string(),
-        "input_record".to_string(),
-        "Input Record: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.input_record.bits() as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Playback".to_string(),
-        "input_playback".to_string(),
-        "Input Playback: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.input_playback.bits() as u32),
-    );
-    overall_menu.tabs.push(button_tab);
 
     overall_menu
 }

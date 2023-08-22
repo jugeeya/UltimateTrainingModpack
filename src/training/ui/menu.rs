@@ -381,7 +381,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     } else if menu_close_wait_frame > 0 {
         fade_out(
             overall_parent_pane,
-            30 - menu_close_wait_frame,
+            MENU_CLOSE_WAIT_FRAMES - menu_close_wait_frame,
             MENU_CLOSE_WAIT_FRAMES,
         );
     } else {
