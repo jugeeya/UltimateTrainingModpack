@@ -800,4 +800,5 @@ pub fn training_mods() {
     tech::init();
     input_record::init();
     ui::init();
+    menu::init();
 }

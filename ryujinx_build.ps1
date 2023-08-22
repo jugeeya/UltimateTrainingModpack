@@ -7,7 +7,7 @@ $LOCAL_LAYOUT_ARC_PATH="C:\Users\Josh\Documents\Games\UltimateTrainingModpack\sr
 $RYUJINX_PLUGIN_PATH="C:\Users\Josh\AppData\Roaming\Ryujinx\mods\contents\01006a800016e000\romfs\skyline\plugins\libtraining_modpack.nro"
 $LOCAL_PLUGIN_PATH="C:\Users\Josh\Documents\Games\UltimateTrainingModpack\target\aarch64-skyline-switch\release\libtraining_modpack.nro"
 
-$RYUJINX_EXE_PATH="C:\Users\Josh\Documents\Games\Ryujinx\publish\Ryujinx.exe"
+$RYUJINX_EXE_PATH="C:\Users\Josh\Documents\Games\Ryujinx\ryujinx-1.1.999-win_x64\publish\Ryujinx.exe"
 $SMASH_NSP_PATH='C:\Users\Josh\Documents\Games\ROMs\Super Smash Bros Ultimate [Base Game]\Super Smash Bros Ultimate[01006A800016E000][US][v0].nsp'
 
 

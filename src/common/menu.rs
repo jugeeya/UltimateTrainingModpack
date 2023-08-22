@@ -13,11 +13,17 @@ use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::*;
 use crate::logging::*;
+use crate::training::frame_counter;
 
-// This is a special frame counter that will tick on draw()
-// We'll count how long the menu has been open
-pub static mut FRAME_COUNTER: u32 = 0;
+pub static mut FRAME_COUNTER_INDEX: usize = 0;
+pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER_INDEX = frame_counter::register_counter_no_reset();
+    }
+}
 
 pub unsafe fn menu_condition() -> bool {
     button_config::combo_passes_exclusive(button_config::ButtonCombo::OpenMenu)
@@ -115,13 +121,28 @@ lazy_static! {
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
-    controller_struct: &SomeControllerStruct,
+    controller_struct: &mut SomeControllerStruct,
     out: *mut MappedInputs,
 ) {
     unsafe {
         if player_idx == 0 {
-            let p1_controller = *controller_struct.controller;
+            let p1_controller = &mut *controller_struct.controller;
             *P1_CONTROLLER_STYLE.lock() = p1_controller.style;
+            if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > 0
+                && frame_counter::get_frame_count(FRAME_COUNTER_INDEX) < MENU_CLOSE_WAIT_FRAMES
+            {
+                // If we just closed the menu, kill all inputs to avoid accidental presses
+                *out = MappedInputs::empty();
+                p1_controller.current_buttons = ButtonBitfield::default();
+                p1_controller.previous_buttons = ButtonBitfield::default();
+                p1_controller.just_down = ButtonBitfield::default();
+                p1_controller.just_release = ButtonBitfield::default();
+            } else if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) >= MENU_CLOSE_WAIT_FRAMES
+            {
+                frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+                frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+            }
+
             if QUICK_MENU_ACTIVE {
                 // If we're here, remove all other presses
                 *out = MappedInputs::empty();
@@ -178,11 +199,21 @@ pub fn handle_final_input_mapping(
                         app.on_b()
                     } else {
                         // Leave menu.
+                        frame_counter::start_counting(FRAME_COUNTER_INDEX);
                         QUICK_MENU_ACTIVE = false;
                         let menu_json = app.get_menu_selections();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
+                });
+                button_mapping(ButtonConfig::PLUS, style, button_presses).then(|| {
+                    received_input = true;
+                    // Leave menu.
+                    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+                    QUICK_MENU_ACTIVE = false;
+                    let menu_json = app.get_menu_selections();
+                    set_menu_from_json(&menu_json);
+                    EVENT_QUEUE.push(Event::menu_open(menu_json));
                 });
                 button_mapping(ButtonConfig::X, style, button_presses).then(|| {
                     app.save_defaults();
