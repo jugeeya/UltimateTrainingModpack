@@ -35,7 +35,7 @@ use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 
 // Don't remove Mii hats, or Luma, or crafting table
-const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 7] = [
+const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 8] = [
     (
         FIGHTER_KIND_MIIFIGHTER,
         FIGHTER_MIIFIGHTER_GENERATE_ARTICLE_HAT,
@@ -52,6 +52,7 @@ const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 7] = [
     (FIGHTER_KIND_PICKEL, FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE),
     (FIGHTER_KIND_ELIGHT, FIGHTER_ELIGHT_GENERATE_ARTICLE_ESWORD),
     (FIGHTER_KIND_EFLAME, FIGHTER_EFLAME_GENERATE_ARTICLE_ESWORD),
+    (FIGHTER_KIND_PIKMIN, FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN),
 ];
 
 extern "C" {
@@ -439,12 +440,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         on_ptrainer_death(module_accessor);
         if !is_dead(module_accessor) {
             on_death(fighter_kind, module_accessor);
-            let status_kind = StatusModule::status_kind(module_accessor);
-            let is_grabbed = (*FIGHTER_STATUS_KIND_CAPTURE_PULLED..*FIGHTER_STATUS_KIND_CAPTURE_JUMP).contains(&status_kind);
-            if !is_grabbed {
-                StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
-            }
-            
+             StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
         }
 
         save_state.state = WaitForAlive;
