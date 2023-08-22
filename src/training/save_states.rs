@@ -35,7 +35,7 @@ use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 
 // Don't remove Mii hats, or Luma, or crafting table
-const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 7] = [
+const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 8] = [
     (
         FIGHTER_KIND_MIIFIGHTER,
         FIGHTER_MIIFIGHTER_GENERATE_ARTICLE_HAT,
@@ -52,6 +52,7 @@ const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 7] = [
     (FIGHTER_KIND_PICKEL, FIGHTER_PICKEL_GENERATE_ARTICLE_TABLE),
     (FIGHTER_KIND_ELIGHT, FIGHTER_ELIGHT_GENERATE_ARTICLE_ESWORD),
     (FIGHTER_KIND_EFLAME, FIGHTER_EFLAME_GENERATE_ARTICLE_ESWORD),
+    (FIGHTER_KIND_PIKMIN, FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN),
 ];
 
 extern "C" {
