@@ -2,11 +2,15 @@ use std::collections::HashMap;
 
 use crate::common::*;
 use crate::input::{ControllerStyle::*, *};
+use crate::training::frame_counter;
+use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+
+use super::menu::QUICK_MENU_ACTIVE;
 
 pub fn button_mapping(
     button_config: ButtonConfig,
@@ -55,9 +59,12 @@ pub enum ButtonCombo {
     InputPlayback,
 }
 
+pub const DEFAULT_OPEN_MENU_CONFIG: ButtonConfig = ButtonConfig::B.union(ButtonConfig::DPAD_UP);
+
 unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     match combo {
-        ButtonCombo::OpenMenu => MENU.menu_open,
+        // For OpenMenu, have a default in addition to accepting start press
+        ButtonCombo::OpenMenu => DEFAULT_OPEN_MENU_CONFIG,
         ButtonCombo::SaveState => MENU.save_state_save,
         ButtonCombo::LoadState => MENU.save_state_load,
         ButtonCombo::InputRecord => MENU.input_record,
@@ -74,6 +81,7 @@ lazy_static! {
             (ButtonCombo::InputRecord, false),
             (ButtonCombo::InputPlayback, false),
         ]));
+    static ref START_HOLD_FRAMES: Mutex<u32> = Mutex::new(0);
 }
 
 fn combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
@@ -124,15 +132,53 @@ pub fn combo_passes_exclusive(combo: ButtonCombo) -> bool {
     }
 }
 
-pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &SomeControllerStruct) {
+pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeControllerStruct) {
     if player_idx == 0 {
-        let p1_controller = *controller_struct.controller;
+        let p1_controller = &mut *controller_struct.controller;
+        let mut start_menu_request = false;
+
+        let menu_close_wait_frame =
+            unsafe { frame_counter::get_frame_count(menu::FRAME_COUNTER_INDEX) };
+        if unsafe { MENU.menu_open_start_press == OnOff::On } {
+            let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
+            if p1_controller.current_buttons.plus() {
+                *start_hold_frames += 1;
+                p1_controller.previous_buttons.set_plus(false);
+                p1_controller.current_buttons.set_plus(false);
+                p1_controller.just_down.set_plus(false);
+                p1_controller.just_release.set_plus(false);
+            } else {
+                if *start_hold_frames > 0 && menu_close_wait_frame == 0 {
+                    // Here, we just finished holding start
+                    if *start_hold_frames < 10
+                        && unsafe { !VANILLA_MENU_ACTIVE }
+                        && menu_close_wait_frame == 0
+                    {
+                        // If we held for fewer than 10 frames, let's open the training mod menu
+                        start_menu_request = true;
+                    } else if unsafe { !QUICK_MENU_ACTIVE } {
+                        // Otherwise, let's let the game know that we had pressed start
+                        // So long as our menu isn't active
+                        p1_controller.current_buttons.set_plus(true);
+                        p1_controller.just_down.set_plus(true);
+                        unsafe {
+                            VANILLA_MENU_ACTIVE = true;
+                        }
+                    }
+                }
+                *start_hold_frames = 0;
+            }
+        }
+
         let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.lock();
         button_combo_requests
             .iter_mut()
             .for_each(|(combo, is_request)| {
                 if !*is_request {
-                    *is_request = _combo_passes_exclusive(p1_controller, *combo);
+                    *is_request = _combo_passes_exclusive(*p1_controller, *combo);
+                    if *combo == button_config::ButtonCombo::OpenMenu && start_menu_request {
+                        *is_request = true;
+                    }
                 }
             })
     }

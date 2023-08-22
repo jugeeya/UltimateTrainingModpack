@@ -1,15 +1,25 @@
 static mut SHOULD_COUNT: Vec<bool> = vec![];
+static mut NO_RESET: Vec<bool> = vec![];
 static mut COUNTERS: Vec<u32> = vec![];
 
-pub fn register_counter() -> usize {
+fn _register_counter(no_reset: bool) -> usize {
     unsafe {
         let index = COUNTERS.len();
 
         COUNTERS.push(0);
         SHOULD_COUNT.push(false);
+        NO_RESET.push(no_reset);
 
         index
     }
+}
+
+pub fn register_counter_no_reset() -> usize {
+    _register_counter(true)
+}
+
+pub fn register_counter() -> usize {
+    _register_counter(false)
 }
 
 pub fn start_counting(index: usize) {
@@ -81,6 +91,9 @@ pub fn tick() {
 pub fn reset_all() {
     unsafe {
         for (index, _frame) in COUNTERS.iter().enumerate() {
+            if NO_RESET[index] {
+                continue;
+            }
             full_reset(index);
         }
     }

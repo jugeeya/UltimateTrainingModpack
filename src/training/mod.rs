@@ -701,8 +701,8 @@ unsafe fn handle_final_input_mapping(
     if !is_training_mode() {
         return;
     }
-    button_config::handle_final_input_mapping(player_idx, controller_struct);
     menu::handle_final_input_mapping(player_idx, controller_struct, out);
+    button_config::handle_final_input_mapping(player_idx, controller_struct);
     dev_config::handle_final_input_mapping(player_idx, controller_struct);
     input_delay::handle_final_input_mapping(player_idx, out);
     input_record::handle_final_input_mapping(player_idx, out);
@@ -800,4 +800,5 @@ pub fn training_mods() {
     tech::init();
     input_record::init();
     ui::init();
+    menu::init();
 }

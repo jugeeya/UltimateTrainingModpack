@@ -6,7 +6,11 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
 use training_mod_tui::{App, AppPage, NUM_LISTS};
 
+use crate::common::menu::{self, MENU_CLOSE_WAIT_FRAMES};
+use crate::training::frame_counter;
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
+
+use super::fade_out;
 
 pub static NUM_MENU_TEXT_OPTIONS: usize = 32;
 pub static _NUM_MENU_TABS: usize = 3;
@@ -52,6 +56,8 @@ const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
     b: 7,
     a: 255,
 };
+
+pub static mut VANILLA_MENU_ACTIVE: bool = false;
 
 lazy_static! {
     static ref GCC_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
@@ -346,6 +352,15 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
+    // Determine if we're in the menu by seeing if the "help" footer has
+    // begun moving upward. It starts at -80 and moves to 0 over 10 frames
+    // in info_training_in_menu.bflan
+    VANILLA_MENU_ACTIVE = root_pane
+        .find_pane_by_name_recursive("L_staying_help")
+        .unwrap()
+        .pos_y
+        != -80.0;
+
     // Update menu display
     // Grabbing lock as read-only, essentially
     let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
@@ -357,12 +372,21 @@ pub unsafe fn draw(root_pane: &Pane) {
         }
     }
 
-    root_pane
-        .find_pane_by_name_recursive("TrModMenu")
-        .unwrap()
-        .set_visible(QUICK_MENU_ACTIVE);
+    let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
+    overall_parent_pane.set_visible(true);
+    let menu_close_wait_frame = frame_counter::get_frame_count(menu::FRAME_COUNTER_INDEX);
     if QUICK_MENU_ACTIVE {
-        common::menu::FRAME_COUNTER += 1;
+        overall_parent_pane.alpha = 255;
+        overall_parent_pane.global_alpha = 255;
+    } else if menu_close_wait_frame > 0 {
+        fade_out(
+            overall_parent_pane,
+            MENU_CLOSE_WAIT_FRAMES - menu_close_wait_frame,
+            MENU_CLOSE_WAIT_FRAMES,
+        );
+    } else {
+        overall_parent_pane.alpha = 0;
+        overall_parent_pane.global_alpha = 0;
     }
 
     // Make all invisible first

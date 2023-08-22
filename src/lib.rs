@@ -18,8 +18,9 @@ use std::fs;
 use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
-use training_mod_consts::LEGACY_TRAINING_MODPACK_ROOT;
+use training_mod_consts::{OnOff, LEGACY_TRAINING_MODPACK_ROOT};
 
+use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
 use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
@@ -117,7 +118,15 @@ pub fn main() {
 
     unsafe {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification("Open Menu".to_string(), MENU.menu_open.to_string(), 120);
+        notification(
+            "Open Menu".to_string(),
+            if MENU.menu_open_start_press == OnOff::On {
+                "Start".to_string()
+            } else {
+                DEFAULT_OPEN_MENU_CONFIG.to_string()
+            },
+            120,
+        );
         notification(
             "Save State".to_string(),
             MENU.save_state_save.to_string(),
