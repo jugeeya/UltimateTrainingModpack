@@ -59,10 +59,12 @@ pub enum ButtonCombo {
     InputPlayback,
 }
 
+pub const DEFAULT_OPEN_MENU_CONFIG: ButtonConfig = ButtonConfig::B.union(ButtonConfig::DPAD_UP);
+
 unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     match combo {
         // For OpenMenu, have a default in addition to accepting start press
-        ButtonCombo::OpenMenu => ButtonConfig::B.union(ButtonConfig::DPAD_UP),
+        ButtonCombo::OpenMenu => DEFAULT_OPEN_MENU_CONFIG,
         ButtonCombo::SaveState => MENU.save_state_save,
         ButtonCombo::LoadState => MENU.save_state_load,
         ButtonCombo::InputRecord => MENU.input_record,
