@@ -222,6 +222,8 @@ fn test_toggle_naming() -> Result<(), Box<dyn Error>> {
     }
 
     let (mut terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Set Mash Airdodge
