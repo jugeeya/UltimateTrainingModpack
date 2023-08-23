@@ -823,7 +823,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     misc_tab.add_submenu_with_toggles::<UpdatePolicy>(
         "Auto-Update".to_string(),
         "update_policy".to_string(),
-        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)"
+        "Auto-Update: What type of Training Modpack updates to automatically apply. (Console Only!)"
             .to_string(),
         true,
         &(menu.update_policy as u32),
@@ -850,11 +850,18 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         &(menu.record_trigger.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordingFrames>(
-        "Recording Frames".to_string(),
+        "Recording Duration".to_string(),
         "recording_frames".to_string(),
-        "Recording Frames: Number of frames to record for in the current slot".to_string(),
+        "Recording Duration: Number of frames to record for in the current slot".to_string(),
         true,
         &(menu.recording_frames as u32),
+    );
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Recording Crop".to_string(),
+        "recording_crop".to_string(),
+        "Recording Crop: Remove neutral input frames at the end of your recording".to_string(),
+        true,
+        &(menu.recording_crop as u32),
     );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
         "Playback Button Combination".to_string(),
@@ -883,13 +890,6 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         "Playback Loop: Repeat triggered input playbacks indefinitely".to_string(),
         true,
         &(menu.playback_loop as u32),
-    );
-    input_tab.add_submenu_with_toggles::<OnOff>(
-        "Recording Crop".to_string(),
-        "recording_crop".to_string(),
-        "Recording Crop: Remove neutral input frames at the end of your recording".to_string(),
-        true,
-        &(menu.recording_crop as u32),
     );
     overall_menu.tabs.push(input_tab);
 
