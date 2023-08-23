@@ -245,6 +245,7 @@ impl InputLog {
         self.raw_inputs.current_buttons != other.raw_inputs.current_buttons
             || self.raw_binned_lstick() != other.raw_binned_lstick()
             || self.raw_binned_rstick() != other.raw_binned_rstick()
+            || self.status != other.status
     }
 
     fn raw_binned_lstick(&self) -> (DirectionStrength, f32) {

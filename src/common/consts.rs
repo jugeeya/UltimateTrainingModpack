@@ -3,6 +3,7 @@ use smash::lib::lua_const::*;
 use smash::lib::LuaConst;
 pub use training_mod_consts::*;
 
+use convert_case::{Case, Casing};
 use lazy_static::lazy_static;
 use smush_info_shared::Character;
 use std::collections::HashMap;
@@ -2477,15 +2478,19 @@ pub fn status_display_name(fighter_kind: i32, status: i32) -> String {
         .iter()
         .find(|status| status.starts_with(common_status_kind_identifier))
     {
-        return common_status_name.replace(common_status_kind_identifier, "");
+        return common_status_name
+            .replace(common_status_kind_identifier, "")
+            .to_case(Case::Pascal);
     }
 
     if let Some(character_status_name) = matching_statuses
         .iter()
         .find(|status| status.starts_with(&character_status_kind_identifier))
     {
-        return character_status_name.replace(&character_status_kind_identifier, "");
+        return character_status_name
+            .replace(&character_status_kind_identifier, "")
+            .to_case(Case::Pascal);
     }
 
-    STATUS_UNKNOWN.to_owned()
+    format!("Status0x{status:x}")
 }
