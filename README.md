@@ -490,7 +490,7 @@ These are the features that can be found [in the latest beta release](https://gi
 
 ## Features
 * **Input Recording**: Trigger a recording and play it back (default binds: `R+DPad Down`, `R+DPad Up` respectively)! These recordings can be customized in terms of length between 60 and 600 frames, looping, and more! They can be configured to run in familiar situations like Mash or Ledge options and more - @GradualSyrup, @jugeeya
-* * **Input Display**: (Not yet in beta) Show inputs in a per-status, frame counted log-style viewer! Choose between raw controller inputs and "Smash"-style inputs, being what the game actually understands and passes to fighters - @jugeeya, @xhudaman
+* **Input Display**: (Not yet in beta) Show inputs in a per-status, frame counted log-style viewer! Choose between raw controller inputs and "Smash"-style inputs, being what the game actually understands and passes to fighters - @jugeeya, @xhudaman
 * **Auto-Updater**: Allow the modpack to automatically update itself when updates are available. Users can choose which update track they'd like from the Stable or Beta track in the menu - @asimon-1
 * **Mash Overrides**: Specify which mash options to perform in specific scenarios - @GradualSyrup, @asimon-1
 * **Customizable Button Configs**: Configure button combinations for save states and input recording in the menu itself. Please note that we now use raw inputs rather than Smash inputs, and save state save/load binds have moved to `L+DPad Down`, `L+DPad Up` respectively - @jugeeya
