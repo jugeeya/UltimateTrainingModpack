@@ -168,6 +168,10 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
                 }
                 *start_hold_frames = 0;
             }
+
+            if p1_controller.current_buttons.minus() {
+                start_menu_request = true;
+            }
         }
 
         let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.lock();
