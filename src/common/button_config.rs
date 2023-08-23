@@ -170,7 +170,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
             }
 
             if p1_controller.current_buttons.minus() {
-                *start_menu_request = true;
+                start_menu_request = true;
             }
         }
 
