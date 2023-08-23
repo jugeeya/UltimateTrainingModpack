@@ -78,8 +78,8 @@ pub struct TrainingModpackMenu {
     pub trump_override: Action,
     pub recording_slot: RecordSlot,
     pub record_trigger: RecordTrigger,
-    pub recording_frames: RecordingFrames,
-    pub playback_button_combination: PlaybackSlot,
+    pub recording_duration: RecordingDuration,
+    pub playback_button_slots: PlaybackSlot,
     pub hitstun_playback: HitstunPlayback,
     pub playback_mash: OnOff,
     pub playback_loop: OnOff,
@@ -182,9 +182,9 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     landing_override: Action::empty(),
     trump_override: Action::empty(),
     recording_slot: RecordSlot::S1,
-    recording_frames: RecordingFrames::F150,
+    recording_duration: RecordingDuration::F150,
     record_trigger: RecordTrigger::COMMAND,
-    playback_button_combination: PlaybackSlot::S1,
+    playback_button_slots: PlaybackSlot::S1,
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
     playback_loop: OnOff::Off,
@@ -849,19 +849,19 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         false,
         &(menu.record_trigger.bits() as u32),
     );
-    input_tab.add_submenu_with_toggles::<RecordingFrames>(
-        "Recording Frames".to_string(),
-        "recording_frames".to_string(),
-        "Recording Frames: Number of frames to record for in the current slot".to_string(),
+    input_tab.add_submenu_with_toggles::<RecordingDuration>(
+        "Recording Duration".to_string(),
+        "recording_duration".to_string(),
+        "Recording Duration: Number of frames to record for in the current slot".to_string(),
         true,
-        &(menu.recording_frames as u32),
+        &(menu.recording_duration as u32),
     );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
-        "Playback Button Combination".to_string(),
-        "playback_button_combination".to_string(),
-        format!("Playback Button Combination: Choose which slots to playback input recording upon pressing button combination ({})", menu.input_playback.combination_string()),
+        "Playback Button Slots".to_string(),
+        "playback_button_slots".to_string(),
+        format!("Playback Button Slots: Choose which slots to playback input recording upon pressing button combination ({})", menu.input_playback.combination_string()),
         false,
-        &(menu.playback_button_combination.bits() as u32),
+        &(menu.playback_button_slots.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<HitstunPlayback>(
         "Playback Hitstun Timing".to_string(),
