@@ -129,7 +129,7 @@ fn once_per_frame_per_fighter(
             // Handle dodge staling here b/c input recording or mash can cause dodging
             WorkModule::set_flag(
                 module_accessor,
-                !(MENU.stale_dodges.as_bool().unwrap()),
+                !(MENU.stale_dodges.as_bool()),
                 *FIGHTER_INSTANCE_WORK_ID_FLAG_DISABLE_ESCAPE_PENALTY,
             );
         }

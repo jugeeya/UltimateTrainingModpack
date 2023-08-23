@@ -441,11 +441,11 @@ impl OnOff {
         }
     }
 
-    pub fn as_bool(self) -> Option<bool> {
-        Some(match self {
+    pub fn as_bool(self) -> bool {
+        match self {
             OnOff::Off => false,
             OnOff::On => true,
-        })
+        }
     }
 }
 
