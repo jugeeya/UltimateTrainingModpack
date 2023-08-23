@@ -212,7 +212,7 @@ pub fn perform_version_check() {
                     "This update has been declined.\n\n\
                     If you'd like to disable update checking in the future,\
                     please adjust the 'Auto-Update' setting in the Modpack menu."
-                    .to_string()
+                        .to_string(),
                 );
             }
         }
