@@ -206,7 +206,9 @@ pub fn handle_final_input_mapping(
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
                 });
-                button_mapping(ButtonConfig::PLUS, style, button_presses).then(|| {
+                (button_mapping(ButtonConfig::PLUS, style, button_presses)
+                    || button_mapping(ButtonConfig::MINUS, style, button_presses))
+                .then(|| {
                     received_input = true;
                     // Leave menu.
                     frame_counter::start_counting(FRAME_COUNTER_INDEX);
