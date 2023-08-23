@@ -647,7 +647,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     defensive_tab.add_submenu_with_toggles::<OnOff>(
         "Dodge Staling".to_string(),
         "stale_dodges".to_string(),
-        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use"
+        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)"
             .to_string(),
         true,
         &(menu.stale_dodges as u32),
