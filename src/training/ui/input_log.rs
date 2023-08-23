@@ -6,7 +6,10 @@ use training_mod_consts::{InputDisplay, MENU};
 
 use crate::{
     common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
-    training::input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS, WHITE, YELLOW},
+    training::{
+        input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS, WHITE, YELLOW},
+        ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
+    },
 };
 
 macro_rules! log_parent_fmt {
@@ -68,21 +71,14 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         .find_pane_by_name_recursive(log_parent_fmt!(log_idx))
         .unwrap();
 
-    log_pane.set_visible(!QUICK_MENU_ACTIVE && MENU.input_display != InputDisplay::None);
+    log_pane.set_visible(
+        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::None,
+    );
     if MENU.input_display == InputDisplay::None {
         return;
     }
     const FADE_FRAMES: u32 = 200;
-    if log.ttl < FADE_FRAMES {
-        // Logarithmic fade out
-        let alpha =
-            ((255.0 / (FADE_FRAMES as f32 + 1.0).log10()) * (log.ttl as f32 + 1.0).log10()) as u8;
-        log_pane.alpha = alpha;
-        log_pane.global_alpha = alpha;
-    } else {
-        log_pane.alpha = 255;
-        log_pane.global_alpha = 255;
-    }
+    fade_out(log_pane, log.ttl, FADE_FRAMES);
 
     let icons = get_input_icons(log);
 

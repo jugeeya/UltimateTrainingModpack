@@ -84,7 +84,7 @@ pub struct TrainingModpackMenu {
     pub hitstun_playback: HitstunPlayback,
     pub playback_mash: OnOff,
     pub playback_loop: OnOff,
-    pub menu_open: ButtonConfig,
+    pub menu_open_start_press: OnOff,
     pub save_state_save: ButtonConfig,
     pub save_state_load: ButtonConfig,
     pub input_record: ButtonConfig,
@@ -190,7 +190,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     hitstun_playback: HitstunPlayback::Hitstun,
     playback_mash: OnOff::On,
     playback_loop: OnOff::Off,
-    menu_open: ButtonConfig::B.union(ButtonConfig::DPAD_UP),
+    menu_open_start_press: OnOff::On,
     save_state_save: ButtonConfig::ZL.union(ButtonConfig::DPAD_DOWN),
     save_state_load: ButtonConfig::ZL.union(ButtonConfig::DPAD_UP),
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
@@ -340,6 +340,48 @@ pub struct UiMenu {
 
 pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     let mut overall_menu = UiMenu { tabs: Vec::new() };
+
+    let mut button_tab = Tab {
+        tab_id: "button".to_string(),
+        tab_title: "Button Config".to_string(),
+        tab_submenus: Vec::new(),
+    };
+    button_tab.add_submenu_with_toggles::<OnOff>(
+        "Menu Open Start Press".to_string(),
+        "menu_open_start_press".to_string(),
+        "Menu Open Start Press: Press start to open the mod menu. To open the original menu, hold start.\nThe default menu open option is always available as Hold B + Press DPad Up.".to_string(),
+        true,
+        &(menu.menu_open_start_press as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Save".to_string(),
+        "save_state_save".to_string(),
+        "Save State Save: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.save_state_save.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Save State Load".to_string(),
+        "save_state_load".to_string(),
+        "Save State Load: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.save_state_load.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Record".to_string(),
+        "input_record".to_string(),
+        "Input Record: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.input_record.bits() as u32),
+    );
+    button_tab.add_submenu_with_toggles::<ButtonConfig>(
+        "Input Playback".to_string(),
+        "input_playback".to_string(),
+        "Input Playback: Hold any one button and press the others to trigger".to_string(),
+        false,
+        &(menu.input_playback.bits() as u32),
+    );
+    overall_menu.tabs.push(button_tab);
 
     let mut mash_tab = Tab {
         tab_id: "mash".to_string(),
@@ -790,7 +832,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     misc_tab.add_submenu_with_toggles::<UpdatePolicy>(
         "Auto-Update".to_string(),
         "update_policy".to_string(),
-        "Auto-Update: What type of Training Modpack updates to automatically apply. (CONSOLE ONLY)"
+        "Auto-Update: What type of Training Modpack updates to automatically apply. (Console Only!)"
             .to_string(),
         true,
         &(menu.update_policy as u32),
@@ -817,11 +859,18 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         &(menu.record_trigger.bits() as u32),
     );
     input_tab.add_submenu_with_toggles::<RecordingFrames>(
-        "Recording Frames".to_string(),
+        "Recording Duration".to_string(),
         "recording_frames".to_string(),
-        "Recording Frames: Number of frames to record for in the current slot".to_string(),
+        "Recording Duration: Number of frames to record for in the current slot".to_string(),
         true,
         &(menu.recording_frames as u32),
+    );
+    input_tab.add_submenu_with_toggles::<OnOff>(
+        "Recording Crop".to_string(),
+        "recording_crop".to_string(),
+        "Recording Crop: Remove neutral input frames at the end of your recording".to_string(),
+        true,
+        &(menu.recording_crop as u32),
     );
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
         "Playback Button Combination".to_string(),
@@ -851,57 +900,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         true,
         &(menu.playback_loop as u32),
     );
-    input_tab.add_submenu_with_toggles::<OnOff>(
-        "Recording Crop".to_string(),
-        "recording_crop".to_string(),
-        "Recording Crop: Remove neutral input frames at the end of your recording".to_string(),
-        true,
-        &(menu.recording_crop as u32),
-    );
     overall_menu.tabs.push(input_tab);
-
-    let mut button_tab = Tab {
-        tab_id: "button".to_string(),
-        tab_title: "Button Config".to_string(),
-        tab_submenus: Vec::new(),
-    };
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Menu Open".to_string(),
-        "menu_open".to_string(),
-        "Menu Open: Hold: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.menu_open.bits() as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Save".to_string(),
-        "save_state_save".to_string(),
-        "Save State Save: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.save_state_save.bits() as u32),
-    );
-
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Save State Load".to_string(),
-        "save_state_load".to_string(),
-        "Save State Load: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.save_state_load.bits() as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Record".to_string(),
-        "input_record".to_string(),
-        "Input Record: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.input_record.bits() as u32),
-    );
-    button_tab.add_submenu_with_toggles::<ButtonConfig>(
-        "Input Playback".to_string(),
-        "input_playback".to_string(),
-        "Input Playback: Hold any one button and press the others to trigger".to_string(),
-        false,
-        &(menu.input_playback.bits() as u32),
-    );
-    overall_menu.tabs.push(button_tab);
 
     overall_menu
 }

@@ -705,27 +705,27 @@ unsafe fn handle_final_input_mapping(
         return;
     }
 
-    // Grab button input requests from player
-    // Non-mutable pull
-    button_config::handle_final_input_mapping(player_idx, controller_struct);
-
-    // Grab menu inputs from player
-    // Non-mutable pull
-    menu::handle_final_input_mapping(player_idx, controller_struct, out);
-
     // Check if we should apply hot reload configs
     // Non-mutable pull
     dev_config::handle_final_input_mapping(player_idx, controller_struct);
 
+    // Grab menu inputs from player
+    // MUTATES controller state to kill inputs when in or closing menu
+    menu::handle_final_input_mapping(player_idx, controller_struct, out);
+
+    // Grab button input requests from player
+    // MUTATES controller state to kill start presses for menu
+    button_config::handle_final_input_mapping(player_idx, controller_struct);
+
     // Potentially apply input delay
-    // MUTATES controller state
+    // MUTATES controller state to delay inputs
     input_delay::handle_final_input_mapping(player_idx, out);
 
     // Read potentially delayed state for loggers
     input_log::handle_final_input_mapping(player_idx, controller_struct, out);
 
     // Potentially apply input recording, thus with delay
-    // MUTATES controller state
+    // MUTATES controller state to apply recording or playback
     input_record::handle_final_input_mapping(player_idx, out);
 }
 
@@ -822,4 +822,5 @@ pub fn training_mods() {
     input_log::init();
     input_record::init();
     ui::init();
+    menu::init();
 }

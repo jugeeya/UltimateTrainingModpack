@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use std::collections::VecDeque;
 
-use crate::common::{input::*, try_get_module_accessor};
+use crate::common::{input::*, menu::QUICK_MENU_ACTIVE, try_get_module_accessor};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::ui2d::ResColor;
@@ -277,6 +277,10 @@ pub fn handle_final_input_mapping(
 ) {
     unsafe {
         if MENU.input_display == InputDisplay::None {
+            return;
+        }
+
+        if QUICK_MENU_ACTIVE {
             return;
         }
 

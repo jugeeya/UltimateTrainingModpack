@@ -48,6 +48,8 @@ fn test_set_airdodge() -> Result<(), Box<dyn Error>> {
     }
 
     let (_terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Set Mash Airdodge
@@ -103,6 +105,8 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
 
     let (_terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
 
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Set Mash Airdodge
@@ -146,6 +150,8 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
         "The menu should have Mash Airdodge"
     );
 
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Unset Mash Airdodge
@@ -216,6 +222,8 @@ fn test_toggle_naming() -> Result<(), Box<dyn Error>> {
     }
 
     let (mut terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Set Mash Airdodge

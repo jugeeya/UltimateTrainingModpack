@@ -13,12 +13,17 @@ use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::*;
 use crate::logging::*;
+use crate::training::frame_counter;
 
-// This is a special frame counter that will tick on draw()
-// We'll count how long the menu has been open
-pub static mut FRAME_COUNTER: u32 = 0;
-const MENU_CLOSE_WAIT_FRAMES: u32 = 60;
+pub static mut FRAME_COUNTER_INDEX: usize = 0;
+pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
+
+pub fn init() {
+    unsafe {
+        FRAME_COUNTER_INDEX = frame_counter::register_counter_no_reset();
+    }
+}
 
 pub unsafe fn menu_condition() -> bool {
     button_config::combo_passes_exclusive(button_config::ButtonCombo::OpenMenu)
@@ -72,23 +77,18 @@ pub unsafe fn set_menu_from_json(message: &str) {
 
 pub fn spawn_menu() {
     unsafe {
-        FRAME_COUNTER = 0;
         QUICK_MENU_ACTIVE = true;
     }
 }
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
 enum DirectionButton {
-    DpadLeft,
     LLeft,
     RLeft,
-    DpadDown,
     LDown,
     RDown,
-    DpadRight,
     LRight,
     RRight,
-    DpadUp,
     LUp,
     RUp,
 }
@@ -107,16 +107,12 @@ lazy_static! {
     static ref DIRECTION_HOLD_FRAMES: Mutex<HashMap<DirectionButton, u32>> = {
         use DirectionButton::*;
         Mutex::new(HashMap::from([
-            (DpadLeft, 0),
             (LLeft, 0),
             (RLeft, 0),
-            (DpadDown, 0),
             (LDown, 0),
             (RDown, 0),
-            (DpadRight, 0),
             (LRight, 0),
             (RRight, 0),
-            (DpadUp, 0),
             (LUp, 0),
             (RUp, 0),
         ]))
@@ -125,13 +121,28 @@ lazy_static! {
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
-    controller_struct: &SomeControllerStruct,
+    controller_struct: &mut SomeControllerStruct,
     out: *mut MappedInputs,
 ) {
     unsafe {
         if player_idx == 0 {
-            let p1_controller = *controller_struct.controller;
+            let p1_controller = &mut *controller_struct.controller;
             *P1_CONTROLLER_STYLE.lock() = p1_controller.style;
+            if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > 0
+                && frame_counter::get_frame_count(FRAME_COUNTER_INDEX) < MENU_CLOSE_WAIT_FRAMES
+            {
+                // If we just closed the menu, kill all inputs to avoid accidental presses
+                *out = MappedInputs::empty();
+                p1_controller.current_buttons = ButtonBitfield::default();
+                p1_controller.previous_buttons = ButtonBitfield::default();
+                p1_controller.just_down = ButtonBitfield::default();
+                p1_controller.just_release = ButtonBitfield::default();
+            } else if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) >= MENU_CLOSE_WAIT_FRAMES
+            {
+                frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
+                frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+            }
+
             if QUICK_MENU_ACTIVE {
                 // If we're here, remove all other presses
                 *out = MappedInputs::empty();
@@ -161,16 +172,12 @@ pub fn handle_final_input_mapping(
                     .iter_mut()
                     .for_each(|(direction, frames)| {
                         let still_held = match direction {
-                            DpadLeft => button_current_held.dpad_left(),
                             LLeft => button_current_held.l_left(),
                             RLeft => button_current_held.r_left(),
-                            DpadDown => button_current_held.dpad_down(),
                             LDown => button_current_held.l_down(),
                             RDown => button_current_held.r_down(),
-                            DpadRight => button_current_held.dpad_right(),
                             LRight => button_current_held.l_right(),
                             RRight => button_current_held.r_right(),
-                            DpadUp => button_current_held.dpad_up(),
                             LUp => button_current_held.l_up(),
                             RUp => button_current_held.r_up(),
                         };
@@ -190,14 +197,25 @@ pub fn handle_final_input_mapping(
                     received_input = true;
                     if app.page != AppPage::SUBMENU {
                         app.on_b()
-                    } else if FRAME_COUNTER > MENU_CLOSE_WAIT_FRAMES {
+                    } else {
                         // Leave menu.
+                        frame_counter::start_counting(FRAME_COUNTER_INDEX);
                         QUICK_MENU_ACTIVE = false;
-                        FRAME_COUNTER = 0;
                         let menu_json = app.get_menu_selections();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
+                });
+                (button_mapping(ButtonConfig::PLUS, style, button_presses)
+                    || button_mapping(ButtonConfig::MINUS, style, button_presses))
+                .then(|| {
+                    received_input = true;
+                    // Leave menu.
+                    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+                    QUICK_MENU_ACTIVE = false;
+                    let menu_json = app.get_menu_selections();
+                    set_menu_from_json(&menu_json);
+                    EVENT_QUEUE.push(Event::menu_open(menu_json));
                 });
                 button_mapping(ButtonConfig::X, style, button_presses).then(|| {
                     app.save_defaults();
@@ -227,7 +245,7 @@ pub fn handle_final_input_mapping(
                 (button_presses.dpad_left()
                     || button_presses.l_left()
                     || button_presses.r_left()
-                    || [DpadLeft, LLeft, RLeft].iter().any(hold_condition))
+                    || [LLeft, RLeft].iter().any(hold_condition))
                 .then(|| {
                     received_input = true;
                     app.on_left();
@@ -235,7 +253,7 @@ pub fn handle_final_input_mapping(
                 (button_presses.dpad_right()
                     || button_presses.l_right()
                     || button_presses.r_right()
-                    || [DpadRight, LRight, RRight].iter().any(hold_condition))
+                    || [LRight, RRight].iter().any(hold_condition))
                 .then(|| {
                     received_input = true;
                     app.on_right();
@@ -243,7 +261,7 @@ pub fn handle_final_input_mapping(
                 (button_presses.dpad_up()
                     || button_presses.l_up()
                     || button_presses.r_up()
-                    || [DpadUp, LUp, RUp].iter().any(hold_condition))
+                    || [LUp, RUp].iter().any(hold_condition))
                 .then(|| {
                     received_input = true;
                     app.on_up();
@@ -251,7 +269,7 @@ pub fn handle_final_input_mapping(
                 (button_presses.dpad_down()
                     || button_presses.l_down()
                     || button_presses.r_down()
-                    || [DpadDown, LDown, RDown].iter().any(hold_condition))
+                    || [LDown, RDown].iter().any(hold_condition))
                 .then(|| {
                     received_input = true;
                     app.on_down();

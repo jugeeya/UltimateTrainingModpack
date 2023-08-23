@@ -12,7 +12,7 @@ use crate::consts::LAYOUT_ARC_PATH;
 mod damage;
 mod display;
 mod input_log;
-mod menu;
+pub mod menu;
 pub mod notifications;
 
 pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
@@ -26,6 +26,27 @@ pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
 
     // Add nullptr at end to be sure
     *(it.add(icons.len())) = 0x0;
+}
+
+pub fn fade_out(pane: &mut Pane, current_frame: u32, total_frames: u32) {
+    if current_frame >= total_frames {
+        pane.alpha = 255;
+        pane.global_alpha = 255;
+    } else if current_frame > 0 {
+        // Logarithmic fade out
+        let alpha = ((255.0 / (total_frames as f32 + 1.0).log10())
+            * (current_frame as f32 + 1.0).log10()) as u8;
+        pane.alpha = alpha;
+        pane.global_alpha = alpha;
+
+        // Linear fade out
+        // let alpha = ((current_frame as f32 / 100.0) * 255.0) as u8;
+        // pane.alpha = alpha;
+        // pane.global_alpha = alpha;
+    } else {
+        pane.alpha = 0;
+        pane.global_alpha = 0;
+    }
 }
 
 #[skyline::hook(offset = 0x4b620)]
