@@ -11,7 +11,11 @@ use zip::ZipArchive;
 
 lazy_static! {
     pub static ref CURRENT_VERSION: Mutex<String> =
-        Mutex::new(get_current_version().expect("Could not find current modpack version!\n"));
+        Mutex::new(
+            match get_current_version() {
+                Ok(v) => v,
+                Err(e) => panic!("Could not find current modpack version!: {}", e)
+        });
 }
 
 #[derive(Debug)]

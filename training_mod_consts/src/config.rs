@@ -64,6 +64,11 @@ impl TrainingModpackConfig {
         if fs::metadata(TRAINING_MODPACK_TOML_PATH).is_ok() {
             Err(io::Error::from(io::ErrorKind::AlreadyExists).into())
         } else {
+            if !fs::metadata(TRAINING_MODPACK_ROOT).is_ok() {
+                // Root path doesn't exist, create it before trying to make the file
+                println!("Creating directory...");
+                fs::create_dir_all(TRAINING_MODPACK_ROOT)?;
+            }
             let default_config: TrainingModpackConfig = TrainingModpackConfig::new();
             let contents = toml::to_string(&default_config)?;
             fs::write(TRAINING_MODPACK_TOML_PATH, contents)?;
