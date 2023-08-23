@@ -488,11 +488,25 @@ Developing on Ryujinx on Windows is very easy and has a streamlined script in [r
 # Beta Changelog
 These are the features that can be found [in the latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta) that are not in the stable release. 
 
-### Features
-N/A
+## Features
+* **Input Recording**: Trigger a recording and play it back (default binds: `R+DPad Down`, `R+DPad Up` respectively)! These recordings can be customized in terms of length between 60 and 600 frames, looping, and more! They can be configured to run in familiar situations like Mash or Ledge options and more - @GradualSyrup, @jugeeya
+* **Input Display**: (Not yet in beta) Show inputs in a per-status, frame counted log-style viewer! Choose between raw controller inputs and "Smash"-style inputs, being what the game actually understands and passes to fighters - @jugeeya, @xhudaman
+* **Auto-Updater**: Allow the modpack to automatically update itself when updates are available. Users can choose which update track they'd like from the Stable or Beta track in the menu - @asimon-1
+* **Mash Overrides**: Specify which mash options to perform in specific scenarios - @GradualSyrup, @asimon-1
+* **Customizable Button Configs**: Configure button combinations for save states and input recording in the menu itself. Please note that we now use raw inputs rather than Smash inputs, and save state save/load binds have moved to `L+DPad Down`, `L+DPad Up` respectively - @jugeeya
+* **Press Start to Open Menu**: You can now open the menu with start press; holding start for >= 10 frames gives the original menu. This behavior can be toggled, and the old default `B+DPad Up` will always work. This change allows for much more seamless opening and closing of the modpack's menu - @jugeeya
 
-### Bugfixes
-N/A
+## Bugfixes
+* Keep Luma, Mii Fighter hats, Mythra's sword, and Pikmin when loading save states - @GradualSyrup
+* Fixed bug where the Dash Attack mash option would not properly trigger dash attack - @GradualSyrup
+* Fixed Hero, Little Mac, WFT, Sephiroth, and other characters' SFX/VFX replaying on save state load - @GradualSyrup
+* Fixed missed tech toggles not occurring when characters are jab locked - @GradualSyrup
+* Fixed bugs with regard to menu inputs - @jugeeya
+* Input delay now works properly with the [less delay mod](https://github.com/blu-dev/less-delay) - @jugeeya
 
-### Adjustments
-N/A
+## Adjustments
+* Added Shulk Monado Arts to the Buffs Menu - @GradualSyrup
+* Made menu larger and added more columns for increased visibility, especially on handheld - @jugeeya
+* Users can close the menu immediately after opening it - @jugeeya
+* Menu exit inputs (B, Start) no longer have effects in-game (B causing a Special input, Start reopening the menu or opening the vanilla menu) - @jugeeya
+* Dynamic help text in the menu, so users can quickly see their input binds for button configurations and more - @austintraver
