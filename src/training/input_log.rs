@@ -62,12 +62,15 @@ pub const WHITE: ResColor = ResColor {
     a: 255,
 };
 
-static mut FRAME_COUNTER: usize = 0;
+static mut PER_LOG_FRAME_COUNTER: usize = 0;
+static mut OVERALL_FRAME_COUNTER: usize = 0;
 
 pub fn init() {
     unsafe {
-        FRAME_COUNTER = frame_counter::register_counter_no_reset();
-        frame_counter::start_counting(FRAME_COUNTER);
+        PER_LOG_FRAME_COUNTER = frame_counter::register_counter_no_reset();
+        frame_counter::start_counting(PER_LOG_FRAME_COUNTER);
+        OVERALL_FRAME_COUNTER = frame_counter::register_counter_no_reset();
+        frame_counter::start_counting(OVERALL_FRAME_COUNTER);
     }
 }
 
@@ -84,6 +87,7 @@ pub enum DirectionStrength {
 pub struct InputLog {
     pub ttl: u32,
     pub frames: u32,
+    pub overall_frame: u32,
     pub raw_inputs: Controller,
     pub smash_inputs: MappedInputs,
     pub status: i32,
@@ -94,7 +98,9 @@ fn bin_stick_values(x: f32, y: f32) -> (DirectionStrength, f32) {
     let length = (x * x + y * y).sqrt();
     (
         match length.abs() {
-            x if x > 0.5 => DirectionStrength::Strong,
+            // Smash attack / Dash input threshold
+            x if x > 0.85 => DirectionStrength::Strong,
+            // Deadzone
             x if x > 0.2 => DirectionStrength::Weak,
             _ => DirectionStrength::None,
         },
@@ -292,38 +298,41 @@ pub fn handle_final_input_mapping(
             }
             let module_accessor = module_accessor.unwrap();
 
-            let current_frame = frame_counter::get_frame_count(FRAME_COUNTER);
+            let current_frame = frame_counter::get_frame_count(PER_LOG_FRAME_COUNTER);
+            let current_overall_frame = frame_counter::get_frame_count(OVERALL_FRAME_COUNTER);
             // We should always be counting
-            frame_counter::start_counting(FRAME_COUNTER);
+            frame_counter::start_counting(PER_LOG_FRAME_COUNTER);
 
             let potential_input_log = InputLog {
                 ttl: 600,
                 frames: 1,
+                overall_frame: current_overall_frame,
                 raw_inputs: *controller_struct.controller,
                 smash_inputs: *out,
                 status: StatusModule::status_kind(module_accessor),
                 fighter_kind: utility::get_kind(&mut *module_accessor),
             };
 
-            let mut should_update_ttl = true;
-
             let input_logs = &mut *P1_INPUT_LOGS.lock();
             let latest_input_log = input_logs.first_mut().unwrap();
-            if latest_input_log.is_different(&potential_input_log) {
-                frame_counter::reset_frame_count(FRAME_COUNTER);
+            let prev_overall_frames = latest_input_log.overall_frame;
+            let prev_ttl = latest_input_log.ttl;
+            // Only update if we are on a new frame according to the latest log
+            let is_new_frame = prev_overall_frames != current_overall_frame;
+            if is_new_frame && latest_input_log.is_different(&potential_input_log) {
+                frame_counter::reset_frame_count(PER_LOG_FRAME_COUNTER);
                 // We should count this frame already
-                frame_counter::tick_idx(FRAME_COUNTER);
+                frame_counter::tick_idx(PER_LOG_FRAME_COUNTER);
                 insert_in_front(input_logs, potential_input_log);
-            } else {
-                let prev_frames = latest_input_log.frames;
-                // Only update TTL if we are on a new frame according to the latest log
-                should_update_ttl = prev_frames != current_frame;
+            } else if is_new_frame {
+                *latest_input_log = potential_input_log;
                 latest_input_log.frames = std::cmp::min(current_frame, 99);
+                latest_input_log.ttl = prev_ttl;
             }
 
             // Decrease TTL
             for input_log in input_logs.iter_mut().take(NUM_LOGS) {
-                if input_log.ttl > 0 && should_update_ttl {
+                if input_log.ttl > 0 && is_new_frame {
                     input_log.ttl -= 1;
                 }
             }

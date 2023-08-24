@@ -822,5 +822,4 @@ pub fn training_mods() {
     input_log::init();
     input_record::init();
     ui::init();
-    menu::init();
 }
