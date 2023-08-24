@@ -210,7 +210,7 @@ pub fn perform_version_check() {
                 info!("User declined the update.");
                 dialog::dialog_ok(
                     "This update has been declined.\n\n\
-                    If you'd like to disable update checking in the future,\
+                    If you'd like to disable update checking in the future, \
                     please adjust the 'Auto-Update' setting in the Modpack menu."
                         .to_string(),
                 );
