@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use crate::common::*;
 use crate::input::{ControllerStyle::*, *};
-use crate::training::frame_counter;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
 use lazy_static::lazy_static;
@@ -137,8 +136,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         let p1_controller = &mut *controller_struct.controller;
         let mut start_menu_request = false;
 
-        let menu_close_wait_frame =
-            unsafe { frame_counter::get_frame_count(menu::FRAME_COUNTER_INDEX) };
+        let menu_close_wait_frame = unsafe { *menu::VISUAL_FRAME_COUNTER.data_ptr() };
         if unsafe { MENU.menu_open_start_press == OnOff::On } {
             let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
             if p1_controller.current_buttons.plus() {
@@ -167,6 +165,10 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
                     }
                 }
                 *start_hold_frames = 0;
+            }
+
+            if p1_controller.current_buttons.minus() {
+                start_menu_request = true;
             }
         }
 

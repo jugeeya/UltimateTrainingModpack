@@ -13,17 +13,9 @@ use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::*;
 use crate::logging::*;
-use crate::training::frame_counter;
 
-pub static mut FRAME_COUNTER_INDEX: usize = 0;
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
-
-pub fn init() {
-    unsafe {
-        FRAME_COUNTER_INDEX = frame_counter::register_counter_no_reset();
-    }
-}
 
 pub unsafe fn menu_condition() -> bool {
     button_config::combo_passes_exclusive(button_config::ButtonCombo::OpenMenu)
@@ -117,6 +109,8 @@ lazy_static! {
             (RUp, 0),
         ]))
     };
+    pub static ref VISUAL_FRAME_COUNTER: Mutex<u32> = Mutex::new(0);
+    pub static ref VISUAL_FRAME_COUNTER_SHOULD_COUNT: Mutex<bool> = Mutex::new(false);
 }
 
 pub fn handle_final_input_mapping(
@@ -128,19 +122,16 @@ pub fn handle_final_input_mapping(
         if player_idx == 0 {
             let p1_controller = &mut *controller_struct.controller;
             *P1_CONTROLLER_STYLE.lock() = p1_controller.style;
-            if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) > 0
-                && frame_counter::get_frame_count(FRAME_COUNTER_INDEX) < MENU_CLOSE_WAIT_FRAMES
-            {
+            let visual_frame_count = *VISUAL_FRAME_COUNTER.data_ptr();
+            if visual_frame_count > 0 && visual_frame_count < MENU_CLOSE_WAIT_FRAMES {
                 // If we just closed the menu, kill all inputs to avoid accidental presses
                 *out = MappedInputs::empty();
                 p1_controller.current_buttons = ButtonBitfield::default();
                 p1_controller.previous_buttons = ButtonBitfield::default();
                 p1_controller.just_down = ButtonBitfield::default();
                 p1_controller.just_release = ButtonBitfield::default();
-            } else if frame_counter::get_frame_count(FRAME_COUNTER_INDEX) >= MENU_CLOSE_WAIT_FRAMES
-            {
-                frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-                frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+            } else if visual_frame_count >= MENU_CLOSE_WAIT_FRAMES {
+                *VISUAL_FRAME_COUNTER_SHOULD_COUNT.lock() = false;
             }
 
             if QUICK_MENU_ACTIVE {
@@ -199,17 +190,19 @@ pub fn handle_final_input_mapping(
                         app.on_b()
                     } else {
                         // Leave menu.
-                        frame_counter::start_counting(FRAME_COUNTER_INDEX);
+                        *VISUAL_FRAME_COUNTER_SHOULD_COUNT.lock() = true;
                         QUICK_MENU_ACTIVE = false;
                         let menu_json = app.get_menu_selections();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
                 });
-                button_mapping(ButtonConfig::PLUS, style, button_presses).then(|| {
+                (button_mapping(ButtonConfig::PLUS, style, button_presses)
+                    || button_mapping(ButtonConfig::MINUS, style, button_presses))
+                .then(|| {
                     received_input = true;
                     // Leave menu.
-                    frame_counter::start_counting(FRAME_COUNTER_INDEX);
+                    *VISUAL_FRAME_COUNTER_SHOULD_COUNT.lock() = true;
                     QUICK_MENU_ACTIVE = false;
                     let menu_json = app.get_menu_selections();
                     set_menu_from_json(&menu_json);

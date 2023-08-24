@@ -14,7 +14,7 @@ fn _register_counter(no_reset: bool) -> usize {
     }
 }
 
-pub fn register_counter_no_reset() -> usize {
+pub fn _register_counter_no_reset() -> usize {
     _register_counter(true)
 }
 
