@@ -135,6 +135,7 @@ pub fn handle_final_input_mapping(
                 p1_controller.just_release = ButtonBitfield::default();
             } else if visual_frame_count >= MENU_CLOSE_WAIT_FRAMES {
                 frame_counter::stop_counting(*MENU_CLOSE_FRAME_COUNTER);
+                frame_counter::reset_frame_count(*MENU_CLOSE_FRAME_COUNTER);
             }
 
             if QUICK_MENU_ACTIVE {
