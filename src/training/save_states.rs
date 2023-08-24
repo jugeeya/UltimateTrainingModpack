@@ -34,7 +34,7 @@ use crate::training::reset;
 use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 
-// Don't remove Mii hats, or Luma, or crafting table
+// Don't remove Mii hats, Pikmin, Luma, or crafting table
 const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 8] = [
     (
         FIGHTER_KIND_MIIFIGHTER,
@@ -404,6 +404,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_EDGE,
         *FIGHTER_KIND_WIIFIT,
         *FIGHTER_KIND_SHULK,
+        *FIGHTER_KIND_PIKMIN,
     ]
     .contains(&fighter_kind);
 
@@ -629,7 +630,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
 
     if save_state.state == ApplyBuff {
         // needs its own save_state.state since this may take multiple frames, want it to loop
-        if buff::handle_buffs(module_accessor, fighter_kind, status) {
+        if buff::handle_buffs(module_accessor, fighter_kind, status, save_state.charge) {
             // returns true when done buffing fighter
             buff::restart_buff(module_accessor);
             // set is_buffing back to false when done

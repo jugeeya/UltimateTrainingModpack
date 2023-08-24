@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+use crate::training::character_specific::pikmin;
 //use crate::training::handle_article_get_int; // handle_get_module_accessor
 //use crate::print_fighter_info;
 
@@ -53,85 +54,6 @@ impl ChargeState {
         self.has_charge = Some(has_charge);
         self
     }
-}
-
-pub fn get_pikmin_prev(variation: i32) -> i32 {
-    if variation > 0 { 
-        return variation - 1; 
-    }
-    4
-}
-
-// pub unsafe fn speed_up_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor) {
-//     // Increase Motion Rate of Pikmin to have them instantly spawn in
-//     // FIGHTER_PIKMIN_INSTANCE_WORK_INT_TROOPS_MANAGER_ADDRESS:
-//     //let troops_manager = WorkModule::get_int(module_accessor, 0x100000C0) as *mut TroopsManager;
-//     //let pikmin_1_boma = &mut *(*troops_manager).boma_pikmin_1;
-//     // still crashes - unknown
-//     // let troops_manager_addr = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut *mut app::BattleObjectModuleAccessor;
-//     // let pikmin_1_boma_ptr_ptr = troops_manager_addr.byte_add(0x90);
-//     // let pikmin_1_boma_ptr = *pikmin_1_boma_ptr_ptr;
-//     // let pikmin_1_boma_ref = &mut *pikmin_1_boma_ptr;
-//     //above crashes if you try to print the status of the boma - investigate
-
-//     // let troops_manager_addr = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut *mut u32;
-//     // let pikmin_1_boma_ptr_ptr = troops_manager_addr.byte_add(0x90);
-//     // //let _pikmin_count_for_move = *(troops_manager_addr.byte_add(0x80) as *mut u32);
-//     // //println!("pikmin_count: {}", pikmin_count);
-//     // let pikmin_1_boid_ptr = (*pikmin_1_boma_ptr_ptr).byte_add(0x8);
-//     // let pikmin_1_boid = *pikmin_1_boid_ptr;
-//     // let pikmin_1_boma = handle_get_module_accessor(pikmin_1_boid);
-//     // let pikmin_1_test = *(pikmin_1_boma.byte_add(0x8) as *mut u32);
-    
-//     // println!("pikmin_1_boid: {}, test: {}", pikmin_1_boid, pikmin_1_test);
-
-
-
-//     //ArticleModule::set_float(module_accessor, 40.0, *WEAPON_PIKMIN_PIKMIN_STATUS_PULL_OUT_START_WORK_FLOAT_MOT_RATE); // can't use
-//     //MotionModule::set_rate(pikmin_1_boma, 40.0); // test again
-// }
-
-
-/*#[derive(Copy, Clone, Debug)]
-pub struct TroopsManager {
-    pub unk: [i8; 0x90], // 90 bytes of unknown padding
-    pub boma_pikmin_1: *mut app::BattleObjectModuleAccessor, // @ 0x90
-    pub boma_pikmin_2: *mut app::BattleObjectModuleAccessor, // @ 0x98
-    pub boma_pikmin_3: *mut app::BattleObjectModuleAccessor, // @ 0xa0
-}*/
-
-#[repr(C)]
-struct TroopsManager {
-  _x0: u64,
-  max_pikmin_count: usize, // always 3
-  current_pikmin_count: usize,
-  pikmin_objects: *mut *mut app::BattleObject,
-  pikmin: [*mut app::BattleObject; 3],
-  // remainder that we don't care about
-  // big shoutouts to Blujay for this one
-}
-
-unsafe fn try_pikmin_variation(module_accessor: &mut app::BattleObjectModuleAccessor, index: usize) -> Option<i32> {
-    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
-    let count = (*troops_manager).current_pikmin_count;
-    let pikmin;
-    let pikmin_id;
-    
-    if count > index {
-        pikmin = (*troops_manager).pikmin[index];
-        pikmin_id = (*pikmin).battle_object_id;
-    } else {
-        pikmin = std::ptr::null_mut();
-        pikmin_id = *BATTLE_OBJECT_ID_INVALID as u32;
-    }
-
-    if pikmin_id != *BATTLE_OBJECT_ID_INVALID as u32
-        && app::sv_battle_object::is_active(pikmin_id)
-    {
-        return Some(WorkModule::get_int((*pikmin).module_accessor, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION));
-    }
-    // If we can't access the pikmin of this index, return none
-    return None;
 }
 
 pub unsafe fn get_charge(
@@ -217,42 +139,12 @@ pub unsafe fn get_charge(
     }
     // Olimar Pikmin
     else if fighter_kind == FIGHTER_KIND_PIKMIN {
-        let charge = charge_state.set_pikmin(
-            try_pikmin_variation(module_accessor, 0),
-            try_pikmin_variation(module_accessor, 1),
-            try_pikmin_variation(module_accessor, 2),
+        let pikmin_array = pikmin::get_current_pikmin(module_accessor);
+        return charge_state.set_pikmin(
+            pikmin_array[0],
+            pikmin_array[1],
+            pikmin_array[2],
         );
-        charge.int_x.map(|pikmin_1| {
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
-            ArticleModule::generate_article(
-                module_accessor as *mut app::BattleObjectModuleAccessor,
-                0,
-                false,
-                -1
-            );
-        });
-        charge.int_y.map(|pikmin_2| {
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
-            ArticleModule::generate_article(
-                module_accessor as *mut app::BattleObjectModuleAccessor,
-                0,
-                false,
-                -1
-            );
-        });
-        charge.int_z.map(|pikmin_3| {
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
-            ArticleModule::generate_article(
-                module_accessor as *mut app::BattleObjectModuleAccessor,
-                0,
-                false,
-                -1
-            );
-        });
-        charge
     }
     // Lucario Aura Sphere
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
@@ -647,37 +539,8 @@ pub unsafe fn handle_charge(
     }
     // Olimar Pikmin - 0 to 4
     else if fighter_kind == FIGHTER_KIND_PIKMIN {
-        charge.int_x.map(|pikmin_1| {
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
-            ArticleModule::generate_article(
-                module_accessor as *mut app::BattleObjectModuleAccessor,
-                0,
-                false,
-                -1
-            );
-            //speed_up_pikmin(module_accessor);
-        });
-        charge.int_y.map(|pikmin_2| {
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
-            ArticleModule::generate_article(
-                module_accessor as *mut app::BattleObjectModuleAccessor,
-                0,
-                false,
-                -1
-            );
-        });
-        charge.int_z.map(|pikmin_3| {
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
-            WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_3), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
-            ArticleModule::generate_article(
-                module_accessor as *mut app::BattleObjectModuleAccessor,
-                0,
-                false,
-                -1
-            );
-        });
+        // Spawning them on the same frame is making their order essentially random - should spawn them one frame apart
+        // TODO: Handle above after you handle pikmin spawn in speed
     }
     // Lucario Aura Sphere - 0 to 90, Boolean
     else if fighter_kind == FIGHTER_KIND_LUCARIO {

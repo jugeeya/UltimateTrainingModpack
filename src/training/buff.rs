@@ -5,6 +5,8 @@ use crate::common::consts::*;
 use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
+use crate::training::charge::ChargeState;
+use crate::training::character_specific::pikmin;
 
 static mut BUFF_DELAY_COUNTER: usize = 0;
 
@@ -66,6 +68,7 @@ pub unsafe fn handle_buffs(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
     status: i32,
+    charge: ChargeState,
 ) -> bool {
     // Future Enhancements:
     // - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
@@ -93,6 +96,8 @@ pub unsafe fn handle_buffs(
         return buff_sepiroth(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_SHULK {
         return buff_shulk(module_accessor, status);
+    } else if fighter_kind == *FIGHTER_KIND_PIKMIN {
+        return buff_pikmin(module_accessor, charge);
     }
     true
 }
@@ -196,6 +201,37 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
         // Need to wait 2 frames to make sure we stop the KO sound, since it's a bit delayed
         return false;
     }
+    true
+}
+
+unsafe fn buff_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, charge: ChargeState) -> bool {
+    if !is_buffing(module_accessor) {
+        // Only need to add to the limit gauge once
+        start_buff(module_accessor);
+    }
+    if frame_counter::should_delay(6_u32, BUFF_DELAY_COUNTER) {
+        if frame_counter::get_frame_count(BUFF_DELAY_COUNTER) == 2 {
+            charge.int_x.map(|pikmin_1| {
+                pikmin::spawn_pikmin(module_accessor, pikmin_1);
+            });
+            return false;
+        }
+        if frame_counter::get_frame_count(BUFF_DELAY_COUNTER) == 3 {
+            charge.int_y.map(|pikmin_2| {
+                pikmin::spawn_pikmin(module_accessor, pikmin_2);
+            });
+            return false;
+        }
+        if frame_counter::get_frame_count(BUFF_DELAY_COUNTER) == 4 {
+            charge.int_z.map(|pikmin_3| {
+                pikmin::spawn_pikmin(module_accessor, pikmin_3);
+            });
+            return false;
+        }
+        return false;
+    }
+    pikmin::speed_up(module_accessor, 0);
+    // Need to wait 6 frames to try to force the first pikmin down
     true
 }
 
