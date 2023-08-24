@@ -33,7 +33,7 @@ pub fn is_training_mode() -> bool {
 }
 
 pub fn get_category(module_accessor: &app::BattleObjectModuleAccessor) -> i32 {
-    (module_accessor.info >> 28) as u8 as i32
+    (module_accessor.battle_object_id >> 28) as u8 as i32
 }
 
 pub fn is_emulator() -> bool {

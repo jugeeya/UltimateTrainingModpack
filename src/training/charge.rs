@@ -111,27 +111,27 @@ struct TroopsManager {
   // big shoutouts to Blujay for this one
 }
 
-pub unsafe fn speed_up_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    // Increase Motion Rate of Pikmin to have them instantly spawn in
+unsafe fn try_pikmin_variation(module_accessor: &mut app::BattleObjectModuleAccessor, index: usize) -> Option<i32> {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
     let count = (*troops_manager).current_pikmin_count;
     let pikmin;
     let pikmin_id;
-    if count > 0 {
-        pikmin = (*troops_manager).pikmin[0];
+    
+    if count > index {
+        pikmin = (*troops_manager).pikmin[index];
         pikmin_id = (*pikmin).battle_object_id;
-    }
-    else {
+    } else {
         pikmin = std::ptr::null_mut();
         pikmin_id = *BATTLE_OBJECT_ID_INVALID as u32;
     }
 
     if pikmin_id != *BATTLE_OBJECT_ID_INVALID as u32
-        && sv_battle_object::is_active(pikmin_id) 
+        && app::sv_battle_object::is_active(pikmin_id)
     {
-        let variation = WorkModule::get_int((*pikmin).module_accessor, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
-        println!("Front color: {}", variation);
+        return Some(WorkModule::get_int((*pikmin).module_accessor, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION));
     }
+    // If we can't access the pikmin of this index, return none
+    return None;
 }
 
 pub unsafe fn get_charge(
@@ -204,7 +204,7 @@ pub unsafe fn get_charge(
     }
     // Wario Waft
     else if fighter_kind == FIGHTER_KIND_WARIO {
-        let my_charge = WorkModule::get_int(module_accessor, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT);
         charge_state.int_x(my_charge)
     }
     // Squirtle Water Gun
@@ -217,27 +217,11 @@ pub unsafe fn get_charge(
     }
     // Olimar Pikmin
     else if fighter_kind == FIGHTER_KIND_PIKMIN {
-        let mut pikmin_array: [Option<i32>; 3] = [None; 3];
-        // First we loop through each Pikmin, getting them and then deleting them until they no longer exist
-        while ArticleModule::is_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) {
-            let article: *mut app::Article = ArticleModule::get_article(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN);
-            let pikmin_variation = handle_article_get_int(
-                *((module_accessor as *mut app::BattleObjectModuleAccessor) as *mut *mut app::BattleObjectModuleAccessor).byte_add(0x98),
-                // the above points to an ArticleModule, not a boma
-                *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN,
-                *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION
-            );
-            let pikmin_index = handle_article_get_int(
-                *((module_accessor as *mut app::BattleObjectModuleAccessor) as *mut *mut app::BattleObjectModuleAccessor).byte_add(0x98),
-                // the above points to an ArticleModule, not a boma
-                *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN,
-                *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_HOLD_INDEX
-            );
-            pikmin_array[pikmin_index as usize] = Some(pikmin_variation);
-            let article_object_id = Article::get_battle_object_id(article);
-            ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
-        }
-        let charge = charge_state.set_pikmin(pikmin_array[0], pikmin_array[1], pikmin_array[2]);
+        let charge = charge_state.set_pikmin(
+            try_pikmin_variation(module_accessor, 0),
+            try_pikmin_variation(module_accessor, 1),
+            try_pikmin_variation(module_accessor, 2),
+        );
         charge.int_x.map(|pikmin_1| {
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_1), 0x100000BE); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION
@@ -318,7 +302,7 @@ pub unsafe fn get_charge(
     }
     // Pac-Man Bonus Fruit
     else if fighter_kind == FIGHTER_KIND_PACMAN {
-        let my_charge = WorkModule::get_int(module_accessor, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
+        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK);
         let fruit_have = WorkModule::is_flag(
             module_accessor,
             *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_PULL_THROW,
@@ -645,7 +629,7 @@ pub unsafe fn handle_charge(
     // Wario Waft - 0 to 6000
     else if fighter_kind == FIGHTER_KIND_WARIO {
         charge.int_x.map(|waft_count| {
-            WorkModule::set_int(module_accessor, waft_count, 0x100000BF); // FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT
+            WorkModule::set_int(module_accessor, waft_count, *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT);
         });
     }
     // Squirtle Water Gun - 0 to 45
@@ -672,7 +656,7 @@ pub unsafe fn handle_charge(
                 false,
                 -1
             );
-            speed_up_pikmin(module_accessor);
+            //speed_up_pikmin(module_accessor);
         });
         charge.int_y.map(|pikmin_2| {
             WorkModule::set_int(module_accessor, get_pikmin_prev(pikmin_2), 0x100000BD); // FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION
@@ -819,7 +803,7 @@ pub unsafe fn handle_charge(
     else if fighter_kind == FIGHTER_KIND_PACMAN {
         let mut has_key = false;
         charge.int_x.map(|charge_rank| {
-            WorkModule::set_int(module_accessor, charge_rank, 0x100000C1); // FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK
+            WorkModule::set_int(module_accessor, charge_rank, *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK);
 
             if charge_rank == 12 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -977,7 +961,7 @@ pub unsafe fn handle_charge(
     // Hero (Ka)frizz(le) - 0 to 81
     else if fighter_kind == FIGHTER_KIND_BRAVE {
         EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
-        WorkModule::off_flag(module_accessor, 0x200000E8); // FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT
+        WorkModule::off_flag(module_accessor, *FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT);
         charge.int_x.map(|frizz_charge| {
             WorkModule::set_int(
                 module_accessor,
