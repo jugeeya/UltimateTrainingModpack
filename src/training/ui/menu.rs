@@ -9,10 +9,10 @@ use training_mod_tui::{App, AppPage, NUM_LISTS};
 use crate::common::menu::{
     MENU_CLOSE_WAIT_FRAMES, VISUAL_FRAME_COUNTER, VISUAL_FRAME_COUNTER_SHOULD_COUNT,
 };
+use crate::training::frame_counter;
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
 use super::fade_out;
-use super::set_icon_text;
 
 pub static NUM_MENU_TEXT_OPTIONS: usize = 32;
 pub static _NUM_MENU_TABS: usize = 3;
@@ -359,7 +359,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     } else {
         *VISUAL_FRAME_COUNTER.lock() = 0;
     }
-
+    
     // Determine if we're in the menu by seeing if the "help" footer has
     // begun moving upward. It starts at -80 and moves to 0 over 10 frames
     // in info_training_in_menu.bflan
@@ -491,7 +491,10 @@ pub unsafe fn draw(root_pane: &Pane) {
 
         // Left/Right tabs have keys
         if let Some(key) = key {
-            set_icon_text(icon_pane, &vec![**key]);
+            let it = icon_pane.text_buf as *mut u16;
+            icon_pane.text_len = 1;
+            *it = **key;
+            *(it.add(1)) = 0x0;
         }
 
         if *name == "CurrentTab" {
@@ -515,7 +518,11 @@ pub unsafe fn draw(root_pane: &Pane) {
             .find_pane_by_name_recursive("set_txt_icon")
             .unwrap()
             .as_textbox();
-        set_icon_text(icon_pane, &vec![*key.unwrap()]);
+        icon_pane.set_text_string("");
+        let it = icon_pane.text_buf as *mut u16;
+        icon_pane.text_len = 1;
+        *it = *key.unwrap();
+        *(it.add(1)) = 0x0;
 
         key_help_pane
             .find_pane_by_name_recursive("set_txt_help")
