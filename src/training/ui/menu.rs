@@ -6,9 +6,8 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
 use training_mod_tui::{App, AppPage, NUM_LISTS};
 
-use crate::common::menu::{
-    MENU_CLOSE_WAIT_FRAMES, VISUAL_FRAME_COUNTER, VISUAL_FRAME_COUNTER_SHOULD_COUNT,
-};
+use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES};
+use crate::training::frame_counter;
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
 use super::fade_out;
@@ -353,12 +352,6 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
-    if *VISUAL_FRAME_COUNTER_SHOULD_COUNT.data_ptr() {
-        *VISUAL_FRAME_COUNTER.lock() += 1;
-    } else {
-        *VISUAL_FRAME_COUNTER.lock() = 0;
-    }
-
     // Determine if we're in the menu by seeing if the "help" footer has
     // begun moving upward. It starts at -80 and moves to 0 over 10 frames
     // in info_training_in_menu.bflan
@@ -381,7 +374,7 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
     overall_parent_pane.set_visible(true);
-    let menu_close_wait_frame = *VISUAL_FRAME_COUNTER.data_ptr();
+    let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
     if QUICK_MENU_ACTIVE {
         overall_parent_pane.alpha = 255;
         overall_parent_pane.global_alpha = 255;
