@@ -94,7 +94,7 @@ pub struct InputLog {
     pub fighter_kind: i32,
 }
 
-fn bin_stick_values(x: f32, y: f32) -> (DirectionStrength, f32) {
+fn bin_stick_values(x: i8, y: i8) -> (DirectionStrength, f32) {
     let length = (x * x + y * y).sqrt();
     (
         match length.abs() {
@@ -234,17 +234,11 @@ impl InputLog {
     }
 
     fn smash_binned_lstick(&self) -> (DirectionStrength, f32) {
-        let x = (self.smash_inputs.lstick_x as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
-        let y = (self.smash_inputs.lstick_y as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
-
-        bin_stick_values(x, y)
+        bin_stick_values(self.smash_inputs.lstick_x, self.smash_inputs.lstick_y)
     }
 
     fn smash_binned_rstick(&self) -> (DirectionStrength, f32) {
-        let x = (self.smash_inputs.rstick_x as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
-        let y = (self.smash_inputs.rstick_y as f32 * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
-
-        bin_stick_values(x, y)
+        bin_stick_values(self.smash_inputs.rstick_x, self.smash_inputs.rstick_y)
     }
 
     fn is_raw_different(&self, other: &InputLog) -> bool {
@@ -255,11 +249,15 @@ impl InputLog {
     }
 
     fn raw_binned_lstick(&self) -> (DirectionStrength, f32) {
-        bin_stick_values(self.raw_inputs.left_stick_x, self.raw_inputs.left_stick_y)
+        let x = (self.raw_inputs.left_stick_x / STICK_CLAMP_MULTIPLIER) as u8;
+        let y = (self.raw_inputs.left_stick_y / STICK_CLAMP_MULTIPLIER) as u8;
+        bin_stick_values(x, y)
     }
 
     fn raw_binned_rstick(&self) -> (DirectionStrength, f32) {
-        bin_stick_values(self.raw_inputs.right_stick_x, self.raw_inputs.right_stick_y)
+        let x = (self.raw_inputs.left_stick_x / STICK_CLAMP_MULTIPLIER) as u8;
+        let y = (self.raw_inputs.left_stick_y / STICK_CLAMP_MULTIPLIER) as u8;
+        bin_stick_values(x, y)
     }
 }
 
