@@ -5,17 +5,14 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::{frame_counter, input_record, mash};
 
-use std::sync::Lazy;
+use once_cell::sync::Lazy;
 
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
-static mut LEDGE_DELAY_COUNTER: usize = 0;
 static mut LEDGE_CASE: LedgeOption = LedgeOption::empty();
 
-static LEDGE_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
-
+static LEDGE_DELAY_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 pub fn reset_ledge_delay() {
     unsafe {

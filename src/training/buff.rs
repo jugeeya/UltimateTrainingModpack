@@ -6,7 +6,7 @@ use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
 
-use std::sync::Lazy;
+use once_cell::sync::Lazy;
 
 static mut BUFF_REMAINING_PLAYER: i32 = 0;
 static mut BUFF_REMAINING_CPU: i32 = 0;
@@ -14,9 +14,8 @@ static mut BUFF_REMAINING_CPU: i32 = 0;
 static mut IS_BUFFING_PLAYER: bool = false;
 static mut IS_BUFFING_CPU: bool = false;
 
-static BUFF_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
+static BUFF_DELAY_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 pub unsafe fn restart_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_operation_cpu(module_accessor) {

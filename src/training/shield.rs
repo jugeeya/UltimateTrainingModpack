@@ -10,7 +10,7 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::{frame_counter, input_record, mash, save_states};
 
-use std::sync::Lazy;
+use once_cell::sync::Lazy;
 
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
@@ -24,9 +24,8 @@ static mut WAS_IN_SHIELDSTUN: bool = false;
 // For how many frames should the shield hold be overwritten
 static mut SUSPEND_SHIELD: bool = false;
 
-static REACTION_COUNTER_INDEX: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
+static REACTION_COUNTER_INDEX: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 // Toggle for shield decay
 static mut SHIELD_DECAY: bool = false;

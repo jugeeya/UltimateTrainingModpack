@@ -5,7 +5,7 @@ use crate::common::consts::FighterId;
 use crate::common::*;
 use crate::training::*;
 
-use std::sync::Lazy;
+use once_cell::sync::Lazy;
 
 pub static mut FRAME_ADVANTAGE: i32 = 0;
 static mut PLAYER_ACTIONABLE: bool = false;
@@ -14,9 +14,8 @@ static mut PLAYER_ACTIVE_FRAME: u32 = 0;
 static mut CPU_ACTIVE_FRAME: u32 = 0;
 static mut FRAME_ADVANTAGE_CHECK: bool = false;
 
-static FRAME_COUNTER_INDEX: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
+static FRAME_COUNTER_INDEX: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 unsafe fn _was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);

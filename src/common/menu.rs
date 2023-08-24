@@ -1,6 +1,6 @@
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
-use std::sync::Lazy;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -14,6 +14,7 @@ use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::*;
 use crate::logging::*;
+use crate::training::frame_counter;
 
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
@@ -112,9 +113,8 @@ lazy_static! {
     };
 }
 
-static MENU_CLOSE_FRAME_COUNTER: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::Real)
-});
+pub static MENU_CLOSE_FRAME_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::Real));
 
 pub fn handle_final_input_mapping(
     player_idx: i32,

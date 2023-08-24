@@ -8,14 +8,13 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::{frame_counter, mash};
 
-use std::sync::Lazy;
+use once_cell::sync::Lazy;
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
 
-static FRAME_COUNTER: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
+static FRAME_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 unsafe fn is_enable_passive(module_accessor: &mut BattleObjectModuleAccessor) -> bool {
     let fighter = get_fighter_common_from_accessor(module_accessor);

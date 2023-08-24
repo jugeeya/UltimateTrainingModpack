@@ -11,6 +11,8 @@ use crate::training::input_record;
 use crate::training::shield;
 use crate::training::{attack_angle, save_states};
 
+use once_cell::sync::Lazy;
+
 const DISTANCE_CLOSE_THRESHOLD: f32 = 16.0;
 const DISTANCE_MID_THRESHOLD: f32 = 37.0;
 const DISTANCE_FAR_THRESHOLD: f32 = 64.0;
@@ -22,9 +24,8 @@ static mut FALLING_AERIAL: bool = false;
 
 static mut AERIAL_DELAY: u32 = 0;
 
-static AERIAL_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
+static AERIAL_DELAY_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 // Track if we're about to do another command flag cat run in the same frame for a dash or dash attack
 static mut IS_TRANSITIONING_DASH: bool = false;

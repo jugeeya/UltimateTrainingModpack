@@ -1,9 +1,10 @@
+#[derive(PartialEq, Eq)]
 pub enum FrameCounterType {
     InGame,
     // "Reset" occurs when we enter training mode and when we run L+R+A or save state load
     // Some frame counters need in-game frames that do not reset when this occurs
     InGameNoReset,
-    Real
+    Real,
 }
 
 pub struct FrameCounter {
@@ -18,11 +19,11 @@ pub fn register_counter(counter_type: FrameCounterType) -> usize {
     unsafe {
         let index = COUNTERS.len();
 
-        COUNTERS.push(FrameCounter{
+        COUNTERS.push(FrameCounter {
             count: 0,
             should_count: false,
-            counter_type: counter_type
-        })
+            counter_type,
+        });
 
         index
     }
@@ -97,7 +98,10 @@ pub fn tick_ingame() {
 pub fn tick_real() {
     unsafe {
         for (index, counter) in COUNTERS.iter().enumerate() {
-            if !counter.should_count || (counter.counter_type == FrameCounterType::InGame || counter.counter_type == FrameCounterType::InGameNoReset)  {
+            if !counter.should_count
+                || (counter.counter_type == FrameCounterType::InGame
+                    || counter.counter_type == FrameCounterType::InGameNoReset)
+            {
                 continue;
             }
             tick_idx(index);

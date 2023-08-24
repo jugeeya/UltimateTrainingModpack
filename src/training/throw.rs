@@ -6,17 +6,17 @@ use crate::common::*;
 use crate::training::frame_counter;
 use crate::training::mash;
 
+use once_cell::sync::Lazy;
+
 const NOT_SET: u32 = 9001;
 static mut THROW_DELAY: u32 = NOT_SET;
-static mut THROW_DELAY_COUNTER: usize = 0;
+static mut PUMMEL_DELAY: u32 = NOT_SET;
 static mut THROW_CASE: ThrowOption = ThrowOption::empty();
 
-static THROW_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
-static PUMMEL_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
+static THROW_DELAY_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+static PUMMEL_DELAY_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 // Rolling Throw Delays and Pummel Delays separately
 

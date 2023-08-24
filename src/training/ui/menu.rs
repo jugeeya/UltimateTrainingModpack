@@ -6,9 +6,8 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
 use training_mod_tui::{App, AppPage, NUM_LISTS};
 
-use crate::common::menu::{
-    MENU_CLOSE_WAIT_FRAMES, MENU_CLOSE_FRAME_COUNTER,
-};
+use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES};
+use crate::training::frame_counter;
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
 use super::fade_out;

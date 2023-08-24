@@ -676,7 +676,7 @@ static OPCF_OFFSET: usize = 0x06b7fdc;
 // One instruction after the CPU Control function completes
 #[skyline::hook(offset = OPCF_OFFSET, inline)]
 unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
-    frame_counter::tick();
+    frame_counter::tick_ingame();
     // Tick notifications
     let queue = &mut ui::notifications::QUEUE;
     let notification = queue.first();
@@ -806,15 +806,7 @@ pub fn training_mods() {
         handle_final_input_mapping
     );
 
-    combo::init();
-    shield::init();
-    fast_fall::init();
-    mash::init();
-    ledge::init();
-    throw::init();
-    buff::init();
     items::init();
-    tech::init();
     input_record::init();
     ui::init();
 }

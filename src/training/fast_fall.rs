@@ -5,7 +5,7 @@ use smash::phx::{Hash40, Vector3f};
 use crate::common::*;
 use crate::training::{frame_counter, input_record};
 
-use std::sync::Lazy;
+use once_cell::sync::Lazy;
 
 // The current fastfall delay
 static mut DELAY: u32 = 0;
@@ -22,9 +22,8 @@ pub fn roll_fast_fall() {
     }
 }
 
-static FRAME_COUNTER_INDEX: Lazy<u32> = Lazy::new(|| {
-    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
-});
+static FRAME_COUNTER_INDEX: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !should_fast_fall() {
