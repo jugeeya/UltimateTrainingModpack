@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
+use std::sync::Lazy;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -109,9 +110,11 @@ lazy_static! {
             (RUp, 0),
         ]))
     };
-    pub static ref VISUAL_FRAME_COUNTER: Mutex<u32> = Mutex::new(0);
-    pub static ref VISUAL_FRAME_COUNTER_SHOULD_COUNT: Mutex<bool> = Mutex::new(false);
 }
+
+static MENU_CLOSE_FRAME_COUNTER: Lazy<u32> = Lazy::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::Real)
+});
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
@@ -122,7 +125,7 @@ pub fn handle_final_input_mapping(
         if player_idx == 0 {
             let p1_controller = &mut *controller_struct.controller;
             *P1_CONTROLLER_STYLE.lock() = p1_controller.style;
-            let visual_frame_count = *VISUAL_FRAME_COUNTER.data_ptr();
+            let visual_frame_count = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
             if visual_frame_count > 0 && visual_frame_count < MENU_CLOSE_WAIT_FRAMES {
                 // If we just closed the menu, kill all inputs to avoid accidental presses
                 *out = MappedInputs::empty();
@@ -131,7 +134,7 @@ pub fn handle_final_input_mapping(
                 p1_controller.just_down = ButtonBitfield::default();
                 p1_controller.just_release = ButtonBitfield::default();
             } else if visual_frame_count >= MENU_CLOSE_WAIT_FRAMES {
-                *VISUAL_FRAME_COUNTER_SHOULD_COUNT.lock() = false;
+                frame_counter::stop_counting(*MENU_CLOSE_FRAME_COUNTER);
             }
 
             if QUICK_MENU_ACTIVE {
@@ -190,7 +193,7 @@ pub fn handle_final_input_mapping(
                         app.on_b()
                     } else {
                         // Leave menu.
-                        *VISUAL_FRAME_COUNTER_SHOULD_COUNT.lock() = true;
+                        frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
                         QUICK_MENU_ACTIVE = false;
                         let menu_json = app.get_menu_selections();
                         set_menu_from_json(&menu_json);
@@ -202,7 +205,7 @@ pub fn handle_final_input_mapping(
                 .then(|| {
                     received_input = true;
                     // Leave menu.
-                    *VISUAL_FRAME_COUNTER_SHOULD_COUNT.lock() = true;
+                    frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
                     QUICK_MENU_ACTIVE = false;
                     let menu_json = app.get_menu_selections();
                     set_menu_from_json(&menu_json);

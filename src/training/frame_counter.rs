@@ -1,42 +1,48 @@
-static mut SHOULD_COUNT: Vec<bool> = vec![];
-static mut NO_RESET: Vec<bool> = vec![];
-static mut COUNTERS: Vec<u32> = vec![];
+pub enum FrameCounterType {
+    InGame,
+    // "Reset" occurs when we enter training mode and when we run L+R+A or save state load
+    // Some frame counters need in-game frames that do not reset when this occurs
+    InGameNoReset,
+    Real
+}
 
-fn _register_counter(no_reset: bool) -> usize {
+pub struct FrameCounter {
+    count: u32,
+    should_count: bool,
+    counter_type: FrameCounterType,
+}
+
+static mut COUNTERS: Vec<FrameCounter> = vec![];
+
+pub fn register_counter(counter_type: FrameCounterType) -> usize {
     unsafe {
         let index = COUNTERS.len();
 
-        COUNTERS.push(0);
-        SHOULD_COUNT.push(false);
-        NO_RESET.push(no_reset);
+        COUNTERS.push(FrameCounter{
+            count: 0,
+            should_count: false,
+            counter_type: counter_type
+        })
 
         index
     }
 }
 
-pub fn _register_counter_no_reset() -> usize {
-    _register_counter(true)
-}
-
-pub fn register_counter() -> usize {
-    _register_counter(false)
-}
-
 pub fn start_counting(index: usize) {
     unsafe {
-        SHOULD_COUNT[index] = true;
+        COUNTERS[index].should_count = true;
     }
 }
 
 pub fn stop_counting(index: usize) {
     unsafe {
-        SHOULD_COUNT[index] = false;
+        COUNTERS[index].should_count = false;
     }
 }
 
 pub fn reset_frame_count(index: usize) {
     unsafe {
-        COUNTERS[index] = 0;
+        COUNTERS[index].count = 0;
     }
 }
 
@@ -68,19 +74,30 @@ pub fn should_delay(delay: u32, index: usize) -> bool {
 }
 
 pub fn get_frame_count(index: usize) -> u32 {
-    unsafe { COUNTERS[index] }
+    unsafe { COUNTERS[index].count }
 }
 
 pub fn tick_idx(index: usize) {
     unsafe {
-        COUNTERS[index] += 1;
+        COUNTERS[index].count += 1;
     }
 }
 
-pub fn tick() {
+pub fn tick_ingame() {
     unsafe {
-        for (index, _frame) in COUNTERS.iter().enumerate() {
-            if !SHOULD_COUNT[index] {
+        for (index, counter) in COUNTERS.iter().enumerate() {
+            if !counter.should_count || counter.counter_type == FrameCounterType::Real {
+                continue;
+            }
+            tick_idx(index);
+        }
+    }
+}
+
+pub fn tick_real() {
+    unsafe {
+        for (index, counter) in COUNTERS.iter().enumerate() {
+            if !counter.should_count || (counter.counter_type == FrameCounterType::InGame || counter.counter_type == FrameCounterType::InGameNoReset)  {
                 continue;
             }
             tick_idx(index);
@@ -90,8 +107,8 @@ pub fn tick() {
 
 pub fn reset_all() {
     unsafe {
-        for (index, _frame) in COUNTERS.iter().enumerate() {
-            if NO_RESET[index] {
+        for (index, counter) in COUNTERS.iter().enumerate() {
+            if counter.counter_type != FrameCounterType::InGame {
                 continue;
             }
             full_reset(index);

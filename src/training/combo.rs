@@ -5,6 +5,8 @@ use crate::common::consts::FighterId;
 use crate::common::*;
 use crate::training::*;
 
+use std::sync::Lazy;
+
 pub static mut FRAME_ADVANTAGE: i32 = 0;
 static mut PLAYER_ACTIONABLE: bool = false;
 static mut CPU_ACTIONABLE: bool = false;
@@ -12,13 +14,9 @@ static mut PLAYER_ACTIVE_FRAME: u32 = 0;
 static mut CPU_ACTIVE_FRAME: u32 = 0;
 static mut FRAME_ADVANTAGE_CHECK: bool = false;
 
-static mut FRAME_COUNTER_INDEX: usize = 0;
-
-pub fn init() {
-    unsafe {
-        FRAME_COUNTER_INDEX = frame_counter::register_counter();
-    }
-}
+static FRAME_COUNTER_INDEX: Lazy<u32> = Lazy::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
+});
 
 unsafe fn _was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
@@ -105,7 +103,7 @@ pub unsafe fn is_enable_transition_term(
                 .any(|actionable_transition| *actionable_transition == transition_term))
             || (CancelModule::is_enable_cancel(module_accessor)))
     {
-        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
+        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(*FRAME_COUNTER_INDEX);
         PLAYER_ACTIONABLE = true;
 
         // if both are now active
@@ -117,7 +115,7 @@ pub unsafe fn is_enable_transition_term(
                 );
             }
 
-            frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+            frame_counter::stop_counting(*FRAME_COUNTER_INDEX);
             FRAME_ADVANTAGE_CHECK = false;
         }
     }
@@ -141,11 +139,11 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
 
     // the frame the fighter *becomes* actionable
     if !CPU_ACTIONABLE && is_actionable(cpu_module_accessor) {
-        CPU_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
+        CPU_ACTIVE_FRAME = frame_counter::get_frame_count(*FRAME_COUNTER_INDEX);
     }
 
     if !PLAYER_ACTIONABLE && is_actionable(player_module_accessor) {
-        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(FRAME_COUNTER_INDEX);
+        PLAYER_ACTIVE_FRAME = frame_counter::get_frame_count(*FRAME_COUNTER_INDEX);
     }
 
     CPU_ACTIONABLE = is_actionable(cpu_module_accessor);
@@ -154,8 +152,8 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     // if neither are active
     if !CPU_ACTIONABLE && !PLAYER_ACTIONABLE {
         if !FRAME_ADVANTAGE_CHECK {
-            frame_counter::reset_frame_count(FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(FRAME_COUNTER_INDEX);
+            frame_counter::reset_frame_count(*FRAME_COUNTER_INDEX);
+            frame_counter::start_counting(*FRAME_COUNTER_INDEX);
         }
         FRAME_ADVANTAGE_CHECK = true;
     }
@@ -166,7 +164,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
             update_frame_advantage((CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32);
         }
 
-        frame_counter::stop_counting(FRAME_COUNTER_INDEX);
+        frame_counter::stop_counting(*FRAME_COUNTER_INDEX);
         FRAME_ADVANTAGE_CHECK = false;
     }
 }

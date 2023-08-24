@@ -6,7 +6,7 @@ use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
 
-static mut BUFF_DELAY_COUNTER: usize = 0;
+use std::sync::Lazy;
 
 static mut BUFF_REMAINING_PLAYER: i32 = 0;
 static mut BUFF_REMAINING_CPU: i32 = 0;
@@ -14,11 +14,9 @@ static mut BUFF_REMAINING_CPU: i32 = 0;
 static mut IS_BUFFING_PLAYER: bool = false;
 static mut IS_BUFFING_CPU: bool = false;
 
-pub fn init() {
-    unsafe {
-        BUFF_DELAY_COUNTER = frame_counter::register_counter();
-    }
-}
+static BUFF_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
+});
 
 pub unsafe fn restart_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_operation_cpu(module_accessor) {
@@ -107,7 +105,7 @@ unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, statu
     }
     if get_buff_rem(module_accessor) <= 0 {
         // If there are no buffs selected/left, we're done
-        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
+        if frame_counter::should_delay(3_u32, *BUFF_DELAY_COUNTER) {
             // Need to wait 3 frames to make sure we stop the spell SFX, since it's a bit delayed
             return false;
         }
@@ -160,7 +158,7 @@ unsafe fn buff_cloud(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         start_buff(module_accessor);
         handle_add_limit(100.0, module_accessor, 0);
     }
-    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+    if frame_counter::should_delay(2_u32, *BUFF_DELAY_COUNTER) {
         // Need to wait 2 frames to make sure we stop the limit SFX, since it's a bit delayed
         return false;
     }
@@ -175,7 +173,7 @@ unsafe fn buff_joker(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         // Strangely, this doesn't actually matter and works for both fighters
         app::FighterSpecializer_Jack::add_rebel_gauge(module_accessor, entry_id, 120.0);
     }
-    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+    if frame_counter::should_delay(2_u32, *BUFF_DELAY_COUNTER) {
         // Need to wait 2 frames to make sure we stop the voice call, since it's a bit delayed
         return false;
     }
@@ -192,7 +190,7 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
             *FIGHTER_LITTLEMAC_INSTANCE_WORK_ID_FLOAT_KO_GAGE,
         );
     }
-    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+    if frame_counter::should_delay(2_u32, *BUFF_DELAY_COUNTER) {
         // Need to wait 2 frames to make sure we stop the KO sound, since it's a bit delayed
         return false;
     }
@@ -242,7 +240,7 @@ unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, stat
     start_buff(module_accessor);
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
     if prev_status_kind == FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
-        if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
+        if frame_counter::should_delay(3_u32, *BUFF_DELAY_COUNTER) {
             // Need to continue to be buffing to make sure we stop "JUMP!" voice line
             return false;
         }

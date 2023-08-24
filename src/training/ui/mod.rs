@@ -56,6 +56,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     damage::draw(root_pane, &layout_name);
 
     if layout_name == "info_training" {
+        frame_counter::tick_real();
         display::draw(root_pane);
         menu::draw(root_pane);
     }

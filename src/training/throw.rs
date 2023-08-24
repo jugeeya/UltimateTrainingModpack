@@ -11,15 +11,12 @@ static mut THROW_DELAY: u32 = NOT_SET;
 static mut THROW_DELAY_COUNTER: usize = 0;
 static mut THROW_CASE: ThrowOption = ThrowOption::empty();
 
-static mut PUMMEL_DELAY: u32 = NOT_SET;
-static mut PUMMEL_DELAY_COUNTER: usize = 0;
-
-pub fn init() {
-    unsafe {
-        THROW_DELAY_COUNTER = frame_counter::register_counter();
-        PUMMEL_DELAY_COUNTER = frame_counter::register_counter();
-    }
-}
+static THROW_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
+});
+static PUMMEL_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
+});
 
 // Rolling Throw Delays and Pummel Delays separately
 
@@ -27,7 +24,7 @@ pub fn reset_throw_delay() {
     unsafe {
         if THROW_DELAY != NOT_SET {
             THROW_DELAY = NOT_SET;
-            frame_counter::full_reset(THROW_DELAY_COUNTER);
+            frame_counter::full_reset(*THROW_DELAY_COUNTER);
         }
     }
 }
@@ -36,7 +33,7 @@ pub fn reset_pummel_delay() {
     unsafe {
         if PUMMEL_DELAY != NOT_SET {
             PUMMEL_DELAY = NOT_SET;
-            frame_counter::full_reset(PUMMEL_DELAY_COUNTER);
+            frame_counter::full_reset(*PUMMEL_DELAY_COUNTER);
         }
     }
 }
@@ -120,9 +117,9 @@ pub unsafe fn get_command_flag_throw_direction(
         return 0;
     }
 
-    if frame_counter::should_delay(THROW_DELAY, THROW_DELAY_COUNTER) {
+    if frame_counter::should_delay(THROW_DELAY, *THROW_DELAY_COUNTER) {
         // Not yet time to perform the throw action
-        if frame_counter::should_delay(PUMMEL_DELAY, PUMMEL_DELAY_COUNTER) {
+        if frame_counter::should_delay(PUMMEL_DELAY, *PUMMEL_DELAY_COUNTER) {
             // And not yet time to pummel either, so don't do anything
             return 0;
         }

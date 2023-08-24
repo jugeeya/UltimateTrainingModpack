@@ -10,6 +10,8 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::{frame_counter, input_record, mash, save_states};
 
+use std::sync::Lazy;
+
 // How many hits to hold shield until picking an Out Of Shield option
 static mut MULTI_HIT_OFFSET: u32 = 0;
 
@@ -19,16 +21,12 @@ static mut SHIELD_DELAY: u32 = 0;
 // Used to only decrease once per shieldstun change
 static mut WAS_IN_SHIELDSTUN: bool = false;
 
-static mut REACTION_INDEX: usize = 0;
-
 // For how many frames should the shield hold be overwritten
 static mut SUSPEND_SHIELD: bool = false;
 
-pub fn init() {
-    unsafe {
-        REACTION_INDEX = frame_counter::register_counter();
-    }
-}
+static REACTION_COUNTER_INDEX: Lazy<u32> = Lazy::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
+});
 
 // Toggle for shield decay
 static mut SHIELD_DECAY: bool = false;
@@ -236,11 +234,11 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     if !is_shielding(module_accessor) {
-        frame_counter::full_reset(REACTION_INDEX);
+        frame_counter::full_reset(*REACTION_COUNTER_INDEX);
         return;
     }
 
-    if frame_counter::should_delay(SHIELD_DELAY, REACTION_INDEX) {
+    if frame_counter::should_delay(SHIELD_DELAY, *REACTION_COUNTER_INDEX) {
         return;
     }
 

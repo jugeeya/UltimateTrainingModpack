@@ -5,22 +5,23 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::{frame_counter, input_record, mash};
 
+use std::sync::Lazy;
+
 const NOT_SET: u32 = 9001;
 static mut LEDGE_DELAY: u32 = NOT_SET;
 static mut LEDGE_DELAY_COUNTER: usize = 0;
 static mut LEDGE_CASE: LedgeOption = LedgeOption::empty();
 
-pub fn init() {
-    unsafe {
-        LEDGE_DELAY_COUNTER = frame_counter::register_counter();
-    }
-}
+static LEDGE_DELAY_COUNTER: Lazy<u32> = Lazy::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGame)
+});
+
 
 pub fn reset_ledge_delay() {
     unsafe {
         if LEDGE_DELAY != NOT_SET {
             LEDGE_DELAY = NOT_SET;
-            frame_counter::full_reset(LEDGE_DELAY_COUNTER);
+            frame_counter::full_reset(*LEDGE_DELAY_COUNTER);
         }
     }
 }
@@ -154,7 +155,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         return;
     }
 
-    if frame_counter::should_delay(LEDGE_DELAY, LEDGE_DELAY_COUNTER) {
+    if frame_counter::should_delay(LEDGE_DELAY, *LEDGE_DELAY_COUNTER) {
         // Not yet time to perform the ledge action
         return;
     }
@@ -189,7 +190,7 @@ pub unsafe fn is_enable_transition_term(
     // Disallow the default cliff-climb if we are waiting or we didn't get up during a recording
     if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
         && ((LEDGE_CASE == LedgeOption::WAIT
-            || frame_counter::get_frame_count(LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
+            || frame_counter::get_frame_count(*LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
             || (LEDGE_CASE.is_playback() && !input_record::is_playback()))
     {
         return Some(false);
