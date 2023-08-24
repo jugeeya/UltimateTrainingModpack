@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use crate::common::*;
 use crate::input::{ControllerStyle::*, *};
-use crate::training::frame_counter;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
 use lazy_static::lazy_static;
@@ -48,6 +47,114 @@ pub fn button_mapping(
         ButtonConfig::RSTICK => b.stick_r(),
         _ => false,
     }
+}
+
+pub fn name_to_font_glyph(button: ButtonConfig, style: ControllerStyle) -> Option<u16> {
+    let is_gcc = style == ControllerStyle::GCController;
+    Some(match button {
+        ButtonConfig::A => 0xE0E0,
+        // TODO: Find one that works in training...
+        ButtonConfig::B => 0xE0E0,
+        ButtonConfig::X => {
+            if is_gcc {
+                0xE206
+            } else {
+                0xE0E2
+            }
+        }
+        ButtonConfig::Y => {
+            if is_gcc {
+                0xE207
+            } else {
+                0xE0E3
+            }
+        }
+        ButtonConfig::L => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE0E4
+            }
+        }
+        ButtonConfig::R => {
+            if is_gcc {
+                0xE205
+            } else {
+                0xE0E5
+            }
+        }
+        ButtonConfig::ZL => {
+            if is_gcc {
+                0xE204
+            } else {
+                0xE0E6
+            }
+        }
+        ButtonConfig::ZR => {
+            if is_gcc {
+                0xE208
+            } else {
+                0xE0E7
+            }
+        }
+        ButtonConfig::DPAD_UP => {
+            if is_gcc {
+                0xE209
+            } else {
+                0xE079
+            }
+        }
+        ButtonConfig::DPAD_DOWN => {
+            if is_gcc {
+                0xE20A
+            } else {
+                0xE07A
+            }
+        }
+        ButtonConfig::DPAD_LEFT => {
+            if is_gcc {
+                0xE20B
+            } else {
+                0xE07B
+            }
+        }
+        ButtonConfig::DPAD_RIGHT => {
+            if is_gcc {
+                0xE20C
+            } else {
+                0xE07C
+            }
+        }
+        ButtonConfig::PLUS => {
+            if is_gcc {
+                0xE20D
+            } else {
+                0xE0EF
+            }
+        }
+        ButtonConfig::MINUS => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE0F0
+            }
+        }
+        ButtonConfig::LSTICK => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE104
+            }
+        }
+        ButtonConfig::RSTICK => {
+            if is_gcc {
+                return None;
+            } else {
+                0xE105
+            }
+        }
+        _ => return None,
+    })
 }
 
 #[derive(Debug, EnumIter, PartialEq, Eq, Hash, Copy, Clone)]
@@ -137,8 +244,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         let p1_controller = &mut *controller_struct.controller;
         let mut start_menu_request = false;
 
-        let menu_close_wait_frame =
-            unsafe { frame_counter::get_frame_count(menu::FRAME_COUNTER_INDEX) };
+        let menu_close_wait_frame = unsafe { *menu::VISUAL_FRAME_COUNTER.data_ptr() };
         if unsafe { MENU.menu_open_start_press == OnOff::On } {
             let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
             if p1_controller.current_buttons.plus() {

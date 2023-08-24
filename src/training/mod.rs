@@ -34,6 +34,7 @@ mod character_specific;
 mod fast_fall;
 mod full_hop;
 pub mod input_delay;
+mod input_log;
 mod input_record;
 mod mash;
 mod reset;
@@ -696,15 +697,35 @@ unsafe fn handle_final_input_mapping(
     controller_struct: &mut SomeControllerStruct,
     arg: bool,
 ) {
-    // go through the original mapping function first
+    // Order of hooks here REALLY matters. Tread lightly
+
+    // Go through the original mapping function first
     original!()(mappings, player_idx, out, controller_struct, arg);
     if !is_training_mode() {
         return;
     }
-    menu::handle_final_input_mapping(player_idx, controller_struct, out);
-    button_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Check if we should apply hot reload configs
+    // Non-mutable pull
     dev_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Grab menu inputs from player
+    // MUTATES controller state to kill inputs when in or closing menu
+    menu::handle_final_input_mapping(player_idx, controller_struct, out);
+
+    // Grab button input requests from player
+    // MUTATES controller state to kill start presses for menu
+    button_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Potentially apply input delay
+    // MUTATES controller state to delay inputs
     input_delay::handle_final_input_mapping(player_idx, out);
+
+    // Read potentially delayed state for loggers
+    input_log::handle_final_input_mapping(player_idx, controller_struct, out);
+
+    // Potentially apply input recording, thus with delay
+    // MUTATES controller state to apply recording or playback
     input_record::handle_final_input_mapping(player_idx, out);
 }
 
@@ -798,7 +819,7 @@ pub fn training_mods() {
     buff::init();
     items::init();
     tech::init();
+    input_log::init();
     input_record::init();
     ui::init();
-    menu::init();
 }
