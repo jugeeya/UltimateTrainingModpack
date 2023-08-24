@@ -302,7 +302,6 @@ SD Card Root
             └── romfs/
                 └── skyline/
                     └── plugins/
-                        ├── libnn_hid_hook.nro
                         ├── libnro_hook.nro
                         ├── libparam_hook.nro
                         └── libtraining_modpack.nro
@@ -328,7 +327,6 @@ Exact same process as above, but the filepaths are in Ryujinx's mod paths.
               └── romfs/
                   └── skyline/
                       └── plugins/
-                          ├── libnn_hid_hook.nro
                           ├── libnro_hook.nro
                           ├── libparam_hook.nro
                           └── libtraining_modpack.nro
@@ -396,7 +394,6 @@ To install a beta version of the modpack, follow the same procedure using the [l
 
     Removing the Training Modpack is as simple as deleting the files and folders that are associated with the modpack, listed below:
     `SD:/atmosphere/contents/01006A800016E000/manual_html/html-document/training_modpack.htdocs/`
-    `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnn_hid_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libnro_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libparam_hook.nro`
     `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`
@@ -468,16 +465,48 @@ To build the entire modpack including supporting files, use the steps in the [Gi
 ## Prerequisites
 - Stable Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
 
+## Development Tips
+
+### Ryujinx
+
+Developing on Ryujinx on Windows is very easy and has a streamlined script in [ryujinx_build.ps1](./ryujinx_build.ps1).
+
+1. Drag-and-drop the normal beta at the Ryujinx paths as described in Installation.
+2. Delete the `libtraining_modpack.nro` that is used in those paths.
+3. Edit the paths at the top of the file to match your local filesystem
+4. On your first run, you may have to run the script as Administrator in order to set up the symlinks to this repo's built files.
+    - Both the plugin and the [layout.arc](./src/static/layout.arc) will be sourced automatically via symlink
+5. Run the script to iterate and develop.
+    - Logs will be printed to console. 
+    - Since we are using the feature `layout-arc-from-file`, you can edit [layout.arc](./src/static/layout.arc) in real-time with Switch Toolbox and reload training mode without rebooting to view your changes.
+    - If you'd like to exit, you can CTRL+C the script and Ryujinx will also close.
+
+
+
 <a name="beta-changelog"/>
 
 # Beta Changelog
 These are the features that can be found [in the latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/releases/tag/beta) that are not in the stable release. 
 
-### Features
-N/A
+## Features
+* **Input Recording**: Trigger a recording and play it back (default binds: `R+DPad Down`, `R+DPad Up` respectively)! These recordings can be customized in terms of length between 60 and 600 frames, looping, and more! They can be configured to run in familiar situations like Mash or Ledge options and more - @GradualSyrup, @jugeeya
+* **Input Display**: (Not yet in beta) Show inputs in a per-status, frame counted log-style viewer! Choose between raw controller inputs and "Smash"-style inputs, being what the game actually understands and passes to fighters - @jugeeya, @xhudaman
+* **Auto-Updater**: Allow the modpack to automatically update itself when updates are available. Users can choose which update track they'd like from the Stable or Beta track in the menu - @asimon-1
+* **Mash Overrides**: Specify which mash options to perform in specific scenarios - @GradualSyrup, @asimon-1
+* **Customizable Button Configs**: Configure button combinations for save states and input recording in the menu itself. Please note that we now use raw inputs rather than Smash inputs, and save state save/load binds have moved to `L+DPad Down`, `L+DPad Up` respectively - @jugeeya
+* **Press Start/Select to Open Menu**: You can now open the menu with start press; holding start for >= 10 frames gives the original menu. On controllers with the minus button, minus can also be used to open the menu. This behavior can be toggled, and the old default `B+DPad Up` will always work. This change allows for much more seamless opening and closing of the modpack's menu - @jugeeya
 
-### Bugfixes
-N/A
+## Bugfixes
+* Keep Luma, Mii Fighter hats, Mythra's sword, and Pikmin when loading save states - @GradualSyrup
+* Fixed bug where the Dash Attack mash option would not properly trigger dash attack - @GradualSyrup
+* Fixed Hero, Little Mac, WFT, Sephiroth, and other characters' SFX/VFX replaying on save state load - @GradualSyrup
+* Fixed missed tech toggles not occurring when characters are jab locked - @GradualSyrup
+* Fixed bugs with regard to menu inputs - @jugeeya
+* Input delay now works properly with the [less delay mod](https://github.com/blu-dev/less-delay) - @jugeeya
 
-### Adjustments
-N/A
+## Adjustments
+* Added Shulk Monado Arts to the Buffs Menu - @GradualSyrup
+* Made menu larger and added more columns for increased visibility, especially on handheld - @jugeeya
+* Users can close the menu immediately after opening it - @jugeeya
+* Menu exit inputs (B, Start) no longer have effects in-game (B causing a Special input, Start reopening the menu or opening the vanilla menu) - @jugeeya
+* Dynamic help text in the menu, so users can quickly see their input binds for button configurations and more - @austintraver

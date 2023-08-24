@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use crate::training::handle_article_get_int; // handle_get_module_accessor
+//use crate::training::handle_article_get_int; // handle_get_module_accessor
 //use crate::print_fighter_info;
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]

@@ -20,7 +20,9 @@ mod list;
 use crate::gauge::{DoubleEndedGauge, GaugeState};
 use crate::list::{MultiStatefulList, StatefulList};
 
-static NX_TUI_WIDTH: u16 = 66;
+static NX_TUI_WIDTH: u16 = 240;
+// Number of lists per page
+pub const NUM_LISTS: usize = 4;
 
 #[derive(PartialEq)]
 pub enum AppPage {
@@ -33,29 +35,29 @@ pub enum AppPage {
 /// We should hold a list of SubMenus.
 /// The currently selected SubMenu should also have an associated list with necessary information.
 /// We can convert the option types (Toggle, OnOff, Slider) to lists
-pub struct App<'a> {
-    pub tabs: StatefulList<&'a str>,
-    pub menu_items: HashMap<&'a str, MultiStatefulList<SubMenu<'a>>>,
-    pub selected_sub_menu_toggles: MultiStatefulList<Toggle<'a>>,
+pub struct App {
+    pub tabs: StatefulList<String>,
+    pub menu_items: HashMap<String, MultiStatefulList<SubMenu>>,
+    pub selected_sub_menu_toggles: MultiStatefulList<Toggle>,
     pub selected_sub_menu_slider: DoubleEndedGauge,
     pub page: AppPage,
-    pub default_menu: (UiMenu<'a>, String),
+    pub default_menu: (UiMenu, String),
 }
 
-impl<'a> App<'a> {
-    pub fn new(menu: UiMenu<'a>, default_menu: (UiMenu<'a>, String)) -> App<'a> {
-        let num_lists = 3;
-
+impl<'a> App {
+    pub fn new(menu: UiMenu, default_menu: (UiMenu, String)) -> App {
         let mut menu_items_stateful = HashMap::new();
         menu.tabs.iter().for_each(|tab| {
             menu_items_stateful.insert(
-                tab.tab_title,
-                MultiStatefulList::with_items(tab.tab_submenus.clone(), num_lists),
+                tab.tab_title.clone(),
+                MultiStatefulList::with_items(tab.tab_submenus.clone(), NUM_LISTS),
             );
         });
 
         let mut app = App {
-            tabs: StatefulList::with_items(menu.tabs.iter().map(|tab| tab.tab_title).collect()),
+            tabs: StatefulList::with_items(
+                menu.tabs.iter().map(|tab| tab.tab_title.clone()).collect(),
+            ),
             menu_items: menu_items_stateful,
             selected_sub_menu_toggles: MultiStatefulList::with_items(vec![], 0),
             selected_sub_menu_slider: DoubleEndedGauge::new(),
@@ -82,12 +84,12 @@ impl<'a> App<'a> {
 
         let toggles = selected_sub_menu.toggles.clone();
         let slider = selected_sub_menu.slider.clone();
-        match SubMenuType::from_str(self.sub_menu_selected()._type) {
+        match SubMenuType::from_string(&self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => {
                 self.selected_sub_menu_toggles = MultiStatefulList::with_items(
                     toggles,
-                    if selected_sub_menu.toggles.len() >= 3 {
-                        3
+                    if selected_sub_menu.toggles.len() >= NUM_LISTS {
+                        NUM_LISTS
                     } else {
                         selected_sub_menu.toggles.len()
                     },
@@ -117,13 +119,13 @@ impl<'a> App<'a> {
     /// Returns the currently selected SubMenu struct
     ///
     /// {
-    ///   submenu_title: &'a str,
-    ///   submenu_id: &'a str,
-    ///   help_text: &'a str,
+    ///   submenu_title: String,
+    ///   submenu_id: String,
+    ///   help_text: String,
     ///   is_single_option: bool,
     ///   toggles: Vec<Toggle<'a>>,
     ///   slider: Option<Slider>,
-    ///   _type: &'a str,
+    ///   _type: String,
     /// }
     fn sub_menu_selected(&self) -> &SubMenu {
         let (list_section, list_idx) = self
@@ -141,7 +143,7 @@ impl<'a> App<'a> {
     /// Toggles: calls next()
     /// Slider: Swaps between MinHover and MaxHover
     pub fn sub_menu_next(&mut self) {
-        match SubMenuType::from_str(self.sub_menu_selected()._type) {
+        match SubMenuType::from_string(&self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next(),
             SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                 GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
@@ -157,7 +159,7 @@ impl<'a> App<'a> {
     ///     * Swaps between MinHover and MaxHover
     ///     * Increments the selected_min/max if possible
     pub fn sub_menu_next_list(&mut self) {
-        match SubMenuType::from_str(self.sub_menu_selected()._type) {
+        match SubMenuType::from_string(&self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.next_list(),
             SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                 GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
@@ -185,7 +187,7 @@ impl<'a> App<'a> {
     /// Toggles: calls previous()
     /// Slider: Swaps between MinHover and MaxHover
     pub fn sub_menu_previous(&mut self) {
-        match SubMenuType::from_str(self.sub_menu_selected()._type) {
+        match SubMenuType::from_string(&self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous(),
             SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                 GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
@@ -201,7 +203,7 @@ impl<'a> App<'a> {
     ///     * Swaps between MinHover and MaxHover
     ///     * Decrements the selected_min/max if possible
     pub fn sub_menu_previous_list(&mut self) {
-        match SubMenuType::from_str(self.sub_menu_selected()._type) {
+        match SubMenuType::from_string(&self.sub_menu_selected()._type) {
             SubMenuType::TOGGLE => self.selected_sub_menu_toggles.previous_list(),
             SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                 GaugeState::MinHover => self.selected_sub_menu_slider.state = GaugeState::MaxHover,
@@ -232,11 +234,13 @@ impl<'a> App<'a> {
     /// 2: Vec(toggle checked, title) for toggles, Vec(nothing) for slider
     /// 3: ListState for toggles, ListState::new() for slider
     /// TODO: Refactor return type into a nice struct
-    pub fn sub_menu_strs_and_states(&self) -> (&str, &str, Vec<(Vec<(bool, &str)>, ListState)>) {
+    pub fn sub_menu_strs_and_states(
+        &self,
+    ) -> (String, String, Vec<(Vec<(bool, String)>, ListState)>) {
         (
-            self.sub_menu_selected().submenu_title,
-            self.sub_menu_selected().help_text,
-            match SubMenuType::from_str(self.sub_menu_selected()._type) {
+            self.sub_menu_selected().submenu_title.clone(),
+            self.sub_menu_selected().help_text.clone(),
+            match SubMenuType::from_string(&self.sub_menu_selected()._type) {
                 SubMenuType::TOGGLE => self
                     .selected_sub_menu_toggles
                     .lists
@@ -246,7 +250,7 @@ impl<'a> App<'a> {
                             toggle_list
                                 .items
                                 .iter()
-                                .map(|toggle| (toggle.checked, toggle.toggle_title))
+                                .map(|toggle| (toggle.checked, toggle.toggle_title.clone()))
                                 .collect(),
                             toggle_list.state.clone(),
                         )
@@ -264,16 +268,16 @@ impl<'a> App<'a> {
     /// 1: Help text
     /// 2: Reference to self.selected_sub_menu_slider
     /// TODO: Refactor return type into a nice struct
-    pub fn sub_menu_strs_for_slider(&self) -> (&str, &str, &DoubleEndedGauge) {
-        let slider = match SubMenuType::from_str(self.sub_menu_selected()._type) {
+    pub fn sub_menu_strs_for_slider(&self) -> (String, String, &DoubleEndedGauge) {
+        let slider = match SubMenuType::from_string(&self.sub_menu_selected()._type) {
             SubMenuType::SLIDER => &self.selected_sub_menu_slider,
             _ => {
                 panic!("Slider not selected!");
             }
         };
         (
-            self.sub_menu_selected().submenu_title,
-            self.sub_menu_selected().help_text,
+            self.sub_menu_selected().submenu_title.clone(),
+            self.sub_menu_selected().help_text.clone(),
             slider,
         )
     }
@@ -298,7 +302,7 @@ impl<'a> App<'a> {
             .get_mut(list_idx)
             .unwrap();
         if self.page == AppPage::SUBMENU {
-            match SubMenuType::from_str(selected_sub_menu._type) {
+            match SubMenuType::from_string(&selected_sub_menu._type) {
                 // Need to change the slider state to MinHover so the slider shows up initially
                 SubMenuType::SLIDER => {
                     self.page = AppPage::SLIDER;
@@ -307,7 +311,7 @@ impl<'a> App<'a> {
                 SubMenuType::TOGGLE => self.page = AppPage::TOGGLE,
             }
         } else {
-            match SubMenuType::from_str(selected_sub_menu._type) {
+            match SubMenuType::from_string(&selected_sub_menu._type) {
                 SubMenuType::TOGGLE => {
                     let is_single_option = selected_sub_menu.is_single_option;
                     let state = self.selected_sub_menu_toggles.state;
@@ -404,7 +408,7 @@ impl<'a> App<'a> {
             .items
             .get_mut(list_idx)
             .unwrap();
-        match SubMenuType::from_str(selected_sub_menu._type) {
+        match SubMenuType::from_string(&selected_sub_menu._type) {
             SubMenuType::SLIDER => match self.selected_sub_menu_slider.state {
                 GaugeState::MinSelected => {
                     self.selected_sub_menu_slider.state = GaugeState::MinHover;
@@ -455,10 +459,11 @@ impl<'a> App<'a> {
             let json = self.to_json();
             let mut json_value = serde_json::from_str::<serde_json::Value>(&json).unwrap();
             let selected_sub_menu = self.sub_menu_selected();
-            let id = selected_sub_menu.submenu_id;
+            let id = selected_sub_menu.submenu_id.clone();
             let default_json_value =
                 serde_json::from_str::<serde_json::Value>(&self.default_menu.1).unwrap();
-            *json_value.get_mut(id).unwrap() = default_json_value.get(id).unwrap().clone();
+            *json_value.get_mut(id.as_str()).unwrap() =
+                default_json_value.get(id.as_str()).unwrap().clone();
             let new_menu = serde_json::from_value::<TrainingModpackMenu>(json_value).unwrap();
             *self = App::new(unsafe { ui_menu(new_menu) }, self.default_menu.clone());
         }
@@ -587,7 +592,7 @@ impl<'a> App<'a> {
         .unwrap()
     }
 
-    pub fn submenu_ids(&self) -> Vec<&str> {
+    pub fn submenu_ids(&self) -> Vec<String> {
         return self
             .menu_items
             .values()
@@ -599,10 +604,10 @@ impl<'a> App<'a> {
                         sub_stateful_list
                             .items
                             .iter()
-                            .map(|submenu| submenu.submenu_id)
+                            .map(|submenu| submenu.submenu_id.clone())
                     })
             })
-            .collect::<Vec<&str>>();
+            .collect::<Vec<String>>();
     }
 }
 
@@ -627,9 +632,9 @@ fn render_submenu_page<B: Backend>(
             .iter()
             .map(|i| {
                 let lines = vec![Spans::from(if stateful_list.state.selected().is_some() {
-                    i.submenu_title.to_owned()
+                    i.submenu_title.clone()
                 } else {
-                    "   ".to_owned() + i.submenu_title
+                    format!("   {}", i.submenu_title.clone())
                 })];
                 ListItem::new(lines).style(Style::default().fg(Color::White))
             })
@@ -650,14 +655,18 @@ fn render_submenu_page<B: Backend>(
 
         let mut state = stateful_list.state.clone();
         if state.selected().is_some() {
-            item_help = Some(stateful_list.items[state.selected().unwrap()].help_text);
+            item_help = Some(
+                stateful_list.items[state.selected().unwrap()]
+                    .help_text
+                    .clone(),
+            );
         }
 
         f.render_stateful_widget(list, list_chunks[list_section], &mut state);
     }
 
     let help_paragraph = Paragraph::new(
-        item_help.unwrap_or("").replace('\"', "")
+        item_help.unwrap_or("".to_string()).replace('\"', "")
             + "\nZL/ZR: Next tab | X: Save Defaults | R: Reset All Menus",
     )
     .style(Style::default().fg(Color::Cyan));
@@ -677,14 +686,20 @@ pub fn render_toggle_page<B: Backend>(
         let values_items: Vec<ListItem> = sub_menu_str
             .iter()
             .map(|s| {
-                ListItem::new(vec![Spans::from(
-                    (if s.0 { "X " } else { "  " }).to_owned() + s.1,
-                )])
+                ListItem::new(vec![Spans::from(if s.0 {
+                    format!("X {}", s.1)
+                } else {
+                    format!("  {}", s.1)
+                })])
             })
             .collect();
 
         let values_list = List::new(values_items)
-            .block(Block::default().title(if list_section == 0 { title } else { "" }))
+            .block(Block::default().title(if list_section == 0 {
+                title.clone()
+            } else {
+                "".to_string()
+            }))
             .start_corner(Corner::TopLeft)
             .highlight_style(
                 Style::default()
@@ -795,10 +810,10 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .enumerate()
         .map(|(idx, tab)| {
             if idx == tab_selected {
-                span_selected = Spans::from("> ".to_owned() + tab);
-                Spans::from("> ".to_owned() + tab)
+                span_selected = Spans::from(format!("> {}", tab));
+                Spans::from(format!("> {}", tab))
             } else {
-                Spans::from("  ".to_owned() + tab)
+                Spans::from(format!("  {}", tab))
             }
         })
         .collect();
@@ -877,12 +892,11 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let list_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(
-            [
-                Constraint::Percentage(33),
-                Constraint::Percentage(33),
-                Constraint::Percentage(33),
-            ]
-            .as_ref(),
+            (0..NUM_LISTS)
+                .into_iter()
+                .map(|_idx| Constraint::Percentage((100.0 / NUM_LISTS as f32) as u16))
+                .collect::<Vec<Constraint>>()
+                .as_ref(),
         )
         .split(vertical_chunks[1]);
 

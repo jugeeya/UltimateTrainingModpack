@@ -60,7 +60,7 @@ jobs:
           cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
-        run: cargo-skyline skyline build --release
+        run: RUSTFLAGS=-g cargo-skyline skyline build --release
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v3
         with:
@@ -85,7 +85,7 @@ jobs:
           cargo install cargo-skyline
           cargo-skyline skyline update-std
       - name: Build outside_training_mode NRO
-        run: cargo-skyline skyline build --release --features outside_training_mode
+        run: RUSTFLAGS=-g cargo-skyline skyline build --release --features outside_training_mode
       - name: Upload plugin (outside training mode) artifact
         uses: actions/upload-artifact@v3
         with:
@@ -109,10 +109,8 @@ jobs:
           cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
           wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.1/libparam_hook.nro
           wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
-          wget https://github.com/jugeeya/nn-hid-hook/releases/download/beta/libnn_hid_hook.nro
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
-          cp libnn_hid_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnn_hid_hook.nro
           zip -r training_modpack_beta.zip atmosphere
       - name: Delete Release
         uses: dev-drprasad/delete-tag-and-release@v0.2.1
@@ -176,7 +174,6 @@ jobs:
                         └── romfs/
                             └── skyline/
                                 └── plugins/
-                                    ├── libnn_hid_hook.nro
                                     ├── libnro_hook.nro
                                     ├── libparam_hook.nro
                                     └── libtraining_modpack.nro
@@ -207,7 +204,6 @@ jobs:
                           └── romfs/
                               └── skyline/
                                   └── plugins/
-                                      ├── libnn_hid_hook.nro
                                       ├── libnro_hook.nro
                                       ├── libparam_hook.nro
                                       └── libtraining_modpack.nro

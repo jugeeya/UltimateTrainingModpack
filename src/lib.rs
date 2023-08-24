@@ -18,8 +18,9 @@ use std::fs;
 use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
-use training_mod_consts::LEGACY_TRAINING_MODPACK_ROOT;
+use training_mod_consts::{OnOff, LEGACY_TRAINING_MODPACK_ROOT};
 
+use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
 use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
@@ -71,6 +72,7 @@ pub fn main() {
     init_logger().unwrap();
 
     info!("Initialized.");
+
     unsafe {
         EVENT_QUEUE.push(Event::smash_open());
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
@@ -99,61 +101,50 @@ pub fn main() {
         });
     }
 
-    info!("Performing version check...");
-    release::version_check();
-
     menu::load_from_file();
+
+    if !is_emulator() {
+        info!("Performing version check...");
+        let _updater = std::thread::Builder::new()
+            .stack_size(0x20000)
+            .spawn(move || {
+                release::perform_version_check();
+            })
+            .unwrap();
+        let _result = _updater.join();
+    } else {
+        info!("Skipping version check because we are using an emulator");
+    }
 
     unsafe {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
         notification(
             "Open Menu".to_string(),
-            MENU.menu_open
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            if MENU.menu_open_start_press == OnOff::On {
+                "Start".to_string()
+            } else {
+                DEFAULT_OPEN_MENU_CONFIG.to_string()
+            },
             120,
         );
         notification(
             "Save State".to_string(),
-            MENU.save_state_save
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.save_state_save.to_string(),
             120,
         );
         notification(
             "Load State".to_string(),
-            MENU.save_state_load
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.save_state_load.to_string(),
             120,
         );
         notification(
             "Input Record".to_string(),
-            MENU.input_record
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.input_record.to_string(),
             120,
         );
         notification(
             "Input Playback".to_string(),
-            MENU.input_playback
-                .to_vec()
-                .iter()
-                .map(|button| button.as_str().unwrap())
-                .intersperse(" + ")
-                .collect(),
+            MENU.input_playback.to_string(),
             120,
         );
     }

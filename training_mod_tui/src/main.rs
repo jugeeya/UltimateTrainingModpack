@@ -17,18 +17,18 @@ use tui::Terminal;
 
 use training_mod_consts::*;
 
-fn test_backend_setup<'a>(
-    ui_menu: UiMenu<'a>,
-    menu_defaults: (UiMenu<'a>, String),
+fn test_backend_setup(
+    ui_menu: UiMenu,
+    menu_defaults: (UiMenu, String),
 ) -> Result<
     (
         Terminal<training_mod_tui::TestBackend>,
-        training_mod_tui::App<'a>,
+        training_mod_tui::App,
     ),
     Box<dyn Error>,
 > {
-    let app = training_mod_tui::App::<'a>::new(ui_menu, menu_defaults);
-    let backend = tui::backend::TestBackend::new(75, 15);
+    let app = training_mod_tui::App::new(ui_menu, menu_defaults);
+    let backend = tui::backend::TestBackend::new(120, 15);
     let terminal = Terminal::new(backend)?;
     let mut state = tui::widgets::ListState::default();
     state.select(Some(1));
@@ -48,6 +48,8 @@ fn test_set_airdodge() -> Result<(), Box<dyn Error>> {
     }
 
     let (_terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Set Mash Airdodge
@@ -103,6 +105,8 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
 
     let (_terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
 
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Set Mash Airdodge
@@ -146,6 +150,8 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
         "The menu should have Mash Airdodge"
     );
 
+    // Enter Mash Section
+    app.next_tab();
     // Enter Mash Toggles
     app.on_a();
     // Unset Mash Airdodge
@@ -183,6 +189,48 @@ fn test_save_and_reset_defaults() -> Result<(), Box<dyn Error>> {
         serde_json::to_string(&menu).unwrap(),
         "The menu should have Mash Airdodge off and Followup Jump on"
     );
+
+    Ok(())
+}
+
+fn _get_frame_buffer(
+    mut terminal: Terminal<training_mod_tui::TestBackend>,
+    mut app: training_mod_tui::App,
+) -> Result<String, Box<dyn Error>> {
+    let frame_res = terminal.draw(|f| training_mod_tui::ui(f, &mut app))?;
+    let mut full_frame_buffer = String::new();
+    for (i, cell) in frame_res.buffer.content().iter().enumerate() {
+        full_frame_buffer.push_str(&cell.symbol);
+        if i % frame_res.area.width as usize == frame_res.area.width as usize - 1 {
+            full_frame_buffer.push_str("\n");
+        }
+    }
+    full_frame_buffer.push_str("\n");
+
+    Ok(full_frame_buffer)
+}
+
+#[test]
+fn test_toggle_naming() -> Result<(), Box<dyn Error>> {
+    let menu;
+    let mut prev_menu;
+    let menu_defaults;
+    unsafe {
+        prev_menu = MENU.clone();
+        menu = ui_menu(MENU);
+        menu_defaults = (ui_menu(MENU), serde_json::to_string(&MENU).unwrap());
+    }
+
+    let (mut terminal, mut app) = test_backend_setup(menu, menu_defaults)?;
+    // Enter Mash Section
+    app.next_tab();
+    // Enter Mash Toggles
+    app.on_a();
+    // Set Mash Airdodge
+    app.on_a();
+
+    let frame_buffer = _get_frame_buffer(terminal, app)?;
+    assert!(frame_buffer.contains("Airdodge"));
 
     Ok(())
 }

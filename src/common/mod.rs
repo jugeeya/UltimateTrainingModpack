@@ -8,6 +8,7 @@ use crate::common::consts::*;
 
 pub mod button_config;
 pub mod consts;
+pub mod dialog;
 pub mod dev_config;
 pub mod events;
 pub mod input;
