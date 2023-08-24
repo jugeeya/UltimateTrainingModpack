@@ -9,7 +9,6 @@ use training_mod_tui::{App, AppPage, NUM_LISTS};
 use crate::common::menu::{
     MENU_CLOSE_WAIT_FRAMES, VISUAL_FRAME_COUNTER, VISUAL_FRAME_COUNTER_SHOULD_COUNT,
 };
-use crate::training::frame_counter;
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
 use super::fade_out;
