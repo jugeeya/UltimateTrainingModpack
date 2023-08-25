@@ -227,7 +227,7 @@ unsafe fn buff_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, cha
                 pikmin::spawn_pikmin(module_accessor, pikmin_3);
             });
         }
-        pikmin::special_hi_hold(module_accessor);
+        pikmin::follow(module_accessor);
     }
 
     if frame_counter::should_delay(120_u32, BUFF_DELAY_COUNTER) {

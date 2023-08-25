@@ -33,7 +33,7 @@ fn get_pikmin_prev(variation: i32) -> i32 {
     4
 }
 
-pub unsafe fn special_hi_hold(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn follow(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
     let following_count = (*troops_manager).current_pikmin_count;
     let held_count = (*troops_manager).held_pikmin_count;
