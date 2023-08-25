@@ -19,9 +19,12 @@ struct TroopsManager {
     padding_7: u64,
     padding_8: u64,
     held_pikmin_count: u64,
-    padding_9: u64,
-    pikmin_bomas: [*mut app::BattleObjectModuleAccessor; 3], // @ 0x90
+    maybe_more_pikmin_objects: *mut *mut app::BattleObject,
+    held_pikmin: [*mut app::BattleObject; 3], // @ 0x90
 }
+
+#[skyline::from_offset(0x3ac540)]
+fn get_battle_object_from_id(id: u32) -> *mut app::BattleObject;
 
 fn get_pikmin_prev(variation: i32) -> i32 {
     if variation > 0 { 
@@ -87,7 +90,6 @@ pub unsafe fn speed_up(module_accessor: &mut app::BattleObjectModuleAccessor, id
             && app::sv_battle_object::is_active(following_boid)
         {
             let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
-            (*troops_manager).pikmin_bomas[idx] = pikmin_boma; // troopsmanager struct very confusing
             StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
         }
     }
@@ -123,13 +125,14 @@ pub unsafe fn speed_up_all_2(module_accessor: &mut app::BattleObjectModuleAccess
         pikmin_boid_vec.push(held_boid);
     }
 
-    // Now, we have all pikmin boids, and want to get their bomas (if they exist) so we can check their color
+    // Now, we have all held pikmin boids, and want to reorder?
     for (idx, pikmin_boid) in pikmin_boid_vec.iter().enumerate() {
         if *pikmin_boid != *BATTLE_OBJECT_ID_INVALID as u32
             && app::sv_battle_object::is_active(*pikmin_boid)
         {
             let pikmin_boma = app::sv_battle_object::module_accessor(*pikmin_boid);
-            (*troops_manager).pikmin_bomas[idx] = pikmin_boma; // troopsmanager struct very confusing, trying to hard reorder
+            let pikmin_object = get_battle_object_from_id(*pikmin_boid);
+            (*troops_manager).held_pikmin[idx] = pikmin_object; // troopsmanager struct very confusing, trying to hard reorder
             StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
             let pikmin_variation = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
             println!("Index: {}, Color: {}", idx, pikmin_variation);
