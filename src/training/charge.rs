@@ -536,7 +536,7 @@ pub unsafe fn handle_charge(
         });
     }
     // Olimar Pikmin - 0 to 4
-    else if fighter_kind == FIGHTER_KIND_LUCARIO {
+    else if fighter_kind == FIGHTER_KIND_PIKMIN {
         ArticleModule::remove_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN, app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL));
         if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 0
         {

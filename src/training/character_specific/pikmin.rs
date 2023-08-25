@@ -1,6 +1,5 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
-use skyline::hooks::InlineCtx;
 
 #[repr(C)]
 struct TroopsManager {
@@ -23,14 +22,25 @@ struct TroopsManager {
     held_pikmin: [*mut app::BattleObject; 3], // @ 0x90
 }
 
-// Prevent Order Loss
-static AUTONOMY_CHECK_OFFSET: usize = 0x34ae478;
+#[repr(C)]
+pub struct WeaponWorkModule {
+    vtable: u64,
+    owner: *mut app::BattleObjectModuleAccessor,
+}
 
-// Before we check if the pikmin needs to be set to autonomous
-#[skyline::hook(offset = AUTONOMY_CHECK_OFFSET, inline)]
-unsafe fn autonomy_handle(ctx: &mut InlineCtx) {
-    let x0 = ctx.registers[0].x.as_mut();
-    *x0 = 0;
+// Prevent Order Loss
+static ACTIVATE_AUTONOMY_OFFSET: usize = 0x034b5cf0;
+#[skyline::hook(offset = ACTIVATE_AUTONOMY_OFFSET)]
+pub unsafe fn autonomy_handle(
+    address: *mut app::Weapon,
+    work_module: WeaponWorkModule,
+) {
+    println!("Tried Autonomy!");
+    let pikmin_boma = work_module.owner;
+    // if pikmin close and in follow air
+    // TODO: do this, then ready
+    // maybe check status to see if it's thrown or within X distance of olimar
+    return;
 }
 
 pub fn init() {
