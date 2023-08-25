@@ -132,6 +132,7 @@ pub unsafe fn speed_up_all_2(module_accessor: &mut app::BattleObjectModuleAccess
         {
             let pikmin_boma = app::sv_battle_object::module_accessor(*pikmin_boid);
             let pikmin_object = get_battle_object_from_id(*pikmin_boid);
+            // the below write should do nothing - these pikmin objects should already be here
             (*troops_manager).held_pikmin[idx] = pikmin_object; // troopsmanager struct very confusing, trying to hard reorder
             StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
             let pikmin_variation = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
