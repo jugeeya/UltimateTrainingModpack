@@ -96,21 +96,9 @@ pub unsafe fn speed_up(module_accessor: &mut app::BattleObjectModuleAccessor, id
 
 pub unsafe fn speed_up_all(module_accessor: &mut app::BattleObjectModuleAccessor) {
     // Make the pikmin follow Olimar without going through the entire pull out animation
-    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
-    let following_count = (*troops_manager).current_pikmin_count;
-
-    // If the pikmin are held, we don't care about making them actionable since they're already in an action
-    for following_index in 0..following_count {
-        print!("Following index: {}", following_index);
-        let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
-        println!(", boid: {}", following_boid);
-        if following_boid != *BATTLE_OBJECT_ID_INVALID as u32
-            && app::sv_battle_object::is_active(following_boid)
-        {
-            let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
-            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_HIDE_WAIT, false);
-        }
-    }
+    get_current_pikmin(module_accessor);
+    app::FighterSpecializer_Pikmin::hold_pikmin(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor, 3);
+    get_current_pikmin(module_accessor);
 }
 
 pub unsafe fn speed_up_all_3(module_accessor: &mut app::BattleObjectModuleAccessor) {//, correct_order: [Option<i32>; 3]) {
@@ -118,55 +106,6 @@ pub unsafe fn speed_up_all_3(module_accessor: &mut app::BattleObjectModuleAccess
     // app::FighterSpecializer_Pikmin::update_hold_pikmin_param(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor);
     app::FighterSpecializer_Pikmin::liberty_pikmin_all(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor);
     //rotate(module_accessor, correct_order);
-}
-
-pub unsafe fn speed_up_all_2(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    // Make the pikmin follow Olimar without going through the entire pull out animation
-    get_current_pikmin(module_accessor); //TODO: remove, debug
-    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
-    
-    let following_count = (*troops_manager).current_pikmin_count;
-    let held_count = (*troops_manager).held_pikmin_count;
-
-    let mut pikmin_boid_vec = Vec::new();
-    
-    // First, we get the order of held pikmin, since they'll be in front if we save state during a move or grab
-    for held_index in 0..held_count {
-        print!("Held index: {}", held_index);
-        let held_work_var = match held_index {
-            0 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_0,
-            1 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_1,
-            2 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_2,
-            _ => {panic!("Pikmin Held Out of Bounds!");}
-        };
-        let held_boid = WorkModule::get_int(module_accessor, held_work_var) as u32;
-        println!(", boid: {}", held_boid);
-        pikmin_boid_vec.push(held_boid);
-    }
-    // // Next, we get the order of the following pikmin
-    // for following_index in 0..following_count {
-    //     print!("Following index: {}", following_index);
-    //     let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
-    //     println!(", boid: {}", following_boid);
-    //     pikmin_boid_vec.push(following_boid);
-    // }
-    // Now, we have all pikmin boids, and want to get their bomas (if they exist) so we can check their color
-    for (idx, pikmin_boid) in pikmin_boid_vec.iter().enumerate() {
-        if *pikmin_boid != *BATTLE_OBJECT_ID_INVALID as u32
-            && app::sv_battle_object::is_active(*pikmin_boid)
-        {
-            let pikmin_boma = app::sv_battle_object::module_accessor(*pikmin_boid);
-            let pikmin_variation = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
-            let displacement = Vector3f {
-                x: PostureModule::pos_x(module_accessor) + (30.0*((idx+1) as f32)) * PostureModule::lr(module_accessor),
-                y: PostureModule::pos_y(module_accessor) + 0.0,
-                z: PostureModule::pos_z(module_accessor) + 0.0,
-            };
-            PostureModule::set_pos(pikmin_boma, &displacement);
-            println!("Index: {}, Color: {}, Displaced!", idx, pikmin_variation);
-        }
-    }
-         
 }
 
 pub unsafe fn spawn_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, variation: i32) {
@@ -178,6 +117,7 @@ pub unsafe fn spawn_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor
         false,
         -1
     );
+    // TODO: Try holding pikmin one at a time here, also try changing their status here?
     println!("Post-Generation: PRE: {}, BEFORE_PRE: {}", // TODO: Remove
         WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION), 
         WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION),
