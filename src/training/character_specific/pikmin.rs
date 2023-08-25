@@ -102,6 +102,7 @@ pub unsafe fn speed_up_all(module_accessor: &mut app::BattleObjectModuleAccessor
 }
 
 pub unsafe fn speed_up_all_2(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    println!("Speed up 2!");
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
     
     let following_count = (*troops_manager).current_pikmin_count;

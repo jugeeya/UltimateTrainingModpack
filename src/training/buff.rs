@@ -231,7 +231,7 @@ unsafe fn buff_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, cha
         return false;
     }
 
-    if frame_counter::should_delay(2_u32, BUFF_DELAY_COUNTER) {
+    if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
         pikmin::speed_up_all_2(module_accessor);
         return false;
     }
