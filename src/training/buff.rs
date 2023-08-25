@@ -5,8 +5,6 @@ use crate::common::consts::*;
 use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
-use crate::training::charge::ChargeState;
-use crate::training::character_specific::pikmin;
 
 static mut BUFF_DELAY_COUNTER: usize = 0;
 
@@ -68,7 +66,6 @@ pub unsafe fn handle_buffs(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
     status: i32,
-    charge: ChargeState,
 ) -> bool {
     // Future Enhancements:
     // - Remove startup effects on buffs (Flash of Limit, Wii Fit's flash, Shulk's occasional Jump Art smoke, etc.)
@@ -96,8 +93,6 @@ pub unsafe fn handle_buffs(
         return buff_sepiroth(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_SHULK {
         return buff_shulk(module_accessor, status);
-    } else if fighter_kind == *FIGHTER_KIND_PIKMIN {
-        return buff_pikmin(module_accessor, charge);
     }
     true
 }
@@ -201,40 +196,6 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
         // Need to wait 2 frames to make sure we stop the KO sound, since it's a bit delayed
         return false;
     }
-    true
-}
-
-unsafe fn buff_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, charge: ChargeState) -> bool {
-    if !is_buffing(module_accessor) {
-        // Any living pikmin need to be killed here or their order becomes nearly random
-        ArticleModule::remove_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN, app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL));
-        start_buff(module_accessor);
-        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 0
-        {
-            charge.int_x.map(|pikmin_1| {
-                pikmin::spawn_pikmin(module_accessor, pikmin_1);
-            });
-        }
-        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 1
-        {
-            charge.int_y.map(|pikmin_2| {
-                pikmin::spawn_pikmin(module_accessor, pikmin_2);
-            });
-        }
-        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 2
-        {
-            charge.int_z.map(|pikmin_3| {   
-                pikmin::spawn_pikmin(module_accessor, pikmin_3);
-            });
-        }
-        pikmin::follow(module_accessor);
-    }
-
-    if frame_counter::should_delay(120_u32, BUFF_DELAY_COUNTER) {
-        pikmin::pretty_print(module_accessor);
-        return false;
-    }
-    //pikmin::speed_up_all_3(module_accessor);
     true
 }
 

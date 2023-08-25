@@ -6,7 +6,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use crate::training::character_specific::items;
+use crate::training::character_specific::{items, pikmin};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, enSEType, lua_bind::*, utility};
@@ -830,4 +830,5 @@ pub fn training_mods() {
     input_record::init();
     ui::init();
     menu::init();
+    pikmin::init();
 }

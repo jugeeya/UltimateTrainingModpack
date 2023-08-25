@@ -1,6 +1,6 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
-use smash::phx::Vector3f;
+use skyline::hooks::InlineCtx;
 
 #[repr(C)]
 struct TroopsManager {
@@ -23,8 +23,21 @@ struct TroopsManager {
     held_pikmin: [*mut app::BattleObject; 3], // @ 0x90
 }
 
-#[skyline::from_offset(0x3ac540)]
-fn get_battle_object_from_id(id: u32) -> *mut app::BattleObject;
+// Prevent Order Loss
+static AUTONOMY_CHECK_OFFSET: usize = 0x34ae478;
+
+// Before we check if the pikmin needs to be set to autonomous
+#[skyline::hook(offset = AUTONOMY_CHECK_OFFSET, inline)]
+unsafe fn autonomy_handle(ctx: &mut InlineCtx) {
+    let x0 = ctx.registers[0].x.as_mut();
+    *x0 = 0;
+}
+
+pub fn init() {
+    skyline::install_hooks!(
+        autonomy_handle,
+    );
+}
 
 fn get_pikmin_prev(variation: i32) -> i32 {
     if variation > 0 { 
@@ -40,7 +53,6 @@ pub unsafe fn follow(module_accessor: &mut app::BattleObjectModuleAccessor) {
 
     let mut pikmin_boid_following_vec = Vec::new();
     let mut pikmin_boid_held_vec = Vec::new();
-    let mut ordered_pikmin_variation: [Option<i32>; 3] = [None; 3];
 
     // First, we get the order of held pikmin, since they'll be in front if we save state during a move or grab
     for held_index in 0..held_count {
@@ -57,35 +69,6 @@ pub unsafe fn follow(module_accessor: &mut app::BattleObjectModuleAccessor) {
         let pikmin_boma = app::sv_battle_object::module_accessor(pikmin_boid);
         StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
     }
-}
-
-pub unsafe fn speed_up(module_accessor: &mut app::BattleObjectModuleAccessor, idx: usize) {
-    // Make the pikmin follow Olimar without going through the entire pull out animation
-    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
-    let following_count = (*troops_manager).current_pikmin_count;
-
-    // If the pikmin are held, we don't care about making them actionable since they're already in an action
-    if idx < following_count {
-        let following_boid = (*((*troops_manager).pikmin[idx])).battle_object_id;
-        if following_boid != *BATTLE_OBJECT_ID_INVALID as u32
-            && app::sv_battle_object::is_active(following_boid)
-        {
-            let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
-            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
-        }
-    }
-}
-
-pub unsafe fn speed_up_all(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    // Make the pikmin follow Olimar without going through the entire pull out animation
-    get_current_pikmin(module_accessor);
-    app::FighterSpecializer_Pikmin::hold_pikmin(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor, 3);
-}
-
-pub unsafe fn liberty_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor) {//, correct_order: [Option<i32>; 3]) {
-    // TODO: Investigate update_hold_pikmin_param, maybe this is key to making sure the pikmin don't run off after special hi
-    // app::FighterSpecializer_Pikmin::update_hold_pikmin_param(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor);
-    app::FighterSpecializer_Pikmin::liberty_pikmin_all(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor);
 }
 
 pub unsafe fn spawn_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, variation: i32) {
@@ -149,7 +132,7 @@ pub unsafe fn get_current_pikmin(module_accessor: &mut app::BattleObjectModuleAc
     ordered_pikmin_variation
 }
 
-pub unsafe fn pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
     
     let following_count = (*troops_manager).current_pikmin_count;
@@ -157,25 +140,24 @@ pub unsafe fn pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor
 
     let mut pikmin_following_boid_vec = Vec::new();
     let mut pikmin_held_boid_vec = Vec::new();
-    let mut ordered_pikmin_variation: [Option<i32>; 3] = [None; 3];
 
     // First, we get the order of held pikmin, since they'll be in front if we save state during a move or grab
     for held_index in 0..held_count {
         let held_boid = (*((*troops_manager).held_pikmin[held_index])).battle_object_id;
         pikmin_held_boid_vec.push(held_boid);
-        print(held_boid, true);
+        _print(held_boid, true);
 
     }
     // Next, we get the order of the following pikmin
     for following_index in 0..following_count {
         let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
         pikmin_following_boid_vec.push(following_boid);
-        print(following_boid, false);
+        _print(following_boid, false);
     }
     println!("----------------------------------------")
 }
 
-unsafe fn print(boid: u32, held: bool) {
+unsafe fn _print(boid: u32, held: bool) {
     if boid != *BATTLE_OBJECT_ID_INVALID as u32
         && app::sv_battle_object::is_active(boid)
     {

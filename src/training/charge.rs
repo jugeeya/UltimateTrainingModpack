@@ -3,8 +3,6 @@ use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, Fight
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use crate::training::character_specific::pikmin;
-//use crate::training::handle_article_get_int; // handle_get_module_accessor
-//use crate::print_fighter_info;
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
@@ -48,10 +46,6 @@ impl ChargeState {
         self.int_y = pikmin_2;
         self.int_z = pikmin_3;
         self
-    }
-
-    pub fn get_pikmin(self) -> [Option<i32>; 3] { // TODO: if moved back to charge, this is unneeded
-        [self.int_x, self.int_y, self.int_z]
     }
 
     fn has_charge(mut self, has_charge: bool) -> Self {
@@ -541,7 +535,29 @@ pub unsafe fn handle_charge(
             }
         });
     }
-    // Olimar Pikmin are spawned in Buff, since it runs for multiple frames
+    // Olimar Pikmin - 0 to 4
+    else if fighter_kind == FIGHTER_KIND_LUCARIO {
+        ArticleModule::remove_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN, app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL));
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 0
+        {
+            charge.int_x.map(|pikmin_1| {
+                pikmin::spawn_pikmin(module_accessor, pikmin_1);
+            });
+        }
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 1
+        {
+            charge.int_y.map(|pikmin_2| {
+                pikmin::spawn_pikmin(module_accessor, pikmin_2);
+            });
+        }
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 2
+        {
+            charge.int_z.map(|pikmin_3| {   
+                pikmin::spawn_pikmin(module_accessor, pikmin_3);
+            });
+        }
+        pikmin::follow(module_accessor);
+    }
     // Lucario Aura Sphere - 0 to 90, Boolean
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
         charge.int_x.map(|charge_frame| {
