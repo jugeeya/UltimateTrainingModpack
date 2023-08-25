@@ -183,9 +183,14 @@ unsafe fn print(boid: u32, held: bool) {
         let pikmin_variation = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
         let pikmin_status = StatusModule::status_kind(pikmin_boma);
         let pikmin_autonomy: bool = WorkModule::is_flag(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_FLAG_AUTONOMY);
-        let is_check_autonomy = WorkModule::is_flag(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_FOLLOW_COMMON_WORK_FLAG_IS_CHECK_AUTONOMY);
-        let is_perplexed = WorkModule::is_flag(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_FOLLOW_COMMON_WORK_FLAG_IS_PERPLEXED);
-        println!("Color: {}, Status: {}, Held {}, Autonomy: {}, ICA: {}, perplexed: {}", pikmin_variation, pikmin_status, held, pikmin_autonomy, is_check_autonomy, is_perplexed);
+        // solution!!!!
+        //WorkModule::off_flag(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_FLAG_AUTONOMY);
+        let owner_cond = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_CONDITION_CURRENT);
+        let owner_cond_follow = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_CONDITION_FOLLOW);
+        let owner_opt_flag_follow = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_OPTION_FLAG_FOLLOW);
+        println!("Color: {}, Status: {}, Held {}, Autonomy: {}, owner_cond: {}, owner_cond_follow: {}, owner_opt_flag_follow: {}",
+            pikmin_variation, pikmin_status, held, pikmin_autonomy, owner_cond, owner_cond_follow, owner_opt_flag_follow
+        );
         // TODO: check perplexed common work vars, since perplexed is probably "hey I need to look"
     }
 }
