@@ -20,9 +20,7 @@ struct TroopsManager {
     padding_8: u64,
     held_pikmin_count: u64,
     padding_9: u64,
-    boma_pikmin_1: *mut app::BattleObjectModuleAccessor, // @ 0x90
-    boma_pikmin_2: *mut app::BattleObjectModuleAccessor, // @ 0x98
-    boma_pikmin_3: *mut app::BattleObjectModuleAccessor, // @ 0xa0
+    pikmin_bomas: [*mut app::BattleObjectModuleAccessor; 3], // @ 0x90
 }
 
 fn get_pikmin_prev(variation: i32) -> i32 {
@@ -89,6 +87,7 @@ pub unsafe fn speed_up(module_accessor: &mut app::BattleObjectModuleAccessor, id
             && app::sv_battle_object::is_active(following_boid)
         {
             let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
+            (*troops_manager).pikmin_bomas[idx] = pikmin_boma; // troopsmanager struct very confusing
             StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
         }
     }
@@ -98,8 +97,46 @@ pub unsafe fn speed_up_all(module_accessor: &mut app::BattleObjectModuleAccessor
     // Make the pikmin follow Olimar without going through the entire pull out animation
     get_current_pikmin(module_accessor);
     app::FighterSpecializer_Pikmin::hold_pikmin(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor, 3);
-    get_current_pikmin(module_accessor);
 }
+
+pub unsafe fn speed_up_all_2(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
+    
+    let following_count = (*troops_manager).current_pikmin_count;
+    let held_count = (*troops_manager).held_pikmin_count;
+
+    let mut pikmin_boid_vec = Vec::new();
+    //let mut pikmin_boma_vec: [*mut app::BattleObjectModuleAccessor; 3] = [0 as *mut app::BattleObjectModuleAccessor; 3];
+    let mut ordered_pikmin_variation: [Option<i32>; 3] = [None; 3];
+
+    // First, we get the order of held pikmin, since they'll be in front if we save state during a move or grab
+    for held_index in 0..held_count {
+        print!("Held index: {}", held_index);
+        let held_work_var = match held_index {
+            0 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_0,
+            1 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_1,
+            2 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_2,
+            _ => {panic!("Pikmin Held Out of Bounds!");}
+        };
+        let held_boid = WorkModule::get_int(module_accessor, held_work_var) as u32;
+        println!(", boid: {}", held_boid);
+        pikmin_boid_vec.push(held_boid);
+    }
+
+    // Now, we have all pikmin boids, and want to get their bomas (if they exist) so we can check their color
+    for (idx, pikmin_boid) in pikmin_boid_vec.iter().enumerate() {
+        if *pikmin_boid != *BATTLE_OBJECT_ID_INVALID as u32
+            && app::sv_battle_object::is_active(*pikmin_boid)
+        {
+            let pikmin_boma = app::sv_battle_object::module_accessor(*pikmin_boid);
+            (*troops_manager).pikmin_bomas[idx] = pikmin_boma; // troopsmanager struct very confusing, trying to hard reorder
+            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
+            let pikmin_variation = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
+            println!("Index: {}, Color: {}", idx, pikmin_variation);
+        }
+    }
+}
+
 
 pub unsafe fn speed_up_all_3(module_accessor: &mut app::BattleObjectModuleAccessor) {//, correct_order: [Option<i32>; 3]) {
     // app::FighterSpecializer_Pikmin::hold_pikmin(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor, 1);
