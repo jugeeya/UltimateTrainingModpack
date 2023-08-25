@@ -31,8 +31,85 @@ fn get_pikmin_prev(variation: i32) -> i32 {
     4
 }
 
-pub fn speed_up(module_accessor: &mut app::BattleObjectModuleAccessor, idx: u32) {
-    // Give the pikmin downward momentum
+unsafe fn rotate(module_accessor: &mut app::BattleObjectModuleAccessor, correct_order: [Option<i32>; 3]) -> bool {
+    // Rotate pikmin until the correct one is in front, return true if order is correct
+    let mut current_order = get_current_pikmin(module_accessor);
+    if current_order == correct_order {
+        return true; // Christmas Miracle
+    }
+    for _ in 0..2 {
+        app::FighterSpecializer_Pikmin::sort_pikmin_no_change_status(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor);
+        current_order = get_current_pikmin(module_accessor);
+        if current_order == correct_order {
+            return true;
+        }
+    }
+    false
+}
+
+unsafe fn respawn_second(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    // Respawn the 2nd pikmin
+    let second_pikmin_variation = get_current_pikmin(module_accessor)[1];
+    if let Some(variation) = second_pikmin_variation {
+        // Delete the pikmin
+        let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
+        let following_count = (*troops_manager).current_pikmin_count;
+        if 1 < following_count {
+            let pikmin_delete_boid = (*((*troops_manager).pikmin[1])).battle_object_id;
+            ArticleModule::remove_exist_object_id(module_accessor, pikmin_delete_boid);
+            spawn_pikmin(module_accessor, variation);
+        }
+    }
+
+}
+
+pub unsafe fn order(module_accessor: &mut app::BattleObjectModuleAccessor, correct_order: [Option<i32>; 3]) {
+    // Pikmin spawn at (basically) random, so we need to reorder them.
+    
+    // When spawning in a pikmin, it seems to get sent to the front or back of the pikmin, we can use this
+    // see if we're only out of rotation
+    if !rotate(module_accessor, correct_order) {
+        // we can't rotate to get the correct order, so respawn the second pikmin, then rotate again
+        respawn_second(module_accessor);
+        rotate(module_accessor, correct_order);
+    }
+    return;
+}
+
+pub unsafe fn speed_up(module_accessor: &mut app::BattleObjectModuleAccessor, idx: usize) {
+    // Make the pikmin follow Olimar without going through the entire pull out animation
+    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
+    let following_count = (*troops_manager).current_pikmin_count;
+
+    // If the pikmin are held, we don't care about making them actionable since they're already in an action
+    if idx < following_count {
+        let following_boid = (*((*troops_manager).pikmin[idx])).battle_object_id;
+        if following_boid != *BATTLE_OBJECT_ID_INVALID as u32
+            && app::sv_battle_object::is_active(following_boid)
+        {
+            let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
+            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
+        }
+    }
+}
+
+pub unsafe fn speed_up_all(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    // Make the pikmin follow Olimar without going through the entire pull out animation
+    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
+    let following_count = (*troops_manager).current_pikmin_count;
+
+    // If the pikmin are held, we don't care about making them actionable since they're already in an action
+    for following_index in 0..following_count {
+        print!("Following index: {}", following_index);
+        let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
+        println!(", boid: {}", following_boid);
+        if following_boid != *BATTLE_OBJECT_ID_INVALID as u32
+            && app::sv_battle_object::is_active(following_boid)
+        {
+            let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
+            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
+        }
+    }
 }
 
 pub unsafe fn spawn_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, variation: i32) {
@@ -44,11 +121,10 @@ pub unsafe fn spawn_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor
         false,
         -1
     );
-    println!("Post-Generation: PRE: {}, BEFORE_PRE: {}",
+    println!("Post-Generation: PRE: {}, BEFORE_PRE: {}", // TODO: Remove
         WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION), 
         WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION),
     );
-    //speed_up_pikmin(module_accessor);
 }
 
 pub unsafe fn get_current_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor) -> [Option<i32>; 3] {

@@ -206,32 +206,35 @@ unsafe fn buff_mac(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
 
 unsafe fn buff_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, charge: ChargeState) -> bool {
     if !is_buffing(module_accessor) {
-        // Only need to add to the limit gauge once
+        // Any living pikmin need to be killed here or their order becomes nearly random
+        ArticleModule::remove_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN, app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL));
         start_buff(module_accessor);
-    }
-    if frame_counter::should_delay(6_u32, BUFF_DELAY_COUNTER) {
-        if frame_counter::get_frame_count(BUFF_DELAY_COUNTER) == 2 {
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 0
+        {
             charge.int_x.map(|pikmin_1| {
                 pikmin::spawn_pikmin(module_accessor, pikmin_1);
             });
-            return false;
         }
-        if frame_counter::get_frame_count(BUFF_DELAY_COUNTER) == 3 {
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 1
+        {
             charge.int_y.map(|pikmin_2| {
                 pikmin::spawn_pikmin(module_accessor, pikmin_2);
             });
-            return false;
         }
-        if frame_counter::get_frame_count(BUFF_DELAY_COUNTER) == 4 {
-            charge.int_z.map(|pikmin_3| {
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 2
+        {
+            charge.int_z.map(|pikmin_3| {   
                 pikmin::spawn_pikmin(module_accessor, pikmin_3);
             });
-            return false;
         }
+        pikmin::speed_up_all(module_accessor);
+    }
+
+    if frame_counter::should_delay(5_u32, BUFF_DELAY_COUNTER) {
         return false;
     }
-    pikmin::speed_up(module_accessor, 0);
-    // Need to wait 6 frames to try to force the first pikmin down
+    pikmin::order(module_accessor,charge.get_pikmin());
+    
     true
 }
 

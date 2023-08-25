@@ -50,6 +50,10 @@ impl ChargeState {
         self
     }
 
+    pub fn get_pikmin(self) -> [Option<i32>; 3] { // TODO: if moved back to charge, this is unneeded
+        [self.int_x, self.int_y, self.int_z]
+    }
+
     fn has_charge(mut self, has_charge: bool) -> Self {
         self.has_charge = Some(has_charge);
         self
@@ -537,11 +541,7 @@ pub unsafe fn handle_charge(
             }
         });
     }
-    // Olimar Pikmin - 0 to 4
-    else if fighter_kind == FIGHTER_KIND_PIKMIN {
-        // Spawning them on the same frame is making their order essentially random - should spawn them one frame apart
-        // TODO: Handle above after you handle pikmin spawn in speed
-    }
+    // Olimar Pikmin are spawned in Buff, since it runs for multiple frames
     // Lucario Aura Sphere - 0 to 90, Boolean
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
         charge.int_x.map(|charge_frame| {
