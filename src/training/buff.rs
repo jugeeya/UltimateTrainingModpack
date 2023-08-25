@@ -227,15 +227,14 @@ unsafe fn buff_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, cha
                 pikmin::spawn_pikmin(module_accessor, pikmin_3);
             });
         }
-        pikmin::speed_up_all(module_accessor);
-        return false;
+        pikmin::special_hi_hold(module_accessor);
     }
 
-    if frame_counter::should_delay(3_u32, BUFF_DELAY_COUNTER) {
-        pikmin::speed_up_all_2(module_accessor);
+    if frame_counter::should_delay(120_u32, BUFF_DELAY_COUNTER) {
+        pikmin::pretty_print(module_accessor);
         return false;
     }
-    pikmin::speed_up_all_3(module_accessor);
+    //pikmin::speed_up_all_3(module_accessor);
     true
 }
 
