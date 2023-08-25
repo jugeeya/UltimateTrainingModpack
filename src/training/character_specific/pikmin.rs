@@ -107,7 +107,35 @@ pub unsafe fn speed_up_all(module_accessor: &mut app::BattleObjectModuleAccessor
             && app::sv_battle_object::is_active(following_boid)
         {
             let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
-            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
+            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_HIDE_WAIT, false);
+            //StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_HIDE_WAIT, false);
+            //StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
+        }
+    }
+}
+
+pub unsafe fn speed_up_all_3(module_accessor: &mut app::BattleObjectModuleAccessor, correct_order: [Option<i32>; 3]) {
+    // app::FighterSpecializer_Pikmin::hold_pikmin(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor, 1);
+    // app::FighterSpecializer_Pikmin::update_hold_pikmin_param(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor);
+    app::FighterSpecializer_Pikmin::liberty_pikmin_all(module_accessor as *mut app::BattleObjectModuleAccessor as *mut app::FighterModuleAccessor);
+    rotate(module_accessor, correct_order);
+}
+
+pub unsafe fn speed_up_all_2(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    // Make the pikmin follow Olimar without going through the entire pull out animation
+    let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
+    let following_count = (*troops_manager).current_pikmin_count;
+
+    // If the pikmin are held, we don't care about making them actionable since they're already in an action
+    for following_index in 0..following_count {
+        print!("Following index: {}", following_index);
+        let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
+        println!(", boid: {}", following_boid);
+        if following_boid != *BATTLE_OBJECT_ID_INVALID as u32
+            && app::sv_battle_object::is_active(following_boid)
+        {
+            let pikmin_boma = app::sv_battle_object::module_accessor(following_boid);
+            StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_CATCH_RETURN, false);
         }
     }
 }
