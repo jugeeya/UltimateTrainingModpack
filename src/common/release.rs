@@ -1,6 +1,6 @@
 #![allow(clippy::unnecessary_unwrap)]
-use crate::consts::*;
 use crate::common::dialog;
+use crate::consts::*;
 use crate::logging::*;
 use crate::MENU;
 use anyhow::{anyhow, Result};

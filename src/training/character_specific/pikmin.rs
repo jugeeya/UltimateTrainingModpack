@@ -7,7 +7,7 @@ struct TroopsManager {
     max_pikmin_count: usize, // always 3
     current_pikmin_count: usize,
     pikmin_objects: *mut *mut app::BattleObject,
-    pikmin: [*mut app::BattleObject; 3], // unk
+    pikmin: [*mut app::BattleObject; 3],
     padding_0: u64,
     padding_1: u64,
     padding_2: u64,
@@ -31,31 +31,25 @@ pub struct WeaponWorkModule {
 // Prevent Order Loss
 static ACTIVATE_AUTONOMY_OFFSET: usize = 0x034b5cf0;
 #[skyline::hook(offset = ACTIVATE_AUTONOMY_OFFSET)]
-pub unsafe fn autonomy_handle(
-    weapon: *mut app::Weapon,
-    work_module: WeaponWorkModule,
-) {
+pub unsafe fn autonomy_handle(weapon: *mut app::Weapon, work_module: WeaponWorkModule) {
     let pikmin_boma = (*weapon).battle_object.module_accessor;
     // If the Pikmin is in a status where we want this behavior, execute the original process
     let pikmin_status = StatusModule::status_kind(pikmin_boma);
-    let is_pikmin_thrown = (*WEAPON_PIKMIN_PIKMIN_STATUS_KIND_ATTACK_AIR..=*WEAPON_PIKMIN_PIKMIN_STATUS_KIND_ATTACK_HI4_LANDING)
+    let is_pikmin_thrown = (*WEAPON_PIKMIN_PIKMIN_STATUS_KIND_ATTACK_AIR
+        ..=*WEAPON_PIKMIN_PIKMIN_STATUS_KIND_ATTACK_HI4_LANDING)
         .contains(&pikmin_status);
     if is_pikmin_thrown {
-        return original!()(weapon, work_module);
-    } else {
-        return;
+        original!()(weapon, work_module)
     }
 }
 
 pub fn init() {
-    skyline::install_hooks!(
-        autonomy_handle,
-    );
+    skyline::install_hooks!(autonomy_handle,);
 }
 
 fn get_pikmin_prev(variation: i32) -> i32 {
-    if variation > 0 { 
-        return variation - 1; 
+    if variation > 0 {
+        return variation - 1;
     }
     4
 }
@@ -81,29 +75,38 @@ pub unsafe fn follow(module_accessor: &mut app::BattleObjectModuleAccessor) {
 
     for pikmin_boid in pikmin_boid_following_vec {
         let pikmin_boma = app::sv_battle_object::module_accessor(pikmin_boid);
-        StatusModule::change_status_request(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW, false);
+        StatusModule::change_status_request(
+            pikmin_boma,
+            *WEAPON_PIKMIN_PIKMIN_STATUS_KIND_AIR_FOLLOW,
+            false,
+        );
     }
 }
 
 pub unsafe fn spawn_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor, variation: i32) {
-    WorkModule::set_int(module_accessor, get_pikmin_prev(variation), *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION);
-    WorkModule::set_int(module_accessor, get_pikmin_prev(get_pikmin_prev(variation)), *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION);
+    WorkModule::set_int(
+        module_accessor,
+        get_pikmin_prev(variation),
+        *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION,
+    );
+    WorkModule::set_int(
+        module_accessor,
+        get_pikmin_prev(get_pikmin_prev(variation)),
+        *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION,
+    );
     ArticleModule::generate_article(
         module_accessor as *mut app::BattleObjectModuleAccessor,
         0,
         false,
-        -1
-    );
-    // TODO: Try holding pikmin one at a time here, also try changing their status here?
-    println!("Post-Generation: PRE: {}, BEFORE_PRE: {}", // TODO: Remove
-        WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION), 
-        WorkModule::get_int(module_accessor, *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION),
+        -1,
     );
 }
 
-pub unsafe fn get_current_pikmin(module_accessor: &mut app::BattleObjectModuleAccessor) -> [Option<i32>; 3] {
+pub unsafe fn get_current_pikmin(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> [Option<i32>; 3] {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
-    
+
     let following_count = (*troops_manager).current_pikmin_count;
     let held_count = (*troops_manager).held_pikmin_count;
 
@@ -113,12 +116,13 @@ pub unsafe fn get_current_pikmin(module_accessor: &mut app::BattleObjectModuleAc
 
     // First, we get the order of held pikmin, since they'll be in front if we save state during a move or grab
     for held_index in 0..held_count {
-        print!("Held index: {}", held_index);
         let held_work_var = match held_index {
             0 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_0,
             1 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_1,
             2 => *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PIKMIN_HOLD_PIKMIN_OBJECT_ID_2,
-            _ => {panic!("Pikmin Held Out of Bounds!");}
+            _ => {
+                panic!("Pikmin Held Out of Bounds!");
+            }
         };
         let held_boid = WorkModule::get_int(module_accessor, held_work_var) as u32;
         println!(", boid: {}", held_boid);
@@ -126,9 +130,7 @@ pub unsafe fn get_current_pikmin(module_accessor: &mut app::BattleObjectModuleAc
     }
     // Next, we get the order of the following pikmin
     for following_index in 0..following_count {
-        print!("Following index: {}", following_index);
         let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
-        println!(", boid: {}", following_boid);
         pikmin_boid_vec.push(following_boid);
     }
     // Now, we have all pikmin boids, and want to get their bomas (if they exist) so we can check their color
@@ -137,9 +139,11 @@ pub unsafe fn get_current_pikmin(module_accessor: &mut app::BattleObjectModuleAc
             && app::sv_battle_object::is_active(*pikmin_boid)
         {
             let pikmin_boma = app::sv_battle_object::module_accessor(*pikmin_boid);
-            let pikmin_variation = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
+            let pikmin_variation = WorkModule::get_int(
+                pikmin_boma,
+                *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION,
+            );
             ordered_pikmin_variation[idx] = Some(pikmin_variation);
-            println!("Index: {}, Color: {}", idx, pikmin_variation);
         }
     }
 
@@ -148,7 +152,7 @@ pub unsafe fn get_current_pikmin(module_accessor: &mut app::BattleObjectModuleAc
 
 pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
-    
+
     let following_count = (*troops_manager).current_pikmin_count;
     let held_count = (*troops_manager).held_pikmin_count;
 
@@ -160,7 +164,6 @@ pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccesso
         let held_boid = (*((*troops_manager).held_pikmin[held_index])).battle_object_id;
         pikmin_held_boid_vec.push(held_boid);
         _print(held_boid, true);
-
     }
     // Next, we get the order of the following pikmin
     for following_index in 0..following_count {
@@ -172,21 +175,33 @@ pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccesso
 }
 
 unsafe fn _print(boid: u32, held: bool) {
-    if boid != *BATTLE_OBJECT_ID_INVALID as u32
-        && app::sv_battle_object::is_active(boid)
-    {
+    if boid != *BATTLE_OBJECT_ID_INVALID as u32 && app::sv_battle_object::is_active(boid) {
         let pikmin_boma = app::sv_battle_object::module_accessor(boid);
-        let pikmin_variation = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION);
+        let pikmin_variation = WorkModule::get_int(
+            pikmin_boma,
+            *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_VARIATION,
+        );
         let pikmin_status = StatusModule::status_kind(pikmin_boma);
-        let pikmin_autonomy: bool = WorkModule::is_flag(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_FLAG_AUTONOMY);
-        // solution!!!!
+        let pikmin_autonomy: bool = WorkModule::is_flag(
+            pikmin_boma,
+            *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_FLAG_AUTONOMY,
+        );
+        // solution:
         //WorkModule::off_flag(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_FLAG_AUTONOMY);
-        let owner_cond = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_CONDITION_CURRENT);
-        let owner_cond_follow = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_CONDITION_FOLLOW);
-        let owner_opt_flag_follow = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_OPTION_FLAG_FOLLOW);
+        let owner_cond = WorkModule::get_int(
+            pikmin_boma,
+            *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_CONDITION_CURRENT,
+        );
+        let owner_cond_follow = WorkModule::get_int(
+            pikmin_boma,
+            *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_CONDITION_FOLLOW,
+        );
+        let owner_opt_flag_follow = WorkModule::get_int(
+            pikmin_boma,
+            *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_OPTION_FLAG_FOLLOW,
+        );
         println!("Color: {}, Status: {}, Held {}, Autonomy: {}, owner_cond: {}, owner_cond_follow: {}, owner_opt_flag_follow: {}",
             pikmin_variation, pikmin_status, held, pikmin_autonomy, owner_cond, owner_cond_follow, owner_opt_flag_follow
         );
-        // TODO: check perplexed common work vars, since perplexed is probably "hey I need to look"
     }
 }

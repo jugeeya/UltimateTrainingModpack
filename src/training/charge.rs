@@ -1,8 +1,8 @@
+use crate::training::character_specific::pikmin;
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use crate::training::character_specific::pikmin;
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
@@ -41,7 +41,12 @@ impl ChargeState {
         self
     }
 
-    fn set_pikmin(mut self, pikmin_1: Option<i32>, pikmin_2: Option<i32>, pikmin_3: Option<i32>) -> Self {
+    fn set_pikmin(
+        mut self,
+        pikmin_1: Option<i32>,
+        pikmin_2: Option<i32>,
+        pikmin_3: Option<i32>,
+    ) -> Self {
         self.int_x = pikmin_1;
         self.int_y = pikmin_2;
         self.int_z = pikmin_3;
@@ -124,7 +129,10 @@ pub unsafe fn get_charge(
     }
     // Wario Waft
     else if fighter_kind == FIGHTER_KIND_WARIO {
-        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT);
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT,
+        );
         charge_state.int_x(my_charge)
     }
     // Squirtle Water Gun
@@ -138,11 +146,7 @@ pub unsafe fn get_charge(
     // Olimar Pikmin
     else if fighter_kind == FIGHTER_KIND_PIKMIN {
         let pikmin_array = pikmin::get_current_pikmin(module_accessor);
-        return charge_state.set_pikmin(
-            pikmin_array[0],
-            pikmin_array[1],
-            pikmin_array[2],
-        );
+        return charge_state.set_pikmin(pikmin_array[0], pikmin_array[1], pikmin_array[2]);
     }
     // Lucario Aura Sphere
     else if fighter_kind == FIGHTER_KIND_LUCARIO {
@@ -192,7 +196,10 @@ pub unsafe fn get_charge(
     }
     // Pac-Man Bonus Fruit
     else if fighter_kind == FIGHTER_KIND_PACMAN {
-        let my_charge = WorkModule::get_int(module_accessor, *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK);
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK,
+        );
         let fruit_have = WorkModule::is_flag(
             module_accessor,
             *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_PULL_THROW,
@@ -519,7 +526,11 @@ pub unsafe fn handle_charge(
     // Wario Waft - 0 to 6000
     else if fighter_kind == FIGHTER_KIND_WARIO {
         charge.int_x.map(|waft_count| {
-            WorkModule::set_int(module_accessor, waft_count, *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT);
+            WorkModule::set_int(
+                module_accessor,
+                waft_count,
+                *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT,
+            );
         });
     }
     // Squirtle Water Gun - 0 to 45
@@ -537,22 +548,29 @@ pub unsafe fn handle_charge(
     }
     // Olimar Pikmin - 0 to 4
     else if fighter_kind == FIGHTER_KIND_PIKMIN {
-        ArticleModule::remove_exist(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN, app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL));
-        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 0
+        ArticleModule::remove_exist(
+            module_accessor,
+            *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN,
+            app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL),
+        );
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN)
+            == 0
         {
             charge.int_x.map(|pikmin_1| {
                 pikmin::spawn_pikmin(module_accessor, pikmin_1);
             });
         }
-        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 1
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN)
+            == 1
         {
             charge.int_y.map(|pikmin_2| {
                 pikmin::spawn_pikmin(module_accessor, pikmin_2);
             });
         }
-        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN) == 2
+        if ArticleModule::get_active_num(module_accessor, *FIGHTER_PIKMIN_GENERATE_ARTICLE_PIKMIN)
+            == 2
         {
-            charge.int_z.map(|pikmin_3| {   
+            charge.int_z.map(|pikmin_3| {
                 pikmin::spawn_pikmin(module_accessor, pikmin_3);
             });
         }
@@ -682,7 +700,11 @@ pub unsafe fn handle_charge(
     else if fighter_kind == FIGHTER_KIND_PACMAN {
         let mut has_key = false;
         charge.int_x.map(|charge_rank| {
-            WorkModule::set_int(module_accessor, charge_rank, *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK);
+            WorkModule::set_int(
+                module_accessor,
+                charge_rank,
+                *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK,
+            );
 
             if charge_rank == 12 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
@@ -840,7 +862,10 @@ pub unsafe fn handle_charge(
     // Hero (Ka)frizz(le) - 0 to 81
     else if fighter_kind == FIGHTER_KIND_BRAVE {
         EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
-        WorkModule::off_flag(module_accessor, *FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT);
+        WorkModule::off_flag(
+            module_accessor,
+            *FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT,
+        );
         charge.int_x.map(|frizz_charge| {
             WorkModule::set_int(
                 module_accessor,

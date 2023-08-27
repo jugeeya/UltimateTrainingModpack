@@ -489,7 +489,6 @@ bitflags! {
         const U_TILT  = 0x0010_0000;
         const D_TILT  = 0x0020_0000;
         const GRAB = 0x0040_0000;
-        // TODO: Make work
         const DASH = 0x0080_0000;
         const DASH_ATTACK = 0x0100_0000;
         const PLAYBACK_1 = 0x0200_0000;

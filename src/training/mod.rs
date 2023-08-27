@@ -678,11 +678,7 @@ pub unsafe fn handle_article_get_int(
     generate_article: i32,
     address: i32,
 ) -> i32 {
-    original!()(
-        article_module,
-        generate_article,
-        address
-    )
+    original!()(article_module, generate_article, address)
 }
 
 // Instruction run on the completion of the CPU Control function
@@ -728,10 +724,8 @@ static BOMA_OFFSET: usize = 0x15cf1b0;
 #[skyline::hook(offset = BOMA_OFFSET)]
 pub unsafe fn handle_get_module_accessor(
     battle_object_id: u32,
-) -> *mut app::BattleObjectModuleAccessor { // technically a *
-    original!()(
-        battle_object_id
-    )
+) -> *mut app::BattleObjectModuleAccessor {
+    original!()(battle_object_id)
 }
 
 pub fn training_mods() {
