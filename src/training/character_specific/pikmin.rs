@@ -1,4 +1,4 @@
-use smash::app::{self, lua_bind::*};
+use smash::app::{self, lua_bind::*, smashball::is_training_mode};
 use smash::lib::lua_const::*;
 
 #[repr(C)]
@@ -31,8 +31,11 @@ pub struct WeaponWorkModule {
 // Prevent Order Loss
 static ACTIVATE_AUTONOMY_OFFSET: usize = 0x034b5cf0;
 #[skyline::hook(offset = ACTIVATE_AUTONOMY_OFFSET)]
-pub unsafe fn autonomy_handle(weapon: *mut app::Weapon, work_module: WeaponWorkModule) {
-    let pikmin_boma = (*weapon).battle_object.module_accessor;
+pub unsafe fn autonomy_handle(weapon: *mut app::Weapon, work_module: *mut WeaponWorkModule) {
+    if !is_training_mode() {
+        return original!()(weapon, work_module);
+    }
+    let pikmin_boma = (*work_module).owner;
     // If the Pikmin is in a status where we want this behavior, execute the original process
     let pikmin_status = StatusModule::status_kind(pikmin_boma);
     let is_pikmin_thrown = (*WEAPON_PIKMIN_PIKMIN_STATUS_KIND_ATTACK_AIR
