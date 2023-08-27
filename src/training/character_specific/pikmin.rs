@@ -32,15 +32,37 @@ pub struct WeaponWorkModule {
 static ACTIVATE_AUTONOMY_OFFSET: usize = 0x034b5cf0;
 #[skyline::hook(offset = ACTIVATE_AUTONOMY_OFFSET)]
 pub unsafe fn autonomy_handle(
-    address: *mut app::Weapon,
+    weapon: *mut app::Weapon,
     work_module: WeaponWorkModule,
 ) {
     println!("Tried Autonomy!");
-    let pikmin_boma = work_module.owner;
-    // if pikmin close and in follow air
-    // TODO: do this, then ready
-    // maybe check status to see if it's thrown or within X distance of olimar
-    return;
+    let pikmin_boma = (*weapon).battle_object.module_accessor;
+    // If the Pikmin is in a status where we want this behavior, execute the original process
+    let pikmin_status = StatusModule::status_kind(pikmin_boma);
+    let is_pikmin_thrown = (*WEAPON_PIKMIN_PIKMIN_STATUS_KIND_ATTACK_AIR..=*WEAPON_PIKMIN_PIKMIN_STATUS_KIND_ATTACK_HI4_LANDING)
+        .contains(&pikmin_status);
+    if is_pikmin_thrown {
+        return original!()(weapon, work_module);
+    } else {
+        // If we're not in a situation where a pikmin usually becomes autonomous, check the distance from Olimar to see if they should be becoming autonomous
+        let owner_boid = WorkModule::get_int(pikmin_boma, *WEAPON_PIKMIN_PIKMIN_INSTANCE_WORK_ID_INT_OWNER_OBJECT_ID) as u32;
+        if owner_boid != *BATTLE_OBJECT_ID_INVALID as u32
+            && app::sv_battle_object::is_active(owner_boid)
+        {
+            let owner_boma = app::sv_battle_object::module_accessor(owner_boid);
+            let owner_pos_x = PostureModule::pos_x(owner_boma);
+            let owner_pos_y = PostureModule::pos_y(owner_boma);
+            let pikmin_pos_x = PostureModule::pos_x(pikmin_boma);
+            let pikmin_pos_y = PostureModule::pos_y(pikmin_boma);
+            //let pikmin_distance = app::sv_math::vec2_distance(owner_pos_x, owner_pos_y, pikmin_pos_x, pikmin_pos_y);
+            let pikmin_distance = ((owner_pos_x - pikmin_pos_x).powf(2.0)) + ((owner_pos_y - pikmin_pos_y).powf(2.0)).sqrt();
+            if pikmin_distance <= 56.0 {
+                return;
+            }
+        }
+    }
+
+    original!()(weapon, work_module)
 }
 
 pub fn init() {
