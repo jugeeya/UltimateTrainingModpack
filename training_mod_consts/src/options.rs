@@ -1541,7 +1541,7 @@ impl_serde_for_bitflags!(RecordTrigger);
 #[derive(
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
-pub enum RecordingFrames {
+pub enum RecordingDuration {
     F60 = 0x1,
     F90 = 0x2,
     F120 = 0x4,
@@ -1563,25 +1563,25 @@ pub enum RecordingFrames {
     F600 = 0x40000,
 }
 
-impl RecordingFrames {
+impl RecordingDuration {
     pub fn into_frames(self) -> usize {
         (log_2(self as u32) as usize * 30) + 60
     }
 }
 
-impl ToggleTrait for RecordingFrames {
+impl ToggleTrait for RecordingDuration {
     fn to_toggle_vals() -> Vec<u32> {
-        RecordingFrames::iter().map(|i| i as u32).collect()
+        RecordingDuration::iter().map(|i| i as u32).collect()
     }
 
     fn to_toggle_strings() -> Vec<String> {
-        RecordingFrames::iter().map(|i| i.to_string()).collect()
+        RecordingDuration::iter().map(|i| i.to_string()).collect()
     }
 }
 
-impl fmt::Display for RecordingFrames {
+impl fmt::Display for RecordingDuration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use RecordingFrames::*;
+        use RecordingDuration::*;
         write!(
             f,
             "{}",

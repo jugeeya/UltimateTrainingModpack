@@ -687,7 +687,7 @@ static OPCF_OFFSET: usize = 0x06b7fdc;
 // One instruction after the CPU Control function completes
 #[skyline::hook(offset = OPCF_OFFSET, inline)]
 unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
-    frame_counter::tick();
+    frame_counter::tick_ingame();
     // Tick notifications
     let queue = &mut ui::notifications::QUEUE;
     let notification = queue.first();
@@ -707,15 +707,32 @@ unsafe fn handle_final_input_mapping(
     controller_struct: &mut SomeControllerStruct,
     arg: bool,
 ) {
-    // go through the original mapping function first
+    // Order of hooks here REALLY matters. Tread lightly
+
+    // Go through the original mapping function first
     original!()(mappings, player_idx, out, controller_struct, arg);
     if !is_training_mode() {
         return;
     }
-    menu::handle_final_input_mapping(player_idx, controller_struct, out);
-    button_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Check if we should apply hot reload configs
+    // Non-mutable pull
     dev_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Grab menu inputs from player
+    // MUTATES controller state to kill inputs when in or closing menu
+    menu::handle_final_input_mapping(player_idx, controller_struct, out);
+
+    // Grab button input requests from player
+    // MUTATES controller state to kill start presses for menu
+    button_config::handle_final_input_mapping(player_idx, controller_struct);
+
+    // Potentially apply input delay
+    // MUTATES controller state to delay inputs
     input_delay::handle_final_input_mapping(player_idx, out);
+
+    // Potentially apply input recording, thus with delay
+    // MUTATES controller state to apply recording or playback
     input_record::handle_final_input_mapping(player_idx, out);
 }
 
@@ -812,17 +829,8 @@ pub fn training_mods() {
         handle_get_module_accessor,
     );
 
-    combo::init();
-    shield::init();
-    fast_fall::init();
-    mash::init();
-    ledge::init();
-    throw::init();
-    buff::init();
     items::init();
-    tech::init();
     input_record::init();
     ui::init();
-    menu::init();
     pikmin::init();
 }
