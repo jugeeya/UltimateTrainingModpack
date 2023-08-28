@@ -94,31 +94,40 @@ pub struct InputLog {
     pub fighter_kind: i32,
 }
 
+const WALK_THRESHOLD_X: i8 = 20;
+const DASH_THRESHOLD_X: i8 = 102;
+const DEADZONE_THRESHOLD_Y: i8 = 30;
+const TAP_JUMP_THRESHOLD_Y: i8 = 90;
+
 fn bin_stick_values(x: i8, y: i8) -> (DirectionStrength, f32) {
-    let length = (x * x + y * y).sqrt();
     (
-        match length.abs() {
-            // Smash attack / Dash input threshold
-            x if x > 0.85 => DirectionStrength::Strong,
-            // Deadzone
-            x if x > 0.2 => DirectionStrength::Weak,
-            _ => DirectionStrength::None,
-        },
+        // TODO
+        DirectionStrength::Weak,
         match (x, y) {
-            (x, y) if y.abs() < STICK_NEUTRAL => match x {
-                x if x > STICK_NEUTRAL => 0.0,
-                x if x < STICK_NEUTRAL * 1.0 => 180.0,
+            // X only
+            (x, y) if y.abs() < DEADZONE_THRESHOLD_Y => match x {
+                x if x > WALK_THRESHOLD_X => 0.0,
+                x if x < -WALK_THRESHOLD_X => 180.0,
                 _ => 0.0, // Invalid, we'll have DirectionStrength::None
             },
-            (x, y) if x.abs() < STICK_NEUTRAL => match y {
-                y if y > STICK_NEUTRAL => 90.0,
-                y if y < STICK_NEUTRAL * -1.0 => 270.0,
+            // Y only
+            (x, y) if x.abs() < WALK_THRESHOLD_X => match x {
+                y if y > DEADZONE_THRESHOLD_Y => 90.0,
+                y if y < -DEADZONE_THRESHOLD_Y => 270.0,
                 _ => 0.0, // Invalid, we'll have DirectionStrength::None
             },
-            (x, y) if x > STICK_NEUTRAL && y > STICK_NEUTRAL => 45.0,
-            (x, y) if x < STICK_NEUTRAL * -1.0 && y > STICK_NEUTRAL => 135.0,
-            (x, y) if x < STICK_NEUTRAL * -1.0 && y < STICK_NEUTRAL * -1.0 => 225.0,
-            (x, y) if x > STICK_NEUTRAL && y < STICK_NEUTRAL * -1.0 => 315.0,
+            // Positive Y
+            (x, y) if y > DEADZONE_THRESHOLD_Y => match x {
+                x if x > WALK_THRESHOLD_X => 45.0,
+                x if x < -WALK_THRESHOLD_X => 135.0,
+                _ => 0.0, // Invalid, we'll have DirectionStrength::None
+            },
+            // Negative Y
+            (x, y) if y < DEADZONE_THRESHOLD_Y => match x {
+                x if x > WALK_THRESHOLD_X => 315.0,
+                x if x < -WALK_THRESHOLD_X => 225.0,
+                _ => 0.0, // Invalid, we'll have DirectionStrength::None
+            },
             _ => 0.0, // Invalid, we'll have DirectionStrength::None
         },
     )
@@ -249,14 +258,14 @@ impl InputLog {
     }
 
     fn raw_binned_lstick(&self) -> (DirectionStrength, f32) {
-        let x = (self.raw_inputs.left_stick_x / STICK_CLAMP_MULTIPLIER) as u8;
-        let y = (self.raw_inputs.left_stick_y / STICK_CLAMP_MULTIPLIER) as u8;
+        let x = (self.raw_inputs.left_stick_x / STICK_CLAMP_MULTIPLIER) as i8;
+        let y = (self.raw_inputs.left_stick_y / STICK_CLAMP_MULTIPLIER) as i8;
         bin_stick_values(x, y)
     }
 
     fn raw_binned_rstick(&self) -> (DirectionStrength, f32) {
-        let x = (self.raw_inputs.left_stick_x / STICK_CLAMP_MULTIPLIER) as u8;
-        let y = (self.raw_inputs.left_stick_y / STICK_CLAMP_MULTIPLIER) as u8;
+        let x = (self.raw_inputs.left_stick_x / STICK_CLAMP_MULTIPLIER) as i8;
+        let y = (self.raw_inputs.left_stick_y / STICK_CLAMP_MULTIPLIER) as i8;
         bin_stick_values(x, y)
     }
 }
