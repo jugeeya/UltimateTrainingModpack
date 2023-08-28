@@ -3,6 +3,18 @@ use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+use crate::common::get_module_accessor;
+use crate::common::consts::FighterId;
+use std::ptr;
+
+#[skyline::from_offset(0xba0e60)]
+fn copy_setup(
+    module_accessor: *mut app::BattleObjectModuleAccessor,
+    int: i32,
+    fighter_kind: i32,
+    bool_1: bool,
+    bool_2: bool,
+);
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
@@ -87,6 +99,18 @@ pub unsafe fn get_charge(
             *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT,
         );
         charge_state.int_x(my_charge)
+    }
+    // Kirby Copy Abilities
+    else if fighter_kind == FIGHTER_KIND_KIRBY {
+        let hat_have = WorkModule::is_flag(
+            module_accessor,
+            *FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY,
+        );
+        let chara_kind = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_KIRBY_INSTANCE_WORK_ID_INT_COPY_CHARA,
+        );
+        charge_state.has_charge(hat_have).int_x(chara_kind)
     }
     // Sheik Needles
     else if fighter_kind == FIGHTER_KIND_SHEIK {
@@ -332,6 +356,23 @@ pub unsafe fn handle_charge(
                     efh as i32,
                     *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX,
                 );
+            }
+        });
+    }
+    // Kirby Copy Abilities
+    else if fighter_kind == FIGHTER_KIND_KIRBY {
+        charge.has_charge.map(|_has_copy_ability| {
+            let cpu_module_accessor = &mut *get_module_accessor(FighterId::CPU);
+            let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
+            let current_opponent_fighter_kind;
+            if ptr::eq(module_accessor, player_module_accessor) {
+                current_opponent_fighter_kind = app::utility::get_kind(cpu_module_accessor);
+            } else {
+                current_opponent_fighter_kind = app::utility::get_kind(player_module_accessor);
+            }
+            // Only try to set up Copy Ability when the current opponent matches the type of fighter from the save state
+            if Some(current_opponent_fighter_kind) == charge.int_x {
+                copy_setup(module_accessor, 1, current_opponent_fighter_kind, true, false);
             }
         });
     }
@@ -884,4 +925,11 @@ pub unsafe fn handle_charge(
             );
         });
     }
+}
+
+pub unsafe fn handle_kirby_hat_charge(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    opponent_fighter_kind: i32,
+) {
+
 }
