@@ -371,8 +371,9 @@ pub unsafe fn handle_charge(
                 current_opponent_fighter_kind = app::utility::get_kind(player_module_accessor);
             }
             // Only try to set up Copy Ability when the current opponent matches the type of fighter from the save state
-            if Some(current_opponent_fighter_kind) == charge.int_x {
-                copy_setup(module_accessor, 1, current_opponent_fighter_kind, true, false);
+            let opponent_matches_fighter = is_kirby_hat_okay(current_opponent_fighter_kind,charge.int_x);
+            if opponent_matches_fighter == Some(true) {
+                copy_setup(module_accessor, 1, charge.int_x.unwrap(), true, false);
             }
         });
     }
@@ -927,9 +928,40 @@ pub unsafe fn handle_charge(
     }
 }
 
-pub unsafe fn handle_kirby_hat_charge(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+fn is_kirby_hat_okay(
     opponent_fighter_kind: i32,
+    save_state_fighter_option: Option<i32>,
+) -> Option<bool> {
+    let save_state_fighter_kind = save_state_fighter_option?;
+    if opponent_fighter_kind == save_state_fighter_kind {
+        return Some(true);
+    }
+    // We have a fighter but they don't match - see if it's an accepted transformation
+    let trainer_kinds = [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+        *FIGHTER_KIND_PTRAINER,
+    ];
+    let element_kinds = [
+        *FIGHTER_KIND_EFLAME,
+        *FIGHTER_KIND_ELIGHT,
+    ];
+    let both_trainer = trainer_kinds.contains(&opponent_fighter_kind) && trainer_kinds.contains(&save_state_fighter_kind);
+    let both_element = element_kinds.contains(&opponent_fighter_kind) && element_kinds.contains(&save_state_fighter_kind);
+    Some(both_trainer || both_element)
+}
+
+pub unsafe fn _get_kirby_hat_charge(
+    _module_accessor: &mut app::BattleObjectModuleAccessor,
+    _opponent_fighter_kind: i32,
+) {
+
+}
+
+pub unsafe fn _handle_kirby_hat_charge(
+    _module_accessor: &mut app::BattleObjectModuleAccessor,
+    _opponent_fighter_kind: i32,
 ) {
 
 }
