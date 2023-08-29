@@ -125,7 +125,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         .find_pane_by_name_recursive("StatusTxt")
         .unwrap()
         .as_textbox()
-        .set_text_string(status_txt.as_str());
+        .set_text_string(status_text.as_str());
 }
 
 pub unsafe fn draw(root_pane: &Pane) {

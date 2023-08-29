@@ -111,8 +111,6 @@ lazy_static! {
             (RUp, 0),
         ]))
     };
-    pub static ref VISUAL_FRAME_COUNTER: Mutex<u32> = Mutex::new(0);
-    pub static ref VISUAL_FRAME_COUNTER_SHOULD_COUNT: Mutex<bool> = Mutex::new(false);
 }
 
 pub static MENU_CLOSE_FRAME_COUNTER: Lazy<usize> =
