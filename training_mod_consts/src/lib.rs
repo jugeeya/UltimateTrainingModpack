@@ -36,6 +36,7 @@ pub struct TrainingModpackMenu {
     pub full_hop: BoolFlag,
     pub hitbox_vis: OnOff,
     pub input_display: InputDisplay,
+    pub input_display_status: OnOff,
     pub hud: OnOff,
     pub input_delay: Delay,
     pub ledge_delay: LongDelay,
@@ -143,6 +144,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     full_hop: BoolFlag::TRUE,
     hitbox_vis: OnOff::On,
     input_display: InputDisplay::Smash,
+    input_display_status: OnOff::Off,
     hud: OnOff::On,
     input_delay: Delay::D0,
     ledge_delay: LongDelay::empty(),
@@ -817,6 +819,13 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         "Input Display: Log inputs in a queue on the left of the screen".to_string(),
         true,
         &(menu.input_display as u32),
+    );
+    misc_tab.add_submenu_with_toggles::<OnOff>(
+        "Input Display Status Breakdown".to_string(),
+        "input_display_status".to_string(),
+        "Input Display Status Breakdown: Group input logs by status in which they occurred".to_string(),
+        true,
+        &(menu.input_display_status as u32),
     );
     misc_tab.add_submenu_with_toggles::<Delay>(
         "Input Delay".to_string(),

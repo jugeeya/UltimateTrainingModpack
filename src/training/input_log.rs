@@ -71,7 +71,7 @@ pub const NUM_LOGS: usize = 10;
 pub enum DirectionStrength {
     None,
     Weak,
-    Strong,
+    // Strong,
 }
 
 #[derive(Copy, Clone, Default)]
@@ -86,9 +86,9 @@ pub struct InputLog {
 }
 
 const WALK_THRESHOLD_X: i8 = 20;
-const DASH_THRESHOLD_X: i8 = 102;
+const _DASH_THRESHOLD_X: i8 = 102;
 const DEADZONE_THRESHOLD_Y: i8 = 30;
-const TAP_JUMP_THRESHOLD_Y: i8 = 90;
+const _TAP_JUMP_THRESHOLD_Y: i8 = 90;
 
 fn bin_stick_values(x: i8, y: i8) -> (DirectionStrength, f32) {
     (
@@ -99,27 +99,27 @@ fn bin_stick_values(x: i8, y: i8) -> (DirectionStrength, f32) {
             (x, y) if y.abs() < DEADZONE_THRESHOLD_Y => match x {
                 x if x > WALK_THRESHOLD_X => 0.0,
                 x if x < -WALK_THRESHOLD_X => 180.0,
-                _ => 0.0, // Invalid, we'll have DirectionStrength::None
+                _ => return (DirectionStrength::None, 0.0)
             },
             // Y only
             (x, y) if x.abs() < WALK_THRESHOLD_X => match x {
-                y if y > DEADZONE_THRESHOLD_Y => 90.0,
-                y if y < -DEADZONE_THRESHOLD_Y => 270.0,
-                _ => 0.0, // Invalid, we'll have DirectionStrength::None
+                x if x > DEADZONE_THRESHOLD_Y => 90.0,
+                x if x < -DEADZONE_THRESHOLD_Y => 270.0,
+                _ => return (DirectionStrength::None, 0.0)
             },
             // Positive Y
             (x, y) if y > DEADZONE_THRESHOLD_Y => match x {
                 x if x > WALK_THRESHOLD_X => 45.0,
                 x if x < -WALK_THRESHOLD_X => 135.0,
-                _ => 0.0, // Invalid, we'll have DirectionStrength::None
+                _ => return (DirectionStrength::Weak, 90.0)
             },
             // Negative Y
             (x, y) if y < DEADZONE_THRESHOLD_Y => match x {
                 x if x > WALK_THRESHOLD_X => 315.0,
                 x if x < -WALK_THRESHOLD_X => 225.0,
-                _ => 0.0, // Invalid, we'll have DirectionStrength::None
+                _ => return (DirectionStrength::Weak, 270.0)
             },
-            _ => 0.0, // Invalid, we'll have DirectionStrength::None
+            _ => return (DirectionStrength::None, 0.0)
         },
     )
 }
@@ -230,7 +230,7 @@ impl InputLog {
         self.smash_inputs.buttons != other.smash_inputs.buttons
             || self.smash_binned_lstick() != other.smash_binned_lstick()
             || self.smash_binned_rstick() != other.smash_binned_rstick()
-            || self.status != other.status
+            || (MENU.input_display_status.as_bool() && self.status != other.status)
     }
 
     fn smash_binned_lstick(&self) -> (DirectionStrength, f32) {
@@ -245,7 +245,7 @@ impl InputLog {
         self.raw_inputs.current_buttons != other.raw_inputs.current_buttons
             || self.raw_binned_lstick() != other.raw_binned_lstick()
             || self.raw_binned_rstick() != other.raw_binned_rstick()
-            || self.status != other.status
+            || (MENU.input_display_status.as_bool() && self.status != other.status)
     }
 
     fn raw_binned_lstick(&self) -> (DirectionStrength, f32) {
