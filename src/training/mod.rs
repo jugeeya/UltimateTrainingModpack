@@ -1,7 +1,8 @@
 use crate::common::button_config;
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
-    is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+    is_operation_cpu, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR,
+    STAGE_MANAGER_ADDR,
 };
 use crate::hitbox_visualizer;
 use crate::input::*;
@@ -122,6 +123,15 @@ fn once_per_frame_per_fighter(
     unsafe {
         if menu::menu_condition() {
             menu::spawn_menu();
+        }
+
+        if is_operation_cpu(module_accessor) {
+            // Handle dodge staling here b/c input recording or mash can cause dodging
+            WorkModule::set_flag(
+                module_accessor,
+                !(MENU.stale_dodges.as_bool()),
+                *FIGHTER_INSTANCE_WORK_ID_FLAG_DISABLE_ESCAPE_PENALTY,
+            );
         }
 
         input_record::get_command_flag_cat(module_accessor);
