@@ -364,14 +364,14 @@ pub unsafe fn handle_charge(
         charge.has_charge.map(|_has_copy_ability| {
             let cpu_module_accessor = &mut *get_module_accessor(FighterId::CPU);
             let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
-            let current_opponent_fighter_kind;
+            let opponent_module_accessor: &mut app::BattleObjectModuleAccessor;
             if ptr::eq(module_accessor, player_module_accessor) {
-                current_opponent_fighter_kind = app::utility::get_kind(cpu_module_accessor);
+                opponent_module_accessor = cpu_module_accessor;
             } else {
-                current_opponent_fighter_kind = app::utility::get_kind(player_module_accessor);
+                opponent_module_accessor = player_module_accessor;
             }
             // Only try to set up Copy Ability when the current opponent matches the type of fighter from the save state
-            let opponent_matches_fighter = is_kirby_hat_okay(current_opponent_fighter_kind,charge.int_x);
+            let opponent_matches_fighter = is_kirby_hat_okay(opponent_module_accessor,charge.int_x);
             if opponent_matches_fighter == Some(true) {
                 copy_setup(module_accessor, 1, charge.int_x.unwrap(), true, false);
             }
@@ -928,10 +928,11 @@ pub unsafe fn handle_charge(
     }
 }
 
-fn is_kirby_hat_okay(
-    opponent_fighter_kind: i32,
+unsafe fn is_kirby_hat_okay(
+    opponent_module_accessor: &mut app::BattleObjectModuleAccessor,
     save_state_fighter_option: Option<i32>,
 ) -> Option<bool> {
+    let mut opponent_fighter_kind = app::utility::get_kind(opponent_module_accessor);
     let save_state_fighter_kind = save_state_fighter_option?;
     if opponent_fighter_kind == save_state_fighter_kind {
         return Some(true);
@@ -941,12 +942,20 @@ fn is_kirby_hat_okay(
         *FIGHTER_KIND_PZENIGAME,
         *FIGHTER_KIND_PFUSHIGISOU,
         *FIGHTER_KIND_PLIZARDON,
-        *FIGHTER_KIND_PTRAINER,
+        -1, // Fighter Kind while switching pokemon
     ];
     let element_kinds = [
         *FIGHTER_KIND_EFLAME,
         *FIGHTER_KIND_ELIGHT,
     ];
+    if opponent_fighter_kind == -1 {
+        let trainer_boid = LinkModule::get_parent_object_id(opponent_module_accessor, *FIGHTER_POKEMON_LINK_NO_PTRAINER) as u32;
+        if trainer_boid != *BATTLE_OBJECT_ID_INVALID as u32
+            && app::sv_battle_object::is_active(trainer_boid)
+        {
+            opponent_fighter_kind = *FIGHTER_KIND_PZENIGAME; // ptrainer is in the match, so assume we have a ptrainer fighter
+        }
+    }
     let both_trainer = trainer_kinds.contains(&opponent_fighter_kind) && trainer_kinds.contains(&save_state_fighter_kind);
     let both_element = element_kinds.contains(&opponent_fighter_kind) && element_kinds.contains(&save_state_fighter_kind);
     Some(both_trainer || both_element)
