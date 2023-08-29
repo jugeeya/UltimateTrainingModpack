@@ -116,11 +116,16 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         .as_textbox()
         .set_text_string(frame_text.as_str());
 
+    let status_text = if MENU.input_display_status.as_bool() {
+        status_display_name(log.fighter_kind, log.status)
+    } else {
+        "".to_string()
+    };
     log_pane
         .find_pane_by_name_recursive("StatusTxt")
         .unwrap()
         .as_textbox()
-        .set_text_string(status_display_name(log.fighter_kind, log.status).as_str());
+        .set_text_string(status_txt.as_str());
 }
 
 pub unsafe fn draw(root_pane: &Pane) {

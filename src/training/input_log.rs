@@ -255,8 +255,8 @@ impl InputLog {
     }
 
     fn raw_binned_rstick(&self) -> (DirectionStrength, f32) {
-        let x = (self.raw_inputs.left_stick_x / STICK_CLAMP_MULTIPLIER) as i8;
-        let y = (self.raw_inputs.left_stick_y / STICK_CLAMP_MULTIPLIER) as i8;
+        let x = (self.raw_inputs.right_stick_x / STICK_CLAMP_MULTIPLIER) as i8;
+        let y = (self.raw_inputs.right_stick_y / STICK_CLAMP_MULTIPLIER) as i8;
         bin_stick_values(x, y)
     }
 }
