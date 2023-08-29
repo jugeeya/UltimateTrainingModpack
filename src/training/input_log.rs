@@ -9,10 +9,7 @@ use skyline::nn::ui2d::ResColor;
 use smash::app::{lua_bind::*, utility};
 use training_mod_consts::{FighterId, InputDisplay, MENU};
 
-use super::{
-    frame_counter,
-    input_record::STICK_CLAMP_MULTIPLIER,
-};
+use super::{frame_counter, input_record::STICK_CLAMP_MULTIPLIER};
 
 const GREEN: ResColor = ResColor {
     r: 0,
@@ -299,11 +296,11 @@ pub fn handle_final_input_mapping(
             }
             let module_accessor = module_accessor.unwrap();
 
-            let current_frame = frame_counter::get_frame_count(PER_LOG_FRAME_COUNTER);
-            let current_overall_frame = frame_counter::get_frame_count(OVERALL_FRAME_COUNTER);
+            let current_frame = frame_counter::get_frame_count(*PER_LOG_FRAME_COUNTER);
+            let current_overall_frame = frame_counter::get_frame_count(*OVERALL_FRAME_COUNTER);
             // We should always be counting
-            frame_counter::start_counting(PER_LOG_FRAME_COUNTER);
-            frame_counter::start_counting(OVERALL_FRAME_COUNTER);
+            frame_counter::start_counting(*PER_LOG_FRAME_COUNTER);
+            frame_counter::start_counting(*OVERALL_FRAME_COUNTER);
 
             let potential_input_log = InputLog {
                 ttl: 600,
@@ -322,9 +319,9 @@ pub fn handle_final_input_mapping(
             // Only update if we are on a new frame according to the latest log
             let is_new_frame = prev_overall_frames != current_overall_frame;
             if is_new_frame && latest_input_log.is_different(&potential_input_log) {
-                frame_counter::reset_frame_count(PER_LOG_FRAME_COUNTER);
+                frame_counter::reset_frame_count(*PER_LOG_FRAME_COUNTER);
                 // We should count this frame already
-                frame_counter::tick_idx(PER_LOG_FRAME_COUNTER);
+                frame_counter::tick_idx(*PER_LOG_FRAME_COUNTER);
                 insert_in_front(input_logs, potential_input_log);
             } else if is_new_frame {
                 *latest_input_log = potential_input_log;
