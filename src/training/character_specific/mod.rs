@@ -4,6 +4,7 @@ mod bowser;
 pub mod items;
 pub mod pikmin;
 pub mod steve;
+pub mod ptrainer;
 
 /**
  * Checks if the current status matches the expected status

@@ -174,6 +174,17 @@ unsafe fn save_state_cpu(slot: usize) -> &'static mut SavedState {
     &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[slot]
 }
 
+pub unsafe fn get_state_pokemon(module_accessor: *mut app::BattleObjectModuleAccessor) -> u32 {
+    let selected_slot = get_slot();
+    let fighter_kind;
+    if !is_operation_cpu(&mut *module_accessor) {
+        fighter_kind = save_state_player(selected_slot).fighter_kind;
+    } else {
+        fighter_kind = save_state_cpu(selected_slot).fighter_kind;
+    }
+    (fighter_kind - *FIGHTER_KIND_PZENIGAME) as u32
+}
+
 // MIRROR_STATE == 1 -> Do not mirror
 // MIRROR_STATE == -1 -> Do Mirror
 static mut MIRROR_STATE: f32 = 1.0;
