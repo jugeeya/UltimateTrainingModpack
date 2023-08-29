@@ -484,7 +484,7 @@ static PLAY_SE_OFFSET: usize = 0x04cf6a0;
 #[skyline::hook(offset = PLAY_SE_OFFSET)]
 pub unsafe fn handle_fighter_play_se(
     sound_module: *mut FighterSoundModule, // pointer to fighter's SoundModule
-    my_hash: Hash40,
+    mut my_hash: Hash40,
     bool1: bool,
     bool2: bool,
     bool3: bool,
@@ -497,46 +497,39 @@ pub unsafe fn handle_fighter_play_se(
 
     // Supress Buff Sound Effects while buffing
     if buff::is_buffing_any() {
-        let silent_hash = Hash40::new("se_silent");
-        return original!()(
-            sound_module,
-            silent_hash,
-            bool1,
-            bool2,
-            bool3,
-            bool4,
-            se_type,
-        );
+        my_hash = Hash40::new("se_silent");
     }
     
     // Supress Kirby Copy Ability SFX when loading Save State
     if my_hash.hash == 0x1453dd86e4 || my_hash.hash == 0x14bdd3e7c8 {
         let module_accessor = (*sound_module).owner;
         if StatusModule::status_kind(module_accessor) != FIGHTER_KIRBY_STATUS_KIND_SPECIAL_N_DRINK {
-            let silent_hash = Hash40::new("se_silent");
-            return original!()(
-                sound_module,
-                silent_hash,
-                bool1,
-                bool2,
-                bool3,
-                bool4,
-                se_type,
-            );
+            my_hash = Hash40::new("se_silent");
         } 
     }
+
+    // TODO: properly check for pokemon not being in down b status
+    // Supress PT SFX on switch
+    if my_hash == Hash40::new("se_ptrainer_change_appear") || my_hash == Hash40::new("se_ptrainer_ball_open") || my_hash == Hash40::new("se_ptrainer_ball_swing") {
+        let module_accessor = (*sound_module).owner;
+        // if StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_WAIT {
+        //     my_hash = Hash40::new("se_silent");
+        // } 
+        my_hash = Hash40::new("se_silent");
+    }
+
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
 static FOLLOW_REQ_OFFSET: usize = 0x044f860;
 #[skyline::hook(offset = FOLLOW_REQ_OFFSET)] // hooked to prevent score gfx from playing when loading save states
 pub unsafe fn handle_effect_follow(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    effect_module: *mut FighterEffectModule,
     eff_hash: Hash40,
     eff_hash2: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
-    size: f32,
+    mut size: f32,
     arg5: bool,
     arg6: u32,
     arg7: i32,
@@ -548,7 +541,7 @@ pub unsafe fn handle_effect_follow(
 ) -> u64 {
     if !is_training_mode() {
         return original!()(
-            module_accessor,
+            effect_module,
             eff_hash,
             eff_hash2,
             pos,
@@ -564,27 +557,22 @@ pub unsafe fn handle_effect_follow(
             arg12,
         );
     }
+    let kind = app::utility::get_kind(&mut *(*effect_module).owner);
+    if [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+        *WEAPON_KIND_PTRAINER_PTRAINER,
+        *WEAPON_KIND_PTRAINER_MBALL,
+    ].contains(&kind) {
+        println!("Follow Effect Req'd: {:x}, kind: {:x}", eff_hash.hash, kind);
+    }
     // Prevent the score GFX from playing on the CPU when loading save state during hitstop
     if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
-        return original!()(
-            module_accessor,
-            eff_hash,
-            eff_hash2,
-            pos,
-            rot,
-            0.0,
-            arg5,
-            arg6,
-            arg7,
-            arg8,
-            arg9,
-            arg10,
-            arg11,
-            arg12,
-        );
+        size = 0.0
     }
     original!()(
-        module_accessor,
+        effect_module,
         eff_hash,
         eff_hash2,
         pos,
@@ -598,6 +586,79 @@ pub unsafe fn handle_effect_follow(
         arg10,
         arg11,
         arg12,
+    )
+}
+
+pub struct FighterEffectModule {
+    _table: u64,
+    owner: *mut app::BattleObjectModuleAccessor,
+}
+
+static EFFECT_REQ_OFFSET: usize = 0x44de50;
+#[skyline::hook(offset = EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+pub unsafe fn handle_fighter_effect(
+    effect_module: *mut FighterEffectModule, // pointer to effect module
+    eff_hash: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    mut size: f32,
+    arg6: u32,
+    arg7: i32,
+    arg8: bool,
+    arg9: i32,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            effect_module,
+            eff_hash,
+            pos,
+            rot,
+            size,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+        );
+    }
+
+    let is_ptrainer_switch_hash = [
+        Hash40::new("sys_flying_plate"),
+        Hash40::new("sys_mball"),
+        Hash40::new("sys_mball_beam"),
+        Hash40::new("sys_mball_flash"),
+        Hash40::new("sys_mball_item"),
+        Hash40::new("ptrainer_change_catch"),
+        Hash40::new("ptrainer_change_light"),
+        Hash40::new("ptrainer_change_mball"),
+        Hash40::new("ptrainer_change_return"),
+    ].contains(&eff_hash) || eff_hash.hash == 0x10e3fac8d9;
+
+    let kind = app::utility::get_kind(&mut *(*effect_module).owner);
+    if [
+        *FIGHTER_KIND_PZENIGAME,
+        *FIGHTER_KIND_PFUSHIGISOU,
+        *FIGHTER_KIND_PLIZARDON,
+        *WEAPON_KIND_PTRAINER_PTRAINER,
+        *WEAPON_KIND_PTRAINER_MBALL,
+    ].contains(&kind) {
+        println!("Effect Req'd: {:x}, kind: {:x}", eff_hash.hash, kind);
+    }
+
+    // TODO: check if fighter is pokemon
+    if is_ptrainer_switch_hash {
+        // Making the size 0 prevents these effects from being displayed. Fixes Pokemon Trainer Angel Platform Effect.
+        size = 0.0
+    }
+    original!()(
+        effect_module,
+        eff_hash,
+        pos,
+        rot,
+        size,
+        arg6,
+        arg7,
+        arg8,
+        arg9,
     )
 }
 
@@ -851,6 +912,7 @@ pub fn training_mods() {
         // Charge
         handle_article_get_int,
         handle_get_module_accessor,
+        handle_fighter_effect,
     );
 
     items::init();
