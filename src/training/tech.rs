@@ -8,15 +8,13 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::{frame_counter, mash};
 
+use once_cell::sync::Lazy;
+
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
-static mut FRAME_COUNTER: usize = 0;
 
-pub fn init() {
-    unsafe {
-        FRAME_COUNTER = frame_counter::register_counter();
-    }
-}
+static FRAME_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 unsafe fn is_enable_passive(module_accessor: &mut BattleObjectModuleAccessor) -> bool {
     let fighter = get_fighter_common_from_accessor(module_accessor);
@@ -237,7 +235,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     } else if status == *FIGHTER_STATUS_KIND_LAY_DOWN {
         // Snake down throw
         let lockout_time = get_snake_laydown_lockout_time(module_accessor);
-        if frame_counter::should_delay(lockout_time, FRAME_COUNTER) {
+        if frame_counter::should_delay(lockout_time, *FRAME_COUNTER) {
             return;
         };
         requested_status = match MENU.miss_tech_state.get_random() {
@@ -264,7 +262,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         };
     } else {
         // Not in a tech situation, make sure the snake dthrow counter is fully reset.
-        frame_counter::full_reset(FRAME_COUNTER);
+        frame_counter::full_reset(*FRAME_COUNTER);
     };
 
     if requested_status != 0 {

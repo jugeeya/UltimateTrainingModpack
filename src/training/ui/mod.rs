@@ -5,9 +5,12 @@ use skyline::nn::ui2d::*;
 use smash::ui2d::SmashTextBox;
 use training_mod_consts::{OnOff, MENU};
 
-use crate::common::{is_ready_go, is_training_mode, menu::QUICK_MENU_ACTIVE};
 #[cfg(feature = "layout_arc_from_file")]
 use crate::consts::LAYOUT_ARC_PATH;
+use crate::{
+    common::{is_ready_go, is_training_mode, menu::QUICK_MENU_ACTIVE},
+    training::frame_counter,
+};
 
 mod damage;
 mod display;
@@ -74,6 +77,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     damage::draw(root_pane, &layout_name);
 
     if layout_name == "info_training" {
+        frame_counter::tick_real();
         input_log::draw(root_pane);
         display::draw(root_pane);
         menu::draw(root_pane);
