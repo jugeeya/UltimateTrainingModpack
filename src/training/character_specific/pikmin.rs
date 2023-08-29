@@ -153,7 +153,8 @@ pub unsafe fn get_current_pikmin(
     ordered_pikmin_variation
 }
 
-pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
+#[cfg(feature = "debug")]
+pub unsafe fn pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
 
     let following_count = (*troops_manager).current_pikmin_count;
@@ -177,7 +178,8 @@ pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccesso
     println!("----------------------------------------")
 }
 
-unsafe fn _print(boid: u32, held: bool) {
+#[cfg(feature = "debug")]
+unsafe fn print(boid: u32, held: bool) {
     if boid != *BATTLE_OBJECT_ID_INVALID as u32 && app::sv_battle_object::is_active(boid) {
         let pikmin_boma = app::sv_battle_object::module_accessor(boid);
         let pikmin_variation = WorkModule::get_int(
