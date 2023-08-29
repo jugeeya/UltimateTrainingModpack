@@ -14,6 +14,7 @@ use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::*;
 use crate::logging::*;
+use crate::training::frame_counter::{self, FrameCounterType};
 
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;

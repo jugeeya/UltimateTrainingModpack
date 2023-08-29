@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::common::*;
 use crate::input::{ControllerStyle::*, *};
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
+use crate::training::frame_counter;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;

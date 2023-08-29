@@ -353,12 +353,6 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
-    if *VISUAL_FRAME_COUNTER_SHOULD_COUNT.data_ptr() {
-        *VISUAL_FRAME_COUNTER.lock() += 1;
-    } else {
-        *VISUAL_FRAME_COUNTER.lock() = 0;
-    }
-
     // Determine if we're in the menu by seeing if the "help" footer has
     // begun moving upward. It starts at -80 and moves to 0 over 10 frames
     // in info_training_in_menu.bflan

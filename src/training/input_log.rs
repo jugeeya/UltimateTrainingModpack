@@ -9,8 +9,8 @@ use smash::app::{lua_bind::*, utility};
 use training_mod_consts::{FighterId, InputDisplay, MENU};
 
 use super::{
-    frame_counter,
-    input_record::{STICK_CLAMP_MULTIPLIER, STICK_NEUTRAL},
+    frame_counter::{self, FrameCounterType},
+    input_record::STICK_CLAMP_MULTIPLIER,
 };
 
 const GREEN: ResColor = ResColor {
@@ -62,17 +62,10 @@ pub const WHITE: ResColor = ResColor {
     a: 255,
 };
 
-static mut PER_LOG_FRAME_COUNTER: usize = 0;
-static mut OVERALL_FRAME_COUNTER: usize = 0;
-
-pub fn init() {
-    unsafe {
-        PER_LOG_FRAME_COUNTER = frame_counter::register_counter_no_reset();
-        frame_counter::start_counting(PER_LOG_FRAME_COUNTER);
-        OVERALL_FRAME_COUNTER = frame_counter::register_counter_no_reset();
-        frame_counter::start_counting(OVERALL_FRAME_COUNTER);
-    }
-}
+pub static PER_LOG_FRAME_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+pub static OVERALL_FRAME_COUNTER: Lazy<usize> =
+    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
 
 pub const NUM_LOGS: usize = 10;
 
@@ -309,6 +302,7 @@ pub fn handle_final_input_mapping(
             let current_overall_frame = frame_counter::get_frame_count(OVERALL_FRAME_COUNTER);
             // We should always be counting
             frame_counter::start_counting(PER_LOG_FRAME_COUNTER);
+            frame_counter::start_counting(OVERALL_FRAME_COUNTER);
 
             let potential_input_log = InputLog {
                 ttl: 600,
