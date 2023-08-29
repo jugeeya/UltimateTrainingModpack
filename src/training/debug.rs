@@ -21,6 +21,11 @@ pub unsafe fn handle_on_flag(
     if !is_training_mode() {
         original!()(work_module, address);
     }
+    if address == *FIGHTER_POKEMON_INSTANCE_WORK_ID_FLAG_RESTART_FROM_MBALL
+        && app::utility::get_kind((*work_module).owner) != *FIGHTER_KIND_SHEIK
+    {
+        is_visible_backshield(work_module.owner);
+    }
     original!()(work_module, address);
 }
 
@@ -34,8 +39,8 @@ pub unsafe fn handle_set_int(
     if !is_training_mode() {
         original!()(work_module, value, address);
     }
-    if address == *FIGHTER_KIRBY_INSTANCE_WORK_ID_INT_COPY_CHARA
-        && app::utility::get_kind((*work_module).owner) == *FIGHTER_KIND_KIRBY
+    if address == *WEAPON_PTRAINER_MBALL_INSTANCE_WORK_ID_INT_PLATE_EFF_ID
+        && app::utility::get_kind((*work_module).owner) != *FIGHTER_KIND_SHEIK
     {
         is_visible_backshield(work_module.owner);
     }
@@ -101,8 +106,8 @@ pub unsafe fn handle_get_int(
 
 pub fn init() {
     skyline::install_hooks!(
-        // handle_on_flag,
-        // handle_set_int,
+        handle_on_flag,
+        handle_set_int,
         // handle_set_int_64,
         // handle_set_float,
         // handle_get_int,
