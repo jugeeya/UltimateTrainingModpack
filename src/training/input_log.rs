@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use once_cell::sync::Lazy;
 use std::collections::VecDeque;
 
 use crate::common::{input::*, menu::QUICK_MENU_ACTIVE, try_get_module_accessor};
@@ -9,7 +10,7 @@ use smash::app::{lua_bind::*, utility};
 use training_mod_consts::{FighterId, InputDisplay, MENU};
 
 use super::{
-    frame_counter::{self, FrameCounterType},
+    frame_counter,
     input_record::STICK_CLAMP_MULTIPLIER,
 };
 

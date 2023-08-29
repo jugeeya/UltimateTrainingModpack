@@ -821,7 +821,6 @@ pub fn training_mods() {
     );
 
     items::init();
-    input_log::init();
     input_record::init();
     ui::init();
 }
