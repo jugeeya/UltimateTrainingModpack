@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use log::info;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use smash::app::{self, lua_bind::*, Item};
+use smash::app::{self, lua_bind::*, Item, ArticleOperationTarget};
 use smash::cpp::l2c_value::LuaConst;
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -26,7 +26,7 @@ use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
 use crate::training::buff;
-use crate::training::character_specific::steve;
+use crate::training::character_specific::{steve, ptrainer};
 use crate::training::charge::{self, ChargeState};
 use crate::training::input_record;
 use crate::training::items::apply_item;
@@ -66,6 +66,7 @@ pub enum SaveState {
     NoAction,
     KillPlayer,
     WaitForAlive,
+    WaitForPokemonSwitch,
     PosMove,
     NanaPosMove,
     ApplyBuff,
@@ -298,23 +299,11 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
     }
 }
 
-unsafe fn get_ptrainer_module_accessor(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> &mut app::BattleObjectModuleAccessor {
-    let ptrainer_object_id =
-        LinkModule::get_parent_object_id(module_accessor, *FIGHTER_POKEMON_LINK_NO_PTRAINER);
-    &mut *app::sv_battle_object::module_accessor(ptrainer_object_id as u32)
-}
-
 unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_ptrainer(module_accessor) {
         return;
     }
-    WorkModule::off_flag(
-        get_ptrainer_module_accessor(module_accessor),
-        *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
-    );
-    let ptrainer_module_accessor = get_ptrainer_module_accessor(module_accessor);
+    let ptrainer_module_accessor = ptrainer::get_ptrainer_module_accessor(module_accessor);
     MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
     if ArticleModule::is_exist(
         ptrainer_module_accessor,
@@ -328,6 +317,12 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
         let ptrainer_masterball_module_accessor =
             &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
+        ArticleModule::set_visibility_whole(
+            ptrainer::get_ptrainer_module_accessor(module_accessor),
+            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+            false,
+            ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL)
+        );
     }
 }
 
@@ -606,7 +601,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
             if fighter_is_ptrainer {
                 WorkModule::on_flag(
-                    get_ptrainer_module_accessor(module_accessor),
+                    ptrainer::get_ptrainer_module_accessor(module_accessor),
                     *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
                 );
             }

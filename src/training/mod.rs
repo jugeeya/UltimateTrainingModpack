@@ -494,12 +494,10 @@ pub unsafe fn handle_fighter_play_se(
     if !is_training_mode() {
         return original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type);
     }
-
     // Supress Buff Sound Effects while buffing
     if buff::is_buffing_any() {
         my_hash = Hash40::new("se_silent");
     }
-    
     // Supress Kirby Copy Ability SFX when loading Save State
     if my_hash.hash == 0x1453dd86e4 || my_hash.hash == 0x14bdd3e7c8 {
         let module_accessor = (*sound_module).owner;
@@ -507,17 +505,7 @@ pub unsafe fn handle_fighter_play_se(
             my_hash = Hash40::new("se_silent");
         } 
     }
-
-    // TODO: properly check for pokemon not being in down b status
-    // Supress PT SFX on switch
-    if my_hash == Hash40::new("se_ptrainer_change_appear") || my_hash == Hash40::new("se_ptrainer_ball_open") || my_hash == Hash40::new("se_ptrainer_ball_swing") {
-        let module_accessor = (*sound_module).owner;
-        // if StatusModule::status_kind(module_accessor) == FIGHTER_STATUS_KIND_WAIT {
-        //     my_hash = Hash40::new("se_silent");
-        // } 
-        my_hash = Hash40::new("se_silent");
-    }
-
+    my_hash = ptrainer::sound_effect_pokemon_state((*sound_module).owner, my_hash);
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
@@ -556,16 +544,6 @@ pub unsafe fn handle_effect_follow(
             arg11,
             arg12,
         );
-    }
-    let kind = app::utility::get_kind(&mut *(*effect_module).owner);
-    if [
-        *FIGHTER_KIND_PZENIGAME,
-        *FIGHTER_KIND_PFUSHIGISOU,
-        *FIGHTER_KIND_PLIZARDON,
-        *WEAPON_KIND_PTRAINER_PTRAINER,
-        *WEAPON_KIND_PTRAINER_MBALL,
-    ].contains(&kind) {
-        println!("Follow Effect Req'd: {:x}, kind: {:x}", eff_hash.hash, kind);
     }
     // Prevent the score GFX from playing on the CPU when loading save state during hitstop
     if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
@@ -620,35 +598,7 @@ pub unsafe fn handle_fighter_effect(
             arg9,
         );
     }
-
-    let is_ptrainer_switch_hash = [
-        Hash40::new("sys_flying_plate"),
-        Hash40::new("sys_mball"),
-        Hash40::new("sys_mball_beam"),
-        Hash40::new("sys_mball_flash"),
-        Hash40::new("sys_mball_item"),
-        Hash40::new("ptrainer_change_catch"),
-        Hash40::new("ptrainer_change_light"),
-        Hash40::new("ptrainer_change_mball"),
-        Hash40::new("ptrainer_change_return"),
-    ].contains(&eff_hash) || eff_hash.hash == 0x10e3fac8d9;
-
-    let kind = app::utility::get_kind(&mut *(*effect_module).owner);
-    if [
-        *FIGHTER_KIND_PZENIGAME,
-        *FIGHTER_KIND_PFUSHIGISOU,
-        *FIGHTER_KIND_PLIZARDON,
-        *WEAPON_KIND_PTRAINER_PTRAINER,
-        *WEAPON_KIND_PTRAINER_MBALL,
-    ].contains(&kind) {
-        println!("Effect Req'd: {:x}, kind: {:x}", eff_hash.hash, kind);
-    }
-
-    // TODO: check if fighter is pokemon
-    if is_ptrainer_switch_hash {
-        // Making the size 0 prevents these effects from being displayed. Fixes Pokemon Trainer Angel Platform Effect.
-        size = 0.0
-    }
+    size = ptrainer::check_effect_pokemon_state(&mut *(*effect_module).owner, eff_hash, size);
     original!()(
         effect_module,
         eff_hash,
