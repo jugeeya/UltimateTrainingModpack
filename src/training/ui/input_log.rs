@@ -84,34 +84,34 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
 
     // Empty them first
     const NUM_ICON_SLOTS: usize = 5;
-    for idx in 0..NUM_ICON_SLOTS {
-        let input_pane = log_pane
-            .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
-            .unwrap()
-            .as_textbox();
+    // for idx in 0..NUM_ICON_SLOTS {
+    //     let input_pane = log_pane
+    //         .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
+    //         .unwrap()
+    //         .as_textbox();
 
-        input_pane.set_text_string("");
-    }
+    //     input_pane.set_text_string("");
+    // }
 
-    for (idx, icon) in icons.iter().enumerate() {
-        // todo: handle this better
-        if idx >= NUM_ICON_SLOTS {
-            continue;
-        }
+    // for (idx, icon) in icons.iter().enumerate() {
+    //     // todo: handle this better
+    //     if idx >= NUM_ICON_SLOTS {
+    //         continue;
+    //     }
 
-        let input_pane = log_pane
-            .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
-            .unwrap()
-            .as_textbox();
+    //     let input_pane = log_pane
+    //         .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
+    //         .unwrap()
+    //         .as_textbox();
 
-        input_pane.set_text_string(icon.0);
-        input_pane.set_default_material_colors();
-        input_pane.set_color(icon.1.r, icon.1.g, icon.1.b, icon.1.a);
-    }
+    //     input_pane.set_text_string(icon.0);
+    //     input_pane.set_default_material_colors();
+    //     input_pane.set_color(icon.1.r, icon.1.g, icon.1.b, icon.1.a);
+    // }
 
     let frame_text = format!("{}", log.frames);
     log_pane
-        .find_pane_by_name_recursive("FrameTxt")
+        .find_pane_by_name_recursive("Frame")
         .unwrap()
         .as_textbox()
         .set_text_string(frame_text.as_str());
@@ -122,7 +122,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         "".to_string()
     };
     log_pane
-        .find_pane_by_name_recursive("StatusTxt")
+        .find_pane_by_name_recursive("Status")
         .unwrap()
         .as_textbox()
         .set_text_string(status_text.as_str());
