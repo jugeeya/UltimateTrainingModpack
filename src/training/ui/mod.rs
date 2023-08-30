@@ -90,7 +90,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 // in order for us to be able to swap the 'layout.arc' with the current
 // version of the file in between loads of training mode.
 #[cfg(feature = "layout_arc_from_file")]
-const LAYOUT_ARC_SIZE: usize = (3 * MEBIBYTE) as usize;
+const LAYOUT_ARC_SIZE: usize = (4 * MEBIBYTE) as usize;
 #[cfg(feature = "layout_arc_from_file")]
 static mut LAYOUT_ARC: &mut [u8; LAYOUT_ARC_SIZE] = &mut [0u8; LAYOUT_ARC_SIZE];
 
