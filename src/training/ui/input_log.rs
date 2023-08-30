@@ -103,7 +103,9 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         "down_right",
         "gcc_l",
         "gcc_r",
-        "gcc_z"
+        "gcc_z",
+        "plus",
+        "minus"
     ];
 
     for idx in 0..NUM_ICON_SLOTS {
