@@ -172,16 +172,16 @@ impl InputLog {
             .iter()
             .filter_map(|button| {
                 Some(match *button {
-                    Buttons::ATTACK | Buttons::ATTACK_RAW => ("A", GREEN),
-                    Buttons::SPECIAL | Buttons::SPECIAL_RAW | Buttons::SPECIAL_RAW2 => ("B", RED),
-                    Buttons::JUMP => ("X", CYAN),
-                    Buttons::GUARD | Buttons::GUARD_HOLD => ("L", BLUE),
-                    Buttons::CATCH => ("ZR", PURPLE),
-                    Buttons::STOCK_SHARE => ("+", WHITE),
-                    Buttons::APPEAL_HI => ("^", WHITE),
-                    Buttons::APPEAL_LW => ("v", WHITE),
-                    Buttons::APPEAL_SL => (">", WHITE),
-                    Buttons::APPEAL_SR => ("<", WHITE),
+                    Buttons::ATTACK | Buttons::ATTACK_RAW => ("a", GREEN),
+                    Buttons::SPECIAL | Buttons::SPECIAL_RAW | Buttons::SPECIAL_RAW2 => ("b", RED),
+                    Buttons::JUMP => ("x", CYAN),
+                    Buttons::GUARD | Buttons::GUARD_HOLD => ("lb", BLUE),
+                    Buttons::CATCH => ("zr", PURPLE),
+                    Buttons::STOCK_SHARE => ("plus", WHITE),
+                    Buttons::APPEAL_HI => ("dpad_up", WHITE),
+                    Buttons::APPEAL_LW => ("dpad_down", WHITE),
+                    Buttons::APPEAL_SL => ("dpad_right", WHITE),
+                    Buttons::APPEAL_SR => ("dpad_left", WHITE),
                     _ => return None,
                 })
             })
@@ -193,34 +193,34 @@ impl InputLog {
         let buttons = self.raw_inputs.current_buttons;
         let mut icons = VecDeque::new();
         if buttons.a() {
-            icons.push_front(("A", GREEN));
+            icons.push_front(("a", GREEN));
         }
         if buttons.b() {
-            icons.push_front(("B", RED));
+            icons.push_front(("b", RED));
         }
         if buttons.x() {
-            icons.push_front(("X", CYAN));
+            icons.push_front(("x", CYAN));
         }
         if buttons.y() {
-            icons.push_front(("Y", CYAN));
+            icons.push_front(("y", CYAN));
         }
         if buttons.l() || buttons.real_digital_l() {
-            icons.push_front(("L", BLUE));
+            icons.push_front(("lb", BLUE));
         }
         if buttons.r() || buttons.real_digital_r() {
-            icons.push_front(("R", BLUE));
+            icons.push_front(("rb", BLUE));
         }
         if buttons.zl() {
-            icons.push_front(("ZL", PURPLE));
+            icons.push_front(("zl", PURPLE));
         }
         if buttons.zr() {
-            icons.push_front(("ZR", PURPLE));
+            icons.push_front(("zr", PURPLE));
         }
         if buttons.plus() {
-            icons.push_front(("+", WHITE));
+            icons.push_front(("plus", WHITE));
         }
         if buttons.minus() {
-            icons.push_front(("-", WHITE));
+            icons.push_front(("minus", WHITE));
         }
 
         icons

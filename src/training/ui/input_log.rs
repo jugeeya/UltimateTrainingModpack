@@ -45,14 +45,14 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
     let (lstick_strength, lstick_angle) = log.binned_lstick();
     let lstick_icon = if lstick_strength != DirectionStrength::None {
         match lstick_angle as u32 {
-            0 => ">",
-            45 => "^>",
-            90 => "^",
-            135 => "<^",
-            180 => "<",
-            225 => "<v",
-            270 => "v",
-            315 => "v>",
+            0 => "right",
+            45 => "up_right",
+            90 => "up",
+            135 => "up_left",
+            180 => "left",
+            225 => "down_left",
+            270 => "down",
+            315 => "down_right",
             _ => "?",
         }
     } else {
@@ -84,14 +84,53 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
 
     // Empty them first
     const NUM_ICON_SLOTS: usize = 5;
-    // for idx in 0..NUM_ICON_SLOTS {
-    //     let input_pane = log_pane
-    //         .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
-    //         .unwrap()
-    //         .as_textbox();
+    let available_icons  = vec![
+        "a",
+        "b",
+        "x",
+        "y",
+        "lb",
+        "rb",
+        "zl",
+        "zr",
+        "up",
+        "down",
+        "left",
+        "right",
+        "up_left",
+        "up_right",
+        "down_left",
+        "down_right",
+        "gcc_l",
+        "gcc_r",
+        "gcc_z"
+    ];
 
-    //     input_pane.set_text_string("");
-    // }
+    for idx in 0..NUM_ICON_SLOTS {
+        let input_pane = log_pane
+            .find_pane_by_name_recursive(format!("Input{}", idx).as_str())
+            .unwrap();
+
+        input_pane.set_visible(false);
+
+        for (idx, icon) in icons.iter().enumerate() {
+            if idx >= NUM_ICON_SLOTS {
+                break;
+            }
+
+            if !available_icons.contains(&icon.0) {
+                continue;
+            }
+
+            let icon_pane = input_pane
+                .find_pane_by_name_recursive(icon.0)
+                .unwrap();
+
+            icon_pane.set_visible(true);
+        }
+
+        input_pane.set_visible(true);
+    }
 
     // for (idx, icon) in icons.iter().enumerate() {
     //     // todo: handle this better
