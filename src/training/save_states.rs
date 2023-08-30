@@ -315,6 +315,10 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
         return;
     }
     let ptrainer_module_accessor = ptrainer::get_ptrainer_module_accessor(module_accessor);
+    WorkModule::off_flag(
+        ptrainer_module_accessor,
+        *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
+    );
     MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
     if let Some(ptrainer_masterball_module_accessor) = ptrainer::get_ptrainer_mball_module_accessor(ptrainer_module_accessor) {
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
