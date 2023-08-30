@@ -2,6 +2,7 @@ use crate::common::button_config;
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+    is_ptrainer,
 };
 use crate::hitbox_visualizer;
 use crate::input::*;
@@ -30,7 +31,7 @@ pub mod ui;
 
 mod air_dodge_direction;
 mod attack_angle;
-mod character_specific;
+pub mod character_specific;
 mod debug;
 mod fast_fall;
 mod full_hop;
@@ -121,6 +122,12 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
+        if is_ptrainer(module_accessor) {
+            let status_kind = StatusModule::status_kind(module_accessor);
+            print!("PT Pre: {:x},", status_kind);
+        }
+        
+        
         if menu::menu_condition() {
             menu::spawn_menu();
         }
@@ -129,6 +136,11 @@ fn once_per_frame_per_fighter(
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
+        save_states::update_lccs(module_accessor);
+        if is_ptrainer(module_accessor) {
+            let status_kind = StatusModule::status_kind(module_accessor);
+            println!(" PT Post: {:x}", status_kind);
+        }
         tech::get_command_flag_cat(module_accessor);
         clatter::handle_clatter(module_accessor);
     }

@@ -4,6 +4,24 @@ use crate::training::save_states;
 use skyline::hooks::InlineCtx;
 use smash::phx::Hash40;
 
+pub unsafe fn get_ptrainer_mball_module_accessor(
+    ptrainer_module_accessor: &mut app::BattleObjectModuleAccessor,
+) -> Option<&mut app::BattleObjectModuleAccessor> {
+    if ArticleModule::is_exist(
+        ptrainer_module_accessor,
+        *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+    ) {
+        let ptrainer_masterball: *mut app::Article = ArticleModule::get_article(
+            ptrainer_module_accessor,
+            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+        );
+        let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball);
+        let ptrainer_masterball_module_accessor =
+        return Some(&mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32));
+    }
+    None
+}
+
 pub unsafe fn get_ptrainer_module_accessor(
     module_accessor: &mut app::BattleObjectModuleAccessor,
 ) -> &mut app::BattleObjectModuleAccessor {
@@ -72,7 +90,7 @@ unsafe fn pokemon_decide_handle(ctx: &mut InlineCtx) {
     let fighter = *x20 as *mut u64 as *mut app::Fighter;
     let module_accessor = (*fighter).battle_object.module_accessor;
     let pokemon_value = save_states::get_state_pokemon(module_accessor);
-    if 0 <= pokemon_value <= 2 {
+    if pokemon_value <= 2 {
         let w8 = ctx.registers[8].w.as_mut();
         *w8 = pokemon_value;
     }

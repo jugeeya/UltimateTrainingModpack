@@ -104,8 +104,6 @@ pub unsafe fn handle_get_int(
     original!()(work_module, address);
 }
 
-
-
 pub fn init() {
     skyline::install_hooks!(
         //handle_on_flag,

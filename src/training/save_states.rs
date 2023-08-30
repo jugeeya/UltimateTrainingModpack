@@ -66,7 +66,7 @@ pub enum SaveState {
     NoAction,
     KillPlayer,
     WaitForAlive,
-    WaitForPokemonSwitch,
+    //WaitForPokemonSwitch,
     PosMove,
     NanaPosMove,
     ApplyBuff,
@@ -131,6 +131,17 @@ pub struct SaveStateSlots {
     player: [SavedState; NUM_SAVE_STATE_SLOTS],
     cpu: [SavedState; NUM_SAVE_STATE_SLOTS],
 }
+
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+pub struct LastCommandCat1Status {
+    player: i32,
+    cpu: i32,
+}
+
+static mut LCC1S: LastCommandCat1Status = LastCommandCat1Status{
+    player: 0,
+    cpu: 0,
+};
 
 const NUM_SAVE_STATE_SLOTS: usize = 5;
 // I actually had to do it this way, a simple load-from-file in main() caused crashes.
@@ -305,17 +316,7 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
     }
     let ptrainer_module_accessor = ptrainer::get_ptrainer_module_accessor(module_accessor);
     MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
-    if ArticleModule::is_exist(
-        ptrainer_module_accessor,
-        *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
-    ) {
-        let ptrainer_masterball: *mut app::Article = ArticleModule::get_article(
-            ptrainer_module_accessor,
-            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
-        );
-        let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball);
-        let ptrainer_masterball_module_accessor =
-            &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
+    if let Some(ptrainer_masterball_module_accessor) = ptrainer::get_ptrainer_mball_module_accessor(ptrainer_module_accessor) {
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
         ArticleModule::set_visibility_whole(
             ptrainer::get_ptrainer_module_accessor(module_accessor),
@@ -323,6 +324,28 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
             false,
             ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL)
         );
+    } 
+}
+
+pub unsafe fn update_lccs(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    // This is needed to prevent issues with loading save states with PR after a L+R+A Reset
+    let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
+        == FighterId::CPU as i32;
+    if is_cpu {
+        LCC1S.cpu = StatusModule::status_kind(module_accessor);
+    } else {
+        LCC1S.player = StatusModule::status_kind(module_accessor);
+    }
+}
+
+pub unsafe fn get_lccs(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
+    // This is needed to prevent issues with loading save states with PR after a L+R+A Reset
+    let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
+        == FighterId::CPU as i32;
+    if is_cpu {
+        return LCC1S.cpu;
+    } else {
+        return LCC1S.player;
     }
 }
 
