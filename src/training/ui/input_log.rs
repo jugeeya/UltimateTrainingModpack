@@ -7,7 +7,7 @@ use training_mod_consts::{InputDisplay, MENU};
 use crate::{
     common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
     training::{
-        input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS, WHITE, YELLOW},
+        input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS, BLACK, WHITE, YELLOW, GREEN, RED, BLUE, CYAN, PURPLE},
         ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
     },
 };
@@ -60,7 +60,7 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
     };
 
     if !lstick_icon.is_empty() {
-        icons.push_front((lstick_icon, WHITE));
+        icons.push_front((lstick_icon, BLACK));
     }
 
     icons
@@ -127,7 +127,8 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     for (index, icon) in icons.iter().enumerate() {
         // Temporarily comparing to the list of available icons until they are all in
         // Just in case we run into an icon name that isn't present
-        if index >= NUM_ICON_SLOTS || !available_icons.contains(&icon.0) {
+        let (icon_name, icon_color) = icon;
+        if index >= NUM_ICON_SLOTS || !available_icons.contains(&icon_name) {
             continue;
         }
 
@@ -135,9 +136,11 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
             .find_pane_by_name_recursive(format!("Input{}", index).as_str())
             .unwrap();
 
-        let icon_pane = input_pane.find_pane_by_name_recursive(icon.0).unwrap();
+        let icon_pane = input_pane.find_pane_by_name_recursive(icon_name).unwrap().as_picture();
 
         icon_pane.set_visible(true);
+        icon_pane.set_black_res_color(icon_color);
+        icon_pane.flags |= PaneFlag::Visible as u8;
     }
 
     let frame_text = format!("{}", log.frames);

@@ -60,6 +60,13 @@ pub const WHITE: ResColor = ResColor {
     a: 255,
 };
 
+pub const BLACK: ResColor = ResColor {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 255,
+};
+
 pub static PER_LOG_FRAME_COUNTER: Lazy<usize> =
     Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
 pub static OVERALL_FRAME_COUNTER: Lazy<usize> =
