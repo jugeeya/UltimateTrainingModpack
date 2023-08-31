@@ -9,7 +9,7 @@ use std::collections::HashMap;
 pub static STATUS_UNKNOWN: &str = "UNKNOWN";
 
 lazy_static! {
-    pub static ref STATUS_DISPLAY: HashMap<&'static str, i32> = [
+    pub static ref STATUS_DISPLAY: HashMap<&'static str, i32> = HashMap::from_iter([
             ("FIGHTER_BAYONETTA_STATUS_KIND_ATTACK_AIR_F", *FIGHTER_BAYONETTA_STATUS_KIND_ATTACK_AIR_F),
             ("FIGHTER_BAYONETTA_STATUS_KIND_BATWITHIN", *FIGHTER_BAYONETTA_STATUS_KIND_BATWITHIN),
             ("FIGHTER_BAYONETTA_STATUS_KIND_FINAL_END", *FIGHTER_BAYONETTA_STATUS_KIND_FINAL_END),
@@ -2342,7 +2342,7 @@ lazy_static! {
             ("FIGHTER_ZELDA_STATUS_KIND_SPECIAL_HI_3", *FIGHTER_ZELDA_STATUS_KIND_SPECIAL_HI_3),
             ("FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_END", *FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_END),
             ("FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_LOOP", *FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_LOOP),
-        ].into_iter().collect();
+        ]);
     static ref KIND_TO_CHAR: HashMap<i32, Character> = character_pairs().iter().cloned().collect();
 }
 
