@@ -2342,7 +2342,7 @@ lazy_static! {
             ("FIGHTER_ZELDA_STATUS_KIND_SPECIAL_HI_3", *FIGHTER_ZELDA_STATUS_KIND_SPECIAL_HI_3),
             ("FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_END", *FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_END),
             ("FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_LOOP", *FIGHTER_ZELDA_STATUS_KIND_SPECIAL_S_LOOP),
-        ].iter().collect();
+        ].into_iter().collect();
     static ref KIND_TO_CHAR: HashMap<i32, Character> = character_pairs().iter().cloned().collect();
 }
 
