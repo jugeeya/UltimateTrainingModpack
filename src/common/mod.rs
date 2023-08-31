@@ -316,14 +316,15 @@ pub fn print_fighter_info(
         // Print Title
         print!("{}: ", title);
         // Print Fighter Kind:
+        let fighter_kind = utility::get_kind(module_accessor);
         if print_fighter_kind {
-            print!("FIGHTER_KIND: {}, ", utility::get_kind(module_accessor));
+            print!("FIGHTER_KIND: {:#?}, ", kind_to_char(fighter_kind));
         }
         // Print Status:
         if print_status {
             print!(
                 "FIGHTER_STATUS: {}, ",
-                StatusModule::status_kind(module_accessor)
+                status_display_name(fighter_kind, StatusModule::status_kind(module_accessor))
             );
         }
 
