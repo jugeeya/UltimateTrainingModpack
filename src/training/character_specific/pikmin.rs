@@ -167,13 +167,13 @@ pub unsafe fn pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor
     for held_index in 0..held_count {
         let held_boid = (*((*troops_manager).held_pikmin[held_index])).battle_object_id;
         pikmin_held_boid_vec.push(held_boid);
-        _print(held_boid, true);
+        print(held_boid, true);
     }
     // Next, we get the order of the following pikmin
     for following_index in 0..following_count {
         let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
         pikmin_following_boid_vec.push(following_boid);
-        _print(following_boid, false);
+        print(following_boid, false);
     }
     println!("----------------------------------------")
 }
