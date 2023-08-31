@@ -2,7 +2,6 @@ use crate::common::button_config;
 use crate::common::{
     consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
     is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
-    is_ptrainer,
 };
 use crate::hitbox_visualizer;
 use crate::input::*;
@@ -270,7 +269,7 @@ pub unsafe fn handle_change_motion(
         motion_kind
     };
 
-    original!()(
+    let ori = original!()(
         module_accessor,
         mod_motion_kind,
         unk1,
@@ -279,7 +278,12 @@ pub unsafe fn handle_change_motion(
         unk4,
         unk5,
         unk6,
-    )
+    );
+    // After we've changed motion, speed up if necessary
+    if is_training_mode() {
+        ptrainer::change_motion(module_accessor, motion_kind);
+    }
+    ori
 }
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
@@ -506,7 +510,7 @@ pub unsafe fn handle_fighter_play_se(
             my_hash = Hash40::new("se_silent");
         } 
     }
-    my_hash = ptrainer::sound_effect_pokemon_state((*sound_module).owner, my_hash);
+    my_hash = ptrainer::sound_effect_pokemon_state(my_hash);
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 

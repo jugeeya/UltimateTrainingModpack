@@ -9,6 +9,7 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use training_mod_consts::{CharacterItem, SaveDamage};
+use std::ptr;
 
 use SaveState::*;
 
@@ -21,6 +22,7 @@ use crate::common::consts::PlaybackSlot;
 use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
+use crate::common::get_module_accessor;
 use crate::common::consts::SAVE_STATES_TOML_PATH;
 use crate::common::is_dead;
 use crate::common::MENU;
@@ -66,10 +68,10 @@ pub enum SaveState {
     NoAction,
     KillPlayer,
     WaitForAlive,
-    WaitForPokemonSwitch,
     PosMove,
     NanaPosMove,
     ApplyBuff,
+    WaitForPokemonSwitch,
 }
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
@@ -132,17 +134,6 @@ pub struct SaveStateSlots {
     cpu: [SavedState; NUM_SAVE_STATE_SLOTS],
 }
 
-#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
-pub struct LastCommandCat1Status {
-    player: i32,
-    cpu: i32,
-}
-
-static mut LCC1S: LastCommandCat1Status = LastCommandCat1Status{
-    player: 0,
-    cpu: 0,
-};
-
 const NUM_SAVE_STATE_SLOTS: usize = 5;
 // I actually had to do it this way, a simple load-from-file in main() caused crashes.
 lazy_static::lazy_static! {
@@ -186,10 +177,12 @@ unsafe fn save_state_cpu(slot: usize) -> &'static mut SavedState {
     &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[slot]
 }
 
-pub unsafe fn get_state_pokemon(module_accessor: *mut app::BattleObjectModuleAccessor) -> u32 {
+pub unsafe fn get_state_pokemon(ptrainer_module_accessor: *mut app::BattleObjectModuleAccessor) -> u32 {
     let selected_slot = get_slot();
     let fighter_kind;
-    if !is_operation_cpu(&mut *module_accessor) {
+    let pokemon_module_accessor = ptrainer::get_pokemon_module_accessor(ptrainer_module_accessor);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    if !ptr::eq(pokemon_module_accessor, cpu_module_accessor) {
         fighter_kind = save_state_player(selected_slot).fighter_kind;
     } else {
         fighter_kind = save_state_cpu(selected_slot).fighter_kind;
@@ -331,38 +324,8 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
     } 
 }
 
-pub unsafe fn update_lccs(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    // This is needed to prevent issues with loading save states with PR after a L+R+A Reset
-    let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
-        == FighterId::CPU as i32;
-    if is_cpu {
-        LCC1S.cpu = StatusModule::status_kind(module_accessor);
-    } else {
-        LCC1S.player = StatusModule::status_kind(module_accessor);
-    }
-}
-
-pub unsafe fn get_lccs(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
-    // This is needed to prevent issues with loading save states with PR after a L+R+A Reset
-    let is_cpu = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID)
-        == FighterId::CPU as i32;
-    if is_cpu {
-        return LCC1S.cpu;
-    } else {
-        return LCC1S.player;
-    }
-}
-
 unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectModuleAccessor) {
     SoundModule::stop_all_sound(module_accessor);
-    // Try moving off-screen so we don't see effects.
-    let pos = Vector3f {
-        x: -300.0,
-        y: -100.0,
-        z: 0.0,
-    };
-    PostureModule::set_pos(module_accessor, &pos);
-
     // All articles have ID <= 0x25
     (0..=0x25)
         .filter(|article_idx| {
@@ -562,11 +525,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state.state = NoAction;
         }
 
-        // If we switched last frame, artifacts and sound should be cleaned up, so transition into NoAction
-        if save_state.state == WaitForPokemonSwitch {
-            save_state.state = NoAction;
-        }
-
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             // Set damage of the save state
@@ -672,6 +630,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             // returns true when done buffing fighter
             buff::restart_buff(module_accessor);
             // set is_buffing back to false when done
+            save_state.state = NoAction;
+        }
+    }
+
+    // If we switched last frame, artifacts and sound should be cleaned up, so transition into NoAction
+    if save_state.state == WaitForPokemonSwitch {
+        if ptrainer::is_switched(ptrainer::get_ptrainer_module_accessor(module_accessor)) {
             save_state.state = NoAction;
         }
     }

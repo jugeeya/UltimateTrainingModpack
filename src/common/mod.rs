@@ -6,7 +6,6 @@ use smash::lua2cpp::L2CFighterCommon;
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
 use crate::training::character_specific::ptrainer;
-use crate::training::save_states;
 
 pub mod button_config;
 pub mod consts;
