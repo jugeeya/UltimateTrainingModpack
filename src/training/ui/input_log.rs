@@ -128,7 +128,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         // Temporarily comparing to the list of available icons until they are all in
         // Just in case we run into an icon name that isn't present
         let (icon_name, icon_color) = icon;
-        if index >= NUM_ICON_SLOTS || !available_icons.contains(&icon_name) {
+        if index >= NUM_ICON_SLOTS || !available_icons.contains(icon_name) {
             continue;
         }
 
@@ -142,7 +142,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
             .as_picture();
 
         icon_pane.set_visible(true);
-        (&mut *icon_pane.material).set_black_res_color(*icon_color);
+        (*icon_pane.material).set_black_res_color(*icon_color);
         icon_pane.flags |= PaneFlag::IsGlobalMatrixDirty as u8;
     }
 
