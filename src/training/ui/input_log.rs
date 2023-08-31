@@ -84,7 +84,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
 
     // Empty them first
     const NUM_ICON_SLOTS: usize = 5;
-    let available_icons  = vec![
+    let available_icons = vec![
         "a",
         "b",
         "x",
@@ -108,10 +108,9 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         "minus",
         "l_stick",
         "r_stick",
-        "gcc_c_stick"
+        "gcc_c_stick",
     ];
 
-    
     for idx in 0..NUM_ICON_SLOTS {
         let input_pane = log_pane
             .find_pane_by_name_recursive(format!("Input{}", idx).as_str())
@@ -136,9 +135,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
             .find_pane_by_name_recursive(format!("Input{}", index).as_str())
             .unwrap();
 
-        let icon_pane = input_pane
-            .find_pane_by_name_recursive(icon.0)
-            .unwrap();
+        let icon_pane = input_pane.find_pane_by_name_recursive(icon.0).unwrap();
 
         icon_pane.set_visible(true);
     }
