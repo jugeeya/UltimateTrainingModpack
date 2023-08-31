@@ -154,6 +154,7 @@ pub unsafe fn get_current_pikmin(
 }
 
 #[cfg(debug_assertions)]
+#[allow(dead_code)]
 pub unsafe fn pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
 
@@ -179,6 +180,7 @@ pub unsafe fn pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor
 }
 
 #[cfg(debug_assertions)]
+#[allow(dead_code)]
 unsafe fn print(boid: u32, held: bool) {
     if boid != *BATTLE_OBJECT_ID_INVALID as u32 && app::sv_battle_object::is_active(boid) {
         let pikmin_boma = app::sv_battle_object::module_accessor(boid);
