@@ -34,7 +34,7 @@ use crate::training::reset;
 use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
 
-// Don't remove Mii hats, or Luma, or crafting table
+// Don't remove Mii hats, Pikmin, Luma, or crafting table
 const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 8] = [
     (
         FIGHTER_KIND_MIIFIGHTER,
@@ -98,6 +98,7 @@ macro_rules! default_save_state {
             charge: ChargeState {
                 int_x: None,
                 int_y: None,
+                int_z: None,
                 float_x: None,
                 float_y: None,
                 float_z: None,
@@ -308,12 +309,11 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
         ptrainer_module_accessor,
         *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
     ) {
-        let ptrainer_masterball: u64 = ArticleModule::get_article(
+        let ptrainer_masterball: *mut app::Article = ArticleModule::get_article(
             ptrainer_module_accessor,
             *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
         );
-        let ptrainer_masterball_id =
-            Article::get_battle_object_id(ptrainer_masterball as *mut app::Article);
+        let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball);
         let ptrainer_masterball_module_accessor =
             &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
@@ -339,8 +339,9 @@ unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectMod
         })
         .for_each(|article_idx| {
             if ArticleModule::is_exist(module_accessor, article_idx) {
-                let article: u64 = ArticleModule::get_article(module_accessor, article_idx);
-                let article_object_id = Article::get_battle_object_id(article as *mut app::Article);
+                let article: *mut app::Article =
+                    ArticleModule::get_article(module_accessor, article_idx);
+                let article_object_id = Article::get_battle_object_id(article);
                 ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
             }
         });
