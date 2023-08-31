@@ -153,7 +153,9 @@ pub unsafe fn get_current_pikmin(
     ordered_pikmin_variation
 }
 
-pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
+pub unsafe fn pretty_print(module_accessor: &mut app::BattleObjectModuleAccessor) {
     let troops_manager = WorkModule::get_int64(module_accessor, 0x100000C0) as *mut TroopsManager;
 
     let following_count = (*troops_manager).current_pikmin_count;
@@ -166,18 +168,20 @@ pub unsafe fn _pretty_print(module_accessor: &mut app::BattleObjectModuleAccesso
     for held_index in 0..held_count {
         let held_boid = (*((*troops_manager).held_pikmin[held_index])).battle_object_id;
         pikmin_held_boid_vec.push(held_boid);
-        _print(held_boid, true);
+        print(held_boid, true);
     }
     // Next, we get the order of the following pikmin
     for following_index in 0..following_count {
         let following_boid = (*((*troops_manager).pikmin[following_index])).battle_object_id;
         pikmin_following_boid_vec.push(following_boid);
-        _print(following_boid, false);
+        print(following_boid, false);
     }
     println!("----------------------------------------")
 }
 
-unsafe fn _print(boid: u32, held: bool) {
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
+unsafe fn print(boid: u32, held: bool) {
     if boid != *BATTLE_OBJECT_ID_INVALID as u32 && app::sv_battle_object::is_active(boid) {
         let pikmin_boma = app::sv_battle_object::module_accessor(boid);
         let pikmin_variation = WorkModule::get_int(

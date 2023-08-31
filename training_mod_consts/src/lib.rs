@@ -89,6 +89,7 @@ pub struct TrainingModpackMenu {
     pub input_record: ButtonConfig,
     pub input_playback: ButtonConfig,
     pub recording_crop: OnOff,
+    pub stale_dodges: OnOff,
     pub update_policy: UpdatePolicy,
 }
 
@@ -194,6 +195,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     input_record: ButtonConfig::ZR.union(ButtonConfig::DPAD_DOWN),
     input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
     recording_crop: OnOff::On,
+    stale_dodges: OnOff::On,
     update_policy: UpdatePolicy::default(),
 };
 
@@ -683,6 +685,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         "Crouch: Have the CPU crouch when on the ground".to_string(),
         true,
         &(menu.crouch as u32),
+    );
+    defensive_tab.add_submenu_with_toggles::<OnOff>(
+        "Dodge Staling".to_string(),
+        "stale_dodges".to_string(),
+        "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)"
+            .to_string(),
+        true,
+        &(menu.stale_dodges as u32),
     );
     overall_menu.tabs.push(defensive_tab);
 

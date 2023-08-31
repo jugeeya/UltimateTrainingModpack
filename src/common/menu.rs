@@ -201,17 +201,6 @@ pub fn handle_final_input_mapping(
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
                 });
-                (button_mapping(ButtonConfig::PLUS, style, button_presses)
-                    || button_mapping(ButtonConfig::MINUS, style, button_presses))
-                .then(|| {
-                    received_input = true;
-                    // Leave menu.
-                    frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
-                    QUICK_MENU_ACTIVE = false;
-                    let menu_json = app.get_menu_selections();
-                    set_menu_from_json(&menu_json);
-                    EVENT_QUEUE.push(Event::menu_open(menu_json));
-                });
                 button_mapping(ButtonConfig::X, style, button_presses).then(|| {
                     app.save_defaults();
                     received_input = true;
