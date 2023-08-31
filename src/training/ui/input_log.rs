@@ -24,14 +24,14 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
     let (rstick_strength, rstick_angle) = log.binned_rstick();
     let rstick_icon = if rstick_strength != DirectionStrength::None {
         match rstick_angle as u32 {
-            0 => ">",
-            45 => "^>",
-            90 => "^",
-            135 => "<^",
-            180 => "<",
-            225 => "<v",
-            270 => "v",
-            315 => "v>",
+            0 => "right",
+            45 => "up_right",
+            90 => "up",
+            135 => "up_left",
+            180 => "left",
+            225 => "down_left",
+            270 => "down",
+            315 => "down_right",
             _ => "?",
         }
     } else {
@@ -111,47 +111,37 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         "gcc_c_stick"
     ];
 
+    
     for idx in 0..NUM_ICON_SLOTS {
         let input_pane = log_pane
             .find_pane_by_name_recursive(format!("Input{}", idx).as_str())
             .unwrap();
 
-        input_pane.set_visible(false);
-
-        for (idx, icon) in icons.iter().enumerate() {
-            if idx >= NUM_ICON_SLOTS {
-                break;
-            }
-
-            if !available_icons.contains(&icon.0) {
-                continue;
-            }
-
-            let icon_pane = input_pane
-                .find_pane_by_name_recursive(icon.0)
-                .unwrap();
-
-            icon_pane.set_visible(true);
-        }
-
-        input_pane.set_visible(true);
+        available_icons
+            .iter()
+            .map(|name| input_pane.find_pane_by_name_recursive(name).unwrap())
+            .for_each(|icon_pane| {
+                icon_pane.set_visible(false);
+            });
     }
 
-    // for (idx, icon) in icons.iter().enumerate() {
-    //     // todo: handle this better
-    //     if idx >= NUM_ICON_SLOTS {
-    //         continue;
-    //     }
+    for (index, icon) in icons.iter().enumerate() {
+        // Temporarily comparing to the list of available icons until they are all in
+        // Just in case we run into an icon name that isn't present
+        if index >= NUM_ICON_SLOTS || !available_icons.contains(&icon.0) {
+            continue;
+        }
 
-    //     let input_pane = log_pane
-    //         .find_pane_by_name_recursive(format!("InputTxt{}", idx).as_str())
-    //         .unwrap()
-    //         .as_textbox();
+        let input_pane = log_pane
+            .find_pane_by_name_recursive(format!("Input{}", index).as_str())
+            .unwrap();
 
-    //     input_pane.set_text_string(icon.0);
-    //     input_pane.set_default_material_colors();
-    //     input_pane.set_color(icon.1.r, icon.1.g, icon.1.b, icon.1.a);
-    // }
+        let icon_pane = input_pane
+            .find_pane_by_name_recursive(icon.0)
+            .unwrap();
+
+        icon_pane.set_visible(true);
+    }
 
     let frame_text = format!("{}", log.frames);
     log_pane
