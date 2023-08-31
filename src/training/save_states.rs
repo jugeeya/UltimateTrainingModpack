@@ -66,7 +66,7 @@ pub enum SaveState {
     NoAction,
     KillPlayer,
     WaitForAlive,
-    //WaitForPokemonSwitch,
+    WaitForPokemonSwitch,
     PosMove,
     NanaPosMove,
     ApplyBuff,
@@ -562,6 +562,11 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             save_state.state = NoAction;
         }
 
+        // If we switched last frame, artifacts and sound should be cleaned up, so transition into NoAction
+        if save_state.state == WaitForPokemonSwitch {
+            save_state.state = NoAction;
+        }
+
         // If we're done moving, reset percent, handle charges, and apply buffs
         if save_state.state == NoAction {
             // Set damage of the save state
@@ -631,6 +636,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     ptrainer::get_ptrainer_module_accessor(module_accessor),
                     *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
                 );
+                save_state.state = WaitForPokemonSwitch;
             }
         }
 

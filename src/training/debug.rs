@@ -19,10 +19,7 @@ pub unsafe fn handle_on_flag(
     work_module: &mut WorkModule2,
     address: i32,
 ) {
-    if !is_training_mode() {
-        original!()(work_module, address);
-    }
-    if address == *FIGHTER_POKEMON_INSTANCE_WORK_ID_FLAG_RESTART_FROM_MBALL
+    if address == *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_OUTFIELD_INVISIBLE
         && app::utility::get_kind((*work_module).owner) != *FIGHTER_KIND_SHEIK
     {
         is_visible_backshield(work_module.owner);
@@ -111,7 +108,7 @@ pub fn init() {
         // handle_set_int_64,
         // handle_set_float,
         // handle_get_int,
-        handle_is_flag,
+        //handle_is_flag,
     );
 }
 

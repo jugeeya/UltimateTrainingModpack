@@ -122,12 +122,6 @@ fn once_per_frame_per_fighter(
     }
 
     unsafe {
-        if is_ptrainer(module_accessor) {
-            let status_kind = StatusModule::status_kind(module_accessor);
-            print!("PT Pre: {:x},", status_kind);
-        }
-        
-        
         if menu::menu_condition() {
             menu::spawn_menu();
         }
@@ -136,11 +130,6 @@ fn once_per_frame_per_fighter(
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
-        save_states::update_lccs(module_accessor);
-        if is_ptrainer(module_accessor) {
-            let status_kind = StatusModule::status_kind(module_accessor);
-            println!(" PT Post: {:x}", status_kind);
-        }
         tech::get_command_flag_cat(module_accessor);
         clatter::handle_clatter(module_accessor);
     }
@@ -624,6 +613,55 @@ pub unsafe fn handle_fighter_effect(
     )
 }
 
+static JOINT_EFFECT_REQ_OFFSET: usize = 0x44e1e0;
+#[skyline::hook(offset = JOINT_EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+pub unsafe fn handle_fighter_joint_effect(
+    effect_module: *mut FighterEffectModule, // pointer to effect module
+    eff_hash: Hash40,
+    joint_hash: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    mut size: f32,
+    pos2: *const Vector3f, //unk, maybe displacement and not pos/rot
+    rot2: *const Vector3f, //unk, ^
+    arg5: bool,
+    arg6: u32,
+    arg7: i32,
+    arg9: i32,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            effect_module,
+            eff_hash,
+            joint_hash,
+            pos,
+            rot,
+            size,
+            pos2,
+            rot2,
+            arg5,
+            arg6,
+            arg7,
+            arg9,
+        );
+    }
+    size = ptrainer::check_effect_pokemon_state(&mut *(*effect_module).owner, eff_hash, size);
+    original!()(
+        effect_module,
+        eff_hash,
+        joint_hash,
+        pos,
+        rot,
+        size,
+        pos2,
+        rot2,
+        arg5,
+        arg6,
+        arg7,
+        arg9,
+    )
+}
+
 #[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_effect(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -875,6 +913,7 @@ pub fn training_mods() {
         handle_article_get_int,
         handle_get_module_accessor,
         handle_fighter_effect,
+        handle_fighter_joint_effect,
     );
 
     items::init();

@@ -51,7 +51,7 @@ pub unsafe fn check_effect_pokemon_state(
     ].contains(&hash) || hash.hash == 0x10e3fac8d9;
 
     // TODO: check to make sure this is only during save state
-    if is_ptrainer_switch_hash {
+    if is_ptrainer_switch_hash && save_states::is_loading() {
         // Making the size 0 prevents these effects from being displayed. Fixes Pokemon Trainer Angel Platform Effect.
         return 0.0;
     }
