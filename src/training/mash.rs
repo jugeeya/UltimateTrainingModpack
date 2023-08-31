@@ -264,15 +264,6 @@ unsafe fn get_buffered_action(
         } else {
             None
         }
-    } else if is_in_shieldstun(module_accessor) {
-        let action = MENU.shieldstun_override.get_random();
-        if action != Action::empty() {
-            Some(action)
-        } else if MENU.mash_triggers.contains(MashTrigger::SHIELDSTUN) {
-            Some(MENU.mash_state.get_random())
-        } else {
-            None
-        }
     } else if is_in_footstool(module_accessor) {
         let action = MENU.footstool_override.get_random();
         if action != Action::empty() {
@@ -312,6 +303,7 @@ unsafe fn get_buffered_action(
     {
         Some(MENU.mash_state.get_random())
     } else {
+        // SHIELD handled in shield.rs
         // LEDGE handled in ledge.rs
         None
     }

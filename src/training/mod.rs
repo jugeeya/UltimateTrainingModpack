@@ -7,7 +7,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use crate::training::character_specific::items;
+use crate::training::character_specific::{items, pikmin};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, enSEType, lua_bind::*, utility};
@@ -681,6 +681,17 @@ pub unsafe fn handle_reused_ui(
     original!()(fighter_data, param_2)
 }
 
+static ARTICLE_GET_INT_OFFSET: usize = 0x3d5920;
+
+#[skyline::hook(offset = ARTICLE_GET_INT_OFFSET)]
+pub unsafe fn handle_article_get_int(
+    article_module: *mut app::BattleObjectModuleAccessor, // *mut ArticleModule
+    generate_article: i32,
+    address: i32,
+) -> i32 {
+    original!()(article_module, generate_article, address)
+}
+
 // Instruction run on the completion of the CPU Control function
 static OPCF_OFFSET: usize = 0x06b7fdc;
 
@@ -737,6 +748,15 @@ unsafe fn handle_final_input_mapping(
     // Potentially apply input recording, thus with delay
     // MUTATES controller state to apply recording or playback
     input_record::handle_final_input_mapping(player_idx, out);
+}
+
+static BOMA_OFFSET: usize = 0x15cf1b0;
+
+#[skyline::hook(offset = BOMA_OFFSET)]
+pub unsafe fn handle_get_module_accessor(
+    battle_object_id: u32,
+) -> *mut app::BattleObjectModuleAccessor {
+    original!()(battle_object_id)
 }
 
 pub fn training_mods() {
@@ -817,10 +837,14 @@ pub fn training_mods() {
         // Notifications
         handle_once_per_cpu_frame,
         // Input
-        handle_final_input_mapping
+        handle_final_input_mapping,
+        // Charge
+        handle_article_get_int,
+        handle_get_module_accessor,
     );
 
     items::init();
     input_record::init();
     ui::init();
+    pikmin::init();
 }

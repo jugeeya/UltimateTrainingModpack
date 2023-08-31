@@ -2,6 +2,7 @@ use smash::app::{self};
 
 mod bowser;
 pub mod items;
+pub mod pikmin;
 pub mod steve;
 
 /**
