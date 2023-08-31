@@ -7,7 +7,7 @@ use training_mod_consts::{InputDisplay, MENU};
 use crate::{
     common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
     training::{
-        input_log::{DirectionStrength, InputLog, BLACK, P1_INPUT_LOGS, YELLOW},
+        input_log::{DirectionStrength, InputLog, WHITE, P1_INPUT_LOGS, YELLOW},
         ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
     },
 };
@@ -60,7 +60,7 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
     };
 
     if !lstick_icon.is_empty() {
-        icons.push_front((lstick_icon, BLACK));
+        icons.push_front((lstick_icon, WHITE));
     }
 
     icons
