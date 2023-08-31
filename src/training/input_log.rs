@@ -15,56 +15,56 @@ const GREEN: ResColor = ResColor {
     r: 0,
     g: 255,
     b: 0,
-    a: 255,
+    a: 0,
 };
 
 const RED: ResColor = ResColor {
     r: 255,
     g: 0,
     b: 0,
-    a: 255,
+    a: 0,
 };
 
 const CYAN: ResColor = ResColor {
     r: 0,
     g: 255,
     b: 255,
-    a: 255,
+    a: 0,
 };
 
 const BLUE: ResColor = ResColor {
     r: 0,
     g: 255,
     b: 0,
-    a: 255,
+    a: 0,
 };
 
 const PURPLE: ResColor = ResColor {
     r: 255,
     g: 0,
     b: 255,
-    a: 255,
+    a: 0,
 };
 
 pub const YELLOW: ResColor = ResColor {
     r: 255,
     g: 255,
     b: 0,
-    a: 255,
+    a: 0,
 };
 
 pub const WHITE: ResColor = ResColor {
     r: 255,
     g: 255,
     b: 255,
-    a: 255,
+    a: 0,
 };
 
 pub const BLACK: ResColor = ResColor {
     r: 0,
     g: 0,
     b: 0,
-    a: 255,
+    a: 0,
 };
 
 pub static PER_LOG_FRAME_COUNTER: Lazy<usize> =
