@@ -517,7 +517,7 @@ pub unsafe fn handle_fighter_play_se(
             se_type,
         );
     }
-    
+
     // Supress Kirby Copy Ability SFX when loading Save State
     if my_hash.hash == 0x1453dd86e4 || my_hash.hash == 0x14bdd3e7c8 {
         let module_accessor = (*sound_module).owner;
@@ -532,7 +532,7 @@ pub unsafe fn handle_fighter_play_se(
                 bool4,
                 se_type,
             );
-        } 
+        }
     }
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
