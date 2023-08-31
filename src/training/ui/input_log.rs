@@ -142,7 +142,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
             .as_picture();
 
         icon_pane.set_visible(true);
-        (&mut *icon_pane.material).set_black_res_color(icon_color);
+        (&mut *icon_pane.material).set_black_res_color(*icon_color);
         icon_pane.flags |= PaneFlag::IsGlobalMatrixDirty as u8;
     }
 
