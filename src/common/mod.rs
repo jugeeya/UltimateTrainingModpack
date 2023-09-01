@@ -1,4 +1,4 @@
-use smash::app::{self, lua_bind::*};
+use smash::app::{self, lua_bind::*, utility};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lua2cpp::L2CFighterCommon;
@@ -268,6 +268,88 @@ pub unsafe fn get_fighter_distance() -> f32 {
         cpu_pos.y,
         cpu_pos.z,
     )
+}
+
+// Example Call:
+
+// print_fighter_info(
+//     module_accessor,
+//     "DebugTest",
+//     true,
+//     false,
+//     true,
+//     true,
+//     vec![
+//         ("FIGHTER_INSTANCE_WORK_ID_INT_CLIFF_COUNT", FIGHTER_INSTANCE_WORK_ID_INT_CLIFF_COUNT),
+//     ],
+//     Vec::new(),
+//     vec![
+//         ("FIGHTER_STATUS_CLIFF_FLAG_TO_FALL", FIGHTER_STATUS_CLIFF_FLAG_TO_FALL),
+//     ],
+// );
+#[allow(dead_code)] // We won't be using this function in builds, but we don't want to be warned about it
+#[allow(clippy::too_many_arguments)] // This function has so many arguments so it's easy to quickly fill them in when debugging with the analyzer
+pub fn print_fighter_info(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    title: &str,
+    player_only: bool,
+    cpu_only: bool,
+    print_fighter_kind: bool,
+    print_status: bool,
+    work_int_pairs: Vec<(&str, i32)>,
+    work_float_pairs: Vec<(&str, i32)>,
+    work_flag_pairs: Vec<(&str, i32)>,
+) {
+    unsafe {
+        // Don't print for fighters we don't want to
+        let is_cpu = is_operation_cpu(module_accessor);
+        if (player_only && is_cpu) || (cpu_only && !is_cpu) {
+            return;
+        }
+        // Print Title
+        print!("{}: ", title);
+        // Print Fighter Kind:
+        if print_fighter_kind {
+            print!("FIGHTER_KIND: {}, ", utility::get_kind(module_accessor));
+        }
+        // Print Status:
+        if print_status {
+            print!(
+                "FIGHTER_STATUS: {}, ",
+                StatusModule::status_kind(module_accessor)
+            );
+        }
+
+        // Print Work Ints:
+        for work_int_pair in work_int_pairs {
+            print!(
+                "{}: {}, ",
+                work_int_pair.0,
+                WorkModule::get_int(module_accessor, work_int_pair.1)
+            );
+        }
+
+        // Print Work Floats:
+        for work_float_pair in work_float_pairs {
+            print!(
+                "{}: {}, ",
+                work_float_pair.0,
+                WorkModule::get_float(module_accessor, work_float_pair.1)
+            );
+        }
+
+        // Print Work Flags:
+        for work_flag_pair in work_flag_pairs {
+            print!(
+                "{}: {}, ",
+                work_flag_pair.0,
+                WorkModule::is_flag(module_accessor, work_flag_pair.1)
+            );
+        }
+
+        // End Line
+        println!("|");
+    }
 }
 
 // From https://github.com/chrispo-git/ult-s/blob/cc1c3060ed83f6d33f39964e84f9c32c07a17bae/src/controls/util.rs#L106

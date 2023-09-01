@@ -20,7 +20,7 @@ pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub unsafe fn menu_condition() -> bool {
-    button_config::combo_passes_exclusive(button_config::ButtonCombo::OpenMenu)
+    button_config::combo_passes(button_config::ButtonCombo::OpenMenu)
 }
 
 pub fn load_from_file() {
@@ -200,17 +200,6 @@ pub fn handle_final_input_mapping(
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
-                });
-                (button_mapping(ButtonConfig::PLUS, style, button_presses)
-                    || button_mapping(ButtonConfig::MINUS, style, button_presses))
-                .then(|| {
-                    received_input = true;
-                    // Leave menu.
-                    frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
-                    QUICK_MENU_ACTIVE = false;
-                    let menu_json = app.get_menu_selections();
-                    set_menu_from_json(&menu_json);
-                    EVENT_QUEUE.push(Event::menu_open(menu_json));
                 });
                 button_mapping(ButtonConfig::X, style, button_presses).then(|| {
                     app.save_defaults();

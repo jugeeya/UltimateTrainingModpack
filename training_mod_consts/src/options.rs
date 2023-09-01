@@ -440,6 +440,13 @@ impl OnOff {
             _ => None,
         }
     }
+
+    pub fn as_bool(self) -> bool {
+        match self {
+            OnOff::Off => false,
+            OnOff::On => true,
+        }
+    }
 }
 
 impl fmt::Display for OnOff {
