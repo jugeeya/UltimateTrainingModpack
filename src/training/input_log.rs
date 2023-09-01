@@ -12,16 +12,16 @@ use training_mod_consts::{FighterId, InputDisplay, MENU};
 use super::{frame_counter, input_record::STICK_CLAMP_MULTIPLIER};
 
 const GREEN: ResColor = ResColor {
-    r: 0,
-    g: 255,
+    r: 22,
+    g: 156,
     b: 0,
     a: 0,
 };
 
 const RED: ResColor = ResColor {
-    r: 255,
-    g: 0,
-    b: 0,
+    r: 153,
+    g: 10,
+    b: 10,
     a: 0,
 };
 
@@ -34,22 +34,22 @@ const CYAN: ResColor = ResColor {
 
 const BLUE: ResColor = ResColor {
     r: 0,
-    g: 255,
-    b: 0,
+    g: 40,
+    b: 108,
     a: 0,
 };
 
 const PURPLE: ResColor = ResColor {
-    r: 255,
-    g: 0,
-    b: 255,
+    r: 100,
+    g: 66,
+    b: 202,
     a: 0,
 };
 
 pub const YELLOW: ResColor = ResColor {
-    r: 255,
-    g: 255,
-    b: 0,
+    r: 230,
+    g: 180,
+    b: 14,
     a: 0,
 };
 
