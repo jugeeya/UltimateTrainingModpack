@@ -114,8 +114,8 @@ pub unsafe fn check_effect_pokemon_state(
     .contains(&hash)
         || hash.hash == 0x10e3fac8d9;
 
-    // TODO: check to make sure this is only during save state
-    if is_ptrainer_switch_hash && save_states::is_loading() {
+    // We never want the flying plate, and otherwise we allow outside of savestates
+    if (is_ptrainer_switch_hash && save_states::is_loading()) || Hash40::new("sys_flying_plate") == hash {
         // Making the size 0 prevents these effects from being displayed. Fixes Pokemon Trainer Angel Platform Effect.
         return 0.0;
     }
