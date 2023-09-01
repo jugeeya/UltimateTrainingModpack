@@ -324,7 +324,7 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
     } 
 }
 
-unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectModuleAccessor) {
     SoundModule::stop_all_sound(module_accessor);
     // All articles have ID <= 0x25
     (0..=0x25)
@@ -436,7 +436,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == KillPlayer && !fighter_is_nana {
         on_ptrainer_death(module_accessor);
         if !is_dead(module_accessor) {
-            on_death(fighter_kind, module_accessor);
             StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
         }
 
