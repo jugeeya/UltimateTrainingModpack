@@ -29,6 +29,7 @@ pub trait SliderTrait {
 }
 
 // bitflag helper function macro
+#[macro_export]
 macro_rules! extra_bitflag_impls {
     ($e:ty) => {
         impl $e {
@@ -1707,5 +1708,39 @@ impl ToggleTrait for UpdatePolicy {
 
     fn to_toggle_strings() -> Vec<String> {
         UpdatePolicy::iter().map(|i| i.to_string()).collect()
+    }
+}
+
+#[repr(u32)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
+)]
+pub enum InputDisplay {
+    None,
+    Smash,
+    Raw,
+}
+
+impl fmt::Display for InputDisplay {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                InputDisplay::None => "None",
+                InputDisplay::Smash => "Smash Inputs",
+                InputDisplay::Raw => "Raw Inputs",
+            }
+        )
+    }
+}
+
+impl ToggleTrait for InputDisplay {
+    fn to_toggle_vals() -> Vec<u32> {
+        InputDisplay::iter().map(|i| i as u32).collect()
+    }
+
+    fn to_toggle_strings() -> Vec<String> {
+        InputDisplay::iter().map(|i| i.to_string()).collect()
     }
 }

@@ -35,6 +35,7 @@ mod character_specific;
 mod fast_fall;
 mod full_hop;
 pub mod input_delay;
+mod input_log;
 mod input_record;
 mod mash;
 mod reset;
@@ -763,6 +764,9 @@ unsafe fn handle_final_input_mapping(
     // Potentially apply input delay
     // MUTATES controller state to delay inputs
     input_delay::handle_final_input_mapping(player_idx, out);
+
+    // Read potentially delayed state for loggers
+    input_log::handle_final_input_mapping(player_idx, controller_struct, out);
 
     // Potentially apply input recording, thus with delay
     // MUTATES controller state to apply recording or playback

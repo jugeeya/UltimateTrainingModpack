@@ -42,14 +42,25 @@ pub fn is_emulator() -> bool {
 }
 
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
+    try_get_module_accessor(fighter_id).unwrap()
+}
+
+pub fn try_get_module_accessor(
+    fighter_id: FighterId,
+) -> Option<*mut app::BattleObjectModuleAccessor> {
     let entry_id_int = fighter_id as i32;
     let entry_id = app::FighterEntryID(entry_id_int);
     unsafe {
         let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
         let fighter_entry =
             FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
+        if fighter_entry.is_null() {
+            return None;
+        }
         let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
-        app::sv_battle_object::module_accessor(current_fighter_id as u32)
+        Some(app::sv_battle_object::module_accessor(
+            current_fighter_id as u32,
+        ))
     }
 }
 
@@ -305,14 +316,15 @@ pub fn print_fighter_info(
         // Print Title
         print!("{}: ", title);
         // Print Fighter Kind:
+        let fighter_kind = utility::get_kind(module_accessor);
         if print_fighter_kind {
-            print!("FIGHTER_KIND: {}, ", utility::get_kind(module_accessor));
+            print!("FIGHTER_KIND: {:#?}, ", kind_to_char(fighter_kind));
         }
         // Print Status:
         if print_status {
             print!(
                 "FIGHTER_STATUS: {}, ",
-                StatusModule::status_kind(module_accessor)
+                status_display_name(fighter_kind, StatusModule::status_kind(module_accessor))
             );
         }
 
