@@ -14,7 +14,6 @@ pub unsafe fn is_switched(ptrainer_module_accessor: &mut app::BattleObjectModule
     let status_kind = StatusModule::status_kind(ptrainer_module_accessor);
     let situ_kind = StatusModule::situation_kind(ptrainer_module_accessor);
     let motion_rate =  MotionModule::rate(ptrainer_module_accessor);
-    println!("Status: {:x}, Rate: {}", status_kind, motion_rate);
     if status_kind == *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN {
         MotionModule::set_rate(ptrainer_module_accessor, 1.0);
     }
@@ -26,13 +25,10 @@ pub unsafe fn is_switched(ptrainer_module_accessor: &mut app::BattleObjectModule
     //  to run FUN_71000106c0 in lua2cpp_ptrainer to get her wandering correct
     // Also worth trying is figuring out how to prevent PT from entering WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN_STOP
     //  instead of run below after that status change
-
-    println!("situation_kind: {:x}", situ_kind);
     if situ_kind == SITUATION_KIND_AIR {
         StatusModule::set_situation_kind(ptrainer_module_accessor, app::SituationKind(*SITUATION_KIND_GROUND), true);
         StatusModule::change_status_force(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN,false);
     }
-    println!("New situation_kind: {:x}, status: {:x}", StatusModule::situation_kind(ptrainer_module_accessor), StatusModule::status_kind(ptrainer_module_accessor));
     true
 }
 

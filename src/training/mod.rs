@@ -31,7 +31,6 @@ pub mod ui;
 mod air_dodge_direction;
 mod attack_angle;
 pub mod character_specific;
-mod debug;
 mod fast_fall;
 mod full_hop;
 pub mod input_delay;
@@ -40,6 +39,9 @@ mod mash;
 mod reset;
 pub mod save_states;
 mod shield_tilt;
+
+#[cfg(debug_assertions)]
+mod debug;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -925,5 +927,7 @@ pub fn training_mods() {
     ui::init();
     pikmin::init();
     ptrainer::init();
+
+    #[cfg(debug_assertions)]
     debug::init();
 }

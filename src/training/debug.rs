@@ -1,19 +1,12 @@
 #![allow(dead_code)] // For Debug
 #![allow(unused_imports)]
+#![cfg(debug_assertions)]
 use smash::app::{self, lua_bind::*, smashball::is_training_mode, utility};
 use smash::lib::lua_const::*;
 use crate::common::is_operation_cpu;
 
 #[skyline::from_offset(0x1655400)]
 fn is_visible_backshield(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool;
-
-static BS_OFFSET: usize = 0x1655400;
-#[skyline::hook(offset = BS_OFFSET)]
-pub unsafe fn killll(module_accessor: *mut app::BattleObjectModuleAccessor) {
-    println!("killllllll");
-    StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
-    original!()(module_accessor);
-}
 
 #[repr(C)]
 pub struct WorkModule2 {
@@ -117,7 +110,6 @@ pub fn init() {
         // handle_set_float,
         // handle_get_int,
         //handle_is_flag,
-        killll,
     );
 }
 
@@ -203,5 +195,3 @@ pub fn print_fighter_info(
         println!("|");
     }
 }
-
-// Copy Setup Args: SomeModuleAccessor, 1, 0x55 (Terry?), true, false - in training, swallowed terry
