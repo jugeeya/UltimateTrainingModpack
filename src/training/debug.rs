@@ -1,9 +1,9 @@
 #![allow(dead_code)] // For Debug
 #![allow(unused_imports)]
 #![cfg(debug_assertions)]
+use crate::common::is_operation_cpu;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode, utility};
 use smash::lib::lua_const::*;
-use crate::common::is_operation_cpu;
 
 #[skyline::from_offset(0x1655400)]
 fn is_visible_backshield(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool;
@@ -16,10 +16,7 @@ pub struct WorkModule2 {
 
 static ON_FLAG_OFFSET: usize = 0x4e4910;
 #[skyline::hook(offset = ON_FLAG_OFFSET)]
-pub unsafe fn handle_on_flag(
-    work_module: &mut WorkModule2,
-    address: i32,
-) {
+pub unsafe fn handle_on_flag(work_module: &mut WorkModule2, address: i32) {
     if address == *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_OUTFIELD_INVISIBLE
         && app::utility::get_kind((*work_module).owner) != *FIGHTER_KIND_SHEIK
     {
@@ -30,11 +27,7 @@ pub unsafe fn handle_on_flag(
 
 static SET_INT_OFFSET: usize = 0x4e4600;
 #[skyline::hook(offset = SET_INT_OFFSET)]
-pub unsafe fn handle_set_int(
-    work_module: &mut WorkModule2,
-    value: u32,
-    address: i32,
-) {
+pub unsafe fn handle_set_int(work_module: &mut WorkModule2, value: u32, address: i32) {
     if !is_training_mode() {
         original!()(work_module, value, address);
     }
@@ -48,11 +41,7 @@ pub unsafe fn handle_set_int(
 
 static SET_INT64_OFFSET: usize = 0x4e4680;
 #[skyline::hook(offset = SET_INT64_OFFSET)]
-pub unsafe fn handle_set_int_64(
-    work_module: &mut WorkModule2,
-    value: u64,
-    address: i32,
-) {
+pub unsafe fn handle_set_int_64(work_module: &mut WorkModule2, value: u64, address: i32) {
     if !is_training_mode() {
         original!()(work_module, value, address);
     }
@@ -61,11 +50,7 @@ pub unsafe fn handle_set_int_64(
 
 static SET_FLOAT_OFFSET: usize = 0x4e4420;
 #[skyline::hook(offset = SET_FLOAT_OFFSET)]
-pub unsafe fn handle_set_float(
-    work_module: &mut WorkModule2,
-    value: f32,
-    address: i32,
-) {
+pub unsafe fn handle_set_float(work_module: &mut WorkModule2, value: f32, address: i32) {
     if !is_training_mode() {
         original!()(work_module, value, address);
     }
@@ -74,10 +59,7 @@ pub unsafe fn handle_set_float(
 
 static IS_FLAG_OFFSET: usize = 0x4e48e0;
 #[skyline::hook(offset = IS_FLAG_OFFSET)]
-pub unsafe fn handle_is_flag(
-    work_module: &mut WorkModule2,
-    address: i32,
-) -> bool {
+pub unsafe fn handle_is_flag(work_module: &mut WorkModule2, address: i32) -> bool {
     if !is_training_mode() {
         original!()(work_module, address);
     }
@@ -92,10 +74,7 @@ pub unsafe fn handle_is_flag(
 
 static GET_INT_OFFSET: usize = 0x4e45e0;
 #[skyline::hook(offset = GET_INT_OFFSET)]
-pub unsafe fn handle_get_int(
-    work_module: &mut WorkModule2,
-    address: i32,
-) {
+pub unsafe fn handle_get_int(work_module: &mut WorkModule2, address: i32) {
     if !is_training_mode() {
         original!()(work_module, address);
     }
@@ -112,7 +91,6 @@ pub fn init() {
         //handle_is_flag,
     );
 }
-
 
 // Example Call:
 

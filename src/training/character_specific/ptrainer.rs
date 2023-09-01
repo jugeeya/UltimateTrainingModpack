@@ -1,11 +1,11 @@
-use smash::app::{self, lua_bind::*, smashball::is_training_mode};
-use smash::lib::lua_const::*;
-use crate::training::save_states;
-use skyline::hooks::InlineCtx;
-use smash::phx::Hash40;
-use smash::hash40;
 use crate::training::frame_counter;
+use crate::training::save_states;
 use once_cell::sync::Lazy;
+use skyline::hooks::InlineCtx;
+use smash::app::{self, lua_bind::*, smashball::is_training_mode};
+use smash::hash40;
+use smash::lib::lua_const::*;
+use smash::phx::Hash40;
 
 static SWITCH_DELAY_COUNTER: Lazy<usize> =
     Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
@@ -13,7 +13,7 @@ static SWITCH_DELAY_COUNTER: Lazy<usize> =
 pub unsafe fn is_switched(ptrainer_module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(ptrainer_module_accessor);
     let situ_kind = StatusModule::situation_kind(ptrainer_module_accessor);
-    let motion_rate =  MotionModule::rate(ptrainer_module_accessor);
+    let motion_rate = MotionModule::rate(ptrainer_module_accessor);
     if status_kind == *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN {
         MotionModule::set_rate(ptrainer_module_accessor, 1.0);
     }
@@ -21,13 +21,21 @@ pub unsafe fn is_switched(ptrainer_module_accessor: &mut app::BattleObjectModule
         // Need to wait to make sure we stop the flash effect
         return false;
     }
-    // If you're trying to fix PT getting locked up, maybe try 
+    // If you're trying to fix PT getting locked up, maybe try
     //  to run FUN_71000106c0 in lua2cpp_ptrainer to get her wandering correct
     // Also worth trying is figuring out how to prevent PT from entering WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN_STOP
     //  instead of run below after that status change
     if situ_kind == SITUATION_KIND_AIR {
-        StatusModule::set_situation_kind(ptrainer_module_accessor, app::SituationKind(*SITUATION_KIND_GROUND), true);
-        StatusModule::change_status_force(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN,false);
+        StatusModule::set_situation_kind(
+            ptrainer_module_accessor,
+            app::SituationKind(*SITUATION_KIND_GROUND),
+            true,
+        );
+        StatusModule::change_status_force(
+            ptrainer_module_accessor,
+            *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN,
+            false,
+        );
     }
     true
 }
@@ -56,7 +64,9 @@ pub unsafe fn get_ptrainer_mball_module_accessor(
             *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
         );
         let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball);
-        return Some(&mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32));
+        return Some(&mut *app::sv_battle_object::module_accessor(
+            ptrainer_masterball_id as u32,
+        ));
     }
     None
 }
@@ -72,8 +82,10 @@ pub unsafe fn get_ptrainer_module_accessor(
 pub unsafe fn get_pokemon_module_accessor(
     ptrainer_module_accessor: *mut app::BattleObjectModuleAccessor,
 ) -> *mut app::BattleObjectModuleAccessor {
-    let pokemon_object_id =
-        LinkModule::get_node_object_id(ptrainer_module_accessor, *WEAPON_PTRAINER_PTRAINER_LINK_NO_POKEMON);
+    let pokemon_object_id = LinkModule::get_node_object_id(
+        ptrainer_module_accessor,
+        *WEAPON_PTRAINER_PTRAINER_LINK_NO_POKEMON,
+    );
     &mut *app::sv_battle_object::module_accessor(pokemon_object_id as u32)
 }
 
@@ -83,20 +95,25 @@ pub unsafe fn check_effect_pokemon_state(
     size: f32,
 ) -> f32 {
     let kind = app::utility::get_kind(module_accessor);
-    if ![*FIGHTER_KIND_PZENIGAME,
+    if ![
+        *FIGHTER_KIND_PZENIGAME,
         *FIGHTER_KIND_PFUSHIGISOU,
         *FIGHTER_KIND_PLIZARDON,
         *WEAPON_KIND_PTRAINER_PTRAINER,
         *WEAPON_KIND_PTRAINER_MBALL,
         -1,
-    ].contains(&kind) {
+    ]
+    .contains(&kind)
+    {
         return size;
     }
-      
+
     let is_ptrainer_switch_hash = [
-        Hash40::new("sys_flying_plate"), // for Req
+        Hash40::new("sys_flying_plate"),      // for Req
         Hash40::new("ptrainer_change_light"), // for ReqOnJoint
-    ].contains(&hash) || hash.hash == 0x10e3fac8d9;
+    ]
+    .contains(&hash)
+        || hash.hash == 0x10e3fac8d9;
 
     // TODO: check to make sure this is only during save state
     if is_ptrainer_switch_hash && save_states::is_loading() {
@@ -106,14 +123,13 @@ pub unsafe fn check_effect_pokemon_state(
     size
 }
 
-pub unsafe fn sound_effect_pokemon_state(
-    hash: Hash40,
-) -> Hash40 {
+pub unsafe fn sound_effect_pokemon_state(hash: Hash40) -> Hash40 {
     let is_ptrainer_switch_sound_hash = [
         Hash40::new("se_ptrainer_change_appear"),
         Hash40::new("se_ptrainer_ball_open"),
         Hash40::new("se_ptrainer_ball_swing"),
-    ].contains(&hash);
+    ]
+    .contains(&hash);
     if is_ptrainer_switch_sound_hash && save_states::is_loading() {
         return Hash40::new("se_silent");
     }
@@ -141,4 +157,3 @@ unsafe fn pokemon_decide_handle(ctx: &mut InlineCtx) {
 pub fn init() {
     skyline::install_hooks!(pokemon_decide_handle,);
 }
-

@@ -510,7 +510,7 @@ pub unsafe fn handle_fighter_play_se(
         let module_accessor = (*sound_module).owner;
         if StatusModule::status_kind(module_accessor) != FIGHTER_KIRBY_STATUS_KIND_SPECIAL_N_DRINK {
             my_hash = Hash40::new("se_silent");
-        } 
+        }
     }
     my_hash = ptrainer::sound_effect_pokemon_state(my_hash);
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)

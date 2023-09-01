@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use log::info;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use smash::app::{self, lua_bind::*, Item, ArticleOperationTarget};
+use smash::app::{self, lua_bind::*, ArticleOperationTarget, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use training_mod_consts::{CharacterItem, SaveDamage};
 use std::ptr;
+use training_mod_consts::{CharacterItem, SaveDamage};
 
 use SaveState::*;
 
@@ -22,13 +22,13 @@ use crate::common::consts::PlaybackSlot;
 use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
-use crate::common::get_module_accessor;
 use crate::common::consts::SAVE_STATES_TOML_PATH;
+use crate::common::get_module_accessor;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
 use crate::training::buff;
-use crate::training::character_specific::{steve, ptrainer};
+use crate::training::character_specific::{ptrainer, steve};
 use crate::training::charge::{self, ChargeState};
 use crate::training::input_record;
 use crate::training::items::apply_item;
@@ -177,7 +177,9 @@ unsafe fn save_state_cpu(slot: usize) -> &'static mut SavedState {
     &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[slot]
 }
 
-pub unsafe fn get_state_pokemon(ptrainer_module_accessor: *mut app::BattleObjectModuleAccessor) -> u32 {
+pub unsafe fn get_state_pokemon(
+    ptrainer_module_accessor: *mut app::BattleObjectModuleAccessor,
+) -> u32 {
     let selected_slot = get_slot();
     let fighter_kind;
     let pokemon_module_accessor = ptrainer::get_pokemon_module_accessor(ptrainer_module_accessor);
@@ -313,15 +315,17 @@ unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccesso
         *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
     );
     MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
-    if let Some(ptrainer_masterball_module_accessor) = ptrainer::get_ptrainer_mball_module_accessor(ptrainer_module_accessor) {
+    if let Some(ptrainer_masterball_module_accessor) =
+        ptrainer::get_ptrainer_mball_module_accessor(ptrainer_module_accessor)
+    {
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
         ArticleModule::set_visibility_whole(
             ptrainer::get_ptrainer_module_accessor(module_accessor),
             *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
             false,
-            ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL)
+            ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL),
         );
-    } 
+    }
 }
 
 pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectModuleAccessor) {

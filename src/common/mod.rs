@@ -145,14 +145,16 @@ pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor)
 pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-    let is_dead_status = [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind);
+    let is_dead_status =
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind);
     let mut ptrainer_switch_dead = false;
     // There's one frame during switching that we can't detect as alive early, where the Pokemon is in Wait with no previous status.
     // To prevent this matching the situation after a L + R + A reset, we check the status of the PTrainer to see if we're switching.
     if is_ptrainer(module_accessor) {
-        ptrainer_switch_dead = 
-            (status_kind == FIGHTER_STATUS_KIND_WAIT && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
-            && (StatusModule::status_kind(ptrainer::get_ptrainer_module_accessor(module_accessor)) == *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RESTART_CHANGE);
+        ptrainer_switch_dead = (status_kind == FIGHTER_STATUS_KIND_WAIT
+            && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
+            && (StatusModule::status_kind(ptrainer::get_ptrainer_module_accessor(module_accessor))
+                == *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RESTART_CHANGE);
     }
     is_dead_status || ptrainer_switch_dead
 }
