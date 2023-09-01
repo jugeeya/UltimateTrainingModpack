@@ -108,7 +108,9 @@ pub unsafe fn get_charge(
             module_accessor,
             *FIGHTER_KIRBY_INSTANCE_WORK_ID_INT_COPY_CHARA,
         );
-        charge_state.has_charge(hat_have).int_x(chara_kind)
+        let kirby_charge = charge_state.has_charge(hat_have).int_z(chara_kind);
+        // Get the charge of necessary abilities for kirby
+        get_kirby_hat_charge(module_accessor, chara_kind, kirby_charge)
     }
     // Sheik Needles
     else if fighter_kind == FIGHTER_KIND_SHEIK {
@@ -370,9 +372,10 @@ pub unsafe fn handle_charge(
                 };
             // Only try to set up Copy Ability when the current opponent matches the type of fighter from the save state
             let opponent_matches_fighter =
-                is_kirby_hat_okay(opponent_module_accessor, charge.int_x);
+                is_kirby_hat_okay(opponent_module_accessor, charge.int_z);
             if opponent_matches_fighter == Some(true) {
-                copy_setup(module_accessor, 1, charge.int_x.unwrap(), true, false);
+                copy_setup(module_accessor, 1, charge.int_z.unwrap(), true, false);
+                handle_kirby_hat_charge(module_accessor, charge.int_z.unwrap(), charge);
             }
         });
     }
@@ -962,14 +965,79 @@ unsafe fn is_kirby_hat_okay(
     Some(both_trainer || both_element)
 }
 
-pub unsafe fn _get_kirby_hat_charge(
-    _module_accessor: &mut app::BattleObjectModuleAccessor,
-    _opponent_fighter_kind: i32,
-) {
+pub unsafe fn get_kirby_hat_charge(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    opponent_fighter_kind: i32,
+    charge_state: ChargeState,
+) -> ChargeState {
+    // Samus/Dark Samus Charge Shot
+    if opponent_fighter_kind == FIGHTER_KIND_SAMUS || opponent_fighter_kind == FIGHTER_KIND_SAMUSD {
+        let shot_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT,
+        );
+        charge_state.int_x(shot_charge)
+    } 
+    // Not Applicable
+    else {
+        charge_state
+    }
 }
 
-pub unsafe fn _handle_kirby_hat_charge(
-    _module_accessor: &mut app::BattleObjectModuleAccessor,
-    _opponent_fighter_kind: i32,
+pub unsafe fn handle_kirby_hat_charge(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    opponent_fighter_kind: i32,
+    charge: ChargeState,
 ) {
+    if opponent_fighter_kind == FIGHTER_KIND_SAMUS || opponent_fighter_kind == FIGHTER_KIND_SAMUSD {
+        charge.int_x.map(|shot_charge| {
+            WorkModule::set_int(
+                module_accessor,
+                shot_charge,
+                *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT,
+            );
+            if shot_charge == 112 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let samus_cshot_hash = if opponent_fighter_kind == FIGHTER_KIND_SAMUS {
+                    Hash40::new("samus_cshot_max")
+                } else {
+                    Hash40::new("samusd_cshot_max")
+                };
+                let joint_hash = Hash40::new("handr");
+                let pos = Vector3f {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                let rot = Vector3f {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                };
+                let efh = EffectModule::req_follow(
+                        module_accessor,
+                        charge_hash,
+                        joint_hash,
+                        &pos,
+                        &rot,
+                        1.0,
+                        false,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        false,
+                        false,
+                );
+                WorkModule::set_int(
+                    module_accessor,
+                    efh as i32,
+                    *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX,
+                );
+            }
+        });
+    }
+
 }
+

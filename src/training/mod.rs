@@ -542,7 +542,7 @@ static FOLLOW_REQ_OFFSET: usize = 0x044f860;
 pub unsafe fn handle_effect_follow(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     eff_hash: Hash40,
-    eff_hash2: Hash40,
+    joint_hash: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
     size: f32,
@@ -559,7 +559,7 @@ pub unsafe fn handle_effect_follow(
         return original!()(
             module_accessor,
             eff_hash,
-            eff_hash2,
+            joint_hash,
             pos,
             rot,
             size,
@@ -578,7 +578,7 @@ pub unsafe fn handle_effect_follow(
         return original!()(
             module_accessor,
             eff_hash,
-            eff_hash2,
+            joint_hash,
             pos,
             rot,
             0.0,
@@ -592,10 +592,40 @@ pub unsafe fn handle_effect_follow(
             arg12,
         );
     }
+    // Debug: Print info so I can populate Kirby's effects
+    println!("let joint_hash = Hash40::new(\"{}\");", joint_hash.hash);
+    println!("let pos = Vector3f {{");
+    println!("	x: {:.},", (*pos).x);
+    println!("	y: {:.},", (*pos).y);
+    println!("	z: {:.},", (*pos).z);
+    println!("}};");
+    println!("let rot = Vector3f {{");
+    println!("	x: {:.},", (*rot).x);
+    println!("	y: {:.},", (*rot).y);
+    println!("	z: {:.},", (*rot).z);
+    println!("}};");
+    println!("let efh = EffectModule::req_follow(");
+    println!("	module_accessor,");
+    println!("	charge_hash,");
+    println!("	joint_hash,");
+    println!("	&pos,");
+    println!("	&rot,");
+    println!("	{:.},", size);
+    println!("	{},", arg5);
+    println!("	{},", arg6);
+    println!("	{},", arg7);
+    println!("	{},", arg8);
+    println!("	{},", arg9);
+    println!("	{},", arg10);
+    println!("	{},", arg11);
+    println!("	{},", arg12);
+    println!(");");
+    // End Debug
+
     original!()(
         module_accessor,
         eff_hash,
-        eff_hash2,
+        joint_hash,
         pos,
         rot,
         size,
