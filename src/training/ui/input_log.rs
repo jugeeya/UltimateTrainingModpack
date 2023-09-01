@@ -7,7 +7,7 @@ use training_mod_consts::{InputDisplay, MENU};
 use crate::{
     common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
     training::{
-        input_log::{DirectionStrength, InputLog, WHITE, P1_INPUT_LOGS, YELLOW},
+        input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS, WHITE, YELLOW},
         ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
     },
 };

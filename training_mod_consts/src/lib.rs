@@ -823,8 +823,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     misc_tab.add_submenu_with_toggles::<OnOff>(
         "Input Display Status".to_string(),
         "input_display_status".to_string(),
-        "Input Display Status: Group input logs by status in which they occurred"
-            .to_string(),
+        "Input Display Status: Group input logs by status in which they occurred".to_string(),
         true,
         &(menu.input_display_status as u32),
     );
