@@ -7,7 +7,6 @@ use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
-use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 use super::menu::QUICK_MENU_ACTIVE;
