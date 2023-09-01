@@ -18,7 +18,7 @@ static ON_FLAG_OFFSET: usize = 0x4e4910;
 #[skyline::hook(offset = ON_FLAG_OFFSET)]
 pub unsafe fn handle_on_flag(work_module: &mut WorkModule2, address: i32) {
     if address == *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_OUTFIELD_INVISIBLE
-        && app::utility::get_kind((*work_module).owner) != *FIGHTER_KIND_SHEIK
+        && app::utility::get_kind(work_module.owner) != *FIGHTER_KIND_SHEIK
     {
         is_visible_backshield(work_module.owner);
     }
@@ -32,7 +32,7 @@ pub unsafe fn handle_set_int(work_module: &mut WorkModule2, value: u32, address:
         original!()(work_module, value, address);
     }
     if address == *WEAPON_PTRAINER_MBALL_INSTANCE_WORK_ID_INT_PLATE_EFF_ID
-        && app::utility::get_kind((*work_module).owner) == *WEAPON_KIND_PTRAINER_MBALL
+        && app::utility::get_kind(work_module.owner) == *WEAPON_KIND_PTRAINER_MBALL
     {
         is_visible_backshield(work_module.owner);
     }
@@ -64,8 +64,8 @@ pub unsafe fn handle_is_flag(work_module: &mut WorkModule2, address: i32) -> boo
         original!()(work_module, address);
     }
     if address == *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON //*FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY_ON_START
-        && app::utility::get_kind((*work_module).owner) != *FIGHTER_KIND_SHEIK
-        && original!()(work_module, address) == true
+        && app::utility::get_kind(work_module.owner) != *FIGHTER_KIND_SHEIK
+        && original!()(work_module, address)
     {
         is_visible_backshield(work_module.owner);
     }

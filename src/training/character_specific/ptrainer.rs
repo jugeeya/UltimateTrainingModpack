@@ -13,7 +13,6 @@ static SWITCH_DELAY_COUNTER: Lazy<usize> =
 pub unsafe fn is_switched(ptrainer_module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(ptrainer_module_accessor);
     let situ_kind = StatusModule::situation_kind(ptrainer_module_accessor);
-    let motion_rate = MotionModule::rate(ptrainer_module_accessor);
     if status_kind == *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RUN {
         MotionModule::set_rate(ptrainer_module_accessor, 1.0);
     }

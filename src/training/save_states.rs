@@ -181,14 +181,13 @@ pub unsafe fn get_state_pokemon(
     ptrainer_module_accessor: *mut app::BattleObjectModuleAccessor,
 ) -> u32 {
     let selected_slot = get_slot();
-    let fighter_kind;
     let pokemon_module_accessor = ptrainer::get_pokemon_module_accessor(ptrainer_module_accessor);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-    if !ptr::eq(pokemon_module_accessor, cpu_module_accessor) {
-        fighter_kind = save_state_player(selected_slot).fighter_kind;
+    let fighter_kind = if !ptr::eq(pokemon_module_accessor, cpu_module_accessor) {
+        save_state_player(selected_slot).fighter_kind
     } else {
-        fighter_kind = save_state_cpu(selected_slot).fighter_kind;
-    }
+        save_state_cpu(selected_slot).fighter_kind
+    };
     (fighter_kind - *FIGHTER_KIND_PZENIGAME) as u32
 }
 
@@ -638,11 +637,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
 
     // If we switched last frame, artifacts and sound should be cleaned up, so transition into NoAction
-    if save_state.state == WaitForPokemonSwitch {
-        if ptrainer::is_switched(ptrainer::get_ptrainer_module_accessor(module_accessor)) {
-            save_state.state = NoAction;
-        }
+    if save_state.state == WaitForPokemonSwitch
+        && ptrainer::is_switched(ptrainer::get_ptrainer_module_accessor(module_accessor))
+    {
+        save_state.state = NoAction;
     }
+    
 
     // Save state
     if button_config::combo_passes_exclusive(button_config::ButtonCombo::SaveState) {
