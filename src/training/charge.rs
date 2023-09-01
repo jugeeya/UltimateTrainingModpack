@@ -38,6 +38,11 @@ impl ChargeState {
         self
     }
 
+    fn int_z(mut self, int_z: i32) -> Self {
+        self.int_z = Some(int_z);
+        self
+    }
+
     fn float_x(mut self, float_x: f32) -> Self {
         self.float_x = Some(float_x);
         self
@@ -978,6 +983,14 @@ pub unsafe fn get_kirby_hat_charge(
         );
         charge_state.int_x(shot_charge)
     } 
+    // Sheik Needles
+    else if opponent_fighter_kind == FIGHTER_KIND_SHEIK {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT,
+        );
+        charge_state.int_x(my_charge)
+    }
     // Not Applicable
     else {
         charge_state
@@ -989,6 +1002,7 @@ pub unsafe fn handle_kirby_hat_charge(
     opponent_fighter_kind: i32,
     charge: ChargeState,
 ) {
+    // Samus/Dark Samus Charge Shot - 0 to 112
     if opponent_fighter_kind == FIGHTER_KIND_SAMUS || opponent_fighter_kind == FIGHTER_KIND_SAMUSD {
         charge.int_x.map(|shot_charge| {
             WorkModule::set_int(
@@ -1016,7 +1030,7 @@ pub unsafe fn handle_kirby_hat_charge(
                 };
                 let efh = EffectModule::req_follow(
                         module_accessor,
-                        charge_hash,
+                        samus_cshot_hash,
                         joint_hash,
                         &pos,
                         &rot,
@@ -1038,6 +1052,18 @@ pub unsafe fn handle_kirby_hat_charge(
             }
         });
     }
-
+    // Sheik Needles - 0 to 6
+    else if opponent_fighter_kind == FIGHTER_KIND_SHEIK {
+        charge.int_x.map(|needle_charge| {
+            WorkModule::set_int(
+                module_accessor,
+                needle_charge,
+                *FIGHTER_SHEIK_INSTANCE_WORK_ID_INT_NEEDLE_COUNT,
+            );
+            if needle_charge == 6 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            }
+        });
+    }
 }
 
