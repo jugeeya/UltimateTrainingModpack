@@ -109,7 +109,6 @@ pub fn init() {
 //         ("FIGHTER_STATUS_CLIFF_FLAG_TO_FALL", FIGHTER_STATUS_CLIFF_FLAG_TO_FALL),
 //     ],
 // );
-#[allow(dead_code)] // We won't be using this function in builds, but we don't want to be warned about it
 #[allow(clippy::too_many_arguments)] // This function has so many arguments so it's easy to quickly fill them in when debugging with the analyzer
 pub fn print_fighter_info(
     module_accessor: &mut app::BattleObjectModuleAccessor,
