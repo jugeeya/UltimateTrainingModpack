@@ -599,7 +599,8 @@ pub unsafe fn handle_effect_follow(
     }
     if utility::get_kind(&mut *(effect_module.owner)) == *FIGHTER_KIND_KIRBY {
         // Debug: Print info so I can populate Kirby's effects
-        println!("let joint_hash = Hash40::new(\"{}\");", joint_hash.hash);
+        println!("let eff_hash = Hash40{{hash:0x{:x}}};", eff_hash.hash);
+        println!("let joint_hash = Hash40{{hash:0x{:x}}};", joint_hash.hash);
         println!("let pos = Vector3f {{");
         println!("	x: {:.},", (*pos).x);
         println!("	y: {:.},", (*pos).y);

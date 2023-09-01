@@ -991,7 +991,110 @@ pub unsafe fn get_kirby_hat_charge(
         );
         charge_state.int_x(my_charge)
     }
-    // Not Applicable
+    // Mewtwo Shadowball
+    else if opponent_fighter_kind == FIGHTER_KIND_MEWTWO {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME,
+        );
+        let prev_frame = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME,
+        );
+        let ball_had = WorkModule::is_flag(
+            module_accessor,
+            *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD,
+        );
+        charge_state
+            .int_x(my_charge)
+            .int_y(prev_frame)
+            .has_charge(ball_had)
+    }
+    // Squirtle Water Gun
+    else if opponent_fighter_kind == FIGHTER_KIND_PZENIGAME {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE,
+        );
+        charge_state.int_x(my_charge)
+    }
+    // Olimar Pikmin
+    else if opponent_fighter_kind == FIGHTER_KIND_PIKMIN {
+        let pre_pikmin_variation = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION,
+        );
+        let before_pre_pikmin_variation = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION,
+        );
+        charge_state.int_x(pre_pikmin_variation).int_y(before_pre_pikmin_variation)
+    }
+    // Lucario Aura Sphere
+    else if opponent_fighter_kind == FIGHTER_KIND_LUCARIO {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME,
+        );
+        let prev_frame = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_PREV_AURABALL_CHARGE_FRAME,
+        );
+        let ball_had = WorkModule::is_flag(
+            module_accessor,
+            *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD,
+        );
+        charge_state
+            .int_x(my_charge)
+            .int_y(prev_frame)
+            .has_charge(ball_had)
+    }
+    // ROB Gyro/Laser/Fuel
+    else if opponent_fighter_kind == FIGHTER_KIND_ROBOT {
+        let laser_charge = WorkModule::get_float(
+            module_accessor,
+            *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE,
+        );
+        charge_state
+            .float_x(laser_charge)
+    }
+    // Wii Fit Sun Salutation
+    else if opponent_fighter_kind == FIGHTER_KIND_WIIFIT {
+        let my_charge = WorkModule::get_float(
+            module_accessor,
+            *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO,
+        );
+        charge_state.float_x(my_charge)
+    }
+    // Pac-Man Bonus Fruit
+    else if opponent_fighter_kind == FIGHTER_KIND_PACMAN {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK,
+        );
+        let fruit_have = WorkModule::is_flag(
+            module_accessor,
+            *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_PULL_THROW,
+        );
+        charge_state.int_x(my_charge).has_charge(fruit_have)
+    }
+    // Robin Thunder Tome Spells
+    else if opponent_fighter_kind == FIGHTER_KIND_REFLET {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND,
+        );
+        charge_state.int_x(my_charge)
+    }
+    // Hero (Ka)frizz(le)
+    else if opponent_fighter_kind == FIGHTER_KIND_BRAVE {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME,
+        );
+        charge_state.int_x(my_charge)
+    }
+    // No charge for this character's copy ability
     else {
         charge_state
     }
@@ -1063,6 +1166,217 @@ pub unsafe fn handle_kirby_hat_charge(
             if needle_charge == 6 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
+        });
+    }
+    // Mewtwo Shadowball - 0 to 120, Boolean (not working)
+    else if opponent_fighter_kind == FIGHTER_KIND_MEWTWO {
+        charge.int_x.map(|charge_frame| {
+            WorkModule::set_int(
+                module_accessor,
+                charge_frame,
+                *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME,
+            );
+        });
+        charge.int_y.map(|prev_frame| {
+            /*WorkModule::set_int(
+                module_accessor,
+                prev_frame,
+                *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_PREV_SHADOWBALL_CHARGE_FRAME,
+            );*/
+            if prev_frame == 120 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let pos = Vector3f {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                };
+                let rot = Vector3f {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                };
+                let eff_hash = Hash40{hash:0x1ac6d446d8};
+                let joint_hash_l = Hash40{hash:0x5e008fd84};
+                let efh_l = EffectModule::req_follow(
+                        module_accessor,
+                        eff_hash,
+                        joint_hash_l,
+                        &pos,
+                        &rot,
+                        1.0,
+                        false,
+                        0,
+                        0,
+                        -1,
+                        0,
+                        0,
+                        false,
+                        false,
+                );
+                let joint_hash_r = Hash40{hash:0x51a07c0e7};
+                let efh_r = EffectModule::req_follow(
+                        module_accessor,
+                        eff_hash,
+                        joint_hash_r,
+                        &pos,
+                        &rot,
+                        1.0,
+                        false,
+                        0,
+                        0,
+                        -1,
+                        0,
+                        0,
+                        false,
+                        false,
+                );
+                WorkModule::set_int(
+                    module_accessor,
+                    efh_l as i32,
+                    *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_L,
+                );
+                WorkModule::set_int(
+                    module_accessor,
+                    efh_r as i32,
+                    *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_R,
+                );
+            }
+        });
+    }
+    // Squirtle Water Gun - 0 to 45
+    else if opponent_fighter_kind == FIGHTER_KIND_PZENIGAME {
+        charge.int_x.map(|water_charge| {
+            WorkModule::set_int(
+                module_accessor,
+                water_charge,
+                *FIGHTER_PZENIGAME_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE,
+            );
+            if water_charge == 45 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+            }
+        });
+    }
+    // Olimar Pikmin - 0 to 4 (not working)
+    else if opponent_fighter_kind == FIGHTER_KIND_PIKMIN {
+        charge.int_x.map(|pre| {
+            WorkModule::set_int(
+                module_accessor,
+                pre,
+                *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION,
+            );
+        });
+        charge.int_y.map(|before_pre| {
+            WorkModule::set_int(
+                module_accessor,
+                before_pre,
+                *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION,
+            );
+        });
+    }
+    // ROB Laster (Not Working)
+    else if opponent_fighter_kind == FIGHTER_KIND_ROBOT {
+        charge.float_x.map(|beam_energy| {
+            WorkModule::set_float(
+                module_accessor,
+                beam_energy,
+                *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE,
+            );
+        });
+    }
+    // Wii Fit Sun Salutation - 0 to 1 (Not Working) (Charge Effects show up, but sun is uncharged???)
+    else if opponent_fighter_kind == FIGHTER_KIND_WIIFIT {
+        charge.float_x.map(|sun_ratio| {
+            WorkModule::set_float(
+                module_accessor,
+                sun_ratio,
+                *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO,
+            )
+        });
+    }
+    // Pac-Man Bonus Fruit - 0 to 12 (We correctly apply common effect, but fruit charge doesn't save)
+    else if opponent_fighter_kind == FIGHTER_KIND_PACMAN {
+        let mut has_key = false;
+        charge.int_x.map(|charge_rank| {
+            WorkModule::set_int(
+                module_accessor,
+                charge_rank,
+                *FIGHTER_PACMAN_INSTANCE_WORK_ID_INT_SPECIAL_N_CHARGE_RANK,
+            );
+
+            if charge_rank == 12 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                has_key = true;
+            }
+        });
+        charge.has_charge.map(|has_fruit| {
+            WorkModule::set_flag(
+                module_accessor,
+                has_fruit,
+                *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_PULL_THROW,
+            );
+            if has_key {
+                WorkModule::set_flag(
+                    module_accessor,
+                    has_key,
+                    *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM,
+                );
+            }
+        });
+    }
+    // Robin Thunder Tome Spells - 0 to 3 (Not Working)
+    else if opponent_fighter_kind == FIGHTER_KIND_REFLET {
+        charge.int_x.map(|thunder_kind| {
+            WorkModule::set_int(
+                module_accessor,
+                thunder_kind,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND,
+            );
+            if thunder_kind == 3 {
+                EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
+                let eff_hash = Hash40{hash:0x12db3e4172};
+                let joint_hash = Hash40{hash:0x5eb263e0d};
+                let pos = Vector3f {
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                };
+                let rot = Vector3f {
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                };
+                let efh = EffectModule::req_follow(
+                        module_accessor,
+                        charge_hash,
+                        joint_hash,
+                        &pos,
+                        &rot,
+                        1,
+                        false,
+                        0,
+                        0,
+                        -1,
+                        0,
+                        0,
+                        false,
+                        false,
+                );
+            }
+        });
+    }
+    // Hero (Ka)frizz(le) - 0 to 81
+    else if opponent_fighter_kind == FIGHTER_KIND_BRAVE {
+        EffectModule::remove_common(module_accessor, Hash40::new("charge_max"));
+        WorkModule::off_flag(
+            module_accessor,
+            *FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT,
+        );
+        charge.int_x.map(|frizz_charge| {
+            WorkModule::set_int(
+                module_accessor,
+                frizz_charge,
+                *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME,
+            );
         });
     }
 }
