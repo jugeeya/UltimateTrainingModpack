@@ -522,7 +522,7 @@ pub unsafe fn handle_fighter_play_se(
             my_hash = Hash40::new("se_silent");
         }
     }
-    my_hash = ptrainer::sound_effect_pokemon_state(my_hash);
+    my_hash = ptrainer::handle_pokemon_sound_effect(my_hash);
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
@@ -615,7 +615,7 @@ pub unsafe fn handle_fighter_effect(
             arg9,
         );
     }
-    size = ptrainer::check_effect_pokemon_state(&mut *(*effect_module).owner, eff_hash, size);
+    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
     original!()(
         effect_module,
         eff_hash,
@@ -661,7 +661,7 @@ pub unsafe fn handle_fighter_joint_effect(
             arg9,
         );
     }
-    size = ptrainer::check_effect_pokemon_state(&mut *(*effect_module).owner, eff_hash, size);
+    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
     original!()(
         effect_module,
         eff_hash,
@@ -837,15 +837,6 @@ unsafe fn handle_final_input_mapping(
     input_record::handle_final_input_mapping(player_idx, out);
 }
 
-static BOMA_OFFSET: usize = 0x15cf1b0;
-
-#[skyline::hook(offset = BOMA_OFFSET)]
-pub unsafe fn handle_get_module_accessor(
-    battle_object_id: u32,
-) -> *mut app::BattleObjectModuleAccessor {
-    original!()(battle_object_id)
-}
-
 pub fn training_mods() {
     info!("Applying training mods.");
 
@@ -927,7 +918,6 @@ pub fn training_mods() {
         handle_final_input_mapping,
         // Charge
         handle_article_get_int,
-        handle_get_module_accessor,
         handle_fighter_effect,
         handle_fighter_joint_effect,
     );

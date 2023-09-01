@@ -88,7 +88,7 @@ pub unsafe fn get_pokemon_module_accessor(
     &mut *app::sv_battle_object::module_accessor(pokemon_object_id as u32)
 }
 
-pub unsafe fn check_effect_pokemon_state(
+pub unsafe fn handle_pokemon_effect(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     hash: Hash40,
     size: f32,
@@ -124,7 +124,7 @@ pub unsafe fn check_effect_pokemon_state(
     size
 }
 
-pub unsafe fn sound_effect_pokemon_state(hash: Hash40) -> Hash40 {
+pub unsafe fn handle_pokemon_sound_effect(hash: Hash40) -> Hash40 {
     let is_ptrainer_switch_sound_hash = [
         Hash40::new("se_ptrainer_change_appear"),
         Hash40::new("se_ptrainer_ball_open"),
@@ -141,7 +141,7 @@ pub unsafe fn sound_effect_pokemon_state(hash: Hash40) -> Hash40 {
 static POKEMON_DECIDE_OFFSET: usize = 0x34cdc64;
 
 #[skyline::hook(offset = POKEMON_DECIDE_OFFSET, inline)]
-unsafe fn pokemon_decide_handle(ctx: &mut InlineCtx) {
+unsafe fn handle_pokemon_decide(ctx: &mut InlineCtx) {
     if !is_training_mode() || !save_states::is_loading() {
         return;
     }
@@ -156,5 +156,5 @@ unsafe fn pokemon_decide_handle(ctx: &mut InlineCtx) {
 }
 
 pub fn init() {
-    skyline::install_hooks!(pokemon_decide_handle,);
+    skyline::install_hooks!(handle_pokemon_decide,);
 }
