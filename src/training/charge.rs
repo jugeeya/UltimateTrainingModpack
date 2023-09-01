@@ -362,11 +362,12 @@ pub unsafe fn handle_charge(
         charge.has_charge.map(|_has_copy_ability| {
             let cpu_module_accessor = &mut *get_module_accessor(FighterId::CPU);
             let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
-            let opponent_module_accessor: &mut app::BattleObjectModuleAccessor = if ptr::eq(module_accessor, player_module_accessor) {
-                cpu_module_accessor
-            } else {
-                player_module_accessor
-            };
+            let opponent_module_accessor: &mut app::BattleObjectModuleAccessor =
+                if ptr::eq(module_accessor, player_module_accessor) {
+                    cpu_module_accessor
+                } else {
+                    player_module_accessor
+                };
             // Only try to set up Copy Ability when the current opponent matches the type of fighter from the save state
             let opponent_matches_fighter =
                 is_kirby_hat_okay(opponent_module_accessor, charge.int_x);

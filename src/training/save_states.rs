@@ -642,7 +642,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     {
         save_state.state = NoAction;
     }
-    
 
     // Save state
     if button_config::combo_passes_exclusive(button_config::ButtonCombo::SaveState) {
