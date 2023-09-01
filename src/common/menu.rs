@@ -20,7 +20,7 @@ pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static mut QUICK_MENU_ACTIVE: bool = false;
 
 pub unsafe fn menu_condition() -> bool {
-    button_config::combo_passes_exclusive(button_config::ButtonCombo::OpenMenu)
+    button_config::combo_passes(button_config::ButtonCombo::OpenMenu)
 }
 
 pub fn load_from_file() {

@@ -84,7 +84,7 @@ lazy_static! {
     static ref START_HOLD_FRAMES: Mutex<u32> = Mutex::new(0);
 }
 
-fn combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
+fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
         let combo_keys = get_combo_keys(combo).to_vec();
         let mut this_combo_passes = false;
@@ -109,14 +109,7 @@ fn combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     }
 }
 
-pub fn _combo_passes_exclusive(p1_controller: Controller, combo: ButtonCombo) -> bool {
-    let other_combo_passes = ButtonCombo::iter()
-        .filter(|other_combo| *other_combo != combo)
-        .any(|other_combo| combo_passes(p1_controller, other_combo));
-    combo_passes(p1_controller, combo) && !other_combo_passes
-}
-
-pub fn combo_passes_exclusive(combo: ButtonCombo) -> bool {
+pub fn combo_passes(combo: ButtonCombo) -> bool {
     unsafe {
         let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.data_ptr();
         let passes = button_combo_requests.get_mut(&combo);
@@ -178,7 +171,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
             .iter_mut()
             .for_each(|(combo, is_request)| {
                 if !*is_request {
-                    *is_request = _combo_passes_exclusive(*p1_controller, *combo);
+                    *is_request = _combo_passes(*p1_controller, *combo);
                     if *combo == button_config::ButtonCombo::OpenMenu && start_menu_request {
                         *is_request = true;
                     }
