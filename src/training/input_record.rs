@@ -366,6 +366,7 @@ pub unsafe fn playback_ledge(slot: Option<usize>) {
 pub unsafe fn stop_playback() {
     INPUT_RECORD = None;
     INPUT_RECORD_FRAME = 0;
+    POSSESSION = Player;
 }
 
 pub unsafe fn is_input_neutral(input_frame: usize) -> bool {

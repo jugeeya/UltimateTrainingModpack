@@ -5,6 +5,7 @@ use smash::lua2cpp::L2CFighterCommon;
 
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
+use crate::training::character_specific::ptrainer;
 
 pub mod button_config;
 pub mod consts;
@@ -155,15 +156,18 @@ pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor)
 pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-    // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
-    // And the previous status is FIGHTER_STATUS_NONE
+    let is_dead_status =
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind);
+    let mut ptrainer_switch_dead = false;
+    // There's one frame during switching that we can't detect as alive early, where the Pokemon is in Wait with no previous status.
+    // To prevent this matching the situation after a L + R + A reset, we check the status of the PTrainer to see if we're switching.
     if is_ptrainer(module_accessor) {
-        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
-            || (status_kind == FIGHTER_STATUS_KIND_WAIT
-                && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
-    } else {
-        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
+        ptrainer_switch_dead = (status_kind == FIGHTER_STATUS_KIND_WAIT
+            && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
+            && (StatusModule::status_kind(ptrainer::get_ptrainer_module_accessor(module_accessor))
+                == *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RESTART_CHANGE);
     }
+    is_dead_status || ptrainer_switch_dead
 }
 
 pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {

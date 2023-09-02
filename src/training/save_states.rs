@@ -3,11 +3,12 @@ use std::collections::HashMap;
 use log::info;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use smash::app::{self, lua_bind::*, Item};
+use smash::app::{self, lua_bind::*, ArticleOperationTarget, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
+use std::ptr;
 use training_mod_consts::{CharacterItem, SaveDamage};
 
 use SaveState::*;
@@ -22,11 +23,12 @@ use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
+use crate::common::get_module_accessor;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
 use crate::training::buff;
-use crate::training::character_specific::steve;
+use crate::training::character_specific::{ptrainer, steve};
 use crate::training::charge::{self, ChargeState};
 use crate::training::input_record;
 use crate::training::items::apply_item;
@@ -69,6 +71,7 @@ pub enum SaveState {
     PosMove,
     NanaPosMove,
     ApplyBuff,
+    WaitForPokemonSwitch,
 }
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
@@ -172,6 +175,20 @@ unsafe fn save_state_player(slot: usize) -> &'static mut SavedState {
 
 unsafe fn save_state_cpu(slot: usize) -> &'static mut SavedState {
     &mut (*SAVE_STATE_SLOTS.data_ptr()).cpu[slot]
+}
+
+pub unsafe fn get_state_pokemon(
+    ptrainer_module_accessor: *mut app::BattleObjectModuleAccessor,
+) -> u32 {
+    let selected_slot = get_slot();
+    let pokemon_module_accessor = ptrainer::get_pokemon_module_accessor(ptrainer_module_accessor);
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let fighter_kind = if !ptr::eq(pokemon_module_accessor, cpu_module_accessor) {
+        save_state_player(selected_slot).fighter_kind
+    } else {
+        save_state_cpu(selected_slot).fighter_kind
+    };
+    (fighter_kind - *FIGHTER_KIND_PZENIGAME) as u32
 }
 
 // MIRROR_STATE == 1 -> Do not mirror
@@ -287,49 +304,31 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
     }
 }
 
-unsafe fn get_ptrainer_module_accessor(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> &mut app::BattleObjectModuleAccessor {
-    let ptrainer_object_id =
-        LinkModule::get_parent_object_id(module_accessor, *FIGHTER_POKEMON_LINK_NO_PTRAINER);
-    &mut *app::sv_battle_object::module_accessor(ptrainer_object_id as u32)
-}
-
 unsafe fn on_ptrainer_death(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_ptrainer(module_accessor) {
         return;
     }
+    let ptrainer_module_accessor = ptrainer::get_ptrainer_module_accessor(module_accessor);
     WorkModule::off_flag(
-        get_ptrainer_module_accessor(module_accessor),
+        ptrainer_module_accessor,
         *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
     );
-    let ptrainer_module_accessor = get_ptrainer_module_accessor(module_accessor);
     MotionModule::set_rate(ptrainer_module_accessor, 1000.0);
-    if ArticleModule::is_exist(
-        ptrainer_module_accessor,
-        *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
-    ) {
-        let ptrainer_masterball: *mut app::Article = ArticleModule::get_article(
-            ptrainer_module_accessor,
-            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
-        );
-        let ptrainer_masterball_id = Article::get_battle_object_id(ptrainer_masterball);
-        let ptrainer_masterball_module_accessor =
-            &mut *app::sv_battle_object::module_accessor(ptrainer_masterball_id as u32);
+    if let Some(ptrainer_masterball_module_accessor) =
+        ptrainer::get_ptrainer_mball_module_accessor(ptrainer_module_accessor)
+    {
         MotionModule::set_rate(ptrainer_masterball_module_accessor, 1000.0);
+        ArticleModule::set_visibility_whole(
+            ptrainer::get_ptrainer_module_accessor(module_accessor),
+            *WEAPON_PTRAINER_PTRAINER_GENERATE_ARTICLE_MBALL,
+            false,
+            ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL),
+        );
     }
 }
 
-unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjectModuleAccessor) {
     SoundModule::stop_all_sound(module_accessor);
-    // Try moving off-screen so we don't see effects.
-    let pos = Vector3f {
-        x: -300.0,
-        y: -100.0,
-        z: 0.0,
-    };
-    PostureModule::set_pos(module_accessor, &pos);
-
     // All articles have ID <= 0x25
     (0..=0x25)
         .filter(|article_idx| {
@@ -439,7 +438,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if save_state.state == KillPlayer && !fighter_is_nana {
         on_ptrainer_death(module_accessor);
         if !is_dead(module_accessor) {
-            on_death(fighter_kind, module_accessor);
             StatusModule::change_status_force(module_accessor, *FIGHTER_STATUS_KIND_DEAD, true);
         }
 
@@ -594,9 +592,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
             if fighter_is_ptrainer {
                 WorkModule::on_flag(
-                    get_ptrainer_module_accessor(module_accessor),
+                    ptrainer::get_ptrainer_module_accessor(module_accessor),
                     *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON,
                 );
+                save_state.state = WaitForPokemonSwitch;
             }
         }
 
@@ -634,6 +633,13 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             // set is_buffing back to false when done
             save_state.state = NoAction;
         }
+    }
+
+    // If we switched last frame, artifacts and sound should be cleaned up, so transition into NoAction
+    if save_state.state == WaitForPokemonSwitch
+        && ptrainer::is_switched(ptrainer::get_ptrainer_module_accessor(module_accessor))
+    {
+        save_state.state = NoAction;
     }
 
     // Save state

@@ -7,7 +7,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use crate::training::character_specific::{items, pikmin};
+use crate::training::character_specific::{items, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, enSEType, lua_bind::*, utility};
@@ -31,7 +31,7 @@ pub mod ui;
 
 mod air_dodge_direction;
 mod attack_angle;
-mod character_specific;
+pub mod character_specific;
 mod fast_fall;
 mod full_hop;
 pub mod input_delay;
@@ -41,6 +41,9 @@ mod mash;
 mod reset;
 pub mod save_states;
 mod shield_tilt;
+
+#[cfg(debug_assertions)]
+mod debug;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -279,7 +282,7 @@ pub unsafe fn handle_change_motion(
         motion_kind
     };
 
-    original!()(
+    let ori = original!()(
         module_accessor,
         mod_motion_kind,
         unk1,
@@ -288,7 +291,12 @@ pub unsafe fn handle_change_motion(
         unk4,
         unk5,
         unk6,
-    )
+    );
+    // After we've changed motion, speed up if necessary
+    if is_training_mode() {
+        ptrainer::change_motion(module_accessor, motion_kind);
+    }
+    ori
 }
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
@@ -494,7 +502,7 @@ static PLAY_SE_OFFSET: usize = 0x04cf6a0;
 #[skyline::hook(offset = PLAY_SE_OFFSET)]
 pub unsafe fn handle_fighter_play_se(
     sound_module: *mut FighterSoundModule, // pointer to fighter's SoundModule
-    my_hash: Hash40,
+    mut my_hash: Hash40,
     bool1: bool,
     bool2: bool,
     bool3: bool,
@@ -504,49 +512,30 @@ pub unsafe fn handle_fighter_play_se(
     if !is_training_mode() {
         return original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type);
     }
-
     // Supress Buff Sound Effects while buffing
     if buff::is_buffing_any() {
-        let silent_hash = Hash40::new("se_silent");
-        return original!()(
-            sound_module,
-            silent_hash,
-            bool1,
-            bool2,
-            bool3,
-            bool4,
-            se_type,
-        );
+        my_hash = Hash40::new("se_silent");
     }
-
     // Supress Kirby Copy Ability SFX when loading Save State
     if my_hash.hash == 0x1453dd86e4 || my_hash.hash == 0x14bdd3e7c8 {
         let module_accessor = (*sound_module).owner;
         if StatusModule::status_kind(module_accessor) != FIGHTER_KIRBY_STATUS_KIND_SPECIAL_N_DRINK {
-            let silent_hash = Hash40::new("se_silent");
-            return original!()(
-                sound_module,
-                silent_hash,
-                bool1,
-                bool2,
-                bool3,
-                bool4,
-                se_type,
-            );
+            my_hash = Hash40::new("se_silent");
         }
     }
+    my_hash = ptrainer::handle_pokemon_sound_effect(my_hash);
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
 static FOLLOW_REQ_OFFSET: usize = 0x044f860;
 #[skyline::hook(offset = FOLLOW_REQ_OFFSET)] // hooked to prevent score gfx from playing when loading save states
 pub unsafe fn handle_effect_follow(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    effect_module: *mut FighterEffectModule,
     eff_hash: Hash40,
     eff_hash2: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
-    size: f32,
+    mut size: f32,
     arg5: bool,
     arg6: u32,
     arg7: i32,
@@ -558,7 +547,7 @@ pub unsafe fn handle_effect_follow(
 ) -> u64 {
     if !is_training_mode() {
         return original!()(
-            module_accessor,
+            effect_module,
             eff_hash,
             eff_hash2,
             pos,
@@ -576,25 +565,10 @@ pub unsafe fn handle_effect_follow(
     }
     // Prevent the score GFX from playing on the CPU when loading save state during hitstop
     if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
-        return original!()(
-            module_accessor,
-            eff_hash,
-            eff_hash2,
-            pos,
-            rot,
-            0.0,
-            arg5,
-            arg6,
-            arg7,
-            arg8,
-            arg9,
-            arg10,
-            arg11,
-            arg12,
-        );
+        size = 0.0
     }
     original!()(
-        module_accessor,
+        effect_module,
         eff_hash,
         eff_hash2,
         pos,
@@ -608,6 +582,100 @@ pub unsafe fn handle_effect_follow(
         arg10,
         arg11,
         arg12,
+    )
+}
+
+pub struct FighterEffectModule {
+    _table: u64,
+    owner: *mut app::BattleObjectModuleAccessor,
+}
+
+static EFFECT_REQ_OFFSET: usize = 0x44de50;
+#[skyline::hook(offset = EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+pub unsafe fn handle_fighter_effect(
+    effect_module: *mut FighterEffectModule, // pointer to effect module
+    eff_hash: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    mut size: f32,
+    arg6: u32,
+    arg7: i32,
+    arg8: bool,
+    arg9: i32,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            effect_module,
+            eff_hash,
+            pos,
+            rot,
+            size,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+        );
+    }
+    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    original!()(
+        effect_module,
+        eff_hash,
+        pos,
+        rot,
+        size,
+        arg6,
+        arg7,
+        arg8,
+        arg9,
+    )
+}
+
+static JOINT_EFFECT_REQ_OFFSET: usize = 0x44e1e0;
+#[skyline::hook(offset = JOINT_EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+pub unsafe fn handle_fighter_joint_effect(
+    effect_module: *mut FighterEffectModule, // pointer to effect module
+    eff_hash: Hash40,
+    joint_hash: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    mut size: f32,
+    pos2: *const Vector3f, //unk, maybe displacement and not pos/rot
+    rot2: *const Vector3f, //unk, ^
+    arg5: bool,
+    arg6: u32,
+    arg7: i32,
+    arg9: i32,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            effect_module,
+            eff_hash,
+            joint_hash,
+            pos,
+            rot,
+            size,
+            pos2,
+            rot2,
+            arg5,
+            arg6,
+            arg7,
+            arg9,
+        );
+    }
+    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    original!()(
+        effect_module,
+        eff_hash,
+        joint_hash,
+        pos,
+        rot,
+        size,
+        pos2,
+        rot2,
+        arg5,
+        arg6,
+        arg7,
+        arg9,
     )
 }
 
@@ -773,15 +841,6 @@ unsafe fn handle_final_input_mapping(
     input_record::handle_final_input_mapping(player_idx, out);
 }
 
-static BOMA_OFFSET: usize = 0x15cf1b0;
-
-#[skyline::hook(offset = BOMA_OFFSET)]
-pub unsafe fn handle_get_module_accessor(
-    battle_object_id: u32,
-) -> *mut app::BattleObjectModuleAccessor {
-    original!()(battle_object_id)
-}
-
 pub fn training_mods() {
     info!("Applying training mods.");
 
@@ -863,11 +922,16 @@ pub fn training_mods() {
         handle_final_input_mapping,
         // Charge
         handle_article_get_int,
-        handle_get_module_accessor,
+        handle_fighter_effect,
+        handle_fighter_joint_effect,
     );
 
     items::init();
     input_record::init();
     ui::init();
     pikmin::init();
+    ptrainer::init();
+
+    #[cfg(debug_assertions)]
+    debug::init();
 }
