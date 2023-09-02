@@ -550,7 +550,7 @@ pub unsafe fn handle_effect_follow(
     joint_hash: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
-    size: f32,
+    mut size: f32,
     arg5: bool,
     arg6: u32,
     arg7: i32,
@@ -568,25 +568,6 @@ pub unsafe fn handle_effect_follow(
             pos,
             rot,
             size,
-            arg5,
-            arg6,
-            arg7,
-            arg8,
-            arg9,
-            arg10,
-            arg11,
-            arg12,
-        );
-    }
-    // Prevent the score GFX from playing on the CPU when loading save state during hitstop
-    if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
-        return original!()(
-            effect_module,
-            eff_hash,
-            joint_hash,
-            pos,
-            rot,
-            0.0,
             arg5,
             arg6,
             arg7,
@@ -629,7 +610,10 @@ pub unsafe fn handle_effect_follow(
         println!(");");
         // End Debug
     }
-
+    // Prevent the score GFX from playing on the CPU when loading save state during hitstop
+    if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
+        size = 0.0
+    }
     original!()(
         effect_module,
         eff_hash,
@@ -645,6 +629,100 @@ pub unsafe fn handle_effect_follow(
         arg10,
         arg11,
         arg12,
+    )
+}
+
+pub struct FighterEffectModule {
+    _table: u64,
+    owner: *mut app::BattleObjectModuleAccessor,
+}
+
+static EFFECT_REQ_OFFSET: usize = 0x44de50;
+#[skyline::hook(offset = EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+pub unsafe fn handle_fighter_effect(
+    effect_module: *mut FighterEffectModule, // pointer to effect module
+    eff_hash: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    mut size: f32,
+    arg6: u32,
+    arg7: i32,
+    arg8: bool,
+    arg9: i32,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            effect_module,
+            eff_hash,
+            pos,
+            rot,
+            size,
+            arg6,
+            arg7,
+            arg8,
+            arg9,
+        );
+    }
+    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    original!()(
+        effect_module,
+        eff_hash,
+        pos,
+        rot,
+        size,
+        arg6,
+        arg7,
+        arg8,
+        arg9,
+    )
+}
+
+static JOINT_EFFECT_REQ_OFFSET: usize = 0x44e1e0;
+#[skyline::hook(offset = JOINT_EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+pub unsafe fn handle_fighter_joint_effect(
+    effect_module: *mut FighterEffectModule, // pointer to effect module
+    eff_hash: Hash40,
+    joint_hash: Hash40,
+    pos: *const Vector3f,
+    rot: *const Vector3f,
+    mut size: f32,
+    pos2: *const Vector3f, //unk, maybe displacement and not pos/rot
+    rot2: *const Vector3f, //unk, ^
+    arg5: bool,
+    arg6: u32,
+    arg7: i32,
+    arg9: i32,
+) -> u64 {
+    if !is_training_mode() {
+        return original!()(
+            effect_module,
+            eff_hash,
+            joint_hash,
+            pos,
+            rot,
+            size,
+            pos2,
+            rot2,
+            arg5,
+            arg6,
+            arg7,
+            arg9,
+        );
+    }
+    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    original!()(
+        effect_module,
+        eff_hash,
+        joint_hash,
+        pos,
+        rot,
+        size,
+        pos2,
+        rot2,
+        arg5,
+        arg6,
+        arg7,
+        arg9,
     )
 }
 
@@ -898,6 +976,8 @@ pub fn training_mods() {
         // Charge
         handle_article_get_int,
         handle_get_module_accessor,
+        handle_fighter_effect,
+        handle_fighter_joint_effect,
     );
 
     items::init();
