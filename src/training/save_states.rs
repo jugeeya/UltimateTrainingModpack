@@ -214,7 +214,9 @@ pub unsafe fn end_copy_ability(
     } else {
         save_state_cpu(selected_slot)
     };
-    save_state.state = NoAction;
+    if save_state.state == WaitForCopyAbility {
+        save_state.state = NoAction;
+    }
 }
 
 // MIRROR_STATE == 1 -> Do not mirror

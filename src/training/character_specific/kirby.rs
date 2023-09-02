@@ -28,8 +28,9 @@ pub unsafe fn handle_copy_start(param1: u64, kirby_fighter: *mut app::Fighter) -
         let copy_module = WorkModule::get_int64(module_accessor, 0x10000106) as *const i64 as *const CopyModule; //*FIGHTER_KIRBY_INSTANCE_WORK_ID_INT_COPY_MODULE_ADDRESS
         let opponent_fighter_kind = (*copy_module).copied_fighter_kind;
         handle_kirby_hat_charge(&mut *module_accessor, opponent_fighter_kind, save_states::get_charge_state(module_accessor));
+        save_states::end_copy_ability(module_accessor);
     }
-    save_states::end_copy_ability(module_accessor);
+    // TODO: Handle ending the copy ability for loading states without a copy ability
     ori
 }
 
