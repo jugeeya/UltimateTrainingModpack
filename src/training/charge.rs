@@ -1,6 +1,6 @@
 use crate::common::consts::FighterId;
 use crate::common::get_module_accessor;
-use crate::training::character_specific::{pikmin, kirby};
+use crate::training::character_specific::{kirby, pikmin};
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
 use smash::lib::lua_const::*;

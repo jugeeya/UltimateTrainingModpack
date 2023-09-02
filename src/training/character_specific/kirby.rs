@@ -1,8 +1,8 @@
+use crate::training::charge::ChargeState;
+use crate::training::save_states;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use crate::training::save_states;
-use crate::training::charge::ChargeState;
 
 #[repr(C)]
 pub struct CopyModule {
@@ -21,13 +21,18 @@ pub unsafe fn handle_copy_start(param1: u64, kirby_fighter: *mut app::Fighter) -
     // Need to check copy start before the function runs, since it will turn it off if it was on
     let module_accessor = (*kirby_fighter).battle_object.module_accessor;
     let on_copy_start = WorkModule::is_flag(module_accessor, 0x20000104); // *FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY_ON_START
-    // Run optional initial copy setup (it depends on fighter kind)
+                                                                          // Run optional initial copy setup (it depends on fighter kind)
     let ori = original!()(param1, kirby_fighter);
     // Now try to set save state variables
     if on_copy_start {
-        let copy_module = WorkModule::get_int64(module_accessor, 0x10000106) as *const i64 as *const CopyModule; //*FIGHTER_KIRBY_INSTANCE_WORK_ID_INT_COPY_MODULE_ADDRESS
+        let copy_module =
+            WorkModule::get_int64(module_accessor, 0x10000106) as *const i64 as *const CopyModule; //*FIGHTER_KIRBY_INSTANCE_WORK_ID_INT_COPY_MODULE_ADDRESS
         let opponent_fighter_kind = (*copy_module).copied_fighter_kind;
-        handle_kirby_hat_charge(&mut *module_accessor, opponent_fighter_kind, save_states::get_charge_state(module_accessor));
+        handle_kirby_hat_charge(
+            &mut *module_accessor,
+            opponent_fighter_kind,
+            save_states::get_charge_state(module_accessor),
+        );
         save_states::end_copy_ability(module_accessor);
     }
     ori
@@ -79,7 +84,7 @@ pub unsafe fn get_kirby_hat_charge(
             *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_SPECIAL_N_COUNT,
         );
         charge_state.int_x(shot_charge)
-    } 
+    }
     // Sheik Needles
     else if opponent_fighter_kind == FIGHTER_KIND_SHEIK {
         let my_charge = WorkModule::get_int(
@@ -125,7 +130,9 @@ pub unsafe fn get_kirby_hat_charge(
             module_accessor,
             *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION,
         );
-        charge_state.int_x(pre_pikmin_variation).int_y(before_pre_pikmin_variation)
+        charge_state
+            .int_x(pre_pikmin_variation)
+            .int_y(before_pre_pikmin_variation)
     }
     // Lucario Aura Sphere
     else if opponent_fighter_kind == FIGHTER_KIND_LUCARIO {
@@ -152,8 +159,7 @@ pub unsafe fn get_kirby_hat_charge(
             module_accessor,
             *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE,
         );
-        charge_state
-            .float_x(laser_charge)
+        charge_state.float_x(laser_charge)
     }
     // Wii Fit Sun Salutation
     else if opponent_fighter_kind == FIGHTER_KIND_WIIFIT {
@@ -224,25 +230,25 @@ pub unsafe fn handle_kirby_hat_charge(
                     z: 0.0,
                 };
                 let rot = Vector3f {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
                 let efh = EffectModule::req_follow(
-                        module_accessor,
-                        samus_cshot_hash,
-                        joint_hash,
-                        &pos,
-                        &rot,
-                        1.0,
-                        false,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        false,
-                        false,
+                    module_accessor,
+                    samus_cshot_hash,
+                    joint_hash,
+                    &pos,
+                    &rot,
+                    1.0,
+                    false,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    false,
+                    false,
                 );
                 WorkModule::set_int(
                     module_accessor,
@@ -283,49 +289,49 @@ pub unsafe fn handle_kirby_hat_charge(
             if prev_frame == 120 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
                 let pos = Vector3f {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
                 let rot = Vector3f {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
-                let eff_hash = Hash40{hash:0x1ac6d446d8};
-                let joint_hash_l = Hash40{hash:0x5e008fd84};
+                let eff_hash = Hash40 { hash: 0x1ac6d446d8 };
+                let joint_hash_l = Hash40 { hash: 0x5e008fd84 };
                 let efh_l = EffectModule::req_follow(
-                        module_accessor,
-                        eff_hash,
-                        joint_hash_l,
-                        &pos,
-                        &rot,
-                        1.0,
-                        false,
-                        0,
-                        0,
-                        -1,
-                        0,
-                        0,
-                        false,
-                        false,
+                    module_accessor,
+                    eff_hash,
+                    joint_hash_l,
+                    &pos,
+                    &rot,
+                    1.0,
+                    false,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    false,
+                    false,
                 );
-                let joint_hash_r = Hash40{hash:0x51a07c0e7};
+                let joint_hash_r = Hash40 { hash: 0x51a07c0e7 };
                 let efh_r = EffectModule::req_follow(
-                        module_accessor,
-                        eff_hash,
-                        joint_hash_r,
-                        &pos,
-                        &rot,
-                        1.0,
-                        false,
-                        0,
-                        0,
-                        -1,
-                        0,
-                        0,
-                        false,
-                        false,
+                    module_accessor,
+                    eff_hash,
+                    joint_hash_r,
+                    &pos,
+                    &rot,
+                    1.0,
+                    false,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    false,
+                    false,
                 );
                 WorkModule::set_int(
                     module_accessor,
@@ -395,50 +401,50 @@ pub unsafe fn handle_kirby_hat_charge(
             if prev_frame == 90 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
                 let pos = Vector3f {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
                 let rot = Vector3f {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
-                let eff_hash_l = Hash40{hash:0x164bf96ca1};
-                let joint_hash_l = Hash40{hash:0x5e008fd84};
+                let eff_hash_l = Hash40 { hash: 0x164bf96ca1 };
+                let joint_hash_l = Hash40 { hash: 0x5e008fd84 };
                 let efh_l = EffectModule::req_follow(
-                        module_accessor,
-                        eff_hash_l,
-                        joint_hash_l,
-                        &pos,
-                        &rot,
-                        1.0,
-                        false,
-                        0,
-                        0,
-                        -1,
-                        0,
-                        0,
-                        false,
-                        false,
+                    module_accessor,
+                    eff_hash_l,
+                    joint_hash_l,
+                    &pos,
+                    &rot,
+                    1.0,
+                    false,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    false,
+                    false,
                 );
-                let eff_hash_r = Hash40{hash:0x16b1f651c2};
-                let joint_hash_r = Hash40{hash:0x51a07c0e7};
+                let eff_hash_r = Hash40 { hash: 0x16b1f651c2 };
+                let joint_hash_r = Hash40 { hash: 0x51a07c0e7 };
                 let efh_r = EffectModule::req_follow(
-                        module_accessor,
-                        eff_hash_r,
-                        joint_hash_r,
-                        &pos,
-                        &rot,
-                        1.0,
-                        false,
-                        0,
-                        0,
-                        -1,
-                        0,
-                        0,
-                        false,
-                        false,
+                    module_accessor,
+                    eff_hash_r,
+                    joint_hash_r,
+                    &pos,
+                    &rot,
+                    1.0,
+                    false,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    false,
+                    false,
                 );
                 WorkModule::set_int(
                     module_accessor,
@@ -520,33 +526,33 @@ pub unsafe fn handle_kirby_hat_charge(
             );
             if thunder_kind == 3 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
-                let eff_hash = Hash40{hash:0x12db3e4172};
-                let joint_hash = Hash40{hash:0x5eb263e0d};
+                let eff_hash = Hash40 { hash: 0x12db3e4172 };
+                let joint_hash = Hash40 { hash: 0x5eb263e0d };
                 let pos = Vector3f {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
                 let rot = Vector3f {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
                 EffectModule::req_follow(
-                        module_accessor,
-                        eff_hash,
-                        joint_hash,
-                        &pos,
-                        &rot,
-                        1.0,
-                        false,
-                        0,
-                        0,
-                        -1,
-                        0,
-                        0,
-                        false,
-                        false,
+                    module_accessor,
+                    eff_hash,
+                    joint_hash,
+                    &pos,
+                    &rot,
+                    1.0,
+                    false,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    false,
+                    false,
                 );
             }
         });

@@ -28,7 +28,7 @@ use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
 use crate::training::buff;
-use crate::training::character_specific::{kirby, ptrainer, steve};
+use crate::training::character_specific::{ptrainer, steve};
 use crate::training::charge::{self, ChargeState};
 use crate::training::input_record;
 use crate::training::items::apply_item;
@@ -72,7 +72,7 @@ pub enum SaveState {
     ApplyBuff,
     NanaPosMove,
     WaitForPokemonSwitch,
-    WaitForCopyAbility
+    WaitForCopyAbility,
 }
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
@@ -204,9 +204,7 @@ pub unsafe fn get_charge_state(
     }
 }
 
-pub unsafe fn end_copy_ability(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
-) {
+pub unsafe fn end_copy_ability(module_accessor: *mut app::BattleObjectModuleAccessor) {
     let selected_slot = get_slot();
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     let save_state = if !ptr::eq(module_accessor, cpu_module_accessor) {

@@ -42,7 +42,7 @@ mod reset;
 pub mod save_states;
 mod shield_tilt;
 
-//#[cfg(debug_assertions)]
+#[cfg(debug_assertions)]
 mod debug;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
@@ -568,38 +568,6 @@ pub unsafe fn handle_effect_follow(
             arg12,
         );
     }
-    if utility::get_kind(&mut *(effect_module.owner)) == *FIGHTER_KIND_KIRBY {
-        // Debug: Print info so I can populate Kirby's effects
-        println!("let eff_hash = Hash40{{hash:0x{:x}}};", eff_hash.hash);
-        println!("let joint_hash = Hash40{{hash:0x{:x}}};", joint_hash.hash);
-        println!("let pos = Vector3f {{");
-        println!("	x: {:.},", (*pos).x);
-        println!("	y: {:.},", (*pos).y);
-        println!("	z: {:.},", (*pos).z);
-        println!("}};");
-        println!("let rot = Vector3f {{");
-        println!("	x: {:.},", (*rot).x);
-        println!("	y: {:.},", (*rot).y);
-        println!("	z: {:.},", (*rot).z);
-        println!("}};");
-        println!("let efh = EffectModule::req_follow(");
-        println!("	module_accessor,");
-        println!("	charge_hash,");
-        println!("	joint_hash,");
-        println!("	&pos,");
-        println!("	&rot,");
-        println!("	{:.},", size);
-        println!("	{},", arg5);
-        println!("	{},", arg6);
-        println!("	{},", arg7);
-        println!("	{},", arg8);
-        println!("	{},", arg9);
-        println!("	{},", arg10);
-        println!("	{},", arg11);
-        println!("	{},", arg12);
-        println!(");");
-        // End Debug
-    }
     // Prevent the score GFX from playing on the CPU when loading save state during hitstop
     if eff_hash == Hash40::new("sys_score_aura") && save_states::is_loading() {
         size = 0.0
@@ -965,6 +933,6 @@ pub fn training_mods() {
     ptrainer::init();
     kirby::init();
 
-    //#[cfg(debug_assertions)]
+    #[cfg(debug_assertions)]
     debug::init();
 }
