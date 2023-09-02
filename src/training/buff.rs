@@ -90,6 +90,8 @@ pub unsafe fn handle_buffs(
         return buff_sepiroth(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_SHULK {
         return buff_shulk(module_accessor, status);
+    } else if fighter_kind == *FIGHTER_KIND_TANTAN && menu_vec.contains(&BuffOption::BREATHING) {
+        return buff_minmin(module_accessor);
     }
     true
 }
@@ -287,6 +289,22 @@ unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, sta
         );
     } else {
         MotionModule::set_rate(module_accessor, 40.0);
+    }
+    false
+}
+
+unsafe fn buff_minmin(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if !is_buffing(module_accessor) {
+        start_buff(module_accessor);
+        return false;
+    }
+    // Wait for Inline Hook to turn on power dragon
+    let has_power_dragon = WorkModule::is_flag(
+        module_accessor,
+        *FIGHTER_TANTAN_INSTANCE_WORK_ID_FLAG_DRAGONIZE_L
+    );
+    if has_power_dragon {
+        return true;
     }
     false
 }
