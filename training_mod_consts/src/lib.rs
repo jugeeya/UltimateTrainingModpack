@@ -142,7 +142,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     follow_up: Action::empty(),
     frame_advantage: OnOff::Off,
     full_hop: BoolFlag::TRUE,
-    hitbox_vis: OnOff::On,
+    hitbox_vis: OnOff::Off,
     input_display: InputDisplay::Smash,
     input_display_status: OnOff::Off,
     hud: OnOff::On,
