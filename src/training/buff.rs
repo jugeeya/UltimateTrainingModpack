@@ -1,5 +1,6 @@
 use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
+use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::is_operation_cpu;
@@ -294,17 +295,79 @@ unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, sta
 }
 
 unsafe fn buff_minmin(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    if !is_buffing(module_accessor) {
-        start_buff(module_accessor);
-        return false;
+    // Handle all of Min Min's effect setup, copied from 710122a340
+    VisibilityModule::set_status_default(
+        module_accessor, Hash40 { hash: 0x59a6ef56c },Hash40 { hash: 0x9b7cb3e40 }
+    );
+    VisibilityModule::set_status_default(
+        module_accessor, Hash40 { hash: 0xa9ffaf181 },Hash40 { hash: 0xef190b4e8 }
+    );
+    let article_spiralleft = ArticleModule::get_article(
+        module_accessor, *FIGHTER_TANTAN_GENERATE_ARTICLE_SPIRALLEFT
+    );
+    if article_spiralleft != 0x0 as *mut app::Article {
+        VisibilityModule::set_status_default(
+            module_accessor, Hash40 { hash: 0x6ec1f4d21 },Hash40 { hash: 0xa9aba8db6 }
+        );
+        VisibilityModule::set(
+            module_accessor, Hash40 { hash: 0x59a6ef56c },Hash40 { hash: 0xadd214353 }
+        );
     }
-    // Wait for Inline Hook to turn on power dragon
-    let has_power_dragon = WorkModule::is_flag(
+    let arm_l_big_frame = WorkModule::get_param_int(
+        module_accessor, 0xdf05c072b, 0xf4fd45d48
+    );
+    WorkModule::set_int(
+        module_accessor,
+        arm_l_big_frame,
+        *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_ARM_L_BIG_FRAME
+    );
+    WorkModule::on_flag(
         module_accessor,
         *FIGHTER_TANTAN_INSTANCE_WORK_ID_FLAG_DRAGONIZE_L
     );
-    if has_power_dragon {
-        return true;
+    let mut reinforce_l_effect_handle_l = WorkModule::get_int(
+        module_accessor, *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_REINFORCE_L_EFFECT_HANDLE_L
+    );
+    if reinforce_l_effect_handle_l != 0 {
+        EffectModule::kill(module_accessor, reinforce_l_effect_handle_l as u32, false, true);
     }
-    false
+    let pos_and_rot = Vector3f {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    let scale_vec = Vector3f {
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+    };
+    reinforce_l_effect_handle_l = EffectModule::req(
+        module_accessor,
+        Hash40 { hash: 0x12600df9d4 },
+        &pos_and_rot,
+        &pos_and_rot,
+        1.0,
+        0,
+        -1,
+        false,
+        0,
+    ) as i32;
+    EffectModule::set_scale(module_accessor, reinforce_l_effect_handle_l as u32, &scale_vec);
+    WorkModule::set_int(
+        module_accessor, reinforce_l_effect_handle_l, *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_REINFORCE_L_EFFECT_HANDLE_L
+    );
+    MotionModule::add_motion_partial(
+        module_accessor,
+        *FIGHTER_TANTAN_MOTION_PART_SET_KIND_DRAGON,
+        Hash40 { hash: 0xc86296416 },
+        0.0,
+        1.0,
+        false,
+        false,
+        0.0,
+        true,
+        true,
+        false,
+    );
+    true
 }
