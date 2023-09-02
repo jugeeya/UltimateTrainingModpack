@@ -54,6 +54,11 @@ pub unsafe fn handle_set_float(work_module: &mut WorkModule2, value: f32, addres
     if !is_training_mode() {
         original!()(work_module, value, address);
     }
+    if address == *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO //*FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY_ON_START
+        && app::utility::get_kind(work_module.owner) == FIGHTER_KIND_KIRBY
+    {
+        is_visible_backshield(work_module.owner);
+    }
     original!()(work_module, value, address);
 }
 
@@ -86,7 +91,7 @@ pub fn init() {
         //handle_on_flag,
         //handle_set_int,
         // handle_set_int_64,
-        // handle_set_float,
+        handle_set_float,
         // handle_get_int,
         //handle_is_flag,
     );
