@@ -28,7 +28,7 @@ use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
 use crate::training::buff;
-use crate::training::character_specific::{ptrainer, steve};
+use crate::training::character_specific::{kirby, ptrainer, steve};
 use crate::training::charge::{self, ChargeState};
 use crate::training::input_record;
 use crate::training::items::apply_item;
@@ -599,6 +599,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             // Set the charge of special moves if the fighter matches the kind in the save state
             if save_state.fighter_kind == fighter_kind {
                 charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
+                // If we ever want to buff kirby, we have to move this to after apply buff
                 if fighter_kind == FIGHTER_KIND_KIRBY {
                     save_state.state = WaitForCopyAbility;
                 }
@@ -671,6 +672,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && ptrainer::is_switched(ptrainer::get_ptrainer_module_accessor(module_accessor))
     {
         save_state.state = NoAction;
+    }
+
+    // Wait for Copy Ability to be applied if needed, exit otherwise
+    if save_state.state == WaitForCopyAbility {
+        let is_copy_start = WorkModule::is_flag(module_accessor, 0x20000104); // *FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY_ON_START
+        if !is_copy_start {
+            save_state.state = NoAction;
+        }
     }
 
     // Save state

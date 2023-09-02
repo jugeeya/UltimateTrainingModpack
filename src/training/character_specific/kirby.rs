@@ -30,7 +30,6 @@ pub unsafe fn handle_copy_start(param1: u64, kirby_fighter: *mut app::Fighter) -
         handle_kirby_hat_charge(&mut *module_accessor, opponent_fighter_kind, save_states::get_charge_state(module_accessor));
         save_states::end_copy_ability(module_accessor);
     }
-    // TODO: Handle ending the copy ability for loading states without a copy ability
     ori
 }
 
