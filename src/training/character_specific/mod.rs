@@ -6,7 +6,6 @@ pub mod kirby;
 pub mod pikmin;
 pub mod ptrainer;
 pub mod steve;
-pub mod minmin;
 
 /**
  * Checks if the current status matches the expected status

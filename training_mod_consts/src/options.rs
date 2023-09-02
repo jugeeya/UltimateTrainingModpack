@@ -733,6 +733,7 @@ bitflags! {
         const MONAD_SHIELD = 0x800;
         const MONAD_BUSTER = 0x1000;
         const MONAD_SMASH = 0x2000;
+        const POWER_DRAGON = 0x4000;
     }
 }
 
@@ -755,6 +756,7 @@ impl BuffOption {
                 BuffOption::MONAD_SHIELD => *FIGHTER_SHULK_MONAD_TYPE_SHIELD,
                 BuffOption::MONAD_BUSTER => *FIGHTER_SHULK_MONAD_TYPE_BUSTER,
                 BuffOption::MONAD_SMASH => *FIGHTER_SHULK_MONAD_TYPE_SMASH,
+                BuffOption::POWER_DRAGON => 1,
                 _ => return None,
             })
         }
@@ -804,6 +806,7 @@ impl fmt::Display for BuffOption {
                 BuffOption::MONAD_SHIELD => "Shield",
                 BuffOption::MONAD_BUSTER => "Buster",
                 BuffOption::MONAD_SMASH => "Smash",
+                BuffOption::POWER_DRAGON => "Smash",
                 _ => combination_string.as_str(),
             }
         )

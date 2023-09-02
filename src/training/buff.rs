@@ -91,7 +91,7 @@ pub unsafe fn handle_buffs(
         return buff_sepiroth(module_accessor);
     } else if fighter_kind == *FIGHTER_KIND_SHULK {
         return buff_shulk(module_accessor, status);
-    } else if fighter_kind == *FIGHTER_KIND_TANTAN && menu_vec.contains(&BuffOption::BREATHING) {
+    } else if fighter_kind == *FIGHTER_KIND_TANTAN && menu_vec.contains(&BuffOption::POWER_DRAGON) {
         return buff_minmin(module_accessor);
     }
     true
@@ -297,39 +297,50 @@ unsafe fn buff_wiifit(module_accessor: &mut app::BattleObjectModuleAccessor, sta
 unsafe fn buff_minmin(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     // Handle all of Min Min's effect setup, copied from 710122a340
     VisibilityModule::set_status_default(
-        module_accessor, Hash40 { hash: 0x59a6ef56c },Hash40 { hash: 0x9b7cb3e40 }
+        module_accessor,
+        Hash40 { hash: 0x59a6ef56c },
+        Hash40 { hash: 0x9b7cb3e40 },
     );
     VisibilityModule::set_status_default(
-        module_accessor, Hash40 { hash: 0xa9ffaf181 },Hash40 { hash: 0xef190b4e8 }
+        module_accessor,
+        Hash40 { hash: 0xa9ffaf181 },
+        Hash40 { hash: 0xef190b4e8 },
     );
-    let article_spiralleft = ArticleModule::get_article(
-        module_accessor, *FIGHTER_TANTAN_GENERATE_ARTICLE_SPIRALLEFT
-    );
+    let article_spiralleft =
+        ArticleModule::get_article(module_accessor, *FIGHTER_TANTAN_GENERATE_ARTICLE_SPIRALLEFT);
     if article_spiralleft != 0x0 as *mut app::Article {
         VisibilityModule::set_status_default(
-            module_accessor, Hash40 { hash: 0x6ec1f4d21 },Hash40 { hash: 0xa9aba8db6 }
+            module_accessor,
+            Hash40 { hash: 0x6ec1f4d21 },
+            Hash40 { hash: 0xa9aba8db6 },
         );
         VisibilityModule::set(
-            module_accessor, Hash40 { hash: 0x59a6ef56c },Hash40 { hash: 0xadd214353 }
+            module_accessor,
+            Hash40 { hash: 0x59a6ef56c },
+            Hash40 { hash: 0xadd214353 },
         );
     }
-    let arm_l_big_frame = WorkModule::get_param_int(
-        module_accessor, 0xdf05c072b, 0xf4fd45d48
-    );
+    let arm_l_big_frame = WorkModule::get_param_int(module_accessor, 0xdf05c072b, 0xf4fd45d48);
     WorkModule::set_int(
         module_accessor,
         arm_l_big_frame,
-        *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_ARM_L_BIG_FRAME
+        *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_ARM_L_BIG_FRAME,
     );
     WorkModule::on_flag(
         module_accessor,
-        *FIGHTER_TANTAN_INSTANCE_WORK_ID_FLAG_DRAGONIZE_L
+        *FIGHTER_TANTAN_INSTANCE_WORK_ID_FLAG_DRAGONIZE_L,
     );
     let mut reinforce_l_effect_handle_l = WorkModule::get_int(
-        module_accessor, *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_REINFORCE_L_EFFECT_HANDLE_L
+        module_accessor,
+        *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_REINFORCE_L_EFFECT_HANDLE_L,
     );
     if reinforce_l_effect_handle_l != 0 {
-        EffectModule::kill(module_accessor, reinforce_l_effect_handle_l as u32, false, true);
+        EffectModule::kill(
+            module_accessor,
+            reinforce_l_effect_handle_l as u32,
+            false,
+            true,
+        );
     }
     let pos_and_rot = Vector3f {
         x: 0.0,
@@ -352,9 +363,15 @@ unsafe fn buff_minmin(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
         false,
         0,
     ) as i32;
-    EffectModule::set_scale(module_accessor, reinforce_l_effect_handle_l as u32, &scale_vec);
+    EffectModule::set_scale(
+        module_accessor,
+        reinforce_l_effect_handle_l as u32,
+        &scale_vec,
+    );
     WorkModule::set_int(
-        module_accessor, reinforce_l_effect_handle_l, *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_REINFORCE_L_EFFECT_HANDLE_L
+        module_accessor,
+        reinforce_l_effect_handle_l,
+        *FIGHTER_TANTAN_INSTANCE_WORK_ID_INT_REINFORCE_L_EFFECT_HANDLE_L,
     );
     MotionModule::add_motion_partial(
         module_accessor,

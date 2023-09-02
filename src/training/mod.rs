@@ -7,7 +7,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use crate::training::character_specific::{items, kirby, minmin, pikmin, ptrainer};
+use crate::training::character_specific::{items, kirby, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, enSEType, lua_bind::*, utility};
@@ -932,7 +932,6 @@ pub fn training_mods() {
     pikmin::init();
     ptrainer::init();
     kirby::init();
-    minmin::init();
 
     #[cfg(debug_assertions)]
     debug::init();
