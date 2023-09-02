@@ -1,6 +1,6 @@
 #![allow(dead_code)] // For Debug
 #![allow(unused_imports)]
-#![cfg(debug_assertions)]
+//#![cfg(debug_assertions)]
 use crate::common::is_operation_cpu;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode, utility};
 use smash::lib::lua_const::*;

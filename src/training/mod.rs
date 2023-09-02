@@ -42,7 +42,7 @@ mod reset;
 pub mod save_states;
 mod shield_tilt;
 
-#[cfg(debug_assertions)]
+//#[cfg(debug_assertions)]
 mod debug;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
@@ -964,6 +964,6 @@ pub fn training_mods() {
     pikmin::init();
     ptrainer::init();
 
-    #[cfg(debug_assertions)]
+    //#[cfg(debug_assertions)]
     debug::init();
 }
