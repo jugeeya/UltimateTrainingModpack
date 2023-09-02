@@ -69,9 +69,10 @@ pub enum SaveState {
     KillPlayer,
     WaitForAlive,
     PosMove,
-    NanaPosMove,
     ApplyBuff,
+    NanaPosMove,
     WaitForPokemonSwitch,
+    WaitForCopyAbility,
 }
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
@@ -189,6 +190,31 @@ pub unsafe fn get_state_pokemon(
         save_state_cpu(selected_slot).fighter_kind
     };
     (fighter_kind - *FIGHTER_KIND_PZENIGAME) as u32
+}
+
+pub unsafe fn get_charge_state(
+    module_accessor: *mut app::BattleObjectModuleAccessor,
+) -> ChargeState {
+    let selected_slot = get_slot();
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    if !ptr::eq(module_accessor, cpu_module_accessor) {
+        save_state_player(selected_slot).charge
+    } else {
+        save_state_cpu(selected_slot).charge
+    }
+}
+
+pub unsafe fn end_copy_ability(module_accessor: *mut app::BattleObjectModuleAccessor) {
+    let selected_slot = get_slot();
+    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let save_state = if !ptr::eq(module_accessor, cpu_module_accessor) {
+        save_state_player(selected_slot)
+    } else {
+        save_state_cpu(selected_slot)
+    };
+    if save_state.state == WaitForCopyAbility {
+        save_state.state = NoAction;
+    }
 }
 
 // MIRROR_STATE == 1 -> Do not mirror
@@ -571,6 +597,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             // Set the charge of special moves if the fighter matches the kind in the save state
             if save_state.fighter_kind == fighter_kind {
                 charge::handle_charge(module_accessor, fighter_kind, save_state.charge);
+                // If we ever want to buff kirby, we have to move this to after apply buff
+                if fighter_kind == FIGHTER_KIND_KIRBY {
+                    save_state.state = WaitForCopyAbility;
+                }
             }
             // Buff the fighter if they're one of the fighters who can be buffed
             if fighter_is_buffable {
@@ -640,6 +670,14 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         && ptrainer::is_switched(ptrainer::get_ptrainer_module_accessor(module_accessor))
     {
         save_state.state = NoAction;
+    }
+
+    // Wait for Copy Ability to be applied if needed, exit otherwise
+    if save_state.state == WaitForCopyAbility {
+        let is_copy_start = WorkModule::is_flag(module_accessor, 0x20000104); // *FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY_ON_START
+        if !is_copy_start {
+            save_state.state = NoAction;
+        }
     }
 
     // Save state

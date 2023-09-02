@@ -7,7 +7,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use crate::training::character_specific::{items, pikmin, ptrainer};
+use crate::training::character_specific::{items, kirby, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, enSEType, lua_bind::*, utility};
@@ -527,12 +527,17 @@ pub unsafe fn handle_fighter_play_se(
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
+pub struct FighterEffectModule {
+    _vtable: u64,
+    owner: *mut app::BattleObjectModuleAccessor,
+}
+
 static FOLLOW_REQ_OFFSET: usize = 0x044f860;
 #[skyline::hook(offset = FOLLOW_REQ_OFFSET)] // hooked to prevent score gfx from playing when loading save states
 pub unsafe fn handle_effect_follow(
-    effect_module: *mut FighterEffectModule,
+    effect_module: &mut FighterEffectModule,
     eff_hash: Hash40,
-    eff_hash2: Hash40,
+    joint_hash: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
     mut size: f32,
@@ -549,7 +554,7 @@ pub unsafe fn handle_effect_follow(
         return original!()(
             effect_module,
             eff_hash,
-            eff_hash2,
+            joint_hash,
             pos,
             rot,
             size,
@@ -570,7 +575,7 @@ pub unsafe fn handle_effect_follow(
     original!()(
         effect_module,
         eff_hash,
-        eff_hash2,
+        joint_hash,
         pos,
         rot,
         size,
@@ -583,11 +588,6 @@ pub unsafe fn handle_effect_follow(
         arg11,
         arg12,
     )
-}
-
-pub struct FighterEffectModule {
-    _table: u64,
-    owner: *mut app::BattleObjectModuleAccessor,
 }
 
 static EFFECT_REQ_OFFSET: usize = 0x44de50;
@@ -931,6 +931,7 @@ pub fn training_mods() {
     ui::init();
     pikmin::init();
     ptrainer::init();
+    kirby::init();
 
     #[cfg(debug_assertions)]
     debug::init();
