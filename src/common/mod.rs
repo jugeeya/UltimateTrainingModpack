@@ -5,6 +5,7 @@ use smash::lua2cpp::L2CFighterCommon;
 
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
+use crate::training::character_specific::ptrainer;
 
 pub mod button_config;
 pub mod consts;
@@ -42,14 +43,25 @@ pub fn is_emulator() -> bool {
 }
 
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
+    try_get_module_accessor(fighter_id).unwrap()
+}
+
+pub fn try_get_module_accessor(
+    fighter_id: FighterId,
+) -> Option<*mut app::BattleObjectModuleAccessor> {
     let entry_id_int = fighter_id as i32;
     let entry_id = app::FighterEntryID(entry_id_int);
     unsafe {
         let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
         let fighter_entry =
             FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
+        if fighter_entry.is_null() {
+            return None;
+        }
         let current_fighter_id = FighterEntry::current_fighter_id(fighter_entry);
-        app::sv_battle_object::module_accessor(current_fighter_id as u32)
+        Some(app::sv_battle_object::module_accessor(
+            current_fighter_id as u32,
+        ))
     }
 }
 
@@ -144,15 +156,18 @@ pub unsafe fn is_ptrainer(module_accessor: &mut app::BattleObjectModuleAccessor)
 pub unsafe fn is_dead(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(module_accessor);
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
-    // Pokemon trainer enters FIGHTER_STATUS_KIND_WAIT for one frame during their respawn animation
-    // And the previous status is FIGHTER_STATUS_NONE
+    let is_dead_status =
+        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind);
+    let mut ptrainer_switch_dead = false;
+    // There's one frame during switching that we can't detect as alive early, where the Pokemon is in Wait with no previous status.
+    // To prevent this matching the situation after a L + R + A reset, we check the status of the PTrainer to see if we're switching.
     if is_ptrainer(module_accessor) {
-        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
-            || (status_kind == FIGHTER_STATUS_KIND_WAIT
-                && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
-    } else {
-        [*FIGHTER_STATUS_KIND_DEAD, *FIGHTER_STATUS_KIND_STANDBY].contains(&status_kind)
+        ptrainer_switch_dead = (status_kind == FIGHTER_STATUS_KIND_WAIT
+            && prev_status_kind == FIGHTER_STATUS_KIND_NONE)
+            && (StatusModule::status_kind(ptrainer::get_ptrainer_module_accessor(module_accessor))
+                == *WEAPON_PTRAINER_PTRAINER_STATUS_KIND_RESTART_CHANGE);
     }
+    is_dead_status || ptrainer_switch_dead
 }
 
 pub unsafe fn is_in_clatter(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
@@ -305,14 +320,15 @@ pub fn print_fighter_info(
         // Print Title
         print!("{}: ", title);
         // Print Fighter Kind:
+        let fighter_kind = utility::get_kind(module_accessor);
         if print_fighter_kind {
-            print!("FIGHTER_KIND: {}, ", utility::get_kind(module_accessor));
+            print!("FIGHTER_KIND: {:#?}, ", kind_to_char(fighter_kind));
         }
         // Print Status:
         if print_status {
             print!(
                 "FIGHTER_STATUS: {}, ",
-                StatusModule::status_kind(module_accessor)
+                status_display_name(fighter_kind, StatusModule::status_kind(module_accessor))
             );
         }
 

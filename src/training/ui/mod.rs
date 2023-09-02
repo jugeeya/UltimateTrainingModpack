@@ -2,6 +2,7 @@
 use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
+use smash::ui2d::SmashTextBox;
 use training_mod_consts::{OnOff, MENU};
 
 #[cfg(feature = "layout_arc_from_file")]
@@ -13,11 +14,28 @@ use crate::{
 
 mod damage;
 mod display;
+mod input_log;
 pub mod menu;
 pub mod notifications;
 
+pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
+    pane.set_text_string("");
+
+    let it = pane.text_buf as *mut u16;
+    pane.text_len = icons.len() as u16;
+    for (idx, icon) in icons.iter().enumerate() {
+        *(it.add(idx)) = *icon;
+    }
+
+    // Add nullptr at end to be sure
+    *(it.add(icons.len())) = 0x0;
+}
+
 pub fn fade_out(pane: &mut Pane, current_frame: u32, total_frames: u32) {
-    if current_frame < total_frames {
+    if current_frame >= total_frames {
+        pane.alpha = 255;
+        pane.global_alpha = 255;
+    } else if current_frame > 0 {
         // Logarithmic fade out
         let alpha = ((255.0 / (total_frames as f32 + 1.0).log10())
             * (current_frame as f32 + 1.0).log10()) as u8;
@@ -60,6 +78,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 
     if layout_name == "info_training" {
         frame_counter::tick_real();
+        input_log::draw(root_pane);
         display::draw(root_pane);
         menu::draw(root_pane);
     }
@@ -71,7 +90,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
 // in order for us to be able to swap the 'layout.arc' with the current
 // version of the file in between loads of training mode.
 #[cfg(feature = "layout_arc_from_file")]
-const LAYOUT_ARC_SIZE: usize = (3 * MEBIBYTE) as usize;
+const LAYOUT_ARC_SIZE: usize = (4 * MEBIBYTE) as usize;
 #[cfg(feature = "layout_arc_from_file")]
 static mut LAYOUT_ARC: &mut [u8; LAYOUT_ARC_SIZE] = &mut [0u8; LAYOUT_ARC_SIZE];
 

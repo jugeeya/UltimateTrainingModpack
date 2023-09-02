@@ -1,4 +1,5 @@
 #![allow(dead_code)] // TODO: Yeah don't do this
+use crate::extra_bitflag_impls;
 use bitflags::bitflags;
 use modular_bitfield::{bitfield, specifiers::*};
 
@@ -54,7 +55,7 @@ pub struct ControlModuleStored {
 
 /// Re-ordered bitfield the game uses for buttons
 #[bitfield]
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 #[repr(C)]
 pub struct ButtonBitfield {
     pub dpad_up: bool,
@@ -190,6 +191,7 @@ pub struct ControllerMapping {
 
 //type Buttons = u32; // may need to actually implement (like label and such)? Not for now though
 bitflags! {
+    #[derive(Default)]
     pub struct Buttons: u32 {
         const ATTACK      = 0x1;
         const SPECIAL     = 0x2;
@@ -211,6 +213,16 @@ bitflags! {
         const SPECIAL_RAW2 = 0x20000;
     }
 }
+
+// This requires some imports to work
+use training_mod_consts::{random_option, ToggleTrait};
+impl std::fmt::Display for Buttons {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+extra_bitflag_impls!(Buttons);
 
 // Controller class used internally by the game
 #[derive(Debug, Default, Copy, Clone)]
@@ -267,7 +279,7 @@ pub struct SomeControllerStruct {
 }
 
 // Define struct used for final controller inputs
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(C)]
 pub struct MappedInputs {
     pub buttons: Buttons,

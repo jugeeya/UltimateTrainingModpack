@@ -18,7 +18,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
-use training_mod_consts::{OnOff, LEGACY_TRAINING_MODPACK_ROOT};
+use training_mod_consts::{extra_bitflag_impls, OnOff, LEGACY_TRAINING_MODPACK_ROOT};
 
 use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;

@@ -7,7 +7,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use crate::training::character_specific::{items, pikmin};
+use crate::training::character_specific::{items, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
 use smash::app::{self, enSEType, lua_bind::*, utility};
@@ -31,15 +31,19 @@ pub mod ui;
 
 mod air_dodge_direction;
 mod attack_angle;
-mod character_specific;
+pub mod character_specific;
 mod fast_fall;
 mod full_hop;
 pub mod input_delay;
+mod input_log;
 mod input_record;
 mod mash;
 mod reset;
 pub mod save_states;
 mod shield_tilt;
+
+#[cfg(debug_assertions)]
+mod debug;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
@@ -278,7 +282,7 @@ pub unsafe fn handle_change_motion(
         motion_kind
     };
 
-    original!()(
+    let ori = original!()(
         module_accessor,
         mod_motion_kind,
         unk1,
@@ -287,7 +291,12 @@ pub unsafe fn handle_change_motion(
         unk4,
         unk5,
         unk6,
-    )
+    );
+    // After we've changed motion, speed up if necessary
+    if is_training_mode() {
+        ptrainer::change_motion(module_accessor, motion_kind);
+    }
+    ori
 }
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
@@ -492,8 +501,8 @@ static PLAY_SE_OFFSET: usize = 0x04cf6a0;
 // fighters don't use the symbol and go straight through their vtable to this function
 #[skyline::hook(offset = PLAY_SE_OFFSET)]
 pub unsafe fn handle_fighter_play_se(
-    sound_module: *mut FighterSoundModule, // pointer to fighter's SoundModule
-    my_hash: Hash40,
+    sound_module: u64, // pointer to fighter's SoundModule
+    mut my_hash: Hash40,
     bool1: bool,
     bool2: bool,
     bool3: bool,
@@ -503,36 +512,9 @@ pub unsafe fn handle_fighter_play_se(
     if !is_training_mode() {
         return original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type);
     }
-
     // Supress Buff Sound Effects while buffing
     if buff::is_buffing_any() {
-        let silent_hash = Hash40::new("se_silent");
-        return original!()(
-            sound_module,
-            silent_hash,
-            bool1,
-            bool2,
-            bool3,
-            bool4,
-            se_type,
-        );
-    }
-
-    // Supress Kirby Copy Ability SFX when loading Save State
-    if my_hash.hash == 0x1453dd86e4 || my_hash.hash == 0x14bdd3e7c8 {
-        let module_accessor = (*sound_module).owner;
-        if StatusModule::status_kind(module_accessor) != FIGHTER_KIRBY_STATUS_KIND_SPECIAL_N_DRINK {
-            let silent_hash = Hash40::new("se_silent");
-            return original!()(
-                sound_module,
-                silent_hash,
-                bool1,
-                bool2,
-                bool3,
-                bool4,
-                se_type,
-            );
-        }
+        my_hash = Hash40::new("se_silent");
     }
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
@@ -880,18 +862,12 @@ unsafe fn handle_final_input_mapping(
     // MUTATES controller state to delay inputs
     input_delay::handle_final_input_mapping(player_idx, out);
 
+    // Read potentially delayed state for loggers
+    input_log::handle_final_input_mapping(player_idx, controller_struct, out);
+
     // Potentially apply input recording, thus with delay
     // MUTATES controller state to apply recording or playback
     input_record::handle_final_input_mapping(player_idx, out);
-}
-
-static BOMA_OFFSET: usize = 0x15cf1b0;
-
-#[skyline::hook(offset = BOMA_OFFSET)]
-pub unsafe fn handle_get_module_accessor(
-    battle_object_id: u32,
-) -> *mut app::BattleObjectModuleAccessor {
-    original!()(battle_object_id)
 }
 
 pub fn training_mods() {
@@ -975,7 +951,6 @@ pub fn training_mods() {
         handle_final_input_mapping,
         // Charge
         handle_article_get_int,
-        handle_get_module_accessor,
         handle_fighter_effect,
         handle_fighter_joint_effect,
     );
@@ -984,4 +959,8 @@ pub fn training_mods() {
     input_record::init();
     ui::init();
     pikmin::init();
+    ptrainer::init();
+
+    #[cfg(debug_assertions)]
+    debug::init();
 }

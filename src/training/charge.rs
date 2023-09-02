@@ -975,7 +975,6 @@ pub unsafe fn get_kirby_hat_charge(
     opponent_fighter_kind: i32,
     charge_state: ChargeState,
 ) -> ChargeState {
-    // Samus/Dark Samus Charge Shot
     if opponent_fighter_kind == FIGHTER_KIND_SAMUS || opponent_fighter_kind == FIGHTER_KIND_SAMUSD {
         let shot_charge = WorkModule::get_int(
             module_accessor,
@@ -1380,4 +1379,3 @@ pub unsafe fn handle_kirby_hat_charge(
         });
     }
 }
-

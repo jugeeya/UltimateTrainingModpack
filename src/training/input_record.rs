@@ -12,7 +12,9 @@ use PossessionState::*;
 use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
 use crate::common::input::*;
 use crate::common::{button_config, is_training_mode};
-use crate::common::{get_module_accessor, is_in_hitstun, is_in_shieldstun, MENU};
+use crate::common::{
+    get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
+};
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
 
@@ -48,8 +50,8 @@ pub enum StartingStatus {
     Other,
 }
 
-const STICK_NEUTRAL: f32 = 0.2;
-const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
+pub const STICK_NEUTRAL: f32 = 0.2;
+pub const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
 const FINAL_RECORD_MAX: usize = 600; // Maximum length for input recording sequences (capacity)
 const TOTAL_SLOT_COUNT: usize = 5; // Total number of input recording slots
 pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
@@ -182,10 +184,10 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx();
 
     if entry_id_int == 0 && !fighter_is_nana {
-        if button_config::combo_passes_exclusive(button_config::ButtonCombo::InputPlayback) {
+        if button_config::combo_passes(button_config::ButtonCombo::InputPlayback) {
             playback(MENU.playback_button_slots.get_random().into_idx());
         } else if MENU.record_trigger.contains(RecordTrigger::COMMAND)
-            && button_config::combo_passes_exclusive(button_config::ButtonCombo::InputRecord)
+            && button_config::combo_passes(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
         }
@@ -364,6 +366,7 @@ pub unsafe fn playback_ledge(slot: Option<usize>) {
 pub unsafe fn stop_playback() {
     INPUT_RECORD = None;
     INPUT_RECORD_FRAME = 0;
+    POSSESSION = Player;
 }
 
 pub unsafe fn is_input_neutral(input_frame: usize) -> bool {
@@ -440,7 +443,14 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         should_mash_playback();
     }
 
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
+
+    // Sometimes we can try to grab their module accessor before they are valid?
+    if cpu_module_accessor.is_none() {
+        return;
+    }
+    let cpu_module_accessor = cpu_module_accessor.unwrap();
+
     if INPUT_RECORD == Pause {
         match LOCKOUT_FRAME.cmp(&0) {
             Ordering::Greater => LOCKOUT_FRAME -= 1,
