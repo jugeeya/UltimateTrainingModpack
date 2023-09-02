@@ -501,7 +501,7 @@ static PLAY_SE_OFFSET: usize = 0x04cf6a0;
 // fighters don't use the symbol and go straight through their vtable to this function
 #[skyline::hook(offset = PLAY_SE_OFFSET)]
 pub unsafe fn handle_fighter_play_se(
-    sound_module: u64, // pointer to fighter's SoundModule
+    sound_module: *mut FighterSoundModule, // pointer to fighter's SoundModule
     mut my_hash: Hash40,
     bool1: bool,
     bool2: bool,
@@ -516,6 +516,14 @@ pub unsafe fn handle_fighter_play_se(
     if buff::is_buffing_any() {
         my_hash = Hash40::new("se_silent");
     }
+    // Supress Kirby Copy Ability SFX when loading Save State
+    if my_hash.hash == 0x1453dd86e4 || my_hash.hash == 0x14bdd3e7c8 {
+        let module_accessor = (*sound_module).owner;
+        if StatusModule::status_kind(module_accessor) != FIGHTER_KIRBY_STATUS_KIND_SPECIAL_N_DRINK {
+            my_hash = Hash40::new("se_silent");
+        }
+    }
+    my_hash = ptrainer::handle_pokemon_sound_effect(my_hash);
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
@@ -612,11 +620,6 @@ pub unsafe fn handle_effect_follow(
         arg11,
         arg12,
     )
-}
-
-pub struct FighterEffectModule {
-    _table: u64,
-    owner: *mut app::BattleObjectModuleAccessor,
 }
 
 static EFFECT_REQ_OFFSET: usize = 0x44de50;

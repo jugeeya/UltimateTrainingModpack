@@ -1335,22 +1335,22 @@ pub unsafe fn handle_kirby_hat_charge(
                 let eff_hash = Hash40{hash:0x12db3e4172};
                 let joint_hash = Hash40{hash:0x5eb263e0d};
                 let pos = Vector3f {
-                        x: 0,
-                        y: 0,
-                        z: 0,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                 };
                 let rot = Vector3f {
-                        x: 0,
-                        y: 0,
-                        z: 0,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                 };
-                let efh = EffectModule::req_follow(
+                EffectModule::req_follow(
                         module_accessor,
-                        charge_hash,
+                        eff_hash,
                         joint_hash,
                         &pos,
                         &rot,
-                        1,
+                        1.0,
                         false,
                         0,
                         0,
