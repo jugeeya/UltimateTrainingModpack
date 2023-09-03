@@ -933,6 +933,7 @@ pub fn training_mods() {
     pikmin::init();
     ptrainer::init();
     kirby::init();
+    tech::init();
 
     #[cfg(debug_assertions)]
     debug::init();

@@ -351,8 +351,10 @@ pub unsafe fn hide_tech() {
         *FIGHTER_STATUS_KIND_PASSIVE_FB, // Tech Roll
     ];
     if teching_statuses.contains(&status) { 
+        // Force hide the cursor with fixed camera
+        WorkModule::set_float(module_accessor, 800.0,*FIGHTER_INSTANCE_WORK_ID_FLOAT_CURSOR_OFFSET_Y);
         // Disable visibility
-        if MotionModule::frame(module_accessor) >= 5.0
+        if MotionModule::frame(module_accessor) >= 6.0
         {
             NEEDS_VISIBLE = true;
             VisibilityModule::set_whole(module_accessor, false);
@@ -361,8 +363,6 @@ pub unsafe fn hide_tech() {
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_passive"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown_collision"), false);
-            // Force hide the cursor with fixed camera
-            WorkModule::set_float(module_accessor, 800.0,*FIGHTER_INSTANCE_WORK_ID_FLOAT_CURSOR_OFFSET_Y);
         }
         if MotionModule::end_frame(module_accessor) - MotionModule::frame(module_accessor) <= 5.0 { // Re-enable visibility
             NEEDS_VISIBLE = false;
@@ -375,4 +375,30 @@ pub unsafe fn hide_tech() {
             VisibilityModule::set_whole(module_accessor, true);
         }
     }
+}
+
+pub struct FighterCameraModule {
+    _vtable: u64,
+    owner: *mut BattleObjectModuleAccessor,
+}
+
+#[skyline::hook(offset = 0x3ec820)]
+pub unsafe fn handle_fighter_req_quake_pos(
+    camera_module: &mut FighterCameraModule,
+    quake_kind: i32,
+) -> u64 {
+    let module_accessor = camera_module.owner;
+    if !is_training_mode() || !is_operation_cpu(&mut *module_accessor) {
+        return original!()(camera_module, quake_kind);
+    }
+    let status = StatusModule::status_kind(module_accessor);
+    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::On { 
+        // We're hiding techs, prevent mistech quake from giving away missed tech
+        return original!()(camera_module, *CAMERA_QUAKE_KIND_NONE);
+    }
+    original!()(camera_module, quake_kind)
+}
+
+pub fn init() {
+    skyline::install_hooks!(handle_fighter_req_quake_pos,);
 }
