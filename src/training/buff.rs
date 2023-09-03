@@ -308,7 +308,7 @@ unsafe fn buff_minmin(module_accessor: &mut app::BattleObjectModuleAccessor) -> 
     );
     let article_spiralleft =
         ArticleModule::get_article(module_accessor, *FIGHTER_TANTAN_GENERATE_ARTICLE_SPIRALLEFT);
-    if article_spiralleft != 0x0 as *mut app::Article {
+    if article_spiralleft != std::ptr::null_mut::<app::Article>() {
         VisibilityModule::set_status_default(
             module_accessor,
             Hash40 { hash: 0x6ec1f4d21 },
