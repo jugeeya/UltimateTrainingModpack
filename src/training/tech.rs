@@ -361,6 +361,8 @@ pub unsafe fn hide_tech() {
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_passive"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown_collision"), false);
+            // Force hide the cursor with fixed camera
+            WorkModule::set_float(module_accessor, 800.0,*FIGHTER_INSTANCE_WORK_ID_FLOAT_CURSOR_OFFSET_Y);
         }
         if MotionModule::end_frame(module_accessor) - MotionModule::frame(module_accessor) <= 5.0 { // Re-enable visibility
             NEEDS_VISIBLE = false;
