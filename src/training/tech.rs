@@ -1,6 +1,6 @@
 use smash::app::{lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
-use smash::phx::Hash40;
+use smash::phx::{Hash40, Vector2f};
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
@@ -382,6 +382,7 @@ pub struct FighterCameraModule {
     owner: *mut BattleObjectModuleAccessor,
 }
 
+// Prevent Mistech Quake
 #[skyline::hook(offset = 0x3ec820)]
 pub unsafe fn handle_fighter_req_quake_pos(
     camera_module: &mut FighterCameraModule,
@@ -399,6 +400,30 @@ pub unsafe fn handle_fighter_req_quake_pos(
     original!()(camera_module, quake_kind)
 }
 
+// Zoom in the Fixed Camera view while this is on to set up a good situation for practice
+#[skyline::hook(offset = 0x4ee460)]
+pub unsafe fn handle_change_active_camera(
+    camera_manager: *mut u64,
+    camera_mode: i32,
+    int_1: i32,
+    pointer: *mut u64,
+    bool_1: bool,
+) -> bool {
+    let ori = original!()(camera_manager, camera_mode, int_1, pointer, bool_1);
+    if !is_training_mode() || MENU.tech_hide == OnOff::Off || camera_mode != 4 {
+        return ori;
+    }
+    // Zoom in the camera for a better view for tech chasing
+    let pos = Vector2f {
+        x: 0.0,
+        y: 0.0,
+    };
+    if let Some(module_accessor) = try_get_module_accessor(FighterId::CPU) {
+        CameraModule::zoom_in(module_accessor, 1, 1, 2.0, &pos, true);
+    };
+    ori
+}
+
 pub fn init() {
-    skyline::install_hooks!(handle_fighter_req_quake_pos,);
+    skyline::install_hooks!(handle_fighter_req_quake_pos,handle_change_active_camera);
 }
