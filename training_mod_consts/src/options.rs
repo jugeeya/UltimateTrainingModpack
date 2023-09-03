@@ -806,7 +806,7 @@ impl fmt::Display for BuffOption {
                 BuffOption::MONAD_SHIELD => "Shield",
                 BuffOption::MONAD_BUSTER => "Buster",
                 BuffOption::MONAD_SMASH => "Smash",
-                BuffOption::POWER_DRAGON => "Smash",
+                BuffOption::POWER_DRAGON => "Power Dragon",
                 _ => combination_string.as_str(),
             }
         )
