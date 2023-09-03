@@ -429,6 +429,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         *FIGHTER_KIND_EDGE,
         *FIGHTER_KIND_WIIFIT,
         *FIGHTER_KIND_SHULK,
+        *FIGHTER_KIND_TANTAN,
     ]
     .contains(&fighter_kind);
 
