@@ -790,6 +790,7 @@ static OPCF_OFFSET: usize = 0x06b7fdc;
 #[skyline::hook(offset = OPCF_OFFSET, inline)]
 unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
     frame_counter::tick_ingame();
+    tech::hide_tech();
     // Tick notifications
     let queue = &mut ui::notifications::QUEUE;
     let notification = queue.first();

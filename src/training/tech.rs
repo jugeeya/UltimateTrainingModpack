@@ -1,5 +1,6 @@
 use smash::app::{lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
+use smash::phx::Hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
@@ -12,6 +13,7 @@ use once_cell::sync::Lazy;
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
+static mut NEEDS_VISIBLE: bool = false;
 
 static FRAME_COUNTER: Lazy<usize> =
     Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
@@ -334,4 +336,41 @@ unsafe fn get_snake_laydown_lockout_time(module_accessor: &mut BattleObjectModul
             as u32,
         max_lockout_time as u32,
     )
+}
+
+pub unsafe fn hide_tech() {
+    if !is_training_mode() || MENU.tech_hide == OnOff::Off {
+        return;
+    }
+    let module_accessor = get_module_accessor(FighterId::CPU);
+    // Handle invisible tech animations 
+    let status = StatusModule::status_kind(module_accessor);
+    let teching_statuses = [
+        *FIGHTER_STATUS_KIND_DOWN, // Miss tech
+        *FIGHTER_STATUS_KIND_PASSIVE, // Tech in Place
+        *FIGHTER_STATUS_KIND_PASSIVE_FB, // Tech Roll
+    ];
+    if teching_statuses.contains(&status) { 
+        // Disable visibility
+        if MotionModule::frame(module_accessor) >= 5.0
+        {
+            NEEDS_VISIBLE = true;
+            VisibilityModule::set_whole(module_accessor, false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_nopassive"), false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_down_smoke"), false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_passive"), false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown"), false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown_collision"), false);
+        }
+        if MotionModule::end_frame(module_accessor) - MotionModule::frame(module_accessor) <= 5.0 { // Re-enable visibility
+            NEEDS_VISIBLE = false;
+            VisibilityModule::set_whole(module_accessor, true);
+        }
+    } else {
+        // If the CPU's tech status was interrupted, make them visible again
+        if NEEDS_VISIBLE {
+            NEEDS_VISIBLE = false;
+            VisibilityModule::set_whole(module_accessor, true);
+        }
+    }
 }
