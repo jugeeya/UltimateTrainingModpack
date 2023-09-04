@@ -3,15 +3,25 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
+use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::{frame_counter, mash};
+use crate::training::{frame_counter, mash, save_states};
+
+use skyline::hooks::{getRegionAddress, Region};
 
 use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
+static mut NEEDS_VISIBLE: bool = false;
+static mut DEFAULT_FIXED_CAM_CENTER: Vector3f = Vector3f {
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+};
 
 static FRAME_COUNTER: Lazy<usize> =
     Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
@@ -334,4 +344,413 @@ unsafe fn get_snake_laydown_lockout_time(module_accessor: &mut BattleObjectModul
             as u32,
         max_lockout_time as u32,
     )
+}
+
+pub unsafe fn hide_tech() {
+    if !is_training_mode() || MENU.tech_hide == OnOff::Off {
+        return;
+    }
+    let module_accessor = get_module_accessor(FighterId::CPU);
+    // Handle invisible tech animations
+    let status = StatusModule::status_kind(module_accessor);
+    let teching_statuses = [
+        *FIGHTER_STATUS_KIND_DOWN,       // Miss tech
+        *FIGHTER_STATUS_KIND_PASSIVE,    // Tech in Place
+        *FIGHTER_STATUS_KIND_PASSIVE_FB, // Tech Roll
+    ];
+    if teching_statuses.contains(&status) {
+        // Force hide the cursor with fixed camera
+        WorkModule::set_float(
+            module_accessor,
+            800.0,
+            *FIGHTER_INSTANCE_WORK_ID_FLOAT_CURSOR_OFFSET_Y,
+        );
+        // Disable visibility
+        if MotionModule::frame(module_accessor) >= 6.0 {
+            NEEDS_VISIBLE = true;
+            VisibilityModule::set_whole(module_accessor, false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_nopassive"), false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_down_smoke"), false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_passive"), false);
+            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown"), false);
+            EffectModule::set_visible_kind(
+                module_accessor,
+                Hash40::new("sys_crown_collision"),
+                false,
+            );
+        }
+        if MotionModule::end_frame(module_accessor) - MotionModule::frame(module_accessor) <= 5.0 {
+            // Re-enable visibility
+            NEEDS_VISIBLE = false;
+            VisibilityModule::set_whole(module_accessor, true);
+        }
+    } else {
+        // If the CPU's tech status was interrupted, make them visible again
+        if NEEDS_VISIBLE {
+            NEEDS_VISIBLE = false;
+            VisibilityModule::set_whole(module_accessor, true);
+        }
+    }
+}
+
+pub struct FighterCameraModule {
+    _vtable: u64,
+    owner: *mut BattleObjectModuleAccessor,
+}
+
+// Prevent Mistech Quake
+#[skyline::hook(offset = 0x3ec820)]
+pub unsafe fn handle_fighter_req_quake_pos(
+    camera_module: &mut FighterCameraModule,
+    quake_kind: i32,
+) -> u64 {
+    let module_accessor = camera_module.owner;
+    if !is_training_mode() || !is_operation_cpu(&mut *module_accessor) {
+        return original!()(camera_module, quake_kind);
+    }
+    let status = StatusModule::status_kind(module_accessor);
+    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::On {
+        // We're hiding techs, prevent mistech quake from giving away missed tech
+        return original!()(camera_module, *CAMERA_QUAKE_KIND_NONE);
+    }
+    original!()(camera_module, quake_kind)
+}
+
+// Zoom in the Fixed Camera view while this is on to set up a good situation for practice
+#[skyline::hook(offset = 0x4ee460)]
+pub unsafe fn handle_change_active_camera(
+    camera_manager: *mut u64,
+    camera_mode: i32,
+    int_1: i32,
+    pointer: *mut u64,
+    bool_1: bool,
+) -> bool {
+    if !is_training_mode() || camera_mode != 4 {
+        return original!()(camera_manager, camera_mode, int_1, pointer, bool_1);
+    }
+    // Determine which Fixed Camera Values to have set in Camera Manager based on tech_hide toggle
+    set_fixed_camera_values();
+    original!()(camera_manager, camera_mode, int_1, pointer, bool_1)
+}
+
+pub struct CameraValuesForTraining {
+    fixed_camera_center: Vector3f,
+    _unk_fixed_camera_horiz_angle: f32, // ?
+    _unk_fixed_camera_vert_angle: f32,  // ?
+    _unk_3: f32,
+    _unk_4: f32,
+    _unk_5: f32,
+    _unk_6: Vector3f,
+    // ^ maybe not even a Vector, but this is where Angle would
+    // be stored in the FixedParam CameraParam
+}
+
+pub struct CameraManager {
+    _padding: [u8; 0xbd0], // Don't need this info for our setup, TNN has this documented if you need
+    fixed_camera_center: Vector3f,
+}
+
+unsafe fn set_fixed_camera_values() {
+    let camera_manager = get_camera_manager();
+    if MENU.tech_hide == OnOff::Off {
+        // Use Stage's Default Values for fixed Camera
+        camera_manager.fixed_camera_center = DEFAULT_FIXED_CAM_CENTER;
+    } else {
+        // We're in CameraMode 4, which is Fixed, and we are hiding tech chases, so we want a better view of the stage
+        if let Some(camera_vector) = get_stage_camera_values(save_states::stage_id()) {
+            camera_manager.fixed_camera_center = camera_vector;
+        }
+        // Otherwise, the stage doesn't have custom values for the fixed camera for tech chasing, so don't override it
+    }
+}
+
+pub unsafe fn get_camera_manager() -> &'static mut CameraManager {
+    // CameraManager pointer is located here
+    let on_cam_mgr_ptr = (getRegionAddress(Region::Text) as u64) + 0x52b6f00;
+    let pointer_arith = on_cam_mgr_ptr as *const *mut *mut CameraManager;
+    &mut ***pointer_arith
+}
+
+fn get_stage_camera_values(stage_id: i32) -> Option<Vector3f> {
+    // Used for FD, BF, SBF, Town, and PS2
+    let default_vec = Vector3f {
+        x: 0.0,
+        y: 50.0,
+        z: 230.0,
+    };
+    // Hollow Bastion Values
+    let hollow_vec = Vector3f {
+        x: 0.0,
+        y: 50.0,
+        z: 210.0,
+    };
+    // Smashville Values
+    let smashville_vec = Vector3f {
+        x: 0.0,
+        y: 35.0,
+        z: 350.0,
+    };
+
+    let stage_vecs: HashMap<i32, Vector3f> = HashMap::from([
+        (*StageID::End, default_vec),
+        (*StageID::BattleField, default_vec),
+        (*StageID::BattleField_S, default_vec),
+        (*StageID::Animal_City, default_vec),
+        (*StageID::Poke_Stadium2, default_vec),
+        (*StageID::Animal_Village, smashville_vec),
+        (*StageID::Trail_Castle, hollow_vec),
+        // All FD Variants of Stages:
+        (*StageID::End_BattleField, default_vec),
+        (*StageID::End_Mario_Castle64, default_vec),
+        (*StageID::End_DK_Jungle, default_vec),
+        (*StageID::End_Zelda_Hyrule, default_vec),
+        (*StageID::End_Yoshi_Story, default_vec),
+        (*StageID::End_Kirby_Pupupu64, default_vec),
+        (*StageID::End_Poke_Yamabuki, default_vec),
+        (*StageID::End_Mario_Past64, default_vec),
+        (*StageID::End_Mario_CastleDx, default_vec),
+        (*StageID::End_Mario_Rainbow, default_vec),
+        (*StageID::End_DK_WaterFall, default_vec),
+        (*StageID::End_DK_Lodge, default_vec),
+        (*StageID::End_Zelda_Greatbay, default_vec),
+        (*StageID::End_Zelda_Temple, default_vec),
+        (*StageID::End_Yoshi_CartBoard, default_vec),
+        (*StageID::End_Yoshi_Yoster, default_vec),
+        (*StageID::End_Kirby_Fountain, default_vec),
+        (*StageID::End_Kirby_Greens, default_vec),
+        (*StageID::End_Fox_Corneria, default_vec),
+        (*StageID::End_Fox_Venom, default_vec),
+        (*StageID::End_Metroid_ZebesDx, default_vec),
+        (*StageID::End_Mother_Onett, default_vec),
+        (*StageID::End_Poke_Stadium, default_vec),
+        (*StageID::End_Metroid_Kraid, default_vec),
+        (*StageID::End_Mother_Fourside, default_vec),
+        (*StageID::End_Fzero_Bigblue, default_vec),
+        (*StageID::End_Mario_PastUsa, default_vec),
+        (*StageID::End_Mario_Dolpic, default_vec),
+        (*StageID::End_Yoshi_Island, default_vec),
+        (*StageID::End_Fox_LylatCruise, default_vec),
+        (*StageID::End_Zelda_Oldin, default_vec),
+        (*StageID::End_Animal_Village, default_vec),
+        (*StageID::End_Icarus_SkyWorld, default_vec),
+        (*StageID::End_FE_Siege, default_vec),
+        (*StageID::End_Wario_Madein, default_vec),
+        (*StageID::End_Poke_Stadium2, default_vec),
+        (*StageID::End_Kirby_Halberd, default_vec),
+        (*StageID::End_MG_Shadowmoses, default_vec),
+        (*StageID::End_Mother_Newpork, default_vec),
+        (*StageID::End_Ice_Top, default_vec),
+        (*StageID::End_Metroid_Norfair, default_vec),
+        (*StageID::End_Kart_CircuitX, default_vec),
+        (*StageID::End_Metroid_Orpheon, default_vec),
+        (*StageID::End_Pikmin_Planet, default_vec),
+        (*StageID::End_Mario_PastX, default_vec),
+        (*StageID::End_Fzero_Porttown, default_vec),
+        (*StageID::End_LuigiMansion, default_vec),
+        (*StageID::End_Zelda_Pirates, default_vec),
+        (*StageID::End_Poke_Tengam, default_vec),
+        (*StageID::End_75m, default_vec),
+        (*StageID::End_MarioBros, default_vec),
+        (*StageID::End_Plankton, default_vec),
+        (*StageID::End_Sonic_Greenhill, default_vec),
+        (*StageID::End_Mario_3DLand, default_vec),
+        (*StageID::End_Mario_NewBros2, default_vec),
+        (*StageID::End_Mario_Paper, default_vec),
+        (*StageID::End_Zelda_Gerudo, default_vec),
+        (*StageID::End_Zelda_Train, default_vec),
+        (*StageID::End_Poke_Unova, default_vec),
+        (*StageID::End_Poke_Tower, default_vec),
+        (*StageID::End_FE_Arena, default_vec),
+        (*StageID::End_Icarus_Uprising, default_vec),
+        (*StageID::End_Animal_Island, default_vec),
+        (*StageID::End_PunchOutSB, default_vec),
+        (*StageID::End_PunchOutW, default_vec),
+        (*StageID::End_Xeno_Gaur, default_vec),
+        (*StageID::End_Nintendogs, default_vec),
+        (*StageID::End_StreetPass, default_vec),
+        (*StageID::End_Tomodachi, default_vec),
+        (*StageID::End_Pictochat2, default_vec),
+        (*StageID::End_Rock_Wily, default_vec),
+        (*StageID::End_Mother_Magicant, default_vec),
+        (*StageID::End_Kirby_Gameboy, default_vec),
+        (*StageID::End_BalloonFight, default_vec),
+        (*StageID::End_Fzero_Mutecity3DS, default_vec),
+        (*StageID::End_Mario_Uworld, default_vec),
+        (*StageID::End_Mario_Galaxy, default_vec),
+        (*StageID::End_Kart_CircuitFor, default_vec),
+        (*StageID::End_Zelda_Skyward, default_vec),
+        (*StageID::End_Kirby_Cave, default_vec),
+        (*StageID::End_Poke_Kalos, default_vec),
+        (*StageID::End_FE_Colloseum, default_vec),
+        (*StageID::End_Icarus_Angeland, default_vec),
+        (*StageID::End_Wario_Gamer, default_vec),
+        (*StageID::End_Pikmin_Garden, default_vec),
+        (*StageID::End_Animal_City, default_vec),
+        (*StageID::End_WiiFit, default_vec),
+        (*StageID::End_WreckingCrew, default_vec),
+        (*StageID::End_Pilotwings, default_vec),
+        (*StageID::End_WufuIsland, default_vec),
+        (*StageID::End_Sonic_Windyhill, default_vec),
+        (*StageID::End_Pac_Land, default_vec),
+        (*StageID::End_FlatZoneX, default_vec),
+        (*StageID::End_DuckHunt, default_vec),
+        (*StageID::End_SF_Suzaku, default_vec),
+        (*StageID::End_Mario_Maker, default_vec),
+        (*StageID::End_FF_Midgar, default_vec),
+        (*StageID::End_Bayo_Clock, default_vec),
+        (*StageID::End_Spla_Parking, default_vec),
+        (*StageID::End_Dracula_Castle, default_vec),
+        (*StageID::End_Zelda_Tower, default_vec),
+        (*StageID::End_Mario_Odyssey, default_vec),
+        (*StageID::End_Jack_Mementoes, default_vec),
+        (*StageID::End_Brave_Altar, default_vec),
+        (*StageID::End_Buddy_Spiral, default_vec),
+        (*StageID::End_Dolly_Stadium, default_vec),
+        (*StageID::End_FE_Shrine, default_vec),
+        (*StageID::End_Tantan_Spring, default_vec),
+        (*StageID::End_Pickel_World, default_vec),
+        (*StageID::End_FF_Cave, default_vec),
+        (*StageID::End_Xeno_Alst, default_vec),
+        (*StageID::End_Demon_Dojo, default_vec),
+        (*StageID::End_Trail_Castle, default_vec),
+        // All BF Variants of Stages:
+        (*StageID::Battle_End, default_vec),
+        (*StageID::Battle_Mario_Castle64, default_vec),
+        (*StageID::Battle_DK_Jungle, default_vec),
+        (*StageID::Battle_Zelda_Hyrule, default_vec),
+        (*StageID::Battle_Yoshi_Story, default_vec),
+        (*StageID::Battle_Kirby_Pupupu64, default_vec),
+        (*StageID::Battle_Poke_Yamabuki, default_vec),
+        (*StageID::Battle_Mario_Past64, default_vec),
+        (*StageID::Battle_Mario_CastleDx, default_vec),
+        (*StageID::Battle_Mario_Rainbow, default_vec),
+        (*StageID::Battle_DK_WaterFall, default_vec),
+        (*StageID::Battle_DK_Lodge, default_vec),
+        (*StageID::Battle_Zelda_Greatbay, default_vec),
+        (*StageID::Battle_Zelda_Temple, default_vec),
+        (*StageID::Battle_Yoshi_CartBoard, default_vec),
+        (*StageID::Battle_Yoshi_Yoster, default_vec),
+        (*StageID::Battle_Kirby_Fountain, default_vec),
+        (*StageID::Battle_Kirby_Greens, default_vec),
+        (*StageID::Battle_Fox_Corneria, default_vec),
+        (*StageID::Battle_Fox_Venom, default_vec),
+        (*StageID::Battle_Metroid_ZebesDx, default_vec),
+        (*StageID::Battle_Mother_Onett, default_vec),
+        (*StageID::Battle_Poke_Stadium, default_vec),
+        (*StageID::Battle_Metroid_Kraid, default_vec),
+        (*StageID::Battle_Mother_Fourside, default_vec),
+        (*StageID::Battle_Fzero_Bigblue, default_vec),
+        (*StageID::Battle_Mario_PastUsa, default_vec),
+        (*StageID::Battle_Mario_Dolpic, default_vec),
+        (*StageID::Battle_Yoshi_Island, default_vec),
+        (*StageID::Battle_Fox_LylatCruise, default_vec),
+        (*StageID::Battle_Zelda_Oldin, default_vec),
+        (*StageID::Battle_Animal_Village, default_vec),
+        (*StageID::Battle_Icarus_SkyWorld, default_vec),
+        (*StageID::Battle_FE_Siege, default_vec),
+        (*StageID::Battle_Wario_Madein, default_vec),
+        (*StageID::Battle_Poke_Stadium2, default_vec),
+        (*StageID::Battle_Kirby_Halberd, default_vec),
+        (*StageID::Battle_MG_Shadowmoses, default_vec),
+        (*StageID::Battle_Mother_Newpork, default_vec),
+        (*StageID::Battle_Ice_Top, default_vec),
+        (*StageID::Battle_Metroid_Norfair, default_vec),
+        (*StageID::Battle_Kart_CircuitX, default_vec),
+        (*StageID::Battle_Metroid_Orpheon, default_vec),
+        (*StageID::Battle_Pikmin_Planet, default_vec),
+        (*StageID::Battle_Mario_PastX, default_vec),
+        (*StageID::Battle_Fzero_Porttown, default_vec),
+        (*StageID::Battle_LuigiMansion, default_vec),
+        (*StageID::Battle_Zelda_Pirates, default_vec),
+        (*StageID::Battle_Poke_Tengam, default_vec),
+        (*StageID::Battle_75m, default_vec),
+        (*StageID::Battle_MarioBros, default_vec),
+        (*StageID::Battle_Plankton, default_vec),
+        (*StageID::Battle_Sonic_Greenhill, default_vec),
+        (*StageID::Battle_Mario_3DLand, default_vec),
+        (*StageID::Battle_Mario_NewBros2, default_vec),
+        (*StageID::Battle_Mario_Paper, default_vec),
+        (*StageID::Battle_Zelda_Gerudo, default_vec),
+        (*StageID::Battle_Zelda_Train, default_vec),
+        (*StageID::Battle_Poke_Unova, default_vec),
+        (*StageID::Battle_Poke_Tower, default_vec),
+        (*StageID::Battle_FE_Arena, default_vec),
+        (*StageID::Battle_Icarus_Uprising, default_vec),
+        (*StageID::Battle_Animal_Island, default_vec),
+        (*StageID::Battle_PunchOutSB, default_vec),
+        (*StageID::Battle_PunchOutW, default_vec),
+        (*StageID::Battle_Xeno_Gaur, default_vec),
+        (*StageID::Battle_Nintendogs, default_vec),
+        (*StageID::Battle_StreetPass, default_vec),
+        (*StageID::Battle_Tomodachi, default_vec),
+        (*StageID::Battle_Pictochat2, default_vec),
+        (*StageID::Battle_Rock_Wily, default_vec),
+        (*StageID::Battle_Mother_Magicant, default_vec),
+        (*StageID::Battle_Kirby_Gameboy, default_vec),
+        (*StageID::Battle_BalloonFight, default_vec),
+        (*StageID::Battle_Fzero_Mutecity3DS, default_vec),
+        (*StageID::Battle_Mario_Uworld, default_vec),
+        (*StageID::Battle_Mario_Galaxy, default_vec),
+        (*StageID::Battle_Kart_CircuitFor, default_vec),
+        (*StageID::Battle_Zelda_Skyward, default_vec),
+        (*StageID::Battle_Kirby_Cave, default_vec),
+        (*StageID::Battle_Poke_Kalos, default_vec),
+        (*StageID::Battle_FE_Colloseum, default_vec),
+        (*StageID::Battle_Icarus_Angeland, default_vec),
+        (*StageID::Battle_Wario_Gamer, default_vec),
+        (*StageID::Battle_Pikmin_Garden, default_vec),
+        (*StageID::Battle_Animal_City, default_vec),
+        (*StageID::Battle_WiiFit, default_vec),
+        (*StageID::Battle_WreckingCrew, default_vec),
+        (*StageID::Battle_Pilotwings, default_vec),
+        (*StageID::Battle_WufuIsland, default_vec),
+        (*StageID::Battle_Sonic_Windyhill, default_vec),
+        (*StageID::Battle_Pac_Land, default_vec),
+        (*StageID::Battle_FlatZoneX, default_vec),
+        (*StageID::Battle_DuckHunt, default_vec),
+        (*StageID::Battle_SF_Suzaku, default_vec),
+        (*StageID::Battle_Mario_Maker, default_vec),
+        (*StageID::Battle_FF_Midgar, default_vec),
+        (*StageID::Battle_Bayo_Clock, default_vec),
+        (*StageID::Battle_Spla_Parking, default_vec),
+        (*StageID::Battle_Dracula_Castle, default_vec),
+        (*StageID::Battle_Zelda_Tower, default_vec),
+        (*StageID::Battle_Mario_Odyssey, default_vec),
+        (*StageID::Battle_Jack_Mementoes, default_vec),
+        (*StageID::Battle_Brave_Altar, default_vec),
+        (*StageID::Battle_Buddy_Spiral, default_vec),
+        (*StageID::Battle_Dolly_Stadium, default_vec),
+        (*StageID::Battle_FE_Shrine, default_vec),
+        (*StageID::Battle_Tantan_Spring, default_vec),
+        (*StageID::BattleField_S, default_vec),
+        (*StageID::Battle_Pickel_World, default_vec),
+        (*StageID::Battle_FF_Cave, default_vec),
+        (*StageID::Battle_Xeno_Alst, default_vec),
+        (*StageID::Battle_Demon_Dojo, default_vec),
+        (*StageID::Battle_Trail_Castle, default_vec),
+    ]);
+    stage_vecs.get(&stage_id).copied()
+}
+
+// We hook where the training fixed camera fields are initially set, so we can change them later if necessary
+#[skyline::hook(offset = 0x3157bb0)]
+pub unsafe fn handle_set_training_fixed_camera_values(
+    camera_manager: *mut u64, // not actually camera manager - is this even used?????
+    fixed_camera_values: &mut CameraValuesForTraining,
+) {
+    if !is_training_mode() {
+        return original!()(camera_manager, fixed_camera_values);
+    }
+    DEFAULT_FIXED_CAM_CENTER = fixed_camera_values.fixed_camera_center;
+    original!()(camera_manager, fixed_camera_values);
+    // Set Fixed Camera Values now, since L + R + A reset switches without calling ChangeActiveCamera
+    set_fixed_camera_values();
+}
+
+pub fn init() {
+    skyline::install_hooks!(
+        handle_fighter_req_quake_pos,
+        handle_change_active_camera,
+        handle_set_training_fixed_camera_values,
+    );
 }

@@ -92,6 +92,7 @@ pub struct TrainingModpackMenu {
     pub input_playback: ButtonConfig,
     pub recording_crop: OnOff,
     pub stale_dodges: OnOff,
+    pub tech_hide: OnOff,
     pub update_policy: UpdatePolicy,
 }
 
@@ -200,6 +201,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     input_playback: ButtonConfig::ZR.union(ButtonConfig::DPAD_UP),
     recording_crop: OnOff::On,
     stale_dodges: OnOff::On,
+    tech_hide: OnOff::Off,
     update_policy: UpdatePolicy::default(),
 };
 
@@ -697,6 +699,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
             .to_string(),
         true,
         &(menu.stale_dodges as u32),
+    );
+    defensive_tab.add_submenu_with_toggles::<OnOff>(
+        "Hide Tech Animations".to_string(),
+        "tech_hide".to_string(),
+        "Hide Tech Animations: Hides tech animations and effects after 7 frames to help with reacting to tech animation startup"
+            .to_string(),
+        true,
+        &(menu.tech_hide as u32),
     );
     overall_menu.tabs.push(defensive_tab);
 
