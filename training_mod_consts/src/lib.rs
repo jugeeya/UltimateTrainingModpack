@@ -703,7 +703,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     defensive_tab.add_submenu_with_toggles::<OnOff>(
         "Hide Tech Animations".to_string(),
         "tech_hide".to_string(),
-        "Hide Tech Animations: Hides tech animations and effects after 5 frames to help with reacting to tech animation startup"
+        "Hide Tech Animations: Hides tech animations and effects after 7 frames to help with reacting to tech animation startup"
             .to_string(),
         true,
         &(menu.tech_hide as u32),
