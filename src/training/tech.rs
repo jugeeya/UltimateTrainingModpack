@@ -1,9 +1,9 @@
 use smash::app::{lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
-use smash::phx::{Hash40, Vector3f};
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
+use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::common::*;
@@ -11,8 +11,8 @@ use crate::training::{frame_counter, mash, save_states};
 
 use skyline::hooks::{getRegionAddress, Region};
 
-use std::collections::HashMap;
 use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
@@ -351,28 +351,36 @@ pub unsafe fn hide_tech() {
         return;
     }
     let module_accessor = get_module_accessor(FighterId::CPU);
-    // Handle invisible tech animations 
+    // Handle invisible tech animations
     let status = StatusModule::status_kind(module_accessor);
     let teching_statuses = [
-        *FIGHTER_STATUS_KIND_DOWN, // Miss tech
-        *FIGHTER_STATUS_KIND_PASSIVE, // Tech in Place
+        *FIGHTER_STATUS_KIND_DOWN,       // Miss tech
+        *FIGHTER_STATUS_KIND_PASSIVE,    // Tech in Place
         *FIGHTER_STATUS_KIND_PASSIVE_FB, // Tech Roll
     ];
-    if teching_statuses.contains(&status) { 
+    if teching_statuses.contains(&status) {
         // Force hide the cursor with fixed camera
-        WorkModule::set_float(module_accessor, 800.0,*FIGHTER_INSTANCE_WORK_ID_FLOAT_CURSOR_OFFSET_Y);
+        WorkModule::set_float(
+            module_accessor,
+            800.0,
+            *FIGHTER_INSTANCE_WORK_ID_FLOAT_CURSOR_OFFSET_Y,
+        );
         // Disable visibility
-        if MotionModule::frame(module_accessor) >= 6.0
-        {
+        if MotionModule::frame(module_accessor) >= 6.0 {
             NEEDS_VISIBLE = true;
             VisibilityModule::set_whole(module_accessor, false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_nopassive"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_down_smoke"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_passive"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown"), false);
-            EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_crown_collision"), false);
+            EffectModule::set_visible_kind(
+                module_accessor,
+                Hash40::new("sys_crown_collision"),
+                false,
+            );
         }
-        if MotionModule::end_frame(module_accessor) - MotionModule::frame(module_accessor) <= 5.0 { // Re-enable visibility
+        if MotionModule::end_frame(module_accessor) - MotionModule::frame(module_accessor) <= 5.0 {
+            // Re-enable visibility
             NEEDS_VISIBLE = false;
             VisibilityModule::set_whole(module_accessor, true);
         }
@@ -401,7 +409,7 @@ pub unsafe fn handle_fighter_req_quake_pos(
         return original!()(camera_module, quake_kind);
     }
     let status = StatusModule::status_kind(module_accessor);
-    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::On { 
+    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::On {
         // We're hiding techs, prevent mistech quake from giving away missed tech
         return original!()(camera_module, *CAMERA_QUAKE_KIND_NONE);
     }
@@ -428,11 +436,11 @@ pub unsafe fn handle_change_active_camera(
 pub struct CameraValuesForTraining {
     fixed_camera_center: Vector3f,
     _unk_fixed_camera_horiz_angle: f32, // ?
-    _unk_fixed_camera_vert_angle: f32, // ?
+    _unk_fixed_camera_vert_angle: f32,  // ?
     _unk_3: f32,
     _unk_4: f32,
     _unk_5: f32,
-    _unk_6: Vector3f, 
+    _unk_6: Vector3f,
     // ^ maybe not even a Vector, but this is where Angle would
     // be stored in the FixedParam CameraParam
 }
@@ -462,7 +470,7 @@ pub unsafe fn get_camera_manager() -> &'static mut CameraManager {
     let pointer_arith = on_cam_mgr_ptr as *const *mut *mut CameraManager;
     &mut ***pointer_arith
 }
-    
+
 fn get_stage_camera_values(stage_id: i32) -> Option<Vector3f> {
     // Used for FD, BF, SBF, Town, and PS2
     let default_vec = Vector3f {
