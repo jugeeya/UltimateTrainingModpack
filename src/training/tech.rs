@@ -427,13 +427,14 @@ pub unsafe fn handle_change_active_camera(
 
 pub struct CameraValuesForTraining {
     fixed_camera_center: Vector3f,
-    unk_fixed_camera_horiz_angle: f32, // ?
-    unk_fixed_camera_vert_angle: f32, // ?
+    _unk_fixed_camera_horiz_angle: f32, // ?
+    _unk_fixed_camera_vert_angle: f32, // ?
     _unk_3: f32,
     _unk_4: f32,
     _unk_5: f32,
-    _unk_6: Vector3f, // maybe not even a Vector, but this is where Angle would be
-                        // stored in the FixedParam CameraParam
+    _unk_6: Vector3f, 
+    // ^ maybe not even a Vector, but this is where Angle would
+    // be stored in the FixedParam CameraParam
 }
 
 pub struct CameraManager {
@@ -458,7 +459,7 @@ unsafe fn set_fixed_camera_values() {
 pub unsafe fn get_camera_manager() -> &'static mut CameraManager {
     // CameraManager pointer is located here
     let on_cam_mgr_ptr = (getRegionAddress(Region::Text) as u64) + 0x52b6f00;
-    let pointer_arith = (on_cam_mgr_ptr as *const *mut *mut CameraManager);
+    let pointer_arith = on_cam_mgr_ptr as *const *mut *mut CameraManager;
     &mut ***pointer_arith
 }
     
@@ -478,8 +479,8 @@ fn get_stage_camera_values(stage_id: i32) -> Option<Vector3f> {
     // Smashville Values
     let smashville_vec = Vector3f {
         x: 0.0,
-        y: 40.0,
-        z: 280.0,
+        y: 35.0,
+        z: 350.0,
     };
 
     let stage_vecs: HashMap<i32, Vector3f> = HashMap::from([
@@ -729,14 +730,13 @@ pub unsafe fn handle_set_training_fixed_camera_values(
     camera_manager: *mut u64, // not actually camera manager - is this even used?????
     fixed_camera_values: &mut CameraValuesForTraining,
 ) {
+    if !is_training_mode() {
+        return original!()(camera_manager, fixed_camera_values);
+    }
     DEFAULT_FIXED_CAM_CENTER = fixed_camera_values.fixed_camera_center;
-    println!(
-        "x: {}, y: {}, z: {}",
-        fixed_camera_values.fixed_camera_center.x,
-        fixed_camera_values.fixed_camera_center.y,
-        fixed_camera_values.fixed_camera_center.z,
-    );
     original!()(camera_manager, fixed_camera_values);
+    // Set Fixed Camera Values now, since L + R + A reset switches without calling ChangeActiveCamera
+    set_fixed_camera_values();
 }
 
 pub fn init() {
