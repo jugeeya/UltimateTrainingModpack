@@ -7,7 +7,7 @@ use smash::app::{self, lua_bind::*, ArticleOperationTarget, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::hash40;
 use smash::lib::lua_const::*;
-use smash::phx::{Hash40, Vector2f, Vector3f};
+use smash::phx::{Hash40, Vector3f};
 use std::ptr;
 use training_mod_consts::{CharacterItem, SaveDamage};
 
@@ -693,11 +693,6 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             format!("Saved Slot {}", MENU.save_state_slot),
             120,
         );
-        let pos = Vector2f {
-            x: 0.0,
-            y: 0.0,
-        };
-        CameraModule::zoom_in(module_accessor, 1, 1, 2.0, &pos, true);
     }
 
     if save_state.state == Save && !fighter_is_nana {

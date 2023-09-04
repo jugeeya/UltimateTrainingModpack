@@ -1,6 +1,6 @@
 use smash::app::{lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
-use smash::phx::{Hash40, Vector2f};
+use smash::phx::{Hash40, Vector3f};
 use smash::lib::lua_const::*;
 use smash::lib::L2CValue;
 use smash::lua2cpp::L2CFighterBase;
@@ -413,17 +413,74 @@ pub unsafe fn handle_change_active_camera(
     if !is_training_mode() || MENU.tech_hide == OnOff::Off || camera_mode != 4 {
         return ori;
     }
+    // We're in CameraMode 4, which is Fixed, and we are hiding tech chases, so we want a better view of the stage
     // Zoom in the camera for a better view for tech chasing
-    let pos = Vector2f {
-        x: 0.0,
-        y: 0.0,
-    };
-    if let Some(module_accessor) = try_get_module_accessor(FighterId::CPU) {
-        CameraModule::zoom_in(module_accessor, 1, 1, 2.0, &pos, true);
-    };
+    // TODO: Call handle_set_training_fixed_camera_values somehow, maybe store the CameraManager pointer?
     ori
 }
 
+pub struct CameraValuesForTraining {
+    fixed_camera_center: Vector3f,
+    unk_fixed_camera_horiz_angle: f32, // ?
+    unk_fixed_camera_vert_angle: f32, // ?
+    unk_3: f32,
+    unk_4: f32,
+    unk_5: f32,
+    unk_6: Vector3f, // maybe not even a Vector, but this is where Angle would be stored in Params
+}
+
+pub struct CameraManager {
+    padding: [u8; 0xbd0], // Don't need this info for our setup, TNN has this documented if you need
+    fixed_camera_center: Vector3f,
+}
+
+pub unsafe fn get_camera_manager() -> &mut CameraManager {
+    // CameraManager pointer is located here
+    let on_cam_mgr_ptr = (getRegionAddress(Region::Text) as u64) + 0x52b6f00;
+    let pointer_arith = (on_cam_mgr_ptr as *const *mut *mut CameraManager);
+    &mut ***pointer_arith
+}
+//     stage_id = 
+// fn get_stage_camera_values() -> Vector3f {save_states::stage_id();
+//     let offsets: HashMap<i32, Vector3f> = HashMap::from([
+//         (*StageID::Animal_Village, 1.195),
+//         (*StageID::Animal_City, 1.448),
+//         (*StageID::Yoshi_Island, -1.053),
+//     ]);
+
+//     *offsets.get(&stage_id).unwrap_or(&0.0)
+// }
+
+// We hook where the training fixed camera fields are initially set, so we can change them later if necessary
+#[skyline::hook(offset = 0x3157bb0)]
+pub unsafe fn handle_set_training_fixed_camera_values(
+    camera_manager: *mut u64, // not actually camera manager - is this even used?????
+    fixed_camera_values: &mut CameraValuesForTraining,
+) {
+    println!(
+        "x: {}, y: {}, z: {}, unk_1: {}, unk_2: {}, unk_3: {}, unk_4: {}, unk_5: {}, unk_6_x: {}, unk_6_y: {}, unk_6_z: {}",
+        fixed_camera_values.fixed_camera_center.x,
+        fixed_camera_values.fixed_camera_center.y,
+        fixed_camera_values.fixed_camera_center.z,
+        fixed_camera_values.unk_fixed_camera_horiz_angle,
+        fixed_camera_values.unk_fixed_camera_vert_angle,
+        fixed_camera_values.unk_3,
+        fixed_camera_values.unk_4,
+        fixed_camera_values.unk_5,
+        fixed_camera_values.unk_6.x,
+        fixed_camera_values.unk_6.y,
+        fixed_camera_values.unk_6.z,
+    );
+    original!()(camera_manager, fixed_camera_values);
+}
+
+// TODO: zoom_in doesn't work here - need to implement something else for the zoom, like changing the training fixed zoom camera params
+// Search "Camera" in Ghidra data bottom left for this
+
 pub fn init() {
-    skyline::install_hooks!(handle_fighter_req_quake_pos,handle_change_active_camera);
+    skyline::install_hooks!(
+        handle_fighter_req_quake_pos,
+        handle_change_active_camera,
+        handle_set_training_fixed_camera_values,
+    );
 }
