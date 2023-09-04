@@ -7,13 +7,21 @@ use smash::lua2cpp::L2CFighterBase;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::training::{frame_counter, mash};
+use crate::training::{frame_counter, mash, save_states};
 
+use skyline::hooks::{getRegionAddress, Region};
+
+use std::collections::HashMap;
 use once_cell::sync::Lazy;
 
 static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
 static mut NEEDS_VISIBLE: bool = false;
+static mut DEFAULT_FIXED_CAM_CENTER: Vector3f = Vector3f {
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+};
 
 static FRAME_COUNTER: Lazy<usize> =
     Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
@@ -409,40 +417,52 @@ pub unsafe fn handle_change_active_camera(
     pointer: *mut u64,
     bool_1: bool,
 ) -> bool {
-    let ori = original!()(camera_manager, camera_mode, int_1, pointer, bool_1);
-    if !is_training_mode() || MENU.tech_hide == OnOff::Off || camera_mode != 4 {
-        return ori;
+    if !is_training_mode() || camera_mode != 4 {
+        return original!()(camera_manager, camera_mode, int_1, pointer, bool_1);
     }
-    // We're in CameraMode 4, which is Fixed, and we are hiding tech chases, so we want a better view of the stage
-    // Zoom in the camera for a better view for tech chasing
-    // TODO: Call handle_set_training_fixed_camera_values somehow, maybe store the CameraManager pointer?
-    ori
+    // Determine which Fixed Camera Values to have set in Camera Manager based on tech_hide toggle
+    set_fixed_camera_values();
+    original!()(camera_manager, camera_mode, int_1, pointer, bool_1)
 }
 
 pub struct CameraValuesForTraining {
     fixed_camera_center: Vector3f,
     unk_fixed_camera_horiz_angle: f32, // ?
     unk_fixed_camera_vert_angle: f32, // ?
-    unk_3: f32,
-    unk_4: f32,
-    unk_5: f32,
-    unk_6: Vector3f, // maybe not even a Vector, but this is where Angle would be stored in Params
+    _unk_3: f32,
+    _unk_4: f32,
+    _unk_5: f32,
+    _unk_6: Vector3f, // maybe not even a Vector, but this is where Angle would be
+                        // stored in the FixedParam CameraParam
 }
 
 pub struct CameraManager {
-    padding: [u8; 0xbd0], // Don't need this info for our setup, TNN has this documented if you need
+    _padding: [u8; 0xbd0], // Don't need this info for our setup, TNN has this documented if you need
     fixed_camera_center: Vector3f,
 }
 
-pub unsafe fn get_camera_manager() -> &mut CameraManager {
+unsafe fn set_fixed_camera_values() {
+    let camera_manager = get_camera_manager();
+    if MENU.tech_hide == OnOff::Off {
+        // Use Stage's Default Values for fixed Camera
+        camera_manager.fixed_camera_center = DEFAULT_FIXED_CAM_CENTER;
+    } else {
+        // We're in CameraMode 4, which is Fixed, and we are hiding tech chases, so we want a better view of the stage
+        if let Some(camera_vector) = get_stage_camera_values(save_states::stage_id()) {
+            camera_manager.fixed_camera_center = camera_vector;
+        }
+        // Otherwise, the stage doesn't have custom values for the fixed camera for tech chasing, so don't override it
+    }
+}
+
+pub unsafe fn get_camera_manager() -> &'static mut CameraManager {
     // CameraManager pointer is located here
     let on_cam_mgr_ptr = (getRegionAddress(Region::Text) as u64) + 0x52b6f00;
     let pointer_arith = (on_cam_mgr_ptr as *const *mut *mut CameraManager);
     &mut ***pointer_arith
 }
     
-fn get_stage_camera_values() -> Option<Vector3f> {
-    stage_id = save_states::stage_id();
+fn get_stage_camera_values(stage_id: i32) -> Option<Vector3f> {
     // Used for FD, BF, SBF, Town, and PS2
     let default_vec = Vector3f {
         x: 0.0,
@@ -700,7 +720,7 @@ fn get_stage_camera_values() -> Option<Vector3f> {
         (*StageID::Battle_Demon_Dojo, default_vec),
         (*StageID::Battle_Trail_Castle, default_vec),
     ]);
-    *offsets.get(&stage_id)
+    stage_vecs.get(&stage_id).copied()
 }
 
 // We hook where the training fixed camera fields are initially set, so we can change them later if necessary
@@ -709,19 +729,12 @@ pub unsafe fn handle_set_training_fixed_camera_values(
     camera_manager: *mut u64, // not actually camera manager - is this even used?????
     fixed_camera_values: &mut CameraValuesForTraining,
 ) {
+    DEFAULT_FIXED_CAM_CENTER = fixed_camera_values.fixed_camera_center;
     println!(
-        "x: {}, y: {}, z: {}, unk_1: {}, unk_2: {}, unk_3: {}, unk_4: {}, unk_5: {}, unk_6_x: {}, unk_6_y: {}, unk_6_z: {}",
+        "x: {}, y: {}, z: {}",
         fixed_camera_values.fixed_camera_center.x,
         fixed_camera_values.fixed_camera_center.y,
         fixed_camera_values.fixed_camera_center.z,
-        fixed_camera_values.unk_fixed_camera_horiz_angle,
-        fixed_camera_values.unk_fixed_camera_vert_angle,
-        fixed_camera_values.unk_3,
-        fixed_camera_values.unk_4,
-        fixed_camera_values.unk_5,
-        fixed_camera_values.unk_6.x,
-        fixed_camera_values.unk_6.y,
-        fixed_camera_values.unk_6.z,
     );
     original!()(camera_manager, fixed_camera_values);
 }
