@@ -1,5 +1,5 @@
 use crate::common::consts::FighterId;
-use crate::common::get_module_accessor;
+use crate::common::{get_module_accessor, try_get_battle_object};
 use crate::training::character_specific::{kirby, pikmin};
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
@@ -272,6 +272,14 @@ pub unsafe fn get_charge(
         let my_charge = WorkModule::get_int(
             module_accessor,
             *FIGHTER_MIIGUNNER_INSTANCE_WORK_ID_INT_GUNNER_CHARGE_COUNT,
+        );
+        charge_state.int_x(my_charge)
+    } 
+    // Sora Spell
+    else if fighter_kind == FIGHTER_KIND_TRAIL {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND,
         );
         charge_state.int_x(my_charge)
     } else {
@@ -933,4 +941,21 @@ pub unsafe fn handle_charge(
             );
         });
     }
+    // Sora Spell - 0 to 2
+    else if fighter_kind == FIGHTER_KIND_TRAIL {
+        charge.int_x.map(|spell_kind| {
+            let prev_spell_kind = (spell_kind + 5) % 3; // Should have used this for pikmin idk what I was on
+            WorkModule::set_int(
+                module_accessor,
+                prev_spell_kind,
+                *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND,
+            );
+            if let Some(fighter) = try_get_battle_object(module_accessor.battle_object_id) {
+                change_magic(fighter);
+            }
+        });
+    }
 }
+
+#[skyline::from_offset(0x1267900)]
+fn change_magic(fighter: &app::BattleObject); // Specifically a Fighter
