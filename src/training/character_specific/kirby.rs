@@ -596,8 +596,7 @@ pub unsafe fn handle_kirby_hat_charge(
                 *FIGHTER_TRAIL_STATUS_SPECIAL_N1_FLAG_CHANGE_MAGIC,
             );
             if let Some(battle_object) = try_get_battle_object(module_accessor.battle_object_id) {
-                let fighter =
-                    std::mem::transmute::<&app::BattleObject, *mut app::Fighter>(battle_object);
+                let fighter = battle_object as *const app::BattleObject as *mut app::Fighter;
                 app::FighterSpecializer_Trail::change_magic(fighter);
             }
         });

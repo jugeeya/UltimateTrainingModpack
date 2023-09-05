@@ -47,7 +47,7 @@ pub fn is_emulator() -> bool {
 
 pub unsafe fn try_get_battle_object(battle_object_id: u32) -> Option<&'static app::BattleObject> {
     let battle_object_ptr = get_battle_object_from_id(battle_object_id);
-    battle_object_ptr.as_ref() // TODO: Do we want to only hanlde nullptr, or also INVALID?
+    battle_object_ptr.as_ref()
 }
 
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
