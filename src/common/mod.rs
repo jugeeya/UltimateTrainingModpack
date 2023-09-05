@@ -2,7 +2,6 @@ use smash::app::{self, lua_bind::*, utility};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::lua2cpp::L2CFighterCommon;
-use skyline::hooks::{getRegionAddress, Region};
 
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
@@ -35,13 +34,8 @@ pub fn is_training_mode() -> bool {
     true
 }
 
-extern "C" {
-    #[link_name = "\u{1}_ZN3app8lua_bind54BattleObjectManager__is_active_find_battle_object_implEPNS_19BattleObjectManagerEj"]
-    pub fn is_active_find_battle_object(
-        battle_object_manager: *mut app::BattleObjectManager,
-        battle_object_id: u32,
-    ) -> *mut app::BattleObject;
-}
+#[skyline::from_offset(0x3ac540)]
+pub fn get_battle_object_from_id(battle_object_id: u32) -> *mut app::BattleObject;
 
 pub fn get_category(module_accessor: &app::BattleObjectModuleAccessor) -> i32 {
     (module_accessor.battle_object_id >> 28) as u8 as i32
@@ -51,17 +45,9 @@ pub fn is_emulator() -> bool {
     unsafe { skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as u64 == 0x8004000 }
 }
 
-pub unsafe fn get_battle_object_manager() -> &'static mut app::BattleObjectManager {
-    // BattleObjectManager pointer is located here
-    let on_bo_mgr_ptr = (getRegionAddress(Region::Text) as u64) + 0x52b5a00;
-    let pointer_arith = on_bo_mgr_ptr as *const *mut *mut app::BattleObjectManager;
-    &mut ***pointer_arith
-}
-
 pub unsafe fn try_get_battle_object(battle_object_id: u32) -> Option<&'static app::BattleObject> {
-    let battle_object_manager = get_battle_object_manager();
-    let battle_object_ptr = is_active_find_battle_object(battle_object_manager, battle_object_id);
-    battle_object_ptr.as_ref()
+    let battle_object_ptr = get_battle_object_from_id(battle_object_id);
+    battle_object_ptr.as_ref() // TODO: Do we want to only hanlde nullptr, or also INVALID?
 }
 
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
