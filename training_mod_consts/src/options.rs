@@ -792,7 +792,6 @@ impl BuffOption {
 
 
     pub fn wario_buffs(self) -> BuffOption {
-        // Return a struct with only Shulk's selected arts
         let wario_buffs_bitflags = BuffOption::WAFT_MINI
             .union(BuffOption::WAFT_HALF)
             .union(BuffOption::WAFT_FULL);
