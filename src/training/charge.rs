@@ -93,6 +93,45 @@ impl ChargeState {
     }
 }
 
+unsafe fn apply_revenge_effects(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    let pos = Vector3f {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    let rot = Vector3f {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    let eff_hash = Hash40::new("gaogaen_revenge_aura");
+    let joint_hashes = [
+        Hash40 { hash: 0x90fa00879 },
+        Hash40 { hash: 0x9f5af351a },
+        Hash40 { hash: 0x51ba4b748 },
+        Hash40 { hash: 0x5e1ab8a2b },
+        Hash40 { hash: 0x8813bc317 },
+    ];
+    for joint_hash in joint_hashes {
+        EffectModule::req_follow(
+            module_accessor,
+            eff_hash,
+            joint_hash,
+            &pos,
+            &rot,
+            1.0,
+            false,
+            32768,
+            0,
+            -1,
+            0,
+            0,
+            false,
+            false,
+        );
+    }
+}
+
 pub unsafe fn get_charge(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
@@ -294,6 +333,30 @@ pub unsafe fn get_charge(
             levin_recharge,
         };
         charge_state.set_robin(robin_charges)
+    }
+    // Incineroar Revenge
+    else if fighter_kind == FIGHTER_KIND_GAOGAEN {
+        let revenge_attack_num = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_ATTACK_HIT_REVENGE_ATTACK_NO,
+        );
+        let revenge_damage = WorkModule::get_float(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_TOTAL_DAMAGE,
+        );
+        let revenge_rate = WorkModule::get_float(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_RATE,
+        );
+        let has_revenge = WorkModule::is_flag(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE,
+        );
+        charge_state
+            .int_x(revenge_attack_num)
+            .float_x(revenge_damage)
+            .float_y(revenge_rate)
+            .has_charge(has_revenge)
     }
     // Plant Poison Breath
     else if fighter_kind == FIGHTER_KIND_PACKUN {
@@ -904,6 +967,46 @@ pub unsafe fn handle_charge(
                 robin_charges.levin_recharge,
                 *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_THUNDER_SWORD_REVIVAL_COUNT,
             );
+        });
+    }
+    // Incineroar Revenge
+    else if fighter_kind == FIGHTER_KIND_GAOGAEN {
+        charge.int_x.map(|revenge_attack_num| {
+            WorkModule::set_int(
+                module_accessor,
+                revenge_attack_num,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_ATTACK_HIT_REVENGE_ATTACK_NO,
+            );
+        });
+        charge.float_x.map(|revenge_damage| {
+            WorkModule::set_float(
+                module_accessor,
+                revenge_damage,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_TOTAL_DAMAGE,
+            );
+        });
+        charge.float_y.map(|revenge_rate| {
+            WorkModule::set_float(
+                module_accessor,
+                revenge_rate,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_RATE,
+            );
+        });
+        charge.has_charge.map(|has_revenge| {
+            if has_revenge {
+                WorkModule::set_flag(
+                    module_accessor,
+                    has_revenge,
+                    *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE,
+                );
+                // No benefit to saving that Revenge is about to run out
+                WorkModule::set_int(
+                    module_accessor,
+                    3500,
+                    *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_REVENGE_TIMER,
+                );
+                apply_revenge_effects(module_accessor);
+            }
         });
     }
     // Mii Gunner Charge Blast - 0 to 120
