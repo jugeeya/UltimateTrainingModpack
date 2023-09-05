@@ -760,9 +760,9 @@ impl BuffOption {
                 BuffOption::MONAD_BUSTER => *FIGHTER_SHULK_MONAD_TYPE_BUSTER,
                 BuffOption::MONAD_SMASH => *FIGHTER_SHULK_MONAD_TYPE_SMASH,
                 BuffOption::POWER_DRAGON => 1,
-                BuffOption::WAFT_MINI => 1000,
-                BuffOption::WAFT_HALF => 3600,
-                BuffOption::WAFT_FULL => 7200,
+                BuffOption::WAFT_MINI => *FIGHTER_WARIO_GASS_LEVEL_M,
+                BuffOption::WAFT_HALF => *FIGHTER_WARIO_GASS_LEVEL_L,
+                BuffOption::WAFT_FULL => *FIGHTER_WARIO_GASS_LEVEL_FLY,
                 _ => return None,
             })
         }
