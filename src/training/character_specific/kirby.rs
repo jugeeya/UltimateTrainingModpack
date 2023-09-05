@@ -1,6 +1,6 @@
-use crate::training::charge::{ChargeState, change_magic};
-use crate::training::save_states;
 use crate::common::try_get_battle_object;
+use crate::training::charge::ChargeState;
+use crate::training::save_states;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode};
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
@@ -595,8 +595,10 @@ pub unsafe fn handle_kirby_hat_charge(
                 module_accessor,
                 *FIGHTER_TRAIL_STATUS_SPECIAL_N1_FLAG_CHANGE_MAGIC,
             );
-            if let Some(fighter) = try_get_battle_object(module_accessor.battle_object_id) {
-                change_magic(fighter);
+            if let Some(battle_object) = try_get_battle_object(module_accessor.battle_object_id) {
+                let fighter =
+                    std::mem::transmute::<&app::BattleObject, *mut app::Fighter>(battle_object);
+                app::FighterSpecializer_Trail::change_magic(fighter);
             }
         });
     }

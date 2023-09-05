@@ -16,9 +16,6 @@ fn copy_setup(
     bool_2: bool,
 );
 
-#[skyline::from_offset(0x1267900)]
-pub fn change_magic(fighter: &app::BattleObject); // Specifically a Fighter, but setting this as prevents unsafe transmute
-
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
     pub int_x: Option<i32>,
@@ -958,8 +955,10 @@ pub unsafe fn handle_charge(
                 module_accessor,
                 *FIGHTER_TRAIL_STATUS_SPECIAL_N1_FLAG_CHANGE_MAGIC,
             );
-            if let Some(fighter) = try_get_battle_object(module_accessor.battle_object_id) {
-                change_magic(fighter);
+            if let Some(battle_object) = try_get_battle_object(module_accessor.battle_object_id) {
+                let fighter =
+                    std::mem::transmute::<&app::BattleObject, *mut app::Fighter>(battle_object);
+                app::FighterSpecializer_Trail::change_magic(fighter);
             }
         });
     }
