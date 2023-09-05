@@ -17,6 +17,17 @@ fn copy_setup(
 );
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
+pub struct RobinCharges {
+    pub thunder_kind: i32,
+    pub yellow_book: i32,
+    pub red_book: f32,
+    pub green_book: i32,
+    pub purple_book: i32,
+    pub levin_charge: i32,
+    pub levin_recharge: i32,
+}
+
+#[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
 pub struct ChargeState {
     pub int_x: Option<i32>,
     pub int_y: Option<i32>,
@@ -25,6 +36,7 @@ pub struct ChargeState {
     pub float_y: Option<f32>,
     pub float_z: Option<f32>,
     pub has_charge: Option<bool>,
+    pub robin_charges: Option<RobinCharges>,
 }
 
 impl ChargeState {
@@ -67,6 +79,11 @@ impl ChargeState {
         self.int_x = pikmin_1;
         self.int_y = pikmin_2;
         self.int_z = pikmin_3;
+        self
+    }
+
+    fn set_robin(mut self, robin_charges: RobinCharges) -> Self {
+        self.robin_charges = Some(robin_charges);
         self
     }
 
@@ -237,11 +254,46 @@ pub unsafe fn get_charge(
     }
     // Robin Thunder Tome Spells
     else if fighter_kind == FIGHTER_KIND_REFLET {
-        let my_charge = WorkModule::get_int(
+        let thunder_kind = WorkModule::get_int(
             module_accessor,
             *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND,
         );
-        charge_state.int_x(my_charge)
+        let yellow_book = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_CURRENT_POINT,
+        );
+        let red_book = WorkModule::get_float(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_FLOAT_SPECIAL_S_CURRENT_POINT,
+        );
+        let green_book = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_HI_CURRENT_POINT,
+        );
+        let purple_book = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_LW_CURRENT_POINT,
+        );
+        let levin_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_THUNDER_SWORD_CURRENT_POINT,
+        );
+        // Might be worth forcing Levin charge full on L+R+A restart for Robin, if we find Robin's reset function.
+        // Until then, this is to make it more convenient if a player starts up training mode and instantly saves state.
+        let levin_recharge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_THUNDER_SWORD_REVIVAL_COUNT,
+        );
+        let robin_charges = RobinCharges {
+            thunder_kind,
+            yellow_book,
+            red_book,
+            green_book,
+            purple_book,
+            levin_charge,
+            levin_recharge,
+        };
+        charge_state.set_robin(robin_charges)
     }
     // Plant Poison Breath
     else if fighter_kind == FIGHTER_KIND_PACKUN {
@@ -777,13 +829,13 @@ pub unsafe fn handle_charge(
     }
     // Robin Thunder Tome Spells - 0 to 3
     else if fighter_kind == FIGHTER_KIND_REFLET {
-        charge.int_x.map(|thunder_kind| {
+        charge.robin_charges.map(|robin_charges| {
             WorkModule::set_int(
                 module_accessor,
-                thunder_kind,
+                robin_charges.thunder_kind,
                 *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_THUNDER_KIND,
             );
-            if thunder_kind == 3 {
+            if robin_charges.thunder_kind == 3 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
                 let reflet_hash = Hash40::new("reflet_thunder_max");
                 let joint_hash = Hash40::new("handl");
@@ -814,6 +866,36 @@ pub unsafe fn handle_charge(
                     false,
                 );
             }
+            WorkModule::set_int(
+                module_accessor,
+                robin_charges.yellow_book,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_N_CURRENT_POINT,
+            );
+            WorkModule::set_float(
+                module_accessor,
+                robin_charges.red_book,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_FLOAT_SPECIAL_S_CURRENT_POINT,
+            );
+            WorkModule::set_int(
+                module_accessor,
+                robin_charges.green_book,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_HI_CURRENT_POINT,
+            );
+            WorkModule::set_int(
+                module_accessor,
+                robin_charges.purple_book,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_SPECIAL_LW_CURRENT_POINT,
+            );
+            WorkModule::set_int(
+                module_accessor,
+                robin_charges.levin_charge,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_THUNDER_SWORD_CURRENT_POINT,
+            );
+            WorkModule::set_int(
+                module_accessor,
+                robin_charges.levin_recharge,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_THUNDER_SWORD_REVIVAL_COUNT,
+            );
         });
     }
     // Mii Gunner Charge Blast - 0 to 120
