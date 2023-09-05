@@ -34,12 +34,20 @@ pub fn is_training_mode() -> bool {
     true
 }
 
+#[skyline::from_offset(0x3ac540)]
+pub fn get_battle_object_from_id(battle_object_id: u32) -> *mut app::BattleObject;
+
 pub fn get_category(module_accessor: &app::BattleObjectModuleAccessor) -> i32 {
     (module_accessor.battle_object_id >> 28) as u8 as i32
 }
 
 pub fn is_emulator() -> bool {
     unsafe { skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as u64 == 0x8004000 }
+}
+
+pub unsafe fn try_get_battle_object(battle_object_id: u32) -> Option<&'static app::BattleObject> {
+    let battle_object_ptr = get_battle_object_from_id(battle_object_id);
+    battle_object_ptr.as_ref()
 }
 
 pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {

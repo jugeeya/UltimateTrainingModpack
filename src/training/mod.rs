@@ -523,6 +523,14 @@ pub unsafe fn handle_fighter_play_se(
             my_hash = Hash40::new("se_silent");
         }
     }
+    // Supress Sora Magic Switch SFX when loading Save State
+    if my_hash.hash == 0x156fdf29ba {
+        let module_accessor = (*sound_module).owner;
+        // Kirby and Sora's Special N statuses are all here or higher
+        if StatusModule::status_kind(module_accessor) < *FIGHTER_TRAIL_STATUS_KIND_SPECIAL_N1 {
+            my_hash = Hash40::new("se_silent");
+        }
+    }
     my_hash = ptrainer::handle_pokemon_sound_effect(my_hash);
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }

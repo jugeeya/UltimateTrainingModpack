@@ -1,3 +1,4 @@
+use crate::common::try_get_battle_object;
 use crate::training::charge::ChargeState;
 use crate::training::save_states;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode};
@@ -194,6 +195,14 @@ pub unsafe fn get_kirby_hat_charge(
         let my_charge = WorkModule::get_int(
             module_accessor,
             *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME,
+        );
+        charge_state.int_x(my_charge)
+    }
+    // Sora Spell
+    else if opponent_fighter_kind == FIGHTER_KIND_TRAIL {
+        let my_charge = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND,
         );
         charge_state.int_x(my_charge)
     }
@@ -570,6 +579,26 @@ pub unsafe fn handle_kirby_hat_charge(
                 frizz_charge,
                 *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME,
             );
+        });
+    }
+    // Sora Spell - 0 to 2
+    else if opponent_fighter_kind == FIGHTER_KIND_TRAIL {
+        charge.int_x.map(|spell_kind| {
+            let prev_spell_kind = (spell_kind + 1) % 3;
+            WorkModule::set_int(
+                module_accessor,
+                prev_spell_kind,
+                *FIGHTER_TRAIL_INSTANCE_WORK_ID_INT_SPECIAL_N_MAGIC_KIND,
+            );
+            // app::FighterSpecializer_Trail::change_magic() doesn't actually run if the below flag isn't set
+            WorkModule::on_flag(
+                module_accessor,
+                *FIGHTER_TRAIL_STATUS_SPECIAL_N1_FLAG_CHANGE_MAGIC,
+            );
+            if let Some(battle_object) = try_get_battle_object(module_accessor.battle_object_id) {
+                let fighter = battle_object as *const app::BattleObject as *mut app::Fighter;
+                app::FighterSpecializer_Trail::change_magic(fighter);
+            }
         });
     }
 }
