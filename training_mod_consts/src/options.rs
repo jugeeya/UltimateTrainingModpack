@@ -822,9 +822,9 @@ impl fmt::Display for BuffOption {
                 BuffOption::MONAD_BUSTER => "Buster",
                 BuffOption::MONAD_SMASH => "Smash",
                 BuffOption::POWER_DRAGON => "Power Dragon",
-                BuffOption::WAFT_MINI => "Waft Mini",
-                BuffOption::WAFT_HALF => "Waft Half",
-                BuffOption::WAFT_FULL => "Waft Full",
+                BuffOption::WAFT_MINI => "Mini Waft",
+                BuffOption::WAFT_HALF => "Half Waft",
+                BuffOption::WAFT_FULL => "Full Waft",
                 _ => combination_string.as_str(),
             }
         )
