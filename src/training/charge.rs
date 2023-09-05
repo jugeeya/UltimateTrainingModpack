@@ -76,6 +76,45 @@ impl ChargeState {
     }
 }
 
+unsafe fn apply_revenge_effects(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    let pos = Vector3f {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    let rot = Vector3f {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    let eff_hash = Hash40::new("gaogaen_revenge_aura");
+    let joint_hashes = [
+        Hash40 { hash: 0x90fa00879 },
+        Hash40 { hash: 0x9f5af351a },
+        Hash40 { hash: 0x51ba4b748 },
+        Hash40 { hash: 0x5e1ab8a2b },
+        Hash40 { hash: 0x8813bc317 },
+    ];
+    for joint_hash in joint_hashes {
+        EffectModule::req_follow(
+            module_accessor,
+            eff_hash,
+            joint_hash,
+            &pos,
+            &rot,
+            1.0,
+            false,
+            32768,
+            0,
+            -1,
+            0,
+            0,
+            false,
+            false,
+        );
+    }
+}
+
 pub unsafe fn get_charge(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     fighter_kind: i32,
@@ -875,6 +914,7 @@ pub unsafe fn handle_charge(
                 3500,
                 *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_REVENGE_TIMER,
             );
+            apply_revenge_effects(module_accessor);
         });
     }
     // Mii Gunner Charge Blast - 0 to 120
