@@ -107,6 +107,7 @@ macro_rules! default_save_state {
                 float_y: None,
                 float_z: None,
                 has_charge: None,
+                robin_charges: None,
             },
             steve_state: Some(steve::SteveState {
                 mat_g1: 36,
