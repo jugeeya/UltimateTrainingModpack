@@ -93,6 +93,8 @@ pub unsafe fn handle_buffs(
         return buff_shulk(module_accessor, status);
     } else if fighter_kind == *FIGHTER_KIND_TANTAN && menu_vec.contains(&BuffOption::POWER_DRAGON) {
         return buff_minmin(module_accessor);
+    } else if fighter_kind == *FIGHTER_KIND_WARIO {
+        return buff_wario(module_accessor);
     }
     true
 }
@@ -231,6 +233,23 @@ unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -
         return true;
     }
     false
+}
+
+
+unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if !is_buffing(module_accessor) {
+        let waft_count: BuffOption = MENU.buff_state.wario_buffs().get_random();
+        if waft_count == BuffOption::empty() {
+            return true
+        }
+        WorkModule::set_int(
+            module_accessor,
+            waft_count.into_int().unwrap(),
+            *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT,
+        );
+    }
+    start_buff(module_accessor);
+    true
 }
 
 unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {

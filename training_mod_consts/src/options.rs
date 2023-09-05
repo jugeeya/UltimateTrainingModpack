@@ -734,6 +734,9 @@ bitflags! {
         const MONAD_BUSTER = 0x1000;
         const MONAD_SMASH = 0x2000;
         const POWER_DRAGON = 0x4000;
+        const WAFT_MINI = 0x8000;
+        const WAFT_HALF = 0x10000;
+        const WAFT_FULL = 0x20000;
     }
 }
 
@@ -757,6 +760,9 @@ impl BuffOption {
                 BuffOption::MONAD_BUSTER => *FIGHTER_SHULK_MONAD_TYPE_BUSTER,
                 BuffOption::MONAD_SMASH => *FIGHTER_SHULK_MONAD_TYPE_SMASH,
                 BuffOption::POWER_DRAGON => 1,
+                BuffOption::WAFT_MINI => 1000,
+                BuffOption::WAFT_HALF => 3600,
+                BuffOption::WAFT_FULL => 7200,
                 _ => return None,
             })
         }
@@ -783,6 +789,16 @@ impl BuffOption {
             .union(BuffOption::MONAD_SMASH);
         self.intersection(shulk_buffs_bitflags)
     }
+
+
+    pub fn wario_buffs(self) -> BuffOption {
+        // Return a struct with only Shulk's selected arts
+        let wario_buffs_bitflags = BuffOption::WAFT_MINI
+            .union(BuffOption::WAFT_HALF)
+            .union(BuffOption::WAFT_FULL);
+        self.intersection(wario_buffs_bitflags)
+    }
+
 }
 
 impl fmt::Display for BuffOption {
@@ -807,6 +823,9 @@ impl fmt::Display for BuffOption {
                 BuffOption::MONAD_BUSTER => "Buster",
                 BuffOption::MONAD_SMASH => "Smash",
                 BuffOption::POWER_DRAGON => "Power Dragon",
+                BuffOption::WAFT_MINI => "Waft Mini",
+                BuffOption::WAFT_HALF => "Waft Half",
+                BuffOption::WAFT_FULL => "Waft Full",
                 _ => combination_string.as_str(),
             }
         )
