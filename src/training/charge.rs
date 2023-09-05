@@ -243,6 +243,30 @@ pub unsafe fn get_charge(
         );
         charge_state.int_x(my_charge)
     }
+    // Incineroar Revenge
+    else if fighter_kind == FIGHTER_KIND_GAOGAEN {
+        let revenge_attack_num = WorkModule::get_int(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_ATTACK_HIT_REVENGE_ATTACK_NO,
+        );
+        let revenge_damage = WorkModule::get_float(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_TOTAL_DAMAGE,
+        );
+        let revenge_rate = WorkModule::get_float(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_RATE,
+        );
+        let has_revenge = WorkModule::is_flag(
+            module_accessor,
+            *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE,
+        );
+        charge_state
+            .int_x(revenge_attack_num)
+            .float_x(revenge_damage)
+            .float_y(revenge_rate)
+            .has_charge(has_revenge)
+    }
     // Plant Poison Breath
     else if fighter_kind == FIGHTER_KIND_PACKUN {
         let my_charge = WorkModule::get_int(
@@ -814,6 +838,43 @@ pub unsafe fn handle_charge(
                     false,
                 );
             }
+        });
+    }
+    // Incineroar Revenge
+    else if fighter_kind == FIGHTER_KIND_GAOGAEN {
+        charge.int_x.map(|revenge_attack_num| {
+            WorkModule::set_int(
+                module_accessor,
+                revenge_attack_num,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_ATTACK_HIT_REVENGE_ATTACK_NO,
+            );
+        });
+        charge.float_x.map(|revenge_damage| {
+            WorkModule::set_float(
+                module_accessor,
+                revenge_damage,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_TOTAL_DAMAGE,
+            );
+        });
+        charge.float_y.map(|revenge_rate| {
+            WorkModule::set_float(
+                module_accessor,
+                revenge_rate,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLOAT_REVENGE_RATE,
+            );
+        });
+        charge.has_charge.map(|has_revenge| {
+            WorkModule::set_flag(
+                module_accessor,
+                has_revenge,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE,
+            );
+            // No benefit to saving that Revenge is about to run out
+            WorkModule::set_int(
+                module_accessor,
+                3500,
+                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_REVENGE_TIMER,
+            );
         });
     }
     // Mii Gunner Charge Blast - 0 to 120
