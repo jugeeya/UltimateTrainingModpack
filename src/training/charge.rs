@@ -903,18 +903,20 @@ pub unsafe fn handle_charge(
             );
         });
         charge.has_charge.map(|has_revenge| {
-            WorkModule::set_flag(
-                module_accessor,
-                has_revenge,
-                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE,
-            );
-            // No benefit to saving that Revenge is about to run out
-            WorkModule::set_int(
-                module_accessor,
-                3500,
-                *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_REVENGE_TIMER,
-            );
-            apply_revenge_effects(module_accessor);
+            if has_revenge {
+                WorkModule::set_flag(
+                    module_accessor,
+                    has_revenge,
+                    *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_FLAG_IS_REVENGE,
+                );
+                // No benefit to saving that Revenge is about to run out
+                WorkModule::set_int(
+                    module_accessor,
+                    3500,
+                    *FIGHTER_GAOGAEN_INSTANCE_WORK_ID_INT_REVENGE_TIMER,
+                );
+                apply_revenge_effects(module_accessor);
+            }
         });
     }
     // Mii Gunner Charge Blast - 0 to 120
