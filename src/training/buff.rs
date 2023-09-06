@@ -258,6 +258,11 @@ unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
             waft_count_frames,
             *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT,
         );
+        WorkModule::set_int(
+            module_accessor, 
+            waft_level.into_int().unwrap(), 
+            *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_LEVEL,
+        );
     }
     start_buff(module_accessor);
     true
