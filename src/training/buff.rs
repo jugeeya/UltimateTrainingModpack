@@ -239,8 +239,7 @@ unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -
 unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     if !is_buffing(module_accessor) {
         let waft_level: BuffOption = MENU.buff_state.wario_buffs().get_random();
-        let waft_count_secs;
-        match waft_level {
+        let waft_count_secs = match waft_level {
             BuffOption::WAFT_MINI => {
                 waft_count_secs = WorkModule::get_param_float(
                     module_accessor,
@@ -263,7 +262,7 @@ unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
                 ) as i32
             }
             _ => return true,
-        }
+        };
         let waft_count_frames = waft_count_secs * 60;
         WorkModule::set_int(
             module_accessor,
