@@ -241,21 +241,21 @@ unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         let waft_level: BuffOption = MENU.buff_state.wario_buffs().get_random();
         let waft_count_secs = match waft_level {
             BuffOption::WAFT_MINI => {
-                waft_count_secs = WorkModule::get_param_float(
+                WorkModule::get_param_float(
                     module_accessor,
                     hash40("param_special_lw"),
                     hash40("gass_middle_time"),
                 ) as i32
             }
             BuffOption::WAFT_HALF => {
-                waft_count_secs = WorkModule::get_param_float(
+                WorkModule::get_param_float(
                     module_accessor,
                     hash40("param_special_lw"),
                     hash40("gass_large_time"),
                 ) as i32
             }
             BuffOption::WAFT_FULL => {
-                waft_count_secs = WorkModule::get_param_float(
+                WorkModule::get_param_float(
                     module_accessor,
                     hash40("param_special_lw"),
                     hash40("gass_max_time"),
