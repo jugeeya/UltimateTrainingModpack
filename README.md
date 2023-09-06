@@ -388,19 +388,19 @@ To install a beta version of the modpack, follow the same procedure using the [l
    No, an emuMMC is not required for smash mods. Using an emuMMC is complicated and a known ban risk when connected online, so it is not recommended.
 7. **Can this mod be run on emulators?**
 
-   Yes, using Ryujinx! See the installation instructions for more information. Yuzu does not support Skyline (a prerequisite for loading the Training Modpack), so it cannot run the Training Modpack at this time.
+   Yes, using Yuzu or Ryujinx! See the installation instructions for more information.
 8. **How do I know that I installed the Training Modpack correctly?**
 
    When launching Smash for the first time after installing the Training Modpack, you should receive a pop up notification confirming that you've installed it correctly. You can also check your SD card to make sure that you have all of the files installed in the correct location. If you have the following files, its likely that everything else is installed correctly as well. `SD:/atmosphere/contents/01006A800016E000/exefs/main.npdm`, `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`, etc.
-9.  **How do I launch Smash without the Training Modpack?**
+9.  **How do I launch Smash without the Training Modpack (and other mods)?**
 
-    Hold the `L` button as you are launching smash.
-10. **I can launch smash, but the mod doesn't seem to be doing anything in training mode?**
+    Hold the `L` button as you are launching Smash.
+10. **I can launch Smash, but the mod doesn't seem to be doing anything in training mode?**
 
     This usually indicates that either the modpack or skyline was not installed in the correct location. Read the installation instructions again carefully, and ensure that you have placed all of the files in the exact locations specified.
 11. **How do I open the menu?**
 
-    Hold the `SPECIAL` button and press `UP TAUNT` while in training mode. Typically this is `B+DPAD UP`, but do note that these are affected by your control scheme so if you have changed those inputs you need to adjust accordingly.
+    Hold `DPAD UP` and press `B` while in training mode.
 
 12. **Why are the save state mirroring positions slightly off on Town and City and Smashville?**
 
@@ -432,45 +432,42 @@ To install a beta version of the modpack, follow the same procedure using the [l
 
     The Training Modpack features are only applied while in training mode and do not affect any of the other game modes outside of it, including online play. Smash online is client sided, so only the data that is sent to other players is available for inspection by Nintendo. Since the Training Modpack doesn't affect that data, the Training Modpack is safe to use when playing online. This conclusion is backed up by user experience, where many users have played online with the Training Modpack active and have suffered no adverse consequences.
     *HOWEVER*, please understand that there is inherent risk involved with smash modding, and no guarantee is made that your switch will not be banned. Other wifi-unsafe mods, unsportsmanlike online play, cheating, save editors, online emuMMC, pirating, and other activities may result in a ban. Nintendo has not published a list of ban-worthy activities, nor have they communicated that modding is acceptable, but these are several well-known causes from user experience. It is your responsibility to understand these risks, since it is your switch and your choices.
-20. **Can I change the button combination to bring up the menu?**
-
-    This functionality is not supported at this time. However, it is a common request and we are looking into the possibility for the future.
-21. **What features does the Training Modpack have? What does each option do?**
+20. **What features does the Training Modpack have? What does each option do?**
 
     The Training Modpack has a wide array of features to improve training mode. Some of the more impactful improvements are the ability to save and load fighter positions, practice with hazards off, and adjust CPU behavior in certain scenarios. A full list and explanation of the different settings is available on the Github page here: https://github.com/jugeeya/UltimateTrainingModpack#features
-22. **I think I found a bug in the Training Modpack. How do I report it?**
+21. **I think I found a bug in the Training Modpack. How do I report it?**
 
     First check in the #bug-reports channel and Github Issues to see if it has already been reported. If it hasn't, please collect as much information as you can about the bug (including how to reproduce it!) and submit it either in the [#bug-reports](https://discord.com/channels/407970595418931200/407971515171340289) Discord channel or as an issue on Github here: https://github.com/jugeeya/UltimateTrainingModpack/issues
-23. **I have an idea for a new feature in the Training Modpack? How do I suggest it?**
+22. **I have an idea for a new feature in the Training Modpack? How do I suggest it?**
 
     Suggestions are always welcome! You can request new features in the [#requests](https://discord.com/channels/407970595418931200/407971627138285579) Discord channel. Please do keep in mind that the developers are volunteers with busy lives, so we may not be able to implement every suggestion, but we do read all requests in that channel and often prioritize features that are highly requested.
-24. **What happens when I pick multiple options for a setting, such as mash or tech options?**
+23. **What happens when I pick multiple options for a setting, such as mash or tech options?**
 
     Some menu settings allow for multiple selections. When there are several settings selected, the CPU will randomly choose between the selections when that setting is triggered. For instance, if you have both "Ledge Jump" and "Neutral Getup" selected under "Ledge Options", then the CPU will randomly select between those two options when deciding what to do when it is on the ledge.
-25. **How do I reset my Training Modpack settings?**
+24. **How do I reset my Training Modpack settings?**
 
     If you want to completely reset your menu selections back to the factory default, all you have to do is delete this file:
     `SD:/ultimate/TrainingModpack/training_modpack_menu.conf`
-26. **What input delay should I pick for practicing online?**
+25. **What input delay should I pick for practicing online?**
 
     Good LAN connections can be simulated with an input delay of 3-5 frames. Poorer Wifi connections can be up to 6-8 frames.
-27. **How do I install other mods, like skins or stages?**
+26. **How do I install other mods, like skins or stages?**
 
     You will need to use the Arcropolis mod manager to enable other types of mods. This discord is focused on the Training Modpack; more information on installation of other mods can be found in the general SSBU modding Discord, which is linked in the [#welcome](https://discord.com/channels/407970595418931200/721077130456203335) channel.
-28. **Can I put the Training Modpack under my `SD:/ultimate/mods` folder?**
+27. **Can I put the Training Modpack under my `SD:/ultimate/mods` folder?**
 
     No, the Training Modpack is not supported in a chainloading configuration. Please only install in the recommended location.
-29. **Are there any known mods that conflict with the Training Modpack?**
+28. **Are there any known mods that conflict with the Training Modpack?**
 
     Currently the known conflicts are:
 
     * Minecraft Skins
 
-30. **Who created the Training Modpack?**
+29. **Who created the Training Modpack?**
 
     jugeeya is the creator of the Training Modpack, along with its predecessor in Smash 4. There are a number of developers who contribute new features and bugfixes as well, listed on the contributors page: https://github.com/jugeeya/UltimateTrainingModpack/graphs/contributors
 
-31. **I want to contribute as a developer to the Training Modpack. How do I get started?**
+30. **I want to contribute as a developer to the Training Modpack. How do I get started?**
 
     If you'd like to help out as a developer, we welcome any contributions! The Training Modpack is written in Rust, and uses the Skyline framework to hook into existing Smash functions to add functionality to training mode. If you aren't already familiar with Rust, the Rust book is a great place to start familiarizing yourself with the syntax and structure: https://doc.rust-lang.org/book/ . You can also take a look through the existing codebase on Github to check out how everything works right now. It's all open source!
 
@@ -517,12 +514,17 @@ These are the features that can be found [in the latest beta release](https://gi
 * **Input Display**: Show inputs in a per-status, frame counted log-style viewer! Choose between raw controller inputs and "Smash"-style inputs, being what the game actually understands and passes to fighters - @jugeeya, @xhudaman
 * **Auto-Updater**: Allow the modpack to automatically update itself when updates are available. Users can choose which update track they'd like from the Stable or Beta track in the menu - @asimon-1
 * **Mash Overrides**: Specify which mash options to perform in specific scenarios - @GradualSyrup, @asimon-1
+* **Hide Tech Animations**: Animations and the CPU cursor are are hidden (character model/effects are invisible) during when the CPU is teching-- use this to practice true reaction tech chasing! The fixed camera is also modified on legal stages to aid this practice. - @GradualSyrup
 * **Customizable Button Configs**: Configure button combinations for save states and input recording in the menu itself. Please note that we now use raw inputs rather than Smash inputs, and save state save/load binds have moved to `L+DPad Down`, `L+DPad Up` respectively - @jugeeya
 * **Press Start/Select to Open Menu**: You can now open the menu with start press; holding start for >= 10 frames gives the original menu. On controllers with the minus button, minus can also be used to open the menu. This behavior can be toggled, and the old default `B+DPad Up` will always work. This change allows for much more seamless opening and closing of the modpack's menu - @jugeeya
 * **Dodge Staling**: Control whether the CPU is affected by the game's default dodge (roll, airdodge, etc.) staling mechanism. - @GradualSyrup
 
 ## Bugfixes
 * Keep Luma, Mii Fighter hats, Mythra's sword, and Pikmin when loading save states - @GradualSyrup
+* Fix Pokemon Trainer load on save state - @GradualSyrup
+  * Allow Pokemon to be saved properly
+  * Speed up load to match other fighters
+  * Remove effects as artifacts
 * Fixed bug where the Dash Attack mash option would not properly trigger dash attack - @GradualSyrup
 * Fixed Hero, Little Mac, WFT, Sephiroth, and other characters' SFX/VFX replaying on save state load - @GradualSyrup
 * Fixed missed tech toggles not occurring when characters are jab locked - @GradualSyrup
@@ -530,9 +532,16 @@ These are the features that can be found [in the latest beta release](https://gi
 * Input delay now works properly with the [less delay mod](https://github.com/blu-dev/less-delay) - @jugeeya
 
 ## Adjustments
-* Added Shulk Monado Arts to the Buffs Menu - @GradualSyrup
-* Automatically save and load Olimar's Pikmin line up with save states - @GradualSyrup
-* Automatically save and load Kirby's hats with save states - @GradualSyrup
+* Added many new character features to the Buffs Menu - @GradualSyrup
+  * Shulk Monado Arts
+  * Min Min Power Dragon
+  * Wario Waft
+* Automatically save and load many new character features with save states - @GradualSyrup
+  * Olimar's Pikmin line up
+  * Kirby's hats with save states
+  * Robin's tomes and Levin Sword
+  * Incineroar's Revenge
+  * Sora's Spell
 * Made menu larger and added more columns for increased visibility, especially on handheld - @jugeeya
 * Users can close the menu immediately after opening it - @jugeeya
 * Menu exit inputs (B, Start) no longer have effects in-game (B causing a Special input, Start reopening the menu or opening the vanilla menu) - @jugeeya
