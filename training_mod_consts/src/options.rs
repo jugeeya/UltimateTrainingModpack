@@ -790,14 +790,12 @@ impl BuffOption {
         self.intersection(shulk_buffs_bitflags)
     }
 
-
     pub fn wario_buffs(self) -> BuffOption {
         let wario_buffs_bitflags = BuffOption::WAFT_MINI
             .union(BuffOption::WAFT_HALF)
             .union(BuffOption::WAFT_FULL);
         self.intersection(wario_buffs_bitflags)
     }
-
 }
 
 impl fmt::Display for BuffOption {

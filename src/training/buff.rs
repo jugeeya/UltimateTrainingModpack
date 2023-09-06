@@ -1,7 +1,7 @@
 use smash::app::{self, lua_bind::*};
+use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
-use smash::hash40;
 
 use crate::common::consts::*;
 use crate::is_operation_cpu;
@@ -236,21 +236,30 @@ unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -
     false
 }
 
-
 unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     if !is_buffing(module_accessor) {
         let waft_level: BuffOption = MENU.buff_state.wario_buffs().get_random();
         let mut waft_count_secs = 0;
         if waft_level == BuffOption::empty() {
-            return true
+            return true;
         } else if waft_level == BuffOption::WAFT_MINI {
-            waft_count_secs = WorkModule::get_param_float(module_accessor, hash40("param_special_lw"), hash40("gass_middle_time")) as i32
-        }
-        else if waft_level == BuffOption::WAFT_HALF {
-            waft_count_secs = WorkModule::get_param_float(module_accessor, hash40("param_special_lw"), hash40("gass_large_time")) as i32
-        }
-        else if waft_level == BuffOption::WAFT_FULL {
-            waft_count_secs = WorkModule::get_param_float(module_accessor, hash40("param_special_lw"), hash40("gass_max_time")) as i32
+            waft_count_secs = WorkModule::get_param_float(
+                module_accessor,
+                hash40("param_special_lw"),
+                hash40("gass_middle_time"),
+            ) as i32;
+        } else if waft_level == BuffOption::WAFT_HALF {
+            waft_count_secs = WorkModule::get_param_float(
+                module_accessor,
+                hash40("param_special_lw"),
+                hash40("gass_large_time"),
+            ) as i32;
+        } else if waft_level == BuffOption::WAFT_FULL {
+            waft_count_secs = WorkModule::get_param_float(
+                module_accessor,
+                hash40("param_special_lw"),
+                hash40("gass_max_time"),
+            ) as i32;
         }
         let waft_count_frames = waft_count_secs * 60;
         WorkModule::set_int(
@@ -259,8 +268,8 @@ unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
             *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT,
         );
         WorkModule::set_int(
-            module_accessor, 
-            waft_level.into_int().unwrap(), 
+            module_accessor,
+            waft_level.into_int().unwrap(),
             *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_LEVEL,
         );
     }
