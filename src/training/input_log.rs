@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use once_cell::unsync::Lazy;
 use std::collections::VecDeque;
 
 use crate::common::{input::*, menu::QUICK_MENU_ACTIVE, try_get_module_accessor};
@@ -60,11 +59,11 @@ pub const WHITE: ResColor = ResColor {
     a: 0,
 };
 
-pub static PER_LOG_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
-pub static OVERALL_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
-
+lazy_static! {
+    pub static ref PER_LOG_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+    pub static ref OVERALL_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+}
+    
 pub const NUM_LOGS: usize = 10;
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
