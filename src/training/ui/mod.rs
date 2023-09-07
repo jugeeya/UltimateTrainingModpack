@@ -23,7 +23,7 @@ lazy_static! {
     pub static ref REFRESH_RATE_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::Real);
 }
 
-const REFRESH_RATE : usize = 15;
+const REFRESH_RATE : u32 = 15;
 
 pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
     pane.set_text_string("");
@@ -86,7 +86,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     if layout_name == "info_training" {
         frame_counter::start_counting(*REFRESH_RATE_FRAME_COUNTER);
         frame_counter::tick_real();
-        if frame_counter::get_frame_count(*REFRESH_RATE_FRAME_COUNTER) % REFRESH_RATE {
+        if frame_counter::get_frame_count(*REFRESH_RATE_FRAME_COUNTER) % REFRESH_RATE == 0 {
             input_log::draw(root_pane);
             display::draw(root_pane);
             menu::draw(root_pane);
