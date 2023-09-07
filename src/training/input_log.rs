@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use once_cell::sync::Lazy;
+use once_cell::unsync::Lazy;
 use std::collections::VecDeque;
 
 use crate::common::{input::*, menu::QUICK_MENU_ACTIVE, try_get_module_accessor};
