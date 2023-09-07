@@ -1,4 +1,5 @@
 use smash::app::{self, lua_bind::*};
+use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
@@ -93,6 +94,8 @@ pub unsafe fn handle_buffs(
         return buff_shulk(module_accessor, status);
     } else if fighter_kind == *FIGHTER_KIND_TANTAN && menu_vec.contains(&BuffOption::POWER_DRAGON) {
         return buff_minmin(module_accessor);
+    } else if fighter_kind == *FIGHTER_KIND_WARIO {
+        return buff_wario(module_accessor);
     }
     true
 }
@@ -231,6 +234,43 @@ unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -
         return true;
     }
     false
+}
+
+unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    if !is_buffing(module_accessor) {
+        let waft_level: BuffOption = MENU.buff_state.wario_buffs().get_random();
+        let waft_count_secs = match waft_level {
+            BuffOption::WAFT_MINI => WorkModule::get_param_float(
+                module_accessor,
+                hash40("param_special_lw"),
+                hash40("gass_middle_time"),
+            ) as i32,
+            BuffOption::WAFT_HALF => WorkModule::get_param_float(
+                module_accessor,
+                hash40("param_special_lw"),
+                hash40("gass_large_time"),
+            ) as i32,
+            BuffOption::WAFT_FULL => WorkModule::get_param_float(
+                module_accessor,
+                hash40("param_special_lw"),
+                hash40("gass_max_time"),
+            ) as i32,
+            _ => return true,
+        };
+        let waft_count_frames = waft_count_secs * 60;
+        WorkModule::set_int(
+            module_accessor,
+            waft_count_frames,
+            *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_COUNT,
+        );
+        WorkModule::set_int(
+            module_accessor,
+            waft_level.into_int().unwrap(),
+            *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_LEVEL,
+        );
+    }
+    start_buff(module_accessor);
+    true
 }
 
 unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
