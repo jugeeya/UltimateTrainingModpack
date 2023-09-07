@@ -60,8 +60,8 @@ pub const WHITE: ResColor = ResColor {
 };
 
 lazy_static! {
-    pub static ref PER_LOG_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
-    pub static ref OVERALL_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+    pub static ref PER_LOG_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset);
+    pub static ref OVERALL_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset);
 }
     
 pub const NUM_LOGS: usize = 10;
