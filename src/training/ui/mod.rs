@@ -23,7 +23,7 @@ lazy_static! {
     pub static ref REFRESH_RATE_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::Real);
 }
 
-const REFRESH_RATE : u32 = 15;
+const REFRESH_RATE : u32 = 3;
 
 pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
     pane.set_text_string("");
