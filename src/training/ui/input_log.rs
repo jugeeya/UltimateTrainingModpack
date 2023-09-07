@@ -142,6 +142,8 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
             .as_picture();
 
         icon_pane.set_visible(true);
+        (*icon_pane.material).set_black_res_color(*icon_color);
+        icon_pane.flags |= PaneFlag::IsGlobalMatrixDirty as u8;
     }
 
     let frame_text = format!("{}", log.frames);
