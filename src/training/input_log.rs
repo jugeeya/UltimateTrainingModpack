@@ -87,8 +87,7 @@ pub struct InputLog {
 
 impl PartialEq for InputLog {
     fn eq(&self, other: &Self) -> bool {
-        self.frames == other.frames &&
-        !self.is_different(other)
+        self.frames == other.frames && !self.is_different(other)
     }
 }
 impl Eq for InputLog {}

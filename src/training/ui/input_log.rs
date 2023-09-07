@@ -182,7 +182,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     if drawn_logs_ptr.is_null() {
         return;
     }
-    let drawn_logs = &*drawn_logs_ptr;
+    let drawn_logs = &mut *drawn_logs_ptr;
 
     for (log_idx, log) in logs.iter().enumerate() {
         draw_log(root_pane, log_idx, log, &mut drawn_logs[log_idx]);
