@@ -111,6 +111,7 @@ lazy_static! {
             (RUp, 0),
         ]))
     };
+    pub static ref MENU_RECEIVED_INPUT: Mutex<bool> = Mutex::new(true);
 }
 
 pub static MENU_CLOSE_FRAME_COUNTER: Lazy<usize> =
@@ -262,6 +263,7 @@ pub fn handle_final_input_mapping(
                 if received_input {
                     direction_hold_frames.iter_mut().for_each(|(_, f)| *f = 0);
                     set_menu_from_json(&app.get_menu_selections());
+                    *MENU_RECEIVED_INPUT.lock() = true;
                 }
             }
         }
