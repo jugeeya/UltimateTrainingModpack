@@ -392,7 +392,7 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     // Only submit updates if we have received input
     let received_input = &mut *MENU_RECEIVED_INPUT.data_ptr();
-    if !received_input {
+    if !*received_input {
         return;
     } else {
         *received_input = false;
