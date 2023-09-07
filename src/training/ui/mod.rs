@@ -1,5 +1,6 @@
 #[cfg(feature = "layout_arc_from_file")]
 use byte_unit::MEBIBYTE;
+use lazy_static::lazy_static;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
 use smash::ui2d::SmashTextBox;
@@ -17,6 +18,12 @@ mod display;
 mod input_log;
 pub mod menu;
 pub mod notifications;
+
+lazy_static! {
+    pub static ref REFRESH_RATE_FRAME_COUNTER: usize = frame_counter::register_counter(frame_counter::FrameCounterType::Real);
+}
+
+const REFRESH_RATE : usize = 15;
 
 pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
     pane.set_text_string("");
@@ -77,10 +84,13 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     damage::draw(root_pane, &layout_name);
 
     if layout_name == "info_training" {
+        frame_counter::start_counting(*REFRESH_RATE_FRAME_COUNTER);
         frame_counter::tick_real();
-        input_log::draw(root_pane);
-        display::draw(root_pane);
-        menu::draw(root_pane);
+        if frame_counter::get_frame_count(*REFRESH_RATE_FRAME_COUNTER) % REFRESH_RATE {
+            input_log::draw(root_pane);
+            display::draw(root_pane);
+            menu::draw(root_pane);
+        }
     }
 
     original!()(layout, draw_info, cmd_buffer);
