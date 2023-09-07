@@ -85,6 +85,13 @@ pub struct InputLog {
     pub fighter_kind: i32,
 }
 
+impl PartialEq for InputLog {
+    fn eq(&self, other: &Self) -> bool {
+        self.frames == other.frames && !self.is_different(other)
+    }
+}
+impl Eq for InputLog {}
+
 const WALK_THRESHOLD_X: i8 = 20;
 const _DASH_THRESHOLD_X: i8 = 102;
 const DEADZONE_THRESHOLD_Y: i8 = 30;
@@ -272,6 +279,8 @@ fn insert_in_front<T>(array: &mut [T], value: T) {
 
 lazy_static! {
     pub static ref P1_INPUT_LOGS: Mutex<[InputLog; NUM_LOGS]> =
+        Mutex::new([InputLog::default(); NUM_LOGS]);
+    pub static ref DRAWN_LOGS: Mutex<[InputLog; NUM_LOGS]> =
         Mutex::new([InputLog::default(); NUM_LOGS]);
 }
 

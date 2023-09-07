@@ -7,7 +7,7 @@ use training_mod_consts::{InputDisplay, MENU};
 use crate::{
     common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
     training::{
-        input_log::{DirectionStrength, InputLog, P1_INPUT_LOGS, WHITE, YELLOW},
+        input_log::{DirectionStrength, InputLog, DRAWN_LOGS, P1_INPUT_LOGS, WHITE, YELLOW},
         ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
     },
 };
@@ -66,7 +66,7 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
     icons
 }
 
-unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
+unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog, drawn_log: &mut InputLog) {
     let log_pane = root_pane
         .find_pane_by_name_recursive(log_parent_fmt!(log_idx))
         .unwrap();
@@ -79,6 +79,13 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     }
     const FADE_FRAMES: u32 = 200;
     fade_out(log_pane, log.ttl, FADE_FRAMES);
+
+    // Don't redraw
+    if *log == *drawn_log {
+        return;
+    } else {
+        *drawn_log = *log;
+    }
 
     let icons = get_input_icons(log);
 
@@ -171,8 +178,13 @@ pub unsafe fn draw(root_pane: &Pane) {
         return;
     }
     let logs = &*logs_ptr;
+    let drawn_logs_ptr = DRAWN_LOGS.data_ptr();
+    if drawn_logs_ptr.is_null() {
+        return;
+    }
+    let drawn_logs = &mut *drawn_logs_ptr;
 
     for (log_idx, log) in logs.iter().enumerate() {
-        draw_log(root_pane, log_idx, log);
+        draw_log(root_pane, log_idx, log, &mut drawn_logs[log_idx]);
     }
 }

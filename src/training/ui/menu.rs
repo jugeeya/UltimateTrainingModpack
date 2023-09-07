@@ -6,7 +6,7 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::gauge::GaugeState;
 use training_mod_tui::{App, AppPage, NUM_LISTS};
 
-use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES};
+use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES, MENU_RECEIVED_INPUT};
 use crate::training::frame_counter;
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
@@ -388,6 +388,14 @@ pub unsafe fn draw(root_pane: &Pane) {
     } else {
         overall_parent_pane.alpha = 0;
         overall_parent_pane.global_alpha = 0;
+    }
+
+    // Only submit updates if we have received input
+    let received_input = &mut *MENU_RECEIVED_INPUT.data_ptr();
+    if !*received_input {
+        return;
+    } else {
+        *received_input = false;
     }
 
     // Make all invisible first
