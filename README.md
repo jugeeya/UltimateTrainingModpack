@@ -521,7 +521,7 @@ These are the features that can be found [in the latest beta release](https://gi
 * **Dodge Staling**: Control whether the CPU is affected by the game's default dodge (roll, airdodge, etc.) staling mechanism. - @GradualSyrup
 
 ## Bugfixes
-* Keep Luma, Mii Fighter hats, Mythra's sword, and Pikmin when loading save states - @GradualSyrup
+* Keep Duck Hunt's Reticle, Luma, Mii Fighter hats, Mythra's sword, and Pikmin when loading save states - @GradualSyrup
 * Fix Pokemon Trainer load on save state - @GradualSyrup
   * Allow Pokemon to be saved properly
   * Speed up load to match other fighters
