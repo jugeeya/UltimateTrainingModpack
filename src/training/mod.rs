@@ -878,6 +878,11 @@ pub fn training_mods() {
         add_hook(params_main).unwrap();
     }
 
+    // Enable Custom Stages for Training Mode
+    // Specifically, we prevent a field in StageSelectInfo of the Scene that controls if the Custom Stage tab is loaded
+    //  from being set to false when we load the SSS in Training Mode
+    skyline::patching::Patch::in_text(0x184d1d8).nop().unwrap();
+
     skyline::install_hooks!(
         // Mash airdodge/jump
         handle_get_command_flag_cat,
