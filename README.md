@@ -517,7 +517,7 @@ These are the features that can be found [in the latest beta release](https://gi
 * **Mash Overrides**: Specify which mash options to perform in specific scenarios - @GradualSyrup, @asimon-1
 * **Hide Tech Animations**: Animations and the CPU cursor are are hidden (character model/effects are invisible) during when the CPU is teching-- use this to practice true reaction tech chasing! The fixed camera is also modified on legal stages to aid this practice. - @GradualSyrup
 * **Customizable Button Configs**: Configure button combinations for save states and input recording in the menu itself. Please note that we now use raw inputs rather than Smash inputs, and save state save/load binds have moved to `L+DPad Down`, `L+DPad Up` respectively - @jugeeya
-* **Press Start/Select to Open Menu**: You can now open the menu with start press; holding start for >= 10 frames gives the original menu. On controllers with the minus button, minus can also be used to open the menu. This behavior can be toggled, and the old default `B+DPad Up` will always work. This change allows for much more seamless opening and closing of the modpack's menu - @jugeeya
+* **Press Start/Select to Open Menu**: You can now open the menu with start hold; pressing start for < 10 frames gives the original menu. On controllers with the minus button, minus can also be used to open the menu. This behavior can be toggled, and the old default `B+DPad Up` will always work. This change allows for much more seamless opening and closing of the modpack's menu - @jugeeya
 * **Dodge Staling**: Control whether the CPU is affected by the game's default dodge (roll, airdodge, etc.) staling mechanism. - @GradualSyrup
 
 ## Bugfixes
