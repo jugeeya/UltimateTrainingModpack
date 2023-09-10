@@ -878,7 +878,6 @@ pub fn training_mods() {
         add_hook(params_main).unwrap();
     }
 
-    
     // Enable Custom Stages for Training Mode
     // Specifically, we prevent a field in StageSelectInfo of the Scene that controls if the Custom Stage tab is loaded
     //  from being set to false when we load the SSS in Training Mode
