@@ -355,7 +355,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     button_tab.add_submenu_with_toggles::<OnOff>(
         "Menu Open Start Press".to_string(),
         "menu_open_start_press".to_string(),
-        "Menu Open Start Press: Press start to open the mod menu. To open the original menu, hold start.\nThe default menu open option is always available as Hold B + Press DPad Up.".to_string(),
+        "Menu Open Start Press: Hold start or press minus to open the mod menu. To open the original menu, press start.\nThe default menu open option is always available as Hold DPad Up + Press B.".to_string(),
         true,
         &(menu.menu_open_start_press as u32),
     );

@@ -121,7 +121,7 @@ pub fn main() {
         notification(
             "Open Menu".to_string(),
             if MENU.menu_open_start_press == OnOff::On {
-                "Start".to_string()
+                "Hold Start".to_string()
             } else {
                 DEFAULT_OPEN_MENU_CONFIG.to_string()
             },

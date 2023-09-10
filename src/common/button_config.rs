@@ -246,28 +246,30 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
                 p1_controller.current_buttons.set_plus(false);
                 p1_controller.just_down.set_plus(false);
                 p1_controller.just_release.set_plus(false);
+                if *start_hold_frames >= 10 && unsafe { !VANILLA_MENU_ACTIVE } {
+                    // If we've held for more than 10 frames,
+                    // let's open the training mod menu
+                    start_menu_request = true;
+                }
             } else {
-                if *start_hold_frames > 0 && menu_close_wait_frame == 0 {
-                    // Here, we just finished holding start
-                    if *start_hold_frames < 10
-                        && unsafe { !VANILLA_MENU_ACTIVE }
-                        && menu_close_wait_frame == 0
-                    {
-                        // If we held for fewer than 10 frames, let's open the training mod menu
-                        start_menu_request = true;
-                    } else if unsafe { !QUICK_MENU_ACTIVE } {
-                        // Otherwise, let's let the game know that we had pressed start
-                        // So long as our menu isn't active
-                        p1_controller.current_buttons.set_plus(true);
-                        p1_controller.just_down.set_plus(true);
-                        unsafe {
-                            VANILLA_MENU_ACTIVE = true;
-                        }
+                // Here, we just finished holding start
+                if *start_hold_frames > 0
+                    && *start_hold_frames < 10
+                    && unsafe { !QUICK_MENU_ACTIVE }
+                    && menu_close_wait_frame == 0
+                {
+                    // If we held for fewer than 10 frames, let's let the game know that
+                    // we had pressed start
+                    p1_controller.current_buttons.set_plus(true);
+                    p1_controller.just_down.set_plus(true);
+                    unsafe {
+                        VANILLA_MENU_ACTIVE = true;
                     }
                 }
                 *start_hold_frames = 0;
             }
 
+            // If we ever press minus, open the mod menu
             if p1_controller.current_buttons.minus() {
                 start_menu_request = true;
             }
