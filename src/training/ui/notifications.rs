@@ -8,6 +8,7 @@ pub struct Notification {
     pub message: String,
     length: u32,
     pub color: ResColor,
+    has_drawn: bool,
 }
 
 impl Notification {
@@ -17,7 +18,16 @@ impl Notification {
             message,
             length,
             color,
+            has_drawn: false,
         }
+    }
+
+    pub fn set_drawn(&mut self) {
+        self.has_drawn = true;
+    }
+
+    pub fn has_drawn(&mut self) -> bool {
+        self.has_drawn
     }
 
     pub fn tick(&mut self) {
