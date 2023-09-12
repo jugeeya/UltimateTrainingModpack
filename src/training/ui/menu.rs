@@ -362,33 +362,14 @@ pub unsafe fn draw(root_pane: &Pane) {
         .pos_y
         != -80.0;
 
-    // Update menu display
-    // Grabbing lock as read-only, essentially
-    let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
-    if let Some(quit_button) = root_pane.find_pane_by_name_recursive("TrModTitle") {
-        for quit_txt_s in &["set_txt_00", "set_txt_01"] {
-            if let Some(quit_txt) = quit_button.find_pane_by_name_recursive(quit_txt_s) {
-                quit_txt.as_textbox().set_text_string("Modpack Menu");
-            }
-        }
-    }
-
     let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
-    overall_parent_pane.set_visible(true);
+    overall_parent_pane.set_visible(QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE);
     let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
-    if QUICK_MENU_ACTIVE {
-        overall_parent_pane.alpha = 255;
-        overall_parent_pane.global_alpha = 255;
-    } else if menu_close_wait_frame > 0 {
-        fade_out(
-            overall_parent_pane,
-            MENU_CLOSE_WAIT_FRAMES - menu_close_wait_frame,
-            MENU_CLOSE_WAIT_FRAMES,
-        );
-    } else {
-        overall_parent_pane.alpha = 0;
-        overall_parent_pane.global_alpha = 0;
-    }
+    fade_out(
+        overall_parent_pane,
+        MENU_CLOSE_WAIT_FRAMES - menu_close_wait_frame,
+        MENU_CLOSE_WAIT_FRAMES,
+    );
 
     // Only submit updates if we have received input
     let received_input = &mut *MENU_RECEIVED_INPUT.data_ptr();
@@ -396,6 +377,14 @@ pub unsafe fn draw(root_pane: &Pane) {
         return;
     } else {
         *received_input = false;
+    }
+
+    if let Some(quit_button) = root_pane.find_pane_by_name_recursive("TrModTitle") {
+        for quit_txt_s in &["set_txt_00", "set_txt_01"] {
+            if let Some(quit_txt) = quit_button.find_pane_by_name_recursive(quit_txt_s) {
+                quit_txt.as_textbox().set_text_string("Modpack Menu");
+            }
+        }
     }
 
     // Make all invisible first
@@ -431,6 +420,10 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("TrModSlider")
         .unwrap()
         .set_visible(false);
+
+    // Update menu display
+    // Grabbing lock as read-only, essentially
+    let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
 
     let app_tabs = &app.tabs.items;
     let tab_selected = app.tabs.state.selected().unwrap();
