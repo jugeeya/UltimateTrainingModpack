@@ -72,6 +72,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
 pub fn spawn_menu() {
     unsafe {
         QUICK_MENU_ACTIVE = true;
+        *MENU_RECEIVED_INPUT.data_ptr() = true;
     }
 }
 

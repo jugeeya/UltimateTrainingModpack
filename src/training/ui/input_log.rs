@@ -69,24 +69,22 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
 }
 
 unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
-    let draw_log_idx = (log_idx + (NUM_LOGS - *DRAW_LOG_BASE_IDX)) % NUM_LOGS;
+    let draw_log_idx = (log_idx + (NUM_LOGS - *DRAW_LOG_BASE_IDX.data_ptr())) % NUM_LOGS;
     let log_pane = root_pane
         .find_pane_by_name_recursive(log_parent_fmt!(draw_log_idx))
         .unwrap();
 
     // Handle visibility and alpha
-    log_pane.set_visible(
-        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::None,
-    );
-    if MENU.input_display == InputDisplay::None {
-        return;
-    }
+    log_pane.set_visible(true);
     const FADE_FRAMES: u32 = 200;
     fade_out(log_pane, log.ttl, FADE_FRAMES);
 
     // Handle positioning
-    log_pane.pos_y = -52.5 * log_idx as f32;
-    log_pane.flags |= 1 << PaneFlag::IsGlobalMatrixDirty as u8;
+    let new_pos_y = -52.5 * log_idx as f32;
+    if new_pos_y != log_pane.pos_y {
+        log_pane.pos_y = new_pos_y;
+        log_pane.flags |= 1 << PaneFlag::IsGlobalMatrixDirty as u8;
+    }
 
     // Only redraw first log!
     if log_idx != 0 {
@@ -178,6 +176,16 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
+    let logs_pane = root_pane
+        .find_pane_by_name_recursive("TrModInputLog")
+        .unwrap();
+    logs_pane.set_visible(
+        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::None,
+    );
+    if MENU.input_display == InputDisplay::None {
+        return;
+    }
+
     let logs_ptr = P1_INPUT_LOGS.data_ptr();
     if logs_ptr.is_null() {
         return;
