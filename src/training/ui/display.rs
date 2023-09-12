@@ -25,7 +25,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     let notification_idx = 0;
 
     let queue = &mut ui::notifications::QUEUE;
-    let notification = queue.first();
+    let notification = queue.first_mut();
 
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
@@ -38,21 +38,23 @@ pub unsafe fn draw(root_pane: &Pane) {
     let notification = notification.unwrap();
     let color = notification.color;
 
-    root_pane
-        .find_pane_by_name_recursive(display_header_fmt!(notification_idx))
-        .unwrap()
-        .as_textbox()
-        .set_text_string(&notification.header);
+    if !notification.has_drawn() {
+        notification.set_drawn();
+        root_pane
+            .find_pane_by_name_recursive(display_header_fmt!(notification_idx))
+            .unwrap()
+            .as_textbox()
+            .set_text_string(&notification.header);
 
-    let text = root_pane
-        .find_pane_by_name_recursive(display_txt_fmt!(notification_idx))
-        .unwrap()
-        .as_textbox();
-    text.set_text_string(&notification.message);
-    text.set_default_material_colors();
-    text.set_color(color.r, color.g, color.b, color.a);
+        let text = root_pane
+            .find_pane_by_name_recursive(display_txt_fmt!(notification_idx))
+            .unwrap()
+            .as_textbox();
+        text.set_text_string(&notification.message);
+        text.set_default_material_colors();
+        text.set_color(color.r, color.g, color.b, color.a);
+    }
 
-    let notification = queue.first_mut().unwrap();
     let has_completed = notification.check_completed();
     if has_completed {
         queue.remove(0);

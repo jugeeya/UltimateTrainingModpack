@@ -7,7 +7,9 @@ use training_mod_consts::{InputDisplay, MENU};
 use crate::{
     common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
     training::{
-        input_log::{DirectionStrength, InputLog, DRAWN_LOGS, P1_INPUT_LOGS, WHITE, YELLOW},
+        input_log::{
+            DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
+        },
         ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
     },
 };
@@ -66,11 +68,13 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
     icons
 }
 
-unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog, drawn_log: &mut InputLog) {
+unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
+    let draw_log_idx = (log_idx + (NUM_LOGS - *DRAW_LOG_BASE_IDX)) % NUM_LOGS;
     let log_pane = root_pane
-        .find_pane_by_name_recursive(log_parent_fmt!(log_idx))
+        .find_pane_by_name_recursive(log_parent_fmt!(draw_log_idx))
         .unwrap();
 
+    // Handle visibility and alpha
     log_pane.set_visible(
         !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::None,
     );
@@ -80,11 +84,13 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog, drawn_log: 
     const FADE_FRAMES: u32 = 200;
     fade_out(log_pane, log.ttl, FADE_FRAMES);
 
-    // Don't redraw
-    if *log == *drawn_log {
+    // Handle positioning
+    log_pane.pos_y = -52.5 * log_idx as f32;
+    log_pane.flags |= 1 << PaneFlag::IsGlobalMatrixDirty as u8;
+
+    // Only redraw first log!
+    if log_idx != 0 {
         return;
-    } else {
-        *drawn_log = *log;
     }
 
     let icons = get_input_icons(log);
@@ -150,7 +156,6 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog, drawn_log: 
 
         icon_pane.set_visible(true);
         (*icon_pane.material).set_black_res_color(*icon_color);
-        icon_pane.flags |= PaneFlag::IsGlobalMatrixDirty as u8;
     }
 
     let frame_text = format!("{}", log.frames);
@@ -178,13 +183,8 @@ pub unsafe fn draw(root_pane: &Pane) {
         return;
     }
     let logs = &*logs_ptr;
-    let drawn_logs_ptr = DRAWN_LOGS.data_ptr();
-    if drawn_logs_ptr.is_null() {
-        return;
-    }
-    let drawn_logs = &mut *drawn_logs_ptr;
 
     for (log_idx, log) in logs.iter().enumerate() {
-        draw_log(root_pane, log_idx, log, &mut drawn_logs[log_idx]);
+        draw_log(root_pane, log_idx, log);
     }
 }
