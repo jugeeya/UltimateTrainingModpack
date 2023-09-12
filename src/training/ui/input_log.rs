@@ -80,7 +80,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     fade_out(log_pane, log.ttl, FADE_FRAMES);
 
     // Handle positioning
-    let new_pos_y = (-56.0 * log_idx as f32) + 56.0;
+    let new_pos_y = -52.5 * log_idx as f32;
     if new_pos_y != log_pane.pos_y {
         log_pane.pos_y = new_pos_y;
         log_pane.flags |= 1 << PaneFlag::IsGlobalMatrixDirty as u8;
