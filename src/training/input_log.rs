@@ -66,6 +66,7 @@ pub static OVERALL_FRAME_COUNTER: Lazy<usize> =
     Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
 
 pub const NUM_LOGS: usize = 10;
+pub static mut DRAW_LOG_BASE_IDX: Lazy<usize> = Lazy::new(|| 0);
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum DirectionStrength {
@@ -280,8 +281,6 @@ fn insert_in_front<T>(array: &mut [T], value: T) {
 lazy_static! {
     pub static ref P1_INPUT_LOGS: Mutex<[InputLog; NUM_LOGS]> =
         Mutex::new([InputLog::default(); NUM_LOGS]);
-    pub static ref DRAWN_LOGS: Mutex<[InputLog; NUM_LOGS]> =
-        Mutex::new([InputLog::default(); NUM_LOGS]);
 }
 
 pub fn handle_final_input_mapping(
@@ -332,6 +331,7 @@ pub fn handle_final_input_mapping(
                 // We should count this frame already
                 frame_counter::tick_idx(*PER_LOG_FRAME_COUNTER);
                 insert_in_front(input_logs, potential_input_log);
+                *DRAW_LOG_BASE_IDX = (*DRAW_LOG_BASE_IDX + 1) % NUM_LOGS;
             } else if is_new_frame {
                 *latest_input_log = potential_input_log;
                 latest_input_log.frames = std::cmp::min(current_frame, 99);
@@ -339,7 +339,7 @@ pub fn handle_final_input_mapping(
             }
 
             // Decrease TTL
-            for input_log in input_logs.iter_mut().take(NUM_LOGS) {
+            for input_log in input_logs.iter_mut() {
                 if input_log.ttl > 0 && is_new_frame {
                     input_log.ttl -= 1;
                 }
