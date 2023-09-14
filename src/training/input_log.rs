@@ -181,7 +181,7 @@ impl InputLog {
             .filter_map(|button| {
                 Some(match *button {
                     Buttons::ATTACK | Buttons::ATTACK_RAW => ("a", GREEN),
-                    Buttons::SPECIAL | Buttons::SPECIAL_RAW | Buttons::SPECIAL_RAW2 => ("b", RED),
+                    Buttons::SPECIAL | Buttons::SPECIAL_RAW2 => ("b", RED),
                     Buttons::JUMP => ("x", CYAN),
                     Buttons::GUARD | Buttons::GUARD_HOLD => ("lb", BLUE),
                     Buttons::CATCH => ("zr", PURPLE),
