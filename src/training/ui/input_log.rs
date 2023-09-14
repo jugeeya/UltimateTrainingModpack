@@ -120,6 +120,11 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         "l_stick",
         "r_stick",
         "gcc_c_stick",
+        "dpad_up",
+        "dpad_down",
+        "dpad_left",
+        "dpad_right",
+        "dpad_left_right"
     ];
 
     for idx in 0..NUM_ICON_SLOTS {

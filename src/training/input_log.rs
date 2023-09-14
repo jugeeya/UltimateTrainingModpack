@@ -230,6 +230,18 @@ impl InputLog {
         if buttons.minus() {
             icons.push_front(("minus", WHITE));
         }
+        if buttons.dpad_up() {
+            icons.push_front(("dpad_up", WHITE));
+        }
+        if buttons.dpad_down() {
+            icons.push_front(("dpad_down", WHITE));
+        }
+        if buttons.dpad_left() {
+            icons.push_front(("dpad_left", WHITE));
+        }
+        if buttons.dpad_right() {
+            icons.push_front(("dpad_right", WHITE));
+        }
 
         icons
     }
