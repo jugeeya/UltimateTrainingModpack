@@ -60,7 +60,7 @@ jobs:
           cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
-        run: RUSTFLAGS=-g cargo-skyline skyline build --release
+        run: RUSTFLAGS=-g cargo-skyline skyline build --release --features layout_arc_from_file
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v3
         with:
