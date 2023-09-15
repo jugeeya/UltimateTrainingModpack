@@ -152,7 +152,7 @@ fn get_release(beta: bool) -> Result<Release> {
 }
 
 fn user_wants_to_install() -> bool {
-    dialog::yes_no(
+    dialog::no_yes(
         "There is a new update available for the Training Modpack. \n\n\
         Do you want to install it?"
             .to_string(),
