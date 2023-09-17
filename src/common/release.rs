@@ -71,7 +71,7 @@ impl Release {
         //
         // https://datatracker.ietf.org/doc/html/rfc3339#section-5.1
         let current_version = CURRENT_VERSION.lock();
-        self.published_at.as_str() < current_version.as_str()
+        self.published_at.as_str() <= current_version.as_str()
     }
 }
 
@@ -193,7 +193,7 @@ pub fn perform_version_check() {
         drop(current_version); // Explicitly unlock, since we also acquire a lock in is_older_than_installed()
         if release_to_apply.as_ref().unwrap().is_older_than_installed() {
             release_to_apply = Err(anyhow!(
-                "Update is older than the current installed version.",
+                "Github version is not newer than the current installed version.",
             ))
         }
     }
