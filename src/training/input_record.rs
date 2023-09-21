@@ -172,6 +172,7 @@ fn into_transition_term(starting_status: StartingStatus) -> i32 {
     }
 }
 
+#[allow(clippy::unnecessary_unwrap)]
 pub unsafe fn handle_recording() {
     let player_module_accessor = try_get_module_accessor(FighterId::Player);
     let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
