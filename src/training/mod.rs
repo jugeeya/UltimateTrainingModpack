@@ -138,6 +138,7 @@ fn once_per_frame_per_fighter(
             );
         }
 
+        input_record::get_command_flag_cat(module_accessor);
         combo::get_command_flag_cat(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
@@ -796,7 +797,6 @@ static OPCF_OFFSET: usize = 0x06b7fdc;
 // One instruction after the CPU Control function completes
 #[skyline::hook(offset = OPCF_OFFSET, inline)]
 unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
-    input_record::handle_recording();
     frame_counter::tick_ingame();
     tech::hide_tech();
     // Tick notifications
@@ -881,10 +881,7 @@ pub fn training_mods() {
     // Enable Custom Stages for Training Mode
     // Specifically, we prevent a field in StageSelectInfo of the Scene that controls if the Custom Stage tab is loaded
     //  from being set to false when we load the SSS in Training Mode
-    static SSS_TRAINING_OFFSET: usize = 0x184d1d8;
-    skyline::patching::Patch::in_text(SSS_TRAINING_OFFSET)
-        .nop()
-        .unwrap();
+    skyline::patching::Patch::in_text(0x184d1d8).nop().unwrap();
 
     skyline::install_hooks!(
         // Mash airdodge/jump
