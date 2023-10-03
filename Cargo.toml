@@ -1,6 +1,6 @@
 [package]
 name = "training_modpack"
-version = "6.0.0"
+version = "6.0.1"
 authors = ["jugeeya <jugeeya@live.com>"]
 edition = "2018"
 

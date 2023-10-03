@@ -172,7 +172,17 @@ fn into_transition_term(starting_status: StartingStatus) -> i32 {
     }
 }
 
-pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
+#[allow(clippy::unnecessary_unwrap)]
+pub unsafe fn handle_recording() {
+    let player_module_accessor = try_get_module_accessor(FighterId::Player);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
+    if player_module_accessor.is_some() && cpu_module_accessor.is_some() {
+        handle_recording_for_fighter(&mut *player_module_accessor.unwrap());
+        handle_recording_for_fighter(&mut *cpu_module_accessor.unwrap());
+    }
+}
+
+unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleAccessor) {
     // Allow this because sometimes we want to make sure our NNSDK doesn't have
     // an erroneous definition
     #[allow(clippy::unnecessary_cast)]
