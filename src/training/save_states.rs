@@ -226,10 +226,12 @@ pub unsafe fn end_copy_ability(module_accessor: *mut app::BattleObjectModuleAcce
 // MIRROR_STATE == -1 -> Do Mirror
 static mut MIRROR_STATE: f32 = 1.0;
 
+static mut RANDOM_SLOT: usize = 0;
+
 unsafe fn get_slot() -> usize {
     let random_slot = MENU.randomize_slots.get_random();
     if random_slot != SaveStateSlot::empty() {
-        random_slot.as_idx() as usize
+        RANDOM_SLOT
     } else {
         MENU.save_state_slot.as_idx() as usize
     }
@@ -450,7 +452,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             let random_slot = MENU.randomize_slots.get_random();
             let slot = if random_slot != SaveStateSlot::empty() {
-                random_slot.as_idx()
+                RANDOM_SLOT = random_slot.as_idx();
+                RANDOM_SLOT
             } else {
                 selected_slot
             };
