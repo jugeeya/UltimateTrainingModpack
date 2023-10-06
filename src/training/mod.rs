@@ -759,7 +759,7 @@ pub unsafe fn handle_reused_ui(
     mut param_2: u32,       // In Little Mac's case, the meter value as an integer
 ) {
     if !is_training_mode() {
-        original!()(fighter_data, param_2)
+        return original!()(fighter_data, param_2);
     }
 
     if save_states::is_loading() {
