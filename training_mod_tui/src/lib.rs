@@ -891,7 +891,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
     let list_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints(
+        .constraints::<&T>(
             (0..NUM_LISTS)
                 .into_iter()
                 .map(|_idx| Constraint::Percentage((100.0 / NUM_LISTS as f32) as u16))
