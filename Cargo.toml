@@ -48,6 +48,7 @@ nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs" }
 
 [profile.dev]
 panic = "abort"
+lto = "off"
 
 [profile.release]
 panic = "abort"

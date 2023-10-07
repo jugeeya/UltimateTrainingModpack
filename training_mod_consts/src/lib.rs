@@ -54,7 +54,7 @@ pub struct TrainingModpackMenu {
     pub save_state_autoload: OnOff,
     pub save_state_enable: OnOff,
     pub save_state_slot: SaveStateSlot,
-    pub randomize_slots: OnOff,
+    pub randomize_slots: SaveStateSlot,
     pub save_state_mirroring: SaveStateMirroring,
     pub save_state_playback: PlaybackSlot,
     pub sdi_state: Direction,
@@ -162,8 +162,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     save_damage_limits_player: DamagePercent::default(),
     save_state_autoload: OnOff::Off,
     save_state_enable: OnOff::On,
-    save_state_slot: SaveStateSlot::One,
-    randomize_slots: OnOff::Off,
+    save_state_slot: SaveStateSlot::S1,
+    randomize_slots: SaveStateSlot::empty(),
     save_state_mirroring: SaveStateMirroring::None,
     save_state_playback: PlaybackSlot::empty(),
     sdi_state: Direction::empty(),
@@ -770,14 +770,14 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
         "save_state_slot".to_string(),
         "Save State Slot: Save and load states from different slots.".to_string(),
         true,
-        &(menu.save_state_slot as u32),
+        &(menu.save_state_slot.bits() as u32),
     );
-    save_state_tab.add_submenu_with_toggles::<OnOff>(
+    save_state_tab.add_submenu_with_toggles::<SaveStateSlot>(
         "Randomize Slots".to_string(),
         "randomize_slots".to_string(),
-        "Randomize Slots: Randomize slot when loading save state.".to_string(),
-        true,
-        &(menu.randomize_slots as u32),
+        "Randomize Slots: Slots to randomize when loading save state.".to_string(),
+        false,
+        &(menu.randomize_slots.bits() as u32),
     );
     save_state_tab.add_submenu_with_toggles::<CharacterItem>(
         "Character Item".to_string(),

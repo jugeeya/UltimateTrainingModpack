@@ -1359,50 +1359,62 @@ impl fmt::Display for SaveDamage {
 extra_bitflag_impls! {SaveDamage}
 impl_serde_for_bitflags!(SaveDamage);
 
-/// Save State Slots
-#[repr(i32)]
-#[derive(
-    Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
-)]
-pub enum SaveStateSlot {
-    One = 0x0,
-    Two = 0x1,
-    Three = 0x2,
-    Four = 0x4,
-    Five = 0x8,
+// Save State Slots
+bitflags! {
+    pub struct SaveStateSlot : u32
+    {
+        const S1 = 0x1;
+        const S2 = 0x2;
+        const S3 = 0x4;
+        const S4 = 0x8;
+        const S5 = 0x10;
+    }
 }
 
 impl SaveStateSlot {
-    pub fn as_idx(self) -> u32 {
-        log_2(self as i32 as u32)
+    pub fn into_idx(self) -> Option<usize> {
+        Some(match self {
+            SaveStateSlot::S1 => 0,
+            SaveStateSlot::S2 => 1,
+            SaveStateSlot::S3 => 2,
+            SaveStateSlot::S4 => 3,
+            SaveStateSlot::S5 => 4,
+            _ => return None,
+        })
+    }
+
+    pub fn as_idx(self) -> usize {
+        match self {
+            SaveStateSlot::S1 => 0,
+            SaveStateSlot::S2 => 1,
+            SaveStateSlot::S3 => 2,
+            SaveStateSlot::S4 => 3,
+            SaveStateSlot::S5 => 4,
+            _ => 0,
+        }
     }
 }
 
 impl fmt::Display for SaveStateSlot {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let combination_string = self.combination_string();
         write!(
             f,
             "{}",
             match *self {
-                SaveStateSlot::One => "1",
-                SaveStateSlot::Two => "2",
-                SaveStateSlot::Three => "3",
-                SaveStateSlot::Four => "4",
-                SaveStateSlot::Five => "5",
+                SaveStateSlot::S1 => "1",
+                SaveStateSlot::S2 => "2",
+                SaveStateSlot::S3 => "3",
+                SaveStateSlot::S4 => "4",
+                SaveStateSlot::S5 => "5",
+                _ => combination_string.as_str(),
             }
         )
     }
 }
 
-impl ToggleTrait for SaveStateSlot {
-    fn to_toggle_vals() -> Vec<u32> {
-        SaveStateSlot::iter().map(|i| i as u32).collect()
-    }
-
-    fn to_toggle_strings() -> Vec<String> {
-        SaveStateSlot::iter().map(|i| i.to_string()).collect()
-    }
-}
+extra_bitflag_impls! {SaveStateSlot}
+impl_serde_for_bitflags!(SaveStateSlot);
 
 // Input Recording Slot
 #[repr(u32)]
