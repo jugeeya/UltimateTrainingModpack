@@ -322,17 +322,18 @@ Exact same process as above, but the filepaths are in Yuzu's mod paths.
 %AppData%
 └── Yuzu/
     └── sdmc/
-      └── contents/
-          └── 01006A800016E000/
-              ├── exefs/
-              │   ├── subsdk9 
-              │   └── main.npdm
-              └── romfs/
-                  └── skyline/
-                      └── plugins/
-                          ├── libnro_hook.nro
-                          ├── libparam_hook.nro
-                          └── libtraining_modpack.nro
+      └── atmosphere/
+          └── contents/
+              └── 01006A800016E000/
+                  ├── exefs/
+                  │   ├── subsdk9 
+                  │   └── main.npdm
+                  └── romfs/
+                      └── skyline/
+                          └── plugins/
+                              ├── libnro_hook.nro
+                              ├── libparam_hook.nro
+                              └── libtraining_modpack.nro
 ```
 
 ## Installation on Ryujinx Emulator on PC
