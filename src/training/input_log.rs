@@ -138,6 +138,7 @@ impl InputLog {
             match MENU.input_display {
                 InputDisplay::Smash => self.is_smash_different(other),
                 InputDisplay::Raw => self.is_raw_different(other),
+                InputDisplay::Status => self.is_status_different(other),
                 InputDisplay::None => false,
             }
         }
@@ -148,6 +149,7 @@ impl InputLog {
             match MENU.input_display {
                 InputDisplay::Smash => self.smash_binned_lstick(),
                 InputDisplay::Raw => self.raw_binned_lstick(),
+                InputDisplay::Status => (DirectionStrength::None, 0.0),
                 InputDisplay::None => panic!("Invalid input display to log"),
             }
         }
@@ -158,6 +160,7 @@ impl InputLog {
             match MENU.input_display {
                 InputDisplay::Smash => self.smash_binned_rstick(),
                 InputDisplay::Raw => self.raw_binned_rstick(),
+                InputDisplay::Status => (DirectionStrength::None, 0.0),
                 InputDisplay::None => panic!("Invalid input display to log"),
             }
         }
@@ -168,6 +171,7 @@ impl InputLog {
             match MENU.input_display {
                 InputDisplay::Smash => self.smash_button_icons(),
                 InputDisplay::Raw => self.raw_button_icons(),
+                InputDisplay::Status => VecDeque::new(),
                 InputDisplay::None => panic!("Invalid input display to log"),
             }
         }
@@ -266,6 +270,13 @@ impl InputLog {
             || self.raw_binned_lstick() != other.raw_binned_lstick()
             || self.raw_binned_rstick() != other.raw_binned_rstick()
             || (unsafe { MENU.input_display_status.as_bool() } && self.status != other.status)
+    }
+
+    fn is_status_different(&self, other: &InputLog) -> bool {
+        unsafe {
+            let input_display_status = MENU.input_display_status.as_bool();
+            input_display_status && (self.status != other.status)
+        }
     }
 
     fn raw_binned_lstick(&self) -> (DirectionStrength, f32) {

@@ -1749,6 +1749,7 @@ impl ToggleTrait for UpdatePolicy {
 pub enum InputDisplay {
     None,
     Smash,
+    Status,
     Raw,
 }
 
@@ -1760,6 +1761,7 @@ impl fmt::Display for InputDisplay {
             match *self {
                 InputDisplay::None => "None",
                 InputDisplay::Smash => "Smash Inputs",
+                InputDisplay::Status => "Status Only",
                 InputDisplay::Raw => "Raw Inputs",
             }
         )
