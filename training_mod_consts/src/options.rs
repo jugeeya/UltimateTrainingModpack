@@ -1747,10 +1747,10 @@ impl ToggleTrait for UpdatePolicy {
     Debug, Clone, Copy, PartialEq, FromPrimitive, EnumIter, Serialize_repr, Deserialize_repr,
 )]
 pub enum InputDisplay {
-    None,
-    Smash,
-    Status,
-    Raw,
+    None = 0x1,
+    Smash = 0x2,
+    Raw = 0x4,
+    Status = 0x8,
 }
 
 impl fmt::Display for InputDisplay {
