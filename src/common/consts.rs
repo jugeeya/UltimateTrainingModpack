@@ -9296,16 +9296,34 @@ fn character_pairs() -> [(i32, Character); 97] {
     ]
 }
 
+fn get_parent_character(fighter: Character) -> Character {
+    use Character::*;
+    return match fighter {
+        Chrom => Roy,
+        Daisy => Peach,
+        Ken => Ryu,
+        Lucina => Marth,
+        Pitb => Pit,
+        Richter => Simon,
+        Samusd => Samus,
+        Wolf => Fox, //Pseudo-echo
+        _ => fighter,
+    };
+}
+
 pub fn kind_to_char(kind: i32) -> Character {
     *KIND_TO_CHAR.get(&kind).unwrap_or(&Character::None)
 }
 
 pub fn status_display_name(fighter_kind: i32, status: i32) -> String {
     let character = kind_to_char(fighter_kind);
+    let parent = get_parent_character(character);
 
     let common_status_kind_identifier = "FIGHTER_STATUS_KIND_";
     let character_status_kind_identifier =
         format!("FIGHTER_{:#?}_STATUS_KIND_", character).to_uppercase();
+    let parent_character_status_kind_identifier =
+        format!("FIGHTER_{:#?}_STATUS_KIND_", parent).to_uppercase();
     let matching_statuses = STATUS_DISPLAY
         .iter()
         .filter(|(_, val)| status == **val)
@@ -9321,12 +9339,13 @@ pub fn status_display_name(fighter_kind: i32, status: i32) -> String {
             .to_case(Case::Pascal);
     }
 
-    if let Some(character_status_name) = matching_statuses
-        .iter()
-        .find(|status| status.starts_with(&character_status_kind_identifier))
-    {
+    if let Some(character_status_name) = matching_statuses.iter().find(|status| {
+        status.starts_with(&character_status_kind_identifier)
+            || status.starts_with(&parent_character_status_kind_identifier)
+    }) {
         return character_status_name
             .replace(&character_status_kind_identifier, "")
+            .replace(&parent_character_status_kind_identifier, "")
             .to_case(Case::Pascal);
     }
 
