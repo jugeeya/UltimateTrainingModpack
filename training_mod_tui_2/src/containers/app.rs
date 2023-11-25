@@ -65,9 +65,7 @@ impl<'a> App<'a> {
         let all_settings: HashMap<String, Vec<u8>> =
             serde_json::from_str(json).expect("Could not parse the json!");
         for tab in self.tabs.iter_mut() {
-            for idx in 0..tab.submenus.len() {
-                // I don't like iterating by index here but implementation of iter_mut() is tough for StatefulTable
-                let submenu_opt = tab.submenus.get_by_idx_mut(idx);
+            for submenu_opt in tab.submenus.iter_mut() {
                 if let Some(submenu) = submenu_opt {
                     if let Some(val) = all_settings.get(submenu.title) {
                         submenu.update_from_vec(val.clone());

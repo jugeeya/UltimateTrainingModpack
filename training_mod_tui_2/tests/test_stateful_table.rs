@@ -324,3 +324,19 @@ fn stateful_table_iter() {
     assert_eq!(t_iter.next(), None);
     assert_eq!(t_iter.next(), None);
 }
+
+#[test]
+fn stateful_table_iter_mut() {
+    let mut t = initialize_table(0, 0);
+    for item in t.iter_mut().filter(|item| item.is_some()) {
+        *item = Some(item.unwrap() + 10);
+    }
+    let mut t_iter = t.iter();
+    assert_eq!(t_iter.next(), Some(&10));
+    assert_eq!(t_iter.next(), Some(&11));
+    assert_eq!(t_iter.next(), Some(&12));
+    assert_eq!(t_iter.next(), Some(&13));
+    assert_eq!(t_iter.next(), Some(&14));
+    assert_eq!(t_iter.next(), None);
+    assert_eq!(t_iter.next(), None);
+}

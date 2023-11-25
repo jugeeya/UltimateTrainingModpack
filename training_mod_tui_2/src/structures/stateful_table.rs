@@ -254,24 +254,21 @@ impl<T: Clone + Serialize> StatefulTable<T> {
     }
 }
 
-// pub struct StatefulTableIteratorMut<'a, T: Clone + Serialize> {
-//     stateful_table: &'a mut StatefulTable<T>,
-//     index: usize,
-// }
+pub struct StatefulTableIteratorMut<'a, T: Clone + Serialize> {
+    inner: std::iter::Flatten<std::slice::IterMut<'a, Vec<Option<T>>>>,
+}
 
-// impl<'a, T: Clone + Serialize> Iterator for StatefulTableIteratorMut<'a, T> {
-//     type Item = &'a mut T;
-//     fn next(&'a mut self) -> Option<Self::Item> {
-//         self.index += 1;
-//         self.stateful_table.get_by_idx_mut(self.index - 1)
-//     }
-// }
+impl<'a, T: Clone + Serialize> Iterator for StatefulTableIteratorMut<'a, T> {
+    type Item = &'a mut Option<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
 
-// impl<'a, T: Clone + Serialize + 'a> StatefulTable<T> {
-//     pub fn iter_mut(&'a mut self) -> StatefulTableIteratorMut<T> {
-//         StatefulTableIteratorMut {
-//             stateful_table: self,
-//             index: 0,
-//         }
-//     }
-// }
+impl<'a, T: Clone + Serialize + 'a> StatefulTable<T> {
+    pub fn iter_mut(&'a mut self) -> StatefulTableIteratorMut<T> {
+        StatefulTableIteratorMut {
+            inner: self.items.iter_mut().flatten(),
+        }
+    }
+}
