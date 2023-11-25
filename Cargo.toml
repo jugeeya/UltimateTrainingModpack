@@ -46,6 +46,9 @@ anyhow = "1.0.72"
 native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", branch = "switch-timeout-panic" }
 nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs" }
 
+[patch."https://github.com/skyline-rs/skyline-web.git"]
+rand = { git = "https://github.com/skyline-rs/rand" }
+
 [profile.dev]
 panic = "abort"
 lto = "off"

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-bitflags = "1.2.1"
+byteflags = { git = "https://github.com/asimon-1/byteflags.git", features = ["rand"] }
 strum = "0.21.0"
 strum_macros = "0.21.0"
 num = "0.4.0"
@@ -14,12 +14,15 @@ paste = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1.8"
 serde_json = "1"
-bitflags_serde_shim = "0.2"
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
 skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git", optional = true }
 toml = "0.5.9"
 anyhow = "1.0.72"
+rand = { git = "https://github.com/skyline-rs/rand" }
 
 [features]
 default = ["smash"]
 smash = ["skyline_smash"]
+
+[patch."https://github.com/asimon-1/byteflags.git"]
+rand = { git = "https://github.com/skyline-rs/rand" }

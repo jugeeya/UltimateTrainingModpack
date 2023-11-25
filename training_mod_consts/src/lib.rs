@@ -1,9 +1,6 @@
 #![feature(iter_intersperse)]
 #[macro_use]
-extern crate bitflags;
-
-#[macro_use]
-extern crate bitflags_serde_shim;
+extern crate byteflags;
 
 #[macro_use]
 extern crate num_derive;
@@ -101,31 +98,13 @@ pub struct TrainingModpackMenu {
 pub struct MenuJsonStruct {
     pub menu: TrainingModpackMenu,
     pub defaults_menu: TrainingModpackMenu,
-    // pub last_focused_submenu: &str
 }
 
-// Fighter Ids
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FighterId {
     Player = 0,
     CPU = 1,
-}
-
-#[derive(Clone)]
-pub enum SubMenuType {
-    TOGGLE,
-    SLIDER,
-}
-
-impl SubMenuType {
-    pub fn from_string(s: &String) -> SubMenuType {
-        match s.as_str() {
-            "toggle" => SubMenuType::TOGGLE,
-            "slider" => SubMenuType::SLIDER,
-            _ => panic!("Unexpected SubMenuType!"),
-        }
-    }
 }
 
 pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
@@ -206,143 +185,6 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
-
-#[derive(Clone, Serialize)]
-pub struct Slider {
-    pub selected_min: u32,
-    pub selected_max: u32,
-    pub abs_min: u32,
-    pub abs_max: u32,
-}
-
-#[derive(Clone, Serialize)]
-pub struct Toggle {
-    pub toggle_value: u32,
-    pub toggle_title: String,
-    pub checked: bool,
-}
-
-#[derive(Clone, Serialize)]
-pub struct SubMenu {
-    pub submenu_title: String,
-    pub submenu_id: String,
-    pub help_text: String,
-    pub is_single_option: bool,
-    pub toggles: Vec<Toggle>,
-    pub slider: Option<Slider>,
-    pub _type: String,
-}
-
-impl SubMenu {
-    pub fn add_toggle(&mut self, toggle_value: u32, toggle_title: String, checked: bool) {
-        self.toggles.push(Toggle {
-            toggle_value,
-            toggle_title,
-            checked,
-        });
-    }
-    pub fn new_with_toggles<T: ToggleTrait>(
-        submenu_title: String,
-        submenu_id: String,
-        help_text: String,
-        is_single_option: bool,
-        initial_value: &u32,
-    ) -> SubMenu {
-        let mut instance = SubMenu {
-            submenu_title: submenu_title,
-            submenu_id: submenu_id,
-            help_text: help_text,
-            is_single_option: is_single_option,
-            toggles: Vec::new(),
-            slider: None,
-            _type: "toggle".to_string(),
-        };
-
-        let values = T::to_toggle_vals();
-        let titles = T::to_toggle_strings();
-        for i in 0..values.len() {
-            let checked: bool =
-                (values[i] & initial_value) > 0 || (!values[i] == 0 && initial_value == &0);
-            instance.add_toggle(values[i], titles[i].clone(), checked);
-        }
-        // Select the first option if there's nothing selected atm but it's a single option submenu
-        if is_single_option && instance.toggles.iter().all(|t| !t.checked) {
-            instance.toggles[0].checked = true;
-        }
-        instance
-    }
-    pub fn new_with_slider<S: SliderTrait>(
-        submenu_title: String,
-        submenu_id: String,
-        help_text: String,
-        initial_lower_value: &u32,
-        initial_upper_value: &u32,
-    ) -> SubMenu {
-        let min_max = S::get_limits();
-        SubMenu {
-            submenu_title: submenu_title,
-            submenu_id: submenu_id,
-            help_text: help_text,
-            is_single_option: false,
-            toggles: Vec::new(),
-            slider: Some(Slider {
-                selected_min: *initial_lower_value,
-                selected_max: *initial_upper_value,
-                abs_min: min_max.0,
-                abs_max: min_max.1,
-            }),
-            _type: "slider".to_string(),
-        }
-    }
-}
-
-#[derive(Serialize, Clone)]
-pub struct Tab {
-    pub tab_id: String,
-    pub tab_title: String,
-    pub tab_submenus: Vec<SubMenu>,
-}
-
-impl Tab {
-    pub fn add_submenu_with_toggles<T: ToggleTrait>(
-        &mut self,
-        submenu_title: String,
-        submenu_id: String,
-        help_text: String,
-        is_single_option: bool,
-        initial_value: &u32,
-    ) {
-        self.tab_submenus.push(SubMenu::new_with_toggles::<T>(
-            submenu_title.to_string(),
-            submenu_id.to_string(),
-            help_text.to_string(),
-            is_single_option,
-            initial_value,
-        ));
-    }
-
-    pub fn add_submenu_with_slider<S: SliderTrait>(
-        &mut self,
-        submenu_title: String,
-        submenu_id: String,
-        help_text: String,
-        initial_lower_value: &u32,
-        initial_upper_value: &u32,
-    ) {
-        self.tab_submenus.push(SubMenu::new_with_slider::<S>(
-            submenu_title.to_string(),
-            submenu_id.to_string(),
-            help_text.to_string(),
-            initial_lower_value,
-            initial_upper_value,
-        ))
-    }
-}
-
-#[derive(Serialize, Clone)]
-pub struct UiMenu {
-    pub tabs: Vec<Tab>,
-}
 
 pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     let mut overall_menu = UiMenu { tabs: Vec::new() };
@@ -904,7 +746,7 @@ pub unsafe fn ui_menu(menu: TrainingModpackMenu) -> UiMenu {
     input_tab.add_submenu_with_toggles::<PlaybackSlot>(
         "Playback Button Slots".to_string(),
         "playback_button_slots".to_string(),
-        format!("Playback Button Slots: Choose which slots to playback input recording upon pressing button combination ({})", menu.input_playback.combination_string()),
+        format!("Playback Button Slots: Choose which slots to playback input recording upon pressing button combination ()"),
         false,
         &(menu.playback_button_slots.bits() as u32),
     );
