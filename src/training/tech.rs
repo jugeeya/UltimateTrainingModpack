@@ -347,7 +347,7 @@ unsafe fn get_snake_laydown_lockout_time(module_accessor: &mut BattleObjectModul
 }
 
 pub unsafe fn hide_tech() {
-    if !is_training_mode() || MENU.tech_hide == OnOff::Off {
+    if !is_training_mode() || MENU.tech_hide == OnOff::OFF {
         return;
     }
     let module_accessor = get_module_accessor(FighterId::CPU);
@@ -409,7 +409,7 @@ pub unsafe fn handle_fighter_req_quake_pos(
         return original!()(camera_module, quake_kind);
     }
     let status = StatusModule::status_kind(module_accessor);
-    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::On {
+    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::ON {
         // We're hiding techs, prevent mistech quake from giving away missed tech
         return original!()(camera_module, *CAMERA_QUAKE_KIND_NONE);
     }
@@ -452,7 +452,7 @@ pub struct CameraManager {
 
 unsafe fn set_fixed_camera_values() {
     let camera_manager = get_camera_manager();
-    if MENU.tech_hide == OnOff::Off {
+    if MENU.tech_hide == OnOff::OFF {
         // Use Stage's Default Values for fixed Camera
         camera_manager.fixed_camera_center = DEFAULT_FIXED_CAM_CENTER;
     } else {

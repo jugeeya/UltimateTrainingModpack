@@ -178,7 +178,7 @@ pub fn perform_version_check() {
     let update_policy = get_update_policy();
     info!("Update Policy is {}", update_policy);
     let mut release_to_apply = match update_policy {
-        UpdatePolicy::Stable => get_release(false),
+        UpdatePolicy::STABLE => get_release(false),
         UpdatePolicy::Beta => get_release(true),
         UpdatePolicy::Disabled => {
             // User does not want to update at all

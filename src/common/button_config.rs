@@ -238,7 +238,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         let mut start_menu_request = false;
 
         let menu_close_wait_frame = frame_counter::get_frame_count(*menu::MENU_CLOSE_FRAME_COUNTER);
-        if unsafe { MENU.menu_open_start_press == OnOff::On } {
+        if unsafe { MENU.menu_open_start_press == OnOff::ON } {
             let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
             if p1_controller.current_buttons.plus() {
                 *start_hold_frames += 1;

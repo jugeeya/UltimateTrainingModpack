@@ -107,7 +107,7 @@ pub unsafe fn get_param_float(
         return None;
     }
 
-    if MENU.shield_state != Shield::None {
+    if MENU.shield_state != Shield::NONE {
         handle_oos_offset(module_accessor);
     }
 

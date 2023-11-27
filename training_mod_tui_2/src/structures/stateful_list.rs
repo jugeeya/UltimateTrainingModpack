@@ -30,6 +30,10 @@ impl<T: Serialize> StatefulList<T> {
         StatefulList { state, items }
     }
 
+    pub fn push(&mut self, item: T) {
+        self.items.push(item);
+    }
+
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {

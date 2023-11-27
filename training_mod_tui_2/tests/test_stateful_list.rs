@@ -165,3 +165,18 @@ fn stateful_list_iter_mut() {
     assert_eq!(l_iter_mut.next(), None);
     assert_eq!(l_iter_mut.next(), None);
 }
+
+#[test]
+fn stateful_list_push() {
+    let mut l = initialize_list(None);
+    l.push(5);
+    l.push(6);
+    l.push(7);
+    assert_eq!(
+        l,
+        StatefulList {
+            state: ListState::default(),
+            items: vec![10, 20, 30, 40, 5, 6, 7],
+        }
+    );
+}

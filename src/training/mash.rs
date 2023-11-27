@@ -80,7 +80,7 @@ pub fn buffer_action(action: Action) {
     unsafe {
         // exit playback if we want to perform mash actions out of it
         // TODO: Figure out some way to deal with trying to playback into another playback
-        if MENU.playback_mash == OnOff::On
+        if MENU.playback_mash == OnOff::ON
             && input_record::is_playback()
             && !input_record::is_recording()
             && !input_record::is_standby()

@@ -47,7 +47,7 @@ unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -
 fn update_frame_advantage(new_frame_adv: i32) {
     unsafe {
         FRAME_ADVANTAGE = new_frame_adv;
-        if MENU.frame_advantage == OnOff::On {
+        if MENU.frame_advantage == OnOff::ON {
             // Prioritize Frame Advantage over Input Recording Playback
             ui::notifications::clear_notifications("Input Recording");
             ui::notifications::clear_notifications("Frame Advantage");

@@ -1,18 +1,8 @@
 use core::f64::consts::PI;
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
-use std::fmt;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 use byteflags::*;
-use training_mod_tui_2::*;
-use std::iter::zip;
-use paste::paste;
-
-pub const NX_SUBMENU_ROWS: usize = 8; // TODO!("Does this conflict with training_mod_tui?")
-pub const NX_SUBMENU_COLUMNS: usize = 4; // TODO!("Does this conflict with training_mod_tui?")
 
 #[macro_export]
 macro_rules! impl_toggletrait {
@@ -218,10 +208,13 @@ impl LedgeOption {
 
     pub const fn default() -> LedgeOption {
         // Neutral,Roll,Jump,Attack (everything except wait)
-        LedgeOption::NEUTRAL
-            .union(LedgeOption::ROLL)
-            .union(LedgeOption::JUMP)
-            .union(LedgeOption::ATTACK)
+        LedgeOption {
+            NEUTRAL: 1,
+            ROLL: 1,
+            JUMP: 1,
+            ATTACK: 1,
+            ..LedgeOption::empty()
+        }
     }
 }
 
@@ -249,7 +242,7 @@ byteflags! {
     pub struct Shield {
         NONE = "None",
         INFINITE = "Infinite",
-        HOLD = "Hold"
+        HOLD = "Hold",
         CONSTANT = "Constant",
     }
 }
@@ -272,16 +265,17 @@ byteflags! {
 impl OnOff {
     pub fn from_val(val: u32) -> Option<Self> {
         match val {
-            1 => Some(OnOff::On),
-            0 => Some(OnOff::Off),
+            1 => Some(OnOff::ON),
+            0 => Some(OnOff::OFF),
             _ => None,
         }
     }
 
     pub fn as_bool(self) -> bool {
         match self {
-            OnOff::Off => false,
-            OnOff::On => true,
+            OnOff::OFF => false,
+            OnOff::ON => true,
+            _ => panic!("Bad option for OnOff::as_bool"),
         }
     }
 }
@@ -407,7 +401,7 @@ byteflags! {
 
 impl Delay {
     pub fn into_delay(&self) -> u32 {
-        match self {
+        match *self {
             Delay::D0 => 0,
             Delay::D1 => 1,
             Delay::D2 => 2,
@@ -439,6 +433,7 @@ impl Delay {
             Delay::D28 => 28,
             Delay::D29 => 29,
             Delay::D30 => 30,
+            _ => panic!("Invalid option for Delay::into_delay()"),
         }
     }
 }
@@ -481,9 +476,9 @@ byteflags! {
 
 impl MedDelay {
     pub fn into_meddelay(&self) -> u32 {
-        match self {
-            MedDelay::D0 => 0
-            MedDelay::D5 => 5
+        match *self {
+            MedDelay::D0 => 0,
+            MedDelay::D5 => 5,
             MedDelay::D10 => 10,
             MedDelay::D15 => 15,
             MedDelay::D20 => 20,
@@ -513,6 +508,7 @@ impl MedDelay {
             MedDelay::D140 => 140,
             MedDelay::D145 => 145,
             MedDelay::D150 => 150,
+            _ => panic!("Invalid option for MedDelay::into_MedDelay()"),
         }
     }
 }
@@ -555,7 +551,7 @@ byteflags! {
 
 impl LongDelay {
     pub fn into_longdelay(&self) -> u32 {
-        match self {
+        match *self {
             LongDelay::D0 => 0,
             LongDelay::D10 => 10,
             LongDelay::D20 => 20,
@@ -587,6 +583,7 @@ impl LongDelay {
             LongDelay::D280 => 280,
             LongDelay::D290 => 290,
             LongDelay::D300 => 300,
+            _ => panic!("Invalid option for LongDelay::into_LongDelay()"),
         }
     }
 }
@@ -729,10 +726,11 @@ byteflags! {
 impl SdiFrequency {
     pub fn into_u32(self) -> u32 {
         match self {
-            SdiFrequency::None => u32::MAX,
-            SdiFrequency::Normal => 8,
-            SdiFrequency::Medium => 6,
-            SdiFrequency::High => 4,
+            SdiFrequency::NONE => u32::MAX,
+            SdiFrequency::NORMAL => 8,
+            SdiFrequency::MEDIUM => 6,
+            SdiFrequency::HIGH => 4,
+            _ => panic!("Invalid option for SdiFrequency::into_u32()"),
         }
     }
 }
@@ -749,10 +747,11 @@ byteflags! {
 impl ClatterFrequency {
     pub fn into_u32(self) -> u32 {
         match self {
-            ClatterFrequency::None => u32::MAX,
-            ClatterFrequency::Normal => 8,
-            ClatterFrequency::Medium => 5,
-            ClatterFrequency::High => 2,
+            ClatterFrequency::NONE => u32::MAX,
+            ClatterFrequency::NORMAL => 8,
+            ClatterFrequency::MEDIUM => 5,
+            ClatterFrequency::HIGH => 2,
+            _ => panic!("Invalid option for ClatterFrequency::into_u32()"),
         }
     }
 }
@@ -805,10 +804,13 @@ byteflags! {
 impl MashTrigger {
     pub const fn default() -> MashTrigger {
         // Hit, block, clatter
-        MashTrigger::HIT
-            .union(MashTrigger::TUMBLE)
-            .union(MashTrigger::SHIELDSTUN)
-            .union(MashTrigger::CLATTER)
+        MashTrigger {
+            HIT: 1,
+            TUMBLE: 1,
+            SHIELDSTUN: 1,
+            CLATTER: 1,
+            ..MashTrigger::empty()
+        }
     }
 }
 
@@ -861,8 +863,7 @@ byteflags! {
 }
 
 byteflags! {
-    pub struct PlaybackSlot
-    {
+    pub struct PlaybackSlot {
         S1 = "Slot 1",
         S2 = "Slot 2",
         S3 = "Slot 3",
@@ -873,9 +874,11 @@ byteflags! {
 
 // If doing input recording out of hitstun, when does playback begin after?
 byteflags! {
-    HITSTUN = "As Hitstun Ends",
-    HITSTOP = "As Hitstop Ends",
-    INSTANT = "As Hitstop Begins",
+    pub struct HitstunPlayback {
+        HITSTUN = "As Hitstun Ends",
+        HITSTOP = "As Hitstop Ends",
+        INSTANT = "As Hitstop Begins",
+    }
 }
 
 byteflags! {
@@ -912,26 +915,27 @@ byteflags! {
 
 impl RecordingDuration {
     pub fn into_frames(&self) -> usize {
-        match self {
-            RecordingDuration::F60 = 60,
-            RecordingDuration::F90 = 90,
-            RecordingDuration::F120 = 120,
-            RecordingDuration::F150 = 150,
-            RecordingDuration::F180 = 180,
-            RecordingDuration::F210 = 210,
-            RecordingDuration::F240 = 240,
-            RecordingDuration::F270 = 270,
-            RecordingDuration::F300 = 300,
-            RecordingDuration::F330 = 330,
-            RecordingDuration::F360 = 360,
-            RecordingDuration::F390 = 390,
-            RecordingDuration::F420 = 420,
-            RecordingDuration::F450 = 450,
-            RecordingDuration::F480 = 480,
-            RecordingDuration::F510 = 510,
-            RecordingDuration::F540 = 540,
-            RecordingDuration::F570 = 570,
-            RecordingDuration::F600 = 600,
+        match *self {
+            RecordingDuration::F60 => 60,
+            RecordingDuration::F90 => 90,
+            RecordingDuration::F120 => 120,
+            RecordingDuration::F150 => 150,
+            RecordingDuration::F180 => 180,
+            RecordingDuration::F210 => 210,
+            RecordingDuration::F240 => 240,
+            RecordingDuration::F270 => 270,
+            RecordingDuration::F300 => 300,
+            RecordingDuration::F330 => 330,
+            RecordingDuration::F360 => 360,
+            RecordingDuration::F390 => 390,
+            RecordingDuration::F420 => 420,
+            RecordingDuration::F450 => 450,
+            RecordingDuration::F480 => 480,
+            RecordingDuration::F510 => 510,
+            RecordingDuration::F540 => 540,
+            RecordingDuration::F570 => 570,
+            RecordingDuration::F600 => 600,
+            _ => panic!("Invalid option for RecordingDuration::into_frames()"),
         }
     }
 }
@@ -967,7 +971,7 @@ byteflags! {
 
 impl UpdatePolicy {
     pub const fn default() -> UpdatePolicy {
-        UpdatePolicy::Stable
+        UpdatePolicy::STABLE
     }
 }
 

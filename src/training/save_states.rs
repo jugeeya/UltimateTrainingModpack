@@ -253,7 +253,7 @@ pub unsafe fn is_loading() -> bool {
 
 pub unsafe fn should_mirror() -> f32 {
     match MENU.save_state_mirroring {
-        SaveStateMirroring::None => 1.0,
+        SaveStateMirroring::NONE => 1.0,
         SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
         SaveStateMirroring::Random => ([-1.0, 1.0])[get_random_int(2) as usize],
     }
@@ -409,7 +409,7 @@ pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjec
 }
 
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if MENU.save_state_enable == OnOff::Off {
+    if MENU.save_state_enable == OnOff::OFF {
         return;
     }
 
@@ -441,7 +441,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Reset state
-    let autoload_reset = MENU.save_state_autoload == OnOff::On
+    let autoload_reset = MENU.save_state_autoload == OnOff::ON
         && save_state.state == NoAction
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
@@ -599,7 +599,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
             }
 
             // Set to held item
-            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
+            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::NONE {
                 apply_item(MENU.character_item);
             }
 

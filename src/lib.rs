@@ -120,7 +120,7 @@ pub fn main() {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
         notification(
             "Open Menu".to_string(),
-            if MENU.menu_open_start_press == OnOff::On {
+            if MENU.menu_open_start_press == OnOff::ON {
                 "Hold Start".to_string()
             } else {
                 DEFAULT_OPEN_MENU_CONFIG.to_string()

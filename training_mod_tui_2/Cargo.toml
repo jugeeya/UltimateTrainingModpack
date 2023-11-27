@@ -8,11 +8,11 @@ doctest = false
 
 [dependencies]
 itertools = "0.11.0"
-ratatui = { git = "https://github.com/tonogdlp/ratatui.git", branch = "single-cell" }
+ratatui = { git = "https://github.com/tonogdlp/ratatui.git", branch = "single-cell", default-features = false}
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.106"
 crossterm = { version = "0.22.1", optional = true }
 
 [features]
-default = ["crossterm", "ratatui/crossterm"]
+default = []
 has_terminal = ["crossterm", "ratatui/crossterm"]

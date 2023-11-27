@@ -112,7 +112,7 @@ unsafe fn should_mash_playback() {
             should_playback = true;
         }
         // if we're in hitstun and want to wait till FAF to act, then we want to match our starting status to the correct transition term to see if we can hitstun cancel
-        if MENU.hitstun_playback == HitstunPlayback::Hitstun && can_transition(cpu_module_accessor)
+        if MENU.hitstun_playback == HitstunPlayback::HITSTUN && can_transition(cpu_module_accessor)
         {
             should_playback = true;
         }
@@ -215,7 +215,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 
             // If we need to crop the recording for neutral input
             // INPUT_RECORD_FRAME must be > 0 to prevent bounding errors
-            if INPUT_RECORD == Record && MENU.recording_crop == OnOff::On && INPUT_RECORD_FRAME > 0
+            if INPUT_RECORD == Record && MENU.recording_crop == OnOff::ON && INPUT_RECORD_FRAME > 0
             {
                 while INPUT_RECORD_FRAME > 0 && is_input_neutral(INPUT_RECORD_FRAME - 1) {
                     // Discard frames at the end of the recording until the last frame with input
@@ -227,7 +227,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 
             INPUT_RECORD_FRAME = 0;
 
-            if MENU.playback_loop == OnOff::On && INPUT_RECORD == Playback {
+            if MENU.playback_loop == OnOff::ON && INPUT_RECORD == Playback {
                 playback(Some(CURRENT_PLAYBACK_SLOT));
             } else {
                 INPUT_RECORD = None;
