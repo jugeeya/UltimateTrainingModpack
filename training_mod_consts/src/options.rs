@@ -13,25 +13,24 @@ macro_rules! impl_toggletrait {
         $help_text:literal,
         $single:literal,
     ) => {
-        impl $e {
-            paste! {
-                fn [<to_submenu_ $id>](&self) -> SubMenu {
-                    let submenu_type = if $single { SubMenuType::ToggleSingle } else { SubMenuType::ToggleMultiple };
-                    let max: u8 = if $single { 1 } else { 8 };
-                    let toggles_vec: Vec<Toggle> = zip(<$e>::ALL_NAMES, self.to_vec())
-                        .map(|(title, value)| Toggle { title, value, max })
-                        .collect();
-                    SubMenu {
-                        title: $title,
-                        id: $id,
-                        help_text: $help_text,
-                        submenu_type: submenu_type,
-                        toggles: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, toggles_vec),
-                        slider: None
-                    }
+        paste! {
+            fn [<to_submenu_ $id>]<'a>() -> SubMenu<'a> {
+                let submenu_type = if $single { SubMenuType::ToggleSingle } else { SubMenuType::ToggleMultiple };
+                let value = 0;
+                let max: u8 = if $single { 1 } else { 8 };
+                let toggles_vec: Vec<Toggle> = <$e>::ALL_NAMES
+                    .iter()
+                    .map(|title| Toggle { title, value, max })
+                    .collect();
+                SubMenu {
+                    title: $title,
+                    id: $id,
+                    help_text: $help_text,
+                    submenu_type: submenu_type,
+                    toggles: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, toggles_vec),
+                    slider: None
                 }
             }
-            
         }
     }
 }
@@ -44,25 +43,22 @@ macro_rules! impl_slidertrait {
         $id:literal,
         $help_text:literal,
     ) => {
-        impl $e {
-            paste! {
-                fn [<to_submenu_ $id>](&self) -> SubMenu {
-                    let slider = StatefulSlider {
-                        lower: self.0,
-                        upper: self.1,
-                        ..StatefulSlider::new()
-                    };
-                    SubMenu {
-                        title: $title,
-                        id: $id,
-                        help_text: $help_text,
-                        submenu_type: SubMenuType::Slider,
-                        toggles: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, Vec::new()),
-                        slider: Some(slider)
-                    }
+        paste! {
+            fn [<to_submenu_ $id>]<'a>() -> SubMenu<'a> {
+                let slider = StatefulSlider {
+                    lower: 0,
+                    upper: 150,
+                    ..StatefulSlider::new()
+                };
+                SubMenu {
+                    title: $title,
+                    id: $id,
+                    help_text: $help_text,
+                    submenu_type: SubMenuType::Slider,
+                    toggles: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, Vec::new()),
+                    slider: Some(slider)
                 }
             }
-            
         }
     }
 }
@@ -102,17 +98,17 @@ pub fn random_option<T>(arg: &[T]) -> &T {
 // DI / Left stick
 byteflags! {
     pub struct Direction {
-        OUT = "Out",
-        UP_OUT = "Up Out",
-        UP = "Up",
-        UP_IN = "Up In",
-        IN = "In",
-        DOWN_IN = "Down In",
-        DOWN = "Down",
-        DOWN_OUT = "Down Out",
-        NEUTRAL = "Neutral",
-        LEFT = "Left",
-        RIGHT = "Right",
+        pub OUT = "Out",
+        pub UP_OUT = "Up Out",
+        pub UP = "Up",
+        pub UP_IN = "Up In",
+        pub IN = "In",
+        pub DOWN_IN = "Down In",
+        pub DOWN = "Down",
+        pub DOWN_OUT = "Down Out",
+        pub NEUTRAL = "Neutral",
+        pub LEFT = "Left",
+        pub RIGHT = "Right",
     }
 }
 
@@ -148,16 +144,16 @@ impl Direction {
 byteflags! {
     pub struct LedgeOption
     {
-        NEUTRAL = "Neutral Getup",
-        ROLL = "Roll",
-        JUMP = "Jump",
-        ATTACK = "Getup Attack",
-        WAIT = "Wait",
-        PLAYBACK_1 = "Playback Slot 1",
-        PLAYBACK_2 = "Playback Slot 2",
-        PLAYBACK_3 = "Playback Slot 3",
-        PLAYBACK_4 = "Playback Slot 4",
-        PLAYBACK_5 = "Playback Slot 5",
+        pub NEUTRAL = "Neutral Getup",
+        pub ROLL = "Roll",
+        pub JUMP = "Jump",
+        pub ATTACK = "Getup Attack",
+        pub WAIT = "Wait",
+        pub PLAYBACK_1 = "Playback Slot 1",
+        pub PLAYBACK_2 = "Playback Slot 2",
+        pub PLAYBACK_3 = "Playback Slot 3",
+        pub PLAYBACK_4 = "Playback Slot 4",
+        pub PLAYBACK_5 = "Playback Slot 5",
     }
 }
 
@@ -221,44 +217,44 @@ impl LedgeOption {
 // Tech options
 byteflags! {
     pub struct TechFlags {
-        NO_TECH = "No Tech",
-        ROLL_F = "Roll Forwards",
-        ROLL_B = "Roll Backwards",
-        IN_PLACE = "Tech In Place",
+        pub NO_TECH = "No Tech",
+        pub ROLL_F = "Roll Forwards",
+        pub ROLL_B = "Roll Backwards",
+        pub IN_PLACE = "Tech In Place",
     }
 }
 
 // Missed Tech Options
 byteflags! {
     pub struct MissTechFlags {
-        GETUP = "Neutral Getup",
-        ATTACK = "Getup Attack",
-        ROLL_F = "Roll Forwards",
-        ROLL_B = "Roll Backwards",
+        pub GETUP = "Neutral Getup",
+        pub ATTACK = "Getup Attack",
+        pub ROLL_F = "Roll Forwards",
+        pub ROLL_B = "Roll Backwards",
     }
 }
 
 byteflags! {
     pub struct Shield {
-        NONE = "None",
-        INFINITE = "Infinite",
-        HOLD = "Hold",
-        CONSTANT = "Constant",
+        pub NONE = "None",
+        pub INFINITE = "Infinite",
+        pub HOLD = "Hold",
+        pub CONSTANT = "Constant",
     }
 }
 
 byteflags! {
     pub struct SaveStateMirroring {
-        NONE = "None",
-        ALTERNATE = "Alternate",
-        RANDOM = "Random",
+        pub NONE = "None",
+        pub ALTERNATE = "Alternate",
+        pub RANDOM = "Random",
     }
 }
 
 byteflags! {
     pub struct OnOff {
-        ON = "On",
-        OFF = "Off",
+        pub ON = "On",
+        pub OFF = "Off",
     }
 }
 
@@ -282,36 +278,36 @@ impl OnOff {
 
 byteflags! {
     pub struct Action {
-        AIR_DODGE = "Air Dodge",
-        JUMP = "Jump",
-        SHIELD = "Shield",
-        SPOT_DODGE = "Spot Dodge",
-        ROLL_F = "Roll Forwards",
-        ROLL_B = "Roll Backwards",
-        NAIR = "Neutral Air",
-        FAIR = "Forward Air",
-        BAIR = "Back Air",
-        UAIR = "Up Air",
-        DAIR = "Down Air",
-        NEUTRAL_B = "Neutral Special",
-        SIDE_B = "Side Special",
-        UP_B = "Up Special",
-        DOWN_B = "Down Special",
-        F_SMASH = "Forward Smash",
-        U_SMASH = "Up Smash",
-        D_SMASH = "Down Smash",
-        JAB = "Jab",
-        F_TILT = "Forward Tilt",
-        U_TILT  = "Up Tilt",
-        D_TILT  = "Down Tilt",
-        GRAB = "Grab",
-        DASH = "Dash",
-        DASH_ATTACK = "Dash Attack",
-        PLAYBACK_1 = "Playback Slot 1",
-        PLAYBACK_2 = "Playback Slot 2",
-        PLAYBACK_3 = "Playback Slot 3",
-        PLAYBACK_4 = "Playback Slot 4",
-        PLAYBACK_5 = "Playback Slot 5",
+        pub AIR_DODGE = "Air Dodge",
+        pub JUMP = "Jump",
+        pub SHIELD = "Shield",
+        pub SPOT_DODGE = "Spot Dodge",
+        pub ROLL_F = "Roll Forwards",
+        pub ROLL_B = "Roll Backwards",
+        pub NAIR = "Neutral Air",
+        pub FAIR = "Forward Air",
+        pub BAIR = "Back Air",
+        pub UAIR = "Up Air",
+        pub DAIR = "Down Air",
+        pub NEUTRAL_B = "Neutral Special",
+        pub SIDE_B = "Side Special",
+        pub UP_B = "Up Special",
+        pub DOWN_B = "Down Special",
+        pub F_SMASH = "Forward Smash",
+        pub U_SMASH = "Up Smash",
+        pub D_SMASH = "Down Smash",
+        pub JAB = "Jab",
+        pub F_TILT = "Forward Tilt",
+        pub U_TILT  = "Up Tilt",
+        pub D_TILT  = "Down Tilt",
+        pub GRAB = "Grab",
+        pub DASH = "Dash",
+        pub DASH_ATTACK = "Dash Attack",
+        pub PLAYBACK_1 = "Playback Slot 1",
+        pub PLAYBACK_2 = "Playback Slot 2",
+        pub PLAYBACK_3 = "Playback Slot 3",
+        pub PLAYBACK_4 = "Playback Slot 4",
+        pub PLAYBACK_5 = "Playback Slot 5",
     }
 }
 
@@ -357,45 +353,45 @@ impl Action {
 }
 byteflags! {
     pub struct AttackAngle {
-        NEUTRAL = "Neutral",
-        UP = "Up",
-        DOWN = "Down",
+        pub NEUTRAL = "Neutral",
+        pub UP = "Up",
+        pub DOWN = "Down",
     }
 }
 
 byteflags! {
     pub struct Delay {
-        D0 = "0",
-        D1 = "1",
-        D2 = "2",
-        D3 = "3",
-        D4 = "4",
-        D5 = "5",
-        D6 = "6",
-        D7 = "7",
-        D8 = "8",
-        D9 = "9",
-        D10 = "10",
-        D11 = "11",
-        D12 = "12",
-        D13 = "13",
-        D14 = "14",
-        D15 = "15",
-        D16 = "16",
-        D17 = "17",
-        D18 = "18",
-        D19 = "19",
-        D20 = "20",
-        D21 = "21",
-        D22 = "22",
-        D23 = "23",
-        D24 = "24",
-        D25 = "25",
-        D26 = "26",
-        D27 = "27",
-        D28 = "28",
-        D29 = "29",
-        D30 = "30",
+        pub D0 = "0",
+        pub D1 = "1",
+        pub D2 = "2",
+        pub D3 = "3",
+        pub D4 = "4",
+        pub D5 = "5",
+        pub D6 = "6",
+        pub D7 = "7",
+        pub D8 = "8",
+        pub D9 = "9",
+        pub D10 = "10",
+        pub D11 = "11",
+        pub D12 = "12",
+        pub D13 = "13",
+        pub D14 = "14",
+        pub D15 = "15",
+        pub D16 = "16",
+        pub D17 = "17",
+        pub D18 = "18",
+        pub D19 = "19",
+        pub D20 = "20",
+        pub D21 = "21",
+        pub D22 = "22",
+        pub D23 = "23",
+        pub D24 = "24",
+        pub D25 = "25",
+        pub D26 = "26",
+        pub D27 = "27",
+        pub D28 = "28",
+        pub D29 = "29",
+        pub D30 = "30",
     }
 }
 
@@ -440,37 +436,37 @@ impl Delay {
 
 byteflags! {
     pub struct MedDelay {
-        D0 = "0",
-        D5 = "5",
-        D10 = "10",
-        D15 = "15",
-        D20 = "20",
-        D25 = "25",
-        D30 = "30",
-        D35 = "35",
-        D40 = "40",
-        D45 = "45",
-        D50 = "50",
-        D55 = "55",
-        D60 = "60",
-        D65 = "65",
-        D70 = "70",
-        D75 = "75",
-        D80 = "80",
-        D85 = "85",
-        D90 = "90",
-        D95 = "95",
-        D100 = "100",
-        D105 = "105",
-        D110 = "110",
-        D115 = "115",
-        D120 = "120",
-        D125 = "125",
-        D130 = "130",
-        D135 = "135",
-        D140 = "140",
-        D145 = "145",
-        D150 = "150",
+        pub D0 = "0",
+        pub D5 = "5",
+        pub D10 = "10",
+        pub D15 = "15",
+        pub D20 = "20",
+        pub D25 = "25",
+        pub D30 = "30",
+        pub D35 = "35",
+        pub D40 = "40",
+        pub D45 = "45",
+        pub D50 = "50",
+        pub D55 = "55",
+        pub D60 = "60",
+        pub D65 = "65",
+        pub D70 = "70",
+        pub D75 = "75",
+        pub D80 = "80",
+        pub D85 = "85",
+        pub D90 = "90",
+        pub D95 = "95",
+        pub D100 = "100",
+        pub D105 = "105",
+        pub D110 = "110",
+        pub D115 = "115",
+        pub D120 = "120",
+        pub D125 = "125",
+        pub D130 = "130",
+        pub D135 = "135",
+        pub D140 = "140",
+        pub D145 = "145",
+        pub D150 = "150",
     }
 }
 
@@ -515,37 +511,37 @@ impl MedDelay {
 
 byteflags! {
     pub struct LongDelay {
-        D0 = "0",
-        D10 = "10",
-        D20 = "20",
-        D30 = "30",
-        D40 = "40",
-        D50 = "50",
-        D60 = "60",
-        D70 = "70",
-        D80 = "80",
-        D90 = "90",
-        D100 = "100",
-        D110 = "110",
-        D120 = "120",
-        D130 = "130",
-        D140 = "140",
-        D150 = "150",
-        D160 = "160",
-        D170 = "170",
-        D180 = "180",
-        D190 = "190",
-        D200 = "200",
-        D210 = "210",
-        D220 = "220",
-        D230 = "230",
-        D240 = "240",
-        D250 = "250",
-        D260 = "260",
-        D270 = "270",
-        D280 = "280",
-        D290 = "290",
-        D300 = "300",
+        pub D0 = "0",
+        pub D10 = "10",
+        pub D20 = "20",
+        pub D30 = "30",
+        pub D40 = "40",
+        pub D50 = "50",
+        pub D60 = "60",
+        pub D70 = "70",
+        pub D80 = "80",
+        pub D90 = "90",
+        pub D100 = "100",
+        pub D110 = "110",
+        pub D120 = "120",
+        pub D130 = "130",
+        pub D140 = "140",
+        pub D150 = "150",
+        pub D160 = "160",
+        pub D170 = "170",
+        pub D180 = "180",
+        pub D190 = "190",
+        pub D200 = "200",
+        pub D210 = "210",
+        pub D220 = "220",
+        pub D230 = "230",
+        pub D240 = "240",
+        pub D250 = "250",
+        pub D260 = "260",
+        pub D270 = "270",
+        pub D280 = "280",
+        pub D290 = "290",
+        pub D300 = "300",
     }
 }
 
@@ -591,24 +587,24 @@ impl LongDelay {
 byteflags! {
     pub struct BuffOption
     {
-        ACCELERATLE = "Acceleratle",
-        OOMPH = "Oomph",
-        PSYCHE = "Psyche Up",
-        BOUNCE = "Bounce",
-        ARSENE = "Arsene",
-        BREATHING = "Deep Breathing",
-        LIMIT = "Limit",
-        KO = "KO Punch",
-        WING = "1-Winged Angel",
-        MONAD_JUMP = "Jump",
-        MONAD_SPEED = "Speed",
-        MONAD_SHIELD = "Shield",
-        MONAD_BUSTER = "Buster",
-        MONAD_SMASH = "Smash",
-        POWER_DRAGON = "Power Dragon",
-        WAFT_MINI = "Mini Waft",
-        WAFT_HALF = "Half Waft",
-        WAFT_FULL = "Full Waft",
+        pub ACCELERATLE = "Acceleratle",
+        pub OOMPH = "Oomph",
+        pub PSYCHE = "Psyche Up",
+        pub BOUNCE = "Bounce",
+        pub ARSENE = "Arsene",
+        pub BREATHING = "Deep Breathing",
+        pub LIMIT = "Limit",
+        pub KO = "KO Punch",
+        pub WING = "1-Winged Angel",
+        pub MONAD_JUMP = "Jump",
+        pub MONAD_SPEED = "Speed",
+        pub MONAD_SHIELD = "Shield",
+        pub MONAD_BUSTER = "Buster",
+        pub MONAD_SMASH = "Smash",
+        pub POWER_DRAGON = "Power Dragon",
+        pub WAFT_MINI = "Mini Waft",
+        pub WAFT_HALF = "Half Waft",
+        pub WAFT_FULL = "Full Waft",
     }
 }
 
@@ -703,8 +699,8 @@ impl ThrowOption {
 // TODO!() Is this redundant with OnOff?
 byteflags! {
     pub struct BoolFlag {
-        TRUE = "True",
-        FALSE = "False",
+        pub TRUE = "True",
+        pub FALSE = "False",
     }
 }
 
@@ -716,10 +712,10 @@ impl BoolFlag {
 
 byteflags! {
     pub struct SdiFrequency {
-        NONE = "None",
-        NORMAL = "Normal",
-        MEDIUM = "Medium",
-        HIGH = "High",
+        pub NONE = "None",
+        pub NORMAL = "Normal",
+        pub MEDIUM = "Medium",
+        pub HIGH = "High",
     }
 }
 
@@ -737,10 +733,10 @@ impl SdiFrequency {
 
 byteflags! {
     pub struct ClatterFrequency {
-        NONE = "None",
-        NORMAL = "Normal",
-        MEDIUM = "Medium",
-        HIGH = "High",
+        pub NONE = "None",
+        pub NORMAL = "Normal",
+        pub MEDIUM = "Medium",
+        pub HIGH = "High",
     }
 }
 
@@ -758,46 +754,46 @@ impl ClatterFrequency {
 
 byteflags! {
     pub struct CharacterItem {
-        NONE = "None",
-        PLAYER_VARIATION_1 = "Player 1st Var.",
-        PLAYER_VARIATION_2 = "Player 2nd Var.",
-        PLAYER_VARIATION_3 = "Player 3rd Var.",
-        PLAYER_VARIATION_4 = "Player 4th Var.",
-        PLAYER_VARIATION_5 = "Player 5th Var.",
-        PLAYER_VARIATION_6 = "Player 6th Var.",
-        PLAYER_VARIATION_7 = "Player 7th Var.",
-        PLAYER_VARIATION_8 = "Player 8th Var.",
-        CPUV_ARIATION_1 = "CPU 1st Var.",
-        CPUV_ARIATION_2 = "CPU 2nd Var.",
-        CPUV_ARIATION_3 = "CPU 3rd Var.",
-        CPUV_ARIATION_4 = "CPU 4th Var.",
-        CPUV_ARIATION_5 = "CPU 5th Var.",
-        CPUV_ARIATION_6 = "CPU 6th Var.",
-        CPUV_ARIATION_7 = "CPU 7th Var.",
-        CPUV_ARIATION_8 = "CPU 8th Var.",
+        pub NONE = "None",
+        pub PLAYER_VARIATION_1 = "Player 1st Var.",
+        pub PLAYER_VARIATION_2 = "Player 2nd Var.",
+        pub PLAYER_VARIATION_3 = "Player 3rd Var.",
+        pub PLAYER_VARIATION_4 = "Player 4th Var.",
+        pub PLAYER_VARIATION_5 = "Player 5th Var.",
+        pub PLAYER_VARIATION_6 = "Player 6th Var.",
+        pub PLAYER_VARIATION_7 = "Player 7th Var.",
+        pub PLAYER_VARIATION_8 = "Player 8th Var.",
+        pub CPU_VARIATION_1 = "CPU 1st Var.",
+        pub CPU_VARIATION_2 = "CPU 2nd Var.",
+        pub CPU_VARIATION_3 = "CPU 3rd Var.",
+        pub CPU_VARIATION_4 = "CPU 4th Var.",
+        pub CPU_VARIATION_5 = "CPU 5th Var.",
+        pub CPU_VARIATION_6 = "CPU 6th Var.",
+        pub CPU_VARIATION_7 = "CPU 7th Var.",
+        pub CPU_VARIATION_8 = "CPU 8th Var.",
     }
 }
 
 
 byteflags! {
     pub struct MashTrigger {
-        HIT = "Hitstun",
-        SHIELDSTUN = "Shieldstun",
-        PARRY = "Parry",
-        TUMBLE = "Tumble",
-        LANDING = "Landing",
-        TRUMP = "Ledge Trump",
-        FOOTSTOOL = "Footstool",
-        CLATTER = "Clatter",
-        LEDGE = "Ledge Option",
-        TECH = "Tech Option",
-        MISTECH = "Mistech Option",
-        GROUNDED = "Grounded",
-        AIRBORNE = "Airborne",
-        DISTANCE_CLOSE = "Distance: Close",
-        DISTANCE_MID = "Distance: Mid",
-        DISTANCE_FAR = "Distance: Far",
-        ALWAYS = "Always",
+        pub HIT = "Hitstun",
+        pub SHIELDSTUN = "Shieldstun",
+        pub PARRY = "Parry",
+        pub TUMBLE = "Tumble",
+        pub LANDING = "Landing",
+        pub TRUMP = "Ledge Trump",
+        pub FOOTSTOOL = "Footstool",
+        pub CLATTER = "Clatter",
+        pub LEDGE = "Ledge Option",
+        pub TECH = "Tech Option",
+        pub MISTECH = "Mistech Option",
+        pub GROUNDED = "Grounded",
+        pub AIRBORNE = "Airborne",
+        pub DISTANCE_CLOSE = "Distance: Close",
+        pub DISTANCE_MID = "Distance: Mid",
+        pub DISTANCE_FAR = "Distance: Far",
+        pub ALWAYS = "Always",
     }
 }
 
@@ -833,83 +829,81 @@ impl DamagePercent {
 }
 
 byteflags! {
-    pub struct SaveDamage
-    {
-        DEFAULT = "Default",
-        SAVED = "Save State",
-        RANDOM = "Random Value",
+    pub struct SaveDamage {
+        pub DEFAULT = "Default",
+        pub SAVED = "Save State",
+        pub RANDOM = "Random Value",
     }
 }
 
 byteflags! {
     pub struct SaveStateSlot
     {
-        S1 = "Slot 1",
-        S2 = "Slot 2",
-        S3 = "Slot 3",
-        S4 = "Slot 4",
-        S5 = "Slot 5",
+        pub S1 = "Slot 1",
+        pub S2 = "Slot 2",
+        pub S3 = "Slot 3",
+        pub S4 = "Slot 4",
+        pub S5 = "Slot 5",
     }
 }
 
 byteflags! {
     pub struct RecordSlot {
-        S1 = "Slot 1",
-        S2 = "Slot 2",
-        S3 = "Slot 3",
-        S4 = "Slot 4",
-        S5 = "Slot 5",
+        pub S1 = "Slot 1",
+        pub S2 = "Slot 2",
+        pub S3 = "Slot 3",
+        pub S4 = "Slot 4",
+        pub S5 = "Slot 5",
     }
 }
 
 byteflags! {
     pub struct PlaybackSlot {
-        S1 = "Slot 1",
-        S2 = "Slot 2",
-        S3 = "Slot 3",
-        S4 = "Slot 4",
-        S5 = "Slot 5",
+        pub S1 = "Slot 1",
+        pub S2 = "Slot 2",
+        pub S3 = "Slot 3",
+        pub S4 = "Slot 4",
+        pub S5 = "Slot 5",
     }
 }
 
 // If doing input recording out of hitstun, when does playback begin after?
 byteflags! {
     pub struct HitstunPlayback {
-        HITSTUN = "As Hitstun Ends",
-        HITSTOP = "As Hitstop Ends",
-        INSTANT = "As Hitstop Begins",
+        pub HITSTUN = "As Hitstun Ends",
+        pub HITSTOP = "As Hitstop Ends",
+        pub INSTANT = "As Hitstop Begins",
     }
 }
 
 byteflags! {
-    pub struct RecordTrigger
-    {
-        COMMAND = "Button Combination",
-        SAVESTATE = "Save State Load",
+    pub struct RecordTrigger {
+        pub COMMAND = "Button Combination",
+        pub SAVESTATE = "Save State Load",
     }
 }
 
 byteflags! {
     pub struct RecordingDuration {
-        F60 = "60",
-        F90 = "90",
-        F120 = "120",
-        F150 = "150",
-        F180 = "180",
-        F210 = "210",
-        F240 = "240",
-        F270 = "270",
-        F300 = "300",
-        F330 = "330",
-        F360 = "360",
-        F390 = "390",
-        F420 = "420",
-        F450 = "450",
-        F480 = "480",
-        F510 = "510",
-        F540 = "540",
-        F570 = "570",
-        F600 = "600",
+        pub F60 = "60",
+        pub F90 = "90",
+        pub F120 = "120",
+        pub F150 = "150",
+        pub F180 = "180",
+        pub F210 = "210",
+        pub F240 = "240",
+        pub F270 = "270",
+        pub F300 = "300",
+        pub F330 = "330",
+        pub F360 = "360",
+        pub F390 = "390",
+        pub F420 = "420",
+        pub F450 = "450",
+        pub F480 = "480",
+        pub F510 = "510",
+        pub F540 = "540",
+        pub F570 = "570",
+        pub F600 = "600",
     }
 }
 
@@ -942,30 +936,30 @@ impl RecordingDuration {
 
 byteflags! {
     pub struct  ButtonConfig {
-        A = "A",
-        B = "B",
-        X = "X",
-        Y = "Y",
-        L = "Pro L",
-        R = "Pro R; GCC Z",
-        ZL = "Pro ZL; GCC L",
-        ZR = "Pro ZR; GCC R",
-        DPAD_UP = "DPad Up",
-        DPAD_DOWN = "DPad Down",
-        DPAD_LEFT = "DPad Left",
-        DPAD_RIGHT = "DPad Right",
-        PLUS = "Plus",
-        MINUS = "Minus",
-        LSTICK = "Left Stick Press",
-        RSTICK = "Right Stick Press",
+        pub A = "A",
+        pub B = "B",
+        pub X = "X",
+        pub Y = "Y",
+        pub L = "Pro L",
+        pub R = "Pro R; GCC Z",
+        pub ZL = "Pro ZL; GCC L",
+        pub ZR = "Pro ZR; GCC R",
+        pub DPAD_UP = "DPad Up",
+        pub DPAD_DOWN = "DPad Down",
+        pub DPAD_LEFT = "DPad Left",
+        pub DPAD_RIGHT = "DPad Right",
+        pub PLUS = "Plus",
+        pub MINUS = "Minus",
+        pub LSTICK = "Left Stick Press",
+        pub RSTICK = "Right Stick Press",
     }
 }
 
 byteflags! {
     pub struct UpdatePolicy {
-        STABLE = "Stable",
-        BETA = "Beta",
-        DISABLED = "Disabled",
+        pub STABLE = "Stable",
+        pub BETA = "Beta",
+        pub DISABLED = "Disabled",
     }
 }
 
@@ -977,8 +971,8 @@ impl UpdatePolicy {
 
 byteflags! {
     pub struct InputDisplay {
-        NONE = "None",
-        SMASH = "Smash Inputs",
-        RAW = "Raw Inputs",
+        pub NONE = "None",
+        pub SMASH = "Smash Inputs",
+        pub RAW = "Raw Inputs",
     }
 }

@@ -123,7 +123,7 @@ unsafe fn handle_grnd_tech(
         }
         _ => false,
     };
-    if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
+    if do_tech && MENU.mash_triggers.contains(&MashTrigger::TECH) {
         if MENU.tech_action_override == Action::empty() {
             mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
@@ -170,7 +170,7 @@ unsafe fn handle_wall_tech(
         }
         _ => false,
     };
-    if do_tech && MENU.mash_triggers.contains(MashTrigger::TECH) {
+    if do_tech && MENU.mash_triggers.contains(&MashTrigger::TECH) {
         if MENU.tech_action_override == Action::empty() {
             mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
@@ -205,7 +205,7 @@ unsafe fn handle_ceil_tech(
 
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
-    if MENU.mash_triggers.contains(MashTrigger::TECH) {
+    if MENU.mash_triggers.contains(&MashTrigger::TECH) {
         if MENU.tech_action_override == Action::empty() {
             mash::external_buffer_menu_mash(MENU.mash_state.get_random())
         } else {
@@ -277,7 +277,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
     if requested_status != 0 {
         StatusModule::change_status_force(module_accessor, requested_status, true);
-        if MENU.mash_triggers.contains(MashTrigger::MISTECH) {
+        if MENU.mash_triggers.contains(&MashTrigger::MISTECH) {
             if MENU.tech_action_override == Action::empty() {
                 mash::external_buffer_menu_mash(MENU.mash_state.get_random())
             } else {

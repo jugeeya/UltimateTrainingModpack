@@ -205,7 +205,7 @@ unsafe fn mod_handle_attack(lua_state: u64) {
 
     // necessary if param object fails
     // hacky way of forcing no shield damage on all hitboxes
-    if MENU.shield_state == Shield::Infinite {
+    if MENU.shield_state == Shield::INFINITE {
         let mut hitbox_params: Vec<L2CValue> =
             (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
         l2c_agent.clear_lua_stack();

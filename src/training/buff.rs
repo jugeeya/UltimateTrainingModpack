@@ -76,7 +76,7 @@ pub unsafe fn handle_buffs(
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
 
-    let menu_vec = MENU.buff_state.to_vec();
+    let menu_vec = MENU.buff_state;
 
     if fighter_kind == *FIGHTER_KIND_BRAVE {
         return buff_hero(module_accessor, status);

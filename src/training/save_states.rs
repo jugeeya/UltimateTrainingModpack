@@ -648,7 +648,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // if we're recording on state load, record
-        if MENU.record_trigger.contains(RecordTrigger::SAVESTATE) {
+        if MENU.record_trigger.contains(&RecordTrigger::SAVESTATE) {
             input_record::lockout_record();
             return;
         }

@@ -196,7 +196,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
     if entry_id_int == 0 && !fighter_is_nana {
         if button_config::combo_passes(button_config::ButtonCombo::InputPlayback) {
             playback(MENU.playback_button_slots.get_random().into_idx());
-        } else if MENU.record_trigger.contains(RecordTrigger::COMMAND)
+        } else if MENU.record_trigger.contains(&RecordTrigger::COMMAND)
             && button_config::combo_passes(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();

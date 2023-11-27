@@ -447,15 +447,15 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
     let cpu_fighter_kind = app::utility::get_kind(&mut *cpu_module_accessor);
     let character_item_num = character_item.as_idx();
     let (item_fighter_kind, variation_idx) =
-        if character_item_num <= CharacterItem::PlayerVariation8.as_idx() {
+        if character_item_num <= CharacterItem::PLAYER_VARIATION_8.as_idx() {
             (
                 player_fighter_kind,
-                (character_item_num - CharacterItem::PlayerVariation1.as_idx()) as usize,
+                (character_item_num - CharacterItem::PLAYER_VARIATION_1.as_idx()) as usize,
             )
         } else {
             (
                 cpu_fighter_kind,
-                (character_item_num - CharacterItem::CpuVariation1.as_idx()) as usize,
+                (character_item_num - CharacterItem::CPU_VARIATION_1.as_idx()) as usize,
             )
         };
     ALL_CHAR_ITEMS

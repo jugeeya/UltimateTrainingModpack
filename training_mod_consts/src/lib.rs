@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 extern crate byteflags;
 extern crate num_derive;
 
@@ -10,9 +11,8 @@ pub use files::*;
 pub mod config;
 pub use config::*;
 
-use training_mod_tui_2::*;
+pub use training_mod_tui_2::*;
 use paste::paste;
-use std::iter::zip;
 
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
@@ -704,26 +704,25 @@ impl_toggletrait! {
     true,
 }
 
-pub unsafe fn ui_menu<'a>(menu: TrainingModpackMenu) -> App<'a> {
-    
+pub unsafe fn ui_menu<'a>() -> App<'a> {
     let mut overall_menu = App::new();
 
     // Mash Tab
     let mut mash_tab_submenus: Vec<SubMenu> = Vec::new();
-    mash_tab_submenus.push(menu.mash_state.to_submenu_mash_state());
-    mash_tab_submenus.push(menu.follow_up.to_submenu_follow_up());
-    mash_tab_submenus.push(menu.mash_triggers.to_submenu_mash_triggers());
-    mash_tab_submenus.push(menu.attack_angle.to_submenu_attack_angle());
-    mash_tab_submenus.push(menu.throw_state.to_submenu_throw_state());
-    mash_tab_submenus.push(menu.throw_delay.to_submenu_throw_delay());
-    mash_tab_submenus.push(menu.pummel_delay.to_submenu_pummel_delay());
-    mash_tab_submenus.push(menu.falling_aerials.to_submenu_falling_aerials());
-    mash_tab_submenus.push(menu.full_hop.to_submenu_full_hop());
-    mash_tab_submenus.push(menu.aerial_delay.to_submenu_aerial_delay());
-    mash_tab_submenus.push(menu.fast_fall.to_submenu_fast_fall());
-    mash_tab_submenus.push(menu.fast_fall_delay.to_submenu_fast_fall_delay());
-    mash_tab_submenus.push(menu.oos_offset.to_submenu_oos_offset());
-    mash_tab_submenus.push(menu.reaction_time.to_submenu_reaction_time());
+    mash_tab_submenus.push(to_submenu_mash_state());
+    mash_tab_submenus.push(to_submenu_follow_up());
+    mash_tab_submenus.push(to_submenu_mash_triggers());
+    mash_tab_submenus.push(to_submenu_attack_angle());
+    mash_tab_submenus.push(to_submenu_throw_state());
+    mash_tab_submenus.push(to_submenu_throw_delay());
+    mash_tab_submenus.push(to_submenu_pummel_delay());
+    mash_tab_submenus.push(to_submenu_falling_aerials());
+    mash_tab_submenus.push(to_submenu_full_hop());
+    mash_tab_submenus.push(to_submenu_aerial_delay());
+    mash_tab_submenus.push(to_submenu_fast_fall());
+    mash_tab_submenus.push(to_submenu_fast_fall_delay());
+    mash_tab_submenus.push(to_submenu_oos_offset());
+    mash_tab_submenus.push(to_submenu_reaction_time());
     let mash_tab = Tab {
         id: "mash",
         title: "Mash Settings",
@@ -733,19 +732,19 @@ pub unsafe fn ui_menu<'a>(menu: TrainingModpackMenu) -> App<'a> {
 
     // Mash Override Tab
     let mut override_tab_submenus: Vec<SubMenu> = Vec::new();
-    override_tab_submenus.push(menu.ledge_neutral_override.to_submenu_ledge_neutral_override());
-    override_tab_submenus.push(menu.ledge_roll_override.to_submenu_ledge_roll_override());
-    override_tab_submenus.push(menu.ledge_jump_override.to_submenu_ledge_jump_override());
-    override_tab_submenus.push(menu.ledge_attack_override.to_submenu_ledge_attack_override());
-    override_tab_submenus.push(menu.tech_action_override.to_submenu_tech_action_override());
-    override_tab_submenus.push(menu.clatter_override.to_submenu_clatter_override());
-    override_tab_submenus.push(menu.tumble_override.to_submenu_tumble_override());
-    override_tab_submenus.push(menu.hitstun_override.to_submenu_hitstun_override());
-    override_tab_submenus.push(menu.parry_override.to_submenu_parry_override());
-    override_tab_submenus.push(menu.shieldstun_override.to_submenu_shieldstun_override());
-    override_tab_submenus.push(menu.footstool_override.to_submenu_footstool_override());
-    override_tab_submenus.push(menu.landing_override.to_submenu_landing_override());
-    override_tab_submenus.push(menu.trump_override.to_submenu_trump_override());
+    override_tab_submenus.push(to_submenu_ledge_neutral_override());
+    override_tab_submenus.push(to_submenu_ledge_roll_override());
+    override_tab_submenus.push(to_submenu_ledge_jump_override());
+    override_tab_submenus.push(to_submenu_ledge_attack_override());
+    override_tab_submenus.push(to_submenu_tech_action_override());
+    override_tab_submenus.push(to_submenu_clatter_override());
+    override_tab_submenus.push(to_submenu_tumble_override());
+    override_tab_submenus.push(to_submenu_hitstun_override());
+    override_tab_submenus.push(to_submenu_parry_override());
+    override_tab_submenus.push(to_submenu_shieldstun_override());
+    override_tab_submenus.push(to_submenu_footstool_override());
+    override_tab_submenus.push(to_submenu_landing_override());
+    override_tab_submenus.push(to_submenu_trump_override());
     let override_tab = Tab {
         id: "override",
         title: "Override Settings",
@@ -755,20 +754,20 @@ pub unsafe fn ui_menu<'a>(menu: TrainingModpackMenu) -> App<'a> {
 
     // Defensive Tab
     let mut defensive_tab_submenus: Vec<SubMenu> = Vec::new();
-    defensive_tab_submenus.push(menu.air_dodge_dir.to_submenu_air_dodge_dir());
-    defensive_tab_submenus.push(menu.di_state.to_submenu_di_state());
-    defensive_tab_submenus.push(menu.sdi_state.to_submenu_sdi_state());
-    defensive_tab_submenus.push(menu.sdi_strength.to_submenu_sdi_strength());
-    defensive_tab_submenus.push(menu.clatter_strength.to_submenu_clatter_strength());
-    defensive_tab_submenus.push(menu.ledge_state.to_submenu_ledge_state());
-    defensive_tab_submenus.push(menu.ledge_delay.to_submenu_ledge_delay());
-    defensive_tab_submenus.push(menu.tech_state.to_submenu_tech_state());
-    defensive_tab_submenus.push(menu.miss_tech_state.to_submenu_miss_tech_state());
-    defensive_tab_submenus.push(menu.shield_state.to_submenu_shield_state());
-    defensive_tab_submenus.push(menu.shield_tilt.to_submenu_shield_tilt());
-    defensive_tab_submenus.push(menu.crouch.to_submenu_crouch());
-    defensive_tab_submenus.push(menu.stale_dodges.to_submenu_stale_dodges());
-    defensive_tab_submenus.push(menu.tech_hide.to_submenu_tech_hide());
+    defensive_tab_submenus.push(to_submenu_air_dodge_dir());
+    defensive_tab_submenus.push(to_submenu_di_state());
+    defensive_tab_submenus.push(to_submenu_sdi_state());
+    defensive_tab_submenus.push(to_submenu_sdi_strength());
+    defensive_tab_submenus.push(to_submenu_clatter_strength());
+    defensive_tab_submenus.push(to_submenu_ledge_state());
+    defensive_tab_submenus.push(to_submenu_ledge_delay());
+    defensive_tab_submenus.push(to_submenu_tech_state());
+    defensive_tab_submenus.push(to_submenu_miss_tech_state());
+    defensive_tab_submenus.push(to_submenu_shield_state());
+    defensive_tab_submenus.push(to_submenu_shield_tilt());
+    defensive_tab_submenus.push(to_submenu_crouch());
+    defensive_tab_submenus.push(to_submenu_stale_dodges());
+    defensive_tab_submenus.push(to_submenu_tech_hide());
     let defensive_tab = Tab {
         id: "defensive",
         title: "Defensive Settings",
@@ -778,14 +777,14 @@ pub unsafe fn ui_menu<'a>(menu: TrainingModpackMenu) -> App<'a> {
 
     // Input Recording Tab
     let mut input_recording_tab_submenus: Vec<SubMenu> = Vec::new();
-    input_recording_tab_submenus.push(menu.recording_slot.to_submenu_recording_slot());
-    input_recording_tab_submenus.push(menu.record_trigger.to_submenu_record_trigger());
-    input_recording_tab_submenus.push(menu.recording_duration.to_submenu_recording_duration());
-    input_recording_tab_submenus.push(menu.recording_crop.to_submenu_recording_crop());
-    input_recording_tab_submenus.push(menu.playback_button_slots.to_submenu_playback_button_slots());
-    input_recording_tab_submenus.push(menu.hitstun_playback.to_submenu_hitstun_playback());
-    input_recording_tab_submenus.push(menu.playback_mash.to_submenu_playback_mash());
-    input_recording_tab_submenus.push(menu.playback_loop.to_submenu_playback_loop());
+    input_recording_tab_submenus.push(to_submenu_recording_slot());
+    input_recording_tab_submenus.push(to_submenu_record_trigger());
+    input_recording_tab_submenus.push(to_submenu_recording_duration());
+    input_recording_tab_submenus.push(to_submenu_recording_crop());
+    input_recording_tab_submenus.push(to_submenu_playback_button_slots());
+    input_recording_tab_submenus.push(to_submenu_hitstun_playback());
+    input_recording_tab_submenus.push(to_submenu_playback_mash());
+    input_recording_tab_submenus.push(to_submenu_playback_loop());
     let input_tab = Tab {
         id: "input",
         title: "Input Recording",
@@ -795,11 +794,11 @@ pub unsafe fn ui_menu<'a>(menu: TrainingModpackMenu) -> App<'a> {
 
     // Button Tab
     let mut button_tab_submenus: Vec<SubMenu> = Vec::new();
-    button_tab_submenus.push(menu.menu_open_start_press.to_submenu_menu_open_start_press());
-    button_tab_submenus.push(menu.save_state_save.to_submenu_save_state_save());
-    button_tab_submenus.push(menu.save_state_load.to_submenu_save_state_load());
-    button_tab_submenus.push(menu.input_record.to_submenu_input_record());
-    button_tab_submenus.push(menu.input_playback.to_submenu_input_playback());
+    button_tab_submenus.push(to_submenu_menu_open_start_press());
+    button_tab_submenus.push(to_submenu_save_state_save());
+    button_tab_submenus.push(to_submenu_save_state_load());
+    button_tab_submenus.push(to_submenu_input_record());
+    button_tab_submenus.push(to_submenu_input_playback());
     let button_tab = Tab {
         id: "button",
         title: "Button Config",
@@ -809,18 +808,18 @@ pub unsafe fn ui_menu<'a>(menu: TrainingModpackMenu) -> App<'a> {
 
     // Save State Tab
     let mut save_state_tab_submenus: Vec<SubMenu> = Vec::new();
-    save_state_tab_submenus.push(menu.save_state_mirroring.to_submenu_save_state_mirroring());
-    save_state_tab_submenus.push(menu.save_state_autoload.to_submenu_save_state_autoload());
-    save_state_tab_submenus.push(menu.save_damage_cpu.to_submenu_save_damage_cpu());
-    save_state_tab_submenus.push(menu.save_damage_limits_cpu.to_submenu_save_damage_limits_cpu());
-    save_state_tab_submenus.push(menu.save_damage_player.to_submenu_save_damage_player());
-    save_state_tab_submenus.push(menu.save_damage_limits_player.to_submenu_save_damage_limits_player());
-    save_state_tab_submenus.push(menu.save_state_enable.to_submenu_save_state_enable());
-    save_state_tab_submenus.push(menu.save_state_slot.to_submenu_save_state_slot());
-    save_state_tab_submenus.push(menu.randomize_slots.to_submenu_randomize_slots());
-    save_state_tab_submenus.push(menu.character_item.to_submenu_character_item());
-    save_state_tab_submenus.push(menu.buff_state.to_submenu_buff_state());
-    save_state_tab_submenus.push(menu.save_state_playback.to_submenu_save_state_playback());
+    save_state_tab_submenus.push(to_submenu_save_state_mirroring());
+    save_state_tab_submenus.push(to_submenu_save_state_autoload());
+    save_state_tab_submenus.push(to_submenu_save_damage_cpu());
+    save_state_tab_submenus.push(to_submenu_save_damage_limits_cpu());
+    save_state_tab_submenus.push(to_submenu_save_damage_player());
+    save_state_tab_submenus.push(to_submenu_save_damage_limits_player());
+    save_state_tab_submenus.push(to_submenu_save_state_enable());
+    save_state_tab_submenus.push(to_submenu_save_state_slot());
+    save_state_tab_submenus.push(to_submenu_randomize_slots());
+    save_state_tab_submenus.push(to_submenu_character_item());
+    save_state_tab_submenus.push(to_submenu_buff_state());
+    save_state_tab_submenus.push(to_submenu_save_state_playback());
     let save_state_tab = Tab {
         id: "save_state",
         title: "Save States",
@@ -830,14 +829,14 @@ pub unsafe fn ui_menu<'a>(menu: TrainingModpackMenu) -> App<'a> {
 
     // Miscellaneous Tab
     let mut misc_tab_submenus: Vec<SubMenu> = Vec::new();
-    misc_tab_submenus.push(menu.frame_advantage.to_submenu_frame_advantage());
-    misc_tab_submenus.push(menu.hitbox_vis.to_submenu_hitbox_vis());
-    misc_tab_submenus.push(menu.input_display.to_submenu_input_display());
-    misc_tab_submenus.push(menu.input_display_status.to_submenu_input_display_status());
-    misc_tab_submenus.push(menu.input_delay.to_submenu_input_delay());
-    misc_tab_submenus.push(menu.stage_hazards.to_submenu_stage_hazards());
-    misc_tab_submenus.push(menu.hud.to_submenu_hud());
-    misc_tab_submenus.push(menu.update_policy.to_submenu_update_policy());
+    misc_tab_submenus.push(to_submenu_frame_advantage());
+    misc_tab_submenus.push(to_submenu_hitbox_vis());
+    misc_tab_submenus.push(to_submenu_input_display());
+    misc_tab_submenus.push(to_submenu_input_display_status());
+    misc_tab_submenus.push(to_submenu_input_delay());
+    misc_tab_submenus.push(to_submenu_stage_hazards());
+    misc_tab_submenus.push(to_submenu_hud());
+    misc_tab_submenus.push(to_submenu_update_policy());
     let misc_tab = Tab {
         id: "misc",
         title: "Misc Settings",
