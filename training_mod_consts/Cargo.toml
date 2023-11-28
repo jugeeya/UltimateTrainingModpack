@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-byteflags = { git = "https://github.com/asimon-1/byteflags.git", features = ["rand"] }
+byteflags = { git = "https://github.com/asimon-1/byteflags.git", branch = "rand-0.7.4" }
 num = "0.4.0"
 num-derive = "0.3"
 num-traits = "0.2"
@@ -17,9 +17,8 @@ skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git"
 toml = "0.5.9"
 anyhow = "1.0.72"
 rand = { git = "https://github.com/skyline-rs/rand" }
-training_mod_tui_2 = { path = "../training_mod_tui_2"}
+training_mod_tui = { path = "../training_mod_tui"}
 
 [features]
 default = ["smash"]
 smash = ["skyline_smash"]
-
