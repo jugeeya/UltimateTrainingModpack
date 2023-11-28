@@ -220,6 +220,20 @@ impl std::fmt::Display for Buttons {
     }
 }
 
+impl Buttons {
+    pub fn to_vec(&self) -> Vec<Buttons> {
+        // Reimplemented for bitflags
+        let mut vec = Vec::<Buttons>::new();
+        let mut field = Buttons::from_bits_truncate(self.bits);
+        while !field.is_empty() {
+            let flag = Buttons::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
+            field -= flag;
+            vec.push(flag);
+        }
+        vec
+    }
+}
+
 // Controller class used internally by the game
 #[derive(Debug, Default, Copy, Clone)]
 #[repr(C)]
