@@ -85,7 +85,6 @@ fn render_toggle_page(frame: &mut Frame, app: &mut App, area: Rect) {
     frame.render_stateful_widget(table, area, &mut toggles.state);
 }
 
-#[allow(dead_code, unused_variables)]
 fn render_slider_page(frame: &mut Frame, app: &mut App, area: Rect) {
     let submenu = app.selected_submenu();
     let slider = submenu.slider.as_mut().expect("No slider selected!");
@@ -134,7 +133,6 @@ fn render_slider_page(frame: &mut Frame, app: &mut App, area: Rect) {
         .ratio(1.0)
         .style(Style::default().fg(Color::White))
         .gauge_style(Style::default().fg(Color::White).bg(Color::Black))
-        // .block(Block::default().borders(Borders::ALL))
         .line_set(modified_line_set);
 
     // Min ---- Lower

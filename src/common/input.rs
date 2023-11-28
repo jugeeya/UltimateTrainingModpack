@@ -1,4 +1,3 @@
-#![allow(dead_code)] // TODO: Yeah don't do this
 use bitflags::bitflags;
 use modular_bitfield::{bitfield, specifiers::*};
 
