@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use training_mod_tui::{App, AppPage, NX_SUBMENU_COLUMNS, SliderState};
+use training_mod_tui::{App, AppPage, SliderState, NX_SUBMENU_COLUMNS, NX_SUBMENU_ROWS};
 
 use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES, MENU_RECEIVED_INPUT};
 use crate::training::frame_counter;
@@ -11,9 +11,6 @@ use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 
 use super::fade_out;
 use super::set_icon_text;
-
-pub static NUM_MENU_TEXT_OPTIONS: usize = 32;
-pub static _NUM_MENU_TABS: usize = 3;
 
 const BG_LEFT_ON_WHITE_COLOR: ResColor = ResColor {
     r: 0,
@@ -77,171 +74,176 @@ lazy_static! {
     ]);
 }
 
-unsafe fn render_submenu_page(app: &App, root_pane: &Pane) {
-    let tab_selected = app.tab_selected();
-    let tab = app.menu_items.get(tab_selected).unwrap();
-    let submenu_ids = app.submenu_ids();
-
-    (0..NUM_MENU_TEXT_OPTIONS)
-        // Valid options in this submenu
-        .filter_map(|idx| tab.idx_to_list_idx_opt(idx))
-        .for_each(|(list_section, list_idx)| {
-            let menu_button_row = root_pane
-                .find_pane_by_name_recursive(format!("TrModMenuButtonRow{list_idx}").as_str())
-                .unwrap();
-            menu_button_row.set_visible(true);
-
-            let menu_button = menu_button_row
-                .find_pane_by_name_recursive(format!("Button{list_section}").as_str())
-                .unwrap();
-
-            let title_text = menu_button
-                .find_pane_by_name_recursive("TitleTxt")
-                .unwrap()
-                .as_textbox();
-
-            let title_bg = menu_button
-                .find_pane_by_name_recursive("TitleBg")
-                .unwrap()
-                .as_picture();
-
-            let title_bg_material = &mut *title_bg.material;
-
-            let list = &tab.lists[list_section];
-            let submenu = &list.items[list_idx];
-            let is_selected = list.state.selected().filter(|s| *s == list_idx).is_some();
-
-            title_text.set_text_string(submenu.submenu_title.as_str());
-
-            // In the actual 'layout.arc' file, every icon image is stacked
-            // into a single container pane, with each image directly on top of another.
-            // Hide all icon images, and strategically mark the icon that
-            // corresponds with a particular button to be visible.
-            submenu_ids.iter().for_each(|id| {
-                let pane = menu_button.find_pane_by_name_recursive(id);
-                if let Some(p) = pane {
-                    p.set_visible(id == &submenu.submenu_id);
-                }
-            });
-
-            menu_button
-                .find_pane_by_name_recursive("check")
-                .unwrap()
-                .set_visible(false);
-
-            if is_selected {
-                root_pane
-                    .find_pane_by_name_recursive("FooterTxt")
-                    .unwrap()
-                    .as_textbox()
-                    .set_text_string(submenu.help_text.as_str());
-
-                title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
-                title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
-
-                title_text.text_shadow_enable(true);
-                title_text.text_outline_enable(true);
-
-                title_text.set_color(255, 255, 255, 255);
-            } else {
-                title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
-                title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
-
-                title_text.text_shadow_enable(false);
-                title_text.text_outline_enable(false);
-
-                title_text.set_color(178, 199, 211, 255);
-            }
-
-            menu_button.set_visible(true);
-            menu_button
-                .find_pane_by_name_recursive("Icon")
-                .unwrap()
-                .set_visible(true);
-        });
-}
-
-unsafe fn render_toggle_page(app: &App, root_pane: &Pane) {
-    let (_title, _help_text, mut sub_menu_str_lists) = app.sub_menu_strs_and_states();
-    (0..sub_menu_str_lists.len()).for_each(|list_section| {
-        let sub_menu_str = sub_menu_str_lists[list_section].0.clone();
-        let sub_menu_state = &mut sub_menu_str_lists[list_section].1;
-        sub_menu_str
-            .iter()
-            .enumerate()
-            .for_each(|(list_idx, (checked, name))| {
-                let menu_button_row = root_pane
-                    .find_pane_by_name_recursive(format!("TrModMenuButtonRow{list_idx}").as_str())
-                    .unwrap();
-                menu_button_row.set_visible(true);
-
+unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
+    let tabs_clone = app.tabs.clone(); // Need this to avoid double-borrow later on
+    let tab = app.selected_tab();
+    for row in 0..NX_SUBMENU_ROWS {
+        let menu_button_row = root_pane
+            .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row}").as_str())
+            .unwrap();
+        menu_button_row.set_visible(true);
+        for col in 0..NX_SUBMENU_COLUMNS {
+            if let Some(submenu) = tab.submenus.get(row, col) {
+                // Find all the panes we need to modify
                 let menu_button = menu_button_row
-                    .find_pane_by_name_recursive(format!("Button{list_section}").as_str())
+                    .find_pane_by_name_recursive(format!("Button{col}").as_str())
                     .unwrap();
-                menu_button.set_visible(true);
-
                 let title_text = menu_button
                     .find_pane_by_name_recursive("TitleTxt")
                     .unwrap()
                     .as_textbox();
-
                 let title_bg = menu_button
                     .find_pane_by_name_recursive("TitleBg")
                     .unwrap()
                     .as_picture();
+                let title_bg_material = &mut *title_bg.material;
+                let is_selected = row == tab.submenus.state.selected_row().unwrap()
+                    && col == tab.submenus.state.selected_col().unwrap();
 
-                let is_selected = sub_menu_state
-                    .selected()
-                    .filter(|s| *s == list_idx)
-                    .is_some();
+                // Set Pane Visibility
+                title_text.set_text_string(submenu.title);
 
-                let submenu_ids = app.submenu_ids();
+                // In the actual 'layout.arc' file, every icon image is stacked
+                // into a single container pane, with each image directly on top of another.
+                // Hide all icon images, and strategically mark the icon that
+                // corresponds with a particular button to be visible.
 
-                submenu_ids.iter().for_each(|id| {
-                    let pane = menu_button.find_pane_by_name_recursive(id);
-                    if let Some(p) = pane {
-                        p.set_visible(false);
+                for t in tabs_clone.iter() {
+                    for s in t.submenus.iter() {
+                        let pane = menu_button.find_pane_by_name_recursive(s.id);
+                        if let Some(p) = pane {
+                            p.set_visible(s.id == submenu.id);
+                        }
                     }
-                });
+                }
 
-                title_text.set_text_string(name);
                 menu_button
                     .find_pane_by_name_recursive("check")
                     .unwrap()
-                    .set_visible(true);
+                    .set_visible(false);
 
+                if is_selected {
+                    // Help text
+                    root_pane
+                        .find_pane_by_name_recursive("FooterTxt")
+                        .unwrap()
+                        .as_textbox()
+                        .set_text_string(submenu.help_text);
+
+                    title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                    title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                    title_text.text_shadow_enable(true);
+                    title_text.text_outline_enable(true);
+                    title_text.set_color(255, 255, 255, 255);
+                } else {
+                    title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                    title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                    title_text.text_shadow_enable(false);
+                    title_text.text_outline_enable(false);
+                    title_text.set_color(178, 199, 211, 255);
+                }
+                menu_button.set_visible(true);
                 menu_button
                     .find_pane_by_name_recursive("Icon")
                     .unwrap()
-                    .set_visible(*checked);
+                    .set_visible(true);
+            }
+        }
+    }
+}
 
+unsafe fn render_toggle_page(app: &mut App, root_pane: &Pane) {
+    let tabs_clone = app.tabs.clone(); // Need this to avoid double-borrow later on
+    let submenu = app.selected_submenu();
+    // If the options can only be toggled on or off, then use the check icon
+    // instead of the number icons
+    let use_check_icon = submenu.toggles.get(0, 0).unwrap().max == 1;
+    for row in 0..NX_SUBMENU_ROWS {
+        let menu_button_row = root_pane
+            .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row}").as_str())
+            .unwrap();
+        menu_button_row.set_visible(true);
+        for col in 0..NX_SUBMENU_COLUMNS {
+            if let Some(toggle) = submenu.toggles.get(row, col) {
+                let menu_button = menu_button_row
+                    .find_pane_by_name_recursive(format!("Button{col}").as_str())
+                    .unwrap();
+                menu_button.set_visible(true);
+                let title_text = menu_button
+                    .find_pane_by_name_recursive("TitleTxt")
+                    .unwrap()
+                    .as_textbox();
+                let title_bg = menu_button
+                    .find_pane_by_name_recursive("TitleBg")
+                    .unwrap()
+                    .as_picture();
                 let title_bg_material = &mut *title_bg.material;
+                let is_selected = row == submenu.toggles.state.selected_row().unwrap()
+                    && col == submenu.toggles.state.selected_col().unwrap();
 
                 if is_selected {
                     title_text.text_shadow_enable(true);
                     title_text.text_outline_enable(true);
-
                     title_text.set_color(255, 255, 255, 255);
-
                     title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
                     title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
                 } else {
                     title_text.text_shadow_enable(false);
                     title_text.text_outline_enable(false);
-
                     title_text.set_color(178, 199, 211, 255);
-
                     title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
                     title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
                 }
-            });
-    });
+
+                // Hide all submenu icons, since we're not on the submenu page
+                for t in tabs_clone.iter() {
+                    for s in t.submenus.iter() {
+                        let pane = menu_button.find_pane_by_name_recursive(s.id);
+                        if let Some(p) = pane {
+                            p.set_visible(false);
+                        }
+                    }
+                }
+
+                title_text.set_text_string(toggle.title);
+
+                if use_check_icon {
+                    menu_button
+                        .find_pane_by_name_recursive("check")
+                        .unwrap()
+                        .set_visible(true);
+
+                    menu_button
+                        .find_pane_by_name_recursive("Icon")
+                        .unwrap()
+                        .set_visible(toggle.value > 0);
+                } else {
+                    menu_button
+                        .find_pane_by_name_recursive("check")
+                        .unwrap()
+                        .set_visible(false);
+                    menu_button
+                        .find_pane_by_name_recursive("Icon")
+                        .unwrap()
+                        .set_visible(toggle.value > 0);
+
+                    for value in 0..toggle.max {
+                        menu_button
+                            .find_pane_by_name_recursive(format!("{}", value).as_str())
+                            .unwrap()
+                            .set_visible(value == toggle.value);
+                    }
+                }
+            }
+        }
+    }
 }
 
-unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
-    let (title, _help_text, gauge_vals) = app.sub_menu_strs_for_slider();
-    let selected_min = gauge_vals.selected_min;
-    let selected_max = gauge_vals.selected_max;
+unsafe fn render_slider_page(app: &mut App, root_pane: &Pane) {
+    let submenu = app.selected_submenu();
+    let slider = submenu.slider.unwrap();
+    let selected_min = slider.lower;
+    let selected_max = slider.upper;
 
     let slider_pane = root_pane
         .find_pane_by_name_recursive("TrModSlider")
@@ -256,7 +258,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
         .find_pane_by_name_recursive("Header")
         .unwrap()
         .as_textbox();
-    header.set_text_string(title.as_str());
+    header.set_text_string(submenu.title);
     let min_button = slider_pane
         .find_pane_by_name_recursive("MinButton")
         .unwrap()
@@ -291,7 +293,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
         .as_textbox();
 
     min_title_text.set_text_string("Min");
-    match gauge_vals.state {
+    match slider.state {
         SliderState::LowerHover | SliderState::LowerSelected => {
             min_title_text.text_shadow_enable(true);
             min_title_text.text_outline_enable(true);
@@ -305,7 +307,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
     }
 
     max_title_text.set_text_string("Max");
-    match gauge_vals.state {
+    match slider.state {
         SliderState::UpperHover | SliderState::UpperSelected => {
             max_title_text.text_shadow_enable(true);
             max_title_text.text_outline_enable(true);
@@ -322,7 +324,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
     max_value_text.set_text_string(&format!("{selected_max}"));
 
     let min_title_bg_material = &mut *min_title_bg.as_picture().material;
-    let min_colors = match gauge_vals.state {
+    let min_colors = match slider.state {
         SliderState::LowerHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
         SliderState::LowerSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
         _ => (BG_LEFT_OFF_WHITE_COLOR, BG_LEFT_OFF_BLACK_COLOR),
@@ -332,7 +334,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
     min_title_bg_material.set_black_res_color(min_colors.1);
 
     let max_title_bg_material = &mut *max_title_bg.as_picture().material;
-    let max_colors = match gauge_vals.state {
+    let max_colors = match slider.state {
         SliderState::UpperHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
         SliderState::UpperSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
         _ => (BG_LEFT_OFF_WHITE_COLOR, BG_LEFT_OFF_BLACK_COLOR),
@@ -387,11 +389,9 @@ pub unsafe fn draw(root_pane: &Pane) {
     }
 
     // Make all invisible first
-    (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {
-        let col_idx = idx % NX_SUBMENU_COLUMNS;
-        let row_idx = idx / NX_SUBMENU_COLUMNS;
-
-        let menu_button_row = root_pane
+    for row_idx in 0..NX_SUBMENU_ROWS {
+        for col_idx in 0..NX_SUBMENU_COLUMNS {
+            let menu_button_row = root_pane
             .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row_idx}").as_str())
             .unwrap();
         menu_button_row.set_visible(false);
@@ -405,7 +405,8 @@ pub unsafe fn draw(root_pane: &Pane) {
             .find_pane_by_name_recursive("ValueTxt")
             .unwrap()
             .set_visible(false);
-    });
+        }
+    }
 
     // Make normal training panes invisible if we're active
     // InfluencedAlpha means "Should my children panes' alpha be influenced by mine, as the parent?"
@@ -422,21 +423,32 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     // Update menu display
     // Grabbing lock as read-only, essentially
-    let app = &*crate::common::menu::QUICK_MENU_APP.data_ptr();
+    let app = &mut *crate::common::menu::QUICK_MENU_APP.data_ptr();
 
-    let app_tabs = &app.tabs.items;
-    let tab_selected = app.tabs.state.selected().unwrap();
-    let prev_tab = if tab_selected == 0 {
-        app_tabs.len() - 1
-    } else {
-        tab_selected - 1
-    };
-    let next_tab = if tab_selected == app_tabs.len() - 1 {
-        0
-    } else {
-        tab_selected + 1
-    };
-    let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx].clone());
+    let tab_titles = [
+        app.tabs
+            .get_before_selected()
+            .expect("No tab selected!")
+            .title,
+        app.tabs.get_selected().expect("No tab selected!").title,
+        app.tabs
+            .get_after_selected()
+            .expect("No tab selected!")
+            .title,
+    ];
+    // let app_tabs = &app.tabs.items;
+    // let tab_selected = app.tabs.state.selected().unwrap();
+    // let prev_tab = if tab_selected == 0 {
+    //     app_tabs.len() - 1
+    // } else {
+    //     tab_selected - 1
+    // };
+    // let next_tab = if tab_selected == app_tabs.len() - 1 {
+    //     0
+    // } else {
+    //     tab_selected + 1
+    // };
+    // let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx].clone());
 
     let is_gcc = (*common::menu::P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
@@ -493,7 +505,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             help_pane.set_default_material_colors();
             help_pane.set_color(255, 255, 0, 255);
         }
-        help_pane.set_text_string(tab_titles[idx].as_str());
+        help_pane.set_text_string(tab_titles[idx]);
     });
     [
         (save_defaults_key, "SaveDefaults", "Save Defaults"),
@@ -522,5 +534,6 @@ pub unsafe fn draw(root_pane: &Pane) {
         AppPage::SLIDER => render_slider_page(app, root_pane),
         AppPage::TOGGLE => render_toggle_page(app, root_pane),
         AppPage::CONFIRMATION => todo!(),
+        AppPage::CLOSE => todo!(),
     }
 }
