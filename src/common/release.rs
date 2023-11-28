@@ -183,7 +183,8 @@ pub fn perform_version_check() {
         UpdatePolicy::DISABLED => {
             // User does not want to update at all
             Err(anyhow!("Updates are disabled per UpdatePolicy"))
-        }
+        },
+        _ => unreachable!()
     };
     if release_to_apply.is_ok() {
         let published_at = release_to_apply.as_ref().unwrap().published_at.clone();

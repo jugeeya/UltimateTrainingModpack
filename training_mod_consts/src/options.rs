@@ -135,7 +135,7 @@ impl Direction {
             Direction::NEUTRAL => 0.0,
             Direction::LEFT => 5.0,
             Direction::RIGHT => 1.0,
-            _ => 0.0,
+            _ => unreachable!()
         }
     }
 }
@@ -172,7 +172,7 @@ impl LedgeOption {
                 | LedgeOption::PLAYBACK_3
                 | LedgeOption::PLAYBACK_4
                 | LedgeOption::PLAYBACK_5 => *FIGHTER_STATUS_KIND_NONE,
-                _ => return None,
+                _ => unreachable!()
             })
         }
 
@@ -271,7 +271,7 @@ impl OnOff {
         match self {
             OnOff::OFF => false,
             OnOff::ON => true,
-            _ => panic!("Bad option for OnOff::as_bool"),
+            _ => unreachable!()
         }
     }
 }
@@ -429,7 +429,7 @@ impl Delay {
             Delay::D28 => 28,
             Delay::D29 => 29,
             Delay::D30 => 30,
-            _ => panic!("Invalid option for Delay::into_delay()"),
+            _ => unreachable!()
         }
     }
 }
@@ -504,7 +504,7 @@ impl MedDelay {
             MedDelay::D140 => 140,
             MedDelay::D145 => 145,
             MedDelay::D150 => 150,
-            _ => panic!("Invalid option for MedDelay::into_MedDelay()"),
+            _ => unreachable!()
         }
     }
 }
@@ -579,7 +579,7 @@ impl LongDelay {
             LongDelay::D280 => 280,
             LongDelay::D290 => 290,
             LongDelay::D300 => 300,
-            _ => panic!("Invalid option for LongDelay::into_LongDelay()"),
+            _ => unreachable!()
         }
     }
 }
@@ -631,7 +631,7 @@ impl BuffOption {
                 BuffOption::WAFT_MINI => *FIGHTER_WARIO_GASS_LEVEL_M,
                 BuffOption::WAFT_HALF => *FIGHTER_WARIO_GASS_LEVEL_L,
                 BuffOption::WAFT_FULL => *FIGHTER_WARIO_GASS_LEVEL_FLY,
-                _ => return None,
+                _ => unreachable!()
             })
         }
 
@@ -687,7 +687,7 @@ impl ThrowOption {
                 ThrowOption::BACKWARD => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_B,
                 ThrowOption::UP => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_HI,
                 ThrowOption::DOWN => *FIGHTER_PAD_CMD_CAT2_FLAG_THROW_LW,
-                _ => return None,
+                _ => unreachable!()
             })
         }
 
@@ -726,7 +726,7 @@ impl SdiFrequency {
             SdiFrequency::NORMAL => 8,
             SdiFrequency::MEDIUM => 6,
             SdiFrequency::HIGH => 4,
-            _ => panic!("Invalid option for SdiFrequency::into_u32()"),
+            _ => unreachable!()
         }
     }
 }
@@ -747,7 +747,7 @@ impl ClatterFrequency {
             ClatterFrequency::NORMAL => 8,
             ClatterFrequency::MEDIUM => 5,
             ClatterFrequency::HIGH => 2,
-            _ => panic!("Invalid option for ClatterFrequency::into_u32()"),
+            _ => unreachable!()
         }
     }
 }
@@ -794,7 +794,7 @@ impl CharacterItem {
             CharacterItem::CPU_VARIATION_6 => 14,
             CharacterItem::CPU_VARIATION_7 => 15,
             CharacterItem::CPU_VARIATION_8 => 16,
-            _ => 0,
+            _ => unreachable!()
         }
     }
 }
@@ -838,11 +838,6 @@ impl MashTrigger {
 pub struct DamagePercent(pub u32, pub u32);
 
 impl DamagePercent {
-    fn lower(&self) -> u32 { self.0 }
-    fn upper(&self) -> u32 { self.1 }
-}
-
-impl DamagePercent {
     pub const fn default() -> DamagePercent {
         DamagePercent(0, 150)
     }
@@ -875,7 +870,7 @@ impl SaveStateSlot {
             SaveStateSlot::S3 => Some(2),
             SaveStateSlot::S4 => Some(3),
             SaveStateSlot::S5 => Some(4),
-            _ => None
+            _ => unreachable!()
             
         }
     }
@@ -899,7 +894,7 @@ impl RecordSlot {
             RecordSlot::S3 => Some(2),
             RecordSlot::S4 => Some(3),
             RecordSlot::S5 => Some(4),
-            _ => None
+            _ => unreachable!()
             
         }
     }
@@ -923,7 +918,7 @@ impl PlaybackSlot {
             PlaybackSlot::S3 => Some(2),
             PlaybackSlot::S4 => Some(3),
             PlaybackSlot::S5 => Some(4),
-            _ => None
+            _ => unreachable!()
             
         }
     }
@@ -991,7 +986,7 @@ impl RecordingDuration {
             RecordingDuration::F540 => 540,
             RecordingDuration::F570 => 570,
             RecordingDuration::F600 => 600,
-            _ => panic!("Invalid option for RecordingDuration::into_frames()"),
+            _ => unreachable!()
         }
     }
 }

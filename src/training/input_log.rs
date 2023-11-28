@@ -139,6 +139,7 @@ impl InputLog {
                 InputDisplay::SMASH => self.is_smash_different(other),
                 InputDisplay::RAW => self.is_raw_different(other),
                 InputDisplay::NONE => false,
+                _ => unreachable!()
             }
         }
     }
@@ -149,6 +150,7 @@ impl InputLog {
                 InputDisplay::SMASH => self.smash_binned_lstick(),
                 InputDisplay::RAW => self.raw_binned_lstick(),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
+                _ => unreachable!()
             }
         }
     }
@@ -159,6 +161,7 @@ impl InputLog {
                 InputDisplay::SMASH => self.smash_binned_rstick(),
                 InputDisplay::RAW => self.raw_binned_rstick(),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
+                _ => unreachable!()
             }
         }
     }
@@ -169,6 +172,7 @@ impl InputLog {
                 InputDisplay::SMASH => self.smash_button_icons(),
                 InputDisplay::RAW => self.raw_button_icons(),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
+                _ => unreachable!()
             }
         }
     }
