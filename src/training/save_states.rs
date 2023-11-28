@@ -256,7 +256,7 @@ pub unsafe fn should_mirror() -> f32 {
         SaveStateMirroring::NONE => 1.0,
         SaveStateMirroring::ALTERNATE => -1.0 * MIRROR_STATE,
         SaveStateMirroring::RANDOM => ([-1.0, 1.0])[get_random_int(2) as usize],
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
 
@@ -579,7 +579,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                         set_damage(module_accessor, pct);
                     }
                     SaveDamage::DEFAULT => {}
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             } else {
                 match MENU.save_damage_cpu {
@@ -595,7 +595,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                         set_damage(module_accessor, pct);
                     }
                     SaveDamage::DEFAULT => {}
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
 

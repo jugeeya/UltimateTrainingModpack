@@ -45,7 +45,7 @@ pub fn button_mapping(
         ButtonConfig::MINUS => b.minus(),
         ButtonConfig::LSTICK => b.stick_l(),
         ButtonConfig::RSTICK => b.stick_r(),
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
 

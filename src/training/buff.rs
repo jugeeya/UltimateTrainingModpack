@@ -46,7 +46,10 @@ pub unsafe fn is_buffing_any() -> bool {
     IS_BUFFING_CPU || IS_BUFFING_PLAYER
 }
 
-pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: usize) {
+pub unsafe fn set_buff_rem(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    new_value: usize,
+) {
     if is_operation_cpu(module_accessor) {
         BUFF_REMAINING_CPU = new_value;
         return;
