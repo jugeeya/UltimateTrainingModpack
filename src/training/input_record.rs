@@ -191,7 +191,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
     let fighter_kind = utility::get_kind(module_accessor);
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
 
-    CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx();
+    CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx().unwrap_or(0);
 
     if entry_id_int == 0 && !fighter_is_nana {
         if button_config::combo_passes(button_config::ButtonCombo::InputPlayback) {

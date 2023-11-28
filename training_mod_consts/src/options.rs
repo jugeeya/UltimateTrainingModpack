@@ -774,6 +774,30 @@ byteflags! {
     }
 }
 
+impl CharacterItem {
+    pub fn as_idx(&self) -> usize {
+        match *self {
+            CharacterItem::NONE => 0,
+            CharacterItem::PLAYER_VARIATION_1 => 1,
+            CharacterItem::PLAYER_VARIATION_2 => 2,
+            CharacterItem::PLAYER_VARIATION_3 => 3,
+            CharacterItem::PLAYER_VARIATION_4 => 4,
+            CharacterItem::PLAYER_VARIATION_5 => 5,
+            CharacterItem::PLAYER_VARIATION_6 => 6,
+            CharacterItem::PLAYER_VARIATION_7 => 7,
+            CharacterItem::PLAYER_VARIATION_8 => 8,
+            CharacterItem::CPU_VARIATION_1 => 9,
+            CharacterItem::CPU_VARIATION_2 => 10,
+            CharacterItem::CPU_VARIATION_3 => 11,
+            CharacterItem::CPU_VARIATION_4 => 12,
+            CharacterItem::CPU_VARIATION_5 => 13,
+            CharacterItem::CPU_VARIATION_6 => 14,
+            CharacterItem::CPU_VARIATION_7 => 15,
+            CharacterItem::CPU_VARIATION_8 => 16,
+            _ => 0,
+        }
+    }
+}
 
 byteflags! {
     pub struct MashTrigger {
@@ -843,6 +867,20 @@ byteflags! {
     }
 }
 
+impl SaveStateSlot {
+    pub fn into_idx(&self) -> Option<usize> {
+        match *self {
+            SaveStateSlot::S1 => Some(0),
+            SaveStateSlot::S2 => Some(1),
+            SaveStateSlot::S3 => Some(2),
+            SaveStateSlot::S4 => Some(3),
+            SaveStateSlot::S5 => Some(4),
+            _ => None
+            
+        }
+    }
+}
+
 byteflags! {
     pub struct RecordSlot {
         pub S1 = "Slot 1",
@@ -853,6 +891,20 @@ byteflags! {
     }
 }
 
+impl RecordSlot {
+    pub fn into_idx(&self) -> Option<usize> {
+        match *self {
+            RecordSlot::S1 => Some(0),
+            RecordSlot::S2 => Some(1),
+            RecordSlot::S3 => Some(2),
+            RecordSlot::S4 => Some(3),
+            RecordSlot::S5 => Some(4),
+            _ => None
+            
+        }
+    }
+}
+
 byteflags! {
     pub struct PlaybackSlot {
         pub S1 = "Slot 1",
@@ -860,6 +912,20 @@ byteflags! {
         pub S3 = "Slot 3",
         pub S4 = "Slot 4",
         pub S5 = "Slot 5",
+    }
+}
+
+impl PlaybackSlot {
+    pub fn into_idx(&self) -> Option<usize> {
+        match *self {
+            PlaybackSlot::S1 => Some(0),
+            PlaybackSlot::S2 => Some(1),
+            PlaybackSlot::S3 => Some(2),
+            PlaybackSlot::S4 => Some(3),
+            PlaybackSlot::S5 => Some(4),
+            _ => None
+            
+        }
     }
 }
 

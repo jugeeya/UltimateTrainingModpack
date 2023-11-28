@@ -233,7 +233,7 @@ unsafe fn get_slot() -> usize {
     if random_slot != SaveStateSlot::empty() {
         RANDOM_SLOT
     } else {
-        MENU.save_state_slot.as_idx() as usize
+        MENU.save_state_slot.into_idx().unwrap_or(0)
     }
 }
 
@@ -452,7 +452,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             let random_slot = MENU.randomize_slots.get_random();
             let slot = if random_slot != SaveStateSlot::empty() {
-                RANDOM_SLOT = random_slot.as_idx();
+                RANDOM_SLOT = random_slot.into_idx().unwrap_or(0);
                 RANDOM_SLOT
             } else {
                 selected_slot
@@ -693,8 +693,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if button_config::combo_passes(button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
-        save_state_player(MENU.save_state_slot.as_idx() as usize).state = Save;
-        save_state_cpu(MENU.save_state_slot.as_idx() as usize).state = Save;
+        save_state_player(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
+        save_state_cpu(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
