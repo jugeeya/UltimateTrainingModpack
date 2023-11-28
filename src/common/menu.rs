@@ -89,13 +89,8 @@ enum DirectionButton {
 }
 
 lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App> = Mutex::new(
-        training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
-            (
-                ui_menu(DEFAULTS_MENU),
-                serde_json::to_string(&DEFAULTS_MENU).unwrap(),
-            )
-        })
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
+        training_mod_tui::App::new()
     );
     pub static ref P1_CONTROLLER_STYLE: Mutex<ControllerStyle> =
         Mutex::new(ControllerStyle::default());
@@ -192,36 +187,35 @@ pub fn handle_final_input_mapping(
                 });
                 button_mapping(ButtonConfig::B, style, button_presses).then(|| {
                     received_input = true;
-                    if app.page != AppPage::SUBMENU {
-                        app.on_b()
-                    } else {
+                    app.on_b();
+                    if app.page == AppPage::CLOSE {
                         // Leave menu.
                         frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
                         QUICK_MENU_ACTIVE = false;
-                        let menu_json = app.get_menu_selections();
+                        let menu_json = app.to_json();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
                 });
                 button_mapping(ButtonConfig::X, style, button_presses).then(|| {
-                    app.save_defaults();
+                    app.on_x();
                     received_input = true;
                 });
                 button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
-                    app.reset_all_submenus();
+                    app.on_y();
                     received_input = true;
                 });
 
                 button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
-                    app.previous_tab();
+                    app.on_zl();
                     received_input = true;
                 });
                 button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
-                    app.next_tab();
+                    app.on_zr();
                     received_input = true;
                 });
                 button_mapping(ButtonConfig::R, style, button_presses).then(|| {
-                    app.reset_current_submenu();
+                    app.on_r();
                     received_input = true;
                 });
 
@@ -263,7 +257,7 @@ pub fn handle_final_input_mapping(
 
                 if received_input {
                     direction_hold_frames.iter_mut().for_each(|(_, f)| *f = 0);
-                    set_menu_from_json(&app.get_menu_selections());
+                    set_menu_from_json(&app.to_json());
                     *MENU_RECEIVED_INPUT.lock() = true;
                 }
             }

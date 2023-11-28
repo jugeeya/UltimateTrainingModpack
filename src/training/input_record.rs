@@ -102,11 +102,11 @@ unsafe fn should_mash_playback() {
 
     if is_in_hitstun(&mut *cpu_module_accessor) {
         // if we're in hitstun and want to enter the frame we start hitstop for SDI, start if we're in any damage status instantly
-        if MENU.hitstun_playback == HitstunPlayback::Instant {
+        if MENU.hitstun_playback == HitstunPlayback::INSTANT {
             should_playback = true;
         }
         // if we want to wait until we exit hitstop and begin flying away for shield art etc, start if we're not in hitstop
-        if MENU.hitstun_playback == HitstunPlayback::Hitstop
+        if MENU.hitstun_playback == HitstunPlayback::HITSTOP
             && !StopModule::is_stop(cpu_module_accessor)
         {
             should_playback = true;

@@ -10,8 +10,8 @@ use crate::training::handle_add_limit;
 
 use once_cell::sync::Lazy;
 
-static mut BUFF_REMAINING_PLAYER: i32 = 0;
-static mut BUFF_REMAINING_CPU: i32 = 0;
+static mut BUFF_REMAINING_PLAYER: usize = 0;
+static mut BUFF_REMAINING_CPU: usize = 0;
 
 static mut IS_BUFFING_PLAYER: bool = false;
 static mut IS_BUFFING_CPU: bool = false;
@@ -46,7 +46,7 @@ pub unsafe fn is_buffing_any() -> bool {
     IS_BUFFING_CPU || IS_BUFFING_PLAYER
 }
 
-pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: i32) {
+pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: usize) {
     if is_operation_cpu(module_accessor) {
         BUFF_REMAINING_CPU = new_value;
         return;
@@ -54,7 +54,7 @@ pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor
     BUFF_REMAINING_PLAYER = new_value;
 }
 
-pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
+pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> usize {
     if is_operation_cpu(module_accessor) {
         return BUFF_REMAINING_CPU;
     }
@@ -101,11 +101,15 @@ pub unsafe fn handle_buffs(
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let buff_vec = MENU.buff_state.hero_buffs().to_vec();
+    let buff_vec: Vec<BuffOption> = BuffOption::ALL_CONSTS
+        .iter()
+        .filter(|buff_option| MENU.buff_state.contains(buff_option))
+        .map(|buff_option| *buff_option)
+        .collect();
     if !is_buffing(module_accessor) {
         // Initial set up for spells
         start_buff(module_accessor);
-        set_buff_rem(module_accessor, buff_vec.len() as i32);
+        set_buff_rem(module_accessor, buff_vec.len());
         // Since it's the first step of buffing, we need to set up how many buffs there are
     }
     if get_buff_rem(module_accessor) <= 0 {

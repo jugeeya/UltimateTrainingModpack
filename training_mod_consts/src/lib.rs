@@ -11,7 +11,7 @@ pub use files::*;
 pub mod config;
 pub use config::*;
 
-pub use training_mod_tui_2::*;
+pub use training_mod_tui::*;
 use paste::paste;
 
 #[repr(C)]

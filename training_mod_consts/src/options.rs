@@ -814,10 +814,6 @@ impl MashTrigger {
 pub struct DamagePercent(pub u32, pub u32);
 
 impl DamagePercent {
-    fn get_limits() -> (u32, u32) {
-        (0, 150)
-    }
-
     fn lower(&self) -> u32 { self.0 }
     fn upper(&self) -> u32 { self.1 }
 }

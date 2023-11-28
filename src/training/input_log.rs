@@ -137,7 +137,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.is_smash_different(other),
-                InputDisplay::Raw => self.is_raw_different(other),
+                InputDisplay::RAW => self.is_raw_different(other),
                 InputDisplay::NONE => false,
             }
         }
@@ -147,7 +147,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.smash_binned_lstick(),
-                InputDisplay::Raw => self.raw_binned_lstick(),
+                InputDisplay::RAW => self.raw_binned_lstick(),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
             }
         }
@@ -157,7 +157,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.smash_binned_rstick(),
-                InputDisplay::Raw => self.raw_binned_rstick(),
+                InputDisplay::RAW => self.raw_binned_rstick(),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
             }
         }
@@ -167,7 +167,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.smash_button_icons(),
-                InputDisplay::Raw => self.raw_button_icons(),
+                InputDisplay::RAW => self.raw_button_icons(),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
             }
         }

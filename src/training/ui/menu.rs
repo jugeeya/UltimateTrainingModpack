@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use training_mod_tui::gauge::GaugeState;
-use training_mod_tui::{App, AppPage, NUM_LISTS};
+use training_mod_tui::{App, AppPage, NX_SUBMENU_COLUMNS, SliderState};
 
 use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES, MENU_RECEIVED_INPUT};
 use crate::training::frame_counter;
@@ -293,7 +292,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 
     min_title_text.set_text_string("Min");
     match gauge_vals.state {
-        GaugeState::MinHover | GaugeState::MinSelected => {
+        SliderState::LowerHover | SliderState::LowerSelected => {
             min_title_text.text_shadow_enable(true);
             min_title_text.text_outline_enable(true);
             min_title_text.set_color(255, 255, 255, 255);
@@ -307,7 +306,7 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 
     max_title_text.set_text_string("Max");
     match gauge_vals.state {
-        GaugeState::MaxHover | GaugeState::MaxSelected => {
+        SliderState::UpperHover | SliderState::UpperSelected => {
             max_title_text.text_shadow_enable(true);
             max_title_text.text_outline_enable(true);
             max_title_text.set_color(255, 255, 255, 255);
@@ -324,8 +323,8 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 
     let min_title_bg_material = &mut *min_title_bg.as_picture().material;
     let min_colors = match gauge_vals.state {
-        GaugeState::MinHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
-        GaugeState::MinSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
+        SliderState::LowerHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
+        SliderState::LowerSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
         _ => (BG_LEFT_OFF_WHITE_COLOR, BG_LEFT_OFF_BLACK_COLOR),
     };
 
@@ -334,8 +333,8 @@ unsafe fn render_slider_page(app: &App, root_pane: &Pane) {
 
     let max_title_bg_material = &mut *max_title_bg.as_picture().material;
     let max_colors = match gauge_vals.state {
-        GaugeState::MaxHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
-        GaugeState::MaxSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
+        SliderState::UpperHover => (BG_LEFT_ON_WHITE_COLOR, BG_LEFT_ON_BLACK_COLOR),
+        SliderState::UpperSelected => (BG_LEFT_SELECTED_WHITE_COLOR, BG_LEFT_SELECTED_BLACK_COLOR),
         _ => (BG_LEFT_OFF_WHITE_COLOR, BG_LEFT_OFF_BLACK_COLOR),
     };
 
@@ -389,8 +388,8 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     // Make all invisible first
     (0..NUM_MENU_TEXT_OPTIONS).for_each(|idx| {
-        let col_idx = idx % NUM_LISTS;
-        let row_idx = idx / NUM_LISTS;
+        let col_idx = idx % NX_SUBMENU_COLUMNS;
+        let row_idx = idx / NX_SUBMENU_COLUMNS;
 
         let menu_button_row = root_pane
             .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row_idx}").as_str())

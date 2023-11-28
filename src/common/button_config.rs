@@ -193,17 +193,18 @@ lazy_static! {
 
 fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
-        let combo_keys = get_combo_keys(combo).to_vec();
+        let combo_keys = ButtonConfig::ALL_CONSTS
+            .iter()
+            .filter(|button| get_combo_keys(combo).contains(button));
         let mut this_combo_passes = false;
 
-        for hold_button in &combo_keys[..] {
+        for hold_button in combo_keys {
             if button_mapping(
                 *hold_button,
                 p1_controller.style,
                 p1_controller.current_buttons,
             ) && combo_keys
-                .iter()
-                .filter(|press_button| **press_button != *hold_button)
+                .filter(|press_button| *press_button != hold_button)
                 .all(|press_button| {
                     button_mapping(*press_button, p1_controller.style, p1_controller.just_down)
                 })

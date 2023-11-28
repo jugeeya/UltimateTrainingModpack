@@ -254,8 +254,8 @@ pub unsafe fn is_loading() -> bool {
 pub unsafe fn should_mirror() -> f32 {
     match MENU.save_state_mirroring {
         SaveStateMirroring::NONE => 1.0,
-        SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
-        SaveStateMirroring::Random => ([-1.0, 1.0])[get_random_int(2) as usize],
+        SaveStateMirroring::ALTERNATE => -1.0 * MIRROR_STATE,
+        SaveStateMirroring::RANDOM => ([-1.0, 1.0])[get_random_int(2) as usize],
     }
 }
 
