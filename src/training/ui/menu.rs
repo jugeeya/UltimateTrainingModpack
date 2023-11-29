@@ -423,6 +423,7 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     // Update menu display
     // Grabbing lock as read-only, essentially
+    // We don't really need to change anything, but get_before_selected requires &mut self
     let app = &mut *crate::common::menu::QUICK_MENU_APP.data_ptr();
 
     let tab_titles = [
@@ -436,19 +437,6 @@ pub unsafe fn draw(root_pane: &Pane) {
             .expect("No tab selected!")
             .title,
     ];
-    // let app_tabs = &app.tabs.items;
-    // let tab_selected = app.tabs.state.selected().unwrap();
-    // let prev_tab = if tab_selected == 0 {
-    //     app_tabs.len() - 1
-    // } else {
-    //     tab_selected - 1
-    // };
-    // let next_tab = if tab_selected == app_tabs.len() - 1 {
-    //     0
-    // } else {
-    //     tab_selected + 1
-    // };
-    // let tab_titles = [prev_tab, tab_selected, next_tab].map(|idx| app_tabs[idx].clone());
 
     let is_gcc = (*common::menu::P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {

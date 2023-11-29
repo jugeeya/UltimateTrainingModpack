@@ -143,7 +143,10 @@ pub struct SaveStateSlots {
 const NUM_SAVE_STATE_SLOTS: usize = 5;
 // I actually had to do it this way, a simple load-from-file in main() caused crashes.
 lazy_static::lazy_static! {
-    static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(load_from_file());
+    static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new({
+        info!("Initialized lazy_static: SAVE_STATE_SLOTS");
+        load_from_file()
+    });
 }
 
 pub fn load_from_file() -> SaveStateSlots {

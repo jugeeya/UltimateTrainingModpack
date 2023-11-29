@@ -10,9 +10,12 @@ use serde_json::Value;
 use zip::ZipArchive;
 
 lazy_static! {
-    pub static ref CURRENT_VERSION: Mutex<String> = Mutex::new(match get_current_version() {
-        Ok(v) => v,
-        Err(e) => panic!("Could not find current modpack version!: {}", e),
+    pub static ref CURRENT_VERSION: Mutex<String> = Mutex::new({
+        info!("Initialized lazy_static: CURRENT_VERSION");
+        match get_current_version() {
+            Ok(v) => v,
+            Err(e) => panic!("Could not find current modpack version!: {}", e),
+        }
     });
 }
 

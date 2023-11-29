@@ -17,6 +17,7 @@ use crate::common::{
 };
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
+use crate::{error, warn};
 
 #[derive(PartialEq, Debug)]
 pub enum InputRecordState {
@@ -338,11 +339,11 @@ pub unsafe fn lockout_record() {
 // Returns whether we did playback
 pub unsafe fn playback(slot: Option<usize>) -> bool {
     if INPUT_RECORD == Pause {
-        println!("Tried to playback during lockout!");
+        warn!("Tried to playback during lockout!");
         return false;
     }
     if slot.is_none() {
-        println!("Tried to playback without a slot selected!");
+        warn!("Tried to playback without a slot selected!");
         return false;
     }
     let slot = slot.unwrap();
@@ -425,8 +426,6 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::empty(); // don't control player while recording
-
-            //println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
         // Don't allow for player input during Lockout
         if POSSESSION == Lockout {
@@ -468,7 +467,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
                 INPUT_RECORD = Record;
                 POSSESSION = Standby;
             }
-            Ordering::Less => println!("LOCKOUT_FRAME OUT OF BOUNDS"),
+            Ordering::Less => error!("LOCKOUT_FRAME OUT OF BOUNDS"),
         }
     }
 
@@ -504,8 +503,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             );
         }
 
-        //println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
-
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[if INPUT_RECORD == Record {
             CURRENT_RECORD_SLOT
         } else {
@@ -538,7 +535,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         };
         (*controller_data).clamped_lstick_x = clamped_lstick_x;
         (*controller_data).clamped_lstick_y = clamped_lstick_y;
-        //println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
 
         // Keep counting frames, unless we're in standby waiting for an input, or are buffering an option
         // When buffering an option, we keep inputting the first frame of input during the buffer window

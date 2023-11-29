@@ -27,7 +27,7 @@ pub fn load_from_file() {
     info!("Checking for previous menu in {MENU_OPTIONS_PATH}...");
     if fs::metadata(MENU_OPTIONS_PATH).is_ok() {
         let menu_conf = fs::read_to_string(MENU_OPTIONS_PATH)
-            .unwrap_or_else(|_| panic!("Could not remove {}", MENU_OPTIONS_PATH));
+            .expect(&format!("Could not read {}", MENU_OPTIONS_PATH));
         if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
             unsafe {
                 MENU = menu_conf_json.menu;
@@ -36,12 +36,10 @@ pub fn load_from_file() {
             }
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(MENU_OPTIONS_PATH).unwrap_or_else(|_| {
-                panic!(
-                    "{} has invalid schema but could not be deleted!",
-                    MENU_OPTIONS_PATH
-                )
-            });
+            fs::remove_file(MENU_OPTIONS_PATH).expect(&format!(
+                "{} has invalid schema but could not be deleted!",
+                MENU_OPTIONS_PATH
+            ));
         }
     } else {
         info!("No previous menu file found.");
