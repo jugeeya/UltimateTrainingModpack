@@ -184,7 +184,7 @@ pub fn perform_version_check() {
             // User does not want to update at all
             Err(anyhow!("Updates are disabled per UpdatePolicy"))
         }
-        _ => unreachable!(),
+        _ => panic!("Invalid value in perform_version_check: {}", update_policy),
     };
     if release_to_apply.is_ok() {
         let published_at = release_to_apply.as_ref().unwrap().published_at.clone();

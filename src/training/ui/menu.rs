@@ -230,7 +230,7 @@ unsafe fn render_toggle_page(app: &mut App, root_pane: &Pane) {
                     for value in 0..toggle.max {
                         menu_button
                             .find_pane_by_name_recursive(format!("{}", value).as_str())
-                            .unwrap()
+                            .expect(format!("Could not find pane with name {}", value).as_str())
                             .set_visible(value == toggle.value);
                     }
                 }
