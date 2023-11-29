@@ -8,6 +8,7 @@ use training_mod_tui::{App, AppPage, SliderState, NX_SUBMENU_COLUMNS, NX_SUBMENU
 use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES, MENU_RECEIVED_INPUT};
 use crate::training::frame_counter;
 use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
+use training_mod_consts::TOGGLE_MAX;
 
 use super::fade_out;
 use super::set_icon_text;
@@ -122,8 +123,7 @@ unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
                     .unwrap()
                     .set_visible(false);
 
-                // TODO: Can we avoid hardcoding this to 8? I don't want to inspect a toggle to find the max...
-                for value in 1..=8 {
+                for value in 1..=TOGGLE_MAX {
                     if let Some(pane) =
                         menu_button.find_pane_by_name_recursive(format!("{}", value).as_str())
                     {

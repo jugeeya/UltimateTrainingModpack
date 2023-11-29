@@ -43,12 +43,11 @@ impl<'a> App<'a> {
         }
     }
 
-    pub fn to_json(&self) -> String {
+    pub fn current_settings_to_json(&self) -> String {
         serde_json::to_string(&self).expect("Could not serialize the menu to JSON!")
     }
 
-    pub fn exit(&self) -> String {
-        // TODO: Find a better naming convention with exit() and to_json()
+    pub fn get_serialized_settings_with_defaults(&self) -> String {
         format!(
             "{{\"menu\":{}, \"defaults_menu\":{}}}",
             self.serialized_settings, self.serialized_default_settings
@@ -56,11 +55,11 @@ impl<'a> App<'a> {
     }
 
     pub fn save_settings(&mut self) {
-        self.serialized_settings = self.to_json();
+        self.serialized_settings = self.current_settings_to_json();
     }
 
     pub fn save_default_settings(&mut self) {
-        self.serialized_default_settings = self.to_json();
+        self.serialized_default_settings = self.current_settings_to_json();
     }
 
     pub fn load_defaults(&mut self) {

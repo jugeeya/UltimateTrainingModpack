@@ -5,7 +5,7 @@ use std::fs;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
-use training_mod_consts::{ui_menu, MenuJsonStruct};
+use training_mod_consts::{create_app, MenuJsonStruct};
 use training_mod_tui::AppPage;
 
 use crate::common::button_config::button_mapping;
@@ -98,7 +98,7 @@ enum DirectionButton {
 lazy_static! {
     pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new({
         info!("Initialized lazy_static: QUICK_MENU_APP");
-        unsafe { ui_menu() }
+        unsafe { create_app() }
     });
     pub static ref P1_CONTROLLER_STYLE: Mutex<ControllerStyle> =
         Mutex::new(ControllerStyle::default());
@@ -200,7 +200,7 @@ pub fn handle_final_input_mapping(
                         // Leave menu.
                         frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
                         QUICK_MENU_ACTIVE = false;
-                        let menu_json = app.exit();
+                        let menu_json = app.get_serialized_settings_with_defaults();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }

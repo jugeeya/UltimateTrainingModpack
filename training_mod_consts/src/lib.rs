@@ -14,7 +14,7 @@ pub use config::*;
 pub use training_mod_tui::*;
 use paste::paste;
 
-const TOGGLE_MAX: u8 = 5;
+pub const TOGGLE_MAX: u8 = 5;
 
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
@@ -778,8 +778,8 @@ impl_toggletrait! {
     1,
 }
 
-// TODO: Rename this function for clarity
-pub unsafe fn ui_menu<'a>() -> App<'a> {
+pub unsafe fn create_app<'a>() -> App<'a> {
+    // Note that the to_submenu_xxx() functions are defined in the `impl_toggletrait` and `impl_slidertrait` macros
     let mut overall_menu = App::new();
 
     // Mash Tab
@@ -858,6 +858,7 @@ pub unsafe fn ui_menu<'a>() -> App<'a> {
     input_recording_tab_submenus.push(to_submenu_recording_crop());
     input_recording_tab_submenus.push(to_submenu_playback_button_slots());
     input_recording_tab_submenus.push(to_submenu_hitstun_playback());
+    input_recording_tab_submenus.push(to_submenu_save_state_playback());
     input_recording_tab_submenus.push(to_submenu_playback_mash());
     input_recording_tab_submenus.push(to_submenu_playback_loop());
     let input_tab = Tab {
@@ -894,7 +895,6 @@ pub unsafe fn ui_menu<'a>() -> App<'a> {
     save_state_tab_submenus.push(to_submenu_randomize_slots());
     save_state_tab_submenus.push(to_submenu_character_item());
     save_state_tab_submenus.push(to_submenu_buff_state());
-    save_state_tab_submenus.push(to_submenu_save_state_playback());
     let save_state_tab = Tab {
         id: "save_state",
         title: "Save States",
