@@ -49,7 +49,10 @@ impl<'a> App<'a> {
 
     pub fn exit(&self) -> String {
         // TODO: Find a better naming convention with exit() and to_json()
-        format!("{{\"menu\":{}, \"defaults_menu\":{}}}", self.serialized_settings, self.serialized_default_settings)
+        format!(
+            "{{\"menu\":{}, \"defaults_menu\":{}}}",
+            self.serialized_settings, self.serialized_default_settings
+        )
     }
 
     pub fn save_settings(&mut self) {
@@ -91,7 +94,6 @@ impl<'a> App<'a> {
     pub fn update_one_from_json(&mut self, json: &str, submenu_id: &str) {
         let all_settings: HashMap<String, Vec<u8>> =
             serde_json::from_str(json).expect("Could not parse the json!");
-        
         if let Some(val) = all_settings.get(submenu_id) {
             // No need to iterate through all the submenus if the id doesn't exist in the hashmap
             'tabs_scope: for tab in self.tabs.iter_mut() {
@@ -117,6 +119,21 @@ impl<'a> App<'a> {
             .submenus
             .get_selected()
             .expect("No submenu selected!")
+    }
+
+    pub fn should_show_clear_keyhelp(&mut self) -> bool {
+        // Only show the "Clear Toggle" keyhelp if all of the following are true
+        // 1. app.page is TOGGLE,
+        // 2. selected_submenu.submenu_type is ToggleMultiple
+        // 3. the toggle can be set to values greater than 1 (i.e. its not a boolean toggle)
+        if self.page != AppPage::TOGGLE {
+            return false;
+        }
+        let submenu = self.selected_submenu();
+        match submenu.submenu_type {
+            SubMenuType::ToggleMultiple => submenu.selected_toggle().max > 1,
+            _ => false,
+        }
     }
 }
 
@@ -207,14 +224,16 @@ impl<'a> InputControl for App<'a> {
             AppPage::CLOSE => {}
         }
         self.save_settings(); // B button can make changes, update the serialized settings
-        
     }
     fn on_x(&mut self) {
         self.save_default_settings();
     }
     fn on_y(&mut self) {
-        // TODO!() Go to AppPage::Confirmation
-        self.load_defaults();
+        // Clear current toggle, for toggles w/ weighted selections
+        match self.page {
+            AppPage::TOGGLE => self.selected_submenu().on_y(),
+            _ => {}
+        }
     }
     fn on_up(&mut self) {
         match self.page {
@@ -326,9 +345,23 @@ impl<'a> InputControl for App<'a> {
     }
     fn on_l(&mut self) {}
     fn on_r(&mut self) {
-        // Reset current settings to default
+        // Reset settings to default
         // TODO!() Confirmation
-        self.load_defaults_for_current_submenu();
+        match self.page {
+            AppPage::SUBMENU => {
+                // Reset ALL settings to default
+                self.load_defaults();
+            }
+            AppPage::TOGGLE => {
+                // Reset current submenu to default
+                self.load_defaults_for_current_submenu();
+            }
+            AppPage::SLIDER => {
+                // Reset current submenu to default
+                self.load_defaults_for_current_submenu();
+            }
+            _ => {}
+        }
     }
     fn on_zl(&mut self) {
         match self.page {

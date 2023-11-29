@@ -467,12 +467,11 @@ pub unsafe fn draw(root_pane: &Pane) {
         button_mapping.get("Z"),
     );
 
-    let (left_tab_key, right_tab_key, save_defaults_key, reset_current_key, reset_all_key) =
-        if is_gcc {
-            (l_key, r_key, x_key, z_key, y_key)
-        } else {
-            (zl_key, zr_key, x_key, r_key, y_key)
-        };
+    let (left_tab_key, right_tab_key, save_defaults_key, reset_key, clear_toggle_key) = if is_gcc {
+        (l_key, r_key, x_key, z_key, y_key)
+    } else {
+        (zl_key, zr_key, x_key, r_key, y_key)
+    };
 
     [
         (left_tab_key, "LeftTab"),
@@ -500,6 +499,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         }
 
         if *name == "CurrentTab" {
+            // TODO: Is this causing the "move list" option to be highlighted in the vanilla menu?
             icon_pane.set_text_string("");
             // Center tab should be highlighted
             help_pane.set_default_material_colors();
@@ -507,27 +507,69 @@ pub unsafe fn draw(root_pane: &Pane) {
         }
         help_pane.set_text_string(tab_titles[idx]);
     });
-    [
-        (save_defaults_key, "SaveDefaults", "Save Defaults"),
-        (reset_current_key, "ResetCurrentDefaults", "Reset Current"),
-        (reset_all_key, "ResetAllDefaults", "Reset All"),
-    ]
-    .iter()
-    .for_each(|(key, name, title)| {
-        let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
 
+    // Save Defaults Keyhelp
+    let name = "SaveDefaults";
+    let key = save_defaults_key;
+    let title = "Save Defaults";
+    let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
+    let icon_pane = key_help_pane
+        .find_pane_by_name_recursive("set_txt_icon")
+        .unwrap()
+        .as_textbox();
+    set_icon_text(icon_pane, &vec![*key.unwrap()]);
+    key_help_pane
+        .find_pane_by_name_recursive("set_txt_help")
+        .unwrap()
+        .as_textbox()
+        .set_text_string(title);
+
+    // Reset Keyhelp
+    let name = "ResetDefaults";
+    let key = reset_key;
+    let title = match app.page {
+        AppPage::SUBMENU => "Reset All",
+        AppPage::SLIDER => "Reset Current",
+        AppPage::TOGGLE => "Reset Current",
+        AppPage::CONFIRMATION => "",
+        AppPage::CLOSE => "",
+    };
+    if !title.is_empty() {
+        let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
         let icon_pane = key_help_pane
             .find_pane_by_name_recursive("set_txt_icon")
             .unwrap()
             .as_textbox();
         set_icon_text(icon_pane, &vec![*key.unwrap()]);
-
         key_help_pane
             .find_pane_by_name_recursive("set_txt_help")
             .unwrap()
             .as_textbox()
             .set_text_string(title);
-    });
+    }
+
+    // Clear Toggle Keyhelp
+    let name = "ClearToggle";
+    let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
+    let icon_pane = key_help_pane
+        .find_pane_by_name_recursive("set_txt_icon")
+        .unwrap();
+    if app.should_show_clear_keyhelp() {
+        // This is only displayed when you're in a multiple selection toggle menu w/ toggle.max > 1
+        let key = clear_toggle_key;
+        let title = "Clear Toggle";
+        set_icon_text(icon_pane.as_textbox(), &vec![*key.unwrap()]);
+        key_help_pane
+            .find_pane_by_name_recursive("set_txt_help")
+            .unwrap()
+            .as_textbox()
+            .set_text_string(title);
+        icon_pane.set_visible(true);
+        key_help_pane.set_visible(true);
+    } else {
+        icon_pane.set_visible(false);
+        key_help_pane.set_visible(false);
+    }
 
     match app.page {
         AppPage::SUBMENU => render_submenu_page(app, root_pane),

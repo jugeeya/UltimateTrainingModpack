@@ -61,7 +61,17 @@ impl<'a> InputControl for SubMenu<'a> {
         }
     }
     fn on_x(&mut self) {}
-    fn on_y(&mut self) {}
+    fn on_y(&mut self) {
+        match self.submenu_type {
+            SubMenuType::ToggleMultiple => {
+                let toggle = self.selected_toggle();
+                if toggle.max > 1 {
+                    toggle.value = 0;
+                }
+            }
+            _ => {}
+        }
+    }
     fn on_up(&mut self) {
         match self.submenu_type {
             SubMenuType::ToggleSingle => self.toggles.prev_row_checked(),
