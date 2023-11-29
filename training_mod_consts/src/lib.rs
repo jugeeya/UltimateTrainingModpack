@@ -14,6 +14,8 @@ pub use config::*;
 pub use training_mod_tui::*;
 use paste::paste;
 
+const TOGGLE_MAX: u8 = 5;
+
 #[repr(C)]
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct TrainingModpackMenu {
@@ -192,6 +194,7 @@ impl_toggletrait! {
     "menu_open_start_press",
     "Menu Open Start Press: Hold start or press minus to open the mod menu. To open the original menu, press start.\nThe default menu open option is always available as Hold DPad Up + Press B.",
     true,
+    1,
 }
 impl_toggletrait! {
     ButtonConfig,
@@ -199,6 +202,7 @@ impl_toggletrait! {
     "save_state_save",
     "Save State Save: Hold any one button and press the others to trigger",
     false,
+    1,
 }
 impl_toggletrait! {
     ButtonConfig,
@@ -206,6 +210,7 @@ impl_toggletrait! {
     "save_state_load",
     "Save State Load: Hold any one button and press the others to trigger",
     false,
+    1,
 }
 impl_toggletrait! {
     ButtonConfig,
@@ -213,6 +218,7 @@ impl_toggletrait! {
     "input_record",
     "Input Record: Hold any one button and press the others to trigger",
     false,
+    1,
 }
 impl_toggletrait! {
     ButtonConfig,
@@ -220,6 +226,7 @@ impl_toggletrait! {
     "input_playback",
     "Input Playback: Hold any one button and press the others to trigger",
     false,
+    1,
 }
 impl_toggletrait! {
     Action,
@@ -227,6 +234,7 @@ impl_toggletrait! {
     "mash_state",
     "Mash Toggles: Actions to be performed as soon as possible",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -234,6 +242,7 @@ impl_toggletrait! {
     "follow_up",
     "Followup Toggles: Actions to be performed after a Mash option",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     MashTrigger,
@@ -241,6 +250,7 @@ impl_toggletrait! {
     "mash_triggers",
     "Mash triggers: Configure what causes the CPU to perform a Mash option",
     false,
+    1,
 }
 impl_toggletrait! {
     AttackAngle,
@@ -248,6 +258,7 @@ impl_toggletrait! {
     "attack_angle",
     "Attack Angle: For attacks that can be angled, such as some forward tilts",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     ThrowOption,
@@ -255,6 +266,7 @@ impl_toggletrait! {
     "throw_state",
     "Throw Options: Throw to be performed when a grab is landed",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     MedDelay,
@@ -262,6 +274,7 @@ impl_toggletrait! {
     "throw_delay",
     "Throw Delay: How many frames to delay the throw option",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     MedDelay,
@@ -269,6 +282,7 @@ impl_toggletrait! {
     "pummel_delay",
     "Pummel Delay: How many frames after a grab to wait before starting to pummel",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     BoolFlag,
@@ -276,6 +290,7 @@ impl_toggletrait! {
     "falling_aerials",
     "Falling Aerials: Should aerials be performed when rising or when falling",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     BoolFlag,
@@ -283,6 +298,7 @@ impl_toggletrait! {
     "full_hop",
     "Full Hop: Should the CPU perform a full hop or a short hop",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Delay,
@@ -290,6 +306,7 @@ impl_toggletrait! {
     "aerial_delay",
     "Aerial Delay: How long to delay a Mash aerial attack",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     BoolFlag,
@@ -297,6 +314,7 @@ impl_toggletrait! {
     "fast_fall",
     "Fast Fall: Should the CPU fastfall during a jump",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Delay,
@@ -304,6 +322,7 @@ impl_toggletrait! {
     "fast_fall_delay",
     "Fast Fall Delay: How many frames the CPU should delay their fastfall",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Delay,
@@ -311,6 +330,7 @@ impl_toggletrait! {
     "oos_offset",
     "OoS Offset: How many times the CPU shield can be hit before performing a Mash option",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Delay,
@@ -318,6 +338,7 @@ impl_toggletrait! {
     "reaction_time",
     "Reaction Time: How many frames to delay before performing a mash option",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -325,6 +346,7 @@ impl_toggletrait! {
     "ledge_neutral_override",
     "Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -332,6 +354,7 @@ impl_toggletrait! {
     "ledge_roll_override",
     "Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -339,6 +362,7 @@ impl_toggletrait! {
     "ledge_jump_override",
     "Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -346,6 +370,7 @@ impl_toggletrait! {
     "ledge_attack_override",
     "Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -353,6 +378,7 @@ impl_toggletrait! {
     "tech_action_override",
     "Tech Action Override: Mash Actions to be performed after any tech action",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -360,6 +386,7 @@ impl_toggletrait! {
     "clatter_override",
     "Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -367,6 +394,7 @@ impl_toggletrait! {
     "tumble_override",
     "Tumble Override: Mash Actions to be performed after exiting a tumble state",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -374,6 +402,7 @@ impl_toggletrait! {
     "hitstun_override",
     "Hitstun Override: Mash Actions to be performed after exiting a hitstun state",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -381,6 +410,7 @@ impl_toggletrait! {
     "parry_override",
     "Parry Override: Mash Actions to be performed after a parry",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -388,6 +418,7 @@ impl_toggletrait! {
     "shieldstun_override",
     "Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -395,6 +426,7 @@ impl_toggletrait! {
     "footstool_override",
     "Footstool Override: Mash Actions to be performed after exiting a footstool state",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -402,6 +434,7 @@ impl_toggletrait! {
     "landing_override",
     "Landing Override: Mash Actions to be performed after landing on the ground",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Action,
@@ -409,6 +442,7 @@ impl_toggletrait! {
     "trump_override",
     "Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Direction,
@@ -416,6 +450,7 @@ impl_toggletrait! {
     "air_dodge_dir",
     "Airdodge Direction: Direction to angle airdodges",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Direction,
@@ -423,6 +458,7 @@ impl_toggletrait! {
     "di_state",
     "DI Direction: Direction to angle the directional influence during hitlag",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Direction,
@@ -430,6 +466,7 @@ impl_toggletrait! {
     "sdi_state",
     "SDI Direction: Direction to angle the smash directional influence during hitlag",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     SdiFrequency,
@@ -437,6 +474,7 @@ impl_toggletrait! {
     "sdi_strength",
     "SDI Strength: Relative strength of the smash directional influence inputs",
     true,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     ClatterFrequency,
@@ -444,6 +482,7 @@ impl_toggletrait! {
     "clatter_strength",
     "Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc.",
     true,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     LedgeOption,
@@ -451,6 +490,7 @@ impl_toggletrait! {
     "ledge_state",
     "Ledge Options: Actions to be taken when on the ledge",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     LongDelay,
@@ -458,6 +498,7 @@ impl_toggletrait! {
     "ledge_delay",
     "Ledge Delay: How many frames to delay the ledge option",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     TechFlags,
@@ -465,6 +506,7 @@ impl_toggletrait! {
     "tech_state",
     "Tech Options: Actions to take when slammed into a hard surface",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     MissTechFlags,
@@ -472,6 +514,7 @@ impl_toggletrait! {
     "miss_tech_state",
     "Mistech Options: Actions to take after missing a tech",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     Shield,
@@ -479,6 +522,7 @@ impl_toggletrait! {
     "shield_state",
     "Shield Toggles: CPU Shield Behavior",
     true,
+    1,
 }
 impl_toggletrait! {
     Direction,
@@ -486,6 +530,7 @@ impl_toggletrait! {
     "shield_tilt",
     "Shield Tilt: Direction to tilt the shield",
     true,
+    1,
 }
 
 impl_toggletrait! {
@@ -494,6 +539,7 @@ impl_toggletrait! {
     "crouch",
     "Crouch: Have the CPU crouch when on the ground",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -501,6 +547,7 @@ impl_toggletrait! {
     "stale_dodges",
     "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -508,6 +555,7 @@ impl_toggletrait! {
     "tech_hide",
     "Hide Tech Animations: Hides tech animations and effects after 7 frames to help with reacting to tech animation startup",
     true,
+    1,
 }
 impl_toggletrait! {
     SaveStateMirroring,
@@ -515,6 +563,7 @@ impl_toggletrait! {
     "save_state_mirroring",
     "Mirroring: Flips save states in the left-right direction across the stage center",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -522,6 +571,7 @@ impl_toggletrait! {
     "save_state_autoload",
     "Auto Save States: Load save state when any fighter dies",
     true,
+    1,
 }
 impl_toggletrait! {
     SaveDamage,
@@ -529,6 +579,7 @@ impl_toggletrait! {
     "save_damage_cpu",
     "Save Damage: Should save states retain CPU damage",
     true,
+    1,
 }
 impl_slidertrait! {
     DamagePercent,
@@ -542,6 +593,7 @@ impl_toggletrait! {
     "save_damage_player",
     "Save Damage: Should save states retain player damage",
     true,
+    1,
 }
 impl_slidertrait! {
     DamagePercent,
@@ -555,6 +607,7 @@ impl_toggletrait! {
     "save_state_enable",
     "Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.",
     true,
+    1,
 }
 impl_toggletrait! {
     SaveStateSlot,
@@ -562,6 +615,7 @@ impl_toggletrait! {
     "save_state_slot",
     "Save State Slot: Save and load states from different slots.",
     true,
+    1,
 }
 impl_toggletrait! {
     SaveStateSlot,
@@ -569,6 +623,7 @@ impl_toggletrait! {
     "randomize_slots",
     "Randomize Slots: Slots to randomize when loading save state.",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     CharacterItem,
@@ -576,6 +631,7 @@ impl_toggletrait! {
     "character_item",
     "Character Item: The item to give to the player's fighter when loading a save state",
     true,
+    1,
 }
 impl_toggletrait! {
     BuffOption,
@@ -583,6 +639,7 @@ impl_toggletrait! {
     "buff_state",
     "Buff Options: Buff(s) to be applied to the respective fighters when loading a save state",
     false,
+    1,
 }
 impl_toggletrait! {
     PlaybackSlot,
@@ -590,6 +647,7 @@ impl_toggletrait! {
     "save_state_playback",
     "Save State Playback: Choose which slots to playback input recording upon loading a save state",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     OnOff,
@@ -597,6 +655,7 @@ impl_toggletrait! {
     "frame_advantage",
     "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -604,6 +663,7 @@ impl_toggletrait! {
     "hitbox_vis",
     "Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)",
     true,
+    1,
 }
 impl_toggletrait! {
     InputDisplay,
@@ -611,6 +671,7 @@ impl_toggletrait! {
     "input_display",
     "Input Display: Log inputs in a queue on the left of the screen",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -618,6 +679,7 @@ impl_toggletrait! {
     "input_display_status",
     "Input Display Status: Group input logs by status in which they occurred",
     true,
+    1,
 }
 impl_toggletrait! {
     Delay,
@@ -625,6 +687,7 @@ impl_toggletrait! {
     "input_delay",
     "Input Delay: Frames to delay player inputs by",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -632,6 +695,7 @@ impl_toggletrait! {
     "stage_hazards",
     "Stage Hazards: Turn stage hazards on/off",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -639,6 +703,7 @@ impl_toggletrait! {
     "hud",
     "HUD: Show/hide elements of the UI",
     true,
+    1,
 }
 impl_toggletrait! {
     UpdatePolicy,
@@ -646,6 +711,7 @@ impl_toggletrait! {
     "update_policy",
     "Auto-Update: What type of Training Modpack updates to automatically apply. (Console Only!)",
     true,
+    1,
 }
 impl_toggletrait! {
     RecordSlot,
@@ -653,6 +719,7 @@ impl_toggletrait! {
     "recording_slot",
     "Recording Slot: Choose which slot to record into",
     true,
+    1,
 }
 impl_toggletrait! {
     RecordTrigger,
@@ -660,6 +727,7 @@ impl_toggletrait! {
     "record_trigger",
     "Recording Trigger: Whether to begin recording via button combination or upon loading a Save State",
     false,
+    1,
 }
 impl_toggletrait! {
     RecordingDuration,
@@ -667,6 +735,7 @@ impl_toggletrait! {
     "recording_duration",
     "Recording Duration: How long an input recording should last in frames",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -674,6 +743,7 @@ impl_toggletrait! {
     "recording_crop",
     "Recording Crop: Remove neutral input frames at the end of your recording",
     true,
+    1,
 }
 impl_toggletrait! {
     PlaybackSlot,
@@ -681,6 +751,7 @@ impl_toggletrait! {
     "playback_button_slots",
     "Playback Button Slots: Choose which slots to playback input recording upon pressing button combination",
     false,
+    TOGGLE_MAX,
 }
 impl_toggletrait! {
     HitstunPlayback,
@@ -688,6 +759,7 @@ impl_toggletrait! {
     "hitstun_playback",
     "Playback Hitstun Timing: When to begin playing back inputs when a hitstun mash trigger occurs",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -695,6 +767,7 @@ impl_toggletrait! {
     "playback_mash",
     "Playback Mash Interrupt: End input playback when a mash trigger occurs",
     true,
+    1,
 }
 impl_toggletrait! {
     OnOff,
@@ -702,6 +775,7 @@ impl_toggletrait! {
     "playback_loop",
     "Playback Loop: Repeat triggered input playbacks indefinitely",
     true,
+    1,
 }
 
 // TODO: Rename this function for clarity

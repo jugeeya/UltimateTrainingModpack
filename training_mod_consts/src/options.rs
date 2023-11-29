@@ -12,12 +12,13 @@ macro_rules! impl_toggletrait {
         $id:literal,
         $help_text:literal,
         $single:literal,
+        $max:expr,
     ) => {
         paste! {
             fn [<to_submenu_ $id>]<'a>() -> SubMenu<'a> {
                 let submenu_type = if $single { SubMenuType::ToggleSingle } else { SubMenuType::ToggleMultiple };
                 let value = 0;
-                let max: u8 = if $single { 1 } else { 8 };
+                let max: u8 = $max;
                 let toggles_vec: Vec<Toggle> = <$e>::ALL_NAMES
                     .iter()
                     .map(|title| Toggle { title, value, max })
