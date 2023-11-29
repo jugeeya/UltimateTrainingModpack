@@ -49,7 +49,7 @@ pub fn load_from_file() {
         let mut app = QUICK_MENU_APP.lock();
         app.serialized_default_settings =
             serde_json::to_string(&DEFAULTS_MENU).expect("Could not serialize DEFAULTS_MENU");
-        app.update_from_json(&serde_json::to_string(&MENU).expect("Could not serialize MENU"));
+        app.update_all_from_json(&serde_json::to_string(&MENU).expect("Could not serialize MENU"));
     }
 }
 

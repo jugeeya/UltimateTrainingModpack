@@ -63,10 +63,16 @@ impl<'a> App<'a> {
     pub fn load_defaults(&mut self) {
         // TODO!() is there a way to do this without cloning?
         let json = self.serialized_default_settings.clone();
-        self.update_from_json(&json);
+        self.update_all_from_json(&json);
     }
 
-    pub fn update_from_json(&mut self, json: &str) {
+    pub fn load_defaults_for_current_submenu(&mut self) {
+        let submenu_id = self.selected_submenu().id;
+        let json = self.serialized_default_settings.clone();
+        self.update_one_from_json(&json, submenu_id);
+    }
+
+    pub fn update_all_from_json(&mut self, json: &str) {
         let all_settings: HashMap<String, Vec<u8>> =
             serde_json::from_str(json).expect("Could not parse the json!");
         for tab in self.tabs.iter_mut() {
@@ -74,6 +80,27 @@ impl<'a> App<'a> {
                 if let Some(submenu) = submenu_opt {
                     if let Some(val) = all_settings.get(submenu.id) {
                         submenu.update_from_vec(val.clone());
+                    }
+                }
+            }
+        }
+        self.save_settings();
+    }
+
+    #[allow(unused_labels)]
+    pub fn update_one_from_json(&mut self, json: &str, submenu_id: &str) {
+        let all_settings: HashMap<String, Vec<u8>> =
+            serde_json::from_str(json).expect("Could not parse the json!");
+        
+        if let Some(val) = all_settings.get(submenu_id) {
+            // No need to iterate through all the submenus if the id doesn't exist in the hashmap
+            'tabs_scope: for tab in self.tabs.iter_mut() {
+                'submenus_scope: for submenu_opt in tab.submenus.iter_mut() {
+                    if let Some(submenu) = submenu_opt {
+                        if submenu.id == submenu_id {
+                            submenu.update_from_vec(val.clone());
+                            break 'tabs_scope;
+                        }
                     }
                 }
             }
@@ -185,7 +212,10 @@ impl<'a> InputControl for App<'a> {
     fn on_x(&mut self) {
         self.save_default_settings();
     }
-    fn on_y(&mut self) {}
+    fn on_y(&mut self) {
+        // TODO!() Go to AppPage::Confirmation
+        self.load_defaults();
+    }
     fn on_up(&mut self) {
         match self.page {
             AppPage::SUBMENU => self.tabs.get_selected().expect("No tab selected!").on_up(),
@@ -294,14 +324,11 @@ impl<'a> InputControl for App<'a> {
         // Close menu
         self.page = AppPage::CLOSE;
     }
-    fn on_l(&mut self) {
-        // Reset current selection to default
-        // TODO!() Confirmation
-    }
+    fn on_l(&mut self) {}
     fn on_r(&mut self) {
-        // Reset all settings to default
+        // Reset current settings to default
         // TODO!() Confirmation
-        self.load_defaults();
+        self.load_defaults_for_current_submenu();
     }
     fn on_zl(&mut self) {
         match self.page {

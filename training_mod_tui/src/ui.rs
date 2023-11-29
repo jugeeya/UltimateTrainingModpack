@@ -1,3 +1,4 @@
+// TODO: Is there any reason to retain this file?
 use crate::{App, AppPage, SliderState, NX_SUBMENU_COLUMNS};
 use ratatui::{layout::Rect, prelude::*, widgets::*, Frame};
 

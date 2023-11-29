@@ -1,3 +1,4 @@
+// TODO: Is there any reason to retain this file?
 use crossterm::{
     event::{self, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -19,7 +20,7 @@ use training_mod_tui::{
 fn main() -> Result<(), Box<dyn Error>> {
     let mut app = create_app();
     let json = "{\"Menu Open Start Press\":[1,0],\"Dmg Range (CPU)\":[40,100]}";
-    app.update_from_json(json);
+    app.update_all_from_json(json);
     let mut terminal = setup_terminal()?;
 
     let tick_rate = Duration::from_millis(250);
