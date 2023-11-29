@@ -66,7 +66,12 @@ impl<'a> InputControl for SubMenu<'a> {
         match self.submenu_type {
             SubMenuType::ToggleSingle => self.toggles.prev_row_checked(),
             SubMenuType::ToggleMultiple => self.toggles.prev_row_checked(),
-            SubMenuType::Slider => {}
+            SubMenuType::Slider => {
+                let slider = self.slider.as_mut().expect("No slider selected!");
+                if slider.is_handle_selected() {
+                    slider.increment_selected_fast();
+                }
+            }
             SubMenuType::None => {}
         }
     }
@@ -74,7 +79,12 @@ impl<'a> InputControl for SubMenu<'a> {
         match self.submenu_type {
             SubMenuType::ToggleSingle => self.toggles.next_row_checked(),
             SubMenuType::ToggleMultiple => self.toggles.next_row_checked(),
-            SubMenuType::Slider => {}
+            SubMenuType::Slider => {
+                let slider = self.slider.as_mut().expect("No slider selected!");
+                if slider.is_handle_selected() {
+                    slider.decrement_selected_fast();
+                }
+            }
             SubMenuType::None => {}
         }
     }
