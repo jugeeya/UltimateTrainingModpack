@@ -47,6 +47,11 @@ impl<'a> App<'a> {
         serde_json::to_string(&self).expect("Could not serialize the menu to JSON!")
     }
 
+    pub fn exit(&self) -> String {
+        // TODO: Find a better naming convention with exit() and to_json()
+        format!("{{\"menu\":{}, \"defaults_menu\":{}}}", self.serialized_settings, self.serialized_default_settings)
+    }
+
     pub fn save_settings(&mut self) {
         self.serialized_settings = self.to_json();
     }
@@ -67,12 +72,13 @@ impl<'a> App<'a> {
         for tab in self.tabs.iter_mut() {
             for submenu_opt in tab.submenus.iter_mut() {
                 if let Some(submenu) = submenu_opt {
-                    if let Some(val) = all_settings.get(submenu.title) {
+                    if let Some(val) = all_settings.get(submenu.id) {
                         submenu.update_from_vec(val.clone());
                     }
                 }
             }
         }
+        self.save_settings();
     }
 
     pub fn selected_tab(&mut self) -> &mut Tab<'a> {
@@ -98,7 +104,7 @@ impl<'a> Serialize for App<'a> {
         let mut map = serializer.serialize_map(Some(len))?;
         for tab in self.tabs.iter() {
             for submenu in tab.submenus.iter() {
-                map.serialize_entry(submenu.title, submenu)?;
+                map.serialize_entry(submenu.id, submenu)?;
             }
         }
         map.end()
@@ -142,6 +148,7 @@ impl<'a> InputControl for App<'a> {
             AppPage::CONFIRMATION => {}
             AppPage::CLOSE => {}
         }
+        self.save_settings(); // A button can make changes, update the serialized settings
     }
     fn on_b(&mut self) {
         match self.page {
@@ -172,6 +179,8 @@ impl<'a> InputControl for App<'a> {
             }
             AppPage::CLOSE => {}
         }
+        self.save_settings(); // B button can make changes, update the serialized settings
+        
     }
     fn on_x(&mut self) {
         self.save_default_settings();

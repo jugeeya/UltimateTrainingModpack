@@ -122,6 +122,17 @@ unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
                     .unwrap()
                     .set_visible(false);
 
+                // TODO: Can we avoid hardcoding this to 8? I don't want to inspect a toggle to find the max...
+                for value in 1..=8 {
+                    if let Some(pane) =
+                        menu_button.find_pane_by_name_recursive(format!("{}", value).as_str())
+                    {
+                        pane.set_visible(false);
+                    } else {
+                        break;
+                    }
+                }
+
                 if is_selected {
                     // Help text
                     root_pane
@@ -227,7 +238,8 @@ unsafe fn render_toggle_page(app: &mut App, root_pane: &Pane) {
                         .unwrap()
                         .set_visible(toggle.value > 0);
 
-                    for value in 0..toggle.max {
+                    // Note there's no pane for 0
+                    for value in 1..=toggle.max {
                         menu_button
                             .find_pane_by_name_recursive(format!("{}", value).as_str())
                             .expect(format!("Could not find pane with name {}", value).as_str())
@@ -522,6 +534,6 @@ pub unsafe fn draw(root_pane: &Pane) {
         AppPage::SLIDER => render_slider_page(app, root_pane),
         AppPage::TOGGLE => render_toggle_page(app, root_pane),
         AppPage::CONFIRMATION => todo!(),
-        AppPage::CLOSE => todo!(),
+        AppPage::CLOSE => {}
     }
 }

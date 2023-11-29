@@ -5,7 +5,7 @@ use std::fs;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
-use training_mod_consts::MenuJsonStruct;
+use training_mod_consts::{ui_menu, MenuJsonStruct};
 use training_mod_tui::AppPage;
 
 use crate::common::button_config::button_mapping;
@@ -44,6 +44,13 @@ pub fn load_from_file() {
     } else {
         info!("No previous menu file found.");
     }
+    info!("Setting initial menu selections...");
+    unsafe {
+        let mut app = QUICK_MENU_APP.lock();
+        app.serialized_default_settings =
+            serde_json::to_string(&DEFAULTS_MENU).expect("Could not serialize DEFAULTS_MENU");
+        app.update_from_json(&serde_json::to_string(&MENU).expect("Could not serialize MENU"));
+    }
 }
 
 pub unsafe fn set_menu_from_json(message: &str) {
@@ -70,6 +77,8 @@ pub unsafe fn set_menu_from_json(message: &str) {
 pub fn spawn_menu() {
     unsafe {
         QUICK_MENU_ACTIVE = true;
+        let mut app = QUICK_MENU_APP.lock();
+        app.page = AppPage::SUBMENU;
         *MENU_RECEIVED_INPUT.data_ptr() = true;
     }
 }
@@ -87,9 +96,10 @@ enum DirectionButton {
 }
 
 lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new(
-        training_mod_tui::App::new()
-    );
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new({
+        info!("Initialized lazy_static: QUICK_MENU_APP");
+        unsafe { ui_menu() }
+    });
     pub static ref P1_CONTROLLER_STYLE: Mutex<ControllerStyle> =
         Mutex::new(ControllerStyle::default());
     static ref DIRECTION_HOLD_FRAMES: Mutex<HashMap<DirectionButton, u32>> = {
@@ -178,7 +188,7 @@ pub fn handle_final_input_mapping(
                         }
                     });
 
-                let app = &mut *QUICK_MENU_APP.data_ptr();
+                let app = &mut *QUICK_MENU_APP.data_ptr(); // TODO: Why aren't we taking a lock here?
                 button_mapping(ButtonConfig::A, style, button_presses).then(|| {
                     app.on_a();
                     received_input = true;
@@ -190,7 +200,7 @@ pub fn handle_final_input_mapping(
                         // Leave menu.
                         frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
                         QUICK_MENU_ACTIVE = false;
-                        let menu_json = app.to_json();
+                        let menu_json = app.exit();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
@@ -255,7 +265,6 @@ pub fn handle_final_input_mapping(
 
                 if received_input {
                     direction_hold_frames.iter_mut().for_each(|(_, f)| *f = 0);
-                    set_menu_from_json(&app.to_json());
                     *MENU_RECEIVED_INPUT.lock() = true;
                 }
             }

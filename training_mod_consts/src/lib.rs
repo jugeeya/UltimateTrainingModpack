@@ -704,6 +704,7 @@ impl_toggletrait! {
     true,
 }
 
+// TODO: Rename this function for clarity
 pub unsafe fn ui_menu<'a>() -> App<'a> {
     let mut overall_menu = App::new();
 
