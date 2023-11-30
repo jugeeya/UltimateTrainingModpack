@@ -28,9 +28,9 @@ pub fn load_from_file() {
     // Note that this function requires a larger stack size
     // With the switch default, it'll crash w/o a helpful error message
     info!("Checking for previous menu in {MENU_OPTIONS_PATH}...");
+    let err_msg = format!("Could not read {}", MENU_OPTIONS_PATH);
     if fs::metadata(MENU_OPTIONS_PATH).is_ok() {
-        let menu_conf = fs::File::open(MENU_OPTIONS_PATH)
-            .expect(&format!("Could not read {}", MENU_OPTIONS_PATH));
+        let menu_conf = fs::File::open(MENU_OPTIONS_PATH).expect(&err_msg);
         let reader = BufReader::new(menu_conf);
         if let Ok(menu_conf_json) = serde_json::from_reader::<BufReader<_>, MenuJsonStruct>(reader)
         {
@@ -41,10 +41,11 @@ pub fn load_from_file() {
             }
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(MENU_OPTIONS_PATH).expect(&format!(
+            let err_msg = format!(
                 "{} has invalid schema but could not be deleted!",
                 MENU_OPTIONS_PATH
-            ));
+            );
+            fs::remove_file(MENU_OPTIONS_PATH).expect(&err_msg);
         }
     } else {
         info!("No previous menu file found.");

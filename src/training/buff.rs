@@ -136,7 +136,7 @@ unsafe fn buff_hero_single(
     }
     let spell_index = get_buff_rem(module_accessor) - 1;
     // Used to get spell from our vector
-    let spell_option = buff_vec.get(spell_index as usize);
+    let spell_option = buff_vec.get(spell_index);
     if spell_option.is_none() {
         // There are no spells selected, or something went wrong with making the vector
         return;

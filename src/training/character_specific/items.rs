@@ -450,12 +450,12 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
         if character_item_num <= CharacterItem::PLAYER_VARIATION_8.as_idx() {
             (
                 player_fighter_kind,
-                (character_item_num - CharacterItem::PLAYER_VARIATION_1.as_idx()) as usize,
+                (character_item_num - CharacterItem::PLAYER_VARIATION_1.as_idx()),
             )
         } else {
             (
                 cpu_fighter_kind,
-                (character_item_num - CharacterItem::CPU_VARIATION_1.as_idx()) as usize,
+                (character_item_num - CharacterItem::CPU_VARIATION_1.as_idx()),
             )
         };
     ALL_CHAR_ITEMS

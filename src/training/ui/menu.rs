@@ -242,9 +242,10 @@ unsafe fn render_toggle_page(app: &mut App, root_pane: &Pane) {
 
                     // Note there's no pane for 0
                     for value in 1..=toggle.max {
+                        let err_msg = format!("Could not find pane with name {}", value);
                         menu_button
                             .find_pane_by_name_recursive(format!("{}", value).as_str())
-                            .expect(format!("Could not find pane with name {}", value).as_str())
+                            .expect(&err_msg)
                             .set_visible(value == toggle.value);
                     }
                 }

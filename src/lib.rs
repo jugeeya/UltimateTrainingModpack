@@ -66,7 +66,7 @@ pub fn main() {
         skyline::error::show_error(
             69,
             "SSBU Training Modpack has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
-            err_msg.as_str(),
+            &err_msg,
         );
     }));
     init_logger().unwrap();
