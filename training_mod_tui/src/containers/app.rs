@@ -131,7 +131,7 @@ impl<'a> App<'a> {
     pub fn confirm(&mut self) -> bool {
         self.confirmation_state == ConfirmationState::HoverYes
     }
-    
+
     pub fn return_from_confirmation(&mut self) {
         self.confirmation_state = ConfirmationState::HoverNo;
         self.page = self.confirmation_return_page;
@@ -192,7 +192,7 @@ impl<'a> InputControl for App<'a> {
                     SubMenuType::Slider => AppPage::SLIDER,
                 };
                 self.selected_tab().on_a()
-            },
+            }
             AppPage::TOGGLE => self.selected_submenu().on_a(),
             AppPage::SLIDER => self.selected_submenu().on_a(),
             AppPage::CONFIRMATION => {
@@ -331,7 +331,7 @@ impl<'a> InputControl for App<'a> {
                 .get_selected()
                 .expect("No submenu selected!")
                 .on_left(),
-            AppPage::CONFIRMATION => {self.confirmation_state = self.confirmation_state.switch() }
+            AppPage::CONFIRMATION => self.confirmation_state = self.confirmation_state.switch(),
             AppPage::CLOSE => {}
         }
     }
@@ -358,7 +358,7 @@ impl<'a> InputControl for App<'a> {
                 .get_selected()
                 .expect("No submenu selected!")
                 .on_right(),
-            AppPage::CONFIRMATION => {self.confirmation_state = self.confirmation_state.switch() }
+            AppPage::CONFIRMATION => self.confirmation_state = self.confirmation_state.switch(),
             AppPage::CLOSE => {}
         }
     }

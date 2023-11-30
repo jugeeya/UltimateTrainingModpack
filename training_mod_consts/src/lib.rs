@@ -11,8 +11,8 @@ pub use files::*;
 pub mod config;
 pub use config::*;
 
-pub use training_mod_tui::*;
 use paste::paste;
+pub use training_mod_tui::*;
 
 pub const TOGGLE_MAX: u8 = 5;
 
@@ -176,10 +176,26 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     playback_mash: OnOff::ON,
     playback_loop: OnOff::OFF,
     menu_open_start_press: OnOff::ON,
-    save_state_save: ButtonConfig { ZL: 1, DPAD_DOWN: 1, ..ButtonConfig::empty()},
-    save_state_load: ButtonConfig { ZL: 1, DPAD_UP: 1, ..ButtonConfig::empty()},
-    input_record: ButtonConfig { ZR: 1, DPAD_DOWN: 1, ..ButtonConfig::empty()},
-    input_playback: ButtonConfig { ZR: 1, DPAD_UP: 1, ..ButtonConfig::empty()},
+    save_state_save: ButtonConfig {
+        ZL: 1,
+        DPAD_DOWN: 1,
+        ..ButtonConfig::empty()
+    },
+    save_state_load: ButtonConfig {
+        ZL: 1,
+        DPAD_UP: 1,
+        ..ButtonConfig::empty()
+    },
+    input_record: ButtonConfig {
+        ZR: 1,
+        DPAD_DOWN: 1,
+        ..ButtonConfig::empty()
+    },
+    input_playback: ButtonConfig {
+        ZR: 1,
+        DPAD_UP: 1,
+        ..ButtonConfig::empty()
+    },
     recording_crop: OnOff::ON,
     stale_dodges: OnOff::ON,
     tech_hide: OnOff::OFF,
@@ -823,7 +839,11 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     let override_tab = Tab {
         id: "override",
         title: "Override Settings",
-        submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, override_tab_submenus),
+        submenus: StatefulTable::with_items(
+            NX_SUBMENU_ROWS,
+            NX_SUBMENU_COLUMNS,
+            override_tab_submenus,
+        ),
     };
     overall_menu.tabs.push(override_tab);
 
@@ -846,7 +866,11 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     let defensive_tab = Tab {
         id: "defensive",
         title: "Defensive Settings",
-        submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, defensive_tab_submenus),
+        submenus: StatefulTable::with_items(
+            NX_SUBMENU_ROWS,
+            NX_SUBMENU_COLUMNS,
+            defensive_tab_submenus,
+        ),
     };
     overall_menu.tabs.push(defensive_tab);
 
@@ -864,7 +888,11 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     let input_tab = Tab {
         id: "input",
         title: "Input Recording",
-        submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, input_recording_tab_submenus),
+        submenus: StatefulTable::with_items(
+            NX_SUBMENU_ROWS,
+            NX_SUBMENU_COLUMNS,
+            input_recording_tab_submenus,
+        ),
     };
     overall_menu.tabs.push(input_tab);
 
@@ -878,7 +906,11 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     let button_tab = Tab {
         id: "button",
         title: "Button Config",
-        submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, button_tab_submenus),
+        submenus: StatefulTable::with_items(
+            NX_SUBMENU_ROWS,
+            NX_SUBMENU_COLUMNS,
+            button_tab_submenus,
+        ),
     };
     overall_menu.tabs.push(button_tab);
 
@@ -898,7 +930,11 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     let save_state_tab = Tab {
         id: "save_state",
         title: "Save States",
-        submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, save_state_tab_submenus),
+        submenus: StatefulTable::with_items(
+            NX_SUBMENU_ROWS,
+            NX_SUBMENU_COLUMNS,
+            save_state_tab_submenus,
+        ),
     };
     overall_menu.tabs.push(save_state_tab);
 

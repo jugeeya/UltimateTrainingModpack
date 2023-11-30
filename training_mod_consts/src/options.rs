@@ -1,8 +1,8 @@
+use byteflags::*;
 use core::f64::consts::PI;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
-use byteflags::*;
 
 #[macro_export]
 macro_rules! impl_toggletrait {
@@ -124,7 +124,9 @@ impl Direction {
         }
     }
     fn into_index(self) -> f64 {
-        if self == Direction::empty() { return 0.0 };
+        if self == Direction::empty() {
+            return 0.0;
+        };
         match self {
             Direction::OUT => 1.0,
             Direction::UP_OUT => 2.0,
@@ -137,7 +139,7 @@ impl Direction {
             Direction::NEUTRAL => 0.0,
             Direction::LEFT => 5.0,
             Direction::RIGHT => 1.0,
-            _ => panic!("Invalid value in Direction::into_index: {}", self)
+            _ => panic!("Invalid value in Direction::into_index: {}", self),
         }
     }
 }
@@ -174,7 +176,7 @@ impl LedgeOption {
                 | LedgeOption::PLAYBACK_3
                 | LedgeOption::PLAYBACK_4
                 | LedgeOption::PLAYBACK_5 => *FIGHTER_STATUS_KIND_NONE,
-                _ => { return None }
+                _ => return None,
             })
         }
 
@@ -273,7 +275,7 @@ impl OnOff {
         match self {
             OnOff::OFF => false,
             OnOff::ON => true,
-            _ => panic!("Invalid value in OnOff::as_bool: {}", self)
+            _ => panic!("Invalid value in OnOff::as_bool: {}", self),
         }
     }
 }
@@ -399,7 +401,9 @@ byteflags! {
 
 impl Delay {
     pub fn into_delay(&self) -> u32 {
-        if *self == Delay::empty() { return 0 };
+        if *self == Delay::empty() {
+            return 0;
+        };
         match *self {
             Delay::D0 => 0,
             Delay::D1 => 1,
@@ -432,7 +436,7 @@ impl Delay {
             Delay::D28 => 28,
             Delay::D29 => 29,
             Delay::D30 => 30,
-            _ => panic!("Invalid value in Delay::into_delay: {}", self)
+            _ => panic!("Invalid value in Delay::into_delay: {}", self),
         }
     }
 }
@@ -475,7 +479,9 @@ byteflags! {
 
 impl MedDelay {
     pub fn into_meddelay(&self) -> u32 {
-        if *self == MedDelay::empty() { return 0 };
+        if *self == MedDelay::empty() {
+            return 0;
+        };
         match *self {
             MedDelay::D0 => 0,
             MedDelay::D5 => 5,
@@ -508,7 +514,7 @@ impl MedDelay {
             MedDelay::D140 => 140,
             MedDelay::D145 => 145,
             MedDelay::D150 => 150,
-            _ => panic!("Invalid value in MedDelay::into_meddelay: {}", self)
+            _ => panic!("Invalid value in MedDelay::into_meddelay: {}", self),
         }
     }
 }
@@ -551,7 +557,9 @@ byteflags! {
 
 impl LongDelay {
     pub fn into_longdelay(&self) -> u32 {
-        if *self == LongDelay::empty() { return 0 };
+        if *self == LongDelay::empty() {
+            return 0;
+        };
         match *self {
             LongDelay::D0 => 0,
             LongDelay::D10 => 10,
@@ -584,7 +592,7 @@ impl LongDelay {
             LongDelay::D280 => 280,
             LongDelay::D290 => 290,
             LongDelay::D300 => 300,
-            _ => panic!("Invalid value in LongDelay::into_longdelay: {}", self)
+            _ => panic!("Invalid value in LongDelay::into_longdelay: {}", self),
         }
     }
 }
@@ -636,7 +644,7 @@ impl BuffOption {
                 BuffOption::WAFT_MINI => *FIGHTER_WARIO_GASS_LEVEL_M,
                 BuffOption::WAFT_HALF => *FIGHTER_WARIO_GASS_LEVEL_L,
                 BuffOption::WAFT_FULL => *FIGHTER_WARIO_GASS_LEVEL_FLY,
-                _ => { return None },
+                _ => return None,
             })
         }
 
@@ -731,7 +739,7 @@ impl SdiFrequency {
             SdiFrequency::NORMAL => 8,
             SdiFrequency::MEDIUM => 6,
             SdiFrequency::HIGH => 4,
-            _ => panic!("Invalid value in SdiFrequency::into_u32: {}", self)
+            _ => panic!("Invalid value in SdiFrequency::into_u32: {}", self),
         }
     }
 }
@@ -752,7 +760,7 @@ impl ClatterFrequency {
             ClatterFrequency::NORMAL => 8,
             ClatterFrequency::MEDIUM => 5,
             ClatterFrequency::HIGH => 2,
-            _ => panic!("Invalid value in ClatterFrequency::into_u32: {}", self)
+            _ => panic!("Invalid value in ClatterFrequency::into_u32: {}", self),
         }
     }
 }
@@ -799,7 +807,7 @@ impl CharacterItem {
             CharacterItem::CPU_VARIATION_6 => 14,
             CharacterItem::CPU_VARIATION_7 => 15,
             CharacterItem::CPU_VARIATION_8 => 16,
-            _ => panic!("Invalid value in CharacterItem::as_idx: {}", self)
+            _ => panic!("Invalid value in CharacterItem::as_idx: {}", self),
         }
     }
 }
@@ -875,8 +883,7 @@ impl SaveStateSlot {
             SaveStateSlot::S3 => Some(2),
             SaveStateSlot::S4 => Some(3),
             SaveStateSlot::S5 => Some(4),
-            _ => panic!("Invalid value in SaveStateSlot::into_idx: {}", self)
-            
+            _ => panic!("Invalid value in SaveStateSlot::into_idx: {}", self),
         }
     }
 }
@@ -899,8 +906,7 @@ impl RecordSlot {
             RecordSlot::S3 => Some(2),
             RecordSlot::S4 => Some(3),
             RecordSlot::S5 => Some(4),
-            _ => panic!("Invalid value in RecordSlot::into_idx: {}", self)
-            
+            _ => panic!("Invalid value in RecordSlot::into_idx: {}", self),
         }
     }
 }
@@ -923,8 +929,7 @@ impl PlaybackSlot {
             PlaybackSlot::S3 => Some(2),
             PlaybackSlot::S4 => Some(3),
             PlaybackSlot::S5 => Some(4),
-            _ => panic!("Invalid value in PlaybackSlot::into_idx: {}", self)
-            
+            _ => panic!("Invalid value in PlaybackSlot::into_idx: {}", self),
         }
     }
 }
@@ -991,7 +996,7 @@ impl RecordingDuration {
             RecordingDuration::F540 => 540,
             RecordingDuration::F570 => 570,
             RecordingDuration::F600 => 600,
-            _ => panic!("Invalid value in RecordingDuration::into_frames: {}", self)
+            _ => panic!("Invalid value in RecordingDuration::into_frames: {}", self),
         }
     }
 }
