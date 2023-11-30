@@ -101,7 +101,14 @@ pub fn main() {
         });
     }
 
-    menu::load_from_file();
+    info!("Performing saved data check...");
+    let data_loader = std::thread::Builder::new()
+        .stack_size(0x20000)
+        .spawn(move || {
+            menu::load_from_file();
+        })
+        .unwrap();
+    let _result = data_loader.join();
 
     if !is_emulator() {
         info!("Performing version check...");

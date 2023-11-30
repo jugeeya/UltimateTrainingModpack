@@ -1,6 +1,7 @@
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
+use std::io::BufReader;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -24,11 +25,15 @@ pub unsafe fn menu_condition() -> bool {
 }
 
 pub fn load_from_file() {
+    // Note that this function requires a larger stack size
+    // With the switch default, it'll crash w/o a helpful error message
     info!("Checking for previous menu in {MENU_OPTIONS_PATH}...");
     if fs::metadata(MENU_OPTIONS_PATH).is_ok() {
-        let menu_conf = fs::read_to_string(MENU_OPTIONS_PATH)
+        let menu_conf = fs::File::open(MENU_OPTIONS_PATH)
             .expect(&format!("Could not read {}", MENU_OPTIONS_PATH));
-        if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
+        let reader = BufReader::new(menu_conf);
+        if let Ok(menu_conf_json) = serde_json::from_reader::<BufReader<_>, MenuJsonStruct>(reader)
+        {
             unsafe {
                 MENU = menu_conf_json.menu;
                 DEFAULTS_MENU = menu_conf_json.defaults_menu;
