@@ -23,7 +23,6 @@ impl<'a> Serialize for SubMenu<'a> {
                 self.toggles.serialize(serializer)
             }
             SubMenuType::Slider => self.slider.serialize(serializer),
-            SubMenuType::None => panic!("At the disco"),
         }
     }
 }
@@ -44,7 +43,6 @@ impl<'a> InputControl for SubMenu<'a> {
                 let slider = self.slider.as_mut().expect("No slider selected!");
                 slider.select_deselect();
             }
-            SubMenuType::None => {}
         }
     }
     fn on_b(&mut self) {
@@ -57,7 +55,6 @@ impl<'a> InputControl for SubMenu<'a> {
                     slider.deselect()
                 }
             }
-            SubMenuType::None => {}
         }
     }
     fn on_x(&mut self) {}
@@ -82,7 +79,6 @@ impl<'a> InputControl for SubMenu<'a> {
                     slider.increment_selected_fast();
                 }
             }
-            SubMenuType::None => {}
         }
     }
     fn on_down(&mut self) {
@@ -95,7 +91,6 @@ impl<'a> InputControl for SubMenu<'a> {
                     slider.decrement_selected_fast();
                 }
             }
-            SubMenuType::None => {}
         }
     }
     fn on_left(&mut self) {
@@ -110,7 +105,6 @@ impl<'a> InputControl for SubMenu<'a> {
                     slider.switch_hover();
                 }
             }
-            SubMenuType::None => {}
         }
     }
     fn on_right(&mut self) {
@@ -125,7 +119,6 @@ impl<'a> InputControl for SubMenu<'a> {
                     slider.switch_hover();
                 }
             }
-            SubMenuType::None => {}
         }
     }
     fn on_start(&mut self) {}
@@ -163,7 +156,6 @@ impl<'a> SubMenu<'a> {
                     });
                 }
             }
-            SubMenuType::None => {}
         }
     }
 }
@@ -173,5 +165,4 @@ pub enum SubMenuType {
     ToggleSingle,
     ToggleMultiple,
     Slider,
-    None,
 }

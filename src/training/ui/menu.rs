@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use training_mod_tui::{App, AppPage, SliderState, NX_SUBMENU_COLUMNS, NX_SUBMENU_ROWS};
+use training_mod_tui::{
+    App, AppPage, ConfirmationState, SliderState, NX_SUBMENU_COLUMNS, NX_SUBMENU_ROWS,
+};
 
 use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES, MENU_RECEIVED_INPUT};
 use crate::training::frame_counter;
@@ -365,6 +367,91 @@ unsafe fn render_slider_page(app: &mut App, root_pane: &Pane) {
     });
 }
 
+unsafe fn render_confirmation_page(app: &mut App, root_pane: &Pane) {
+    let show_row = 3; // Row in the middle of the page
+    let show_cols = [1, 2]; // Columns in the middle of the page
+    let no_col = show_cols[0]; // Left
+    let yes_col = show_cols[1]; // Right
+    let help_text = match app.confirmation_return_page {
+        AppPage::TOGGLE | AppPage::SLIDER => {
+            "Are you sure you want to reset the current setting to the defaults?"
+        }
+        AppPage::SUBMENU => "Are you sure you want to reset ALL settings to the defaults?",
+        _ => "", // Shouldn't ever get this case, but don't panic if we do
+    };
+
+    // Set help text
+    root_pane
+        .find_pane_by_name_recursive("FooterTxt")
+        .unwrap()
+        .as_textbox()
+        .set_text_string(help_text);
+
+    // Show only the buttons that we care about
+    for row in 0..NX_SUBMENU_ROWS {
+        let should_show_row = row == show_row;
+        let menu_button_row = root_pane
+            .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row}").as_str())
+            .unwrap();
+        menu_button_row.set_visible(should_show_row);
+        if should_show_row {
+            for col in 0..NX_SUBMENU_COLUMNS {
+                let should_show_col = show_cols.contains(&col);
+                let menu_button = menu_button_row
+                    .find_pane_by_name_recursive(format!("Button{col}").as_str())
+                    .unwrap();
+                menu_button.set_visible(should_show_col);
+                if should_show_col {
+                    let title_text = menu_button
+                        .find_pane_by_name_recursive("TitleTxt")
+                        .unwrap()
+                        .as_textbox();
+                    let title_bg = menu_button
+                        .find_pane_by_name_recursive("TitleBg")
+                        .unwrap()
+                        .as_picture();
+                    let title_bg_material = &mut *title_bg.material;
+
+                    if col == no_col {
+                        title_text.set_text_string("No");
+                    } else if col == yes_col {
+                        title_text.set_text_string("Yes");
+                    }
+                    let is_selected = (col == no_col
+                        && app.confirmation_state == ConfirmationState::HoverNo)
+                        || (col == yes_col
+                            && app.confirmation_state == ConfirmationState::HoverYes);
+
+                    if is_selected {
+                        title_text.text_shadow_enable(true);
+                        title_text.text_outline_enable(true);
+                        title_text.set_color(255, 255, 255, 255);
+                        title_bg_material.set_white_res_color(BG_LEFT_ON_WHITE_COLOR);
+                        title_bg_material.set_black_res_color(BG_LEFT_ON_BLACK_COLOR);
+                    } else {
+                        title_text.text_shadow_enable(false);
+                        title_text.text_outline_enable(false);
+                        title_text.set_color(178, 199, 211, 255);
+                        title_bg_material.set_white_res_color(BG_LEFT_OFF_WHITE_COLOR);
+                        title_bg_material.set_black_res_color(BG_LEFT_OFF_BLACK_COLOR);
+                    }
+
+                    // Hide all submenu icons, since we're not on the submenu page
+                    // TODO: Do we want to show the check on "Yes" and a red "X" on "No?"
+                    for t in app.tabs.iter() {
+                        for s in t.submenus.iter() {
+                            let pane = menu_button.find_pane_by_name_recursive(s.id);
+                            if let Some(p) = pane {
+                                p.set_visible(false);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub unsafe fn draw(root_pane: &Pane) {
     // Determine if we're in the menu by seeing if the "help" footer has
     // begun moving upward. It starts at -80 and moves to 0 over 10 frames
@@ -499,7 +586,6 @@ pub unsafe fn draw(root_pane: &Pane) {
         }
 
         if *name == "CurrentTab" {
-            // TODO: Is this causing the "move list" option to be highlighted in the vanilla menu?
             icon_pane.set_text_string("");
             // Center tab should be highlighted
             help_pane.set_default_material_colors();
@@ -575,7 +661,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         AppPage::SUBMENU => render_submenu_page(app, root_pane),
         AppPage::SLIDER => render_slider_page(app, root_pane),
         AppPage::TOGGLE => render_toggle_page(app, root_pane),
-        AppPage::CONFIRMATION => todo!(),
+        AppPage::CONFIRMATION => render_confirmation_page(app, root_pane),
         AppPage::CLOSE => {}
     }
 }

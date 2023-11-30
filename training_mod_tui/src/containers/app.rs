@@ -4,13 +4,28 @@ use std::collections::HashMap;
 
 use crate::{InputControl, StatefulList, SubMenu, SubMenuType, Tab};
 
-#[derive(PartialEq, Serialize)]
+#[derive(PartialEq, Serialize, Clone, Copy)]
 pub enum AppPage {
     SUBMENU,
     TOGGLE,
     SLIDER,
     CONFIRMATION,
     CLOSE,
+}
+
+#[derive(PartialEq)]
+pub enum ConfirmationState {
+    HoverNo,
+    HoverYes,
+}
+
+impl ConfirmationState {
+    pub fn switch(&self) -> ConfirmationState {
+        match self {
+            ConfirmationState::HoverNo => ConfirmationState::HoverYes,
+            ConfirmationState::HoverYes => ConfirmationState::HoverNo,
+        }
+    }
 }
 
 // Menu structure is:
@@ -31,6 +46,8 @@ pub struct App<'a> {
     pub page: AppPage,
     pub serialized_settings: String,
     pub serialized_default_settings: String,
+    pub confirmation_state: ConfirmationState,
+    pub confirmation_return_page: AppPage,
 }
 
 impl<'a> App<'a> {
@@ -40,6 +57,8 @@ impl<'a> App<'a> {
             page: AppPage::SUBMENU,
             serialized_settings: String::new(),
             serialized_default_settings: String::new(),
+            confirmation_state: ConfirmationState::HoverNo,
+            confirmation_return_page: AppPage::SUBMENU,
         }
     }
 
@@ -109,6 +128,15 @@ impl<'a> App<'a> {
         self.save_settings();
     }
 
+    pub fn confirm(&mut self) -> bool {
+        self.confirmation_state == ConfirmationState::HoverYes
+    }
+    
+    pub fn return_from_confirmation(&mut self) {
+        self.confirmation_state = ConfirmationState::HoverNo;
+        self.page = self.confirmation_return_page;
+    }
+
     pub fn selected_tab(&mut self) -> &mut Tab<'a> {
         self.tabs.get_selected().expect("No tab selected!")
     }
@@ -158,37 +186,33 @@ impl<'a> InputControl for App<'a> {
     fn on_a(&mut self) {
         match self.page {
             AppPage::SUBMENU => {
-                let tab = self.tabs.get_selected().expect("No tab selected!");
-                let submenu_type = tab
-                    .submenus
-                    .get_selected()
-                    .expect("No submenu selected!")
-                    .submenu_type;
-                self.page = match submenu_type {
+                self.page = match self.selected_submenu().submenu_type {
                     SubMenuType::ToggleSingle => AppPage::TOGGLE,
                     SubMenuType::ToggleMultiple => AppPage::TOGGLE,
                     SubMenuType::Slider => AppPage::SLIDER,
-                    SubMenuType::None => AppPage::SUBMENU,
                 };
-                tab.on_a()
+                self.selected_tab().on_a()
+            },
+            AppPage::TOGGLE => self.selected_submenu().on_a(),
+            AppPage::SLIDER => self.selected_submenu().on_a(),
+            AppPage::CONFIRMATION => {
+                // For resetting defaults
+                // TODO: Is this the right place for this logic?
+                if self.confirm() {
+                    match self.confirmation_return_page {
+                        AppPage::SUBMENU => {
+                            // Reset ALL settings to default
+                            self.load_defaults();
+                        }
+                        AppPage::TOGGLE | AppPage::SLIDER => {
+                            // Reset current submenu to default
+                            self.load_defaults_for_current_submenu();
+                        }
+                        _ => {}
+                    }
+                }
+                self.return_from_confirmation();
             }
-            AppPage::TOGGLE => self
-                .tabs
-                .get_selected()
-                .expect("No tab selected!")
-                .submenus
-                .get_selected()
-                .expect("No submenu selected!")
-                .on_a(),
-            AppPage::SLIDER => self
-                .tabs
-                .get_selected()
-                .expect("No tab selected!")
-                .submenus
-                .get_selected()
-                .expect("No submenu selected!")
-                .on_a(),
-            AppPage::CONFIRMATION => {}
             AppPage::CLOSE => {}
         }
         self.save_settings(); // A button can make changes, update the serialized settings
@@ -218,7 +242,7 @@ impl<'a> InputControl for App<'a> {
             }
             AppPage::CONFIRMATION => {
                 // Return to the list of submenus
-                self.page = AppPage::SUBMENU;
+                self.return_from_confirmation();
             }
             AppPage::CLOSE => {}
         }
@@ -307,7 +331,7 @@ impl<'a> InputControl for App<'a> {
                 .get_selected()
                 .expect("No submenu selected!")
                 .on_left(),
-            AppPage::CONFIRMATION => {}
+            AppPage::CONFIRMATION => {self.confirmation_state = self.confirmation_state.switch() }
             AppPage::CLOSE => {}
         }
     }
@@ -334,7 +358,7 @@ impl<'a> InputControl for App<'a> {
                 .get_selected()
                 .expect("No submenu selected!")
                 .on_right(),
-            AppPage::CONFIRMATION => {}
+            AppPage::CONFIRMATION => {self.confirmation_state = self.confirmation_state.switch() }
             AppPage::CLOSE => {}
         }
     }
@@ -345,22 +369,9 @@ impl<'a> InputControl for App<'a> {
     fn on_l(&mut self) {}
     fn on_r(&mut self) {
         // Reset settings to default
-        // TODO!() Confirmation
-        match self.page {
-            AppPage::SUBMENU => {
-                // Reset ALL settings to default
-                self.load_defaults();
-            }
-            AppPage::TOGGLE => {
-                // Reset current submenu to default
-                self.load_defaults_for_current_submenu();
-            }
-            AppPage::SLIDER => {
-                // Reset current submenu to default
-                self.load_defaults_for_current_submenu();
-            }
-            _ => {}
-        }
+        // See App::on_a() for the logic
+        self.confirmation_return_page = self.page;
+        self.page = AppPage::CONFIRMATION;
     }
     fn on_zl(&mut self) {
         match self.page {
