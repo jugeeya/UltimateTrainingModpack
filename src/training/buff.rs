@@ -10,8 +10,8 @@ use crate::training::handle_add_limit;
 
 use once_cell::sync::Lazy;
 
-static mut BUFF_REMAINING_PLAYER: i32 = 0;
-static mut BUFF_REMAINING_CPU: i32 = 0;
+static mut BUFF_REMAINING_PLAYER: usize = 0;
+static mut BUFF_REMAINING_CPU: usize = 0;
 
 static mut IS_BUFFING_PLAYER: bool = false;
 static mut IS_BUFFING_CPU: bool = false;
@@ -46,7 +46,10 @@ pub unsafe fn is_buffing_any() -> bool {
     IS_BUFFING_CPU || IS_BUFFING_PLAYER
 }
 
-pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: i32) {
+pub unsafe fn set_buff_rem(
+    module_accessor: &mut app::BattleObjectModuleAccessor,
+    new_value: usize,
+) {
     if is_operation_cpu(module_accessor) {
         BUFF_REMAINING_CPU = new_value;
         return;
@@ -54,7 +57,7 @@ pub unsafe fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor
     BUFF_REMAINING_PLAYER = new_value;
 }
 
-pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> i32 {
+pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> usize {
     if is_operation_cpu(module_accessor) {
         return BUFF_REMAINING_CPU;
     }
@@ -76,7 +79,7 @@ pub unsafe fn handle_buffs(
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
 
-    let menu_vec = MENU.buff_state.to_vec();
+    let menu_vec = MENU.buff_state;
 
     if fighter_kind == *FIGHTER_KIND_BRAVE {
         return buff_hero(module_accessor, status);
@@ -101,11 +104,11 @@ pub unsafe fn handle_buffs(
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let buff_vec = MENU.buff_state.hero_buffs().to_vec();
+    let buff_vec: Vec<BuffOption> = MENU.buff_state.to_vec();
     if !is_buffing(module_accessor) {
         // Initial set up for spells
         start_buff(module_accessor);
-        set_buff_rem(module_accessor, buff_vec.len() as i32);
+        set_buff_rem(module_accessor, buff_vec.len());
         // Since it's the first step of buffing, we need to set up how many buffs there are
     }
     if get_buff_rem(module_accessor) <= 0 {
@@ -133,7 +136,7 @@ unsafe fn buff_hero_single(
     }
     let spell_index = get_buff_rem(module_accessor) - 1;
     // Used to get spell from our vector
-    let spell_option = buff_vec.get(spell_index as usize);
+    let spell_option = buff_vec.get(spell_index);
     if spell_option.is_none() {
         // There are no spells selected, or something went wrong with making the vector
         return;

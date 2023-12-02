@@ -770,7 +770,7 @@ pub unsafe fn handle_reused_ui(
         // If Little Mac is in the game and we're buffing him, set the meter to 100
         if (player_fighter_kind == *FIGHTER_KIND_LITTLEMAC
             || cpu_fighter_kind == *FIGHTER_KIND_LITTLEMAC)
-            && MENU.buff_state.to_vec().contains(&BuffOption::KO)
+            && MENU.buff_state.contains(&BuffOption::KO)
         {
             param_2 = 100;
         }

@@ -58,7 +58,7 @@ fn roll_ledge_case() {
 fn get_ledge_option() -> Option<Action> {
     unsafe {
         let mut override_action: Option<Action> = None;
-        let regular_action = if MENU.mash_triggers.contains(MashTrigger::LEDGE) {
+        let regular_action = if MENU.mash_triggers.contains(&MashTrigger::LEDGE) {
             Some(MENU.mash_state.get_random())
         } else {
             None

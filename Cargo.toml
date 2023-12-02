@@ -41,10 +41,11 @@ byte-unit = "4.0.18"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 anyhow = "1.0.72"
 
-
 [patch.crates-io]
 native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", branch = "switch-timeout-panic" }
 nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs" }
+rand = { git = "https://github.com/skyline-rs/rand" }
+getrandom = { git = "https://github.com/Raytwo/getrandom" }
 
 [profile.dev]
 panic = "abort"

@@ -45,7 +45,7 @@ pub fn button_mapping(
         ButtonConfig::MINUS => b.minus(),
         ButtonConfig::LSTICK => b.stick_l(),
         ButtonConfig::RSTICK => b.stick_r(),
-        _ => false,
+        _ => panic!("Invalid value in button_mapping: {}", button_config),
     }
 }
 
@@ -166,7 +166,11 @@ pub enum ButtonCombo {
     InputPlayback,
 }
 
-pub const DEFAULT_OPEN_MENU_CONFIG: ButtonConfig = ButtonConfig::B.union(ButtonConfig::DPAD_UP);
+pub const DEFAULT_OPEN_MENU_CONFIG: ButtonConfig = ButtonConfig {
+    B: 1,
+    DPAD_UP: 1,
+    ..ButtonConfig::empty()
+};
 
 unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     match combo {
@@ -196,14 +200,14 @@ fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
         let combo_keys = get_combo_keys(combo).to_vec();
         let mut this_combo_passes = false;
 
-        for hold_button in &combo_keys[..] {
+        for hold_button in combo_keys.iter() {
             if button_mapping(
                 *hold_button,
                 p1_controller.style,
                 p1_controller.current_buttons,
             ) && combo_keys
                 .iter()
-                .filter(|press_button| **press_button != *hold_button)
+                .filter(|press_button| press_button != &hold_button)
                 .all(|press_button| {
                     button_mapping(*press_button, p1_controller.style, p1_controller.just_down)
                 })
@@ -238,7 +242,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         let mut start_menu_request = false;
 
         let menu_close_wait_frame = frame_counter::get_frame_count(*menu::MENU_CLOSE_FRAME_COUNTER);
-        if unsafe { MENU.menu_open_start_press == OnOff::On } {
+        if unsafe { MENU.menu_open_start_press == OnOff::ON } {
             let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
             if p1_controller.current_buttons.plus() {
                 *start_hold_frames += 1;

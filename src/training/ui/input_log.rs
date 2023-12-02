@@ -193,9 +193,9 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("TrModInputLog")
         .unwrap();
     logs_pane.set_visible(
-        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::None,
+        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::NONE,
     );
-    if MENU.input_display == InputDisplay::None {
+    if MENU.input_display == InputDisplay::NONE {
         return;
     }
 

@@ -143,7 +143,10 @@ pub struct SaveStateSlots {
 const NUM_SAVE_STATE_SLOTS: usize = 5;
 // I actually had to do it this way, a simple load-from-file in main() caused crashes.
 lazy_static::lazy_static! {
-    static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new(load_from_file());
+    static ref SAVE_STATE_SLOTS : Mutex<SaveStateSlots> = Mutex::new({
+        info!("Initialized lazy_static: SAVE_STATE_SLOTS");
+        load_from_file()
+    });
 }
 
 pub fn load_from_file() -> SaveStateSlots {
@@ -233,7 +236,7 @@ unsafe fn get_slot() -> usize {
     if random_slot != SaveStateSlot::empty() {
         RANDOM_SLOT
     } else {
-        MENU.save_state_slot.as_idx() as usize
+        MENU.save_state_slot.into_idx().unwrap_or(0)
     }
 }
 
@@ -253,9 +256,13 @@ pub unsafe fn is_loading() -> bool {
 
 pub unsafe fn should_mirror() -> f32 {
     match MENU.save_state_mirroring {
-        SaveStateMirroring::None => 1.0,
-        SaveStateMirroring::Alternate => -1.0 * MIRROR_STATE,
-        SaveStateMirroring::Random => ([-1.0, 1.0])[get_random_int(2) as usize],
+        SaveStateMirroring::NONE => 1.0,
+        SaveStateMirroring::ALTERNATE => -1.0 * MIRROR_STATE,
+        SaveStateMirroring::RANDOM => ([-1.0, 1.0])[get_random_int(2) as usize],
+        _ => panic!(
+            "Invalid value in should_mirror: {}",
+            MENU.save_state_mirroring
+        ),
     }
 }
 
@@ -409,7 +416,7 @@ pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjec
 }
 
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if MENU.save_state_enable == OnOff::Off {
+    if MENU.save_state_enable == OnOff::OFF {
         return;
     }
 
@@ -441,7 +448,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Reset state
-    let autoload_reset = MENU.save_state_autoload == OnOff::On
+    let autoload_reset = MENU.save_state_autoload == OnOff::ON
         && save_state.state == NoAction
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
@@ -452,7 +459,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             let random_slot = MENU.randomize_slots.get_random();
             let slot = if random_slot != SaveStateSlot::empty() {
-                RANDOM_SLOT = random_slot.as_idx();
+                RANDOM_SLOT = random_slot.into_idx().unwrap_or(0);
                 RANDOM_SLOT
             } else {
                 selected_slot
@@ -578,7 +585,10 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                         set_damage(module_accessor, pct);
                     }
                     SaveDamage::DEFAULT => {}
-                    _ => {}
+                    _ => panic!(
+                        "Invalid value in save_states()::save_damage_player: {}",
+                        MENU.save_damage_player
+                    ),
                 }
             } else {
                 match MENU.save_damage_cpu {
@@ -594,12 +604,15 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                         set_damage(module_accessor, pct);
                     }
                     SaveDamage::DEFAULT => {}
-                    _ => {}
+                    _ => panic!(
+                        "Invalid value in save_states()::save_damage_cpu: {}",
+                        MENU.save_damage_cpu
+                    ),
                 }
             }
 
             // Set to held item
-            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::None {
+            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::NONE {
                 apply_item(MENU.character_item);
             }
 
@@ -648,7 +661,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // if we're recording on state load, record
-        if MENU.record_trigger.contains(RecordTrigger::SAVESTATE) {
+        if MENU.record_trigger.contains(&RecordTrigger::SAVESTATE) {
             input_record::lockout_record();
             return;
         }
@@ -693,8 +706,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if button_config::combo_passes(button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
-        save_state_player(MENU.save_state_slot.as_idx() as usize).state = Save;
-        save_state_cpu(MENU.save_state_slot.as_idx() as usize).state = Save;
+        save_state_player(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
+        save_state_cpu(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
         notifications::clear_notifications("Save State");
         notifications::notification(
             "Save State".to_string(),
