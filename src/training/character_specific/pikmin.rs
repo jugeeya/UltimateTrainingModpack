@@ -1,3 +1,4 @@
+use crate::info;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode};
 use smash::lib::lua_const::*;
 
@@ -128,7 +129,7 @@ pub unsafe fn get_current_pikmin(
             }
         };
         let held_boid = WorkModule::get_int(module_accessor, held_work_var) as u32;
-        println!(", boid: {}", held_boid);
+        info!(", boid: {}", held_boid);
         pikmin_boid_vec.push(held_boid);
     }
     // Next, we get the order of the following pikmin

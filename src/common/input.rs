@@ -1,5 +1,3 @@
-#![allow(dead_code)] // TODO: Yeah don't do this
-use crate::extra_bitflag_impls;
 use bitflags::bitflags;
 use modular_bitfield::{bitfield, specifiers::*};
 
@@ -215,14 +213,25 @@ bitflags! {
 }
 
 // This requires some imports to work
-use training_mod_consts::{random_option, ToggleTrait};
 impl std::fmt::Display for Buttons {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         todo!()
     }
 }
 
-extra_bitflag_impls!(Buttons);
+impl Buttons {
+    pub fn to_vec(&self) -> Vec<Buttons> {
+        // Reimplemented for bitflags
+        let mut vec = Vec::<Buttons>::new();
+        let mut field = Buttons::from_bits_truncate(self.bits);
+        while !field.is_empty() {
+            let flag = Buttons::from_bits(1u32 << field.bits.trailing_zeros()).unwrap();
+            field -= flag;
+            vec.push(flag);
+        }
+        vec
+    }
+}
 
 // Controller class used internally by the game
 #[derive(Debug, Default, Copy, Clone)]

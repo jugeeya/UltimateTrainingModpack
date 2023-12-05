@@ -1,11 +1,12 @@
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
+use std::io::BufReader;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
-use training_mod_consts::MenuJsonStruct;
+use training_mod_consts::{create_app, MenuJsonStruct};
 use training_mod_tui::AppPage;
 
 use crate::common::button_config::button_mapping;
@@ -24,11 +25,15 @@ pub unsafe fn menu_condition() -> bool {
 }
 
 pub fn load_from_file() {
+    // Note that this function requires a larger stack size
+    // With the switch default, it'll crash w/o a helpful error message
     info!("Checking for previous menu in {MENU_OPTIONS_PATH}...");
+    let err_msg = format!("Could not read {}", MENU_OPTIONS_PATH);
     if fs::metadata(MENU_OPTIONS_PATH).is_ok() {
-        let menu_conf = fs::read_to_string(MENU_OPTIONS_PATH)
-            .unwrap_or_else(|_| panic!("Could not remove {}", MENU_OPTIONS_PATH));
-        if let Ok(menu_conf_json) = serde_json::from_str::<MenuJsonStruct>(&menu_conf) {
+        let menu_conf = fs::File::open(MENU_OPTIONS_PATH).expect(&err_msg);
+        let reader = BufReader::new(menu_conf);
+        if let Ok(menu_conf_json) = serde_json::from_reader::<BufReader<_>, MenuJsonStruct>(reader)
+        {
             unsafe {
                 MENU = menu_conf_json.menu;
                 DEFAULTS_MENU = menu_conf_json.defaults_menu;
@@ -36,15 +41,21 @@ pub fn load_from_file() {
             }
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
-            fs::remove_file(MENU_OPTIONS_PATH).unwrap_or_else(|_| {
-                panic!(
-                    "{} has invalid schema but could not be deleted!",
-                    MENU_OPTIONS_PATH
-                )
-            });
+            let err_msg = format!(
+                "{} has invalid schema but could not be deleted!",
+                MENU_OPTIONS_PATH
+            );
+            fs::remove_file(MENU_OPTIONS_PATH).expect(&err_msg);
         }
     } else {
         info!("No previous menu file found.");
+    }
+    info!("Setting initial menu selections...");
+    unsafe {
+        let mut app = QUICK_MENU_APP.lock();
+        app.serialized_default_settings =
+            serde_json::to_string(&DEFAULTS_MENU).expect("Could not serialize DEFAULTS_MENU");
+        app.update_all_from_json(&serde_json::to_string(&MENU).expect("Could not serialize MENU"));
     }
 }
 
@@ -72,6 +83,8 @@ pub unsafe fn set_menu_from_json(message: &str) {
 pub fn spawn_menu() {
     unsafe {
         QUICK_MENU_ACTIVE = true;
+        let mut app = QUICK_MENU_APP.lock();
+        app.page = AppPage::SUBMENU;
         *MENU_RECEIVED_INPUT.data_ptr() = true;
     }
 }
@@ -89,14 +102,10 @@ enum DirectionButton {
 }
 
 lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App> = Mutex::new(
-        training_mod_tui::App::new(unsafe { ui_menu(MENU) }, unsafe {
-            (
-                ui_menu(DEFAULTS_MENU),
-                serde_json::to_string(&DEFAULTS_MENU).unwrap(),
-            )
-        })
-    );
+    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new({
+        info!("Initialized lazy_static: QUICK_MENU_APP");
+        unsafe { create_app() }
+    });
     pub static ref P1_CONTROLLER_STYLE: Mutex<ControllerStyle> =
         Mutex::new(ControllerStyle::default());
     static ref DIRECTION_HOLD_FRAMES: Mutex<HashMap<DirectionButton, u32>> = {
@@ -185,43 +194,42 @@ pub fn handle_final_input_mapping(
                         }
                     });
 
-                let app = &mut *QUICK_MENU_APP.data_ptr();
+                let app = &mut *QUICK_MENU_APP.data_ptr(); // TODO: Why aren't we taking a lock here?
                 button_mapping(ButtonConfig::A, style, button_presses).then(|| {
                     app.on_a();
                     received_input = true;
                 });
                 button_mapping(ButtonConfig::B, style, button_presses).then(|| {
                     received_input = true;
-                    if app.page != AppPage::SUBMENU {
-                        app.on_b()
-                    } else {
+                    app.on_b();
+                    if app.page == AppPage::CLOSE {
                         // Leave menu.
                         frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
                         QUICK_MENU_ACTIVE = false;
-                        let menu_json = app.get_menu_selections();
+                        let menu_json = app.get_serialized_settings_with_defaults();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));
                     }
                 });
                 button_mapping(ButtonConfig::X, style, button_presses).then(|| {
-                    app.save_defaults();
+                    app.on_x();
                     received_input = true;
                 });
                 button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
-                    app.reset_all_submenus();
+                    app.on_y();
                     received_input = true;
                 });
 
                 button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
-                    app.previous_tab();
+                    app.on_zl();
                     received_input = true;
                 });
                 button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
-                    app.next_tab();
+                    app.on_zr();
                     received_input = true;
                 });
                 button_mapping(ButtonConfig::R, style, button_presses).then(|| {
-                    app.reset_current_submenu();
+                    app.on_r();
                     received_input = true;
                 });
 
@@ -263,7 +271,6 @@ pub fn handle_final_input_mapping(
 
                 if received_input {
                     direction_hold_frames.iter_mut().for_each(|(_, f)| *f = 0);
-                    set_menu_from_json(&app.get_menu_selections());
                     *MENU_RECEIVED_INPUT.lock() = true;
                 }
             }

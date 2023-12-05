@@ -10,9 +10,12 @@ use serde_json::Value;
 use zip::ZipArchive;
 
 lazy_static! {
-    pub static ref CURRENT_VERSION: Mutex<String> = Mutex::new(match get_current_version() {
-        Ok(v) => v,
-        Err(e) => panic!("Could not find current modpack version!: {}", e),
+    pub static ref CURRENT_VERSION: Mutex<String> = Mutex::new({
+        info!("Initialized lazy_static: CURRENT_VERSION");
+        match get_current_version() {
+            Ok(v) => v,
+            Err(e) => panic!("Could not find current modpack version!: {}", e),
+        }
     });
 }
 
@@ -178,12 +181,13 @@ pub fn perform_version_check() {
     let update_policy = get_update_policy();
     info!("Update Policy is {}", update_policy);
     let mut release_to_apply = match update_policy {
-        UpdatePolicy::Stable => get_release(false),
-        UpdatePolicy::Beta => get_release(true),
-        UpdatePolicy::Disabled => {
+        UpdatePolicy::STABLE => get_release(false),
+        UpdatePolicy::BETA => get_release(true),
+        UpdatePolicy::DISABLED => {
             // User does not want to update at all
             Err(anyhow!("Updates are disabled per UpdatePolicy"))
         }
+        _ => panic!("Invalid value in perform_version_check: {}", update_policy),
     };
     if release_to_apply.is_ok() {
         let published_at = release_to_apply.as_ref().unwrap().published_at.clone();

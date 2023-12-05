@@ -17,6 +17,7 @@ use crate::common::{
 };
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
+use crate::{error, warn};
 
 #[derive(PartialEq, Debug)]
 pub enum InputRecordState {
@@ -102,17 +103,17 @@ unsafe fn should_mash_playback() {
 
     if is_in_hitstun(&mut *cpu_module_accessor) {
         // if we're in hitstun and want to enter the frame we start hitstop for SDI, start if we're in any damage status instantly
-        if MENU.hitstun_playback == HitstunPlayback::Instant {
+        if MENU.hitstun_playback == HitstunPlayback::INSTANT {
             should_playback = true;
         }
         // if we want to wait until we exit hitstop and begin flying away for shield art etc, start if we're not in hitstop
-        if MENU.hitstun_playback == HitstunPlayback::Hitstop
+        if MENU.hitstun_playback == HitstunPlayback::HITSTOP
             && !StopModule::is_stop(cpu_module_accessor)
         {
             should_playback = true;
         }
         // if we're in hitstun and want to wait till FAF to act, then we want to match our starting status to the correct transition term to see if we can hitstun cancel
-        if MENU.hitstun_playback == HitstunPlayback::Hitstun && can_transition(cpu_module_accessor)
+        if MENU.hitstun_playback == HitstunPlayback::HITSTUN && can_transition(cpu_module_accessor)
         {
             should_playback = true;
         }
@@ -191,12 +192,12 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
     let fighter_kind = utility::get_kind(module_accessor);
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
 
-    CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx();
+    CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx().unwrap_or(0);
 
     if entry_id_int == 0 && !fighter_is_nana {
         if button_config::combo_passes(button_config::ButtonCombo::InputPlayback) {
             playback(MENU.playback_button_slots.get_random().into_idx());
-        } else if MENU.record_trigger.contains(RecordTrigger::COMMAND)
+        } else if MENU.record_trigger.contains(&RecordTrigger::COMMAND)
             && button_config::combo_passes(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
@@ -215,7 +216,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 
             // If we need to crop the recording for neutral input
             // INPUT_RECORD_FRAME must be > 0 to prevent bounding errors
-            if INPUT_RECORD == Record && MENU.recording_crop == OnOff::On && INPUT_RECORD_FRAME > 0
+            if INPUT_RECORD == Record && MENU.recording_crop == OnOff::ON && INPUT_RECORD_FRAME > 0
             {
                 while INPUT_RECORD_FRAME > 0 && is_input_neutral(INPUT_RECORD_FRAME - 1) {
                     // Discard frames at the end of the recording until the last frame with input
@@ -227,7 +228,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 
             INPUT_RECORD_FRAME = 0;
 
-            if MENU.playback_loop == OnOff::On && INPUT_RECORD == Playback {
+            if MENU.playback_loop == OnOff::ON && INPUT_RECORD == Playback {
                 playback(Some(CURRENT_PLAYBACK_SLOT));
             } else {
                 INPUT_RECORD = None;
@@ -338,11 +339,11 @@ pub unsafe fn lockout_record() {
 // Returns whether we did playback
 pub unsafe fn playback(slot: Option<usize>) -> bool {
     if INPUT_RECORD == Pause {
-        println!("Tried to playback during lockout!");
+        warn!("Tried to playback during lockout!");
         return false;
     }
     if slot.is_none() {
-        println!("Tried to playback without a slot selected!");
+        warn!("Tried to playback without a slot selected!");
         return false;
     }
     let slot = slot.unwrap();
@@ -425,8 +426,6 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
 
             P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
             *out = MappedInputs::empty(); // don't control player while recording
-
-            //println!("Stored Player Input! Frame: {}", INPUT_RECORD_FRAME);
         }
         // Don't allow for player input during Lockout
         if POSSESSION == Lockout {
@@ -468,7 +467,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
                 INPUT_RECORD = Record;
                 POSSESSION = Standby;
             }
-            Ordering::Less => println!("LOCKOUT_FRAME OUT OF BOUNDS"),
+            Ordering::Less => error!("LOCKOUT_FRAME OUT OF BOUNDS"),
         }
     }
 
@@ -504,8 +503,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             );
         }
 
-        //println!("Overriding Cpu Player: {}, Frame: {}, BUFFER_FRAME: {}, STARTING_STATUS: {}, INPUT_RECORD: {:#?}, POSSESSION: {:#?}", controller_no, INPUT_RECORD_FRAME, BUFFER_FRAME, STARTING_STATUS, INPUT_RECORD, POSSESSION);
-
         let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[if INPUT_RECORD == Record {
             CURRENT_RECORD_SLOT
         } else {
@@ -538,7 +535,6 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         };
         (*controller_data).clamped_lstick_x = clamped_lstick_x;
         (*controller_data).clamped_lstick_y = clamped_lstick_y;
-        //println!("CPU Buttons: {:#018b}", (*controller_data).buttons);
 
         // Keep counting frames, unless we're in standby waiting for an input, or are buffering an option
         // When buffering an option, we keep inputting the first frame of input during the buffer window

@@ -18,7 +18,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
-use training_mod_consts::{extra_bitflag_impls, OnOff, LEGACY_TRAINING_MODPACK_ROOT};
+use training_mod_consts::{OnOff, LEGACY_TRAINING_MODPACK_ROOT};
 
 use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
@@ -66,7 +66,7 @@ pub fn main() {
         skyline::error::show_error(
             69,
             "SSBU Training Modpack has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
-            err_msg.as_str(),
+            &err_msg,
         );
     }));
     init_logger().unwrap();
@@ -101,7 +101,14 @@ pub fn main() {
         });
     }
 
-    menu::load_from_file();
+    info!("Performing saved data check...");
+    let data_loader = std::thread::Builder::new()
+        .stack_size(0x20000)
+        .spawn(move || {
+            menu::load_from_file();
+        })
+        .unwrap();
+    let _result = data_loader.join();
 
     if !is_emulator() {
         info!("Performing version check...");
@@ -120,7 +127,7 @@ pub fn main() {
         notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
         notification(
             "Open Menu".to_string(),
-            if MENU.menu_open_start_press == OnOff::On {
+            if MENU.menu_open_start_press == OnOff::ON {
                 "Hold Start".to_string()
             } else {
                 DEFAULT_OPEN_MENU_CONFIG.to_string()
