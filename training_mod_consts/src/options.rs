@@ -1041,5 +1041,6 @@ byteflags! {
         pub NONE = "None",
         pub SMASH = "Smash Inputs",
         pub RAW = "Raw Inputs",
+        pub STATUS = "Status Only",
     }
 }
