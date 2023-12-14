@@ -1,4 +1,4 @@
-training_mod_tuiuse training_mod_tui_2::Toggle;
+use training_mod_tui::Toggle;
 
 #[test]
 fn toggle_serialize() {
