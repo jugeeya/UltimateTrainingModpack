@@ -1,4 +1,4 @@
-use ratatui::widgets::{TableSelection, TableState};
+training_mod_tuiuse ratatui::widgets::{TableSelection, TableState};
 use training_mod_tui_2::StatefulTable;
 
 fn initialize_table(row: usize, col: usize) -> StatefulTable<u8> {
