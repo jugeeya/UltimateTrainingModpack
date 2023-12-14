@@ -137,7 +137,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.is_smash_different(other),
-                InputDisplay::RAW => self.is_raw_different(other),
+                InputDisplay::RAW | InputDisplay::DEBUG => self.is_raw_different(other),
                 InputDisplay::STATUS => self.is_status_different(other),
                 InputDisplay::NONE => false,
                 _ => panic!("Invalid value in is_different: {}", MENU.input_display),
@@ -149,7 +149,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.smash_binned_lstick(),
-                InputDisplay::RAW => self.raw_binned_lstick(),
+                InputDisplay::RAW | InputDisplay::DEBUG => self.raw_binned_lstick(),
                 InputDisplay::STATUS => (DirectionStrength::None, 0.0),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
                 _ => panic!("Invalid value in binned_lstick: {}", MENU.input_display),
@@ -161,7 +161,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.smash_binned_rstick(),
-                InputDisplay::RAW => self.raw_binned_rstick(),
+                InputDisplay::RAW | InputDisplay::DEBUG => self.raw_binned_rstick(),
                 InputDisplay::STATUS => (DirectionStrength::None, 0.0),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
                 _ => panic!("Invalid value in binned_rstick: {}", MENU.input_display),
@@ -173,7 +173,7 @@ impl InputLog {
         unsafe {
             match MENU.input_display {
                 InputDisplay::SMASH => self.smash_button_icons(),
-                InputDisplay::RAW => self.raw_button_icons(),
+                InputDisplay::RAW | InputDisplay::DEBUG => self.raw_button_icons(),
                 InputDisplay::STATUS => VecDeque::new(),
                 InputDisplay::NONE => panic!("Invalid input display to log"),
                 _ => unreachable!(),
@@ -181,7 +181,7 @@ impl InputLog {
         }
     }
 
-    fn smash_button_icons(&self) -> VecDeque<(&str, ResColor)> {
+    pub fn smash_button_icons(&self) -> VecDeque<(&str, ResColor)> {
         self.smash_inputs
             .buttons
             .to_vec()
@@ -205,7 +205,7 @@ impl InputLog {
             .collect::<VecDeque<(&str, ResColor)>>()
     }
 
-    fn raw_button_icons(&self) -> VecDeque<(&str, ResColor)> {
+    pub fn raw_button_icons(&self) -> VecDeque<(&str, ResColor)> {
         let buttons = self.raw_inputs.current_buttons;
         let mut icons = VecDeque::new();
         if buttons.a() {

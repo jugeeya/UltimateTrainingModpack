@@ -1,11 +1,14 @@
+use itertools::Itertools;
 use std::collections::VecDeque;
 
 use skyline::nn::ui2d::*;
+use smash::app::{lua_bind::*, utility};
+use smash::lib::lua_const::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
-use training_mod_consts::{InputDisplay, MENU};
+use training_mod_consts::{FighterId, InputDisplay, MENU};
 
 use crate::{
-    common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
+    common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE, try_get_module_accessor},
     training::{
         input_log::{
             DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
@@ -193,7 +196,15 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("TrModInputLog")
         .unwrap();
     logs_pane.set_visible(
-        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::NONE,
+        !QUICK_MENU_ACTIVE
+            && !VANILLA_MENU_ACTIVE
+            && (MENU.input_display != InputDisplay::NONE
+                && MENU.input_display != InputDisplay::DEBUG),
+    );
+
+    let debug_pane = root_pane.find_pane_by_name_recursive("TrModDebug").unwrap();
+    debug_pane.set_visible(
+        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display == InputDisplay::DEBUG,
     );
     if MENU.input_display == InputDisplay::NONE {
         return;
@@ -205,7 +216,75 @@ pub unsafe fn draw(root_pane: &Pane) {
     }
     let logs = &*logs_ptr;
 
-    for (log_idx, log) in logs.iter().enumerate() {
-        draw_log(root_pane, log_idx, log);
+    if MENU.input_display == InputDisplay::DEBUG {
+        let module_accessor = try_get_module_accessor(FighterId::Player);
+        if module_accessor.is_none() {
+            return;
+        }
+        let module_accessor = module_accessor.unwrap();
+
+        let fighter_kind = utility::get_kind(&mut *module_accessor);
+        let status = StatusModule::status_kind(module_accessor);
+
+        let status_line = format!(
+            "Status: {status}",
+            status = status_display_name(fighter_kind, status)
+        );
+
+        let pos_x = PostureModule::pos_x(module_accessor);
+        let pos_y = PostureModule::pos_y(module_accessor);
+        let lr = PostureModule::lr(module_accessor);
+
+        let position_line = format!("Position: ({pos_x:.2}, {pos_y:.2}); LR: {lr}");
+
+        let x_vel =
+            KineticModule::get_sum_speed_x(module_accessor, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN);
+        let y_vel =
+            KineticModule::get_sum_speed_y(module_accessor, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN);
+
+        let speed_line = format!("Speed: ({x_vel:.2}, {y_vel:.2})");
+
+        let first_log = logs.first().unwrap();
+        let raw_left_stick_x = first_log.raw_inputs.left_stick_x;
+        let raw_left_stick_y = first_log.raw_inputs.left_stick_y;
+        let raw_buttons = first_log.raw_button_icons();
+
+        let smash_left_stick_x = first_log.smash_inputs.lstick_x;
+        let smash_left_stick_y = first_log.smash_inputs.lstick_y;
+        let smash_buttons = first_log.smash_button_icons();
+
+        let raw_line = format!(
+            "Raw | Left Stick: ({left_x:.5}, {left_y:.5})\nButtons: {buttons}",
+            left_x = raw_left_stick_x,
+            left_y = raw_left_stick_y,
+            buttons = raw_buttons
+                .iter()
+                .sorted_by(|a, b| Ord::cmp(&b.0, &a.0))
+                .map(|(name, _color)| name)
+                .join("|")
+        );
+
+        let smash_line = format!(
+            "Smash | Left Stick: ({left_x}, {left_y})\nButtons: {buttons}",
+            left_x = smash_left_stick_x,
+            left_y = smash_left_stick_y,
+            buttons = smash_buttons
+                .iter()
+                .sorted_by(|a, b| Ord::cmp(&b.0, &a.0))
+                .map(|(name, _color)| name)
+                .join("|")
+        );
+
+        debug_pane
+            .find_pane_by_name_recursive("DebugTxt")
+            .unwrap()
+            .as_textbox()
+            .set_text_string(&format!(
+                "{status_line}\n{position_line}\n{speed_line}\n{raw_line}\n{smash_line}"
+            ));
+    } else {
+        for (log_idx, log) in logs.iter().enumerate() {
+            draw_log(root_pane, log_idx, log);
+        }
     }
 }
