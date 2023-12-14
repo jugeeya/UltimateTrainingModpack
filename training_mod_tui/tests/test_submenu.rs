@@ -54,7 +54,7 @@ fn initialize_submenu<'a>(submenu_type: SubMenuType) -> SubMenu<'a> {
             submenu_type: submenu_type,
             toggles: make_toggle_table_multiple(0, 0, 0),
             slider: Some(StatefulSlider::new()),
-        }
+        },
     }
 }
 
