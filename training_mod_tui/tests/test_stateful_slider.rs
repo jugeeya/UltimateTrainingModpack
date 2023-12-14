@@ -1,4 +1,4 @@
-training_mod_tuiuse training_mod_tui_2::{SliderState, StatefulSlider};
+use training_mod_tui::{SliderState, StatefulSlider};
 
 fn initialize_slider(state: SliderState) -> StatefulSlider {
     StatefulSlider {

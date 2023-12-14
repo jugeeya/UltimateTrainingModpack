@@ -1,5 +1,5 @@
-training_mod_tuiuse ratatui::widgets::{TableSelection, TableState};
-use training_mod_tui_2::*;
+use ratatui::widgets::{TableSelection, TableState};
+use training_mod_tui::*;
 
 fn make_toggle<'a>(v: u8) -> Toggle<'a> {
     Toggle {
