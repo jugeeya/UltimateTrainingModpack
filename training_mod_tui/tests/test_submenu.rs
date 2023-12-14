@@ -1,5 +1,5 @@
 use ratatui::widgets::{TableSelection, TableState};
-use training_mod_tui_2::*;
+use training_mod_tui::*;
 
 fn make_toggle<'a>(v: u8) -> Toggle<'a> {
     Toggle {
@@ -55,9 +55,6 @@ fn initialize_submenu<'a>(submenu_type: SubMenuType) -> SubMenu<'a> {
             toggles: make_toggle_table_multiple(0, 0, 0),
             slider: Some(StatefulSlider::new()),
         },
-        SubMenuType::None => {
-            panic!()
-        }
     }
 }
 

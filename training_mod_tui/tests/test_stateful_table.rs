@@ -1,5 +1,5 @@
 use ratatui::widgets::{TableSelection, TableState};
-use training_mod_tui_2::StatefulTable;
+use training_mod_tui::StatefulTable;
 
 fn initialize_table(row: usize, col: usize) -> StatefulTable<u8> {
     let mut s = StatefulTable::with_items(2, 3, vec![0, 1, 2, 3, 4]);

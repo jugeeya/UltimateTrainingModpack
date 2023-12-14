@@ -111,7 +111,7 @@ unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, statu
         set_buff_rem(module_accessor, buff_vec.len());
         // Since it's the first step of buffing, we need to set up how many buffs there are
     }
-    if get_buff_rem(module_accessor) <= 0 {
+    if get_buff_rem(module_accessor) == 0 {
         // If there are no buffs selected/left, we're done
         if frame_counter::should_delay(3_u32, *BUFF_DELAY_COUNTER) {
             // Need to wait 3 frames to make sure we stop the spell SFX, since it's a bit delayed

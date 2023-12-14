@@ -1,5 +1,5 @@
 use ratatui::widgets::ListState;
-use training_mod_tui_2::StatefulList;
+use training_mod_tui::StatefulList;
 
 fn initialize_list(selected: Option<usize>) -> StatefulList<u8> {
     StatefulList {
