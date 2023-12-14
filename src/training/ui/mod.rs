@@ -18,7 +18,7 @@ mod input_log;
 pub mod menu;
 pub mod notifications;
 
-pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &Vec<u16>) {
+pub unsafe fn set_icon_text(pane: &mut TextBox, icons: &[u16]) {
     pane.set_text_string("");
 
     let it = pane.text_buf as *mut u16;
