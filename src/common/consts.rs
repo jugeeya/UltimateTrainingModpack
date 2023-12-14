@@ -9298,7 +9298,7 @@ fn character_pairs() -> [(i32, Character); 97] {
 
 fn get_parent_character(fighter: Character) -> Character {
     use Character::*;
-    return match fighter {
+    match fighter {
         Chrom => Roy,
         Daisy => Peach,
         Ken => Ryu,
@@ -9308,7 +9308,7 @@ fn get_parent_character(fighter: Character) -> Character {
         Samusd => Samus,
         Wolf => Fox, //Pseudo-echo
         _ => fighter,
-    };
+    }
 }
 
 pub fn kind_to_char(kind: i32) -> Character {
