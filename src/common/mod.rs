@@ -6,6 +6,7 @@ use smash::lua2cpp::L2CFighterCommon;
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
 use crate::training::character_specific::ptrainer;
+use crate::common::offsets::OFFSET_GET_BATTLE_OBJECT_FROM_ID;
 
 pub mod button_config;
 pub mod consts;
@@ -16,6 +17,7 @@ pub mod input;
 pub mod menu;
 pub mod raygun_printer;
 pub mod release;
+pub mod offsets;
 
 pub static mut DEFAULTS_MENU: TrainingModpackMenu = consts::DEFAULTS_MENU;
 pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };
@@ -34,7 +36,7 @@ pub fn is_training_mode() -> bool {
     true
 }
 
-#[skyline::from_offset(0x3ac540)]
+#[skyline::from_offset(*OFFSET_GET_BATTLE_OBJECT_FROM_ID)]
 pub fn get_battle_object_from_id(battle_object_id: u32) -> *mut app::BattleObject;
 
 pub fn get_category(module_accessor: &app::BattleObjectModuleAccessor) -> i32 {

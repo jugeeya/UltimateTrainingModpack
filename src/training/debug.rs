@@ -2,10 +2,11 @@
 #![allow(unused_imports)]
 #![cfg(debug_assertions)]
 use crate::common::is_operation_cpu;
+use crate::common::offsets::OFFSET_IS_VISIBLE_BACKSHIELD;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode, utility};
 use smash::lib::lua_const::*;
 
-#[skyline::from_offset(0x1655400)]
+#[skyline::from_offset(*OFFSET_IS_VISIBLE_BACKSHIELD)]
 fn is_visible_backshield(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool;
 
 #[repr(C)]

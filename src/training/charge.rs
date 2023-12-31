@@ -1,5 +1,6 @@
 use crate::common::consts::FighterId;
 use crate::common::{get_module_accessor, try_get_battle_object};
+use crate::common::offsets::OFFSET_COPY_SETUP;
 use crate::training::character_specific::{kirby, pikmin};
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
@@ -7,7 +8,7 @@ use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use std::ptr;
 
-#[skyline::from_offset(0xba0e60)]
+#[skyline::from_offset(*OFFSET_COPY_SETUP)]
 fn copy_setup(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     int: i32,

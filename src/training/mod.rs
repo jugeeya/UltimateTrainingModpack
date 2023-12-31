@@ -4,6 +4,7 @@ use crate::common::{
     is_operation_cpu, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR,
     STAGE_MANAGER_ADDR,
 };
+use crate::common::offsets::OFFSET_ADD_DAMAGE;
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
@@ -402,7 +403,7 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
     ori
 }
 
-#[skyline::hook(offset = 0x03ff9a0)]
+#[skyline::hook(offset = *OFFSET_ADD_DAMAGE)]
 pub unsafe fn handle_add_damage(
     damage_module: *mut u64, // DamageModule
     mut damage_to_add: f32,

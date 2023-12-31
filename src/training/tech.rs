@@ -6,6 +6,9 @@ use smash::lua2cpp::L2CFighterBase;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
+use crate::common::offsets::OFFSET_CHANGE_ACTIVE_CAMERA;
+use crate::common::offsets::OFFSET_FIGHTER_REQ_QUAKE_POS;
+use crate::common::offsets::OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES;
 use crate::common::*;
 use crate::training::{frame_counter, mash, save_states};
 
@@ -399,7 +402,7 @@ pub struct FighterCameraModule {
 }
 
 // Prevent Mistech Quake
-#[skyline::hook(offset = 0x3ec820)]
+#[skyline::hook(offset = *OFFSET_FIGHTER_REQ_QUAKE_POS)]
 pub unsafe fn handle_fighter_req_quake_pos(
     camera_module: &mut FighterCameraModule,
     quake_kind: i32,
@@ -417,7 +420,7 @@ pub unsafe fn handle_fighter_req_quake_pos(
 }
 
 // Zoom in the Fixed Camera view while this is on to set up a good situation for practice
-#[skyline::hook(offset = 0x4ee460)]
+#[skyline::hook(offset = *OFFSET_CHANGE_ACTIVE_CAMERA)]
 pub unsafe fn handle_change_active_camera(
     camera_manager: *mut u64,
     camera_mode: i32,
@@ -733,7 +736,7 @@ fn get_stage_camera_values(stage_id: i32) -> Option<Vector3f> {
 }
 
 // We hook where the training fixed camera fields are initially set, so we can change them later if necessary
-#[skyline::hook(offset = 0x3157bb0)]
+#[skyline::hook(offset = *OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES)]
 pub unsafe fn handle_set_training_fixed_camera_values(
     camera_manager: *mut u64, // not actually camera manager - is this even used?????
     fixed_camera_values: &mut CameraValuesForTraining,

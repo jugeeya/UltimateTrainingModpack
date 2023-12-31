@@ -7,6 +7,7 @@ use training_mod_consts::{OnOff, MENU};
 
 #[cfg(feature = "layout_arc_from_file")]
 use crate::consts::LAYOUT_ARC_PATH;
+use crate::common::offsets::OFFSET_DRAW;
 use crate::{
     common::{is_ready_go, is_training_mode, menu::QUICK_MENU_ACTIVE},
     training::frame_counter,
@@ -52,7 +53,7 @@ pub fn fade_out(pane: &mut Pane, current_frame: u32, total_frames: u32) {
     }
 }
 
-#[skyline::hook(offset = 0x4b620)]
+#[skyline::hook(offset = *OFFSET_DRAW)]
 pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) {
     let layout_name = skyline::from_c_str((*layout).layout_name);
     let root_pane = &mut *(*layout).root_pane;

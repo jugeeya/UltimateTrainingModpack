@@ -15,6 +15,7 @@ use crate::common::{button_config, is_training_mode};
 use crate::common::{
     get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
 };
+use crate::common::offsets::OFFSET_SET_CPU_CONTROLS;
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
 use crate::{error, warn};
@@ -434,7 +435,7 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
     }
 }
 
-#[skyline::hook(offset = 0x2da180)] // After cpu controls are assigned from ai calls
+#[skyline::hook(offset = *OFFSET_SET_CPU_CONTROLS)] // After cpu controls are assigned from ai calls
 unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     call_original!(p_data);
     if !is_training_mode() {
