@@ -1,4 +1,5 @@
 use crate::common::try_get_battle_object;
+use crate::offsets::OFFSET_KIRBY_OPFF;
 use crate::training::charge::ChargeState;
 use crate::training::save_states;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode};
@@ -13,8 +14,7 @@ pub struct CopyModule {
 }
 
 // Wait to set up copy ability variables until after CopyStart runs;
-static KIRBY_OPFF_OFFSET: usize = 0xb971b0;
-#[skyline::hook(offset = KIRBY_OPFF_OFFSET)]
+#[skyline::hook(offset = *OFFSET_KIRBY_OPFF)]
 pub unsafe fn handle_copy_start(param1: u64, kirby_fighter: *mut app::Fighter) -> u64 {
     if !is_training_mode() || !save_states::is_loading() {
         return original!()(param1, kirby_fighter);

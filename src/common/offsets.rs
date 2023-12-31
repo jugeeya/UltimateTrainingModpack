@@ -1,18 +1,44 @@
 
 
-#[cfg(not(feature = "offset_search"))]
-mod offsets_inner {
-    pub static OFFSET_GET_BATTLE_OBJECT_FROM_ID: usize = 0x3ac540;
-    pub static OFFSET_COPY_SETUP: usize = 0xba0e60;
-    pub static OFFSET_IS_VISIBLE_BACKSHIELD: usize = 0x1655400;
-    pub static OFFSET_SET_CPU_CONTROLS: usize = 0x2da180;
-    pub static OFFSET_ADD_DAMAGE: usize = 0x3ff9a0;
-    pub static OFFSET_FIGHTER_REQ_QUAKE_POS: usize = 0x3ec820;
-    pub static OFFSET_CHANGE_ACTIVE_CAMERA: usize = 0x4ee460;
-    pub static OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES: usize = 0x3157bb0;
-    pub static OFFSET_DRAW: usize = 0x4b620;
-}
-#[cfg(feature = "offset_search")]
+// #[cfg(not(feature = "no_offset_search"))]
+// mod offsets_inner {
+//     pub static OFFSET_GET_BATTLE_OBJECT_FROM_ID: usize = 0x3ac540;
+//     pub static OFFSET_COPY_SETUP: usize = 0xba0e60;
+//     pub static OFFSET_IS_VISIBLE_BACKSHIELD: usize = 0x1655400;
+//     pub static OFFSET_SET_CPU_CONTROLS: usize = 0x2da180;
+//     pub static OFFSET_ADD_DAMAGE: usize = 0x3ff9a0;
+//     pub static OFFSET_FIGHTER_REQ_QUAKE_POS: usize = 0x3ec820;
+//     pub static OFFSET_CHANGE_ACTIVE_CAMERA: usize = 0x4ee460;
+//     pub static OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES: usize = 0x3157bb0;
+//     pub static OFFSET_DRAW: usize = 0x4b620;
+
+//     pub static OFFSET_ON_FLAG: usize = 0x4e4910;
+//     pub static OFFSET_SET_INT: usize = 0x4e4600;
+//     pub static OFFSET_SET_INT64: usize = 0x4e4680;
+//     pub static OFFSET_SET_FLOAT: usize = 0x4e4420;
+//     pub static OFFSET_IS_FLAG: usize = 0x4e48e0;
+//     pub static OFFSET_GET_INT: usize = 0x4e45e0;
+//     pub static OFFSET_CLOUD_ADD_LIMIT: usize = 0x008dc140;
+//     pub static OFFSET_STALE: usize = 0x013e88a4;
+//     pub static OFFSET_STALE_MENU: usize = 0x013e88a0;
+//     pub static OFFSET_PLAY_SE: usize = 0x04cf6a0;
+//     pub static OFFSET_FOLLOW_REQ: usize = 0x044f860;
+//     pub static OFFSET_EFFECT_REQ: usize = 0x44de50;
+//     pub static OFFSET_JOINT_EFFECT_REQ: usize = 0x44e1e0;
+//     pub static OFFSET_CAN_FUTTOBI_BACK: usize = 0x0260f950;
+//     pub static OFFSET_REUSED_UI: usize = 0x068cd80;
+//     pub static OFFSET_ARTICLE_GET_INT: usize = 0x3d5920;
+//     pub static OFFSET_OPCF: usize = 0x06b7fdc;
+//     pub static OFFSET_FIM: usize = 0x17504a0;
+//     pub static OFFSET_SSS_TRAINING: usize = 0x184d1d8;
+//     pub static OFFSET_GAFT: usize = 0x03d40a0;
+//     pub static OFFSET_KIRBY_OPFF: usize = 0xb971b0;
+//     pub static OFFSET_ACTIVATE_AUTONOMY: usize = 0x034b5cf0;
+//     pub static OFFSET_POKEMON_DECIDE: usize = 0x34cdc64;
+//     pub static OFFSET_LAYOUT_ARC_MALLOC: usize = 0x37730d4;
+
+// }
+// #[cfg(not(feature = "no_offset_search"))]
 mod offsets_inner {
     use crate::logging::*;
     static NEEDLE_GET_BATTLE_OBJECT_FROM_ID: &[u8] = &[
@@ -141,9 +167,34 @@ mod offsets_inner {
         pub static ref OFFSET_ADD_DAMAGE: usize = find_offset("ADD_DAMAGE", NEEDLE_ADD_DAMAGE).expect("Failed to find offset for ADD_DAMAGE!");
         pub static ref OFFSET_FIGHTER_REQ_QUAKE_POS: usize = find_offset("REQ_QUAKE_POS", NEEDLE_FIGHTER_REQ_QUAKE_POS).expect("Failed to find offset for FIGHTER_REQ_QUAKE_POS!");
         pub static ref OFFSET_CHANGE_ACTIVE_CAMERA: usize = find_offset("CHANGE_ACTIVE_CAMERA", NEEDLE_CHANGE_ACTIVE_CAMERA).expect("Failed to find offset for CHANGE_ACTIVE_CAMERA:!");
-        pub static ref OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES: usize = find_offset("SET_TRAINING_FIXED_CAMERA_VALUES", NEEDLE_SET_TRAINING_FIXED_CAMERA_VALUES).expect("Failed to find offset for SET_TRAINING_FIXED_CAMERA_VALUES:!");
+        pub static ref OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES: usize = find_offset("WSET_TRAINING_FIXED_CAMERA_VALUES", NEEDLE_SET_TRAINING_FIXED_CAMERA_VALUES).expect("Failed to find offset for SET_TRAINING_FIXED_CAMERA_VALUES:!");
         pub static ref OFFSET_DRAW: usize = find_offset("DRAW", NEEDLE_DRAW).expect("Failed to find offset for DRAW!");
     }
+
+    pub static OFFSET_ON_FLAG: &usize = &0x4e4910;
+    pub static OFFSET_SET_INT: &usize = &0x4e4600;
+    pub static OFFSET_SET_INT64: &usize = &0x4e4680;
+    pub static OFFSET_SET_FLOAT: &usize = &0x4e4420;
+    pub static OFFSET_IS_FLAG: &usize = &0x4e48e0;
+    pub static OFFSET_GET_INT: &usize = &0x4e45e0;
+    pub static OFFSET_CLOUD_ADD_LIMIT: &usize = &0x008dc140;
+    pub static OFFSET_STALE: &usize = &0x013e88a4;
+    pub static OFFSET_STALE_MENU: &usize = &0x013e88a0;
+    pub static OFFSET_PLAY_SE: &usize = &0x04cf6a0;
+    pub static OFFSET_FOLLOW_REQ: &usize = &0x044f860;
+    pub static OFFSET_EFFECT_REQ: &usize = &0x44de50;
+    pub static OFFSET_JOINT_EFFECT_REQ: &usize = &0x44e1e0;
+    pub static OFFSET_CAN_FUTTOBI_BACK: &usize = &0x0260f950;
+    pub static OFFSET_REUSED_UI: &usize = &0x068cd80;
+    pub static OFFSET_ARTICLE_GET_INT: &usize = &0x3d5920;
+    pub static OFFSET_OPCF: &usize = &0x06b7fdc;
+    pub static OFFSET_FIM: &usize = &0x17504a0;
+    pub static OFFSET_SSS_TRAINING: &usize = &0x184d1d8;
+    pub static OFFSET_GAFT: &usize = &0x03d40a0;
+    pub static OFFSET_KIRBY_OPFF: &usize = &0xb971b0;
+    pub static OFFSET_ACTIVATE_AUTONOMY: &usize = &0x034b5cf0;
+    pub static OFFSET_POKEMON_DECIDE: &usize = &0x34cdc64;
+    pub static OFFSET_LAYOUT_ARC_MALLOC: &usize = &0x37730d4;
 }
 
 pub use offsets_inner::*;

@@ -1,3 +1,4 @@
+use crate::offsets::OFFSET_POKEMON_DECIDE;
 use crate::training::frame_counter;
 use crate::training::save_states;
 use once_cell::sync::Lazy;
@@ -138,9 +139,7 @@ pub unsafe fn handle_pokemon_sound_effect(hash: Hash40) -> Hash40 {
 }
 
 // Choose which pokemon to switch to!
-static POKEMON_DECIDE_OFFSET: usize = 0x34cdc64;
-
-#[skyline::hook(offset = POKEMON_DECIDE_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_POKEMON_DECIDE, inline)]
 unsafe fn handle_pokemon_decide(ctx: &mut InlineCtx) {
     if !is_training_mode() || !save_states::is_loading() {
         return;

@@ -7,7 +7,7 @@ use training_mod_consts::{OnOff, MENU};
 
 #[cfg(feature = "layout_arc_from_file")]
 use crate::consts::LAYOUT_ARC_PATH;
-use crate::common::offsets::OFFSET_DRAW;
+use crate::common::offsets::{OFFSET_DRAW, OFFSET_LAYOUT_ARC_MALLOC};
 use crate::{
     common::{is_ready_go, is_training_mode, menu::QUICK_MENU_ACTIVE},
     training::frame_counter,
@@ -129,7 +129,7 @@ static mut LAYOUT_ARC: &mut [u8; LAYOUT_ARC_SIZE] = &mut [0u8; LAYOUT_ARC_SIZE];
 /// label_material.set_white_res_color(LABEL_WHITE_SELECTED_COLOR);
 /// label_material.set_black_res_color(LABEL_BLACK_SELECTED_COLOR);
 /// ```
-#[skyline::hook(offset = 0x37730d4, inline)]
+#[skyline::hook(offset = *OFFSET_LAYOUT_ARC_MALLOC, inline)]
 unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
     if !is_training_mode() {
         return;

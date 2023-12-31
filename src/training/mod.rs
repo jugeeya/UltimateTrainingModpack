@@ -4,7 +4,7 @@ use crate::common::{
     is_operation_cpu, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR,
     STAGE_MANAGER_ADDR,
 };
-use crate::common::offsets::OFFSET_ADD_DAMAGE;
+use crate::common::offsets::*;
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
@@ -355,10 +355,8 @@ fn params_main(params_info: &ParamsInfo<'_>) {
     }
 }
 
-static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140;
-
 // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
-#[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
+#[skyline::hook(offset = *OFFSET_CLOUD_ADD_LIMIT)]
 pub unsafe fn handle_add_limit(
     add_limit: f32,
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -424,10 +422,8 @@ pub unsafe fn handle_add_damage(
 }
 
 // Set Stale Moves to On
-static STALE_OFFSET: usize = 0x013e88a4;
-
 // One instruction after stale moves toggle register is set to 0
-#[skyline::hook(offset = STALE_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_STALE, inline)]
 unsafe fn stale_handle(ctx: &mut InlineCtx) {
     let x22 = ctx.registers[22].x.as_mut();
     let training_structure_address = (*x22 + 0xb60) as *mut u8;
@@ -435,10 +431,8 @@ unsafe fn stale_handle(ctx: &mut InlineCtx) {
 }
 
 // Set Stale Moves to On in the menu text
-static STALE_MENU_OFFSET: usize = 0x013e88a0;
-
 // One instruction after menu text register is set to off
-#[skyline::hook(offset = STALE_MENU_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_STALE_MENU, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
     let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b215e;
@@ -497,9 +491,8 @@ pub struct FighterSoundModule {
     owner: *mut app::BattleObjectModuleAccessor,
 }
 
-static PLAY_SE_OFFSET: usize = 0x04cf6a0;
 // fighters don't use the symbol and go straight through their vtable to this function
-#[skyline::hook(offset = PLAY_SE_OFFSET)]
+#[skyline::hook(offset = *OFFSET_PLAY_SE)]
 pub unsafe fn handle_fighter_play_se(
     sound_module: *mut FighterSoundModule, // pointer to fighter's SoundModule
     mut my_hash: Hash40,
@@ -540,8 +533,8 @@ pub struct FighterEffectModule {
     owner: *mut app::BattleObjectModuleAccessor,
 }
 
-static FOLLOW_REQ_OFFSET: usize = 0x044f860;
-#[skyline::hook(offset = FOLLOW_REQ_OFFSET)] // hooked to prevent score gfx from playing when loading save states
+
+#[skyline::hook(offset = *OFFSET_FOLLOW_REQ)] // hooked to prevent score gfx from playing when loading save states
 pub unsafe fn handle_effect_follow(
     effect_module: &mut FighterEffectModule,
     eff_hash: Hash40,
@@ -598,8 +591,7 @@ pub unsafe fn handle_effect_follow(
     )
 }
 
-static EFFECT_REQ_OFFSET: usize = 0x44de50;
-#[skyline::hook(offset = EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+#[skyline::hook(offset = *OFFSET_EFFECT_REQ)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_fighter_effect(
     effect_module: *mut FighterEffectModule, // pointer to effect module
     eff_hash: Hash40,
@@ -638,8 +630,7 @@ pub unsafe fn handle_fighter_effect(
     )
 }
 
-static JOINT_EFFECT_REQ_OFFSET: usize = 0x44e1e0;
-#[skyline::hook(offset = JOINT_EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+#[skyline::hook(offset = *OFFSET_JOINT_EFFECT_REQ)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_fighter_joint_effect(
     effect_module: *mut FighterEffectModule, // pointer to effect module
     eff_hash: Hash40,
@@ -739,10 +730,8 @@ pub unsafe fn handle_effect(
     )
 }
 
-static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950;
-
 // can_futtobi_back, checks if stage allows for star KOs
-#[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
+#[skyline::hook(offset = *OFFSET_CAN_FUTTOBI_BACK)]
 pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     let ori = original!()(my_long_ptr);
     if !is_training_mode() {
@@ -752,9 +741,8 @@ pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     }
 }
 
-static REUSED_UI_OFFSET: usize = 0x068cd80;
 // A function reused by many functions to update UI. Called to update at least Little Mac's meter.
-#[skyline::hook(offset = REUSED_UI_OFFSET)]
+#[skyline::hook(offset = *OFFSET_REUSED_UI)]
 pub unsafe fn handle_reused_ui(
     fighter_data: *mut u32, // a pointer to length 4 data in the Fighter's FighterEntry in the FighterManager
     mut param_2: u32,       // In Little Mac's case, the meter value as an integer
@@ -780,9 +768,7 @@ pub unsafe fn handle_reused_ui(
     original!()(fighter_data, param_2)
 }
 
-static ARTICLE_GET_INT_OFFSET: usize = 0x3d5920;
-
-#[skyline::hook(offset = ARTICLE_GET_INT_OFFSET)]
+#[skyline::hook(offset = *OFFSET_ARTICLE_GET_INT)]
 pub unsafe fn handle_article_get_int(
     article_module: *mut app::BattleObjectModuleAccessor, // *mut ArticleModule
     generate_article: i32,
@@ -792,10 +778,8 @@ pub unsafe fn handle_article_get_int(
 }
 
 // Instruction run on the completion of the CPU Control function
-static OPCF_OFFSET: usize = 0x06b7fdc;
-
 // One instruction after the CPU Control function completes
-#[skyline::hook(offset = OPCF_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_OPCF, inline)]
 unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
     input_record::handle_recording();
     frame_counter::tick_ingame();
@@ -809,9 +793,7 @@ unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
     }
 }
 
-static FIM_OFFSET: usize = 0x17504a0;
-// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
-#[skyline::hook(offset = FIM_OFFSET)]
+#[skyline::hook(offset = *OFFSET_FIM)]
 unsafe fn handle_final_input_mapping(
     mappings: *mut ControllerMapping,
     player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
@@ -882,8 +864,7 @@ pub fn training_mods() {
     // Enable Custom Stages for Training Mode
     // Specifically, we prevent a field in StageSelectInfo of the Scene that controls if the Custom Stage tab is loaded
     //  from being set to false when we load the SSS in Training Mode
-    static SSS_TRAINING_OFFSET: usize = 0x184d1d8;
-    skyline::patching::Patch::in_text(SSS_TRAINING_OFFSET)
+    skyline::patching::Patch::in_text(*OFFSET_SSS_TRAINING)
         .nop()
         .unwrap();
 
