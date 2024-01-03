@@ -11,11 +11,11 @@ use PossessionState::*;
 
 use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
 use crate::common::input::*;
+use crate::common::offsets::OFFSET_SET_CPU_CONTROLS;
 use crate::common::{button_config, is_training_mode};
 use crate::common::{
     get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
 };
-use crate::common::offsets::OFFSET_SET_CPU_CONTROLS;
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications, color_notification};
 use crate::{error, warn};

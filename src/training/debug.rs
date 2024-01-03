@@ -3,13 +3,8 @@
 #![cfg(debug_assertions)]
 use crate::common::is_operation_cpu;
 use crate::common::offsets::{
-    OFFSET_IS_VISIBLE_BACKSHIELD,
-    OFFSET_ON_FLAG,
-    OFFSET_SET_INT,
-    OFFSET_SET_INT64,
-    OFFSET_SET_FLOAT,
-    OFFSET_IS_FLAG,
-    OFFSET_GET_INT,
+    OFFSET_GET_INT, OFFSET_IS_FLAG, OFFSET_IS_VISIBLE_BACKSHIELD, OFFSET_ON_FLAG, OFFSET_SET_FLOAT,
+    OFFSET_SET_INT, OFFSET_SET_INT64,
 };
 use smash::app::{self, lua_bind::*, smashball::is_training_mode, utility};
 use smash::lib::lua_const::*;
@@ -22,7 +17,6 @@ pub struct WorkModule2 {
     vtable: u64,
     owner: &'static mut app::BattleObjectModuleAccessor,
 }
-
 
 #[skyline::hook(offset = *OFFSET_ON_FLAG)]
 pub unsafe fn handle_on_flag(work_module: &mut WorkModule2, address: i32) {

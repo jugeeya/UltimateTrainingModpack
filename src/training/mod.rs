@@ -1,10 +1,10 @@
 use crate::common::button_config;
-use crate::common::{
-    consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
-    is_operation_cpu, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR,
-    STAGE_MANAGER_ADDR,
-};
+use crate::common::consts::{BuffOption, FighterId, MENU};
 use crate::common::offsets::*;
+use crate::common::{
+    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu,
+    FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+};
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
@@ -532,7 +532,6 @@ pub struct FighterEffectModule {
     _vtable: u64,
     owner: *mut app::BattleObjectModuleAccessor,
 }
-
 
 #[skyline::hook(offset = *OFFSET_FOLLOW_REQ)] // hooked to prevent score gfx from playing when loading save states
 pub unsafe fn handle_effect_follow(

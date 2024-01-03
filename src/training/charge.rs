@@ -1,6 +1,6 @@
 use crate::common::consts::FighterId;
-use crate::common::{get_module_accessor, try_get_battle_object};
 use crate::common::offsets::OFFSET_COPY_SETUP;
+use crate::common::{get_module_accessor, try_get_battle_object};
 use crate::training::character_specific::{kirby, pikmin};
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};

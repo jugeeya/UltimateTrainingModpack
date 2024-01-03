@@ -5,8 +5,8 @@ use smash::lua2cpp::L2CFighterCommon;
 
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
-use crate::training::character_specific::ptrainer;
 use crate::common::offsets::OFFSET_GET_BATTLE_OBJECT_FROM_ID;
+use crate::training::character_specific::ptrainer;
 
 pub mod button_config;
 pub mod consts;
@@ -15,9 +15,9 @@ pub mod dialog;
 pub mod events;
 pub mod input;
 pub mod menu;
+pub mod offsets;
 pub mod raygun_printer;
 pub mod release;
-pub mod offsets;
 
 pub static mut DEFAULTS_MENU: TrainingModpackMenu = consts::DEFAULTS_MENU;
 pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };

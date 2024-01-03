@@ -1,6 +1,7 @@
 // TODO!(Do all these need to be referenced by offset? Or do some of them have symbols?)
-use lazy_static::lazy_static;
+#![rustfmt::skip] // We want the assembly needles to stay in lines of four bytes each
 use crate::logging::*;
+use lazy_static::lazy_static;
 
 // Stolen from HDR who stole it from Arcropolis
 // https://github.com/HDR-Development/HewDraw-Remix/blob/dev/dynamic/src/util.rs
@@ -12,7 +13,8 @@ pub fn byte_search<T: Eq>(needle: &[T]) -> Option<usize> {
         std::slice::from_raw_parts(start, length)
     };
 
-    text.windows(needle.len()).position(|window| window == needle)
+    text.windows(needle.len())
+        .position(|window| window == needle)
 }
 
 // Wrapper around byte_search() with some additional logging
@@ -23,7 +25,7 @@ fn find_offset(name: &str, needle: &[u8]) -> Option<usize> {
         Some(offset) => {
             info!("Found offset for {} at {:#x}", name, offset);
             Some(offset)
-        },
+        }
         None => {
             error!("Cound not find offset for {}", name);
             None
