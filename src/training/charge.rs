@@ -8,7 +8,7 @@ use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use std::ptr;
 
-#[skyline::from_offset(*OFFSET_COPY_SETUP)]
+#[skyline::from_offset(*OFFSET_COPY_SETUP as isize)]
 fn copy_setup(
     module_accessor: *mut app::BattleObjectModuleAccessor,
     int: i32,

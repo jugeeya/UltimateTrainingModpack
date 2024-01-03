@@ -36,7 +36,7 @@ pub fn is_training_mode() -> bool {
     true
 }
 
-#[skyline::from_offset(*OFFSET_GET_BATTLE_OBJECT_FROM_ID)]
+#[skyline::from_offset(*OFFSET_GET_BATTLE_OBJECT_FROM_ID as isize)]
 pub fn get_battle_object_from_id(battle_object_id: u32) -> *mut app::BattleObject;
 
 pub fn get_category(module_accessor: &app::BattleObjectModuleAccessor) -> i32 {

@@ -9,7 +9,7 @@ use crate::common::offsets::{
 use smash::app::{self, lua_bind::*, smashball::is_training_mode, utility};
 use smash::lib::lua_const::*;
 
-#[skyline::from_offset(*OFFSET_IS_VISIBLE_BACKSHIELD)]
+#[skyline::from_offset(*OFFSET_IS_VISIBLE_BACKSHIELD as isize)]
 fn is_visible_backshield(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool;
 
 #[repr(C)]
