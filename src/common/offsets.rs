@@ -1,5 +1,5 @@
 // TODO!(Do all these need to be referenced by offset? Or do some of them have symbols?)
-#![rustfmt::skip] // We want the assembly needles to stay in lines of four bytes each
+#![cfg_attr(rustfmt, rustfmt_skip)] // We want the assembly needles to stay in lines of four bytes each
 use crate::logging::*;
 use lazy_static::lazy_static;
 
