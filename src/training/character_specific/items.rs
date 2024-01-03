@@ -7,7 +7,7 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::offsets::OFFSET_GAFT;
+use crate::offsets::OFFSET_GENERATE_ARTICLE_FOR_TARGET;
 use crate::training::mash;
 
 pub struct CharItem {
@@ -510,7 +510,7 @@ daikon_replace!(DAISY, daisy, 2);
 daikon_replace!(DAISY, daisy, 1);
 
 // GenerateArticleForTarget for Peach/Diddy(/Link?) item creation
-#[skyline::hook(offset = *OFFSET_GAFT)]
+#[skyline::hook(offset = *OFFSET_GENERATE_ARTICLE_FOR_TARGET)]
 pub unsafe fn handle_generate_article_for_target(
     article_module_accessor: *mut BattleObjectModuleAccessor,
     int_1: i32,

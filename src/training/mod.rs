@@ -904,8 +904,8 @@ pub fn training_mods() {
         // Buff SFX
         handle_fighter_play_se,
         // Stale Moves
+        stale_menu_handle, // This has to be initialized before stale_handle otherwise the offset search fails
         stale_handle,
-        stale_menu_handle,
         // Death SFX
         handle_se,
         // Death GFX
