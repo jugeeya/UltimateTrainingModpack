@@ -1,8 +1,9 @@
 use crate::common::button_config;
+use crate::common::consts::{BuffOption, FighterId, MENU};
+use crate::common::offsets::*;
 use crate::common::{
-    consts::BuffOption, consts::FighterId, consts::MENU, dev_config, get_module_accessor,
-    is_operation_cpu, is_training_mode, menu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR,
-    STAGE_MANAGER_ADDR,
+    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu,
+    FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
 };
 use crate::hitbox_visualizer;
 use crate::input::*;
@@ -10,7 +11,9 @@ use crate::logging::*;
 use crate::training::character_specific::{items, kirby, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
-use smash::app::{self, enSEType, lua_bind::*, utility};
+use smash::app::{
+    enSEType, lua_bind::*, utility, BattleObjectModuleAccessor, FighterSpecializer_Jack,
+};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
@@ -47,7 +50,7 @@ mod debug;
 
 #[skyline::hook(replace = WorkModule::get_param_float)]
 pub unsafe fn handle_get_param_float(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     param_type: u64,
     param_hash: u64,
 ) -> f32 {
@@ -61,7 +64,7 @@ pub unsafe fn handle_get_param_float(
 
 #[skyline::hook(replace = WorkModule::get_param_int)]
 pub unsafe fn handle_get_param_int(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     param_type: u64,
     param_hash: u64,
 ) -> i32 {
@@ -75,9 +78,7 @@ pub unsafe fn handle_get_param_int(
 }
 
 #[skyline::hook(replace = ControlModule::get_attack_air_kind)]
-pub unsafe fn handle_get_attack_air_kind(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> i32 {
+pub unsafe fn handle_get_attack_air_kind(module_accessor: &mut BattleObjectModuleAccessor) -> i32 {
     let ori = original!()(module_accessor);
     if !is_training_mode() {
         return ori;
@@ -91,7 +92,7 @@ pub unsafe fn handle_get_attack_air_kind(
 
 #[skyline::hook(replace = ControlModule::get_command_flag_cat)]
 pub unsafe fn handle_get_command_flag_cat(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     category: i32,
 ) -> i32 {
     let mut flag = original!()(module_accessor, category);
@@ -116,10 +117,7 @@ pub unsafe fn handle_get_command_flag_cat(
     flag
 }
 
-fn once_per_frame_per_fighter(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    category: i32,
-) {
+fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, category: i32) {
     if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
         return;
     }
@@ -158,7 +156,7 @@ fn once_per_frame_per_fighter(
  * 1 is fully right, -1 is fully left
  */
 #[skyline::hook(replace = ControlModule::get_stick_x_no_clamp)]
-pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut BattleObjectModuleAccessor) -> f32 {
     let ori = original!()(module_accessor);
     if !is_training_mode() {
         return ori;
@@ -173,7 +171,7 @@ pub unsafe fn get_stick_x_no_clamp(module_accessor: &mut app::BattleObjectModule
  * 1 is fully up, -1 is fully down
  */
 #[skyline::hook(replace = ControlModule::get_stick_y_no_clamp)]
-pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut BattleObjectModuleAccessor) -> f32 {
     let ori = original!()(module_accessor);
     if !is_training_mode() {
         return ori;
@@ -188,7 +186,7 @@ pub unsafe fn get_stick_y_no_clamp(module_accessor: &mut app::BattleObjectModule
  * Air Dodging
  */
 #[skyline::hook(replace = ControlModule::get_stick_x)]
-pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+pub unsafe fn get_stick_x(module_accessor: &mut BattleObjectModuleAccessor) -> f32 {
     let ori = original!()(module_accessor);
     if !is_training_mode() {
         return ori;
@@ -202,7 +200,7 @@ pub unsafe fn get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor)
  * angled ftilt/fsmash
  */
 #[skyline::hook(replace = ControlModule::get_stick_dir)]
-pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+pub unsafe fn get_stick_dir(module_accessor: &mut BattleObjectModuleAccessor) -> f32 {
     let ori = original!()(module_accessor);
     if !is_training_mode() {
         return ori;
@@ -226,7 +224,7 @@ pub unsafe fn get_stick_dir(module_accessor: &mut app::BattleObjectModuleAccesso
  * Crouching
  */
 #[skyline::hook(replace = ControlModule::get_stick_y)]
-pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor) -> f32 {
+pub unsafe fn get_stick_y(module_accessor: &mut BattleObjectModuleAccessor) -> f32 {
     let ori = original!()(module_accessor);
     if !is_training_mode() {
         return ori;
@@ -238,7 +236,7 @@ pub unsafe fn get_stick_y(module_accessor: &mut app::BattleObjectModuleAccessor)
 
 #[skyline::hook(replace = ControlModule::check_button_on)]
 pub unsafe fn handle_check_button_on(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
     let ori = original!()(module_accessor, button);
@@ -252,7 +250,7 @@ pub unsafe fn handle_check_button_on(
 
 #[skyline::hook(replace = ControlModule::check_button_off)]
 pub unsafe fn handle_check_button_off(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     button: i32,
 ) -> bool {
     let ori = original!()(module_accessor, button);
@@ -266,7 +264,7 @@ pub unsafe fn handle_check_button_off(
 
 #[skyline::hook(replace = MotionModule::change_motion)]
 pub unsafe fn handle_change_motion(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     motion_kind: u64,
     unk1: f32,
     unk2: f32,
@@ -300,7 +298,7 @@ pub unsafe fn handle_change_motion(
 
 #[skyline::hook(replace = WorkModule::is_enable_transition_term)]
 pub unsafe fn handle_is_enable_transition_term(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     transition_term: i32,
 ) -> bool {
     let ori = original!()(module_accessor, transition_term);
@@ -332,7 +330,7 @@ pub unsafe fn handle_set_dead_rumble(lua_state: u64) -> u64 {
 
 #[skyline::hook(replace = CameraModule::req_quake)]
 pub unsafe fn handle_req_quake(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     my_int: i32,
 ) -> u64 {
     if !is_training_mode() {
@@ -354,13 +352,11 @@ fn params_main(params_info: &ParamsInfo<'_>) {
     }
 }
 
-static CLOUD_ADD_LIMIT_OFFSET: usize = 0x008dc140;
-
 // this function is used to add limit to Cloud's limit gauge. Hooking it here so we can call it in buff.rs
-#[skyline::hook(offset = CLOUD_ADD_LIMIT_OFFSET)]
+#[skyline::hook(offset = *OFFSET_CLOUD_ADD_LIMIT)]
 pub unsafe fn handle_add_limit(
     add_limit: f32,
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     is_special_lw: u64,
 ) {
     original!()(add_limit, module_accessor, is_special_lw)
@@ -368,7 +364,7 @@ pub unsafe fn handle_add_limit(
 
 #[skyline::hook(replace = EffectModule::req_screen)] // hooked to prevent the screen from darkening when loading a save state with One-Winged Angel
 pub unsafe fn handle_req_screen(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     my_hash: Hash40,
     bool_1: bool,
     bool_2: bool,
@@ -386,9 +382,9 @@ pub unsafe fn handle_req_screen(
     original!()(module_accessor, my_hash, bool_1, bool_2, bool_3)
 }
 
-#[skyline::hook(replace = app::FighterSpecializer_Jack::check_doyle_summon_dispatch)] // returns status of summon dispatch if triggered, -1 as u64 otherwise
+#[skyline::hook(replace = FighterSpecializer_Jack::check_doyle_summon_dispatch)] // returns status of summon dispatch if triggered, -1 as u64 otherwise
 pub unsafe fn handle_check_doyle_summon_dispatch(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     bool_1: bool,
     bool_2: bool,
 ) -> u64 {
@@ -402,7 +398,7 @@ pub unsafe fn handle_check_doyle_summon_dispatch(
     ori
 }
 
-#[skyline::hook(offset = 0x03ff9a0)]
+#[skyline::hook(offset = *OFFSET_ADD_DAMAGE)]
 pub unsafe fn handle_add_damage(
     damage_module: *mut u64, // DamageModule
     mut damage_to_add: f32,
@@ -412,7 +408,7 @@ pub unsafe fn handle_add_damage(
         return original!()(damage_module, damage_to_add, param_2);
     }
     let module_accessor =
-        &mut **(damage_module.byte_add(0x8) as *mut *mut app::BattleObjectModuleAccessor);
+        &mut **(damage_module.byte_add(0x8) as *mut *mut BattleObjectModuleAccessor);
     // Prevent Wii Fit Deep Breathing from Healing on Save State Load
     if utility::get_kind(module_accessor) == *FIGHTER_KIND_WIIFIT
         && buff::is_buffing(module_accessor)
@@ -423,10 +419,8 @@ pub unsafe fn handle_add_damage(
 }
 
 // Set Stale Moves to On
-static STALE_OFFSET: usize = 0x013e88a4;
-
 // One instruction after stale moves toggle register is set to 0
-#[skyline::hook(offset = STALE_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_STALE, inline)]
 unsafe fn stale_handle(ctx: &mut InlineCtx) {
     let x22 = ctx.registers[22].x.as_mut();
     let training_structure_address = (*x22 + 0xb60) as *mut u8;
@@ -434,10 +428,8 @@ unsafe fn stale_handle(ctx: &mut InlineCtx) {
 }
 
 // Set Stale Moves to On in the menu text
-static STALE_MENU_OFFSET: usize = 0x013e88a0;
-
 // One instruction after menu text register is set to off
-#[skyline::hook(offset = STALE_MENU_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_STALE_MENU, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
     let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b215e;
@@ -447,7 +439,7 @@ unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
 
 #[skyline::hook(replace = SoundModule::play_se)] // hooked to prevent death sfx from playing when loading save states
 pub unsafe fn handle_se(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     my_hash: Hash40,
     bool1: bool,
     bool2: bool,
@@ -493,12 +485,11 @@ pub unsafe fn handle_se(
 #[repr(C)]
 pub struct FighterSoundModule {
     vtable: u64,
-    owner: *mut app::BattleObjectModuleAccessor,
+    owner: *mut BattleObjectModuleAccessor,
 }
 
-static PLAY_SE_OFFSET: usize = 0x04cf6a0;
 // fighters don't use the symbol and go straight through their vtable to this function
-#[skyline::hook(offset = PLAY_SE_OFFSET)]
+#[skyline::hook(offset = *OFFSET_PLAY_SE)]
 pub unsafe fn handle_fighter_play_se(
     sound_module: *mut FighterSoundModule, // pointer to fighter's SoundModule
     mut my_hash: Hash40,
@@ -534,15 +525,10 @@ pub unsafe fn handle_fighter_play_se(
     original!()(sound_module, my_hash, bool1, bool2, bool3, bool4, se_type)
 }
 
-pub struct FighterEffectModule {
-    _vtable: u64,
-    owner: *mut app::BattleObjectModuleAccessor,
-}
-
-static FOLLOW_REQ_OFFSET: usize = 0x044f860;
-#[skyline::hook(offset = FOLLOW_REQ_OFFSET)] // hooked to prevent score gfx from playing when loading save states
+// hooked to prevent score gfx from playing when loading save states
+#[skyline::hook(replace = EffectModule::req_follow)]
 pub unsafe fn handle_effect_follow(
-    effect_module: &mut FighterEffectModule,
+    module_accessor: &mut BattleObjectModuleAccessor,
     eff_hash: Hash40,
     joint_hash: Hash40,
     pos: *const Vector3f,
@@ -559,7 +545,7 @@ pub unsafe fn handle_effect_follow(
 ) -> u64 {
     if !is_training_mode() {
         return original!()(
-            effect_module,
+            module_accessor,
             eff_hash,
             joint_hash,
             pos,
@@ -580,7 +566,7 @@ pub unsafe fn handle_effect_follow(
         size = 0.0
     }
     original!()(
-        effect_module,
+        module_accessor,
         eff_hash,
         joint_hash,
         pos,
@@ -597,10 +583,9 @@ pub unsafe fn handle_effect_follow(
     )
 }
 
-static EFFECT_REQ_OFFSET: usize = 0x44de50;
-#[skyline::hook(offset = EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+#[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_fighter_effect(
-    effect_module: *mut FighterEffectModule, // pointer to effect module
+    module_accessor: &mut BattleObjectModuleAccessor,
     eff_hash: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
@@ -612,7 +597,7 @@ pub unsafe fn handle_fighter_effect(
 ) -> u64 {
     if !is_training_mode() {
         return original!()(
-            effect_module,
+            module_accessor,
             eff_hash,
             pos,
             rot,
@@ -623,9 +608,9 @@ pub unsafe fn handle_fighter_effect(
             arg9,
         );
     }
-    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    size = ptrainer::handle_pokemon_effect(module_accessor, eff_hash, size);
     original!()(
-        effect_module,
+        module_accessor,
         eff_hash,
         pos,
         rot,
@@ -637,10 +622,9 @@ pub unsafe fn handle_fighter_effect(
     )
 }
 
-static JOINT_EFFECT_REQ_OFFSET: usize = 0x44e1e0;
-#[skyline::hook(offset = JOINT_EFFECT_REQ_OFFSET)] // hooked to prevent death gfx from playing when loading save states
+#[skyline::hook(replace = EffectModule::req_on_joint)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_fighter_joint_effect(
-    effect_module: *mut FighterEffectModule, // pointer to effect module
+    module_accessor: &mut BattleObjectModuleAccessor,
     eff_hash: Hash40,
     joint_hash: Hash40,
     pos: *const Vector3f,
@@ -655,7 +639,7 @@ pub unsafe fn handle_fighter_joint_effect(
 ) -> u64 {
     if !is_training_mode() {
         return original!()(
-            effect_module,
+            module_accessor,
             eff_hash,
             joint_hash,
             pos,
@@ -669,9 +653,9 @@ pub unsafe fn handle_fighter_joint_effect(
             arg9,
         );
     }
-    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    size = ptrainer::handle_pokemon_effect(module_accessor, eff_hash, size);
     original!()(
-        effect_module,
+        module_accessor,
         eff_hash,
         joint_hash,
         pos,
@@ -688,7 +672,7 @@ pub unsafe fn handle_fighter_joint_effect(
 
 #[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_effect(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     eff_hash: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
@@ -738,10 +722,8 @@ pub unsafe fn handle_effect(
     )
 }
 
-static CAN_FUTTOBI_BACK_OFFSET: usize = 0x0260f950;
-
 // can_futtobi_back, checks if stage allows for star KOs
-#[skyline::hook(offset = CAN_FUTTOBI_BACK_OFFSET)]
+#[skyline::hook(offset = *OFFSET_CAN_FUTTOBI_BACK)]
 pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     let ori = original!()(my_long_ptr);
     if !is_training_mode() {
@@ -751,9 +733,8 @@ pub unsafe fn handle_star_ko(my_long_ptr: &mut u64) -> bool {
     }
 }
 
-static REUSED_UI_OFFSET: usize = 0x068cd80;
 // A function reused by many functions to update UI. Called to update at least Little Mac's meter.
-#[skyline::hook(offset = REUSED_UI_OFFSET)]
+#[skyline::hook(offset = *OFFSET_REUSED_UI)]
 pub unsafe fn handle_reused_ui(
     fighter_data: *mut u32, // a pointer to length 4 data in the Fighter's FighterEntry in the FighterManager
     mut param_2: u32,       // In Little Mac's case, the meter value as an integer
@@ -779,22 +760,18 @@ pub unsafe fn handle_reused_ui(
     original!()(fighter_data, param_2)
 }
 
-static ARTICLE_GET_INT_OFFSET: usize = 0x3d5920;
-
-#[skyline::hook(offset = ARTICLE_GET_INT_OFFSET)]
+#[skyline::hook(replace = ArticleModule::get_int)]
 pub unsafe fn handle_article_get_int(
-    article_module: *mut app::BattleObjectModuleAccessor, // *mut ArticleModule
+    module_accessor: *mut BattleObjectModuleAccessor,
     generate_article: i32,
     address: i32,
 ) -> i32 {
-    original!()(article_module, generate_article, address)
+    original!()(module_accessor, generate_article, address)
 }
 
 // Instruction run on the completion of the CPU Control function
-static OPCF_OFFSET: usize = 0x06b7fdc;
-
 // One instruction after the CPU Control function completes
-#[skyline::hook(offset = OPCF_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_OPCF, inline)]
 unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
     input_record::handle_recording();
     frame_counter::tick_ingame();
@@ -808,9 +785,7 @@ unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
     }
 }
 
-static FIM_OFFSET: usize = 0x17504a0;
-// TODO: Should we define all of our offsets in one file? Should at least be a good start for changing to be based on ASM instructions
-#[skyline::hook(offset = FIM_OFFSET)]
+#[skyline::hook(offset = *OFFSET_FIM)]
 unsafe fn handle_final_input_mapping(
     mappings: *mut ControllerMapping,
     player_idx: i32, // Is this the player index, or plugged in controller index? Need to check, assuming player for now - is this 0 indexed or 1?
@@ -881,8 +856,7 @@ pub fn training_mods() {
     // Enable Custom Stages for Training Mode
     // Specifically, we prevent a field in StageSelectInfo of the Scene that controls if the Custom Stage tab is loaded
     //  from being set to false when we load the SSS in Training Mode
-    static SSS_TRAINING_OFFSET: usize = 0x184d1d8;
-    skyline::patching::Patch::in_text(SSS_TRAINING_OFFSET)
+    skyline::patching::Patch::in_text(*OFFSET_SSS_TRAINING)
         .nop()
         .unwrap();
 
@@ -922,8 +896,8 @@ pub fn training_mods() {
         // Buff SFX
         handle_fighter_play_se,
         // Stale Moves
+        stale_menu_handle, // This has to be initialized before stale_handle otherwise the offset search fails
         stale_handle,
-        stale_menu_handle,
         // Death SFX
         handle_se,
         // Death GFX

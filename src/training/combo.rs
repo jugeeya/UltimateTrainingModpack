@@ -1,4 +1,5 @@
 use skyline::nn::ui2d::ResColor;
+use smash::app::BattleObjectModuleAccessor;
 use training_mod_consts::OnOff;
 
 use crate::common::consts::FighterId;
@@ -17,12 +18,12 @@ static mut FRAME_ADVANTAGE_CHECK: bool = false;
 static FRAME_COUNTER_INDEX: Lazy<usize> =
     Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
-unsafe fn _was_in_hitstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+unsafe fn _was_in_hitstun(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     (*FIGHTER_STATUS_KIND_DAMAGE..*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
 }
 
-unsafe fn was_in_shieldstun(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+unsafe fn was_in_shieldstun(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
     let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
     prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
 }
@@ -38,7 +39,7 @@ macro_rules! actionable_statuses {
     };
 }
 
-unsafe fn is_actionable(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
     actionable_statuses!().iter().any(|actionable_transition| {
         WorkModule::is_enable_transition_term(module_accessor, **actionable_transition)
     }) || CancelModule::is_enable_cancel(module_accessor)
@@ -81,7 +82,7 @@ fn update_frame_advantage(new_frame_adv: i32) {
 }
 
 pub unsafe fn is_enable_transition_term(
-    module_accessor: *mut app::BattleObjectModuleAccessor,
+    module_accessor: *mut BattleObjectModuleAccessor,
     transition_term: i32,
     is: bool,
 ) {
@@ -120,7 +121,7 @@ pub unsafe fn is_enable_transition_term(
     }
 }
 
-pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
     let entry_id_int = WorkModule::get_int(module_accessor, *FIGHTER_INSTANCE_WORK_ID_INT_ENTRY_ID);
     // do only once.
     if entry_id_int != (FighterId::Player as i32) {
