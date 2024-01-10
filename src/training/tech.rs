@@ -7,7 +7,7 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::common::offsets::OFFSET_CHANGE_ACTIVE_CAMERA;
-use crate::common::offsets::OFFSET_FIGHTER_REQ_QUAKE_POS;
+
 use crate::common::offsets::OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES;
 use crate::common::*;
 use crate::training::{frame_counter, mash, save_states};
@@ -396,27 +396,21 @@ pub unsafe fn hide_tech() {
     }
 }
 
-pub struct FighterCameraModule {
-    _vtable: u64,
-    owner: *mut BattleObjectModuleAccessor,
-}
-
 // Prevent Mistech Quake
-#[skyline::hook(offset = *OFFSET_FIGHTER_REQ_QUAKE_POS)]
+#[skyline::hook(replace = CameraModule::req_quake_pos)]
 pub unsafe fn handle_fighter_req_quake_pos(
-    camera_module: &mut FighterCameraModule,
+    module_accessor: &mut BattleObjectModuleAccessor,
     quake_kind: i32,
 ) -> u64 {
-    let module_accessor = camera_module.owner;
     if !is_training_mode() || !is_operation_cpu(&mut *module_accessor) {
-        return original!()(camera_module, quake_kind);
+        return original!()(module_accessor, quake_kind);
     }
     let status = StatusModule::status_kind(module_accessor);
     if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::ON {
         // We're hiding techs, prevent mistech quake from giving away missed tech
-        return original!()(camera_module, *CAMERA_QUAKE_KIND_NONE);
+        return original!()(module_accessor, *CAMERA_QUAKE_KIND_NONE);
     }
-    original!()(camera_module, quake_kind)
+    original!()(module_accessor, quake_kind)
 }
 
 // Zoom in the Fixed Camera view while this is on to set up a good situation for practice

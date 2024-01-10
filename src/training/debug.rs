@@ -2,86 +2,98 @@
 #![allow(unused_imports)]
 #![cfg(debug_assertions)]
 use crate::common::is_operation_cpu;
-use crate::common::offsets::{
-    OFFSET_GET_INT, OFFSET_IS_FLAG, OFFSET_IS_VISIBLE_BACKSHIELD, OFFSET_ON_FLAG, OFFSET_SET_FLOAT,
-    OFFSET_SET_INT, OFFSET_SET_INT64,
-};
-use smash::app::{self, lua_bind::*, smashball::is_training_mode, utility};
+use crate::common::offsets::OFFSET_IS_VISIBLE_BACKSHIELD;
+use smash::app::{lua_bind::*, smashball::is_training_mode, utility, BattleObjectModuleAccessor};
 use smash::lib::lua_const::*;
 
 #[skyline::from_offset(*OFFSET_IS_VISIBLE_BACKSHIELD as isize)]
-fn is_visible_backshield(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool;
+fn is_visible_backshield(module_accessor: *mut BattleObjectModuleAccessor) -> bool;
 
 #[repr(C)]
 pub struct WorkModule2 {
     vtable: u64,
-    owner: &'static mut app::BattleObjectModuleAccessor,
+    owner: &'static mut BattleObjectModuleAccessor,
 }
 
-#[skyline::hook(offset = *OFFSET_ON_FLAG)]
-pub unsafe fn handle_on_flag(work_module: &mut WorkModule2, address: i32) {
+#[skyline::hook(replace = WorkModule::on_flag)]
+pub unsafe fn handle_on_flag(module_accessor: &mut BattleObjectModuleAccessor, address: i32) {
     if address == *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_OUTFIELD_INVISIBLE
-        && app::utility::get_kind(work_module.owner) != *FIGHTER_KIND_SHEIK
+        && utility::get_kind(module_accessor) != *FIGHTER_KIND_SHEIK
     {
-        is_visible_backshield(work_module.owner);
+        is_visible_backshield(module_accessor);
     }
-    original!()(work_module, address);
+    original!()(module_accessor, address);
 }
 
-#[skyline::hook(offset = *OFFSET_SET_INT)]
-pub unsafe fn handle_set_int(work_module: &mut WorkModule2, value: u32, address: i32) {
+#[skyline::hook(replace = WorkModule::set_int)]
+pub unsafe fn handle_set_int(
+    module_accessor: &mut BattleObjectModuleAccessor,
+    value: u32,
+    address: i32,
+) {
     if !is_training_mode() {
-        original!()(work_module, value, address);
+        original!()(module_accessor, value, address);
     }
     if address == *WEAPON_PTRAINER_MBALL_INSTANCE_WORK_ID_INT_PLATE_EFF_ID
-        && app::utility::get_kind(work_module.owner) == *WEAPON_KIND_PTRAINER_MBALL
+        && utility::get_kind(module_accessor) == *WEAPON_KIND_PTRAINER_MBALL
     {
-        is_visible_backshield(work_module.owner);
+        is_visible_backshield(module_accessor);
     }
-    original!()(work_module, value, address);
+    original!()(module_accessor, value, address);
 }
 
-#[skyline::hook(offset = *OFFSET_SET_INT64)]
-pub unsafe fn handle_set_int_64(work_module: &mut WorkModule2, value: u64, address: i32) {
+#[skyline::hook(replace = WorkModule::set_int64)]
+pub unsafe fn handle_set_int_64(
+    module_accessor: &mut BattleObjectModuleAccessor,
+    value: u64,
+    address: i32,
+) {
     if !is_training_mode() {
-        original!()(work_module, value, address);
+        original!()(module_accessor, value, address);
     }
-    original!()(work_module, value, address);
+    original!()(module_accessor, value, address);
 }
 
-#[skyline::hook(offset = *OFFSET_SET_FLOAT)]
-pub unsafe fn handle_set_float(work_module: &mut WorkModule2, value: f32, address: i32) {
+#[skyline::hook(replace = WorkModule::set_float)]
+pub unsafe fn handle_set_float(
+    module_accessor: &mut BattleObjectModuleAccessor,
+    value: f32,
+    address: i32,
+) {
     if !is_training_mode() {
-        original!()(work_module, value, address);
+        original!()(module_accessor, value, address);
     }
     if address == *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO //*FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY_ON_START
-        && app::utility::get_kind(work_module.owner) == FIGHTER_KIND_KIRBY
+        && utility::get_kind(module_accessor) == FIGHTER_KIND_KIRBY
     {
-        is_visible_backshield(work_module.owner);
+        is_visible_backshield(module_accessor);
     }
-    original!()(work_module, value, address);
+    original!()(module_accessor, value, address);
 }
 
-#[skyline::hook(offset = *OFFSET_IS_FLAG)]
-pub unsafe fn handle_is_flag(work_module: &mut WorkModule2, address: i32) -> bool {
+#[skyline::hook(replace = WorkModule::is_flag)]
+pub unsafe fn handle_is_flag(
+    module_accessor: &mut BattleObjectModuleAccessor,
+    address: i32,
+) -> bool {
     if !is_training_mode() {
-        original!()(work_module, address);
+        original!()(module_accessor, address);
     }
     if address == *WEAPON_PTRAINER_PTRAINER_INSTANCE_WORK_ID_FLAG_ENABLE_CHANGE_POKEMON //*FIGHTER_KIRBY_INSTANCE_WORK_ID_FLAG_COPY_ON_START
-        && app::utility::get_kind(work_module.owner) != *FIGHTER_KIND_SHEIK
-        && original!()(work_module, address)
+        && utility::get_kind(module_accessor) != *FIGHTER_KIND_SHEIK
+        && original!()(module_accessor, address)
     {
-        is_visible_backshield(work_module.owner);
+        is_visible_backshield(module_accessor);
     }
-    original!()(work_module, address)
+    original!()(module_accessor, address)
 }
 
-#[skyline::hook(offset = *OFFSET_GET_INT)]
-pub unsafe fn handle_get_int(work_module: &mut WorkModule2, address: i32) {
+#[skyline::hook(replace = WorkModule::get_int)]
+pub unsafe fn handle_get_int(module_accessor: &mut BattleObjectModuleAccessor, address: i32) {
     if !is_training_mode() {
-        original!()(work_module, address);
+        original!()(module_accessor, address);
     }
-    original!()(work_module, address);
+    original!()(module_accessor, address);
 }
 
 pub fn init() {
@@ -114,7 +126,7 @@ pub fn init() {
 // );
 #[allow(clippy::too_many_arguments)] // This function has so many arguments so it's easy to quickly fill them in when debugging with the analyzer
 pub fn print_fighter_info(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
+    module_accessor: &mut BattleObjectModuleAccessor,
     title: &str,
     player_only: bool,
     cpu_only: bool,
