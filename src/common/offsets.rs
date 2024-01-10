@@ -104,6 +104,15 @@ static NEEDLE_SET_CPU_CONTROLS: &[u8] = &[
 ];
 impl_offset!(SET_CPU_CONTROLS);
 
+// OFFSET_ADD_DAMAGE = 0x3ff9a0
+static NEEDLE_ADD_DAMAGE: &[u8] = &[
+    0x08, 0x20, 0x20, 0x1e,
+    0x8d, 0x00, 0x00, 0x54,
+    0x08, 0x14, 0x4e, 0x39,
+    0x48, 0x00, 0x00, 0x34,
+    0xc0, 0x03, 0x5f, 0xd6,
+];
+impl_offset!(ADD_DAMAGE);
 
 // OFFSET_CHANGE_ACTIVE_CAMERA = 0x4ee460
 static NEEDLE_CHANGE_ACTIVE_CAMERA: &[u8] = &[
