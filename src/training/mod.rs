@@ -11,7 +11,7 @@ use crate::logging::*;
 use crate::training::character_specific::{items, kirby, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
-use smash::app::{self, enSEType, lua_bind::*, utility};
+use smash::app::{self, BattleObjectModuleAccessor, enSEType, lua_bind::*, utility};
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
@@ -590,9 +590,9 @@ pub unsafe fn handle_effect_follow(
     )
 }
 
-#[skyline::hook(offset = *OFFSET_EFFECT_REQ)] // hooked to prevent death gfx from playing when loading save states
+#[skyline::hook(replace = EffectModule::req)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_fighter_effect(
-    effect_module: *mut FighterEffectModule, // pointer to effect module
+    module_accessor: &mut BattleObjectModuleAccessor,
     eff_hash: Hash40,
     pos: *const Vector3f,
     rot: *const Vector3f,
@@ -604,7 +604,7 @@ pub unsafe fn handle_fighter_effect(
 ) -> u64 {
     if !is_training_mode() {
         return original!()(
-            effect_module,
+            module_accessor,
             eff_hash,
             pos,
             rot,
@@ -615,9 +615,9 @@ pub unsafe fn handle_fighter_effect(
             arg9,
         );
     }
-    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    size = ptrainer::handle_pokemon_effect(module_accessor, eff_hash, size);
     original!()(
-        effect_module,
+        module_accessor,
         eff_hash,
         pos,
         rot,
@@ -629,9 +629,9 @@ pub unsafe fn handle_fighter_effect(
     )
 }
 
-#[skyline::hook(offset = *OFFSET_JOINT_EFFECT_REQ)] // hooked to prevent death gfx from playing when loading save states
+#[skyline::hook(replace = EffectModule::req_on_joint)] // hooked to prevent death gfx from playing when loading save states
 pub unsafe fn handle_fighter_joint_effect(
-    effect_module: *mut FighterEffectModule, // pointer to effect module
+    module_accessor: &mut BattleObjectModuleAccessor,
     eff_hash: Hash40,
     joint_hash: Hash40,
     pos: *const Vector3f,
@@ -646,7 +646,7 @@ pub unsafe fn handle_fighter_joint_effect(
 ) -> u64 {
     if !is_training_mode() {
         return original!()(
-            effect_module,
+            module_accessor,
             eff_hash,
             joint_hash,
             pos,
@@ -660,9 +660,9 @@ pub unsafe fn handle_fighter_joint_effect(
             arg9,
         );
     }
-    size = ptrainer::handle_pokemon_effect(&mut *(*effect_module).owner, eff_hash, size);
+    size = ptrainer::handle_pokemon_effect(module_accessor, eff_hash, size);
     original!()(
-        effect_module,
+        module_accessor,
         eff_hash,
         joint_hash,
         pos,
@@ -767,13 +767,13 @@ pub unsafe fn handle_reused_ui(
     original!()(fighter_data, param_2)
 }
 
-#[skyline::hook(offset = *OFFSET_ARTICLE_GET_INT)]
+#[skyline::hook(replace = ArticleModule::get_int)]
 pub unsafe fn handle_article_get_int(
-    article_module: *mut app::BattleObjectModuleAccessor, // *mut ArticleModule
+    module_accessor: *mut app::BattleObjectModuleAccessor,
     generate_article: i32,
     address: i32,
 ) -> i32 {
-    original!()(article_module, generate_article, address)
+    original!()(module_accessor, generate_article, address)
 }
 
 // Instruction run on the completion of the CPU Control function
