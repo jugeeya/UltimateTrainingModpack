@@ -30,13 +30,19 @@ pub unsafe fn draw(root_pane: &Pane) {
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
         .unwrap()
-        .set_visible(notification.is_some() && !QUICK_MENU_ACTIVE);
+        .set_visible(notification.is_some() && !QUICK_MENU_ACTIVE && false); // TODO: Add check for combo counter on here
     if notification.is_none() {
         return;
     }
 
     let notification = notification.unwrap();
     let color = notification.color;
+
+    if true {
+        // Set the notification to drawn so we don't draw it
+        notification.set_drawn();
+        notification.force_complete();
+    }
 
     if !notification.has_drawn() {
         notification.set_drawn();
