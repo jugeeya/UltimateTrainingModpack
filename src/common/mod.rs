@@ -37,6 +37,17 @@ pub fn is_training_mode() -> bool {
     true
 }
 
+#[repr(C)]
+// FUN_71013e7be0 sets this up (13.0.1) so look here if more values are needed
+// If you need full size use gdb to look at allocator
+pub struct PauseMenu {
+    padding: [u8; 0xb60], // Unknown Values
+    pub stale_move_toggle: u32, // Handles if Stale Moves are on, 0 for off, 1 for on
+    unknown1: u32,
+    unknown2: u32,
+    pub combo_display_toggle: u32, // Handles if Combo Counter displays, 0 for off, 1 for on
+}
+
 #[skyline::from_offset(*OFFSET_GET_BATTLE_OBJECT_FROM_ID as isize)]
 pub fn get_battle_object_from_id(battle_object_id: u32) -> *mut app::BattleObject;
 

@@ -1,8 +1,8 @@
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
-use crate::{common::menu::QUICK_MENU_ACTIVE, training::ui};
-use crate::common::TRAINING_MENU_ADDR;
+use crate::training::ui;
+use crate::common::{TRAINING_MENU_ADDR, PauseMenu, menu::QUICK_MENU_ACTIVE};
 macro_rules! display_parent_fmt {
     ($x:ident) => {
         format!("TrModDisp{}", $x).as_str()
@@ -22,9 +22,8 @@ macro_rules! display_txt_fmt {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
-    let cc_address = (TRAINING_MENU_ADDR + 0xb6c) as *const u8;
-    println!("CC Address: {:p}, CC Value: {}", cc_address, *cc_address);
-    let cc_displayed = *cc_address != 0;
+    let menu = TRAINING_MENU_ADDR as *const PauseMenu;
+    let cc_displayed = (*menu).combo_display_toggle != 0;
     let notification_idx = 0;
 
     let queue = &mut ui::notifications::QUEUE;
