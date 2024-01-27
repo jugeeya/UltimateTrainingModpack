@@ -1,8 +1,8 @@
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
+use crate::common::{menu::QUICK_MENU_ACTIVE, PauseMenu, TRAINING_MENU_ADDR};
 use crate::training::ui;
-use crate::common::{TRAINING_MENU_ADDR, PauseMenu, menu::QUICK_MENU_ACTIVE};
 macro_rules! display_parent_fmt {
     ($x:ident) => {
         format!("TrModDisp{}", $x).as_str()
