@@ -3,7 +3,7 @@ use crate::common::consts::{BuffOption, FighterId, MENU};
 use crate::common::offsets::*;
 use crate::common::{
     dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu,
-    FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR,
+    FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, TRAINING_MENU_ADDR,
 };
 use crate::hitbox_visualizer;
 use crate::input::*;
@@ -424,6 +424,7 @@ pub unsafe fn handle_add_damage(
 unsafe fn stale_handle(ctx: &mut InlineCtx) {
     let x22 = ctx.registers[22].x.as_mut();
     let training_structure_address = (*x22 + 0xb60) as *mut u8;
+    TRAINING_MENU_ADDR = (*x22) as usize;
     *training_structure_address = 1;
 }
 
@@ -435,6 +436,16 @@ unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b215e;
     let x1 = ctx.registers[1].x.as_mut();
     *x1 = on_text_ptr;
+}
+
+// Get Combo Counter Address
+static CC_OFFSET: usize = 0x013e87dc;
+
+// One instruction after combo counter toggle register is set to 0
+#[skyline::hook(offset = CC_OFFSET, inline)]
+unsafe fn cc_handle(ctx: &mut InlineCtx) {
+    let x23 = ctx.registers[23].x.as_mut();
+    TRAINING_MENU_ADDR = (*x23) as usize;
 }
 
 #[skyline::hook(replace = SoundModule::play_se)] // hooked to prevent death sfx from playing when loading save states
@@ -909,6 +920,7 @@ pub fn training_mods() {
         clatter::hook_start_clatter,
         // Notifications
         handle_once_per_cpu_frame,
+        cc_handle,
         // Input
         handle_final_input_mapping,
         // Charge

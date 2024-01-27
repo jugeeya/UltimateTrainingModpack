@@ -2,7 +2,7 @@ use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
 use crate::{common::menu::QUICK_MENU_ACTIVE, training::ui};
-
+use crate::common::TRAINING_MENU_ADDR;
 macro_rules! display_parent_fmt {
     ($x:ident) => {
         format!("TrModDisp{}", $x).as_str()
@@ -22,6 +22,9 @@ macro_rules! display_txt_fmt {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
+    let cc_address = (TRAINING_MENU_ADDR + 0xb6c) as *const u8;
+    println!("CC Address: {:p}, CC Value: {}", cc_address, *cc_address);
+    let cc_displayed = *cc_address != 0;
     let notification_idx = 0;
 
     let queue = &mut ui::notifications::QUEUE;
@@ -30,7 +33,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
         .unwrap()
-        .set_visible(notification.is_some() && !QUICK_MENU_ACTIVE && false); // TODO: Add check for combo counter on here
+        .set_visible(notification.is_some() && !QUICK_MENU_ACTIVE && cc_displayed); // TODO: Add check for combo counter on here
     if notification.is_none() {
         return;
     }
@@ -38,7 +41,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     let notification = notification.unwrap();
     let color = notification.color;
 
-    if true {
+    if !cc_displayed {
         // Set the notification to drawn so we don't draw it
         notification.set_drawn();
         notification.force_complete();
