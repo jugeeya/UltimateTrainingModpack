@@ -438,16 +438,6 @@ unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     *x1 = on_text_ptr;
 }
 
-// Get Combo Counter Address
-static CC_OFFSET: usize = 0x013e87dc;
-
-// One instruction after combo counter toggle register is set to 0
-#[skyline::hook(offset = CC_OFFSET, inline)]
-unsafe fn cc_handle(ctx: &mut InlineCtx) {
-    let x23 = ctx.registers[23].x.as_mut();
-    TRAINING_MENU_ADDR = (*x23) as usize;
-}
-
 #[skyline::hook(replace = SoundModule::play_se)] // hooked to prevent death sfx from playing when loading save states
 pub unsafe fn handle_se(
     module_accessor: &mut BattleObjectModuleAccessor,
@@ -920,7 +910,6 @@ pub fn training_mods() {
         clatter::hook_start_clatter,
         // Notifications
         handle_once_per_cpu_frame,
-        cc_handle,
         // Input
         handle_final_input_mapping,
         // Charge

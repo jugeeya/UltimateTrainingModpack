@@ -22,6 +22,7 @@ macro_rules! display_txt_fmt {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
+    // Make sure the combo counter is being displayed before we draw
     let menu = TRAINING_MENU_ADDR as *const PauseMenu;
     let cc_displayed = (*menu).combo_display_toggle != 0;
     let notification_idx = 0;
@@ -32,7 +33,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
         .unwrap()
-        .set_visible(notification.is_some() && !QUICK_MENU_ACTIVE && cc_displayed); // TODO: Add check for combo counter on here
+        .set_visible(notification.is_some() && !QUICK_MENU_ACTIVE && cc_displayed);
     if notification.is_none() {
         return;
     }
