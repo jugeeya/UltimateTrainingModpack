@@ -419,11 +419,8 @@ pub unsafe fn handle_add_damage(
 }
 
 // Control L+R+A Resets
-// Toggling in menu for now, probably best for this to become a customizable button combo
-static LRA_OFFSET: usize = 0x1378e30;
-
 // This function already has a training mode check in it so we don't need to toggle in training mode for this
-#[skyline::hook(offset = LRA_OFFSET, inline)]
+#[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
     let x8 = ctx.registers[8].x.as_mut();
     if !(MENU.lra_reset.as_bool()) {
