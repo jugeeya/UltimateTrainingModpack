@@ -24,7 +24,7 @@ pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };
 pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
 pub static mut ITEM_MANAGER_ADDR: usize = 0;
 pub static mut STAGE_MANAGER_ADDR: usize = 0;
-pub static mut TRAINING_MENU_ADDR: usize = 0;
+pub static mut TRAINING_MENU_ADDR: *mut PauseMenu = core::ptr::null_mut();
 
 #[cfg(not(feature = "outside_training_mode"))]
 extern "C" {

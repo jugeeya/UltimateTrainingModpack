@@ -2,7 +2,7 @@ use crate::common::button_config;
 use crate::common::consts::{BuffOption, FighterId, MENU};
 use crate::common::offsets::*;
 use crate::common::{
-    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu,
+    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu, PauseMenu,
     FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, TRAINING_MENU_ADDR,
 };
 use crate::hitbox_visualizer;
@@ -423,9 +423,8 @@ pub unsafe fn handle_add_damage(
 #[skyline::hook(offset = *OFFSET_STALE, inline)]
 unsafe fn stale_handle(ctx: &mut InlineCtx) {
     let x22 = ctx.registers[22].x.as_mut();
-    let training_structure_address = (*x22 + 0xb60) as *mut u8;
-    TRAINING_MENU_ADDR = (*x22) as usize;
-    *training_structure_address = 1;
+    TRAINING_MENU_ADDR = (*x22) as *mut PauseMenu;
+    (*TRAINING_MENU_ADDR).stale_move_toggle = 1;
 }
 
 // Set Stale Moves to On in the menu text

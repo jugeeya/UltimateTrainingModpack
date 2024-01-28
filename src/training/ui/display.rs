@@ -1,7 +1,7 @@
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
-use crate::common::{menu::QUICK_MENU_ACTIVE, PauseMenu, TRAINING_MENU_ADDR};
+use crate::common::{menu::QUICK_MENU_ACTIVE, TRAINING_MENU_ADDR};
 use crate::training::ui;
 macro_rules! display_parent_fmt {
     ($x:ident) => {
@@ -23,8 +23,7 @@ macro_rules! display_txt_fmt {
 
 pub unsafe fn draw(root_pane: &Pane) {
     // Make sure the combo counter is being displayed before we draw
-    let menu = TRAINING_MENU_ADDR as *const PauseMenu;
-    let cc_displayed = (*menu).combo_display_toggle != 0;
+    let cc_displayed = (*TRAINING_MENU_ADDR).combo_display_toggle != 0;
     let notification_idx = 0;
 
     let queue = &mut ui::notifications::QUEUE;
