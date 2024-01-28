@@ -93,6 +93,7 @@ pub struct TrainingModpackMenu {
     pub stale_dodges: OnOff,
     pub tech_hide: OnOff,
     pub update_policy: UpdatePolicy,
+    pub lra_reset: OnOff,
 }
 
 #[repr(C)]
@@ -200,6 +201,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     stale_dodges: OnOff::ON,
     tech_hide: OnOff::OFF,
     update_policy: UpdatePolicy::default(),
+    lra_reset: OnOff::ON,
 };
 
 pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
@@ -730,6 +732,14 @@ impl_toggletrait! {
     1,
 }
 impl_toggletrait! {
+    OnOff,
+    "L+R+A Reset",
+    "lra_reset",
+    "L+R+A Reset: Reset Training Room when pressing L+R+A",
+    true,
+    1,
+}
+impl_toggletrait! {
     RecordSlot,
     "Recording Slot",
     "recording_slot",
@@ -948,6 +958,7 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     misc_tab_submenus.push(to_submenu_stage_hazards());
     misc_tab_submenus.push(to_submenu_hud());
     misc_tab_submenus.push(to_submenu_update_policy());
+    misc_tab_submenus.push(to_submenu_lra_reset());
     let misc_tab = Tab {
         id: "misc",
         title: "Misc Settings",

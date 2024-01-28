@@ -418,6 +418,19 @@ pub unsafe fn handle_add_damage(
     original!()(damage_module, damage_to_add, param_2)
 }
 
+// Control L+R+A Resets
+// Toggling in menu for now, probably best for this to become a customizable button combo
+static LRA_OFFSET: usize = 0x1378e30;
+
+// This function already has a training mode check in it so we don't need to toggle in training mode for this
+#[skyline::hook(offset = LRA_OFFSET, inline)]
+unsafe fn lra_handle(ctx: &mut InlineCtx) {
+    let x8 = ctx.registers[8].x.as_mut();
+    if !(MENU.lra_reset.as_bool()) {
+        *x8 = 0;
+    }
+}
+
 // Set Stale Moves to On
 // One instruction after stale moves toggle register is set to 0
 #[skyline::hook(offset = *OFFSET_STALE, inline)]
@@ -915,6 +928,8 @@ pub fn training_mods() {
         handle_article_get_int,
         handle_fighter_effect,
         handle_fighter_joint_effect,
+        // L+R+A Reset
+        lra_handle
     );
 
     items::init();
