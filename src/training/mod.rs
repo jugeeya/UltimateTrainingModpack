@@ -418,6 +418,16 @@ pub unsafe fn handle_add_damage(
     original!()(damage_module, damage_to_add, param_2)
 }
 
+// Control L+R+A Resets
+// This function already checks for training mode, so we don't need to check for training mode here
+#[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
+unsafe fn lra_handle(ctx: &mut InlineCtx) {
+    let x8 = ctx.registers[8].x.as_mut();
+    if !(MENU.lra_reset.as_bool()) {
+        *x8 = 0;
+    }
+}
+
 // Set Stale Moves to On
 // One instruction after stale moves toggle register is set to 0
 #[skyline::hook(offset = *OFFSET_STALE, inline)]
@@ -915,6 +925,8 @@ pub fn training_mods() {
         handle_article_get_int,
         handle_fighter_effect,
         handle_fighter_joint_effect,
+        // L+R+A Reset
+        lra_handle
     );
 
     items::init();
