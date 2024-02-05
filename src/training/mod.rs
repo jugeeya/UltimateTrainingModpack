@@ -424,7 +424,7 @@ pub unsafe fn handle_add_damage(
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
     let x8 = ctx.registers[8].x.as_mut();
     if !(MENU.lra_reset.as_bool()) {
-        *x8 = 0; 
+        *x8 = 0;
     }
 }
 
