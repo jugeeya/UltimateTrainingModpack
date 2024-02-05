@@ -419,7 +419,7 @@ pub unsafe fn handle_add_damage(
 }
 
 // Control L+R+A Resets
-// This function already has a training mode check in it, so we don't need to toggle in training mode for this
+// This function already checks for training mode, so we don't need to check for training mode here
 #[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
     let x8 = ctx.registers[8].x.as_mut();
