@@ -1,6 +1,6 @@
 [package]
 name = "training_modpack"
-version = "6.0.1"
+version = "6.1.0"
 authors = ["jugeeya <jugeeya@live.com>"]
 edition = "2018"
 
@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
-skyline_smash = { git = "https://github.com/GradualSyrup/skyline-smash.git", branch = "training-modpack-updates" }
+skyline_smash = { git = "https://github.com/jugeeya/skyline-smash.git", branch = "patch-2" }
 skyline-web = { git = "https://github.com/skyline-rs/skyline-web.git" }
 bitflags = "1.2.1"
 parking_lot = { version = "0.12.0", features = ["nightly"] }
