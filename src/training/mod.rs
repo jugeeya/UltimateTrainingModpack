@@ -123,6 +123,9 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
     }
 
     unsafe {
+        input_record::handle_recording();
+        frame_counter::tick_ingame();
+        tech::hide_tech();
         if menu::menu_condition() {
             menu::spawn_menu();
         }
@@ -442,7 +445,7 @@ unsafe fn stale_handle(ctx: &mut InlineCtx) {
 #[skyline::hook(offset = *OFFSET_STALE_MENU, inline)]
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
-    let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b215e;
+    let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b315e;
     let x1 = ctx.registers[1].x.as_mut();
     *x1 = on_text_ptr;
 }
@@ -781,12 +784,12 @@ pub unsafe fn handle_article_get_int(
 
 // Instruction run on the completion of the CPU Control function
 // One instruction after the CPU Control function completes
-#[skyline::hook(offset = 0x6b7fdc, inline)]
-unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
-    input_record::handle_recording();
-    frame_counter::tick_ingame();
-    tech::hide_tech();
-}
+// #[skyline::hook(offset = *OFFSET_OPCF, inline)]
+// unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
+//     input_record::handle_recording();
+//     frame_counter::tick_ingame();
+//     tech::hide_tech();
+// }
 
 #[skyline::hook(offset = *OFFSET_FIM)]
 unsafe fn handle_final_input_mapping(
@@ -863,6 +866,12 @@ pub fn training_mods() {
         .nop()
         .unwrap();
 
+    println!(
+        "Searching for STALE_MENU offset first! : {}",
+        *OFFSET_STALE_MENU
+    );
+    println!("Searching for STALE offset second! : {}", *OFFSET_STALE);
+
     skyline::install_hooks!(
         // Mash airdodge/jump
         handle_get_command_flag_cat,
@@ -911,7 +920,7 @@ pub fn training_mods() {
         // Clatter
         clatter::hook_start_clatter,
         // Notifications
-        handle_once_per_cpu_frame,
+        // handle_once_per_cpu_frame,
         // Input
         handle_final_input_mapping,
         // Charge
