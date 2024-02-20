@@ -781,18 +781,11 @@ pub unsafe fn handle_article_get_int(
 
 // Instruction run on the completion of the CPU Control function
 // One instruction after the CPU Control function completes
-#[skyline::hook(offset = *OFFSET_OPCF, inline)]
+#[skyline::hook(offset = 0x6b7fdc, inline)]
 unsafe fn handle_once_per_cpu_frame(_ctx: &mut InlineCtx) {
     input_record::handle_recording();
     frame_counter::tick_ingame();
     tech::hide_tech();
-    // Tick notifications
-    let queue = &mut ui::notifications::QUEUE;
-    let notification = queue.first();
-    if notification.is_some() {
-        let notification = queue.first_mut().unwrap();
-        notification.tick();
-    }
 }
 
 #[skyline::hook(offset = *OFFSET_FIM)]

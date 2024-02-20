@@ -8,7 +8,7 @@ use smash::phx::{Hash40, Vector3f};
 use crate::common::consts::*;
 use crate::common::offsets::OFFSET_CHANGE_ACTIVE_CAMERA;
 
-use crate::common::offsets::OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES;
+//use crate::common::offsets::OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES;
 use crate::common::*;
 use crate::training::{frame_counter, mash, save_states};
 
@@ -730,7 +730,7 @@ fn get_stage_camera_values(stage_id: i32) -> Option<Vector3f> {
 }
 
 // We hook where the training fixed camera fields are initially set, so we can change them later if necessary
-#[skyline::hook(offset = *OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES)]
+#[skyline::hook(offset = 0x3157bb0)] // TODO: Fix for 13.0.2
 pub unsafe fn handle_set_training_fixed_camera_values(
     camera_manager: *mut u64, // not actually camera manager - is this even used?????
     fixed_camera_values: &mut CameraValuesForTraining,
