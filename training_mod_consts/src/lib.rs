@@ -671,7 +671,7 @@ impl_toggletrait! {
     OnOff,
     "Frame Advantage",
     "frame_advantage",
-    "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable",
+    "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable\nNote that the CPU must not be mashing any options.",
     true,
     1,
 }

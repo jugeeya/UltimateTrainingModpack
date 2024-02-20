@@ -34,11 +34,6 @@ impl Notification {
         self.length -= 1;
     }
 
-    // Used to force the notification to be removed from queue
-    pub fn force_complete(&mut self) {
-        self.length = 0;
-    }
-
     // Returns: has_completed
     pub fn check_completed(&mut self) -> bool {
         if self.length <= 1 {
