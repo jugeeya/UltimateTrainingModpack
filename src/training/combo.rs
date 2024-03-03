@@ -111,7 +111,7 @@ pub unsafe fn is_enable_transition_term(
             let cpu_module_accessor = get_module_accessor(FighterId::CPU);
             if was_in_shieldstun(cpu_module_accessor) {
                 update_frame_advantage(
-                    (CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) as i32,
+                    ((CPU_ACTIVE_FRAME as i64 - PLAYER_ACTIVE_FRAME as i64) / 2 + 1) as i32,
                 );
             }
 
