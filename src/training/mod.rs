@@ -123,9 +123,6 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
     }
 
     unsafe {
-        input_record::handle_recording();
-        frame_counter::tick_ingame();
-        tech::hide_tech();
         if menu::menu_condition() {
             menu::spawn_menu();
         }
@@ -137,6 +134,9 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
                 !(MENU.stale_dodges.as_bool()),
                 *FIGHTER_INSTANCE_WORK_ID_FLAG_DISABLE_ESCAPE_PENALTY,
             );
+            input_record::handle_recording();
+            frame_counter::tick_ingame();
+            tech::hide_tech();
         }
 
         combo::get_command_flag_cat(module_accessor);
