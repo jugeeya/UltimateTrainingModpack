@@ -1,8 +1,6 @@
 use skyline::nn::ui2d::ResColor;
-use smash::app::BattleObjectModuleAccessor;
 use training_mod_consts::OnOff;
 
-use crate::common::consts::FighterId;
 use crate::common::*;
 use crate::training::*;
 

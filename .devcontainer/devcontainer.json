@@ -2,10 +2,8 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/docker-from-docker
 {
 	"name": "Cargo Skyline",
-	"image": "jugeeya/cargo-skyline:3.2.0-no-dkp",
-	"mounts": [
-		"source=ultimatetrainingmodpack-bashhistory,target=/commandhistory,type=volume"
-	],
+	"image": "rust:1.73",
+	"mounts": [],
 	// // Use this environment variable if you need to bind mount your local source code into a new container.
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"

@@ -2,7 +2,6 @@
 use crate::common::dialog;
 use crate::consts::*;
 use crate::logging::*;
-use crate::MENU;
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use parking_lot::Mutex;

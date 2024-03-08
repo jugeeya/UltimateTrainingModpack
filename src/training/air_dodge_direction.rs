@@ -33,7 +33,7 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Op
 
     STICK_DIRECTION = MENU.air_dodge_dir.get_random();
     STICK_DIRECTION.into_angle().map(|angle| {
-        if !should_reverse_angle(&STICK_DIRECTION) {
+        if !should_reverse_angle(STICK_DIRECTION) {
             // Direction is LEFT/RIGHT, so don't perform any adjustment
             angle
         } else {

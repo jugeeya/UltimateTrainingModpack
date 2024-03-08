@@ -1,3 +1,5 @@
+use std::ptr::addr_of_mut;
+
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
@@ -24,8 +26,8 @@ macro_rules! display_txt_fmt {
 pub unsafe fn draw(root_pane: &Pane) {
     let notification_idx = 0;
 
-    let queue = &mut ui::notifications::QUEUE;
-    let notification = queue.first_mut();
+    let queue = addr_of_mut!(ui::notifications::QUEUE);
+    let notification = (*queue).first_mut();
 
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
@@ -58,6 +60,6 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     let has_completed = notification.check_completed();
     if has_completed {
-        queue.remove(0);
+        (*queue).remove(0);
     }
 }

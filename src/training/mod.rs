@@ -1,3 +1,5 @@
+use std::ptr::addr_of_mut;
+
 use crate::common::button_config;
 use crate::common::consts::{BuffOption, FighterId, MENU};
 use crate::common::offsets::*;
@@ -836,21 +838,21 @@ pub fn training_mods() {
 
     unsafe {
         LookupSymbol(
-            &mut FIGHTER_MANAGER_ADDR,
+            addr_of_mut!(FIGHTER_MANAGER_ADDR),
             "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E\u{0}"
                 .as_bytes()
                 .as_ptr(),
         );
 
         LookupSymbol(
-            &mut STAGE_MANAGER_ADDR,
+            addr_of_mut!(STAGE_MANAGER_ADDR),
             "_ZN3lib9SingletonIN3app12StageManagerEE9instance_E\u{0}"
                 .as_bytes()
                 .as_ptr(),
         );
 
         LookupSymbol(
-            &mut ITEM_MANAGER_ADDR,
+            addr_of_mut!(ITEM_MANAGER_ADDR),
             "_ZN3lib9SingletonIN3app11ItemManagerEE9instance_E\0"
                 .as_bytes()
                 .as_ptr(),
