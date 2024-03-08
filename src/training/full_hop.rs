@@ -17,8 +17,6 @@ pub fn roll_full_hop() {
     }
 }
 
-/**
- */
 pub unsafe fn check_button_on(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,
@@ -29,8 +27,6 @@ pub unsafe fn check_button_on(
     Some(true)
 }
 
-/**
- */
 pub unsafe fn check_button_off(
     module_accessor: &mut app::BattleObjectModuleAccessor,
     button: i32,

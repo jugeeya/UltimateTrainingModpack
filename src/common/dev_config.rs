@@ -3,7 +3,6 @@ use std::fs;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use serde::Deserialize;
-use toml;
 
 use crate::common::input::*;
 use crate::consts::DEV_TOML_PATH;

@@ -20,7 +20,7 @@ pub fn roll_direction() {
 
 unsafe fn get_sdi_direction() -> Option<f64> {
     DIRECTION.into_angle().map(|angle| {
-        if directional_influence::should_reverse_angle(&DIRECTION) {
+        if directional_influence::should_reverse_angle(DIRECTION) {
             PI - angle
         } else {
             angle

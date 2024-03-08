@@ -58,7 +58,7 @@ unsafe fn mod_handle_di(fighter: &L2CFighterCommon, _arg1: L2CValue) {
     roll_di_case();
 
     let angle_tuple = DI_CASE.into_angle().map_or((0.0, 0.0), |angle| {
-        let a = if should_reverse_angle(&DI_CASE) {
+        let a = if should_reverse_angle(DI_CASE) {
             PI - angle
         } else {
             angle
@@ -70,12 +70,12 @@ unsafe fn mod_handle_di(fighter: &L2CFighterCommon, _arg1: L2CValue) {
     set_x_y(module_accessor, angle_tuple.0 as f32, angle_tuple.1 as f32);
 }
 
-pub fn should_reverse_angle(direction: &Direction) -> bool {
+pub fn should_reverse_angle(direction: Direction) -> bool {
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     let player_module_accessor = get_module_accessor(FighterId::Player);
     unsafe {
         PostureModule::pos_x(player_module_accessor) > PostureModule::pos_x(cpu_module_accessor)
-            && ![Direction::LEFT, Direction::RIGHT].contains(direction)
+            && ![Direction::LEFT, Direction::RIGHT].contains(&direction)
     }
 }
 

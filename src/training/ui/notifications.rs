@@ -1,3 +1,5 @@
+use std::ptr::addr_of_mut;
+
 use skyline::nn::ui2d::ResColor;
 
 pub static mut QUEUE: Vec<Notification> = vec![];
@@ -45,8 +47,8 @@ impl Notification {
 
 pub fn notification(header: String, message: String, len: u32) {
     unsafe {
-        let queue = &mut QUEUE;
-        queue.push(Notification::new(
+        let queue = addr_of_mut!(QUEUE);
+        (*queue).push(Notification::new(
             header,
             message,
             len,
@@ -62,14 +64,14 @@ pub fn notification(header: String, message: String, len: u32) {
 
 pub fn color_notification(header: String, message: String, len: u32, color: ResColor) {
     unsafe {
-        let queue = &mut QUEUE;
-        queue.push(Notification::new(header, message, len, color));
+        let queue = addr_of_mut!(QUEUE);
+        (*queue).push(Notification::new(header, message, len, color));
     }
 }
 
 pub fn clear_notifications(header: &'static str) {
     unsafe {
-        let queue = &mut QUEUE;
-        queue.retain(|notif| notif.header != header);
+        let queue = addr_of_mut!(QUEUE);
+        (*queue).retain(|notif| notif.header != header);
     }
 }

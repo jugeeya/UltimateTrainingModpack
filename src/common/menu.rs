@@ -2,16 +2,14 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
 use std::io::BufReader;
+use std::ptr::addr_of;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
-use training_mod_consts::{create_app, MenuJsonStruct};
-use training_mod_tui::AppPage;
 
 use crate::common::button_config::button_mapping;
 use crate::common::*;
-use crate::consts::MENU_OPTIONS_PATH;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::*;
 use crate::logging::*;
@@ -54,8 +52,8 @@ pub fn load_from_file() {
     unsafe {
         let mut app = QUICK_MENU_APP.lock();
         app.serialized_default_settings =
-            serde_json::to_string(&DEFAULTS_MENU).expect("Could not serialize DEFAULTS_MENU");
-        app.update_all_from_json(&serde_json::to_string(&MENU).expect("Could not serialize MENU"));
+            serde_json::to_string(&*addr_of!(DEFAULTS_MENU)).expect("Could not serialize DEFAULTS_MENU");
+        app.update_all_from_json(&serde_json::to_string(&*addr_of!(MENU)).expect("Could not serialize MENU"));
     }
 }
 
