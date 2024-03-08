@@ -51,9 +51,11 @@ pub fn load_from_file() {
     info!("Setting initial menu selections...");
     unsafe {
         let mut app = QUICK_MENU_APP.lock();
-        app.serialized_default_settings =
-            serde_json::to_string(&*addr_of!(DEFAULTS_MENU)).expect("Could not serialize DEFAULTS_MENU");
-        app.update_all_from_json(&serde_json::to_string(&*addr_of!(MENU)).expect("Could not serialize MENU"));
+        app.serialized_default_settings = serde_json::to_string(&*addr_of!(DEFAULTS_MENU))
+            .expect("Could not serialize DEFAULTS_MENU");
+        app.update_all_from_json(
+            &serde_json::to_string(&*addr_of!(MENU)).expect("Could not serialize MENU"),
+        );
     }
 }
 
