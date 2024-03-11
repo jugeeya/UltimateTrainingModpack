@@ -180,42 +180,6 @@ jobs:
             ```
 
             
-            ### Installation on Yuzu Emulator on PC
-
-            > [!NOTE]
-
-            > Working as of Yuzu Mainline 1537 ~ 1538!
-
-
-            Exact same process as above, but the filepaths are in Yuzu's mod paths.
-
-
-            1) Extract the contents of the TrainingModpack .zip (`atmosphere` folder). Paste the `atmosphere` folder inside atmosphere into `%AppData%/Yuzu/sdmc/`.
-
-            2) Similarly, extracted contents of the Skyline .zip (`exefs` folder) into into `%AppData%/yuzu/sdmc/atmosphere/contents/01006a800016e000`.
-
-            3) No files need to be manually deleted when upgrading from a previous version. 
-
-            4) The Yuzu `sdmc` folder should have the files below at these locations.
-
-
-            ```
-            %AppData%
-            └── Yuzu/
-                └── sdmc/
-                  └── atmosphere/
-                      └── contents/
-                          └── 01006A800016E000/
-                              ├── exefs/
-                              │   ├── subsdk9 
-                              │   └── main.npdm
-                              └── romfs/
-                                  └── skyline/
-                                      └── plugins/
-                                          ├── libnro_hook.nro
-                                          ├── libparam_hook.nro
-                                          └── libtraining_modpack.nro
-            ```
 
               ### Installation on Ryujinx Emulator on PC
 
