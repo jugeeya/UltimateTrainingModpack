@@ -26,6 +26,7 @@ pub struct RobinCharges {
     pub purple_book: i32,
     pub levin_charge: i32,
     pub levin_recharge: i32,
+    pub has_levin: bool,
 }
 
 #[derive(Serialize, Deserialize, Default, Copy, Clone, Debug)]
@@ -324,6 +325,10 @@ pub unsafe fn get_charge(
             module_accessor,
             *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_THUNDER_SWORD_REVIVAL_COUNT,
         );
+        let has_levin = WorkModule::is_flag(
+            module_accessor,
+            *FIGHTER_REFLET_INSTANCE_WORK_ID_FLAG_THUNDER_SWORD_ON,
+        );
         let robin_charges = RobinCharges {
             thunder_kind,
             yellow_book,
@@ -332,6 +337,7 @@ pub unsafe fn get_charge(
             purple_book,
             levin_charge,
             levin_recharge,
+            has_levin,
         };
         charge_state.set_robin(robin_charges)
     }
@@ -967,6 +973,11 @@ pub unsafe fn handle_charge(
                 module_accessor,
                 robin_charges.levin_recharge,
                 *FIGHTER_REFLET_INSTANCE_WORK_ID_INT_THUNDER_SWORD_REVIVAL_COUNT,
+            );
+            WorkModule::set_flag(
+                module_accessor,
+                robin_charges.has_levin,
+                *FIGHTER_REFLET_INSTANCE_WORK_ID_FLAG_THUNDER_SWORD_ON,
             );
         });
     }
