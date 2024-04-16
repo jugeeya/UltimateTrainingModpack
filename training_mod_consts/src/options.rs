@@ -883,7 +883,7 @@ impl SaveStateSlot {
             SaveStateSlot::S3 => Some(2),
             SaveStateSlot::S4 => Some(3),
             SaveStateSlot::S5 => Some(4),
-            _ => panic!("Invalid value in SaveStateSlot::into_idx: {}", self),
+            _ => None,
         }
     }
 }
@@ -906,7 +906,7 @@ impl RecordSlot {
             RecordSlot::S3 => Some(2),
             RecordSlot::S4 => Some(3),
             RecordSlot::S5 => Some(4),
-            _ => panic!("Invalid value in RecordSlot::into_idx: {}", self),
+            _ => None,
         }
     }
 }
@@ -929,7 +929,7 @@ impl PlaybackSlot {
             PlaybackSlot::S3 => Some(2),
             PlaybackSlot::S4 => Some(3),
             PlaybackSlot::S5 => Some(4),
-            _ => panic!("Invalid value in PlaybackSlot::into_idx: {}", self),
+            _ => None,
         }
     }
 }
