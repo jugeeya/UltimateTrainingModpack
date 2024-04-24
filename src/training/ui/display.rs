@@ -4,6 +4,7 @@ use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
 use crate::common::menu::QUICK_MENU_ACTIVE;
+use crate::common::TRAINING_MENU_ADDR;
 use crate::training::ui;
 macro_rules! display_parent_fmt {
     ($x:ident) => {
@@ -25,8 +26,16 @@ macro_rules! display_txt_fmt {
 
 pub unsafe fn draw(root_pane: &Pane) {
     let notification_idx = 0;
+    let combo_display_toggle: bool = ;
 
     let queue = addr_of_mut!(ui::notifications::QUEUE);
+    if (*TRAINING_MENU_ADDR).combo_display_toggle == 0 {
+        // User has turned off the "combo display" option in the vanilla menu
+        // Remove all notifications from the queue so we don't show them
+        // This will also set the pane's visibility to false
+        (*queue).clear();
+    }
+
     let notification = (*queue).first_mut();
 
     root_pane
