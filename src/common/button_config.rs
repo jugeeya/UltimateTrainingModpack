@@ -197,6 +197,11 @@ lazy_static! {
 
 fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
+        // Prevent button combos from passing if either the vanilla or mod menu is open
+        if VANILLA_MENU_ACTIVE || QUICK_MENU_ACTIVE {
+            return false;
+        }
+
         let combo_keys = get_combo_keys(combo).to_vec();
         let mut this_combo_passes = false;
 
