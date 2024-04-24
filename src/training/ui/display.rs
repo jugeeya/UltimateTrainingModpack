@@ -26,7 +26,6 @@ macro_rules! display_txt_fmt {
 
 pub unsafe fn draw(root_pane: &Pane) {
     let notification_idx = 0;
-    let combo_display_toggle: bool = ;
 
     let queue = addr_of_mut!(ui::notifications::QUEUE);
     if (*TRAINING_MENU_ADDR).combo_display_toggle == 0 {
