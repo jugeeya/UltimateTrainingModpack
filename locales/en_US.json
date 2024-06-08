@@ -1,0 +1,1210 @@
+[
+    {
+        "find": "\"1-Winged Angel\"",
+        "replace": "\"1-Winged Angel\""
+    },
+    {
+        "find": "\"Aerial Delay: How long to delay a Mash aerial attack\"",
+        "replace": "\"Aerial Delay: How long to delay a Mash aerial attack\""
+    },
+    {
+        "find": "\"Aerial Delay\"",
+        "replace": "\"Aerial Delay\""
+    },
+    {
+        "find": "\"Air Dodge\"",
+        "replace": "\"Air Dodge\""
+    },
+    {
+        "find": "\"Airborne\"",
+        "replace": "\"Airborne\""
+    },
+    {
+        "find": "\"Airdodge Direction: Direction to angle airdodges\"",
+        "replace": "\"Airdodge Direction: Direction to angle airdodges\""
+    },
+    {
+        "find": "\"Airdodge Direction\"",
+        "replace": "\"Airdodge Direction\""
+    },
+    {
+        "find": "\"Alternate\"",
+        "replace": "\"Alternate\""
+    },
+    {
+        "find": "\"Always\"",
+        "replace": "\"Always\""
+    },
+    {
+        "find": "\"Are you sure you want to reset ALL settings to the defaults?\"",
+        "replace": "\"Are you sure you want to reset ALL settings to the defaults?\""
+    },
+    {
+        "find": "\"Are you sure you want to reset the current setting to the defaults?\"",
+        "replace": "\"Are you sure you want to reset the current setting to the defaults?\""
+    },
+    {
+        "find": "\"Arsene\"",
+        "replace": "\"Arsene\""
+    },
+    {
+        "find": "\"As Hitstop Begins\"",
+        "replace": "\"As Hitstop Begins\""
+    },
+    {
+        "find": "\"As Hitstop Ends\"",
+        "replace": "\"As Hitstop Ends\""
+    },
+    {
+        "find": "\"As Hitstun Ends\"",
+        "replace": "\"As Hitstun Ends\""
+    },
+    {
+        "find": "\"Attack Angle: For attacks that can be angled, such as some forward tilts\"",
+        "replace": "\"Attack Angle: For attacks that can be angled, such as some forward tilts\""
+    },
+    {
+        "find": "\"Attack Angle\"",
+        "replace": "\"Attack Angle\""
+    },
+    {
+        "find": "\"Auto Save States: Load save state when any fighter dies\"",
+        "replace": "\"Auto Save States: Load save state when any fighter dies\""
+    },
+    {
+        "find": "\"Auto Save States\"",
+        "replace": "\"Auto Save States\""
+    },
+    {
+        "find": "\"Auto-Update: What type of Training Modpack updates to automatically apply. (Console Only!)\"",
+        "replace": "\"Auto-Update: What type of Training Modpack updates to automatically apply. (Console Only!)\""
+    },
+    {
+        "find": "\"Auto-Update\"",
+        "replace": "\"Auto-Update\""
+    },
+    {
+        "find": "\"Back Air\"",
+        "replace": "\"Back Air\""
+    },
+    {
+        "find": "\"Backward Throw\"",
+        "replace": "\"Backward Throw\""
+    },
+    {
+        "find": "\"Beta\"",
+        "replace": "\"Beta\""
+    },
+    {
+        "find": "\"Bounce\"",
+        "replace": "\"Bounce\""
+    },
+    {
+        "find": "\"Buff Options: Buff(s) to be applied to the respective fighters when loading a save state\"",
+        "replace": "\"Buff Options: Buff(s) to be applied to the respective fighters when loading a save state\""
+    },
+    {
+        "find": "\"Buff Options\"",
+        "replace": "\"Buff Options\""
+    },
+    {
+        "find": "\"Buster\"",
+        "replace": "\"Buster\""
+    },
+    {
+        "find": "\"Button Combination\"",
+        "replace": "\"Button Combination\""
+    },
+    {
+        "find": "\"Button Config\"",
+        "replace": "\"Button Config\""
+    },
+    {
+        "find": "\"Character Item: The item to give to the player fighter when loading a save state\"",
+        "replace": "\"Character Item: The item to give to the player fighter when loading a save state\""
+    },
+    {
+        "find": "\"Character Item\"",
+        "replace": "\"Character Item\""
+    },
+    {
+        "find": "\"Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)\"",
+        "replace": "\"Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)\""
+    },
+    {
+        "find": "\"Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc.\"",
+        "replace": "\"Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc.\""
+    },
+    {
+        "find": "\"Clatter Strength\"",
+        "replace": "\"Clatter Strength\""
+    },
+    {
+        "find": "\"Clatter\"",
+        "replace": "\"Clatter\""
+    },
+    {
+        "find": "\"Clear Toggle\"",
+        "replace": "\"Clear Toggle\""
+    },
+    {
+        "find": "\"Constant\"",
+        "replace": "\"Constant\""
+    },
+    {
+        "find": "\"CPU 1st Var.\"",
+        "replace": "\"CPU 1st Var.\""
+    },
+    {
+        "find": "\"CPU 2nd Var.\"",
+        "replace": "\"CPU 2nd Var.\""
+    },
+    {
+        "find": "\"CPU 3rd Var.\"",
+        "replace": "\"CPU 3rd Var.\""
+    },
+    {
+        "find": "\"CPU 4th Var.\"",
+        "replace": "\"CPU 4th Var.\""
+    },
+    {
+        "find": "\"CPU 5th Var.\"",
+        "replace": "\"CPU 5th Var.\""
+    },
+    {
+        "find": "\"CPU 6th Var.\"",
+        "replace": "\"CPU 6th Var.\""
+    },
+    {
+        "find": "\"CPU 7th Var.\"",
+        "replace": "\"CPU 7th Var.\""
+    },
+    {
+        "find": "\"CPU 8th Var.\"",
+        "replace": "\"CPU 8th Var.\""
+    },
+    {
+        "find": "\"Crouch: Have the CPU crouch when on the ground\"",
+        "replace": "\"Crouch: Have the CPU crouch when on the ground\""
+    },
+    {
+        "find": "\"Crouch\"",
+        "replace": "\"Crouch\""
+    },
+    {
+        "find": "\"Dash Attack\"",
+        "replace": "\"Dash Attack\""
+    },
+    {
+        "find": "\"Dash\"",
+        "replace": "\"Dash\""
+    },
+    {
+        "find": "\"Deep Breathing\"",
+        "replace": "\"Deep Breathing\""
+    },
+    {
+        "find": "\"Default\"",
+        "replace": "\"Default\""
+    },
+    {
+        "find": "\"Defensive Settings\"",
+        "replace": "\"Defensive Settings\""
+    },
+    {
+        "find": "\"DI Direction: Direction to angle the directional influence during hitlag\"",
+        "replace": "\"DI Direction: Direction to angle the directional influence during hitlag\""
+    },
+    {
+        "find": "\"DI Direction\"",
+        "replace": "\"DI Direction\""
+    },
+    {
+        "find": "\"Disabled\"",
+        "replace": "\"Disabled\""
+    },
+    {
+        "find": "\"Distance: Close\"",
+        "replace": "\"Distance: Close\""
+    },
+    {
+        "find": "\"Distance: Far\"",
+        "replace": "\"Distance: Far\""
+    },
+    {
+        "find": "\"Distance: Mid\"",
+        "replace": "\"Distance: Mid\""
+    },
+    {
+        "find": "\"Dmg Range (CPU)\"",
+        "replace": "\"Dmg Range (CPU)\""
+    },
+    {
+        "find": "\"Dmg Range (Player)\"",
+        "replace": "\"Dmg Range (Player)\""
+    },
+    {
+        "find": "\"Dodge Staling: Controls whether the CPU dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)\"",
+        "replace": "\"Dodge Staling: Controls whether the CPU dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)\""
+    },
+    {
+        "find": "\"Dodge Staling\"",
+        "replace": "\"Dodge Staling\""
+    },
+    {
+        "find": "\"Down Air\"",
+        "replace": "\"Down Air\""
+    },
+    {
+        "find": "\"Down In\"",
+        "replace": "\"Down In\""
+    },
+    {
+        "find": "\"Down Out\"",
+        "replace": "\"Down Out\""
+    },
+    {
+        "find": "\"Down Smash\"",
+        "replace": "\"Down Smash\""
+    },
+    {
+        "find": "\"Down Special\"",
+        "replace": "\"Down Special\""
+    },
+    {
+        "find": "\"Down Throw\"",
+        "replace": "\"Down Throw\""
+    },
+    {
+        "find": "\"Down Tilt\"",
+        "replace": "\"Down Tilt\""
+    },
+    {
+        "find": "\"Down\"",
+        "replace": "\"Down\""
+    },
+    {
+        "find": "\"Enable Save States\"",
+        "replace": "\"Enable Save States\""
+    },
+    {
+        "find": "\"Falling Aerials: Should aerials be performed when rising or when falling\"",
+        "replace": "\"Falling Aerials: Should aerials be performed when rising or when falling\""
+    },
+    {
+        "find": "\"Falling Aerials\"",
+        "replace": "\"Falling Aerials\""
+    },
+    {
+        "find": "\"False\"",
+        "replace": "\"False\""
+    },
+    {
+        "find": "\"Fast Fall Delay: How many frames the CPU should delay their fastfall\"",
+        "replace": "\"Fast Fall Delay: How many frames the CPU should delay their fastfall\""
+    },
+    {
+        "find": "\"Fast Fall Delay\"",
+        "replace": "\"Fast Fall Delay\""
+    },
+    {
+        "find": "\"Fast Fall: Should the CPU fastfall during a jump\"",
+        "replace": "\"Fast Fall: Should the CPU fastfall during a jump\""
+    },
+    {
+        "find": "\"Fast Fall\"",
+        "replace": "\"Fast Fall\""
+    },
+    {
+        "find": "\"Followup Toggles: Actions to be performed after a Mash option\"",
+        "replace": "\"Followup Toggles: Actions to be performed after a Mash option\""
+    },
+    {
+        "find": "\"Followup Toggles\"",
+        "replace": "\"Followup Toggles\""
+    },
+    {
+        "find": "\"Footstool Override: Mash Actions to be performed after exiting a footstool state\"",
+        "replace": "\"Footstool Override: Mash Actions to be performed after exiting a footstool state\""
+    },
+    {
+        "find": "\"Footstool\"",
+        "replace": "\"Footstool\""
+    },
+    {
+        "find": "\"Forward Air\"",
+        "replace": "\"Forward Air\""
+    },
+    {
+        "find": "\"Forward Smash\"",
+        "replace": "\"Forward Smash\""
+    },
+    {
+        "find": "\"Forward Throw\"",
+        "replace": "\"Forward Throw\""
+    },
+    {
+        "find": "\"Forward Tilt\"",
+        "replace": "\"Forward Tilt\""
+    },
+    {
+        "find": "\"Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable\nNote that the CPU must not be mashing any options.\"",
+        "replace": "\"Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable\nNote that the CPU must not be mashing any options.\""
+    },
+    {
+        "find": "\"Frame Advantage\"",
+        "replace": "\"Frame Advantage\""
+    },
+    {
+        "find": "\"Full Hop: Should the CPU perform a full hop or a short hop\"",
+        "replace": "\"Full Hop: Should the CPU perform a full hop or a short hop\""
+    },
+    {
+        "find": "\"Full Hop\"",
+        "replace": "\"Full Hop\""
+    },
+    {
+        "find": "\"Full Waft\"",
+        "replace": "\"Full Waft\""
+    },
+    {
+        "find": "\"Getup Attack\"",
+        "replace": "\"Getup Attack\""
+    },
+    {
+        "find": "\"Grab\"",
+        "replace": "\"Grab\""
+    },
+    {
+        "find": "\"Grounded\"",
+        "replace": "\"Grounded\""
+    },
+    {
+        "find": "\"Half Waft\"",
+        "replace": "\"Half Waft\""
+    },
+    {
+        "find": "\"Hide Tech Animations: Hides tech animations and effects after 7 frames to help with reacting to tech animation startup\"",
+        "replace": "\"Hide Tech Animations: Hides tech animations and effects after 7 frames to help with reacting to tech animation startup\""
+    },
+    {
+        "find": "\"Hide Tech Animations\"",
+        "replace": "\"Hide Tech Animations\""
+    },
+    {
+        "find": "\"High\"",
+        "replace": "\"High\""
+    },
+    {
+        "find": "\"Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)\"",
+        "replace": "\"Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)\""
+    },
+    {
+        "find": "\"Hitbox Visualization\"",
+        "replace": "\"Hitbox Visualization\""
+    },
+    {
+        "find": "\"Hitstun Override: Mash Actions to be performed after exiting a hitstun state\"",
+        "replace": "\"Hitstun Override: Mash Actions to be performed after exiting a hitstun state\""
+    },
+    {
+        "find": "\"Hitstun\"",
+        "replace": "\"Hitstun\""
+    },
+    {
+        "find": "\"Hold Start\"",
+        "replace": "\"Hold Start\""
+    },
+    {
+        "find": "\"Hold\"",
+        "replace": "\"Hold\""
+    },
+    {
+        "find": "\"HUD: Show/hide elements of the UI\"",
+        "replace": "\"HUD: Show/hide elements of the UI\""
+    },
+    {
+        "find": "\"HUD\"",
+        "replace": "\"HUD\""
+    },
+    {
+        "find": "\"In\"",
+        "replace": "\"In\""
+    },
+    {
+        "find": "\"Infinite\"",
+        "replace": "\"Infinite\""
+    },
+    {
+        "find": "\"Input Delay: Frames to delay player inputs by\"",
+        "replace": "\"Input Delay: Frames to delay player inputs by\""
+    },
+    {
+        "find": "\"Input Delay\"",
+        "replace": "\"Input Delay\""
+    },
+    {
+        "find": "\"Input Display Status: Group input logs by status in which they occurred\"",
+        "replace": "\"Input Display Status: Group input logs by status in which they occurred\""
+    },
+    {
+        "find": "\"Input Display Status\"",
+        "replace": "\"Input Display Status\""
+    },
+    {
+        "find": "\"Input Display: Log inputs in a queue on the left of the screen\"",
+        "replace": "\"Input Display: Log inputs in a queue on the left of the screen\""
+    },
+    {
+        "find": "\"Input Display\"",
+        "replace": "\"Input Display\""
+    },
+    {
+        "find": "\"Input Playback: Hold any one button and press the others to trigger\"",
+        "replace": "\"Input Playback: Hold any one button and press the others to trigger\""
+    },
+    {
+        "find": "\"Input Playback\"",
+        "replace": "\"Input Playback\""
+    },
+    {
+        "find": "\"Input Record: Hold any one button and press the others to trigger\"",
+        "replace": "\"Input Record: Hold any one button and press the others to trigger\""
+    },
+    {
+        "find": "\"Input Record\"",
+        "replace": "\"Input Record\""
+    },
+    {
+        "find": "\"Input Recording\"",
+        "replace": "\"Input Recording\""
+    },
+    {
+        "find": "\"Jab\"",
+        "replace": "\"Jab\""
+    },
+    {
+        "find": "\"Jump\"",
+        "replace": "\"Jump\""
+    },
+    {
+        "find": "\"KO Punch\"",
+        "replace": "\"KO Punch\""
+    },
+    {
+        "find": "\"L+R+A Reset: Reset Training Room when pressing L+R+A\"",
+        "replace": "\"L+R+A Reset: Reset Training Room when pressing L+R+A\""
+    },
+    {
+        "find": "\"L+R+A Reset\"",
+        "replace": "\"L+R+A Reset\""
+    },
+    {
+        "find": "\"Landing Override: Mash Actions to be performed after landing on the ground\"",
+        "replace": "\"Landing Override: Mash Actions to be performed after landing on the ground\""
+    },
+    {
+        "find": "\"Landing\"",
+        "replace": "\"Landing\""
+    },
+    {
+        "find": "\"Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge\"",
+        "replace": "\"Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge\""
+    },
+    {
+        "find": "\"Ledge Attack\"",
+        "replace": "\"Ledge Attack\""
+    },
+    {
+        "find": "\"Ledge Delay: How many frames to delay the ledge option\"",
+        "replace": "\"Ledge Delay: How many frames to delay the ledge option\""
+    },
+    {
+        "find": "\"Ledge Delay\"",
+        "replace": "\"Ledge Delay\""
+    },
+    {
+        "find": "\"Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge\"",
+        "replace": "\"Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge\""
+    },
+    {
+        "find": "\"Ledge Jump\"",
+        "replace": "\"Ledge Jump\""
+    },
+    {
+        "find": "\"Ledge Neutral Getup\"",
+        "replace": "\"Ledge Neutral Getup\""
+    },
+    {
+        "find": "\"Ledge Option\"",
+        "replace": "\"Ledge Option\""
+    },
+    {
+        "find": "\"Ledge Options: Actions to be taken when on the ledge\"",
+        "replace": "\"Ledge Options: Actions to be taken when on the ledge\""
+    },
+    {
+        "find": "\"Ledge Options\"",
+        "replace": "\"Ledge Options\""
+    },
+    {
+        "find": "\"Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge\"",
+        "replace": "\"Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge\""
+    },
+    {
+        "find": "\"Ledge Roll\"",
+        "replace": "\"Ledge Roll\""
+    },
+    {
+        "find": "\"Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state\"",
+        "replace": "\"Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state\""
+    },
+    {
+        "find": "\"Ledge Trump\"",
+        "replace": "\"Ledge Trump\""
+    },
+    {
+        "find": "\"Left\"",
+        "replace": "\"Left\""
+    },
+    {
+        "find": "\"Limit\"",
+        "replace": "\"Limit\""
+    },
+    {
+        "find": "\"Limits on random damage to apply to the CPU when loading a save state\"",
+        "replace": "\"Limits on random damage to apply to the CPU when loading a save state\""
+    },
+    {
+        "find": "\"Limits on random damage to apply to the player when loading a save state\"",
+        "replace": "\"Limits on random damage to apply to the player when loading a save state\""
+    },
+    {
+        "find": "\"Load State\"",
+        "replace": "\"Load State\""
+    },
+    {
+        "find": "\"Lockout\"",
+        "replace": "\"Lockout\""
+    },
+    {
+        "find": "\"Mash Settings\"",
+        "replace": "\"Mash Settings\""
+    },
+    {
+        "find": "\"Mash Toggles: Actions to be performed as soon as possible\"",
+        "replace": "\"Mash Toggles: Actions to be performed as soon as possible\""
+    },
+    {
+        "find": "\"Mash Toggles\"",
+        "replace": "\"Mash Toggles\""
+    },
+    {
+        "find": "\"Mash triggers: Configure what causes the CPU to perform a Mash option\"",
+        "replace": "\"Mash triggers: Configure what causes the CPU to perform a Mash option\""
+    },
+    {
+        "find": "\"Mash Triggers\"",
+        "replace": "\"Mash Triggers\""
+    },
+    {
+        "find": "\"Medium\"",
+        "replace": "\"Medium\""
+    },
+    {
+        "find": "\"Menu Open Start Press: Hold start or press minus to open the mod menu. To open the original menu, press start.\nThe default menu open option is always available as Hold DPad Up + Press B.\"",
+        "replace": "\"Menu Open Start Press: Hold start or press minus to open the mod menu. To open the original menu, press start.\nThe default menu open option is always available as Hold DPad Up + Press B.\""
+    },
+    {
+        "find": "\"Menu Open Start Press\"",
+        "replace": "\"Menu Open Start Press\""
+    },
+    {
+        "find": "\"Mini Waft\"",
+        "replace": "\"Mini Waft\""
+    },
+    {
+        "find": "\"Minus\"",
+        "replace": "\"Minus\""
+    },
+    {
+        "find": "\"Mirroring: Flips save states in the left-right direction across the stage center\"",
+        "replace": "\"Mirroring: Flips save states in the left-right direction across the stage center\""
+    },
+    {
+        "find": "\"Mirroring\"",
+        "replace": "\"Mirroring\""
+    },
+    {
+        "find": "\"Misc Settings\"",
+        "replace": "\"Misc Settings\""
+    },
+    {
+        "find": "\"Mistech Option\"",
+        "replace": "\"Mistech Option\""
+    },
+    {
+        "find": "\"Mistech Options: Actions to take after missing a tech\"",
+        "replace": "\"Mistech Options: Actions to take after missing a tech\""
+    },
+    {
+        "find": "\"Mistech Options\"",
+        "replace": "\"Mistech Options\""
+    },
+    {
+        "find": "\"Modpack Menu\"",
+        "replace": "\"Modpack Menu\""
+    },
+    {
+        "find": "\"Neutral Air\"",
+        "replace": "\"Neutral Air\""
+    },
+    {
+        "find": "\"Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge\"",
+        "replace": "\"Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge\""
+    },
+    {
+        "find": "\"Neutral Getup\"",
+        "replace": "\"Neutral Getup\""
+    },
+    {
+        "find": "\"Neutral Special\"",
+        "replace": "\"Neutral Special\""
+    },
+    {
+        "find": "\"Neutral\"",
+        "replace": "\"Neutral\""
+    },
+    {
+        "find": "\"No Tech\"",
+        "replace": "\"No Tech\""
+    },
+    {
+        "find": "\"No\"",
+        "replace": "\"No\""
+    },
+    {
+        "find": "\"None\"",
+        "replace": "\"None\""
+    },
+    {
+        "find": "\"Normal\"",
+        "replace": "\"Normal\""
+    },
+    {
+        "find": "\"Off\"",
+        "replace": "\"Off\""
+    },
+    {
+        "find": "\"On\"",
+        "replace": "\"On\""
+    },
+    {
+        "find": "\"Oomph\"",
+        "replace": "\"Oomph\""
+    },
+    {
+        "find": "\"OoS Offset: How many times the CPU shield can be hit before performing a Mash option\"",
+        "replace": "\"OoS Offset: How many times the CPU shield can be hit before performing a Mash option\""
+    },
+    {
+        "find": "\"OoS Offset\"",
+        "replace": "\"OoS Offset\""
+    },
+    {
+        "find": "\"Open Menu\"",
+        "replace": "\"Open Menu\""
+    },
+    {
+        "find": "\"Out\"",
+        "replace": "\"Out\""
+    },
+    {
+        "find": "\"Override Settings\"",
+        "replace": "\"Override Settings\""
+    },
+    {
+        "find": "\"Parry Override: Mash Actions to be performed after a parry\"",
+        "replace": "\"Parry Override: Mash Actions to be performed after a parry\""
+    },
+    {
+        "find": "\"Parry\"",
+        "replace": "\"Parry\""
+    },
+    {
+        "find": "\"Part Name\"",
+        "replace": "\"Part Name\""
+    },
+    {
+        "find": "\"Playback Button Slots: Choose which slots to playback input recording upon pressing button combination\"",
+        "replace": "\"Playback Button Slots: Choose which slots to playback input recording upon pressing button combination\""
+    },
+    {
+        "find": "\"Playback Button Slots\"",
+        "replace": "\"Playback Button Slots\""
+    },
+    {
+        "find": "\"Playback Hitstun Timing: When to begin playing back inputs when a hitstun mash trigger occurs\"",
+        "replace": "\"Playback Hitstun Timing: When to begin playing back inputs when a hitstun mash trigger occurs\""
+    },
+    {
+        "find": "\"Playback Hitstun Timing\"",
+        "replace": "\"Playback Hitstun Timing\""
+    },
+    {
+        "find": "\"Playback Loop: Repeat triggered input playbacks indefinitely\"",
+        "replace": "\"Playback Loop: Repeat triggered input playbacks indefinitely\""
+    },
+    {
+        "find": "\"Playback Loop\"",
+        "replace": "\"Playback Loop\""
+    },
+    {
+        "find": "\"Playback Mash Interrupt: End input playback when a mash trigger occurs\"",
+        "replace": "\"Playback Mash Interrupt: End input playback when a mash trigger occurs\""
+    },
+    {
+        "find": "\"Playback Mash Interrupt\"",
+        "replace": "\"Playback Mash Interrupt\""
+    },
+    {
+        "find": "\"Playback Slot 1\"",
+        "replace": "\"Playback Slot 1\""
+    },
+    {
+        "find": "\"Playback Slot 2\"",
+        "replace": "\"Playback Slot 2\""
+    },
+    {
+        "find": "\"Playback Slot 3\"",
+        "replace": "\"Playback Slot 3\""
+    },
+    {
+        "find": "\"Playback Slot 4\"",
+        "replace": "\"Playback Slot 4\""
+    },
+    {
+        "find": "\"Playback Slot 5\"",
+        "replace": "\"Playback Slot 5\""
+    },
+    {
+        "find": "\"Playback\"",
+        "replace": "\"Playback\""
+    },
+    {
+        "find": "\"Player 1st Var.\"",
+        "replace": "\"Player 1st Var.\""
+    },
+    {
+        "find": "\"Player 2nd Var.\"",
+        "replace": "\"Player 2nd Var.\""
+    },
+    {
+        "find": "\"Player 3rd Var.\"",
+        "replace": "\"Player 3rd Var.\""
+    },
+    {
+        "find": "\"Player 4th Var.\"",
+        "replace": "\"Player 4th Var.\""
+    },
+    {
+        "find": "\"Player 5th Var.\"",
+        "replace": "\"Player 5th Var.\""
+    },
+    {
+        "find": "\"Player 6th Var.\"",
+        "replace": "\"Player 6th Var.\""
+    },
+    {
+        "find": "\"Player 7th Var.\"",
+        "replace": "\"Player 7th Var.\""
+    },
+    {
+        "find": "\"Player 8th Var.\"",
+        "replace": "\"Player 8th Var.\""
+    },
+    {
+        "find": "\"Power Dragon\"",
+        "replace": "\"Power Dragon\""
+    },
+    {
+        "find": "\"Psyche Up\"",
+        "replace": "\"Psyche Up\""
+    },
+    {
+        "find": "\"Pummel Delay: How many frames after a grab to wait before starting to pummel\"",
+        "replace": "\"Pummel Delay: How many frames after a grab to wait before starting to pummel\""
+    },
+    {
+        "find": "\"Pummel Delay\"",
+        "replace": "\"Pummel Delay\""
+    },
+    {
+        "find": "\"Random Value\"",
+        "replace": "\"Random Value\""
+    },
+    {
+        "find": "\"Random\"",
+        "replace": "\"Random\""
+    },
+    {
+        "find": "\"Randomize Slots: Slots to randomize when loading save state.\"",
+        "replace": "\"Randomize Slots: Slots to randomize when loading save state.\""
+    },
+    {
+        "find": "\"Randomize Slots\"",
+        "replace": "\"Randomize Slots\""
+    },
+    {
+        "find": "\"Raw Inputs\"",
+        "replace": "\"Raw Inputs\""
+    },
+    {
+        "find": "\"Reaction Time: How many frames to delay before performing a mash option\"",
+        "replace": "\"Reaction Time: How many frames to delay before performing a mash option\""
+    },
+    {
+        "find": "\"Reaction Time\"",
+        "replace": "\"Reaction Time\""
+    },
+    {
+        "find": "\"Recording Crop: Remove neutral input frames at the end of your recording\"",
+        "replace": "\"Recording Crop: Remove neutral input frames at the end of your recording\""
+    },
+    {
+        "find": "\"Recording Crop\"",
+        "replace": "\"Recording Crop\""
+    },
+    {
+        "find": "\"Recording Duration: How long an input recording should last in frames\"",
+        "replace": "\"Recording Duration: How long an input recording should last in frames\""
+    },
+    {
+        "find": "\"Recording Duration\"",
+        "replace": "\"Recording Duration\""
+    },
+    {
+        "find": "\"Recording Slot: Choose which slot to record into\"",
+        "replace": "\"Recording Slot: Choose which slot to record into\""
+    },
+    {
+        "find": "\"Recording Slot\"",
+        "replace": "\"Recording Slot\""
+    },
+    {
+        "find": "\"Recording Trigger: Whether to begin recording via button combination or upon loading a Save State\"",
+        "replace": "\"Recording Trigger: Whether to begin recording via button combination or upon loading a Save State\""
+    },
+    {
+        "find": "\"Recording Trigger\"",
+        "replace": "\"Recording Trigger\""
+    },
+    {
+        "find": "\"Recording\"",
+        "replace": "\"Recording\""
+    },
+    {
+        "find": "\"Reset All\"",
+        "replace": "\"Reset All\""
+    },
+    {
+        "find": "\"Reset Current\"",
+        "replace": "\"Reset Current\""
+    },
+    {
+        "find": "\"Reset\"",
+        "replace": "\"Reset\""
+    },
+    {
+        "find": "\"Right\"",
+        "replace": "\"Right\""
+    },
+    {
+        "find": "\"Roll Backwards\"",
+        "replace": "\"Roll Backwards\""
+    },
+    {
+        "find": "\"Roll Forwards\"",
+        "replace": "\"Roll Forwards\""
+    },
+    {
+        "find": "\"Roll\"",
+        "replace": "\"Roll\""
+    },
+    {
+        "find": "\"Save Damage: Should save states retain CPU damage\"",
+        "replace": "\"Save Damage: Should save states retain CPU damage\""
+    },
+    {
+        "find": "\"Save Damage: Should save states retain player damage\"",
+        "replace": "\"Save Damage: Should save states retain player damage\""
+    },
+    {
+        "find": "\"Save Defaults\"",
+        "replace": "\"Save Defaults\""
+    },
+    {
+        "find": "\"Save Dmg (CPU)\"",
+        "replace": "\"Save Dmg (CPU)\""
+    },
+    {
+        "find": "\"Save Dmg (Player)\"",
+        "replace": "\"Save Dmg (Player)\""
+    },
+    {
+        "find": "\"Save State Load: Hold any one button and press the others to trigger\"",
+        "replace": "\"Save State Load: Hold any one button and press the others to trigger\""
+    },
+    {
+        "find": "\"Save State Load\"",
+        "replace": "\"Save State Load\""
+    },
+    {
+        "find": "\"Save State Playback: Choose which slots to playback input recording upon loading a save state\"",
+        "replace": "\"Save State Playback: Choose which slots to playback input recording upon loading a save state\""
+    },
+    {
+        "find": "\"Save State Playback\"",
+        "replace": "\"Save State Playback\""
+    },
+    {
+        "find": "\"Save State Save: Hold any one button and press the others to trigger\"",
+        "replace": "\"Save State Save: Hold any one button and press the others to trigger\""
+    },
+    {
+        "find": "\"Save State Save\"",
+        "replace": "\"Save State Save\""
+    },
+    {
+        "find": "\"Save State Slot: Save and load states from different slots.\"",
+        "replace": "\"Save State Slot: Save and load states from different slots.\""
+    },
+    {
+        "find": "\"Save State Slot\"",
+        "replace": "\"Save State Slot\""
+    },
+    {
+        "find": "\"Save State\"",
+        "replace": "\"Save State\""
+    },
+    {
+        "find": "\"Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.\"",
+        "replace": "\"Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.\""
+    },
+    {
+        "find": "\"Save States\"",
+        "replace": "\"Save States\""
+    },
+    {
+        "find": "\"SDI Direction: Direction to angle the smash directional influence during hitlag\"",
+        "replace": "\"SDI Direction: Direction to angle the smash directional influence during hitlag\""
+    },
+    {
+        "find": "\"SDI Direction\"",
+        "replace": "\"SDI Direction\""
+    },
+    {
+        "find": "\"SDI Strength: Relative strength of the smash directional influence inputs\"",
+        "replace": "\"SDI Strength: Relative strength of the smash directional influence inputs\""
+    },
+    {
+        "find": "\"SDI Strength\"",
+        "replace": "\"SDI Strength\""
+    },
+    {
+        "find": "\"Shield Tilt: Direction to tilt the shield\"",
+        "replace": "\"Shield Tilt: Direction to tilt the shield\""
+    },
+    {
+        "find": "\"Shield Tilt\"",
+        "replace": "\"Shield Tilt\""
+    },
+    {
+        "find": "\"Shield Toggles: CPU Shield Behavior\"",
+        "replace": "\"Shield Toggles: CPU Shield Behavior\""
+    },
+    {
+        "find": "\"Shield Toggles\"",
+        "replace": "\"Shield Toggles\""
+    },
+    {
+        "find": "\"Shield\"",
+        "replace": "\"Shield\""
+    },
+    {
+        "find": "\"Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state\"",
+        "replace": "\"Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state\""
+    },
+    {
+        "find": "\"Shieldstun\"",
+        "replace": "\"Shieldstun\""
+    },
+    {
+        "find": "\"Side Special\"",
+        "replace": "\"Side Special\""
+    },
+    {
+        "find": "\"Slot 1\"",
+        "replace": "\"Slot 1\""
+    },
+    {
+        "find": "\"Slot 2\"",
+        "replace": "\"Slot 2\""
+    },
+    {
+        "find": "\"Slot 3\"",
+        "replace": "\"Slot 3\""
+    },
+    {
+        "find": "\"Slot 4\"",
+        "replace": "\"Slot 4\""
+    },
+    {
+        "find": "\"Slot 5\"",
+        "replace": "\"Slot 5\""
+    },
+    {
+        "find": "\"Smash Inputs\"",
+        "replace": "\"Smash Inputs\""
+    },
+    {
+        "find": "\"Smash\"",
+        "replace": "\"Smash\""
+    },
+    {
+        "find": "\"Speed\"",
+        "replace": "\"Speed\""
+    },
+    {
+        "find": "\"Spot Dodge\"",
+        "replace": "\"Spot Dodge\""
+    },
+    {
+        "find": "\"Stable\"",
+        "replace": "\"Stable\""
+    },
+    {
+        "find": "\"Stage Hazards: Turn stage hazards on/off\"",
+        "replace": "\"Stage Hazards: Turn stage hazards on/off\""
+    },
+    {
+        "find": "\"Stage Hazards\"",
+        "replace": "\"Stage Hazards\""
+    },
+    {
+        "find": "\"Standby\"",
+        "replace": "\"Standby\""
+    },
+    {
+        "find": "\"Status Only\"",
+        "replace": "\"Status Only\""
+    },
+    {
+        "find": "\"Tech Action Override: Mash Actions to be performed after any tech action\"",
+        "replace": "\"Tech Action Override: Mash Actions to be performed after any tech action\""
+    },
+    {
+        "find": "\"Tech Action\"",
+        "replace": "\"Tech Action\""
+    },
+    {
+        "find": "\"Tech In Place\"",
+        "replace": "\"Tech In Place\""
+    },
+    {
+        "find": "\"Tech Option\"",
+        "replace": "\"Tech Option\""
+    },
+    {
+        "find": "\"Tech Options: Actions to take when slammed into a hard surface\"",
+        "replace": "\"Tech Options: Actions to take when slammed into a hard surface\""
+    },
+    {
+        "find": "\"Tech Options\"",
+        "replace": "\"Tech Options\""
+    },
+    {
+        "find": "\"Throw Delay: How many frames to delay the throw option\"",
+        "replace": "\"Throw Delay: How many frames to delay the throw option\""
+    },
+    {
+        "find": "\"Throw Delay\"",
+        "replace": "\"Throw Delay\""
+    },
+    {
+        "find": "\"Throw Options: Throw to be performed when a grab is landed\"",
+        "replace": "\"Throw Options: Throw to be performed when a grab is landed\""
+    },
+    {
+        "find": "\"Throw Options\"",
+        "replace": "\"Throw Options\""
+    },
+    {
+        "find": "\"Training Modpack\"",
+        "replace": "\"Training Modpack\""
+    },
+    {
+        "find": "\"True\"",
+        "replace": "\"True\""
+    },
+    {
+        "find": "\"Tumble Override: Mash Actions to be performed after exiting a tumble state\"",
+        "replace": "\"Tumble Override: Mash Actions to be performed after exiting a tumble state\""
+    },
+    {
+        "find": "\"Tumble\"",
+        "replace": "\"Tumble\""
+    },
+    {
+        "find": "\"Unique Devices\"",
+        "replace": "\"Unique Devices\""
+    },
+    {
+        "find": "\"Unique Sessions\"",
+        "replace": "\"Unique Sessions\""
+    },
+    {
+        "find": "\"Up Air\"",
+        "replace": "\"Up Air\""
+    },
+    {
+        "find": "\"Up In\"",
+        "replace": "\"Up In\""
+    },
+    {
+        "find": "\"Up Out\"",
+        "replace": "\"Up Out\""
+    },
+    {
+        "find": "\"Up Smash\"",
+        "replace": "\"Up Smash\""
+    },
+    {
+        "find": "\"Up Special\"",
+        "replace": "\"Up Special\""
+    },
+    {
+        "find": "\"Up Throw\"",
+        "replace": "\"Up Throw\""
+    },
+    {
+        "find": "\"Up Tilt\"",
+        "replace": "\"Up Tilt\""
+    },
+    {
+        "find": "\"Up\"",
+        "replace": "\"Up\""
+    },
+    {
+        "find": "\"Wait\"",
+        "replace": "\"Wait\""
+    },
+    {
+        "find": "\"Welcome!\"",
+        "replace": "\"Welcome!\""
+    },
+    {
+        "find": "\"Yes\"",
+        "replace": "\"Yes\""
+    }
+]

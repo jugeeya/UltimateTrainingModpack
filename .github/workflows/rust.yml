@@ -41,11 +41,13 @@ jobs:
         with:
           command: test
           directory: training_mod_tui
-  plugin:
-    name: Plugin NRO
+  plugin_en_US:
+    name: Plugin NRO (en_US)
     runs-on: ubuntu-latest
+    env:
+      LANG: en_US
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
         with:
           target: x86_64-unknown-linux-gnu
@@ -58,65 +60,63 @@ jobs:
         run: |
           cargo install cargo-skyline
           cargo-skyline skyline update-std
+      - name: Minify JSON
+        uses: StefanEnsmann/Minify-JSON-Action@1.1.0
+        with:
+          input_file: locales/${{env.LANG}}.json
+          output_file: locales/${{env.LANG}}.min.json
+      - name: Load Localized Strings
+        id: localization
+        run: echo "json=$(cat locales/${{env.LANG}}.min.json)" >> $GITHUB_OUTPUT
+      - name: Replace Strings with Localized Versions
+        uses: flcdrg/replace-multiple-action@v2.0.2
+        with:
+          files: '**/*.rs'
+          find: ${{ steps.localization.outputs.json }}
       - name: Build release NRO
         id: build_release
         run: RUSTFLAGS=-g cargo-skyline skyline build --release
+      - name: Rename release NRO
+        id: rename_nro
+        run: mv target/aarch64-skyline-switch/release/libtraining_modpack.nro target/aarch64-skyline-switch/release/libtraining_modpack_${{env.LANG}}.nro
       - name: Upload plugin artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: plugin
-          path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-  plugin_outside_training_mode:
-    name: Plugin NRO (Outside Training Mode)
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          target: x86_64-unknown-linux-gnu
-      - uses: Swatinem/rust-cache@v2
-        name: Rust Cache
-        with:
-          prefix-key: "plugin"
-          cache-all-crates: true
-      - name: Install Skyline
-        run: |
-          cargo install cargo-skyline
-          cargo-skyline skyline update-std
-      - name: Build outside_training_mode NRO
-        run: RUSTFLAGS=-g cargo-skyline skyline build --release --features outside_training_mode
-      - name: Upload plugin (outside training mode) artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: plugin_outside_training_mode
-          path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
+          name: plugin-${{env.LANG}}
+          path: target/aarch64-skyline-switch/release/libtraining_modpack_${{env.LANG}}.nro
   upload:
     name: Upload Beta Release
+    permissions: write-all
     runs-on: ubuntu-latest
+    env:
+      RELEASE_DIR: release
+      SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
     if: github.ref == 'refs/heads/main'
     needs:
-      - plugin
+      - plugin_en_US
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
-      - name: Prepare zip
-        id: prepare_zip
-        env:
-          SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
+      - uses: actions/checkout@v4
+      - name: Setup Directories
         run: |
-          mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
-          cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
+          mkdir -p ${{env.RELEASE_DIR}}
+          mkdir -p ${{env.SMASH_PLUGIN_DIR}}
           wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.1/libparam_hook.nro
           wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
-          zip -r training_modpack_beta.zip atmosphere
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      - name: Prepare zip (en_US)
+        env:
+          LANG: en_US
+        run: |
+          rm -f ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack*.nro
+          cp plugin-${{env.LANG}}/libtraining_modpack_${{env.LANG}}.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack_${{env.LANG}}.nro
+          zip -r training_modpack_beta_${{env.LANG}}.zip atmosphere
+          mv training_modpack_beta_${{env.LANG}}.zip ${{env.RELEASE_DIR}}
       - name: Delete Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
-        with:
-          tag_name: beta 
-          delete_release: true 
+        continue-on-error: true
+        run: gh release delete beta --cleanup-tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update Release
@@ -126,6 +126,8 @@ jobs:
           prerelease: true
           allow_override: true
           gzip: false
+          files: |
+            release/training_modpack_beta_en_US.zip
           tag: beta
           commitish: main
           name: beta
@@ -209,11 +211,4 @@ jobs:
                                         ├── libnro_hook.nro
                                         ├── libparam_hook.nro
                                         └── libtraining_modpack.nro
-            ``` 
-          files: >
-            training_modpack_beta.zip
-      - name: Upload zip as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: full_build
-          path: training_modpack_beta.zip 
+            ```
