@@ -104,7 +104,7 @@ pub unsafe fn handle_buffs(
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let buff_vec: Vec<BuffOption> = MENU.buff_state.to_vec();
+    let buff_vec: Vec<BuffOption> = MENU.buff_state.hero_buffs().to_vec();
     if !is_buffing(module_accessor) {
         // Initial set up for spells
         start_buff(module_accessor);
