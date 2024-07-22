@@ -1,6 +1,5 @@
 #![allow(dead_code)] // For Debug
 #![allow(unused_imports)]
-#![cfg(debug_assertions)]
 use crate::common::is_operation_cpu;
 use crate::common::offsets::OFFSET_IS_VISIBLE_BACKSHIELD;
 use smash::app::{lua_bind::*, smashball::is_training_mode, utility, BattleObjectModuleAccessor};
