@@ -563,7 +563,7 @@ impl_toggletrait! {
     OnOff,
     "Dodge Staling",
     "stale_dodges",
-    "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)",
+    "Dodge Staling: Controls whether the CPU dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)",
     true,
     1,
 }
@@ -647,7 +647,7 @@ impl_toggletrait! {
     CharacterItem,
     "Character Item",
     "character_item",
-    "Character Item: The item to give to the player's fighter when loading a save state",
+    "Character Item: The item to give to the player fighter when loading a save state",
     true,
     1,
 }
