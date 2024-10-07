@@ -307,31 +307,6 @@ SD Card Root
                         └── libtraining_modpack.nro
 ```
 
-## Installation on Ryujinx Emulator on PC
-Exact same process as above, but the filepaths are in Ryujinx's mod paths.
-
-1) Extract the contents of the TrainingModpack .zip (`atmosphere` folder). Within that folder, you'll have a `contents` folder. Paste the `contents` folder inside atmosphere into `%AppData%/Ryujinx/mods/`.
-2) Similarly, extracted contents of the Skyline .zip (`exefs` folder) into into `%AppData%/Ryujinx/mods/contents/01006a800016e000`.
-3) No files need to be manually deleted when upgrading from a previous version. 
-4) The Ryujinx mods folder should have the files below at these locations.
-
-```
-%AppData%
-└── Ryujinx/
-    └── mods/
-      └── contents/
-          └── 01006A800016E000/
-              ├── exefs/
-              │   ├── subsdk9 
-              │   └── main.npdm
-              └── romfs/
-                  └── skyline/
-                      └── plugins/
-                          ├── libnro_hook.nro
-                          ├── libparam_hook.nro
-                          └── libtraining_modpack.nro
-```
-
 ## Beta Installation
 
 To install a beta version of the modpack, follow the same procedure using the [latest beta release](https://github.com/jugeeya/UltimateTrainingModpack/tree/beta) on Github. Beta releases may have additional features and bugfixes, but are subject to change.
@@ -358,9 +333,7 @@ To install a beta version of the modpack, follow the same procedure using the [l
 6. **Do I need an emuMMC?**
 
    No, an emuMMC is not required for smash mods. Using an emuMMC is complicated and a known ban risk when connected online, so it is not recommended.
-7. **Can this mod be run on emulators?**
 
-   Yes, using Yuzu or Ryujinx! See the installation instructions for more information.
 8. **How do I know that I installed the Training Modpack correctly?**
 
    When launching Smash for the first time after installing the Training Modpack, you should receive a pop up notification confirming that you've installed it correctly. You can also check your SD card to make sure that you have all of the files installed in the correct location. If you have the following files, its likely that everything else is installed correctly as well. `SD:/atmosphere/contents/01006A800016E000/exefs/main.npdm`, `SD:/atmosphere/contents/01006A800016E000/romfs/skyline/plugins/libtraining_modpack.nro`, etc.
@@ -457,24 +430,6 @@ To build the entire modpack including supporting files, use the steps in the [Gi
 
 ## Prerequisites
 - Stable Rust environment with [cargo-skyline](https://github.com/jam1garner/cargo-skyline)
-
-## Development Tips
-
-### Ryujinx
-
-Developing on Ryujinx on Windows is very easy and has a streamlined script in [ryujinx_build.ps1](./ryujinx_build.ps1).
-
-1. Drag-and-drop the normal beta at the Ryujinx paths as described in Installation.
-2. Delete the `libtraining_modpack.nro` that is used in those paths.
-3. Edit the paths at the top of the file to match your local filesystem
-4. On your first run, you may have to run the script as Administrator in order to set up the symlinks to this repo's built files.
-    - Both the plugin and the [layout.arc](./src/static/layout.arc) will be sourced automatically via symlink
-5. Run the script to iterate and develop.
-    - Logs will be printed to console. 
-    - Since we are using the feature `layout-arc-from-file`, you can edit [layout.arc](./src/static/layout.arc) in real-time with Switch Toolbox and reload training mode without rebooting to view your changes.
-    - If you'd like to exit, you can CTRL+C the script and Ryujinx will also close.
-
-
 
 <a name="beta-changelog"/>
 
