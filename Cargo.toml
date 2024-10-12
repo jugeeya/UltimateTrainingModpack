@@ -46,6 +46,7 @@ native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", branch = "
 nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs" }
 rand = { git = "https://github.com/skyline-rs/rand" }
 getrandom = { git = "https://github.com/Raytwo/getrandom" }
+skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
 
 [profile.dev]
 panic = "abort"
