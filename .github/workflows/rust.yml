@@ -56,7 +56,7 @@ jobs:
           cache-all-crates: true
       - name: Install Skyline
         run: |
-          cargo install cargo-skyline
+          cargo install --git https://github.com/Raytwo/cargo-skyline --branch std-change --force
           cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
@@ -82,7 +82,7 @@ jobs:
           cache-all-crates: true
       - name: Install Skyline
         run: |
-          cargo install cargo-skyline
+          cargo install --git https://github.com/Raytwo/cargo-skyline --branch std-change --force
           cargo-skyline skyline update-std
       - name: Build outside_training_mode NRO
         run: RUSTFLAGS=-g cargo-skyline skyline build --release --features outside_training_mode
@@ -107,7 +107,7 @@ jobs:
         run: |
           mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
           cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
-          wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.1/libparam_hook.nro
+          wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.3/libparam_hook.nro
           wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
           cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
           cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
