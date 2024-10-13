@@ -104,7 +104,7 @@ static NEEDLE_SET_CPU_CONTROLS: &[u8] = &[
 ];
 impl_offset!(SET_CPU_CONTROLS);
 
-// OFFSET_ADD_DAMAGE = 0x3ff9a0
+// OFFSET_ADD_DAMAGE = 0x3ff9c0
 static NEEDLE_ADD_DAMAGE: &[u8] = &[
     0x08, 0x20, 0x20, 0x1e,
     0x8d, 0x00, 0x00, 0x54,
@@ -114,7 +114,7 @@ static NEEDLE_ADD_DAMAGE: &[u8] = &[
 ];
 impl_offset!(ADD_DAMAGE);
 
-// OFFSET_CHANGE_ACTIVE_CAMERA = 0x4ee460
+// OFFSET_CHANGE_ACTIVE_CAMERA = 0x4ee480
 static NEEDLE_CHANGE_ACTIVE_CAMERA: &[u8] = &[
     0xff, 0x03, 0x02, 0xd1,
     0xf8, 0x5f, 0x04, 0xa9,
@@ -127,8 +127,7 @@ static NEEDLE_CHANGE_ACTIVE_CAMERA: &[u8] = &[
 ];
 impl_offset!(CHANGE_ACTIVE_CAMERA);
 
-// OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES = 0x3158830 (old: 0x3157bb0)
-
+// OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES = 0x3158850
 static NEEDLE_SET_TRAINING_FIXED_CAMERA_VALUES: &[u8] = &[
     0x01, 0xe4, 0x00, 0x2f,
     0x20, 0x00, 0xc0, 0x3d,
@@ -150,7 +149,7 @@ static NEEDLE_DRAW: &[u8] = &[
 ];
 impl_offset!(DRAW);
 
-// OFFSET_CLOUD_ADD_LIMIT = 0x8dc140
+// OFFSET_CLOUD_ADD_LIMIT = 0x8dc160
 static NEEDLE_CLOUD_ADD_LIMIT: &[u8] = &[
     0xff, 0x03, 0x03, 0xd1,
     0xe9, 0x23, 0x05, 0x6d,
@@ -190,7 +189,7 @@ static NEEDLE_STALE: &[u8] = &[
 impl_offset!(STALE);
 
 // todo!(Can we remove this and replace with SoundModule::play_se()?)
-// OFFSET_PLAY_SE = 0x4cf6a0
+// OFFSET_PLAY_SE = 0x4cf6c0
 static NEEDLE_PLAY_SE: &[u8] = &[
     0xa8, 0x00, 0x00, 0x12,
     0x9f, 0x00, 0x00, 0x72,
@@ -202,7 +201,7 @@ static NEEDLE_PLAY_SE: &[u8] = &[
 ];
 impl_offset!(PLAY_SE);
 
-// OFFSET_CAN_FUTTOBI_BACK = 0x260f950
+// OFFSET_CAN_FUTTOBI_BACK = 0x26105f0
 static NEEDLE_CAN_FUTTOBI_BACK: &[u8] = &[
     0x00, 0x07, 0x00, 0xb4,
     0x09, 0x04, 0x40, 0xf9,
@@ -219,7 +218,7 @@ static NEEDLE_CAN_FUTTOBI_BACK: &[u8] = &[
 ];
 impl_offset!(CAN_FUTTOBI_BACK);
 
-// OFFSET_REUSED_UI = 0x68cd80
+// OFFSET_REUSED_UI = 0x68cda0
 static NEEDLE_REUSED_UI: &[u8] = &[
     0xff, 0x43, 0x01, 0xd1,
     0xf5, 0x13, 0x00, 0xf9,
@@ -246,7 +245,7 @@ static NEEDLE_OPCF: &[u8] = &[
 ];
 impl_offset!(OPCF);
 
-// OFFSET_FIM = 0x17504a0
+// OFFSET_FIM = 0x1750f70
 static NEEDLE_FIM: &[u8] = &[
     0xff, 0x03, 0x02, 0xd1,
     0xf7, 0x23, 0x00, 0xf9,
@@ -259,7 +258,7 @@ static NEEDLE_FIM: &[u8] = &[
 ];
 impl_offset!(FIM);
 
-// OFFSET_SSS_TRAINING = 0x184d1d8
+// OFFSET_SSS_TRAINING = 0x184dcc8
 static NEEDLE_SSS_TRAINING: &[u8] = &[
     0x9f, 0xe3, 0x0b, 0x39,
     0x88, 0xbf, 0x0b, 0x39,
@@ -270,7 +269,7 @@ static NEEDLE_SSS_TRAINING: &[u8] = &[
 ];
 impl_offset!(SSS_TRAINING);
 
-// OFFSET_GENERATE_ARTICLE_FOR_TARGET = 0x3d40a0
+// OFFSET_GENERATE_ARTICLE_FOR_TARGET = 0x3d40c0
 static NEEDLE_GENERATE_ARTICLE_FOR_TARGET: &[u8] = &[
     0xf4, 0x4f, 0xbe, 0xa9,
     0xfd, 0x7b, 0x01, 0xa9,
@@ -281,7 +280,7 @@ static NEEDLE_GENERATE_ARTICLE_FOR_TARGET: &[u8] = &[
 ];
 impl_offset!(GENERATE_ARTICLE_FOR_TARGET);
 
-// OFFSET_KIRBY_OPFF = 0xb971b0
+// OFFSET_KIRBY_OPFF = 0xb971d0
 static NEEDLE_KIRBY_OPFF: &[u8] = &[
     0xff, 0x43, 0x02, 0xd1,
     0xfc, 0x6f, 0x03, 0xa9,
@@ -298,7 +297,7 @@ static NEEDLE_KIRBY_OPFF: &[u8] = &[
 ];
 impl_offset!(KIRBY_OPFF);
 
-// OFFSET_ACTIVATE_AUTONOMY = 0x34b5cf0
+// OFFSET_ACTIVATE_AUTONOMY = 0x34b6990
 static NEEDLE_ACTIVATE_AUTONOMY: &[u8] = &[
     0xf6, 0x57, 0xbd, 0xa9,
     0xf4, 0x4f, 0x01, 0xa9,
@@ -311,7 +310,7 @@ static NEEDLE_ACTIVATE_AUTONOMY: &[u8] = &[
 ];
 impl_offset!(ACTIVATE_AUTONOMY);
 
-// OFFSET_POKEMON_DECIDE = 0x34ce8e4
+// OFFSET_POKEMON_DECIDE = 0x34ce904
 static NEEDLE_POKEMON_DECIDE: &[u8] = &[
     0x28, 0x69, 0x2b, 0x38,
     0x48, 0x26, 0x8b, 0x52,
@@ -320,7 +319,7 @@ static NEEDLE_POKEMON_DECIDE: &[u8] = &[
 ];
 impl_offset!(POKEMON_DECIDE);
 
-// OFFSET_LAYOUT_ARC_MALLOC = 0x3773d54 (old: 0x37730d4)
+// OFFSET_LAYOUT_ARC_MALLOC = 0x3773d74
 static NEEDLE_LAYOUT_ARC_MALLOC: &[u8] = &[
     0xe3, 0xe6, 0x06, 0x94,
     0xa0, 0x05, 0x00, 0xb4,
