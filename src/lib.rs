@@ -28,6 +28,7 @@ use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
+use crate::sync::*;
 use crate::training::ui::notifications::notification;
 
 pub mod common;
@@ -76,10 +77,10 @@ pub fn main() {
 
     info!("Initialized.");
 
-    unsafe {
-        EVENT_QUEUE.push(Event::smash_open());
-        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-    }
+    let mut event_queue = lock_write_rwlock(&EVENT_QUEUE);
+    (*event_queue).push(Event::smash_open());
+    drop(event_queue);
+    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();

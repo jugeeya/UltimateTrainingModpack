@@ -1,22 +1,20 @@
-#![allow(clippy::unnecessary_unwrap)]
-use crate::common::dialog;
-use crate::consts::*;
-use crate::logging::*;
+use std::sync::LazyLock;
+
 use anyhow::{anyhow, Result};
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
 use serde_json::Value;
 use zip::ZipArchive;
 
-lazy_static! {
-    pub static ref CURRENT_VERSION: Mutex<String> = Mutex::new({
-        info!("Initialized lazy_static: CURRENT_VERSION");
-        match get_current_version() {
-            Ok(v) => v,
-            Err(e) => panic!("Could not find current modpack version!: {}", e),
-        }
-    });
-}
+use crate::common::dialog;
+use crate::consts::*;
+use crate::logging::*;
+
+pub static CURRENT_VERSION: LazyLock<String> = LazyLock::new(|| {
+    info!("Initialized lazy static value: CURRENT_VERSION");
+    match get_current_version() {
+        Ok(v) => v,
+        Err(e) => panic!("Could not find current modpack version!: {}", e),
+    }
+});
 
 #[derive(Debug)]
 pub struct Release {
@@ -72,8 +70,7 @@ impl Release {
         // alphabetical order == chronological order
         //
         // https://datatracker.ietf.org/doc/html/rfc3339#section-5.1
-        let current_version = CURRENT_VERSION.lock();
-        self.published_at.as_str() <= current_version.as_str()
+        self.published_at.as_str() <= (*CURRENT_VERSION).as_str()
     }
 }
 
@@ -190,10 +187,8 @@ pub fn perform_version_check() {
     };
     if release_to_apply.is_ok() {
         let published_at = release_to_apply.as_ref().unwrap().published_at.clone();
-        let current_version = CURRENT_VERSION.lock();
-        info!("Current version: {}", current_version);
+        info!("Current version: {}", *CURRENT_VERSION);
         info!("Github  version: {}", published_at);
-        drop(current_version); // Explicitly unlock, since we also acquire a lock in is_older_than_installed()
         if release_to_apply.as_ref().unwrap().is_older_than_installed() {
             release_to_apply = Err(anyhow!(
                 "Github version is not newer than the current installed version.",

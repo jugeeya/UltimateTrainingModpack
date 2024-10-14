@@ -209,7 +209,10 @@ pub fn handle_final_input_mapping(
                         assign_rwlock(&QUICK_MENU_ACTIVE, false);
                         let menu_json = app.get_serialized_settings_with_defaults();
                         set_menu_from_json(&menu_json);
-                        EVENT_QUEUE.push(Event::menu_open(menu_json));
+
+                        let mut event_queue_guard = lock_write_rwlock(&EVENT_QUEUE);
+                        (*event_queue_guard).push(Event::menu_open(menu_json));
+                        drop(event_queue_guard);
                     }
                 });
                 button_mapping(ButtonConfig::X, style, button_presses).then(|| {
