@@ -1,6 +1,4 @@
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-#![allow(unused_variables)]
+use std::sync::LazyLock;
 
 use skyline::error::show_error;
 use skyline::hook;
@@ -8,11 +6,11 @@ use skyline::hooks::A64InlineHook;
 use skyline::text_iter::{add_get_imm, adrp_get_imm, Instruction::*, TextIter};
 use smash::app::smashball::is_training_mode;
 
-use HazardState::*;
-use HookState::*;
-
 use crate::common::consts::*;
 use crate::logging::*;
+
+use HazardState::*;
+use HookState::*;
 
 enum HazardState {
     Begin,
@@ -28,6 +26,9 @@ enum HookState {
     Adrp1,
     Ldrsw2,
 }
+
+static HAZARD_FLAG_ADDRESS: LazyLock<usize> = LazyLock::new(get_hazard_flag_address);
+static LOAD_ADDRESS: LazyLock<usize> = LazyLock::new(get_hazard_hook_address);
 
 fn get_hazard_flag_address() -> usize {
     let mut state = HazardState::Begin;
@@ -81,12 +82,8 @@ fn get_hazard_hook_address() -> usize {
     flag_pos
 }
 
-// 8.1.0 Defaults
-static mut HAZARD_FLAG_ADDRESS: *mut u8 = 0x04eb_bf95 as *mut u8;
-static mut LOAD_ADDRESS: usize = 0x0214_bde8;
-
-#[hook(offset = LOAD_ADDRESS, inline)]
-fn hazard_intercept(ctx: &skyline::hooks::InlineCtx) {
+#[hook(offset = *LOAD_ADDRESS, inline)]
+fn hazard_intercept(_ctx: &skyline::hooks::InlineCtx) {
     unsafe {
         if is_training_mode() {
             mod_handle_hazards();
@@ -96,22 +93,20 @@ fn hazard_intercept(ctx: &skyline::hooks::InlineCtx) {
 
 fn mod_handle_hazards() {
     unsafe {
-        *HAZARD_FLAG_ADDRESS = (MENU.stage_hazards == OnOff::ON) as u8;
+        let address = *HAZARD_FLAG_ADDRESS as *mut u8;
+        *address = (MENU.stage_hazards == OnOff::ON) as u8;
     }
 }
 
 unsafe fn validate_hazards_addrs() -> Result<(), ()> {
-    HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
-    LOAD_ADDRESS = get_hazard_hook_address();
-
     let mut error_string: String = String::new();
     let mut error_id = 0;
 
-    if HAZARD_FLAG_ADDRESS.is_null() {
+    if *HAZARD_FLAG_ADDRESS == 0 {
         error_string += &String::from("The Ultimate Training Modpack was unable to locate stage loading code in your version of the game.\n\n");
         error_id += 1000;
     }
-    if LOAD_ADDRESS == 0 {
+    if *LOAD_ADDRESS == 0 {
         error_string += &String::from("The Ultimate Training Modpack was unable to locate the global hazard address in your version of the game.\n\n");
         error_id += 1000;
     }
@@ -133,10 +128,8 @@ pub fn hazard_manager() {
     info!("Applying hazard control mods.");
     unsafe {
         if let Ok(()) = validate_hazards_addrs() {
-            HAZARD_FLAG_ADDRESS = get_hazard_flag_address() as *mut u8;
-            LOAD_ADDRESS = get_hazard_hook_address();
             A64InlineHook(
-                LOAD_ADDRESS as *const skyline::libc::c_void,
+                (*LOAD_ADDRESS) as *const skyline::libc::c_void,
                 hazard_intercept as *const skyline::libc::c_void,
             );
         }
