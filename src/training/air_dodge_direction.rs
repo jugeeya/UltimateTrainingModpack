@@ -5,9 +5,10 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
+use crate::sync::*;
 use crate::training::directional_influence::should_reverse_angle;
 
-static mut STICK_DIRECTION: Direction = Direction::empty();
+static STICK_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());
 
 pub unsafe fn mod_get_stick_x(
     module_accessor: &mut app::BattleObjectModuleAccessor,
@@ -31,9 +32,10 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Op
         return None;
     }
 
-    STICK_DIRECTION = MENU.air_dodge_dir.get_random();
-    STICK_DIRECTION.into_angle().map(|angle| {
-        if !should_reverse_angle(STICK_DIRECTION) {
+    assign_rwlock(&STICK_DIRECTION, MENU.air_dodge_dir.get_random());
+    let direction = read_rwlock(&STICK_DIRECTION);
+    direction.into_angle().map(|angle| {
+        if !should_reverse_angle(direction) {
             // Direction is LEFT/RIGHT, so don't perform any adjustment
             angle
         } else {
