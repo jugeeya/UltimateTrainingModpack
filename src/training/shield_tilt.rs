@@ -2,12 +2,13 @@ use smash::app::{self};
 
 use crate::common::consts::*;
 use crate::common::*;
+use crate::sync::*;
 
-static mut STICK_DIRECTION: Direction = Direction::OUT;
+static SHIELD_STICK_DIRECTION: RwLock<Direction> = RwLock::new(Direction::OUT);
 
 pub fn roll_direction() {
     unsafe {
-        STICK_DIRECTION = MENU.shield_tilt.get_random();
+        assign_rwlock(&SHIELD_STICK_DIRECTION, MENU.shield_tilt.get_random());
     }
 }
 
@@ -27,6 +28,6 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Op
     if !is_operation_cpu(module_accessor) {
         return None;
     }
-
-    STICK_DIRECTION.into_angle()
+    let stick_direction = read_rwlock(&SHIELD_STICK_DIRECTION);
+    stick_direction.into_angle()
 }
