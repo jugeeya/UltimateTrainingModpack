@@ -708,7 +708,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         MIRROR_STATE = 1.0;
         save_state_player(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
         save_state_cpu(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
-        notifications::clear_notifications("Save State");
+        notifications::clear_notifications_except("Save State");
         notifications::notification(
             "Save State".to_string(),
             format!("Saved Slot {}", MENU.save_state_slot),

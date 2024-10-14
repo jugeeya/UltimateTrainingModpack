@@ -17,7 +17,7 @@ use crate::common::{
     get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
 };
 use crate::training::mash;
-use crate::training::ui::notifications::{clear_notifications, color_notification};
+use crate::training::ui::notifications::{clear_notifications_except, color_notification};
 use crate::{error, warn};
 
 #[derive(PartialEq, Debug)]
@@ -204,7 +204,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             lockout_record();
         }
         if INPUT_RECORD == None {
-            clear_notifications("Input Recording");
+            clear_notifications_except("Input Recording");
         }
         // Handle recording end
         if (INPUT_RECORD == Record || INPUT_RECORD == Playback)
@@ -239,7 +239,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 
     // Handle Possession Coloring
     if entry_id_int == 1 && POSSESSION == Lockout {
-        clear_notifications("Input Recording");
+        clear_notifications_except("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Lockout".to_owned(),
@@ -259,7 +259,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
     } else if entry_id_int == 1 && POSSESSION == Standby {
-        clear_notifications("Input Recording");
+        clear_notifications_except("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Standby".to_owned(),
@@ -279,7 +279,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
     } else if entry_id_int == 1 && POSSESSION == Cpu {
-        clear_notifications("Input Recording");
+        clear_notifications_except("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Recording".to_owned(),
@@ -302,7 +302,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
         // Displays if the inputs from the current frame were a result of playback
         if INPUT_RECORD_FRAME == 0 || INPUT_RECORD_FRAME == 1 {
             // can be either, seems like a thread issue
-            clear_notifications("Input Recording");
+            clear_notifications_except("Input Recording");
             color_notification(
                 "Input Recording".to_string(),
                 "Playback".to_owned(),

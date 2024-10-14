@@ -3,6 +3,7 @@ use training_mod_consts::OnOff;
 
 use crate::common::*;
 use crate::training::*;
+use crate::training::ui::notifications;
 
 use once_cell::sync::Lazy;
 
@@ -48,9 +49,9 @@ fn update_frame_advantage(new_frame_adv: i32) {
         FRAME_ADVANTAGE = new_frame_adv;
         if MENU.frame_advantage == OnOff::ON {
             // Prioritize Frame Advantage over Input Recording Playback
-            ui::notifications::clear_notifications("Input Recording");
-            ui::notifications::clear_notifications("Frame Advantage");
-            ui::notifications::color_notification(
+            notifications::clear_notifications_except("Input Recording");
+            notifications::clear_notifications_except("Frame Advantage");
+            notifications::color_notification(
                 "Frame Advantage".to_string(),
                 format!("{FRAME_ADVANTAGE}"),
                 60,

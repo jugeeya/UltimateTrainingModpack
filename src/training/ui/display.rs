@@ -1,12 +1,11 @@
-use std::ptr::addr_of_mut;
-
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 
 use crate::common::menu::QUICK_MENU_ACTIVE;
 use crate::common::TRAINING_MENU_ADDR;
 use crate::sync::*;
-use crate::training::ui;
+use crate::training::ui::notifications::*;
+
 macro_rules! display_parent_fmt {
     ($x:ident) => {
         format!("TrModDisp{}", $x).as_str()
@@ -26,22 +25,23 @@ macro_rules! display_txt_fmt {
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
-    let notification_idx = 0;
-
-    let queue = addr_of_mut!(ui::notifications::QUEUE);
     if (*TRAINING_MENU_ADDR).combo_display_toggle == 0 {
         // User has turned off the "combo display" option in the vanilla menu
         // Remove all notifications from the queue so we don't show them
         // This will also set the pane's visibility to false
-        (*queue).clear();
+        clear_all_notifications();
     }
 
-    let notification = (*queue).first_mut();
+    let notification_idx = 0;
+    let mut queue_lock = lock_write_rwlock(&NOTIFICATIONS_QUEUE);
+
+    let notification = (*queue_lock).first_mut();
 
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
         .unwrap()
         .set_visible(notification.is_some() && !read_rwlock(&QUICK_MENU_ACTIVE));
+
     if notification.is_none() {
         return;
     }
@@ -67,8 +67,8 @@ pub unsafe fn draw(root_pane: &Pane) {
         text.set_color(color.r, color.g, color.b, color.a);
     }
 
-    let has_completed = notification.check_completed();
-    if has_completed {
-        (*queue).remove(0);
+    if notification.has_completed() {
+        (*queue_lock).remove(0);
     }
+    drop(queue_lock);
 }
