@@ -7,16 +7,18 @@ use std::ptr::addr_of;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
+use std::sync::RwLock;
 
 use crate::common::button_config::button_mapping;
 use crate::common::*;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::*;
 use crate::logging::*;
+use crate::sync::*;
 use crate::training::frame_counter;
 
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
-pub static mut QUICK_MENU_ACTIVE: bool = false;
+pub static QUICK_MENU_ACTIVE: RwLock<bool> = RwLock::new(false);
 
 pub unsafe fn menu_condition() -> bool {
     button_config::combo_passes(button_config::ButtonCombo::OpenMenu)
@@ -82,7 +84,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
 
 pub fn spawn_menu() {
     unsafe {
-        QUICK_MENU_ACTIVE = true;
+        assign_rwlock(&QUICK_MENU_ACTIVE, true);
         let mut app = QUICK_MENU_APP.lock();
         app.page = AppPage::SUBMENU;
         *MENU_RECEIVED_INPUT.data_ptr() = true;
@@ -149,7 +151,7 @@ pub fn handle_final_input_mapping(
                 frame_counter::reset_frame_count(*MENU_CLOSE_FRAME_COUNTER);
             }
 
-            if QUICK_MENU_ACTIVE {
+            if read_rwlock(&QUICK_MENU_ACTIVE) {
                 // If we're here, remove all other presses
                 *out = MappedInputs::empty();
 
@@ -166,7 +168,7 @@ pub fn handle_final_input_mapping(
                     .iter()
                     .all(|i| GetNpadStyleSet(i as *const _).flags == 0)
                 {
-                    QUICK_MENU_ACTIVE = false;
+                    assign_rwlock(&QUICK_MENU_ACTIVE, false);
                     return;
                 }
 
@@ -205,7 +207,7 @@ pub fn handle_final_input_mapping(
                     if app.page == AppPage::CLOSE {
                         // Leave menu.
                         frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
-                        QUICK_MENU_ACTIVE = false;
+                        assign_rwlock(&QUICK_MENU_ACTIVE, false);
                         let menu_json = app.get_serialized_settings_with_defaults();
                         set_menu_from_json(&menu_json);
                         EVENT_QUEUE.push(Event::menu_open(menu_json));

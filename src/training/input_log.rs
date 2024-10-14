@@ -2,7 +2,10 @@ use itertools::Itertools;
 use once_cell::sync::Lazy;
 use std::collections::VecDeque;
 
-use crate::common::{input::*, menu::QUICK_MENU_ACTIVE, try_get_module_accessor};
+use crate::common::input::*;
+use crate::menu::QUICK_MENU_ACTIVE;
+use crate::sync::*;
+use crate::try_get_module_accessor;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::ui2d::ResColor;
@@ -320,7 +323,7 @@ pub fn handle_final_input_mapping(
             return;
         }
 
-        if QUICK_MENU_ACTIVE {
+        if read_rwlock(&QUICK_MENU_ACTIVE) {
             return;
         }
 

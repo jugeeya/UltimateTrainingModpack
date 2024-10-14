@@ -4,15 +4,14 @@ use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_consts::{InputDisplay, MENU};
 
-use crate::{
-    common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
-    training::{
-        input_log::{
-            DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
-        },
-        ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
-    },
+use crate::common::consts::status_display_name;
+use crate::menu::QUICK_MENU_ACTIVE;
+use crate::sync::*;
+use crate::training::input_log::{
+    DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
 };
+use crate::training::ui::fade_out;
+use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
 macro_rules! log_parent_fmt {
     ($x:ident) => {
@@ -193,7 +192,9 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("TrModInputLog")
         .unwrap();
     logs_pane.set_visible(
-        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::NONE,
+        !read_rwlock(&QUICK_MENU_ACTIVE)
+            && !VANILLA_MENU_ACTIVE
+            && MENU.input_display != InputDisplay::NONE,
     );
     if MENU.input_display == InputDisplay::NONE {
         return;

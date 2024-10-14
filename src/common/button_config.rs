@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::common::*;
+use crate::sync::*;
 use crate::input::{ControllerStyle::*, *};
 use crate::training::frame_counter;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
@@ -198,7 +199,7 @@ lazy_static! {
 fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
         // Prevent button combos from passing if either the vanilla or mod menu is open
-        if VANILLA_MENU_ACTIVE || QUICK_MENU_ACTIVE {
+        if VANILLA_MENU_ACTIVE || read_rwlock(&QUICK_MENU_ACTIVE) {
             return false;
         }
 
@@ -264,7 +265,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
                 // Here, we just finished holding start
                 if *start_hold_frames > 0
                     && *start_hold_frames < 10
-                    && unsafe { !QUICK_MENU_ACTIVE }
+                    && !read_rwlock(&QUICK_MENU_ACTIVE)
                     && menu_close_wait_frame == 0
                 {
                     // If we held for fewer than 10 frames, let's let the game know that

@@ -36,6 +36,7 @@ mod hitbox_visualizer;
 mod training;
 
 mod logging;
+mod sync;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {

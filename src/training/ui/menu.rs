@@ -7,9 +7,13 @@ use training_mod_tui::{
     App, AppPage, ConfirmationState, SliderState, NX_SUBMENU_COLUMNS, NX_SUBMENU_ROWS,
 };
 
-use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES, MENU_RECEIVED_INPUT};
+use crate::common::menu::{
+    MENU_CLOSE_FRAME_COUNTER, MENU_CLOSE_WAIT_FRAMES, MENU_RECEIVED_INPUT, P1_CONTROLLER_STYLE,
+    QUICK_MENU_ACTIVE, QUICK_MENU_APP,
+};
+use crate::input::*;
+use crate::sync::*;
 use crate::training::frame_counter;
-use crate::{common, common::menu::QUICK_MENU_ACTIVE, input::*};
 use training_mod_consts::TOGGLE_MAX;
 
 use super::fade_out;
@@ -464,7 +468,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         != -80.0;
 
     let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
-    overall_parent_pane.set_visible(QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE);
+    overall_parent_pane.set_visible(read_rwlock(&QUICK_MENU_ACTIVE) && !VANILLA_MENU_ACTIVE);
     let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
     fade_out(
         overall_parent_pane,
@@ -514,7 +518,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("status_R")
         .expect("Unable to find status_R pane");
     // status_r_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
-    status_r_pane.set_visible(!QUICK_MENU_ACTIVE);
+    status_r_pane.set_visible(!read_rwlock(&QUICK_MENU_ACTIVE));
 
     root_pane
         .find_pane_by_name_recursive("TrModSlider")
@@ -524,7 +528,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     // Update menu display
     // Grabbing lock as read-only, essentially
     // We don't really need to change anything, but get_before_selected requires &mut self
-    let app = &mut *crate::common::menu::QUICK_MENU_APP.data_ptr();
+    let app = &mut *QUICK_MENU_APP.data_ptr();
 
     let tab_titles = [
         app.tabs
@@ -538,7 +542,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             .title,
     ];
 
-    let is_gcc = (*common::menu::P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
+    let is_gcc = (*P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
         GCC_BUTTON_MAPPING.clone()
     } else {
