@@ -1,6 +1,7 @@
 /// Convenience functions for interacting with RwLocks
 
-use std::sync::{RwLock, RwLockWriteGuard, RwLockReadGuard};
+pub use std::sync::RwLock;
+use std::sync::{RwLockWriteGuard, RwLockReadGuard};
 
 /// Gets a copy of a value inside a RwLock and immediately unlocks
 /// 

@@ -193,7 +193,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         .unwrap();
     logs_pane.set_visible(
         !read_rwlock(&QUICK_MENU_ACTIVE)
-            && !VANILLA_MENU_ACTIVE
+            && !read_rwlock(&VANILLA_MENU_ACTIVE)
             && MENU.input_display != InputDisplay::NONE,
     );
     if MENU.input_display == InputDisplay::NONE {

@@ -61,7 +61,7 @@ const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
     a: 255,
 };
 
-pub static mut VANILLA_MENU_ACTIVE: bool = false;
+pub static VANILLA_MENU_ACTIVE: RwLock<bool> = RwLock::new(false);
 
 lazy_static! {
     static ref GCC_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
@@ -461,14 +461,14 @@ pub unsafe fn draw(root_pane: &Pane) {
     // Determine if we're in the menu by seeing if the "help" footer has
     // begun moving upward. It starts at -80 and moves to 0 over 10 frames
     // in info_training_in_menu.bflan
-    VANILLA_MENU_ACTIVE = root_pane
+    assign_rwlock(&VANILLA_MENU_ACTIVE, root_pane
         .find_pane_by_name_recursive("L_staying_help")
         .unwrap()
         .pos_y
-        != -80.0;
+        != -80.0);
 
     let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
-    overall_parent_pane.set_visible(read_rwlock(&QUICK_MENU_ACTIVE) && !VANILLA_MENU_ACTIVE);
+    overall_parent_pane.set_visible(read_rwlock(&QUICK_MENU_ACTIVE) && !read_rwlock(&VANILLA_MENU_ACTIVE));
     let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
     fade_out(
         overall_parent_pane,

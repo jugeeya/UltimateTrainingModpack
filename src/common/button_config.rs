@@ -199,7 +199,7 @@ lazy_static! {
 fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
         // Prevent button combos from passing if either the vanilla or mod menu is open
-        if VANILLA_MENU_ACTIVE || read_rwlock(&QUICK_MENU_ACTIVE) {
+        if read_rwlock(&VANILLA_MENU_ACTIVE) || read_rwlock(&QUICK_MENU_ACTIVE) {
             return false;
         }
 
@@ -256,7 +256,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
                 p1_controller.current_buttons.set_plus(false);
                 p1_controller.just_down.set_plus(false);
                 p1_controller.just_release.set_plus(false);
-                if *start_hold_frames >= 10 && unsafe { !VANILLA_MENU_ACTIVE } {
+                if *start_hold_frames >= 10 && !read_rwlock(&VANILLA_MENU_ACTIVE) {
                     // If we've held for more than 10 frames,
                     // let's open the training mod menu
                     start_menu_request = true;
@@ -272,9 +272,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
                     // we had pressed start
                     p1_controller.current_buttons.set_plus(true);
                     p1_controller.just_down.set_plus(true);
-                    unsafe {
-                        VANILLA_MENU_ACTIVE = true;
-                    }
+                    assign_rwlock(&VANILLA_MENU_ACTIVE, true);
                 }
                 *start_hold_frames = 0;
             }

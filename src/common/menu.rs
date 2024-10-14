@@ -7,7 +7,6 @@ use std::ptr::addr_of;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
-use std::sync::RwLock;
 
 use crate::common::button_config::button_mapping;
 use crate::common::*;
