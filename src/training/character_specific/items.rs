@@ -8,6 +8,7 @@ use smash::lib::lua_const::*;
 use crate::common::consts::*;
 use crate::common::*;
 use crate::offsets::OFFSET_GENERATE_ARTICLE_FOR_TARGET;
+use crate::sync::*;
 use crate::training::mash;
 
 pub struct CharItem {
@@ -352,7 +353,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
             if player_fighter_kind != *FIGHTER_KIND_LINK {
                 ItemModule::drop_item(cpu_module_accessor, 0.0, 0.0, 0);
                 //ItemModule::eject_have_item(cpu_module_accessor, 0, false, false);
-                let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+                let item_mgr = *(read_rwlock(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
                 let item_ptr = ItemManager::get_active_item(item_mgr, 0);
                 ItemModule::have_item_instance(
                     player_module_accessor,
@@ -416,7 +417,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
                 false,
             );
             // Grab item from the middle of the stage where it gets shot
-            let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+            let item_mgr = *(read_rwlock(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
             let item = ItemManager::get_active_item(item_mgr, 0);
             ItemModule::have_item_instance(
                 player_module_accessor,

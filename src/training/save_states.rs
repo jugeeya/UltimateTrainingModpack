@@ -27,6 +27,7 @@ use crate::common::get_module_accessor;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
+use crate::sync::*;
 use crate::training::buff;
 use crate::training::character_specific::{ptrainer, steve};
 use crate::training::charge::{self, ChargeState};
@@ -383,7 +384,7 @@ pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjec
                 ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
             }
         });
-    let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+    let item_mgr = *(read_rwlock(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
     (0..ItemManager::get_num_of_active_item_all(item_mgr)).for_each(|item_idx| {
         let item = ItemManager::get_active_item(item_mgr, item_idx);
         if item != 0 {

@@ -10,6 +10,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
+use crate::sync::*;
 use crate::training::character_specific::{items, kirby, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
@@ -837,26 +838,33 @@ pub fn training_mods() {
     info!("Applying training mods.");
 
     unsafe {
+        let mut fighter_manager_addr_guard = lock_write_rwlock(&FIGHTER_MANAGER_ADDR);
         LookupSymbol(
-            addr_of_mut!(FIGHTER_MANAGER_ADDR),
+            addr_of_mut!(*fighter_manager_addr_guard),
             "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E\u{0}"
                 .as_bytes()
                 .as_ptr(),
         );
+        drop(fighter_manager_addr_guard);
 
+        // TODO!("This seems unused? Can we remove it?")
+        let mut stage_manager_addr_guard = lock_write_rwlock(&STAGE_MANAGER_ADDR);
         LookupSymbol(
-            addr_of_mut!(STAGE_MANAGER_ADDR),
+            addr_of_mut!(*stage_manager_addr_guard),
             "_ZN3lib9SingletonIN3app12StageManagerEE9instance_E\u{0}"
                 .as_bytes()
                 .as_ptr(),
         );
+        drop(stage_manager_addr_guard);
 
+        let mut item_manager_addr_guard = lock_write_rwlock(&ITEM_MANAGER_ADDR);
         LookupSymbol(
-            addr_of_mut!(ITEM_MANAGER_ADDR),
+            addr_of_mut!(*item_manager_addr_guard),
             "_ZN3lib9SingletonIN3app11ItemManagerEE9instance_E\0"
                 .as_bytes()
                 .as_ptr(),
         );
+        drop(item_manager_addr_guard);
 
         add_hook(params_main).unwrap();
     }

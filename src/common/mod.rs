@@ -6,6 +6,7 @@ use smash::lua2cpp::L2CFighterCommon;
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
 use crate::common::offsets::OFFSET_GET_BATTLE_OBJECT_FROM_ID;
+use crate::sync::*;
 use crate::training::character_specific::ptrainer;
 
 pub mod button_config;
@@ -21,9 +22,9 @@ pub mod release;
 
 pub static mut DEFAULTS_MENU: TrainingModpackMenu = consts::DEFAULTS_MENU;
 pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };
-pub static mut FIGHTER_MANAGER_ADDR: usize = 0;
-pub static mut ITEM_MANAGER_ADDR: usize = 0;
-pub static mut STAGE_MANAGER_ADDR: usize = 0;
+pub static FIGHTER_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);
+pub static ITEM_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);
+pub static STAGE_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);
 pub static mut TRAINING_MENU_ADDR: *mut PauseMenu = core::ptr::null_mut();
 
 #[cfg(not(feature = "outside_training_mode"))]
@@ -74,7 +75,7 @@ pub fn try_get_module_accessor(
     let entry_id_int = fighter_id as i32;
     let entry_id = app::FighterEntryID(entry_id_int);
     unsafe {
-        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+        let mgr = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
         let fighter_entry =
             FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
         if fighter_entry.is_null() {
@@ -105,7 +106,7 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
         }
 
         let entry_id = app::FighterEntryID(entry_id_int);
-        let mgr = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+        let mgr = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
         let fighter_information = FighterManager::get_fighter_information(mgr, entry_id);
 
         FighterInformation::is_operation_cpu(fighter_information)
@@ -269,12 +270,12 @@ pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccesso
 
 // Returns true if a match is currently active
 pub unsafe fn is_ready_go() -> bool {
-    let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+    let fighter_manager = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
     FighterManager::is_ready_go(fighter_manager)
 }
 
 pub unsafe fn entry_count() -> i32 {
-    let fighter_manager = *(FIGHTER_MANAGER_ADDR as *mut *mut app::FighterManager);
+    let fighter_manager = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
     FighterManager::entry_count(fighter_manager)
 }
 
