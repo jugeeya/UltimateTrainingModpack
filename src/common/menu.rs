@@ -8,13 +8,16 @@ use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
 
-use crate::common::button_config::button_mapping;
-use crate::common::*;
+use crate::common::{button_config, ButtonConfig};
+use crate::common::{DEFAULTS_MENU, MENU};
 use crate::events::{Event, EVENT_QUEUE};
-use crate::input::*;
+use crate::input::{ButtonBitfield, ControllerStyle, MappedInputs, SomeControllerStruct};
 use crate::logging::*;
 use crate::sync::*;
 use crate::training::frame_counter;
+
+use training_mod_consts::{create_app, InputControl, MenuJsonStruct, MENU_OPTIONS_PATH};
+use training_mod_tui::AppPage;
 
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static QUICK_MENU_ACTIVE: RwLock<bool> = RwLock::new(false);
@@ -196,11 +199,11 @@ pub fn handle_final_input_mapping(
                     });
 
                 let app = &mut *QUICK_MENU_APP.data_ptr(); // TODO: Why aren't we taking a lock here?
-                button_mapping(ButtonConfig::A, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::A, style, button_presses).then(|| {
                     app.on_a();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::B, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::B, style, button_presses).then(|| {
                     received_input = true;
                     app.on_b();
                     if app.page == AppPage::CLOSE {
@@ -215,24 +218,24 @@ pub fn handle_final_input_mapping(
                         drop(event_queue_guard);
                     }
                 });
-                button_mapping(ButtonConfig::X, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::X, style, button_presses).then(|| {
                     app.on_x();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
                     app.on_y();
                     received_input = true;
                 });
 
-                button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
                     app.on_zl();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
                     app.on_zr();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::R, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::R, style, button_presses).then(|| {
                     app.on_r();
                     received_input = true;
                 });
