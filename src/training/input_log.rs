@@ -1,13 +1,11 @@
 use itertools::Itertools;
-use once_cell::sync::Lazy;
 use std::collections::VecDeque;
+use std::sync::LazyLock;
 
 use crate::common::input::*;
 use crate::menu::QUICK_MENU_ACTIVE;
 use crate::sync::*;
 use crate::try_get_module_accessor;
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
 use skyline::nn::ui2d::ResColor;
 use smash::app::{lua_bind::*, utility};
 use training_mod_consts::{FighterId, InputDisplay, MENU};
@@ -63,13 +61,13 @@ pub const WHITE: ResColor = ResColor {
     a: 0,
 };
 
-pub static PER_LOG_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
-pub static OVERALL_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+pub static PER_LOG_FRAME_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+pub static OVERALL_FRAME_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
 
 pub const NUM_LOGS: usize = 15;
-pub static mut DRAW_LOG_BASE_IDX: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
+pub static DRAW_LOG_BASE_IDX: RwLock<usize> = RwLock::new(0);
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum DirectionStrength {
@@ -308,10 +306,8 @@ fn insert_in_front<T>(array: &mut [T], value: T) {
     insert_in_place(array, value, 0);
 }
 
-lazy_static! {
-    pub static ref P1_INPUT_LOGS: Mutex<[InputLog; NUM_LOGS]> =
-        Mutex::new([InputLog::default(); NUM_LOGS]);
-}
+pub static P1_INPUT_LOGS: LazyLock<RwLock<[InputLog; NUM_LOGS]>> =
+    LazyLock::new(|| RwLock::new([InputLog::default(); NUM_LOGS]));
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
@@ -350,7 +346,8 @@ pub fn handle_final_input_mapping(
                 fighter_kind: utility::get_kind(&mut *module_accessor),
             };
 
-            let input_logs = &mut *P1_INPUT_LOGS.lock();
+            let mut input_logs_guard = lock_write_rwlock(&(*P1_INPUT_LOGS));
+            let input_logs = &mut *input_logs_guard;
             let latest_input_log = input_logs.first_mut().unwrap();
             let prev_overall_frames = latest_input_log.overall_frame;
             let prev_ttl = latest_input_log.ttl;
@@ -361,8 +358,9 @@ pub fn handle_final_input_mapping(
                 // We should count this frame already
                 frame_counter::tick_idx(*PER_LOG_FRAME_COUNTER);
                 insert_in_front(input_logs, potential_input_log);
-                let draw_log_base_idx = &mut *DRAW_LOG_BASE_IDX.data_ptr();
-                *draw_log_base_idx = (*draw_log_base_idx + 1) % NUM_LOGS;
+                let mut draw_log_base_idx_guard = lock_write_rwlock(&DRAW_LOG_BASE_IDX);
+                *draw_log_base_idx_guard = (*draw_log_base_idx_guard + 1) % NUM_LOGS;
+                drop(draw_log_base_idx_guard);
             } else if is_new_frame {
                 *latest_input_log = potential_input_log;
                 latest_input_log.frames = std::cmp::min(current_frame, 99);

@@ -68,7 +68,8 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
 }
 
 unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
-    let draw_log_idx = (log_idx + (NUM_LOGS - *DRAW_LOG_BASE_IDX.data_ptr())) % NUM_LOGS;
+    let draw_log_base_idx = read_rwlock(&DRAW_LOG_BASE_IDX);
+    let draw_log_idx = (log_idx + (NUM_LOGS - draw_log_base_idx)) % NUM_LOGS;
     let log_pane = root_pane
         .find_pane_by_name_recursive(log_parent_fmt!(draw_log_idx))
         .unwrap();
@@ -200,11 +201,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         return;
     }
 
-    let logs_ptr = P1_INPUT_LOGS.data_ptr();
-    if logs_ptr.is_null() {
-        return;
-    }
-    let logs = &*logs_ptr;
+    let logs = read_rwlock(&(*P1_INPUT_LOGS));
 
     for (log_idx, log) in logs.iter().enumerate() {
         draw_log(root_pane, log_idx, log);
