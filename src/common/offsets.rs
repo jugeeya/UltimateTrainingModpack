@@ -1,7 +1,7 @@
 // TODO!(Do all these need to be referenced by offset? Or do some of them have symbols?)
 #![cfg_attr(rustfmt, rustfmt_skip)] // We want the assembly needles to stay in lines of four bytes each
 use crate::logging::*;
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 // Stolen from HDR who stole it from Arcropolis
 // https://github.com/HDR-Development/HewDraw-Remix/blob/dev/dynamic/src/util.rs
@@ -36,9 +36,7 @@ fn find_offset(name: &str, needle: &[u8]) -> Option<usize> {
 macro_rules! impl_offset {
     ($fn_name:ident) => {
         paste::paste! {
-            lazy_static! {
-                pub static ref [<OFFSET_ $fn_name>]: usize = find_offset(stringify!($fn_name), [<NEEDLE_ $fn_name>]).expect(stringify!(Failed to find offset for $fn_name));
-            }
+            pub static [<OFFSET_ $fn_name>]: LazyLock<usize> = LazyLock::new(|| find_offset(stringify!($fn_name), [<NEEDLE_ $fn_name>]).expect(stringify!(Failed to find offset for $fn_name)));
         }
     }
 }
