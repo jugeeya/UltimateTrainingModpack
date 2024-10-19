@@ -3,27 +3,23 @@ use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::*;
+use crate::sync::*;
 use crate::training::{frame_counter, input_record};
 
-use once_cell::sync::Lazy;
-
-// The current fastfall delay
-static mut DELAY: u32 = 0;
-
-static mut FAST_FALL: bool = false;
+static DELAY: RwLock<u32> = RwLock::new(0);
+static FAST_FALL: RwLock<bool> = RwLock::new(false);
+static FRAME_COUNTER_INDEX: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 fn should_fast_fall() -> bool {
-    unsafe { FAST_FALL }
+    read_rwlock(&FAST_FALL)
 }
 
 pub fn roll_fast_fall() {
     unsafe {
-        FAST_FALL = MENU.fast_fall.get_random().into_bool();
+        assign_rwlock(&FAST_FALL, MENU.fast_fall.get_random().into_bool());
     }
 }
-
-static FRAME_COUNTER_INDEX: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !should_fast_fall() {
@@ -42,7 +38,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     unsafe {
         if !is_falling(module_accessor) {
             // Roll FF delay
-            DELAY = MENU.fast_fall_delay.get_random().into_delay();
+            assign_rwlock(&DELAY, MENU.fast_fall_delay.get_random().into_delay());
             frame_counter::full_reset(*FRAME_COUNTER_INDEX);
             return;
         }
@@ -57,7 +53,8 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         }
 
         // Check delay
-        if frame_counter::should_delay(DELAY, *FRAME_COUNTER_INDEX) {
+        let delay = read_rwlock(&DELAY);
+        if frame_counter::should_delay(delay, *FRAME_COUNTER_INDEX) {
             return;
         }
 
