@@ -1,5 +1,4 @@
 use std::fs;
-use std::sync::LazyLock;
 
 use serde::Deserialize;
 

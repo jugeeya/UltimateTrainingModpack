@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::LazyLock;
 
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};

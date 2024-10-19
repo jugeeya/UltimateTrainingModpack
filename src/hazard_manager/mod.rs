@@ -1,5 +1,3 @@
-use std::sync::LazyLock;
-
 use skyline::error::show_error;
 use skyline::hook;
 use skyline::hooks::A64InlineHook;
@@ -8,6 +6,7 @@ use smash::app::smashball::is_training_mode;
 
 use crate::common::consts::*;
 use crate::logging::*;
+use crate::sync::LazyLock;
 
 use HazardState::*;
 use HookState::*;

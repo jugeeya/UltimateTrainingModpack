@@ -1,5 +1,3 @@
-use std::sync::LazyLock;
-
 use anyhow::{anyhow, Result};
 use serde_json::Value;
 use zip::ZipArchive;
@@ -7,6 +5,7 @@ use zip::ZipArchive;
 use crate::common::dialog;
 use crate::consts::*;
 use crate::logging::*;
+use crate::sync::LazyLock;
 
 pub static CURRENT_VERSION: LazyLock<String> = LazyLock::new(|| {
     info!("Initialized lazy static value: CURRENT_VERSION");

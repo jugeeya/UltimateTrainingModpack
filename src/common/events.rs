@@ -1,6 +1,5 @@
 use std::convert::TryInto;
 use std::ffi::{c_char, c_void};
-use std::sync::LazyLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};

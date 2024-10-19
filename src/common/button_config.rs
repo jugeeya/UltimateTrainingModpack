@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::LazyLock;
 
 use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, QUICK_MENU_ACTIVE};
 use crate::common::ButtonConfig;

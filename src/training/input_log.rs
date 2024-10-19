@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use std::collections::VecDeque;
-use std::sync::LazyLock;
 
 use crate::common::input::*;
 use crate::menu::QUICK_MENU_ACTIVE;
@@ -61,10 +60,12 @@ pub const WHITE: ResColor = ResColor {
     a: 0,
 };
 
-pub static PER_LOG_FRAME_COUNTER: LazyLock<usize> =
-    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
-pub static OVERALL_FRAME_COUNTER: LazyLock<usize> =
-    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+pub static PER_LOG_FRAME_COUNTER: LazyLock<usize> = LazyLock::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset)
+});
+pub static OVERALL_FRAME_COUNTER: LazyLock<usize> = LazyLock::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset)
+});
 
 pub const NUM_LOGS: usize = 15;
 pub static DRAW_LOG_BASE_IDX: RwLock<usize> = RwLock::new(0);

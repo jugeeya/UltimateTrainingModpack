@@ -1,11 +1,11 @@
 use smash::lib::lua_const::*;
 pub use training_mod_consts::*;
 
+use crate::sync::LazyLock;
 use convert_case::{Case, Casing};
 use smush_info_shared::Character;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-use std::sync::LazyLock;
 
 pub static STATUS_UNKNOWN: &str = "UNKNOWN";
 
