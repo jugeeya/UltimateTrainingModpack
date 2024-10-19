@@ -1,6 +1,6 @@
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
-use lazy_static::lazy_static;
 use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_tui::{
@@ -63,23 +63,25 @@ const BG_LEFT_SELECTED_WHITE_COLOR: ResColor = ResColor {
 
 pub static VANILLA_MENU_ACTIVE: RwLock<bool> = RwLock::new(false);
 
-lazy_static! {
-    static ref GCC_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
+static GCC_BUTTON_MAPPING: LazyLock<HashMap<&'static str, u16>> = LazyLock::new(|| {
+    HashMap::from([
         ("L", 0xE204),
         ("R", 0xE205),
         ("X", 0xE206),
         ("Y", 0xE207),
-        ("Z", 0xE208)
-    ]);
-    static ref PROCON_BUTTON_MAPPING: HashMap<&'static str, u16> = HashMap::from([
+        ("Z", 0xE208),
+    ])
+});
+static PROCON_BUTTON_MAPPING: LazyLock<HashMap<&'static str, u16>> = LazyLock::new(|| {
+    HashMap::from([
         ("L", 0xE0E4),
         ("R", 0xE0E5),
         ("X", 0xE0E2),
         ("Y", 0xE0E3),
         ("ZL", 0xE0E6),
-        ("ZR", 0xE0E7)
-    ]);
-}
+        ("ZR", 0xE0E7),
+    ])
+});
 
 unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
     let tabs_clone = app.tabs.clone(); // Need this to avoid double-borrow later on
@@ -461,14 +463,18 @@ pub unsafe fn draw(root_pane: &Pane) {
     // Determine if we're in the menu by seeing if the "help" footer has
     // begun moving upward. It starts at -80 and moves to 0 over 10 frames
     // in info_training_in_menu.bflan
-    assign_rwlock(&VANILLA_MENU_ACTIVE, root_pane
-        .find_pane_by_name_recursive("L_staying_help")
-        .unwrap()
-        .pos_y
-        != -80.0);
+    assign_rwlock(
+        &VANILLA_MENU_ACTIVE,
+        root_pane
+            .find_pane_by_name_recursive("L_staying_help")
+            .unwrap()
+            .pos_y
+            != -80.0,
+    );
 
     let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
-    overall_parent_pane.set_visible(read_rwlock(&QUICK_MENU_ACTIVE) && !read_rwlock(&VANILLA_MENU_ACTIVE));
+    overall_parent_pane
+        .set_visible(read_rwlock(&QUICK_MENU_ACTIVE) && !read_rwlock(&VANILLA_MENU_ACTIVE));
     let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
     fade_out(
         overall_parent_pane,
@@ -544,9 +550,9 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     let is_gcc = (*P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
-        GCC_BUTTON_MAPPING.clone()
+        &(*GCC_BUTTON_MAPPING)
     } else {
-        PROCON_BUTTON_MAPPING.clone()
+        &(*PROCON_BUTTON_MAPPING)
     };
 
     let (x_key, y_key, l_key, r_key, zl_key, zr_key, z_key) = (
