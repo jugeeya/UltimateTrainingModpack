@@ -5,12 +5,14 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::common::*;
+use crate::sync::*;
 
-static mut COUNTER: u32 = 0;
-static mut CLATTER_STEP: f32 = 8.0;
+static COUNTER: RwLock<u32> = RwLock::new(0);
+static CLATTER_STEP: RwLock<f32> = RwLock::new(8.0);
 
 unsafe fn do_clatter_input(module_accessor: &mut BattleObjectModuleAccessor) {
-    ControlModule::add_clatter_time(module_accessor, -1.0 * CLATTER_STEP, 0);
+    let clatter_step = read_rwlock(&CLATTER_STEP);
+    ControlModule::add_clatter_time(module_accessor, -1.0 * clatter_step, 0);
     let zeros = Vector3f {
         x: 0.0,
         y: 0.0,
@@ -47,8 +49,9 @@ pub unsafe fn handle_clatter(module_accessor: &mut BattleObjectModuleAccessor) {
     }
     let repeat = MENU.clatter_strength.into_u32();
 
-    COUNTER = (COUNTER + 1) % repeat;
-    if COUNTER == repeat - 1 {
+    let mut counter_guard = lock_write_rwlock(&COUNTER);
+    *counter_guard = ((*counter_guard) + 1) % repeat;
+    if *counter_guard == repeat - 1 {
         do_clatter_input(module_accessor);
     }
 }
@@ -71,7 +74,7 @@ pub unsafe fn hook_start_clatter(
     // Most of the time this is 8 frames, but could be less depending on
     // the status (e.g. freeze is 4 frames / input)
     if is_training_mode() && is_operation_cpu(module_accessor) {
-        CLATTER_STEP = manual_recovery_rate;
+        assign_rwlock(&CLATTER_STEP, manual_recovery_rate);
     }
     original!()(
         module_accessor,
