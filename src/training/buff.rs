@@ -5,63 +5,61 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::is_operation_cpu;
+use crate::sync::*;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
 
-use once_cell::sync::Lazy;
+static BUFF_REMAINING_PLAYER: RwLock<usize> = RwLock::new(0);
+static BUFF_REMAINING_CPU: RwLock<usize> = RwLock::new(0);
 
-static mut BUFF_REMAINING_PLAYER: usize = 0;
-static mut BUFF_REMAINING_CPU: usize = 0;
+static IS_BUFFING_PLAYER: RwLock<bool> = RwLock::new(false);
+static IS_BUFFING_CPU: RwLock<bool> = RwLock::new(false);
 
-static mut IS_BUFFING_PLAYER: bool = false;
-static mut IS_BUFFING_CPU: bool = false;
+static BUFF_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
-static BUFF_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
-
-pub unsafe fn restart_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn restart_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_operation_cpu(module_accessor) {
-        IS_BUFFING_CPU = false;
-        return;
+        assign_rwlock(&IS_BUFFING_CPU, false);
+    } else {
+        assign_rwlock(&IS_BUFFING_PLAYER, false);
     }
-    IS_BUFFING_PLAYER = false;
 }
 
-pub unsafe fn start_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn start_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_operation_cpu(module_accessor) {
-        IS_BUFFING_CPU = true;
-        return;
+        assign_rwlock(&IS_BUFFING_CPU, true);
+    } else {
+        assign_rwlock(&IS_BUFFING_PLAYER, true);
     }
-    IS_BUFFING_PLAYER = true;
 }
 
-pub unsafe fn is_buffing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub fn is_buffing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     if is_operation_cpu(module_accessor) {
-        return IS_BUFFING_CPU;
+        read_rwlock(&IS_BUFFING_CPU)
+    } else {
+        read_rwlock(&IS_BUFFING_PLAYER)
     }
-    IS_BUFFING_PLAYER
 }
 
-pub unsafe fn is_buffing_any() -> bool {
-    IS_BUFFING_CPU || IS_BUFFING_PLAYER
+pub fn is_buffing_any() -> bool {
+    read_rwlock(&IS_BUFFING_CPU) || read_rwlock(&IS_BUFFING_PLAYER)
 }
 
-pub unsafe fn set_buff_rem(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    new_value: usize,
-) {
+pub fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: usize) {
     if is_operation_cpu(module_accessor) {
-        BUFF_REMAINING_CPU = new_value;
-        return;
+        assign_rwlock(&BUFF_REMAINING_CPU, new_value);
+    } else {
+        assign_rwlock(&BUFF_REMAINING_PLAYER, new_value);
     }
-    BUFF_REMAINING_PLAYER = new_value;
 }
 
-pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> usize {
+pub fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> usize {
     if is_operation_cpu(module_accessor) {
-        return BUFF_REMAINING_CPU;
+        read_rwlock(&BUFF_REMAINING_CPU)
+    } else {
+        read_rwlock(&BUFF_REMAINING_PLAYER)
     }
-    BUFF_REMAINING_PLAYER
 }
 
 pub unsafe fn handle_buffs(
