@@ -3,55 +3,54 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
+use crate::sync::*;
 use crate::training::{frame_counter, input_record, mash};
 
-use once_cell::sync::Lazy;
-
 const NOT_SET: u32 = 9001;
-static mut LEDGE_DELAY: u32 = NOT_SET;
-static mut LEDGE_CASE: LedgeOption = LedgeOption::empty();
+static LEDGE_DELAY: RwLock<u32> = RwLock::new(NOT_SET);
+static LEDGE_CASE: RwLock<LedgeOption> = RwLock::new(LedgeOption::empty());
 
-static LEDGE_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+static LEDGE_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 pub fn reset_ledge_delay() {
-    unsafe {
-        if LEDGE_DELAY != NOT_SET {
-            LEDGE_DELAY = NOT_SET;
-            frame_counter::full_reset(*LEDGE_DELAY_COUNTER);
-        }
+    let mut ledge_delay_guard = lock_write_rwlock(&LEDGE_DELAY);
+    if *ledge_delay_guard != NOT_SET {
+        *ledge_delay_guard = NOT_SET;
+        frame_counter::full_reset(*LEDGE_DELAY_COUNTER);
     }
 }
 
 pub fn reset_ledge_case() {
-    unsafe {
-        if LEDGE_CASE != LedgeOption::empty() {
-            // Don't roll another ledge option if one is already selected
-            LEDGE_CASE = LedgeOption::empty();
-        }
+    let mut ledge_case_guard = lock_write_rwlock(&LEDGE_CASE);
+    if *ledge_case_guard != LedgeOption::empty() {
+        // Don't roll another ledge option if one is already selected
+        *ledge_case_guard = LedgeOption::empty();
     }
 }
 
 fn roll_ledge_delay() {
-    unsafe {
-        if LEDGE_DELAY != NOT_SET {
-            // Don't roll another ledge delay if one is already selected
-            return;
-        }
+    let mut ledge_delay_guard = lock_write_rwlock(&LEDGE_DELAY);
+    if *ledge_delay_guard != NOT_SET {
+        // Don't roll another ledge delay if one is already selected
+        return;
+    }
 
-        LEDGE_DELAY = MENU.ledge_delay.get_random().into_longdelay();
+    unsafe {
+        *ledge_delay_guard = MENU.ledge_delay.get_random().into_longdelay();
     }
 }
 
 fn roll_ledge_case() {
-    unsafe {
-        // Don't re-roll if there is already a ledge option selected
-        // This prevents choosing a different ledge option during LedgeOption::WAIT
-        if LEDGE_CASE != LedgeOption::empty() {
-            return;
-        }
+    // Don't re-roll if there is already a ledge option selected
+    // This prevents choosing a different ledge option during LedgeOption::WAIT
+    let mut ledge_case_guard = lock_write_rwlock(&LEDGE_CASE);
+    if *ledge_case_guard != LedgeOption::empty() {
+        return;
+    }
 
-        LEDGE_CASE = MENU.ledge_state.get_random();
+    unsafe {
+        *ledge_case_guard = MENU.ledge_state.get_random();
     }
 }
 
@@ -64,7 +63,7 @@ fn get_ledge_option() -> Option<Action> {
             None
         };
 
-        match LEDGE_CASE {
+        match read_rwlock(&LEDGE_CASE) {
             LedgeOption::NEUTRAL => {
                 if MENU.ledge_neutral_override != Action::empty() {
                     override_action = Some(MENU.ledge_neutral_override.get_random());
@@ -108,11 +107,13 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let flag_cliff =
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
+    let ledge_delay = read_rwlock(&LEDGE_DELAY);
+    let ledge_case = read_rwlock(&LEDGE_CASE);
     // Allow this because sometimes we want to make sure our NNSDK doesn't have
     // an erroneous definition
     #[allow(clippy::unnecessary_cast)]
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
-    let should_buffer_playback = (LEDGE_DELAY == 0) && (current_frame == 13); // 18 - 5 of buffer
+    let should_buffer_playback = (ledge_delay == 0) && (current_frame == 13); // 18 - 5 of buffer
     let should_buffer;
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
 
@@ -120,10 +121,10 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         && prev_status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH
     {
         // For regular ledge grabs, we were just in catch and want to buffer on this frame
-        should_buffer = (LEDGE_DELAY == 0) && (current_frame == 19) && (!flag_cliff);
+        should_buffer = (ledge_delay == 0) && (current_frame == 19) && (!flag_cliff);
     } else if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT {
         // otherwise we're in "wait" from grabbing with lasso, so we want to buffer on frame
-        should_buffer = (LEDGE_DELAY == 0) && (current_frame == 18) && (flag_cliff);
+        should_buffer = (ledge_delay == 0) && (current_frame == 18) && (flag_cliff);
     } else {
         should_buffer = false;
     }
@@ -135,10 +136,10 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         // Not able to take any action yet
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
         if should_buffer_playback
-            && LEDGE_CASE.is_playback()
+            && ledge_case.is_playback()
             && MENU.ledge_delay != LongDelay::empty()
         {
-            input_record::playback_ledge(LEDGE_CASE.playback_slot());
+            input_record::playback_ledge(ledge_case.playback_slot());
             return;
         }
         // This check isn't reliable for buffered options in time, so don't return if we need to buffer an option this frame
@@ -147,19 +148,19 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         }
     }
 
-    if LEDGE_CASE == LedgeOption::WAIT {
+    if ledge_case == LedgeOption::WAIT {
         // Do nothing, but don't reset the ledge case.
         return;
     }
 
-    if frame_counter::should_delay(LEDGE_DELAY, *LEDGE_DELAY_COUNTER) {
+    if frame_counter::should_delay(ledge_delay, *LEDGE_DELAY_COUNTER) {
         // Not yet time to perform the ledge action
         return;
     }
 
-    let status = LEDGE_CASE.into_status().unwrap_or(0);
-    if LEDGE_CASE.is_playback() {
-        input_record::playback(LEDGE_CASE.playback_slot());
+    let status = ledge_case.into_status().unwrap_or(0);
+    if ledge_case.is_playback() {
+        input_record::playback(ledge_case.playback_slot());
     } else {
         StatusModule::change_status_request_from_script(module_accessor, status, true);
     }
@@ -185,10 +186,12 @@ pub unsafe fn is_enable_transition_term(
     }
 
     // Disallow the default cliff-climb if we are waiting or we didn't get up during a recording
+    let ledge_case = read_rwlock(&LEDGE_CASE);
+    let ledge_delay = read_rwlock(&LEDGE_DELAY);
     if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
-        && ((LEDGE_CASE == LedgeOption::WAIT
-            || frame_counter::get_frame_count(*LEDGE_DELAY_COUNTER) < LEDGE_DELAY)
-            || (LEDGE_CASE.is_playback() && !input_record::is_playback()))
+        && ((ledge_case == LedgeOption::WAIT
+            || frame_counter::get_frame_count(*LEDGE_DELAY_COUNTER) < ledge_delay)
+            || (ledge_case.is_playback() && !input_record::is_playback()))
     {
         return Some(false);
     }
