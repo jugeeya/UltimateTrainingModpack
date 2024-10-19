@@ -1,3 +1,6 @@
+use crate::sync::*;
+
+static COUNTERS: RwLock<Vec<FrameCounter>> = RwLock::new(vec![]);
 #[derive(PartialEq, Eq)]
 pub enum FrameCounterType {
     InGame,
@@ -13,38 +16,30 @@ pub struct FrameCounter {
     counter_type: FrameCounterType,
 }
 
-static mut COUNTERS: Vec<FrameCounter> = vec![];
-
 pub fn register_counter(counter_type: FrameCounterType) -> usize {
-    unsafe {
-        let index = COUNTERS.len();
-
-        COUNTERS.push(FrameCounter {
-            count: 0,
-            should_count: false,
-            counter_type,
-        });
-
-        index
-    }
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    let index = (*counters_guard).len();
+    (*counters_guard).push(FrameCounter {
+        count: 0,
+        should_count: false,
+        counter_type,
+    });
+    index
 }
 
 pub fn start_counting(index: usize) {
-    unsafe {
-        COUNTERS[index].should_count = true;
-    }
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    (*counters_guard)[index].should_count = true;
 }
 
 pub fn stop_counting(index: usize) {
-    unsafe {
-        COUNTERS[index].should_count = false;
-    }
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    (*counters_guard)[index].should_count = false;
 }
 
 pub fn reset_frame_count(index: usize) {
-    unsafe {
-        COUNTERS[index].count = 0;
-    }
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    (*counters_guard)[index].count = 0;
 }
 
 pub fn full_reset(index: usize) {
@@ -75,47 +70,48 @@ pub fn should_delay(delay: u32, index: usize) -> bool {
 }
 
 pub fn get_frame_count(index: usize) -> u32 {
-    unsafe { COUNTERS[index].count }
+    let counters_guard = lock_write_rwlock(&COUNTERS);
+    (*counters_guard)[index].count
 }
 
 pub fn tick_idx(index: usize) {
-    unsafe {
-        COUNTERS[index].count += 1;
-    }
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    (*counters_guard)[index].count += 1;
 }
 
 pub fn tick_ingame() {
-    unsafe {
-        for (index, counter) in COUNTERS.iter().enumerate() {
-            if !counter.should_count || counter.counter_type == FrameCounterType::Real {
-                continue;
-            }
-            tick_idx(index);
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    for counter in (*counters_guard).iter_mut() {
+        if !counter.should_count || counter.counter_type == FrameCounterType::Real {
+            continue;
         }
+        // same as full_reset, but we already have the lock so we can't lock again
+        counter.count += 1;
     }
 }
 
 pub fn tick_real() {
-    unsafe {
-        for (index, counter) in COUNTERS.iter().enumerate() {
-            if !counter.should_count
-                || (counter.counter_type == FrameCounterType::InGame
-                    || counter.counter_type == FrameCounterType::InGameNoReset)
-            {
-                continue;
-            }
-            tick_idx(index);
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    for counter in (*counters_guard).iter_mut() {
+        if !counter.should_count
+            || (counter.counter_type == FrameCounterType::InGame
+                || counter.counter_type == FrameCounterType::InGameNoReset)
+        {
+            continue;
         }
+        // same as full_reset, but we already have the lock so we can't lock again
+        counter.count += 1;
     }
 }
 
 pub fn reset_all() {
-    unsafe {
-        for (index, counter) in COUNTERS.iter().enumerate() {
-            if counter.counter_type != FrameCounterType::InGame {
-                continue;
-            }
-            full_reset(index);
+    let mut counters_guard = lock_write_rwlock(&COUNTERS);
+    for counter in (*counters_guard).iter_mut() {
+        if counter.counter_type != FrameCounterType::InGame {
+            continue;
         }
+        // same as full_reset, but we already have the lock so we can't lock again
+        counter.count = 0;
+        counter.should_count = false;
     }
 }
