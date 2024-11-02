@@ -1,0 +1,99 @@
+{
+  "common": {
+    "plugin_title": "Modpack de Formation",
+    "hold_button": "Maintenir %{button}",
+    "open_menu": "Ouvrir le Menu",
+    "language": "Langue",
+    "modpack_menu": "asdfsdfasfdad",
+    "yes": "oui",
+    "no": "non",
+    "on": "activé",
+    "off": "désactivé"
+  },
+  "buttons": {
+    "start": "commencer",
+    "a": "a",
+    "b": "b",
+    "x": "x",
+    "y": "y",
+    "l": "l",
+    "r": "r",
+    "z": "z",
+    "dpad_Up": "dpad haut",
+    "dpad_Down": "dpad descendante",
+    "dpad_Left": "dpad gauche",
+    "dpad_Right": "dpad droit",
+    "pro": {
+      "l": "pro l",
+      "r": "pro r; gcc z",
+      "zl_gcc_l": "pro zl; gcc l",
+      "zr_gcc_r": "pro zr; gcc r"
+    },
+    "analog_stick": {
+      "up": "haut",
+      "down": "descendante",
+      "left": "gauche",
+      "right": "droit"
+    }
+  },
+  "menus": {
+    "mash_settings": {
+      "mash_toggles": {
+        "title": "Ecraser Toggles",
+        "description": "Actions à mener dans les plus brefs délais"
+      },
+      "followup_toggles": {
+        "title": "Déclencheurs de Suivi",
+        "description": "Actions à effectuer après une option d'empâtage"
+      },
+      "mash_triggers": {
+        "title": "Mash Triggers",
+        "description": "Configure what causes the cpu to perform a mash option"
+      },
+      "attack_angle": {
+        "title": "Attack Angle",
+        "description": "For attacks that can be angled, such as some forward tilts"
+      },
+      "throw_options": {
+        "title": "Throw Options",
+        "description": "Throw to be performed when a grab is landed"
+      },
+      "throw_delay": {
+        "title": "Throw Delay",
+        "description": "How many frames to delay the throw option"
+      },
+      "pummel_delay": {
+        "title": "Pummel Delay",
+        "description": "How many frames after a grab to wait before starting to pummel"
+      },
+      "falling_aerials": {
+        "title": "Falling Aerials",
+        "description": "Should aerials be performed when rising or when falling"
+      },
+      "full_hop": {
+        "title": "Full Hop",
+        "description": "Should the cpu perform a full hop or a short hop"
+      },
+      "aerial_delay": {
+        "title": "Aerial Delay",
+        "description": "How long to delay a mash aerial attack"
+      },
+      "fast_fall": {
+        "title": "Fast Fall",
+        "description": "Should the cpu fastfall during a jump"
+      },
+      "fast_fall_delay": {
+        "title": "Fast Fall Delay",
+        "description": "How many frames the cpu should delay their fastfall"
+      },
+      "oos_offset": {
+        "title": "OoS Offset",
+        "description": "How many times the cpu shield can be hit before performing a mash option"
+      },
+      "reaction_time": {
+        "title": "Reaction Time",
+        "description": "How many frames to delay before performing a mash option"
+      }
+    }
+  }
+}

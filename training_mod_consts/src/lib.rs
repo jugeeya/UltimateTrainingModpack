@@ -95,6 +95,7 @@ pub struct TrainingModpackMenu {
     pub tech_hide: OnOff,
     pub update_policy: UpdatePolicy,
     pub lra_reset: OnOff,
+    pub selected_locale: Locale,
 }
 
 #[repr(C)]
@@ -203,6 +204,7 @@ pub static BASE_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tech_hide: OnOff::OFF,
     update_policy: UpdatePolicy::default(),
     lra_reset: OnOff::ON,
+    selected_locale: Locale::default(),
 };
 
 pub static DEFAULTS_MENU: RwLock<TrainingModpackMenu> = RwLock::new(BASE_MENU);

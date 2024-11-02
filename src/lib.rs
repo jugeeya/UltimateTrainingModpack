@@ -16,6 +16,10 @@
     clippy::missing_transmute_annotations
 )]
 
+#[macro_use]
+extern crate rust_i18n;
+i18n!(fallback = "fr");
+
 use std::fs;
 use std::path::PathBuf;
 
@@ -25,6 +29,7 @@ use training_mod_sync::*;
 
 use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
+use crate::common::localization::set_language_from_menu;
 use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
 use crate::events::{Event, EVENT_QUEUE};
@@ -126,16 +131,25 @@ pub fn main() {
         info!("Skipping version check because we are using an emulator");
     }
 
-    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+    info!("Setting mod language");
+    set_language_from_menu();
+
     notification(
-        "Open Menu".to_string(),
+        t!("common.plugin_title").to_string(),
+        "Welcome!".to_string(),
+        60,
+    );
+
+    notification(
+        t!("common.open_menu").to_string(),
         if read(&MENU).menu_open_start_press == OnOff::ON {
-            "Hold Start".to_string()
+            t!("common.hold_button", button = t!("buttons.start")).to_string()
         } else {
             DEFAULT_OPEN_MENU_CONFIG.to_string()
         },
         120,
     );
+
     notification(
         "Save State".to_string(),
         read(&MENU).save_state_save.to_string(),

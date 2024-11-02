@@ -41,6 +41,7 @@ log = "0.4.17"
 byte-unit = "4.0.18"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 anyhow = "1.0.72"
+rust-i18n = "3.1.2"
 
 [patch.crates-io]
 native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", branch = "switch-timeout-panic" }
@@ -63,6 +64,11 @@ plugin-dependencies = [
     { name = "libnro_hook.nro", url = "https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro" },
     { name = "libparam_hook.nro", url = "https://github.com/ultimate-research/params-hook-plugin/releases/download/v0.1.1/libparam_hook.nro" },
 ]
+
+[package.metadata.i18n]
+load-path = "locales"
+default-locale = "en_us"
+available-locales = ["en_us", "fr"]
 
 [features]
 outside_training_mode = []
