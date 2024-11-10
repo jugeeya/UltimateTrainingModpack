@@ -142,7 +142,7 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
             tech::hide_tech();
         }
 
-        combo::get_command_flag_cat(module_accessor);
+        combo::once_per_frame(module_accessor);
         hitbox_visualizer::get_command_flag_cat(module_accessor);
         save_states::save_states(module_accessor);
         tech::get_command_flag_cat(module_accessor);
@@ -313,7 +313,6 @@ pub unsafe fn handle_is_enable_transition_term(
         return ori;
     }
 
-    combo::is_enable_transition_term(module_accessor, transition_term, ori);
     match ledge::is_enable_transition_term(module_accessor, transition_term) {
         Some(r) => r,
         None => ori,

@@ -37,6 +37,12 @@ pub fn stop_counting(index: usize) {
     (*counters_guard)[index].should_count = false;
 }
 
+pub fn is_counting(index: usize) -> bool {
+    let counters_guard = lock_read_rwlock(&COUNTERS);
+    (*counters_guard)[index].should_count
+
+}
+
 pub fn reset_frame_count(index: usize) {
     let mut counters_guard = lock_write_rwlock(&COUNTERS);
     (*counters_guard)[index].count = 0;
