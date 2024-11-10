@@ -76,7 +76,7 @@ pub fn should_delay(delay: u32, index: usize) -> bool {
 }
 
 pub fn get_frame_count(index: usize) -> u32 {
-    let counters_guard = lock_write_rwlock(&COUNTERS);
+    let counters_guard = lock_read_rwlock(&COUNTERS);
     (*counters_guard)[index].count
 }
 

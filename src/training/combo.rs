@@ -2,6 +2,7 @@ use skyline::nn::ui2d::ResColor;
 use training_mod_consts::OnOff;
 
 use crate::common::*;
+use crate::consts::Action;
 use crate::sync::*;
 use crate::training::ui::notifications;
 use crate::training::*;
@@ -37,9 +38,9 @@ unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> boo
     [
         FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR, // Airdodge
         FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR, // Aerial
-        FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON, // Shield
-        FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE, // Spotdodge/Roll
-        FIGHTER_STATUS_TRANSITION_TERM_ID_DOWN_STAND, // Neutral Getup from Tech/Slip
+        FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_GUARD_ON,   // Shield
+        FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE,     // Spotdodge/Roll
+        FIGHTER_STATUS_TRANSITION_TERM_ID_DOWN_STAND,      // Neutral Getup from Tech/Slip
     ]
     .iter()
     .any(|actionable_transition| {
@@ -90,48 +91,69 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     }
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-
+    let player_is_actionable = is_actionable(player_module_accessor);
+    let player_was_actionable = read_rwlock(&PLAYER_WAS_ACTIONABLE);
+    let player_just_actionable = !player_was_actionable && player_is_actionable;
+    let cpu_is_actionable = is_actionable(cpu_module_accessor);
+    let cpu_was_actionable = read_rwlock(&CPU_WAS_ACTIONABLE);
+    let cpu_just_actionable = !cpu_was_actionable && cpu_is_actionable;
     let is_counting = frame_counter::is_counting(*PLAYER_FRAME_COUNTER_INDEX)
         || frame_counter::is_counting(*CPU_FRAME_COUNTER_INDEX);
+
     if !is_counting {
-        if (!was_in_shieldstun(cpu_module_accessor) && is_in_shieldstun(cpu_module_accessor))
-            || (!was_in_hitstun(cpu_module_accessor) && is_in_hitstun(cpu_module_accessor))
+        if MENU.mash_state == Action::empty()
+            && !player_is_actionable
+            && !cpu_is_actionable
+            && (!was_in_shieldstun(cpu_module_accessor) && is_in_shieldstun(cpu_module_accessor)
+                || (!was_in_hitstun(cpu_module_accessor) && is_in_hitstun(cpu_module_accessor)))
         {
-            // start counting
+            // Start counting when:
+            // 1. We have no mash option selected AND
+            // 2. Neither fighter is currently actionable AND
+            // 3. Either
+            //  a.     the CPU has just entered shieldstun
+            //  b.     the CPU has just entered hitstun
+            //
+            // If a mash option is selected, this can interfere with our ability to determine when
+            // a character becomes actionable. So don't ever start counting if we can't reliably stop.
+            //
+            // Since our "just_actionable" checks assume that neither character is already actionable,
+            // we need to guard against instances where the player is already actionable by the time that
+            // the CPU get hit, such as if the player threw a projectile from far away.
+            // Otherwise our "just_actionable" checks are not valid.
+            //
+            // We also need to guard against instances where the CPU's status is in hitstun but they are actually actionable.
+            // I dunno, makes no sense to me either. Can trigger this edge case with PAC-MAN jab 1 against Lucas at 0%.
+            // This shows up as the count restarting immediately after the last one ended.
             frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
             frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
             frame_counter::start_counting(*PLAYER_FRAME_COUNTER_INDEX);
             frame_counter::start_counting(*CPU_FRAME_COUNTER_INDEX);
         }
     } else {
-        let player_is_actionable = is_actionable(player_module_accessor);
-        let player_was_actionable = read_rwlock(&PLAYER_WAS_ACTIONABLE);
-        let player_just_actionable = !player_was_actionable && player_is_actionable;
-        let cpu_is_actionable = is_actionable(cpu_module_accessor);
-        let cpu_was_actionable = read_rwlock(&CPU_WAS_ACTIONABLE);
-        let cpu_just_actionable = !cpu_was_actionable && cpu_is_actionable;
+        // Uncomment this if you want some frame logging
+        // if (player_is_actionable && cpu_is_actionable) {
+        //     info!("!");
+        // } else if (!player_is_actionable && cpu_is_actionable) {
+        //     info!("-");
+        // } else if (player_is_actionable && !cpu_is_actionable) {
+        //     info!("+");
+        // } else {
+        //     info!(".");
+        // }
 
-        // if (player_is_actionable && cpu_is_actionable) { warn!("!"); }
-        // else if (!player_is_actionable && cpu_is_actionable) { warn!("-"); }
-        // else if (player_is_actionable && !cpu_is_actionable) { warn!("+"); }
-        // else { warn!("."); }
-
-        // Check if either player has become actionable and should stop counting
+        // Stop counting as soon as each fighter becomes actionable
         if player_just_actionable {
-            warn!("Player just actionable");
             frame_counter::stop_counting(*PLAYER_FRAME_COUNTER_INDEX);
         }
 
         if cpu_just_actionable {
-            warn!("CPU just actionable");
             frame_counter::stop_counting(*CPU_FRAME_COUNTER_INDEX);
         }
 
-        // Check if we just finished counting:
-        //     Neither counter is actively counting, and someone just became actionable
-        // Then display the frame advantage
-        if (!frame_counter::is_counting(*PLAYER_FRAME_COUNTER_INDEX)
-            && !frame_counter::is_counting(*CPU_FRAME_COUNTER_INDEX))
+        // If we just finished counting for the second fighter, then display frame advantage
+        if !frame_counter::is_counting(*PLAYER_FRAME_COUNTER_INDEX)
+            && !frame_counter::is_counting(*CPU_FRAME_COUNTER_INDEX)
             && (player_just_actionable || cpu_just_actionable)
         {
             update_frame_advantage(
