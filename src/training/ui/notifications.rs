@@ -1,6 +1,6 @@
 use skyline::nn::ui2d::ResColor;
 
-use crate::sync::*;
+use training_mod_sync::*;
 
 pub static NOTIFICATIONS_QUEUE: RwLock<Vec<Notification>> = RwLock::new(vec![]);
 

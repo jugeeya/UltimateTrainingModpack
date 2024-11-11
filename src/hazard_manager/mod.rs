@@ -6,7 +6,7 @@ use smash::app::smashball::is_training_mode;
 
 use crate::common::consts::*;
 use crate::logging::*;
-use crate::sync::LazyLock;
+use training_mod_sync::LazyLock;
 
 use HazardState::*;
 use HookState::*;

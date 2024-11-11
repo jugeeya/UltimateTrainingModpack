@@ -5,7 +5,7 @@ use serde::Deserialize;
 use crate::common::input::*;
 use crate::consts::DEV_TOML_PATH;
 use crate::logging::info;
-use crate::sync::*;
+use training_mod_sync::*;
 
 /// Hot-reloadable configs for quicker development
 ///

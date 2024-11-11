@@ -21,6 +21,7 @@ use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
 use training_mod_consts::{OnOff, LEGACY_TRAINING_MODPACK_ROOT};
+use training_mod_sync::*;
 
 use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
@@ -28,7 +29,6 @@ use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
-use crate::sync::*;
 use crate::training::ui::notifications::notification;
 
 pub mod common;
@@ -37,7 +37,6 @@ mod hitbox_visualizer;
 mod training;
 
 mod logging;
-mod sync;
 
 fn nro_main(nro: &NroInfo<'_>) {
     if nro.module.isLoaded {

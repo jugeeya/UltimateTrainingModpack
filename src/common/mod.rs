@@ -6,7 +6,7 @@ use smash::lua2cpp::L2CFighterCommon;
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
 use crate::common::offsets::OFFSET_GET_BATTLE_OBJECT_FROM_ID;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::character_specific::ptrainer;
 
 pub mod button_config;

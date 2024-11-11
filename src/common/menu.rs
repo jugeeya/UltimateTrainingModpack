@@ -13,7 +13,7 @@ use crate::common::{DEFAULTS_MENU, MENU};
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::{ButtonBitfield, ControllerStyle, MappedInputs, SomeControllerStruct};
 use crate::logging::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::frame_counter;
 
 use training_mod_consts::{create_app, InputControl, MenuJsonStruct, MENU_OPTIONS_PATH};

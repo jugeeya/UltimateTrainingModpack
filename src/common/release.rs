@@ -5,7 +5,7 @@ use zip::ZipArchive;
 use crate::common::dialog;
 use crate::consts::*;
 use crate::logging::*;
-use crate::sync::LazyLock;
+use training_mod_sync::LazyLock;
 
 pub static CURRENT_VERSION: LazyLock<String> = LazyLock::new(|| {
     info!("Initialized lazy static value: CURRENT_VERSION");

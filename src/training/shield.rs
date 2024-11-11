@@ -8,7 +8,7 @@ use smash::lua2cpp::L2CFighterCommon;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::{frame_counter, input_record, mash, save_states};
 
 // TODO!() We only reset this on save state load or LRA reset

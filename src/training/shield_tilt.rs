@@ -2,7 +2,7 @@ use smash::app::{self};
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 
 static SHIELD_STICK_DIRECTION: RwLock<Direction> = RwLock::new(Direction::OUT);
 

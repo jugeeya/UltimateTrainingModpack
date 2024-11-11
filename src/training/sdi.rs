@@ -5,7 +5,7 @@ use smash::Vector2f;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::directional_influence;
 
 static COUNTER: RwLock<u32> = RwLock::new(0);

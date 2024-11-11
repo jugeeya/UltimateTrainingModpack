@@ -3,7 +3,7 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 
 use crate::common::menu::QUICK_MENU_ACTIVE;
 use crate::common::TRAINING_MENU_ADDR;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::ui::notifications::*;
 
 macro_rules! display_parent_fmt {

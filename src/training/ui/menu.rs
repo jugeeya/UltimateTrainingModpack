@@ -11,7 +11,7 @@ use crate::common::menu::{
     QUICK_MENU_ACTIVE, QUICK_MENU_APP,
 };
 use crate::input::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::frame_counter;
 use training_mod_consts::TOGGLE_MAX;
 

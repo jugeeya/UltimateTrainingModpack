@@ -10,7 +10,7 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::character_specific::{items, kirby, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;

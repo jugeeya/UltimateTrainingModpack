@@ -5,7 +5,7 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::is_operation_cpu;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
 

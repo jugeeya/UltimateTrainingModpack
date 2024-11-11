@@ -3,7 +3,7 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 
 // the current full hop status
 static FULL_HOP: RwLock<bool> = RwLock::new(false);

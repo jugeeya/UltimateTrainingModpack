@@ -5,7 +5,7 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::directional_influence::should_reverse_angle;
 
 static AIRDODGE_STICK_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());

@@ -2,7 +2,7 @@ use smash::app::{self};
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 
 static ATTACK_ANGLE_DIRECTION: RwLock<AttackAngle> = RwLock::new(AttackAngle::NEUTRAL);
 

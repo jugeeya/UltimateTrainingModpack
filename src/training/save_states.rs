@@ -27,7 +27,7 @@ use crate::common::get_module_accessor;
 use crate::common::is_dead;
 use crate::common::MENU;
 use crate::is_operation_cpu;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::buff;
 use crate::training::character_specific::{ptrainer, steve};
 use crate::training::charge::{self, ChargeState};

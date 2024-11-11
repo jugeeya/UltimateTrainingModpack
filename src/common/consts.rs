@@ -1,7 +1,7 @@
 use smash::lib::lua_const::*;
 pub use training_mod_consts::*;
 
-use crate::sync::LazyLock;
+use training_mod_sync::LazyLock;
 use convert_case::{Case, Casing};
 use smush_info_shared::Character;
 use std::collections::HashMap;

@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 
 use crate::common::input::*;
 use crate::menu::QUICK_MENU_ACTIVE;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::try_get_module_accessor;
 use skyline::nn::ui2d::ResColor;
 use smash::app::{lua_bind::*, utility};

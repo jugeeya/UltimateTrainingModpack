@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use skyline::nn::{account, oe, time};
 
 use crate::common::release::CURRENT_VERSION;
-use crate::sync::*;
+use training_mod_sync::*;
 
 pub static EVENT_QUEUE: RwLock<Vec<Event>> = RwLock::new(vec![]);
 static SESSION_ID: LazyLock<String> = LazyLock::new(|| unsafe {

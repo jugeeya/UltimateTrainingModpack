@@ -6,7 +6,7 @@ use training_mod_consts::{InputDisplay, MENU};
 
 use crate::common::consts::status_display_name;
 use crate::menu::QUICK_MENU_ACTIVE;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::input_log::{
     DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
 };

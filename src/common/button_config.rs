@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, QUICK_MENU_ACTIVE};
 use crate::common::ButtonConfig;
 use crate::input::{ControllerStyle::*, *};
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::frame_counter;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 

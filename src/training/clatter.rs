@@ -5,7 +5,7 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 
 static COUNTER: RwLock<u32> = RwLock::new(0);
 static CLATTER_STEP: RwLock<f32> = RwLock::new(8.0);

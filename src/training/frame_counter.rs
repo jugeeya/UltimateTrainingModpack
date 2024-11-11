@@ -1,4 +1,4 @@
-use crate::sync::*;
+use training_mod_sync::*;
 
 static COUNTERS: RwLock<Vec<FrameCounter>> = RwLock::new(vec![]);
 #[derive(PartialEq, Eq)]

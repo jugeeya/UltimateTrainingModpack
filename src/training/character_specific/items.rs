@@ -8,7 +8,7 @@ use smash::lib::lua_const::*;
 use crate::common::consts::*;
 use crate::common::*;
 use crate::offsets::OFFSET_GENERATE_ARTICLE_FOR_TARGET;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::mash;
 
 pub struct CharItem {

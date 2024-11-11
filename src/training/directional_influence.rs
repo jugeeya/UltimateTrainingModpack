@@ -7,7 +7,7 @@ use smash::lua2cpp::L2CFighterCommon;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 
 static DI_CASE: RwLock<Direction> = RwLock::new(Direction::empty());
 

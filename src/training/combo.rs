@@ -3,7 +3,7 @@ use training_mod_consts::OnOff;
 
 use crate::common::*;
 use crate::consts::Action;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::ui::notifications;
 use crate::training::*;
 

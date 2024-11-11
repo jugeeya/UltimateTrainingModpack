@@ -13,7 +13,7 @@ use crate::common::offsets::{
     OFFSET_CHANGE_ACTIVE_CAMERA, OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES,
 };
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::{frame_counter, mash, save_states};
 
 static TECH_ROLL_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());

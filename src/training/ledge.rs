@@ -3,7 +3,7 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::sync::*;
+use training_mod_sync::*;
 use crate::training::{frame_counter, input_record, mash};
 
 const NOT_SET: u32 = 9001;

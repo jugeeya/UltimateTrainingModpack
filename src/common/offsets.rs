@@ -1,7 +1,7 @@
 // TODO!(Do all these need to be referenced by offset? Or do some of them have symbols?)
 #![cfg_attr(rustfmt, rustfmt_skip)] // We want the assembly needles to stay in lines of four bytes each
 use crate::logging::*;
-use crate::sync::LazyLock;
+use training_mod_sync::LazyLock;
 
 // Stolen from HDR who stole it from Arcropolis
 // https://github.com/HDR-Development/HewDraw-Remix/blob/dev/dynamic/src/util.rs
