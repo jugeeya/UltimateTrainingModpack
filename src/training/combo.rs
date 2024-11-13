@@ -1,11 +1,14 @@
 use skyline::nn::ui2d::ResColor;
-use training_mod_consts::OnOff;
+use smash::app::lua_bind::{CancelModule, StatusModule, WorkModule};
+use smash::app::BattleObjectModuleAccessor;
+use smash::lib::lua_const::*;
 
-use crate::common::*;
 use crate::consts::Action;
+use crate::get_module_accessor;
+use crate::training::frame_counter;
 use crate::training::ui::notifications;
-use crate::training::*;
 
+use training_mod_consts::{FighterId, OnOff, MENU};
 use training_mod_sync::*;
 
 static PLAYER_WAS_ACTIONABLE: RwLock<bool> = RwLock::new(false);
