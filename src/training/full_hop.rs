@@ -13,9 +13,7 @@ pub fn should_full_hop() -> bool {
 }
 
 pub fn roll_full_hop() {
-    unsafe {
-        assign_rwlock(&FULL_HOP, MENU.full_hop.get_random().into_bool());
-    }
+    assign_rwlock(&FULL_HOP, get(&MENU).full_hop.get_random().into_bool());
 }
 
 pub unsafe fn check_button_on(

@@ -6,12 +6,12 @@ use training_mod_consts::{InputDisplay, MENU};
 
 use crate::common::consts::status_display_name;
 use crate::menu::QUICK_MENU_ACTIVE;
-use training_mod_sync::*;
 use crate::training::input_log::{
     DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
 };
 use crate::training::ui::fade_out;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
+use training_mod_sync::*;
 
 macro_rules! log_parent_fmt {
     ($x:ident) => {
@@ -176,7 +176,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         .as_textbox()
         .set_text_string(frame_text.as_str());
 
-    let status_text = if MENU.input_display_status.as_bool() {
+    let status_text = if get(&MENU).input_display_status.as_bool() {
         status_display_name(log.fighter_kind, log.status)
     } else {
         "".to_string()
@@ -195,9 +195,9 @@ pub unsafe fn draw(root_pane: &Pane) {
     logs_pane.set_visible(
         !read_rwlock(&QUICK_MENU_ACTIVE)
             && !read_rwlock(&VANILLA_MENU_ACTIVE)
-            && MENU.input_display != InputDisplay::NONE,
+            && get(&MENU).input_display != InputDisplay::NONE,
     );
-    if MENU.input_display == InputDisplay::NONE {
+    if get(&MENU).input_display == InputDisplay::NONE {
         return;
     }
 

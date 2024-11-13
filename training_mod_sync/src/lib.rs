@@ -34,3 +34,8 @@ pub fn lock_write_rwlock<T>(rwlock: &RwLock<T>) -> RwLockWriteGuard<T> {
 pub fn lock_read_rwlock<T>(rwlock: &RwLock<T>) -> RwLockReadGuard<T> {
     rwlock.read().unwrap()
 }
+
+/// Shorthand for read_rwlock
+pub fn get<T: Copy>(rwlock: &RwLock<T>) -> T {
+    read_rwlock(rwlock)
+}

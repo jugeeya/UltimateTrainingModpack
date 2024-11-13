@@ -3,8 +3,9 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use training_mod_sync::*;
 use crate::training::{frame_counter, input_record, mash};
+
+use training_mod_sync::*;
 
 const NOT_SET: u32 = 9001;
 static LEDGE_DELAY: RwLock<u32> = RwLock::new(NOT_SET);
@@ -35,10 +36,7 @@ fn roll_ledge_delay() {
         // Don't roll another ledge delay if one is already selected
         return;
     }
-
-    unsafe {
-        *ledge_delay_guard = MENU.ledge_delay.get_random().into_longdelay();
-    }
+    *ledge_delay_guard = get(&MENU).ledge_delay.get_random().into_longdelay();
 }
 
 fn roll_ledge_case() {
@@ -48,48 +46,43 @@ fn roll_ledge_case() {
     if *ledge_case_guard != LedgeOption::empty() {
         return;
     }
-
-    unsafe {
-        *ledge_case_guard = MENU.ledge_state.get_random();
-    }
+    *ledge_case_guard = get(&MENU).ledge_state.get_random();
 }
 
 fn get_ledge_option() -> Option<Action> {
-    unsafe {
-        let mut override_action: Option<Action> = None;
-        let regular_action = if MENU.mash_triggers.contains(&MashTrigger::LEDGE) {
-            Some(MENU.mash_state.get_random())
-        } else {
-            None
-        };
+    let mut override_action: Option<Action> = None;
+    let regular_action = if get(&MENU).mash_triggers.contains(&MashTrigger::LEDGE) {
+        Some(get(&MENU).mash_state.get_random())
+    } else {
+        None
+    };
 
-        match read_rwlock(&LEDGE_CASE) {
-            LedgeOption::NEUTRAL => {
-                if MENU.ledge_neutral_override != Action::empty() {
-                    override_action = Some(MENU.ledge_neutral_override.get_random());
-                }
-            }
-            LedgeOption::ROLL => {
-                if MENU.ledge_roll_override != Action::empty() {
-                    override_action = Some(MENU.ledge_roll_override.get_random());
-                }
-            }
-            LedgeOption::JUMP => {
-                if MENU.ledge_jump_override != Action::empty() {
-                    override_action = Some(MENU.ledge_jump_override.get_random());
-                }
-            }
-            LedgeOption::ATTACK => {
-                if MENU.ledge_attack_override != Action::empty() {
-                    override_action = Some(MENU.ledge_attack_override.get_random());
-                }
-            }
-            _ => {
-                override_action = None;
+    match read_rwlock(&LEDGE_CASE) {
+        LedgeOption::NEUTRAL => {
+            if get(&MENU).ledge_neutral_override != Action::empty() {
+                override_action = Some(get(&MENU).ledge_neutral_override.get_random());
             }
         }
-        override_action.or(regular_action)
+        LedgeOption::ROLL => {
+            if get(&MENU).ledge_roll_override != Action::empty() {
+                override_action = Some(get(&MENU).ledge_roll_override.get_random());
+            }
+        }
+        LedgeOption::JUMP => {
+            if get(&MENU).ledge_jump_override != Action::empty() {
+                override_action = Some(get(&MENU).ledge_jump_override.get_random());
+            }
+        }
+        LedgeOption::ATTACK => {
+            if get(&MENU).ledge_attack_override != Action::empty() {
+                override_action = Some(get(&MENU).ledge_attack_override.get_random());
+            }
+        }
+        _ => {
+            override_action = None;
+        }
     }
+    override_action.or(regular_action)
 }
 
 pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -137,7 +130,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
         if should_buffer_playback
             && ledge_case.is_playback()
-            && MENU.ledge_delay != LongDelay::empty()
+            && get(&MENU).ledge_delay != LongDelay::empty()
         {
             input_record::playback_ledge(ledge_case.playback_slot());
             return;
@@ -180,7 +173,7 @@ pub unsafe fn is_enable_transition_term(
 
     // Only handle ledge scenarios from menu
     if StatusModule::status_kind(_module_accessor) != *FIGHTER_STATUS_KIND_CLIFF_WAIT
-        || MENU.ledge_state == LedgeOption::empty()
+        || get(&MENU).ledge_state == LedgeOption::empty()
     {
         return None;
     }
@@ -210,7 +203,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
             return;
         }
 
-        if MENU.ledge_state == LedgeOption::empty() {
+        if get(&MENU).ledge_state == LedgeOption::empty() {
             return;
         }
 

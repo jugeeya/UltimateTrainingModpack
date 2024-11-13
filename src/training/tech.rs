@@ -13,8 +13,8 @@ use crate::common::offsets::{
     OFFSET_CHANGE_ACTIVE_CAMERA, OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES,
 };
 use crate::common::*;
-use training_mod_sync::*;
 use crate::training::{frame_counter, mash, save_states};
+use training_mod_sync::*;
 
 static TECH_ROLL_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());
 static MISS_TECH_ROLL_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());
@@ -63,7 +63,7 @@ unsafe fn mod_handle_change_status(
         .try_get_int()
         .unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
 
-    let state: TechFlags = MENU.tech_state.get_random();
+    let state: TechFlags = get(&MENU).tech_state.get_random();
 
     if handle_grnd_tech(module_accessor, status_kind, unk, status_kind_int, state) {
         return;
@@ -125,11 +125,11 @@ unsafe fn handle_grnd_tech(
         }
         _ => false,
     };
-    if do_tech && MENU.mash_triggers.contains(&MashTrigger::TECH) {
-        if MENU.tech_action_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+    if do_tech && get(&MENU).mash_triggers.contains(&MashTrigger::TECH) {
+        if get(&MENU).tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(get(&MENU).mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(get(&MENU).tech_action_override.get_random())
         }
     }
 
@@ -172,11 +172,11 @@ unsafe fn handle_wall_tech(
         }
         _ => false,
     };
-    if do_tech && MENU.mash_triggers.contains(&MashTrigger::TECH) {
-        if MENU.tech_action_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+    if do_tech && get(&MENU).mash_triggers.contains(&MashTrigger::TECH) {
+        if get(&MENU).tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(get(&MENU).mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(get(&MENU).tech_action_override.get_random())
         }
     }
     true
@@ -207,18 +207,18 @@ unsafe fn handle_ceil_tech(
 
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
-    if MENU.mash_triggers.contains(&MashTrigger::TECH) {
-        if MENU.tech_action_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+    if get(&MENU).mash_triggers.contains(&MashTrigger::TECH) {
+        if get(&MENU).tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(get(&MENU).mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(get(&MENU).tech_action_override.get_random())
         }
     }
     true
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
-    if !is_operation_cpu(module_accessor) || MENU.tech_state == TechFlags::empty() {
+    if !is_operation_cpu(module_accessor) || get(&MENU).tech_state == TechFlags::empty() {
         return;
     }
 
@@ -231,7 +231,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     .contains(&status)
     {
         // Mistech
-        requested_status = match MENU.miss_tech_state.get_random() {
+        requested_status = match get(&MENU).miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
             MissTechFlags::ROLL_F => {
@@ -250,7 +250,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         if frame_counter::should_delay(lockout_time, *FRAME_COUNTER) {
             return;
         };
-        requested_status = match MENU.miss_tech_state.get_random() {
+        requested_status = match get(&MENU).miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
             MissTechFlags::ROLL_F => {
@@ -265,7 +265,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         };
     } else if status == *FIGHTER_STATUS_KIND_SLIP_WAIT {
         // Handle slips (like Diddy banana)
-        requested_status = match MENU.miss_tech_state.get_random() {
+        requested_status = match get(&MENU).miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_SLIP_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_SLIP_STAND_ATTACK,
             MissTechFlags::ROLL_F => *FIGHTER_STATUS_KIND_SLIP_STAND_F,
@@ -279,11 +279,11 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
     if requested_status != 0 {
         StatusModule::change_status_force(module_accessor, requested_status, true);
-        if MENU.mash_triggers.contains(&MashTrigger::MISTECH) {
-            if MENU.tech_action_override == Action::empty() {
-                mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+        if get(&MENU).mash_triggers.contains(&MashTrigger::MISTECH) {
+            if get(&MENU).tech_action_override == Action::empty() {
+                mash::external_buffer_menu_mash(get(&MENU).mash_state.get_random())
             } else {
-                mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+                mash::external_buffer_menu_mash(get(&MENU).tech_action_override.get_random())
             }
         }
     }
@@ -297,7 +297,7 @@ pub unsafe fn change_motion(
         return None;
     }
 
-    if MENU.tech_state == TechFlags::empty() {
+    if get(&MENU).tech_state == TechFlags::empty() {
         return None;
     }
 
@@ -349,7 +349,7 @@ unsafe fn get_snake_laydown_lockout_time(module_accessor: &mut BattleObjectModul
 }
 
 pub unsafe fn hide_tech() {
-    if !is_training_mode() || MENU.tech_hide == OnOff::OFF {
+    if !is_training_mode() || get(&MENU).tech_hide == OnOff::OFF {
         return;
     }
     let module_accessor = get_module_accessor(FighterId::CPU);
@@ -407,7 +407,7 @@ pub unsafe fn handle_fighter_req_quake_pos(
         return original!()(module_accessor, quake_kind);
     }
     let status = StatusModule::status_kind(module_accessor);
-    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::ON {
+    if status == FIGHTER_STATUS_KIND_DOWN && get(&MENU).tech_hide == OnOff::ON {
         // We're hiding techs, prevent mistech quake from giving away missed tech
         return original!()(module_accessor, *CAMERA_QUAKE_KIND_NONE);
     }
@@ -450,7 +450,7 @@ pub struct CameraManager {
 
 unsafe fn set_fixed_camera_values() {
     let camera_manager = get_camera_manager();
-    if MENU.tech_hide == OnOff::OFF {
+    if get(&MENU).tech_hide == OnOff::OFF {
         // Use Stage's Default Values for fixed Camera
         camera_manager.fixed_camera_center = read_rwlock(&DEFAULT_FIXED_CAM_CENTER);
     } else {

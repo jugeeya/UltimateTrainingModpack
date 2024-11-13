@@ -3,9 +3,10 @@ use training_mod_consts::OnOff;
 
 use crate::common::*;
 use crate::consts::Action;
-use training_mod_sync::*;
 use crate::training::ui::notifications;
 use crate::training::*;
+
+use training_mod_sync::*;
 
 static PLAYER_WAS_ACTIONABLE: RwLock<bool> = RwLock::new(false);
 static CPU_WAS_ACTIONABLE: RwLock<bool> = RwLock::new(false);
@@ -49,37 +50,35 @@ unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> boo
 }
 
 fn update_frame_advantage(frame_advantage: i32) {
-    unsafe {
-        if MENU.frame_advantage == OnOff::ON {
-            // Prioritize Frame Advantage over Input Recording Playback
-            notifications::clear_notifications_except("Input Recording");
-            notifications::clear_notifications_except("Frame Advantage");
-            notifications::color_notification(
-                "Frame Advantage".to_string(),
-                format!("{frame_advantage}"),
-                60,
-                match frame_advantage {
-                    x if x < 0 => ResColor {
-                        r: 200,
-                        g: 8,
-                        b: 8,
-                        a: 255,
-                    },
-                    0 => ResColor {
-                        r: 0,
-                        g: 0,
-                        b: 0,
-                        a: 255,
-                    },
-                    _ => ResColor {
-                        r: 31,
-                        g: 198,
-                        b: 0,
-                        a: 255,
-                    },
+    if get(&MENU).frame_advantage == OnOff::ON {
+        // Prioritize Frame Advantage over Input Recording Playback
+        notifications::clear_notifications_except("Input Recording");
+        notifications::clear_notifications_except("Frame Advantage");
+        notifications::color_notification(
+            "Frame Advantage".to_string(),
+            format!("{frame_advantage}"),
+            60,
+            match frame_advantage {
+                x if x < 0 => ResColor {
+                    r: 200,
+                    g: 8,
+                    b: 8,
+                    a: 255,
                 },
-            );
-        }
+                0 => ResColor {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
+                _ => ResColor {
+                    r: 31,
+                    g: 198,
+                    b: 0,
+                    a: 255,
+                },
+            },
+        );
     }
 }
 
@@ -101,7 +100,7 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
         || frame_counter::is_counting(*CPU_FRAME_COUNTER_INDEX);
 
     if !is_counting {
-        if MENU.mash_state == Action::empty()
+        if get(&MENU).mash_state == Action::empty()
             && !player_is_actionable
             && !cpu_is_actionable
             && (!was_in_shieldstun(cpu_module_accessor) && is_in_shieldstun(cpu_module_accessor)

@@ -126,38 +126,36 @@ pub fn main() {
         info!("Skipping version check because we are using an emulator");
     }
 
-    unsafe {
-        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification(
-            "Open Menu".to_string(),
-            if MENU.menu_open_start_press == OnOff::ON {
-                "Hold Start".to_string()
-            } else {
-                DEFAULT_OPEN_MENU_CONFIG.to_string()
-            },
-            120,
-        );
-        notification(
-            "Save State".to_string(),
-            MENU.save_state_save.to_string(),
-            120,
-        );
-        notification(
-            "Load State".to_string(),
-            MENU.save_state_load.to_string(),
-            120,
-        );
-        notification(
-            "Input Record".to_string(),
-            MENU.input_record.to_string(),
-            120,
-        );
-        notification(
-            "Input Playback".to_string(),
-            MENU.input_playback.to_string(),
-            120,
-        );
-    }
+    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+    notification(
+        "Open Menu".to_string(),
+        if get(&MENU).menu_open_start_press == OnOff::ON {
+            "Hold Start".to_string()
+        } else {
+            DEFAULT_OPEN_MENU_CONFIG.to_string()
+        },
+        120,
+    );
+    notification(
+        "Save State".to_string(),
+        get(&MENU).save_state_save.to_string(),
+        120,
+    );
+    notification(
+        "Load State".to_string(),
+        get(&MENU).save_state_load.to_string(),
+        120,
+    );
+    notification(
+        "Input Record".to_string(),
+        get(&MENU).input_record.to_string(),
+        120,
+    );
+    notification(
+        "Input Playback".to_string(),
+        get(&MENU).input_playback.to_string(),
+        120,
+    );
 
     std::thread::spawn(events_loop);
 }

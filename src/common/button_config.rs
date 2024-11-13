@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, QUICK_MENU_ACTIVE};
 use crate::common::ButtonConfig;
 use crate::input::{ControllerStyle::*, *};
-use training_mod_sync::*;
 use crate::training::frame_counter;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
 use training_mod_consts::{OnOff, MENU};
+use training_mod_sync::*;
 
 use strum_macros::EnumIter;
 
@@ -176,10 +176,10 @@ unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     match combo {
         // For OpenMenu, have a default in addition to accepting start press
         ButtonCombo::OpenMenu => DEFAULT_OPEN_MENU_CONFIG,
-        ButtonCombo::SaveState => MENU.save_state_save,
-        ButtonCombo::LoadState => MENU.save_state_load,
-        ButtonCombo::InputRecord => MENU.input_record,
-        ButtonCombo::InputPlayback => MENU.input_playback,
+        ButtonCombo::SaveState => get(&MENU).save_state_save,
+        ButtonCombo::LoadState => get(&MENU).save_state_load,
+        ButtonCombo::InputRecord => get(&MENU).input_record,
+        ButtonCombo::InputPlayback => get(&MENU).input_playback,
     }
 }
 
@@ -245,7 +245,7 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         let mut start_menu_request = false;
 
         let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
-        if unsafe { MENU.menu_open_start_press == OnOff::ON } {
+        if get(&MENU).menu_open_start_press == OnOff::ON {
             let mut start_hold_frames = read_rwlock(&START_HOLD_FRAMES);
             if p1_controller.current_buttons.plus() {
                 start_hold_frames += 1;

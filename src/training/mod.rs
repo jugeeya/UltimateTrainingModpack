@@ -10,7 +10,6 @@ use crate::common::{
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
-use training_mod_sync::*;
 use crate::training::character_specific::{items, kirby, pikmin, ptrainer};
 use skyline::hooks::{getRegionAddress, InlineCtx, Region};
 use skyline::nn::ro::LookupSymbol;
@@ -20,6 +19,7 @@ use smash::app::{
 use smash::lib::lua_const::*;
 use smash::params::*;
 use smash::phx::{Hash40, Vector3f};
+use training_mod_sync::*;
 
 pub mod buff;
 pub mod charge;
@@ -134,7 +134,7 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
             // Handle dodge staling here b/c input recording or mash can cause dodging
             WorkModule::set_flag(
                 module_accessor,
-                !(MENU.stale_dodges.as_bool()),
+                !(get(&MENU).stale_dodges.as_bool()),
                 *FIGHTER_INSTANCE_WORK_ID_FLAG_DISABLE_ESCAPE_PENALTY,
             );
             input_record::handle_recording();
@@ -428,7 +428,7 @@ pub unsafe fn handle_add_damage(
 #[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
     let x8 = ctx.registers[8].x.as_mut();
-    if !(MENU.lra_reset.as_bool()) {
+    if !(get(&MENU).lra_reset.as_bool()) {
         *x8 = 0;
     }
 }
@@ -766,7 +766,7 @@ pub unsafe fn handle_reused_ui(
         // If Little Mac is in the game and we're buffing him, set the meter to 100
         if (player_fighter_kind == *FIGHTER_KIND_LITTLEMAC
             || cpu_fighter_kind == *FIGHTER_KIND_LITTLEMAC)
-            && MENU.buff_state.contains(&BuffOption::KO)
+            && get(&MENU).buff_state.contains(&BuffOption::KO)
         {
             param_2 = 100;
         }

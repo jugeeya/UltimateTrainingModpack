@@ -5,8 +5,8 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use training_mod_sync::*;
 use crate::training::directional_influence::should_reverse_angle;
+use training_mod_sync::*;
 
 static AIRDODGE_STICK_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());
 
@@ -32,7 +32,10 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Op
         return None;
     }
 
-    assign_rwlock(&AIRDODGE_STICK_DIRECTION, MENU.air_dodge_dir.get_random());
+    assign_rwlock(
+        &AIRDODGE_STICK_DIRECTION,
+        get(&MENU).air_dodge_dir.get_random(),
+    );
     let direction = read_rwlock(&AIRDODGE_STICK_DIRECTION);
     direction.into_angle().map(|angle| {
         if !should_reverse_angle(direction) {

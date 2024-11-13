@@ -12,6 +12,8 @@ pub mod config;
 pub use config::*;
 
 use paste::paste;
+
+use training_mod_sync::*;
 pub use training_mod_tui::*;
 
 pub const TOGGLE_MAX: u8 = 5;
@@ -204,7 +206,7 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     lra_reset: OnOff::ON,
 };
 
-pub static mut MENU: TrainingModpackMenu = DEFAULTS_MENU;
+pub static MENU: RwLock<TrainingModpackMenu> = RwLock::new(DEFAULTS_MENU);
 
 impl_toggletrait! {
     OnOff,

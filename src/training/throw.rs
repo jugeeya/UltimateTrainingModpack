@@ -3,10 +3,9 @@ use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use training_mod_sync::*;
 use crate::training::frame_counter;
 use crate::training::mash;
-
+use training_mod_sync::*;
 
 const NOT_SET: u32 = 9001;
 static THROW_DELAY: RwLock<u32> = RwLock::new(NOT_SET);
@@ -44,27 +43,27 @@ pub fn reset_throw_case() {
 fn roll_throw_delay() {
     if read_rwlock(&THROW_DELAY) == NOT_SET {
         // Only roll another throw delay if one is not already selected
-        unsafe {
-            assign_rwlock(&THROW_DELAY, MENU.throw_delay.get_random().into_meddelay());
-        }
+        assign_rwlock(
+            &THROW_DELAY,
+            get(&MENU).throw_delay.get_random().into_meddelay(),
+        );
     }
 }
 
 fn roll_pummel_delay() {
     if read_rwlock(&PUMMEL_DELAY) == NOT_SET {
         // Don't roll another pummel delay if one is already selected
-        unsafe {
-            assign_rwlock(&PUMMEL_DELAY, MENU.pummel_delay.get_random().into_meddelay());
-        }
+        assign_rwlock(
+            &PUMMEL_DELAY,
+            get(&MENU).pummel_delay.get_random().into_meddelay(),
+        );
     }
 }
 
 fn roll_throw_case() {
     if read_rwlock(&THROW_CASE) == ThrowOption::empty() {
         // Only re-roll if there is not already a throw option selected
-        unsafe {
-            assign_rwlock(&THROW_CASE, MENU.throw_state.get_random());
-        }
+        assign_rwlock(&THROW_CASE, get(&MENU).throw_state.get_random());
     }
 }
 
@@ -113,7 +112,7 @@ pub unsafe fn get_command_flag_throw_direction(
         }
 
         // If no pummel delay is selected (default), then don't pummel
-        if MENU.pummel_delay == MedDelay::empty() {
+        if get(&MENU).pummel_delay == MedDelay::empty() {
             return 0;
         }
 
@@ -132,7 +131,7 @@ pub unsafe fn get_command_flag_throw_direction(
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW_HI,
     ) {
         let cmd = read_rwlock(&THROW_CASE).into_cmd().unwrap_or(0);
-        mash::external_buffer_menu_mash(MENU.mash_state.get_random());
+        mash::external_buffer_menu_mash(get(&MENU).mash_state.get_random());
         return cmd;
     }
 

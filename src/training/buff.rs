@@ -5,9 +5,10 @@ use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
 use crate::is_operation_cpu;
-use training_mod_sync::*;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
+
+use training_mod_sync::*;
 
 static BUFF_REMAINING_PLAYER: RwLock<usize> = RwLock::new(0);
 static BUFF_REMAINING_CPU: RwLock<usize> = RwLock::new(0);
@@ -77,7 +78,7 @@ pub unsafe fn handle_buffs(
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
 
-    let menu_vec = MENU.buff_state;
+    let menu_vec = get(&MENU).buff_state;
 
     if fighter_kind == *FIGHTER_KIND_BRAVE {
         return buff_hero(module_accessor, status);
@@ -102,7 +103,7 @@ pub unsafe fn handle_buffs(
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let buff_vec: Vec<BuffOption> = MENU.buff_state.hero_buffs().to_vec();
+    let buff_vec: Vec<BuffOption> = get(&MENU).buff_state.hero_buffs().to_vec();
     if !is_buffing(module_accessor) {
         // Initial set up for spells
         start_buff(module_accessor);
@@ -239,7 +240,7 @@ unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -
 
 unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     if !is_buffing(module_accessor) {
-        let waft_level: BuffOption = MENU.buff_state.wario_buffs().get_random();
+        let waft_level: BuffOption = get(&MENU).buff_state.wario_buffs().get_random();
         let waft_count_secs = match waft_level {
             BuffOption::WAFT_MINI => WorkModule::get_param_float(
                 module_accessor,
@@ -275,7 +276,7 @@ unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 }
 
 unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let current_art = MENU.buff_state.shulk_buffs().get_random();
+    let current_art = get(&MENU).buff_state.shulk_buffs().get_random();
     if current_art == BuffOption::empty() {
         // No Monado Arts selected in the buff menu, so we don't need to buff
         return true;

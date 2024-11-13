@@ -20,6 +20,8 @@ use crate::training::mash;
 use crate::training::ui::notifications::{clear_notifications_except, color_notification};
 use crate::{error, warn};
 
+use training_mod_sync::*;
+
 #[derive(PartialEq, Debug)]
 pub enum InputRecordState {
     None,
@@ -104,17 +106,18 @@ unsafe fn should_mash_playback() {
 
     if is_in_hitstun(&mut *cpu_module_accessor) {
         // if we're in hitstun and want to enter the frame we start hitstop for SDI, start if we're in any damage status instantly
-        if MENU.hitstun_playback == HitstunPlayback::INSTANT {
+        if get(&MENU).hitstun_playback == HitstunPlayback::INSTANT {
             should_playback = true;
         }
         // if we want to wait until we exit hitstop and begin flying away for shield art etc, start if we're not in hitstop
-        if MENU.hitstun_playback == HitstunPlayback::HITSTOP
+        if get(&MENU).hitstun_playback == HitstunPlayback::HITSTOP
             && !StopModule::is_stop(cpu_module_accessor)
         {
             should_playback = true;
         }
         // if we're in hitstun and want to wait till FAF to act, then we want to match our starting status to the correct transition term to see if we can hitstun cancel
-        if MENU.hitstun_playback == HitstunPlayback::HITSTUN && can_transition(cpu_module_accessor)
+        if get(&MENU).hitstun_playback == HitstunPlayback::HITSTUN
+            && can_transition(cpu_module_accessor)
         {
             should_playback = true;
         }
@@ -193,12 +196,12 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
     let fighter_kind = utility::get_kind(module_accessor);
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
 
-    CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx().unwrap_or(0);
+    CURRENT_RECORD_SLOT = get(&MENU).recording_slot.into_idx().unwrap_or(0);
 
     if entry_id_int == 0 && !fighter_is_nana {
         if button_config::combo_passes(button_config::ButtonCombo::InputPlayback) {
-            playback(MENU.playback_button_slots.get_random().into_idx());
-        } else if MENU.record_trigger.contains(&RecordTrigger::COMMAND)
+            playback(get(&MENU).playback_button_slots.get_random().into_idx());
+        } else if get(&MENU).record_trigger.contains(&RecordTrigger::COMMAND)
             && button_config::combo_passes(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
@@ -217,7 +220,9 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 
             // If we need to crop the recording for neutral input
             // INPUT_RECORD_FRAME must be > 0 to prevent bounding errors
-            if INPUT_RECORD == Record && MENU.recording_crop == OnOff::ON && INPUT_RECORD_FRAME > 0
+            if INPUT_RECORD == Record
+                && get(&MENU).recording_crop == OnOff::ON
+                && INPUT_RECORD_FRAME > 0
             {
                 while INPUT_RECORD_FRAME > 0 && is_input_neutral(INPUT_RECORD_FRAME - 1) {
                     // Discard frames at the end of the recording until the last frame with input
@@ -229,7 +234,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 
             INPUT_RECORD_FRAME = 0;
 
-            if MENU.playback_loop == OnOff::ON && INPUT_RECORD == Playback {
+            if get(&MENU).playback_loop == OnOff::ON && INPUT_RECORD == Playback {
                 playback(Some(CURRENT_PLAYBACK_SLOT));
             } else {
                 INPUT_RECORD = None;
@@ -327,7 +332,7 @@ pub unsafe fn lockout_record() {
         .for_each(|mapped_input| {
             *mapped_input = MappedInputs::empty();
         });
-    CURRENT_FRAME_LENGTH = MENU.recording_duration.into_frames();
+    CURRENT_FRAME_LENGTH = get(&MENU).recording_duration.into_frames();
     P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
     LOCKOUT_FRAME = 30; // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
     BUFFER_FRAME = 0;

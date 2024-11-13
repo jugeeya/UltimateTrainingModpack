@@ -5,8 +5,8 @@ use smash::Vector2f;
 
 use crate::common::consts::*;
 use crate::common::*;
-use training_mod_sync::*;
 use crate::training::directional_influence;
+use training_mod_sync::*;
 
 static COUNTER: RwLock<u32> = RwLock::new(0);
 static DIRECTION: RwLock<Direction> = RwLock::new(Direction::NEUTRAL);
@@ -14,9 +14,7 @@ static DIRECTION: RwLock<Direction> = RwLock::new(Direction::NEUTRAL);
 // TODO! Bug - we only roll a new direction when loading a save state or on LRA reset
 pub fn roll_direction() {
     assign_rwlock(&COUNTER, 0);
-    unsafe {
-        assign_rwlock(&DIRECTION, MENU.sdi_state.get_random());
-    }
+    assign_rwlock(&DIRECTION, get(&MENU).sdi_state.get_random());
 }
 
 unsafe fn get_sdi_direction() -> Option<f64> {
@@ -40,7 +38,7 @@ pub unsafe fn check_hit_stop_delay_command(
     if !is_training_mode() || !is_operation_cpu(module_accessor) {
         return original!()(module_accessor, sdi_direction);
     }
-    let repeat = MENU.sdi_strength.into_u32();
+    let repeat = get(&MENU).sdi_strength.into_u32();
     let mut counter_guard = lock_write_rwlock(&COUNTER);
     *counter_guard = (*counter_guard + 1) % repeat;
     if *counter_guard == repeat - 1 {

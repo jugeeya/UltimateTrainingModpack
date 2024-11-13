@@ -37,7 +37,7 @@ pub fn load_from_file() {
         if let Ok(menu_conf_json) = serde_json::from_reader::<BufReader<_>, MenuJsonStruct>(reader)
         {
             unsafe {
-                MENU = menu_conf_json.menu;
+                assign_rwlock(&MENU, menu_conf_json.menu);
                 DEFAULTS_MENU = menu_conf_json.defaults_menu;
                 info!("Previous menu found. Loading...");
             }
@@ -68,7 +68,7 @@ pub unsafe fn set_menu_from_json(message: &str) {
     info!("Received menu message: {message}");
     if let Ok(message_json) = response {
         // Includes both MENU and DEFAULTS_MENU
-        MENU = message_json.menu;
+        assign_rwlock(&MENU, message_json.menu);
         DEFAULTS_MENU = message_json.defaults_menu;
         fs::write(
             MENU_OPTIONS_PATH,

@@ -4,13 +4,15 @@ use smash::lib::lua_const::*;
 use crate::common::consts::OnOff;
 use crate::common::*;
 
+use training_mod_sync::*;
+
 pub unsafe fn mod_get_stick_y(module_accessor: &mut BattleObjectModuleAccessor) -> Option<f32> {
     if !is_operation_cpu(module_accessor) {
         return None;
     }
     let fighter_status_kind = StatusModule::status_kind(module_accessor);
 
-    if MENU.crouch == OnOff::ON
+    if get(&MENU).crouch == OnOff::ON
         && [
             *FIGHTER_STATUS_KIND_WAIT,
             *FIGHTER_STATUS_KIND_SQUAT,

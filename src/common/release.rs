@@ -5,7 +5,8 @@ use zip::ZipArchive;
 use crate::common::dialog;
 use crate::consts::*;
 use crate::logging::*;
-use training_mod_sync::LazyLock;
+
+use training_mod_sync::*;
 
 pub static CURRENT_VERSION: LazyLock<String> = LazyLock::new(|| {
     info!("Initialized lazy static value: CURRENT_VERSION");
@@ -74,7 +75,7 @@ impl Release {
 }
 
 fn get_update_policy() -> UpdatePolicy {
-    unsafe { MENU.update_policy }
+    get(&MENU).update_policy
 }
 
 fn get_release(beta: bool) -> Result<Release> {

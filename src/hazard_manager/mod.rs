@@ -6,7 +6,8 @@ use smash::app::smashball::is_training_mode;
 
 use crate::common::consts::*;
 use crate::logging::*;
-use training_mod_sync::LazyLock;
+
+use training_mod_sync::*;
 
 use HazardState::*;
 use HookState::*;
@@ -93,7 +94,7 @@ fn hazard_intercept(_ctx: &skyline::hooks::InlineCtx) {
 fn mod_handle_hazards() {
     unsafe {
         let address = *HAZARD_FLAG_ADDRESS as *mut u8;
-        *address = (MENU.stage_hazards == OnOff::ON) as u8;
+        *address = (get(&MENU).stage_hazards == OnOff::ON) as u8;
     }
 }
 

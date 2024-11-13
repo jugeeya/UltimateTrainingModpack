@@ -12,15 +12,12 @@ use training_mod_sync::*;
 static DI_CASE: RwLock<Direction> = RwLock::new(Direction::empty());
 
 pub fn roll_di_case() {
-    unsafe {
-        let mut di_case_guard = lock_write_rwlock(&DI_CASE);
-        if *di_case_guard != Direction::empty() {
-            // DI direction already selected, don't pick a new one
-            return;
-        }
-
-        *di_case_guard = MENU.di_state.get_random();
+    let mut di_case_guard = lock_write_rwlock(&DI_CASE);
+    if *di_case_guard != Direction::empty() {
+        // DI direction already selected, don't pick a new one
+        return;
     }
+    *di_case_guard = get(&MENU).di_state.get_random();
 }
 
 pub fn reset_di_case(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -47,7 +44,7 @@ pub unsafe fn handle_correct_damage_vector_common(
 }
 
 unsafe fn mod_handle_di(fighter: &L2CFighterCommon, _arg1: L2CValue) {
-    if MENU.di_state == Direction::empty() {
+    if get(&MENU).di_state == Direction::empty() {
         return;
     }
 

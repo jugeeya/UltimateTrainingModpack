@@ -8,8 +8,9 @@ use smash::lua2cpp::L2CFighterCommon;
 
 use crate::common::consts::*;
 use crate::common::*;
-use training_mod_sync::*;
 use crate::training::{frame_counter, input_record, mash, save_states};
+
+use training_mod_sync::*;
 
 // TODO!() We only reset this on save state load or LRA reset
 // How many hits to hold shield until picking an Out Of Shield option
@@ -43,16 +44,14 @@ fn should_pause_shield_decay() -> bool {
 }
 
 fn reset_oos_offset() {
-    unsafe {
-        /*
-         * Need to offset by 1, since we decrease as soon as shield gets hit
-         * but only check later if we can OOS
-         */
-        assign_rwlock(
-            &MULTI_HIT_OFFSET,
-            MENU.oos_offset.get_random().into_delay() + 1,
-        );
-    }
+    /*
+     * Need to offset by 1, since we decrease as soon as shield gets hit
+     * but only check later if we can OOS
+     */
+    assign_rwlock(
+        &MULTI_HIT_OFFSET,
+        get(&MENU).oos_offset.get_random().into_delay() + 1,
+    );
 }
 
 fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -70,9 +69,10 @@ fn handle_oos_offset(module_accessor: &mut app::BattleObjectModuleAccessor) {
     }
 
     // Roll shield delay
-    unsafe {
-        assign_rwlock(&SHIELD_DELAY, MENU.reaction_time.get_random().into_delay());
-    }
+    assign_rwlock(
+        &SHIELD_DELAY,
+        get(&MENU).reaction_time.get_random().into_delay(),
+    );
 
     // Decrease offset once if needed
     let mut multi_hit_offset_guard = lock_write_rwlock(&MULTI_HIT_OFFSET);
@@ -116,7 +116,7 @@ pub unsafe fn get_param_float(
         return None;
     }
 
-    if MENU.shield_state != Shield::NONE {
+    if get(&MENU).shield_state != Shield::NONE {
         handle_oos_offset(module_accessor);
     }
 
@@ -125,10 +125,7 @@ pub unsafe fn get_param_float(
 
 // Shield Decay//Recovery
 fn handle_shield_decay(param_type: u64, param_hash: u64) -> Option<f32> {
-    let menu_state;
-    unsafe {
-        menu_state = MENU.shield_state;
-    }
+    let menu_state = get(&MENU).shield_state;
 
     if menu_state != Shield::INFINITE
         && menu_state != Shield::CONSTANT
@@ -166,7 +163,7 @@ pub unsafe fn param_installer() {
             *cached_shield_damage_mul_guard = Some(common_params.shield_damage_mul);
         }
 
-        if is_training_mode() && (MENU.shield_state == Shield::INFINITE) {
+        if is_training_mode() && (get(&MENU).shield_state == Shield::INFINITE) {
             // if you are in training mode and have infinite shield enabled,
             // set the game's shield_damage_mul to 0.0
             common_params.shield_damage_mul = 0.0;
@@ -190,10 +187,7 @@ pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor)
         return true;
     }
 
-    let shield_state;
-    unsafe {
-        shield_state = &MENU.shield_state;
-    }
+    let shield_state = &get(&MENU).shield_state;
 
     // We should hold shield if the state requires it
     if unsafe { save_states::is_loading() }
@@ -228,7 +222,7 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
     }
 
     // Enable shield decay
-    if MENU.shield_state == Shield::HOLD {
+    if get(&MENU).shield_state == Shield::HOLD {
         set_shield_decay(true);
     }
 
@@ -250,11 +244,11 @@ unsafe fn mod_handle_sub_guard_cont(fighter: &mut L2CFighterCommon) {
         return;
     }
 
-    if MENU.mash_triggers.contains(&MashTrigger::SHIELDSTUN) {
-        if MENU.shieldstun_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+    if get(&MENU).mash_triggers.contains(&MashTrigger::SHIELDSTUN) {
+        if get(&MENU).shieldstun_override == Action::empty() {
+            mash::external_buffer_menu_mash(get(&MENU).mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.shieldstun_override.get_random())
+            mash::external_buffer_menu_mash(get(&MENU).shieldstun_override.get_random())
         }
     }
 
@@ -360,10 +354,7 @@ fn needs_oos_handling_drop_shield() -> bool {
     }
     // Make sure we only flicker shield when Airdodge and Shield mash options are selected
     if action == Action::AIR_DODGE {
-        let shield_state;
-        unsafe {
-            shield_state = &MENU.shield_state;
-        }
+        let shield_state = &get(&MENU).shield_state;
         // If we're supposed to be holding shield, let airdodge make us drop shield
         if [Shield::HOLD, Shield::INFINITE, Shield::CONSTANT].contains(shield_state) {
             suspend_shield(Action::AIR_DODGE);
@@ -373,10 +364,7 @@ fn needs_oos_handling_drop_shield() -> bool {
 
     // Make sure we only flicker shield when Airdodge and Shield mash options are selected
     if action == Action::AIR_DODGE {
-        let shield_state;
-        unsafe {
-            shield_state = &MENU.shield_state;
-        }
+        let shield_state = &get(&MENU).shield_state;
         // If we're supposed to be holding shield, let airdodge make us drop shield
         if [Shield::HOLD, Shield::INFINITE, Shield::CONSTANT].contains(shield_state) {
             suspend_shield(Action::AIR_DODGE);
@@ -385,10 +373,7 @@ fn needs_oos_handling_drop_shield() -> bool {
     }
 
     if action == Action::SHIELD {
-        let shield_state;
-        unsafe {
-            shield_state = &MENU.shield_state;
-        }
+        let shield_state = &get(&MENU).shield_state;
         // Don't drop shield on shield hit if we're supposed to be holding shield
         if [Shield::HOLD, Shield::INFINITE, Shield::CONSTANT].contains(shield_state) {
             return false;

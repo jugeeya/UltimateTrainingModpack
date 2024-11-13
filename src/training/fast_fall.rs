@@ -3,8 +3,9 @@ use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::*;
-use training_mod_sync::*;
 use crate::training::{frame_counter, input_record};
+
+use training_mod_sync::*;
 
 static DELAY: RwLock<u32> = RwLock::new(0);
 static FAST_FALL: RwLock<bool> = RwLock::new(false);
@@ -16,9 +17,7 @@ fn should_fast_fall() -> bool {
 }
 
 pub fn roll_fast_fall() {
-    unsafe {
-        assign_rwlock(&FAST_FALL, MENU.fast_fall.get_random().into_bool());
-    }
+    assign_rwlock(&FAST_FALL, get(&MENU).fast_fall.get_random().into_bool());
 }
 
 pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -38,7 +37,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     unsafe {
         if !is_falling(module_accessor) {
             // Roll FF delay
-            assign_rwlock(&DELAY, MENU.fast_fall_delay.get_random().into_delay());
+            assign_rwlock(&DELAY, get(&MENU).fast_fall_delay.get_random().into_delay());
             frame_counter::full_reset(*FRAME_COUNTER_INDEX);
             return;
         }
