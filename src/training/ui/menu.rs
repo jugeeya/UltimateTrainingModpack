@@ -11,9 +11,9 @@ use crate::common::menu::{
     QUICK_MENU_ACTIVE, QUICK_MENU_APP,
 };
 use crate::input::*;
-use training_mod_sync::*;
 use crate::training::frame_counter;
 use training_mod_consts::TOGGLE_MAX;
+use training_mod_sync::*;
 
 use super::fade_out;
 use super::set_icon_text;
@@ -482,11 +482,11 @@ pub unsafe fn draw(root_pane: &Pane) {
     );
 
     // Only submit updates if we have received input
-    let received_input = &mut *MENU_RECEIVED_INPUT.data_ptr();
-    if !*received_input {
+    let received_input = read_rwlock(&MENU_RECEIVED_INPUT);
+    if !received_input {
         return;
     } else {
-        *received_input = false;
+        assign_rwlock(&MENU_RECEIVED_INPUT, false);
     }
 
     if let Some(quit_button) = root_pane.find_pane_by_name_recursive("TrModTitle") {
@@ -532,8 +532,8 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     // Update menu display
     // Grabbing lock as read-only, essentially
+    let mut app = lock_write_rwlock(&QUICK_MENU_APP);
     // We don't really need to change anything, but get_before_selected requires &mut self
-    let app = &mut *QUICK_MENU_APP.data_ptr();
 
     let tab_titles = [
         app.tabs
@@ -547,7 +547,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             .title,
     ];
 
-    let is_gcc = (*P1_CONTROLLER_STYLE.data_ptr()) == ControllerStyle::GCController;
+    let is_gcc = read_rwlock(&P1_CONTROLLER_STYLE) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
         &(*GCC_BUTTON_MAPPING)
     } else {
@@ -668,10 +668,10 @@ pub unsafe fn draw(root_pane: &Pane) {
     }
 
     match app.page {
-        AppPage::SUBMENU => render_submenu_page(app, root_pane),
-        AppPage::SLIDER => render_slider_page(app, root_pane),
-        AppPage::TOGGLE => render_toggle_page(app, root_pane),
-        AppPage::CONFIRMATION => render_confirmation_page(app, root_pane),
+        AppPage::SUBMENU => render_submenu_page(&mut app, root_pane),
+        AppPage::SLIDER => render_slider_page(&mut app, root_pane),
+        AppPage::TOGGLE => render_toggle_page(&mut app, root_pane),
+        AppPage::CONFIRMATION => render_confirmation_page(&mut app, root_pane),
         AppPage::CLOSE => {}
     }
 }

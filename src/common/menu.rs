@@ -1,10 +1,7 @@
-use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
 use std::io::BufReader;
 
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
 
 use crate::common::{button_config, ButtonConfig};
@@ -17,6 +14,8 @@ use crate::training::frame_counter;
 use training_mod_consts::{create_app, InputControl, MenuJsonStruct, MENU_OPTIONS_PATH};
 use training_mod_sync::*;
 use training_mod_tui::AppPage;
+
+use DirectionButton::*;
 
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
 pub static QUICK_MENU_ACTIVE: RwLock<bool> = RwLock::new(false);
@@ -50,7 +49,7 @@ pub fn load_from_file() {
         info!("No previous menu file found.");
     }
     info!("Setting initial menu selections...");
-    let mut app = QUICK_MENU_APP.lock();
+    let mut app = lock_write_rwlock(&QUICK_MENU_APP);
     app.serialized_default_settings =
         serde_json::to_string(&get(&DEFAULTS_MENU)).expect("Could not serialize DEFAULTS_MENU");
     app.update_all_from_json(
@@ -80,12 +79,10 @@ pub fn set_menu_from_json(message: &str) {
 }
 
 pub fn spawn_menu() {
-    unsafe {
-        assign_rwlock(&QUICK_MENU_ACTIVE, true);
-        let mut app = QUICK_MENU_APP.lock();
-        app.page = AppPage::SUBMENU;
-        *MENU_RECEIVED_INPUT.data_ptr() = true;
-    }
+    assign_rwlock(&QUICK_MENU_ACTIVE, true);
+    let mut app = lock_write_rwlock(&QUICK_MENU_APP);
+    app.page = AppPage::SUBMENU;
+    assign_rwlock(&MENU_RECEIVED_INPUT, true);
 }
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
@@ -100,16 +97,17 @@ enum DirectionButton {
     RUp,
 }
 
-lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new({
+pub static QUICK_MENU_APP: LazyLock<RwLock<training_mod_tui::App<'static>>> = LazyLock::new(|| {
+    RwLock::new({
         info!("Initialized lazy_static: QUICK_MENU_APP");
         unsafe { create_app() }
-    });
-    pub static ref P1_CONTROLLER_STYLE: Mutex<ControllerStyle> =
-        Mutex::new(ControllerStyle::default());
-    static ref DIRECTION_HOLD_FRAMES: Mutex<HashMap<DirectionButton, u32>> = {
-        use DirectionButton::*;
-        Mutex::new(HashMap::from([
+    })
+});
+pub static P1_CONTROLLER_STYLE: LazyLock<RwLock<ControllerStyle>> =
+    LazyLock::new(|| RwLock::new(ControllerStyle::default()));
+static DIRECTION_HOLD_FRAMES: LazyLock<RwLock<HashMap<DirectionButton, u32>>> =
+    LazyLock::new(|| {
+        RwLock::new(HashMap::from([
             (LLeft, 0),
             (RLeft, 0),
             (LDown, 0),
@@ -119,12 +117,11 @@ lazy_static! {
             (LUp, 0),
             (RUp, 0),
         ]))
-    };
-    pub static ref MENU_RECEIVED_INPUT: Mutex<bool> = Mutex::new(true);
-}
+    });
+pub static MENU_RECEIVED_INPUT: RwLock<bool> = RwLock::new(true);
 
-pub static MENU_CLOSE_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::Real));
+pub static MENU_CLOSE_FRAME_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::Real));
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
@@ -134,7 +131,7 @@ pub fn handle_final_input_mapping(
     unsafe {
         if player_idx == 0 {
             let p1_controller = &mut *controller_struct.controller;
-            *P1_CONTROLLER_STYLE.lock() = p1_controller.style;
+            assign_rwlock(&P1_CONTROLLER_STYLE, p1_controller.style);
             let visual_frame_count = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
             if visual_frame_count > 0 && visual_frame_count < MENU_CLOSE_WAIT_FRAMES {
                 // If we just closed the menu, kill all inputs to avoid accidental presses
@@ -156,7 +153,7 @@ pub fn handle_final_input_mapping(
 
                 const DIRECTION_HOLD_REPEAT_FRAMES: u32 = 20;
                 use DirectionButton::*;
-                let direction_hold_frames = &mut *DIRECTION_HOLD_FRAMES.lock();
+                let mut direction_hold_frames = read_rwlock_clone(&DIRECTION_HOLD_FRAMES); // TODO!("Refactor this, it doesn't need to be a hashmap")
 
                 // Check for all controllers unplugged
                 let mut potential_controller_ids = (0..8).collect::<Vec<u32>>();
@@ -193,7 +190,7 @@ pub fn handle_final_input_mapping(
                         }
                     });
 
-                let app = &mut *QUICK_MENU_APP.data_ptr(); // TODO: Why aren't we taking a lock here?
+                let mut app = lock_write_rwlock(&QUICK_MENU_APP);
                 button_config::button_mapping(ButtonConfig::A, style, button_presses).then(|| {
                     app.on_a();
                     received_input = true;
@@ -273,7 +270,7 @@ pub fn handle_final_input_mapping(
 
                 if received_input {
                     direction_hold_frames.iter_mut().for_each(|(_, f)| *f = 0);
-                    *MENU_RECEIVED_INPUT.lock() = true;
+                    assign_rwlock(&MENU_RECEIVED_INPUT, true);
                 }
             }
         }

@@ -13,7 +13,7 @@ pub enum AppPage {
     CLOSE,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum ConfirmationState {
     HoverNo,
     HoverYes,
@@ -40,7 +40,7 @@ impl ConfirmationState {
 //       │  OR
 //       │
 //       └─ Option<Slider>
-
+#[derive(Clone)]
 pub struct App<'a> {
     pub tabs: StatefulList<Tab<'a>>,
     pub page: AppPage,
