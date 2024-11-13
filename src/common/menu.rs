@@ -2,7 +2,6 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
 use std::io::BufReader;
-use std::ptr::addr_of;
 
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
@@ -13,10 +12,10 @@ use crate::common::{DEFAULTS_MENU, MENU};
 use crate::events::{Event, EVENT_QUEUE};
 use crate::input::{ButtonBitfield, ControllerStyle, MappedInputs, SomeControllerStruct};
 use crate::logging::*;
-use training_mod_sync::*;
 use crate::training::frame_counter;
 
 use training_mod_consts::{create_app, InputControl, MenuJsonStruct, MENU_OPTIONS_PATH};
+use training_mod_sync::*;
 use training_mod_tui::AppPage;
 
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
@@ -36,11 +35,9 @@ pub fn load_from_file() {
         let reader = BufReader::new(menu_conf);
         if let Ok(menu_conf_json) = serde_json::from_reader::<BufReader<_>, MenuJsonStruct>(reader)
         {
-            unsafe {
-                assign_rwlock(&MENU, menu_conf_json.menu);
-                DEFAULTS_MENU = menu_conf_json.defaults_menu;
-                info!("Previous menu found. Loading...");
-            }
+            assign_rwlock(&MENU, menu_conf_json.menu);
+            assign_rwlock(&DEFAULTS_MENU, menu_conf_json.defaults_menu);
+            info!("Previous menu found. Loading...");
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
             let err_msg = format!(
@@ -53,23 +50,21 @@ pub fn load_from_file() {
         info!("No previous menu file found.");
     }
     info!("Setting initial menu selections...");
-    unsafe {
-        let mut app = QUICK_MENU_APP.lock();
-        app.serialized_default_settings = serde_json::to_string(&*addr_of!(DEFAULTS_MENU))
-            .expect("Could not serialize DEFAULTS_MENU");
-        app.update_all_from_json(
-            &serde_json::to_string(&*addr_of!(MENU)).expect("Could not serialize MENU"),
-        );
-    }
+    let mut app = QUICK_MENU_APP.lock();
+    app.serialized_default_settings =
+        serde_json::to_string(&get(&DEFAULTS_MENU)).expect("Could not serialize DEFAULTS_MENU");
+    app.update_all_from_json(
+        &serde_json::to_string(&get(&MENU)).expect("Could not serialize MENU"),
+    );
 }
 
-pub unsafe fn set_menu_from_json(message: &str) {
+pub fn set_menu_from_json(message: &str) {
     let response = serde_json::from_str::<MenuJsonStruct>(message);
     info!("Received menu message: {message}");
     if let Ok(message_json) = response {
         // Includes both MENU and DEFAULTS_MENU
         assign_rwlock(&MENU, message_json.menu);
-        DEFAULTS_MENU = message_json.defaults_menu;
+        assign_rwlock(&DEFAULTS_MENU, message_json.defaults_menu);
         fs::write(
             MENU_OPTIONS_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),

@@ -6,8 +6,8 @@ use smash::lua2cpp::L2CFighterCommon;
 pub use crate::common::consts::MENU;
 use crate::common::consts::*;
 use crate::common::offsets::OFFSET_GET_BATTLE_OBJECT_FROM_ID;
-use training_mod_sync::*;
 use crate::training::character_specific::ptrainer;
+use training_mod_sync::*;
 
 pub mod button_config;
 pub mod consts;
@@ -20,8 +20,6 @@ pub mod offsets;
 pub mod raygun_printer;
 pub mod release;
 
-pub static mut DEFAULTS_MENU: TrainingModpackMenu = consts::DEFAULTS_MENU;
-pub static mut BASE_MENU: TrainingModpackMenu = unsafe { DEFAULTS_MENU };
 pub static FIGHTER_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);
 pub static ITEM_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);
 pub static STAGE_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);

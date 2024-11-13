@@ -112,7 +112,7 @@ pub enum FighterId {
     CPU = 1,
 }
 
-pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
+pub static BASE_MENU: TrainingModpackMenu = TrainingModpackMenu {
     aerial_delay: Delay::empty(),
     air_dodge_dir: Direction::empty(),
     attack_angle: AttackAngle::empty(),
@@ -206,7 +206,8 @@ pub static DEFAULTS_MENU: TrainingModpackMenu = TrainingModpackMenu {
     lra_reset: OnOff::ON,
 };
 
-pub static MENU: RwLock<TrainingModpackMenu> = RwLock::new(DEFAULTS_MENU);
+pub static DEFAULTS_MENU: RwLock<TrainingModpackMenu> = RwLock::new(BASE_MENU);
+pub static MENU: RwLock<TrainingModpackMenu> = RwLock::new(BASE_MENU);
 
 impl_toggletrait! {
     OnOff,
