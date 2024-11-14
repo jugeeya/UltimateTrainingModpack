@@ -21,12 +21,10 @@ static CURRENT_AERIAL: RwLock<Action> = RwLock::new(Action::NAIR);
 static QUEUE: RwLock<Vec<Action>> = RwLock::new(Vec::new());
 static FALLING_AERIAL: RwLock<bool> = RwLock::new(false);
 static AERIAL_DELAY: RwLock<u32> = RwLock::new(0);
+static IS_TRANSITIONING_DASH: RwLock<bool> = RwLock::new(false);
 
 static AERIAL_DELAY_COUNTER: LazyLock<usize> =
     LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
-
-// Track if we're about to do another command flag cat run in the same frame for a dash or dash attack
-static mut IS_TRANSITIONING_DASH: bool = false;
 
 unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let current_status = StatusModule::status_kind(module_accessor);
@@ -42,7 +40,8 @@ unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModule
 }
 
 unsafe fn dash_transition_check(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    IS_TRANSITIONING_DASH &= is_dashing_for_dash_attack(module_accessor);
+    let mut is_transitioning_dash = lock_write_rwlock(&IS_TRANSITIONING_DASH);
+    *is_transitioning_dash &= is_dashing_for_dash_attack(module_accessor);
 }
 
 pub fn is_playback_queued() -> bool {
@@ -490,9 +489,10 @@ unsafe fn get_attack_flag(
 
             if current_status == *FIGHTER_STATUS_KIND_DASH && motion_frame == 0.0 && is_motion_dash
             {
-                if !IS_TRANSITIONING_DASH {
+                let mut is_transitioning_dash = lock_write_rwlock(&IS_TRANSITIONING_DASH);
+                if !*is_transitioning_dash {
                     // The first time these conditions are met, we aren't ready to begin dash attacking, so get ready to transition next frame
-                    IS_TRANSITIONING_DASH = true;
+                    *is_transitioning_dash = true;
                 } else {
                     // Begin dash attacking now that we've dashed for one frame
                     StatusModule::change_status_request_from_script(module_accessor, status, true);
