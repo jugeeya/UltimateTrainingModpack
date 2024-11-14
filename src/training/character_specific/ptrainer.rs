@@ -1,15 +1,16 @@
 use crate::offsets::OFFSET_POKEMON_DECIDE;
 use crate::training::frame_counter;
 use crate::training::save_states;
-use once_cell::sync::Lazy;
 use skyline::hooks::InlineCtx;
 use smash::app::{self, lua_bind::*, smashball::is_training_mode};
 use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::Hash40;
 
-static SWITCH_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+use training_mod_sync::LazyLock;
+
+static SWITCH_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 pub unsafe fn is_switched(ptrainer_module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = StatusModule::status_kind(ptrainer_module_accessor);
