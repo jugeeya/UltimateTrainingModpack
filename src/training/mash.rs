@@ -13,21 +13,17 @@ use crate::training::{attack_angle, save_states};
 
 use training_mod_sync::*;
 
-use once_cell::sync::Lazy;
-
 const DISTANCE_CLOSE_THRESHOLD: f32 = 16.0;
 const DISTANCE_MID_THRESHOLD: f32 = 37.0;
 const DISTANCE_FAR_THRESHOLD: f32 = 64.0;
 
-static mut CURRENT_AERIAL: Action = Action::NAIR;
-static mut QUEUE: Vec<Action> = vec![];
+static CURRENT_AERIAL: RwLock<Action> = RwLock::new(Action::NAIR);
+static QUEUE: RwLock<Vec<Action>> = RwLock::new(Vec::new());
+static FALLING_AERIAL: RwLock<bool> = RwLock::new(false);
+static AERIAL_DELAY: RwLock<u32> = RwLock::new(0);
 
-static mut FALLING_AERIAL: bool = false;
-
-static mut AERIAL_DELAY: u32 = 0;
-
-static AERIAL_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+static AERIAL_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 // Track if we're about to do another command flag cat run in the same frame for a dash or dash attack
 static mut IS_TRANSITIONING_DASH: bool = false;
@@ -68,20 +64,21 @@ pub unsafe fn is_dashing_for_dash_attack(
 }
 
 pub fn buffer_action(action: Action) {
-    unsafe {
-        if !QUEUE.is_empty() {
-            return;
-        }
+    let queue = lock_read_rwlock(&QUEUE);
+    if !queue.is_empty() {
+        // Something is already buffered
+        return;
     }
+    drop(queue);
 
     if action == Action::empty() {
         return;
     }
 
     // We want to allow for triggering a mash to end playback for neutral playbacks, but not for SDI/disadv playbacks
+    // exit playback if we want to perform mash actions out of it
+    // TODO: Figure out some way to deal with trying to playback into another playback
     unsafe {
-        // exit playback if we want to perform mash actions out of it
-        // TODO: Figure out some way to deal with trying to playback into another playback
         if get(&MENU).playback_mash == OnOff::ON
             && input_record::is_playback()
             && !input_record::is_recording()
@@ -98,19 +95,16 @@ pub fn buffer_action(action: Action) {
     }
 
     attack_angle::roll_direction();
-
     roll_aerial_delay(action);
 
-    unsafe {
-        QUEUE.insert(0, action);
-        buffer_follow_up();
-    }
+    let mut queue = lock_write_rwlock(&QUEUE);
+    queue.insert(0, action);
+    drop(queue);
+    buffer_follow_up();
 }
 
 pub fn buffer_follow_up() {
-    let action;
-
-    action = get(&MENU).follow_up.get_random();
+    let action = get(&MENU).follow_up.get_random();
 
     if action == Action::empty() {
         return;
@@ -118,60 +112,44 @@ pub fn buffer_follow_up() {
 
     roll_aerial_delay(action);
 
-    unsafe {
-        QUEUE.insert(0, action);
-    }
+    let mut queue = lock_write_rwlock(&QUEUE);
+    queue.insert(0, action);
+    drop(queue);
 }
 
 pub fn get_current_buffer() -> Action {
-    unsafe {
-        if QUEUE.is_empty() {
-            return Action::empty();
-        }
-
-        *QUEUE.last().unwrap()
-    }
+    let queue = lock_read_rwlock(&QUEUE);
+    *(queue.last().unwrap_or(&Action::empty()))
 }
 
 pub fn reset() {
-    unsafe {
-        QUEUE.pop();
-    }
+    let mut queue = lock_write_rwlock(&QUEUE);
+    queue.pop();
+    drop(queue);
 
     shield::suspend_shield(get_current_buffer());
-
-    unsafe {
-        frame_counter::full_reset(*AERIAL_DELAY_COUNTER);
-        AERIAL_DELAY = 0;
-    }
+    frame_counter::full_reset(*AERIAL_DELAY_COUNTER);
+    assign_rwlock(&AERIAL_DELAY, 0);
 }
 
 pub fn full_reset() {
-    unsafe {
-        while !QUEUE.is_empty() {
-            reset();
-        }
-    }
+    clear_queue();
+    reset();
 }
 
 pub fn clear_queue() {
-    unsafe { QUEUE.clear() }
+    assign_rwlock(&QUEUE, Vec::new());
 }
 
 pub fn set_aerial(attack: Action) {
-    unsafe {
-        CURRENT_AERIAL = attack;
-    }
+    assign_rwlock(&CURRENT_AERIAL, attack);
 }
 
-pub unsafe fn get_attack_air_kind(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> Option<i32> {
+pub fn get_attack_air_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<i32> {
     if !is_operation_cpu(module_accessor) {
         return None;
     }
-
-    CURRENT_AERIAL.into_attack_air_kind()
+    read_rwlock(&CURRENT_AERIAL).into_attack_air_kind()
 }
 
 pub unsafe fn get_command_flag_cat(
@@ -291,21 +269,13 @@ unsafe fn get_buffered_action(
         } else {
             None
         }
-    } else if (menu.mash_triggers.contains(&MashTrigger::GROUNDED)
-        && is_grounded(module_accessor))
-        || (menu.mash_triggers.contains(&MashTrigger::AIRBORNE)
-            && is_airborne(module_accessor))
-        || (menu
-            .mash_triggers
-            .contains(&MashTrigger::DISTANCE_CLOSE)
+    } else if (menu.mash_triggers.contains(&MashTrigger::GROUNDED) && is_grounded(module_accessor))
+        || (menu.mash_triggers.contains(&MashTrigger::AIRBORNE) && is_airborne(module_accessor))
+        || (menu.mash_triggers.contains(&MashTrigger::DISTANCE_CLOSE)
             && fighter_distance < DISTANCE_CLOSE_THRESHOLD)
-        || (menu
-            .mash_triggers
-            .contains(&MashTrigger::DISTANCE_MID)
+        || (menu.mash_triggers.contains(&MashTrigger::DISTANCE_MID)
             && fighter_distance < DISTANCE_MID_THRESHOLD)
-        || (menu
-            .mash_triggers
-            .contains(&MashTrigger::DISTANCE_FAR)
+        || (menu.mash_triggers.contains(&MashTrigger::DISTANCE_FAR)
             && fighter_distance < DISTANCE_FAR_THRESHOLD)
         || menu.mash_triggers.contains(&MashTrigger::ALWAYS)
     {
@@ -318,12 +288,13 @@ unsafe fn get_buffered_action(
 }
 
 fn buffer_menu_mash(action: Action) {
-    unsafe {
-        buffer_action(action);
-        full_hop::roll_full_hop();
-        fast_fall::roll_fast_fall();
-        FALLING_AERIAL = get(&MENU).falling_aerials.get_random().into_bool();
-    }
+    buffer_action(action);
+    full_hop::roll_full_hop();
+    fast_fall::roll_fast_fall();
+    assign_rwlock(
+        &FALLING_AERIAL,
+        get(&MENU).falling_aerials.get_random().into_bool(),
+    );
 }
 
 pub fn external_buffer_menu_mash(action: Action) {
@@ -555,7 +526,7 @@ unsafe fn get_aerial_flag(
 
     let status = *FIGHTER_STATUS_KIND_ATTACK_AIR;
 
-    if FALLING_AERIAL && !fast_fall::is_falling(module_accessor) {
+    if read_rwlock(&FALLING_AERIAL) && !fast_fall::is_falling(module_accessor) {
         return flag;
     }
 
@@ -585,17 +556,20 @@ fn roll_aerial_delay(action: Action) {
     if !shield::is_aerial(action) {
         return;
     }
-    unsafe {
-        AERIAL_DELAY = get(&MENU).aerial_delay.get_random().into_delay();
-    }
+
+    assign_rwlock(
+        &AERIAL_DELAY,
+        get(&MENU).aerial_delay.get_random().into_delay(),
+    );
 }
 
 fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe {
-        if AERIAL_DELAY == 0 {
-            return false;
-        }
+    let aerial_delay = read_rwlock(&AERIAL_DELAY);
+    if aerial_delay == 0 {
+        return false;
+    }
 
+    unsafe {
         if StatusModule::status_kind(module_accessor) == *FIGHTER_STATUS_KIND_ATTACK_AIR {
             return false;
         }
@@ -606,9 +580,8 @@ fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) ->
         ) {
             return true;
         }
-
-        frame_counter::should_delay(AERIAL_DELAY, *AERIAL_DELAY_COUNTER)
     }
+    frame_counter::should_delay(aerial_delay, *AERIAL_DELAY_COUNTER)
 }
 
 /**
