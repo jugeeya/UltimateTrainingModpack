@@ -63,12 +63,9 @@ pub fn color_notification(header: String, message: String, len: u32, color: ResC
     drop(queue_guard);
 }
 
-pub fn clear_notification(header: &'static str) {
-    if !read_rwlock(&NOTIFICATIONS_QUEUE)
-        .iter()
-        .any(|notif| notif.header == header)
-    {
-        // Before acquiring an exclusive write lock, check if there are even any relevant notifications to clear out
+pub fn clear_notifications_except(header: &'static str) {
+    if (*lock_read_rwlock(&NOTIFICATIONS_QUEUE)).is_empty() {
+        // Before acquiring an exclusive write lock, check if there are even any notificatiosn to clear out
         return;
     }
     let mut queue_guard = lock_write_rwlock(&NOTIFICATIONS_QUEUE);
@@ -77,7 +74,7 @@ pub fn clear_notification(header: &'static str) {
 }
 
 pub fn clear_all_notifications() {
-    if read_rwlock(&NOTIFICATIONS_QUEUE).is_empty() {
+    if (*lock_read_rwlock(&NOTIFICATIONS_QUEUE)).is_empty() {
         // Before acquiring an exclusive write lock, check if there are even any notificatiosn to clear out
         return;
     }
