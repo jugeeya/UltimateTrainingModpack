@@ -55,8 +55,8 @@ unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> boo
 fn update_frame_advantage(frame_advantage: i32) {
     if get(&MENU).frame_advantage == OnOff::ON {
         // Prioritize Frame Advantage over Input Recording Playback
-        notifications::clear_notifications_except("Input Recording");
-        notifications::clear_notifications_except("Frame Advantage");
+        notifications::clear_notification("Input Recording");
+        notifications::clear_notification("Frame Advantage");
         notifications::color_notification(
             "Frame Advantage".to_string(),
             format!("{frame_advantage}"),

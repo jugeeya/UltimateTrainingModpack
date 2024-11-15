@@ -63,7 +63,7 @@ pub fn color_notification(header: String, message: String, len: u32, color: ResC
     drop(queue_guard);
 }
 
-pub fn clear_notifications_except(header: &'static str) {
+pub fn clear_notification(header: &'static str) {
     if (*lock_read_rwlock(&NOTIFICATIONS_QUEUE)).is_empty() {
         // Before acquiring an exclusive write lock, check if there are even any notificatiosn to clear out
         return;

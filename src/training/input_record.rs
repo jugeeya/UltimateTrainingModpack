@@ -15,7 +15,7 @@ use crate::common::{
     get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
 };
 use crate::training::mash;
-use crate::training::ui::notifications::{clear_notifications_except, color_notification};
+use crate::training::ui::notifications::{clear_notification, color_notification};
 use crate::{error, warn};
 
 use training_mod_sync::*;
@@ -205,7 +205,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
         }
         let input_record = read_rwlock(&INPUT_RECORD);
         if input_record == None {
-            clear_notifications_except("Input Recording");
+            clear_notification("Input Recording");
         }
         // Handle recording end
         let mut input_record_frame = lock_write_rwlock(&INPUT_RECORD_FRAME);
@@ -248,7 +248,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
     // Handle Possession Coloring
     let possession = read_rwlock(&POSSESSION);
     if entry_id_int == 1 && possession == Lockout {
-        clear_notifications_except("Input Recording");
+        clear_notification("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Lockout".to_owned(),
@@ -268,7 +268,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
     } else if entry_id_int == 1 && possession == Standby {
-        clear_notifications_except("Input Recording");
+        clear_notification("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Standby".to_owned(),
@@ -288,7 +288,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
     } else if entry_id_int == 1 && possession == Cpu {
-        clear_notifications_except("Input Recording");
+        clear_notification("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Recording".to_owned(),
@@ -313,7 +313,7 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
         let input_record_frame = read_rwlock(&INPUT_RECORD_FRAME);
         if input_record_frame == 0 || input_record_frame == 1 {
             // can be either, seems like a thread issue
-            clear_notifications_except("Input Recording");
+            clear_notification("Input Recording");
             color_notification(
                 "Input Recording".to_string(),
                 "Playback".to_owned(),
@@ -536,9 +536,8 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         } else {
             read_rwlock(&CURRENT_PLAYBACK_SLOT)
         };
-        // TODO! I think something is wrong here, clippy says p1_final_mapping doesn't need to be mutable but we're definitely modifying its contents?
-        let mut p1_final_mapping = lock_write_rwlock(&P1_FINAL_MAPPING);
-        let mut saved_mapped_inputs = (*p1_final_mapping)[slot][*input_record_frame];
+        let p1_final_mapping = lock_write_rwlock(&P1_FINAL_MAPPING);
+        let mut saved_mapped_inputs = p1_final_mapping[slot][*input_record_frame];
         let mut buffer_frame = lock_write_rwlock(&BUFFER_FRAME);
         if (0 < *buffer_frame) && (*buffer_frame <= 3) {
             // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
