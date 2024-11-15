@@ -299,7 +299,7 @@ pub struct MappedInputs {
 }
 
 impl MappedInputs {
-    pub fn empty() -> MappedInputs {
+    pub const fn empty() -> MappedInputs {
         MappedInputs {
             buttons: Buttons::empty(),
             lstick_x: 0,
