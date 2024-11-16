@@ -462,7 +462,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     // Determine if we're in the menu by seeing if the "help" footer has
     // begun moving upward. It starts at -80 and moves to 0 over 10 frames
     // in info_training_in_menu.bflan
-    assign_rwlock(
+    assign(
         &VANILLA_MENU_ACTIVE,
         root_pane
             .find_pane_by_name_recursive("L_staying_help")
@@ -472,8 +472,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     );
 
     let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
-    overall_parent_pane
-        .set_visible(read_rwlock(&QUICK_MENU_ACTIVE) && !read_rwlock(&VANILLA_MENU_ACTIVE));
+    overall_parent_pane.set_visible(read(&QUICK_MENU_ACTIVE) && !read(&VANILLA_MENU_ACTIVE));
     let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
     fade_out(
         overall_parent_pane,
@@ -482,11 +481,11 @@ pub unsafe fn draw(root_pane: &Pane) {
     );
 
     // Only submit updates if we have received input
-    let received_input = read_rwlock(&MENU_RECEIVED_INPUT);
+    let received_input = read(&MENU_RECEIVED_INPUT);
     if !received_input {
         return;
     } else {
-        assign_rwlock(&MENU_RECEIVED_INPUT, false);
+        assign(&MENU_RECEIVED_INPUT, false);
     }
 
     if let Some(quit_button) = root_pane.find_pane_by_name_recursive("TrModTitle") {
@@ -523,7 +522,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("status_R")
         .expect("Unable to find status_R pane");
     // status_r_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
-    status_r_pane.set_visible(!read_rwlock(&QUICK_MENU_ACTIVE));
+    status_r_pane.set_visible(!read(&QUICK_MENU_ACTIVE));
 
     root_pane
         .find_pane_by_name_recursive("TrModSlider")
@@ -532,7 +531,7 @@ pub unsafe fn draw(root_pane: &Pane) {
 
     // Update menu display
     // Grabbing lock as read-only, essentially
-    let mut app = lock_write_rwlock(&QUICK_MENU_APP);
+    let mut app = lock_write(&QUICK_MENU_APP);
     // We don't really need to change anything, but get_before_selected requires &mut self
 
     let tab_titles = [
@@ -547,7 +546,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             .title,
     ];
 
-    let is_gcc = read_rwlock(&P1_CONTROLLER_STYLE) == ControllerStyle::GCController;
+    let is_gcc = read(&P1_CONTROLLER_STYLE) == ControllerStyle::GCController;
     let button_mapping = if is_gcc {
         &(*GCC_BUTTON_MAPPING)
     } else {

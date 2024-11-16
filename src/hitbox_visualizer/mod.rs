@@ -137,7 +137,7 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModule
     // Resume Effect AnimCMD incase we don't display hitboxes
     MotionAnimcmdModule::set_sleep_effect(module_accessor, false);
 
-    if get(&MENU).hitbox_vis == OnOff::OFF {
+    if read(&MENU).hitbox_vis == OnOff::OFF {
         return;
     }
 
@@ -207,7 +207,7 @@ unsafe fn mod_handle_attack(lua_state: u64) {
 
     // necessary if param object fails
     // hacky way of forcing no shield damage on all hitboxes
-    if get(&MENU).shield_state == Shield::INFINITE {
+    if read(&MENU).shield_state == Shield::INFINITE {
         let mut hitbox_params: Vec<L2CValue> =
             (0..36).map(|i| l2c_agent.pop_lua_stack(i + 1)).collect();
         l2c_agent.clear_lua_stack();
@@ -221,7 +221,7 @@ unsafe fn mod_handle_attack(lua_state: u64) {
     }
 
     // Hitbox Visualization
-    if get(&MENU).hitbox_vis == OnOff::ON {
+    if read(&MENU).hitbox_vis == OnOff::ON {
         // get all necessary grabbox params
         let id = l2c_agent.pop_lua_stack(1); // int
         let joint = l2c_agent.pop_lua_stack(3); // hash40
@@ -276,7 +276,7 @@ unsafe fn handle_catch(lua_state: u64) {
 }
 
 unsafe fn mod_handle_catch(lua_state: u64) {
-    if get(&MENU).hitbox_vis == OnOff::OFF {
+    if read(&MENU).hitbox_vis == OnOff::OFF {
         return;
     }
 

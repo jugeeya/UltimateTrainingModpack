@@ -94,7 +94,7 @@ fn hazard_intercept(_ctx: &skyline::hooks::InlineCtx) {
 fn mod_handle_hazards() {
     unsafe {
         let address = *HAZARD_FLAG_ADDRESS as *mut u8;
-        *address = (get(&MENU).stage_hazards == OnOff::ON) as u8;
+        *address = (read(&MENU).stage_hazards == OnOff::ON) as u8;
     }
 }
 

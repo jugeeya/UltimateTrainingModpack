@@ -17,9 +17,9 @@ pub struct FrameCounter {
 }
 
 pub fn register_counter(counter_type: FrameCounterType) -> usize {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    let index = (*counters_guard).len();
-    (*counters_guard).push(FrameCounter {
+    let mut counters_lock = lock_write(&COUNTERS);
+    let index = (*counters_lock).len();
+    (*counters_lock).push(FrameCounter {
         count: 0,
         should_count: false,
         counter_type,
@@ -28,24 +28,23 @@ pub fn register_counter(counter_type: FrameCounterType) -> usize {
 }
 
 pub fn start_counting(index: usize) {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    (*counters_guard)[index].should_count = true;
+    let mut counters_lock = lock_write(&COUNTERS);
+    (*counters_lock)[index].should_count = true;
 }
 
 pub fn stop_counting(index: usize) {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    (*counters_guard)[index].should_count = false;
+    let mut counters_lock = lock_write(&COUNTERS);
+    (*counters_lock)[index].should_count = false;
 }
 
 pub fn is_counting(index: usize) -> bool {
-    let counters_guard = lock_read_rwlock(&COUNTERS);
-    (*counters_guard)[index].should_count
-
+    let counters_lock = lock_read(&COUNTERS);
+    (*counters_lock)[index].should_count
 }
 
 pub fn reset_frame_count(index: usize) {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    (*counters_guard)[index].count = 0;
+    let mut counters_lock = lock_write(&COUNTERS);
+    (*counters_lock)[index].count = 0;
 }
 
 pub fn full_reset(index: usize) {
@@ -76,18 +75,18 @@ pub fn should_delay(delay: u32, index: usize) -> bool {
 }
 
 pub fn get_frame_count(index: usize) -> u32 {
-    let counters_guard = lock_read_rwlock(&COUNTERS);
-    (*counters_guard)[index].count
+    let counters_lock = lock_read(&COUNTERS);
+    (*counters_lock)[index].count
 }
 
 pub fn tick_idx(index: usize) {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    (*counters_guard)[index].count += 1;
+    let mut counters_lock = lock_write(&COUNTERS);
+    (*counters_lock)[index].count += 1;
 }
 
 pub fn tick_ingame() {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    for counter in (*counters_guard).iter_mut() {
+    let mut counters_lock = lock_write(&COUNTERS);
+    for counter in (*counters_lock).iter_mut() {
         if !counter.should_count || counter.counter_type == FrameCounterType::Real {
             continue;
         }
@@ -97,8 +96,8 @@ pub fn tick_ingame() {
 }
 
 pub fn tick_real() {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    for counter in (*counters_guard).iter_mut() {
+    let mut counters_lock = lock_write(&COUNTERS);
+    for counter in (*counters_lock).iter_mut() {
         if !counter.should_count
             || (counter.counter_type == FrameCounterType::InGame
                 || counter.counter_type == FrameCounterType::InGameNoReset)
@@ -111,8 +110,8 @@ pub fn tick_real() {
 }
 
 pub fn reset_all() {
-    let mut counters_guard = lock_write_rwlock(&COUNTERS);
-    for counter in (*counters_guard).iter_mut() {
+    let mut counters_lock = lock_write(&COUNTERS);
+    for counter in (*counters_lock).iter_mut() {
         if counter.counter_type != FrameCounterType::InGame {
             continue;
         }

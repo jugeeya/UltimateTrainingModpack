@@ -134,7 +134,7 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
             // Handle dodge staling here b/c input recording or mash can cause dodging
             WorkModule::set_flag(
                 module_accessor,
-                !(get(&MENU).stale_dodges.as_bool()),
+                !(read(&MENU).stale_dodges.as_bool()),
                 *FIGHTER_INSTANCE_WORK_ID_FLAG_DISABLE_ESCAPE_PENALTY,
             );
             input_record::handle_recording();
@@ -428,7 +428,7 @@ pub unsafe fn handle_add_damage(
 #[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
     let x8 = ctx.registers[8].x.as_mut();
-    if !(get(&MENU).lra_reset.as_bool()) {
+    if !(read(&MENU).lra_reset.as_bool()) {
         *x8 = 0;
     }
 }
@@ -766,7 +766,7 @@ pub unsafe fn handle_reused_ui(
         // If Little Mac is in the game and we're buffing him, set the meter to 100
         if (player_fighter_kind == *FIGHTER_KIND_LITTLEMAC
             || cpu_fighter_kind == *FIGHTER_KIND_LITTLEMAC)
-            && get(&MENU).buff_state.contains(&BuffOption::KO)
+            && read(&MENU).buff_state.contains(&BuffOption::KO)
         {
             param_2 = 100;
         }
@@ -837,33 +837,33 @@ pub fn training_mods() {
     info!("Applying training mods.");
 
     unsafe {
-        let mut fighter_manager_addr_guard = lock_write_rwlock(&FIGHTER_MANAGER_ADDR);
+        let mut fighter_manager_addr_lock = lock_write(&FIGHTER_MANAGER_ADDR);
         LookupSymbol(
-            addr_of_mut!(*fighter_manager_addr_guard),
+            addr_of_mut!(*fighter_manager_addr_lock),
             "_ZN3lib9SingletonIN3app14FighterManagerEE9instance_E\u{0}"
                 .as_bytes()
                 .as_ptr(),
         );
-        drop(fighter_manager_addr_guard);
+        drop(fighter_manager_addr_lock);
 
         // TODO!("This seems unused? Can we remove it?")
-        let mut stage_manager_addr_guard = lock_write_rwlock(&STAGE_MANAGER_ADDR);
+        let mut stage_manager_addr_lock = lock_write(&STAGE_MANAGER_ADDR);
         LookupSymbol(
-            addr_of_mut!(*stage_manager_addr_guard),
+            addr_of_mut!(*stage_manager_addr_lock),
             "_ZN3lib9SingletonIN3app12StageManagerEE9instance_E\u{0}"
                 .as_bytes()
                 .as_ptr(),
         );
-        drop(stage_manager_addr_guard);
+        drop(stage_manager_addr_lock);
 
-        let mut item_manager_addr_guard = lock_write_rwlock(&ITEM_MANAGER_ADDR);
+        let mut item_manager_addr_lock = lock_write(&ITEM_MANAGER_ADDR);
         LookupSymbol(
-            addr_of_mut!(*item_manager_addr_guard),
+            addr_of_mut!(*item_manager_addr_lock),
             "_ZN3lib9SingletonIN3app11ItemManagerEE9instance_E\0"
                 .as_bytes()
                 .as_ptr(),
         );
-        drop(item_manager_addr_guard);
+        drop(item_manager_addr_lock);
 
         add_hook(params_main).unwrap();
     }

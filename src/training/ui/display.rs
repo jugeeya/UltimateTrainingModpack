@@ -3,8 +3,8 @@ use smash::ui2d::{SmashPane, SmashTextBox};
 
 use crate::common::menu::QUICK_MENU_ACTIVE;
 use crate::common::TRAINING_MENU_ADDR;
-use training_mod_sync::*;
 use crate::training::ui::notifications::*;
+use training_mod_sync::*;
 
 macro_rules! display_parent_fmt {
     ($x:ident) => {
@@ -33,14 +33,14 @@ pub unsafe fn draw(root_pane: &Pane) {
     }
 
     let notification_idx = 0;
-    let mut queue_lock = lock_write_rwlock(&NOTIFICATIONS_QUEUE);
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
 
     let notification = (*queue_lock).first_mut();
 
     root_pane
         .find_pane_by_name_recursive(display_parent_fmt!(notification_idx))
         .unwrap()
-        .set_visible(notification.is_some() && !read_rwlock(&QUICK_MENU_ACTIVE));
+        .set_visible(notification.is_some() && !read(&QUICK_MENU_ACTIVE));
 
     if notification.is_none() {
         return;

@@ -32,7 +32,7 @@ use training_mod_sync::*;
 pub struct DevConfig {}
 
 pub unsafe fn config() -> DevConfig {
-    read_rwlock_clone(&(*DEV_CONFIG))
+    read_clone(&(*DEV_CONFIG))
 }
 
 pub static DEV_CONFIG: LazyLock<RwLock<DevConfig>> =
@@ -55,6 +55,6 @@ impl DevConfig {
 pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &SomeControllerStruct) {
     let current_buttons = controller_struct.controller.current_buttons;
     if player_idx == 0 && current_buttons.l() && current_buttons.r() && current_buttons.a() {
-        assign_rwlock(&(*DEV_CONFIG), DevConfig::load_from_toml());
+        assign(&(*DEV_CONFIG), DevConfig::load_from_toml());
     }
 }

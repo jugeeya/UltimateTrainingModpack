@@ -75,7 +75,7 @@ impl Release {
 }
 
 fn get_update_policy() -> UpdatePolicy {
-    get(&MENU).update_policy
+    read(&MENU).update_policy
 }
 
 fn get_release(beta: bool) -> Result<Release> {

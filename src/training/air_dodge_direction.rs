@@ -32,11 +32,11 @@ unsafe fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Op
         return None;
     }
 
-    assign_rwlock(
+    assign(
         &AIRDODGE_STICK_DIRECTION,
-        get(&MENU).air_dodge_dir.get_random(),
+        read(&MENU).air_dodge_dir.get_random(),
     );
-    let direction = read_rwlock(&AIRDODGE_STICK_DIRECTION);
+    let direction = read(&AIRDODGE_STICK_DIRECTION);
     direction.into_angle().map(|angle| {
         if !should_reverse_angle(direction) {
             // Direction is LEFT/RIGHT, so don't perform any adjustment

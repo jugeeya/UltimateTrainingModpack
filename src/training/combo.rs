@@ -53,7 +53,7 @@ unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> boo
 }
 
 fn update_frame_advantage(frame_advantage: i32) {
-    if get(&MENU).frame_advantage == OnOff::ON {
+    if read(&MENU).frame_advantage == OnOff::ON {
         // Prioritize Frame Advantage over Input Recording Playback
         notifications::clear_notification("Input Recording");
         notifications::clear_notification("Frame Advantage");
@@ -94,16 +94,16 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     let player_is_actionable = is_actionable(player_module_accessor);
-    let player_was_actionable = read_rwlock(&PLAYER_WAS_ACTIONABLE);
+    let player_was_actionable = read(&PLAYER_WAS_ACTIONABLE);
     let player_just_actionable = !player_was_actionable && player_is_actionable;
     let cpu_is_actionable = is_actionable(cpu_module_accessor);
-    let cpu_was_actionable = read_rwlock(&CPU_WAS_ACTIONABLE);
+    let cpu_was_actionable = read(&CPU_WAS_ACTIONABLE);
     let cpu_just_actionable = !cpu_was_actionable && cpu_is_actionable;
     let is_counting = frame_counter::is_counting(*PLAYER_FRAME_COUNTER_INDEX)
         || frame_counter::is_counting(*CPU_FRAME_COUNTER_INDEX);
 
     if !is_counting {
-        if get(&MENU).mash_state == Action::empty()
+        if read(&MENU).mash_state == Action::empty()
             && !player_is_actionable
             && !cpu_is_actionable
             && (!was_in_shieldstun(cpu_module_accessor) && is_in_shieldstun(cpu_module_accessor)
@@ -168,7 +168,7 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
         };
 
         // Store the current actionability state for next frame
-        assign_rwlock(&PLAYER_WAS_ACTIONABLE, player_is_actionable);
-        assign_rwlock(&CPU_WAS_ACTIONABLE, cpu_is_actionable);
+        assign(&PLAYER_WAS_ACTIONABLE, player_is_actionable);
+        assign(&CPU_WAS_ACTIONABLE, cpu_is_actionable);
     }
 }

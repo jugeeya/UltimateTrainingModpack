@@ -9,11 +9,11 @@ use training_mod_sync::*;
 static FULL_HOP: RwLock<bool> = RwLock::new(false);
 
 pub fn should_full_hop() -> bool {
-    read_rwlock(&FULL_HOP)
+    read(&FULL_HOP)
 }
 
 pub fn roll_full_hop() {
-    assign_rwlock(&FULL_HOP, get(&MENU).full_hop.get_random().into_bool());
+    assign(&FULL_HOP, read(&MENU).full_hop.get_random().into_bool());
 }
 
 pub unsafe fn check_button_on(

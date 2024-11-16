@@ -7,7 +7,10 @@ use training_mod_sync::*;
 static SHIELD_STICK_DIRECTION: RwLock<Direction> = RwLock::new(Direction::OUT);
 
 pub fn roll_direction() {
-    assign_rwlock(&SHIELD_STICK_DIRECTION, get(&MENU).shield_tilt.get_random());
+    assign(
+        &SHIELD_STICK_DIRECTION,
+        read(&MENU).shield_tilt.get_random(),
+    );
 }
 
 pub fn mod_get_stick_x(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<f32> {
@@ -22,6 +25,6 @@ fn get_angle(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<f6
     if !is_operation_cpu(module_accessor) {
         return None;
     }
-    let stick_direction = read_rwlock(&SHIELD_STICK_DIRECTION);
+    let stick_direction = read(&SHIELD_STICK_DIRECTION);
     stick_direction.into_angle()
 }

@@ -15,67 +15,67 @@ static LEDGE_DELAY_COUNTER: LazyLock<usize> =
     LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 pub fn reset_ledge_delay() {
-    let mut ledge_delay_guard = lock_write_rwlock(&LEDGE_DELAY);
-    if *ledge_delay_guard != NOT_SET {
-        *ledge_delay_guard = NOT_SET;
+    let mut ledge_delay_lock = lock_write(&LEDGE_DELAY);
+    if *ledge_delay_lock != NOT_SET {
+        *ledge_delay_lock = NOT_SET;
         frame_counter::full_reset(*LEDGE_DELAY_COUNTER);
     }
 }
 
 pub fn reset_ledge_case() {
-    let mut ledge_case_guard = lock_write_rwlock(&LEDGE_CASE);
-    if *ledge_case_guard != LedgeOption::empty() {
+    let mut ledge_case_lock = lock_write(&LEDGE_CASE);
+    if *ledge_case_lock != LedgeOption::empty() {
         // Don't roll another ledge option if one is already selected
-        *ledge_case_guard = LedgeOption::empty();
+        *ledge_case_lock = LedgeOption::empty();
     }
 }
 
 fn roll_ledge_delay() {
-    let mut ledge_delay_guard = lock_write_rwlock(&LEDGE_DELAY);
-    if *ledge_delay_guard != NOT_SET {
+    let mut ledge_delay_lock = lock_write(&LEDGE_DELAY);
+    if *ledge_delay_lock != NOT_SET {
         // Don't roll another ledge delay if one is already selected
         return;
     }
-    *ledge_delay_guard = get(&MENU).ledge_delay.get_random().into_longdelay();
+    *ledge_delay_lock = read(&MENU).ledge_delay.get_random().into_longdelay();
 }
 
 fn roll_ledge_case() {
     // Don't re-roll if there is already a ledge option selected
     // This prevents choosing a different ledge option during LedgeOption::WAIT
-    let mut ledge_case_guard = lock_write_rwlock(&LEDGE_CASE);
-    if *ledge_case_guard != LedgeOption::empty() {
+    let mut ledge_case_lock = lock_write(&LEDGE_CASE);
+    if *ledge_case_lock != LedgeOption::empty() {
         return;
     }
-    *ledge_case_guard = get(&MENU).ledge_state.get_random();
+    *ledge_case_lock = read(&MENU).ledge_state.get_random();
 }
 
 fn get_ledge_option() -> Option<Action> {
     let mut override_action: Option<Action> = None;
-    let regular_action = if get(&MENU).mash_triggers.contains(&MashTrigger::LEDGE) {
-        Some(get(&MENU).mash_state.get_random())
+    let regular_action = if read(&MENU).mash_triggers.contains(&MashTrigger::LEDGE) {
+        Some(read(&MENU).mash_state.get_random())
     } else {
         None
     };
 
-    match read_rwlock(&LEDGE_CASE) {
+    match read(&LEDGE_CASE) {
         LedgeOption::NEUTRAL => {
-            if get(&MENU).ledge_neutral_override != Action::empty() {
-                override_action = Some(get(&MENU).ledge_neutral_override.get_random());
+            if read(&MENU).ledge_neutral_override != Action::empty() {
+                override_action = Some(read(&MENU).ledge_neutral_override.get_random());
             }
         }
         LedgeOption::ROLL => {
-            if get(&MENU).ledge_roll_override != Action::empty() {
-                override_action = Some(get(&MENU).ledge_roll_override.get_random());
+            if read(&MENU).ledge_roll_override != Action::empty() {
+                override_action = Some(read(&MENU).ledge_roll_override.get_random());
             }
         }
         LedgeOption::JUMP => {
-            if get(&MENU).ledge_jump_override != Action::empty() {
-                override_action = Some(get(&MENU).ledge_jump_override.get_random());
+            if read(&MENU).ledge_jump_override != Action::empty() {
+                override_action = Some(read(&MENU).ledge_jump_override.get_random());
             }
         }
         LedgeOption::ATTACK => {
-            if get(&MENU).ledge_attack_override != Action::empty() {
-                override_action = Some(get(&MENU).ledge_attack_override.get_random());
+            if read(&MENU).ledge_attack_override != Action::empty() {
+                override_action = Some(read(&MENU).ledge_attack_override.get_random());
             }
         }
         _ => {
@@ -100,8 +100,8 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     let flag_cliff =
         WorkModule::is_flag(module_accessor, *FIGHTER_INSTANCE_WORK_ID_FLAG_CATCH_CLIFF);
     let current_frame = MotionModule::frame(module_accessor) as i32;
-    let ledge_delay = read_rwlock(&LEDGE_DELAY);
-    let ledge_case = read_rwlock(&LEDGE_CASE);
+    let ledge_delay = read(&LEDGE_DELAY);
+    let ledge_case = read(&LEDGE_CASE);
     // Allow this because sometimes we want to make sure our NNSDK doesn't have
     // an erroneous definition
     #[allow(clippy::unnecessary_cast)]
@@ -130,7 +130,7 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
         // We buffer playback on frame 18 because we don't change status this frame from inputting on next frame; do we need to do one earlier for lasso?
         if should_buffer_playback
             && ledge_case.is_playback()
-            && get(&MENU).ledge_delay != LongDelay::empty()
+            && read(&MENU).ledge_delay != LongDelay::empty()
         {
             input_record::playback_ledge(ledge_case.playback_slot());
             return;
@@ -173,14 +173,14 @@ pub unsafe fn is_enable_transition_term(
 
     // Only handle ledge scenarios from menu
     if StatusModule::status_kind(_module_accessor) != *FIGHTER_STATUS_KIND_CLIFF_WAIT
-        || get(&MENU).ledge_state == LedgeOption::empty()
+        || read(&MENU).ledge_state == LedgeOption::empty()
     {
         return None;
     }
 
     // Disallow the default cliff-climb if we are waiting or we didn't get up during a recording
-    let ledge_case = read_rwlock(&LEDGE_CASE);
-    let ledge_delay = read_rwlock(&LEDGE_DELAY);
+    let ledge_case = read(&LEDGE_CASE);
+    let ledge_delay = read(&LEDGE_DELAY);
     if term == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_CLIFF_CLIMB
         && ((ledge_case == LedgeOption::WAIT
             || frame_counter::get_frame_count(*LEDGE_DELAY_COUNTER) < ledge_delay)
@@ -203,7 +203,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
             return;
         }
 
-        if get(&MENU).ledge_state == LedgeOption::empty() {
+        if read(&MENU).ledge_state == LedgeOption::empty() {
             return;
         }
 

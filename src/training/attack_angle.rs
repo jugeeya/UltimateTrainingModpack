@@ -7,9 +7,9 @@ use training_mod_sync::*;
 static ATTACK_ANGLE_DIRECTION: RwLock<AttackAngle> = RwLock::new(AttackAngle::NEUTRAL);
 
 pub fn roll_direction() {
-    assign_rwlock(
+    assign(
         &ATTACK_ANGLE_DIRECTION,
-        get(&MENU).attack_angle.get_random(),
+        read(&MENU).attack_angle.get_random(),
     );
 }
 
@@ -20,7 +20,7 @@ pub unsafe fn mod_get_stick_dir(
         return None;
     }
 
-    match read_rwlock(&ATTACK_ANGLE_DIRECTION) {
+    match read(&ATTACK_ANGLE_DIRECTION) {
         AttackAngle::UP => Some(1.0),
         AttackAngle::DOWN => Some(-1.0),
         _ => None,

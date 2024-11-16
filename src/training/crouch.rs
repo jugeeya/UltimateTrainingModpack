@@ -12,7 +12,7 @@ pub unsafe fn mod_get_stick_y(module_accessor: &mut BattleObjectModuleAccessor) 
     }
     let fighter_status_kind = StatusModule::status_kind(module_accessor);
 
-    if get(&MENU).crouch == OnOff::ON
+    if read(&MENU).crouch == OnOff::ON
         && [
             *FIGHTER_STATUS_KIND_WAIT,
             *FIGHTER_STATUS_KIND_SQUAT,

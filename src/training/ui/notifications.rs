@@ -42,8 +42,8 @@ impl Notification {
 }
 
 pub fn notification(header: String, message: String, len: u32) {
-    let mut queue_guard = lock_write_rwlock(&NOTIFICATIONS_QUEUE);
-    (*queue_guard).push(Notification::new(
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).push(Notification::new(
         header,
         message,
         len,
@@ -54,31 +54,31 @@ pub fn notification(header: String, message: String, len: u32) {
             a: 255,
         },
     ));
-    drop(queue_guard);
+    drop(queue_lock);
 }
 
 pub fn color_notification(header: String, message: String, len: u32, color: ResColor) {
-    let mut queue_guard = lock_write_rwlock(&NOTIFICATIONS_QUEUE);
-    (*queue_guard).push(Notification::new(header, message, len, color));
-    drop(queue_guard);
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).push(Notification::new(header, message, len, color));
+    drop(queue_lock);
 }
 
 pub fn clear_notification(header: &'static str) {
-    if (*lock_read_rwlock(&NOTIFICATIONS_QUEUE)).is_empty() {
-        // Before acquiring an exclusive write lock, check if there are even any notificatiosn to clear out
+    if (*lock_read(&NOTIFICATIONS_QUEUE)).is_empty() {
+        // Before acquiring an exclusive write lock, check if there are even any notifications to clear out
         return;
     }
-    let mut queue_guard = lock_write_rwlock(&NOTIFICATIONS_QUEUE);
-    (*queue_guard).retain(|notif| notif.header != header);
-    drop(queue_guard);
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).retain(|notif| notif.header != header);
+    drop(queue_lock);
 }
 
 pub fn clear_all_notifications() {
-    if (*lock_read_rwlock(&NOTIFICATIONS_QUEUE)).is_empty() {
-        // Before acquiring an exclusive write lock, check if there are even any notificatiosn to clear out
+    if (*lock_read(&NOTIFICATIONS_QUEUE)).is_empty() {
+        // Before acquiring an exclusive write lock, check if there are even any notifications to clear out
         return;
     }
-    let mut queue_guard = lock_write_rwlock(&NOTIFICATIONS_QUEUE);
-    (*queue_guard).clear();
-    drop(queue_guard);
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).clear();
+    drop(queue_lock);
 }

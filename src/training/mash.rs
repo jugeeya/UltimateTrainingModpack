@@ -40,7 +40,7 @@ unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModule
 }
 
 unsafe fn dash_transition_check(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    let mut is_transitioning_dash = lock_write_rwlock(&IS_TRANSITIONING_DASH);
+    let mut is_transitioning_dash = lock_write(&IS_TRANSITIONING_DASH);
     *is_transitioning_dash &= is_dashing_for_dash_attack(module_accessor);
 }
 
@@ -63,7 +63,7 @@ pub unsafe fn is_dashing_for_dash_attack(
 }
 
 pub fn buffer_action(action: Action) {
-    let queue = lock_read_rwlock(&QUEUE);
+    let queue = lock_read(&QUEUE);
     if !queue.is_empty() {
         // Something is already buffered
         return;
@@ -78,7 +78,7 @@ pub fn buffer_action(action: Action) {
     // exit playback if we want to perform mash actions out of it
     // TODO: Figure out some way to deal with trying to playback into another playback
     unsafe {
-        if get(&MENU).playback_mash == OnOff::ON
+        if read(&MENU).playback_mash == OnOff::ON
             && input_record::is_playback()
             && !input_record::is_recording()
             && !input_record::is_standby()
@@ -96,14 +96,14 @@ pub fn buffer_action(action: Action) {
     attack_angle::roll_direction();
     roll_aerial_delay(action);
 
-    let mut queue = lock_write_rwlock(&QUEUE);
+    let mut queue = lock_write(&QUEUE);
     queue.insert(0, action);
     drop(queue);
     buffer_follow_up();
 }
 
 pub fn buffer_follow_up() {
-    let action = get(&MENU).follow_up.get_random();
+    let action = read(&MENU).follow_up.get_random();
 
     if action == Action::empty() {
         return;
@@ -111,24 +111,24 @@ pub fn buffer_follow_up() {
 
     roll_aerial_delay(action);
 
-    let mut queue = lock_write_rwlock(&QUEUE);
+    let mut queue = lock_write(&QUEUE);
     queue.insert(0, action);
     drop(queue);
 }
 
 pub fn get_current_buffer() -> Action {
-    let queue = lock_read_rwlock(&QUEUE);
+    let queue = lock_read(&QUEUE);
     *(queue.last().unwrap_or(&Action::empty()))
 }
 
 pub fn reset() {
-    let mut queue = lock_write_rwlock(&QUEUE);
+    let mut queue = lock_write(&QUEUE);
     queue.pop();
     drop(queue);
 
     shield::suspend_shield(get_current_buffer());
     frame_counter::full_reset(*AERIAL_DELAY_COUNTER);
-    assign_rwlock(&AERIAL_DELAY, 0);
+    assign(&AERIAL_DELAY, 0);
 }
 
 pub fn full_reset() {
@@ -137,18 +137,18 @@ pub fn full_reset() {
 }
 
 pub fn clear_queue() {
-    assign_rwlock(&QUEUE, Vec::new());
+    assign(&QUEUE, Vec::new());
 }
 
 pub fn set_aerial(attack: Action) {
-    assign_rwlock(&CURRENT_AERIAL, attack);
+    assign(&CURRENT_AERIAL, attack);
 }
 
 pub fn get_attack_air_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<i32> {
     if !is_operation_cpu(module_accessor) {
         return None;
     }
-    read_rwlock(&CURRENT_AERIAL).into_attack_air_kind()
+    read(&CURRENT_AERIAL).into_attack_air_kind()
 }
 
 pub unsafe fn get_command_flag_cat(
@@ -193,7 +193,7 @@ unsafe fn get_buffered_action(
         return None;
     }
     let fighter_distance = get_fighter_distance();
-    let menu = get(&MENU);
+    let menu = read(&MENU);
     if is_in_tech(module_accessor) {
         let action = menu.tech_action_override.get_random();
         if action != Action::empty() {
@@ -290,9 +290,9 @@ fn buffer_menu_mash(action: Action) {
     buffer_action(action);
     full_hop::roll_full_hop();
     fast_fall::roll_fast_fall();
-    assign_rwlock(
+    assign(
         &FALLING_AERIAL,
-        get(&MENU).falling_aerials.get_random().into_bool(),
+        read(&MENU).falling_aerials.get_random().into_bool(),
     );
 }
 
@@ -489,7 +489,7 @@ unsafe fn get_attack_flag(
 
             if current_status == *FIGHTER_STATUS_KIND_DASH && motion_frame == 0.0 && is_motion_dash
             {
-                let mut is_transitioning_dash = lock_write_rwlock(&IS_TRANSITIONING_DASH);
+                let mut is_transitioning_dash = lock_write(&IS_TRANSITIONING_DASH);
                 if !*is_transitioning_dash {
                     // The first time these conditions are met, we aren't ready to begin dash attacking, so get ready to transition next frame
                     *is_transitioning_dash = true;
@@ -526,7 +526,7 @@ unsafe fn get_aerial_flag(
 
     let status = *FIGHTER_STATUS_KIND_ATTACK_AIR;
 
-    if read_rwlock(&FALLING_AERIAL) && !fast_fall::is_falling(module_accessor) {
+    if read(&FALLING_AERIAL) && !fast_fall::is_falling(module_accessor) {
         return flag;
     }
 
@@ -557,14 +557,14 @@ fn roll_aerial_delay(action: Action) {
         return;
     }
 
-    assign_rwlock(
+    assign(
         &AERIAL_DELAY,
-        get(&MENU).aerial_delay.get_random().into_delay(),
+        read(&MENU).aerial_delay.get_random().into_delay(),
     );
 }
 
 fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    let aerial_delay = read_rwlock(&AERIAL_DELAY);
+    let aerial_delay = read(&AERIAL_DELAY);
     if aerial_delay == 0 {
         return false;
     }

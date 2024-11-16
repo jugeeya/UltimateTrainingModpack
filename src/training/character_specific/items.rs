@@ -353,7 +353,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
             if player_fighter_kind != *FIGHTER_KIND_LINK {
                 ItemModule::drop_item(cpu_module_accessor, 0.0, 0.0, 0);
                 //ItemModule::eject_have_item(cpu_module_accessor, 0, false, false);
-                let item_mgr = *(read_rwlock(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
+                let item_mgr = *(read(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
                 let item_ptr = ItemManager::get_active_item(item_mgr, 0);
                 ItemModule::have_item_instance(
                     player_module_accessor,
@@ -378,7 +378,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
     });
 
     item.article_kind.as_ref().map(|article_kind| {
-        assign_rwlock(
+        assign(
             &TURNIP_CHOSEN,
             if [*ITEM_VARIATION_PEACHDAIKON_8, *ITEM_VARIATION_DAISYDAIKON_8].contains(&variation) {
                 Some(8)
@@ -418,7 +418,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
                 false,
             );
             // Grab item from the middle of the stage where it gets shot
-            let item_mgr = *(read_rwlock(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
+            let item_mgr = *(read(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
             let item = ItemManager::get_active_item(item_mgr, 0);
             ItemModule::have_item_instance(
                 player_module_accessor,
@@ -432,16 +432,16 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
         } else {
             // Set the target player so we generate CPU article on the player during handle_generate_article_for_target
             // (in dittos, items always belong to player, even if cpu item is chosen)
-            assign_rwlock(&TARGET_PLAYER, Some(*player_module_accessor));
+            assign(&TARGET_PLAYER, Some(*player_module_accessor));
             ArticleModule::generate_article(
                 generator_module_accessor, // we want CPU's article
                 article_kind,
                 false,
                 0,
             );
-            assign_rwlock(&TARGET_PLAYER, None);
+            assign(&TARGET_PLAYER, None);
         }
-        assign_rwlock(&TURNIP_CHOSEN, None);
+        assign(&TURNIP_CHOSEN, None);
     });
 }
 
@@ -483,7 +483,7 @@ macro_rules! daikon_replace {
             pub unsafe fn [<handle_ $char daikon_ $num _prob>]() -> f32 {
                 let orig = original!()();
                 if is_training_mode() {
-                    let turnip_chosen = read_rwlock(&TURNIP_CHOSEN);
+                    let turnip_chosen = read(&TURNIP_CHOSEN);
                     if turnip_chosen == Some($num) {
                         return 58.0;
                     } else if turnip_chosen != None {
@@ -524,7 +524,7 @@ pub unsafe fn handle_generate_article_for_target(
     int_2: i32,
 ) -> u64 {
     // unknown return value, gets cast to an (Article *)
-    let target_module_accessor = read_rwlock(&TARGET_PLAYER).unwrap_or(module_accessor);
+    let target_module_accessor = read(&TARGET_PLAYER).unwrap_or(module_accessor);
 
     original!()(
         article_module_accessor,

@@ -13,11 +13,11 @@ static FRAME_COUNTER_INDEX: LazyLock<usize> =
     LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 fn should_fast_fall() -> bool {
-    read_rwlock(&FAST_FALL)
+    read(&FAST_FALL)
 }
 
 pub fn roll_fast_fall() {
-    assign_rwlock(&FAST_FALL, get(&MENU).fast_fall.get_random().into_bool());
+    assign(&FAST_FALL, read(&MENU).fast_fall.get_random().into_bool());
 }
 
 pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -37,7 +37,10 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
     unsafe {
         if !is_falling(module_accessor) {
             // Roll FF delay
-            assign_rwlock(&DELAY, get(&MENU).fast_fall_delay.get_random().into_delay());
+            assign(
+                &DELAY,
+                read(&MENU).fast_fall_delay.get_random().into_delay(),
+            );
             frame_counter::full_reset(*FRAME_COUNTER_INDEX);
             return;
         }
@@ -52,7 +55,7 @@ pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccesso
         }
 
         // Check delay
-        let delay = read_rwlock(&DELAY);
+        let delay = read(&DELAY);
         if frame_counter::should_delay(delay, *FRAME_COUNTER_INDEX) {
             return;
         }

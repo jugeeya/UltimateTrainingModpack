@@ -73,7 +73,7 @@ pub fn try_get_module_accessor(
     let entry_id_int = fighter_id as i32;
     let entry_id = app::FighterEntryID(entry_id_int);
     unsafe {
-        let mgr = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
+        let mgr = *(read(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
         let fighter_entry =
             FighterManager::get_fighter_entry(mgr, entry_id) as *mut app::FighterEntry;
         if fighter_entry.is_null() {
@@ -104,7 +104,7 @@ pub fn is_operation_cpu(module_accessor: &mut app::BattleObjectModuleAccessor) -
         }
 
         let entry_id = app::FighterEntryID(entry_id_int);
-        let mgr = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
+        let mgr = *(read(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
         let fighter_information = FighterManager::get_fighter_information(mgr, entry_id);
 
         FighterInformation::is_operation_cpu(fighter_information)
@@ -268,12 +268,12 @@ pub unsafe fn is_in_landing(module_accessor: &mut app::BattleObjectModuleAccesso
 
 // Returns true if a match is currently active
 pub unsafe fn is_ready_go() -> bool {
-    let fighter_manager = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
+    let fighter_manager = *(read(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
     FighterManager::is_ready_go(fighter_manager)
 }
 
 pub unsafe fn entry_count() -> i32 {
-    let fighter_manager = *(read_rwlock(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
+    let fighter_manager = *(read(&FIGHTER_MANAGER_ADDR) as *mut *mut app::FighterManager);
     FighterManager::entry_count(fighter_manager)
 }
 

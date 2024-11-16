@@ -68,7 +68,7 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
 }
 
 unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
-    let draw_log_base_idx = read_rwlock(&DRAW_LOG_BASE_IDX);
+    let draw_log_base_idx = read(&DRAW_LOG_BASE_IDX);
     let draw_log_idx = (log_idx + (NUM_LOGS - draw_log_base_idx)) % NUM_LOGS;
     let log_pane = root_pane
         .find_pane_by_name_recursive(log_parent_fmt!(draw_log_idx))
@@ -176,7 +176,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         .as_textbox()
         .set_text_string(frame_text.as_str());
 
-    let status_text = if get(&MENU).input_display_status.as_bool() {
+    let status_text = if read(&MENU).input_display_status.as_bool() {
         status_display_name(log.fighter_kind, log.status)
     } else {
         "".to_string()
@@ -193,15 +193,15 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("TrModInputLog")
         .unwrap();
     logs_pane.set_visible(
-        !read_rwlock(&QUICK_MENU_ACTIVE)
-            && !read_rwlock(&VANILLA_MENU_ACTIVE)
-            && get(&MENU).input_display != InputDisplay::NONE,
+        !read(&QUICK_MENU_ACTIVE)
+            && !read(&VANILLA_MENU_ACTIVE)
+            && read(&MENU).input_display != InputDisplay::NONE,
     );
-    if get(&MENU).input_display == InputDisplay::NONE {
+    if read(&MENU).input_display == InputDisplay::NONE {
         return;
     }
 
-    let logs = read_rwlock(&(*P1_INPUT_LOGS));
+    let logs = read(&(*P1_INPUT_LOGS));
 
     for (log_idx, log) in logs.iter().enumerate() {
         draw_log(root_pane, log_idx, log);
