@@ -1,3 +1,4 @@
+// TODO!() There's some crazy pointer magic happening in this file, we should try to refactor to avoid that
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::ItemKind;
@@ -9,7 +10,10 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::offsets::OFFSET_GENERATE_ARTICLE_FOR_TARGET;
 use crate::training::mash;
+use training_mod_sync::*;
 
+pub static TURNIP_CHOSEN: RwLock<Option<u32>> = RwLock::new(None);
+pub static TARGET_PLAYER: RwLock<Option<BattleObjectModuleAccessor>> = RwLock::new(None);
 pub struct CharItem {
     pub fighter_kind: LuaConst,
     pub item_kind: Option<LuaConst>,
@@ -326,9 +330,6 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
     },
 ];
 
-pub static mut TURNIP_CHOSEN: Option<u32> = None;
-pub static mut TARGET_PLAYER: Option<*mut BattleObjectModuleAccessor> = None;
-
 unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
     let player_module_accessor = get_module_accessor(FighterId::Player);
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
@@ -352,7 +353,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
             if player_fighter_kind != *FIGHTER_KIND_LINK {
                 ItemModule::drop_item(cpu_module_accessor, 0.0, 0.0, 0);
                 //ItemModule::eject_have_item(cpu_module_accessor, 0, false, false);
-                let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+                let item_mgr = *(read(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
                 let item_ptr = ItemManager::get_active_item(item_mgr, 0);
                 ItemModule::have_item_instance(
                     player_module_accessor,
@@ -377,25 +378,26 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
     });
 
     item.article_kind.as_ref().map(|article_kind| {
-        TURNIP_CHOSEN = if [*ITEM_VARIATION_PEACHDAIKON_8, *ITEM_VARIATION_DAISYDAIKON_8]
-            .contains(&variation)
-        {
-            Some(8)
-        } else if [*ITEM_VARIATION_PEACHDAIKON_7, *ITEM_VARIATION_DAISYDAIKON_7]
-            .contains(&variation)
-        {
-            Some(7)
-        } else if [*ITEM_VARIATION_PEACHDAIKON_6, *ITEM_VARIATION_DAISYDAIKON_6]
-            .contains(&variation)
-        {
-            Some(6)
-        } else if [*ITEM_VARIATION_PEACHDAIKON_1, *ITEM_VARIATION_DAISYDAIKON_1]
-            .contains(&variation)
-        {
-            Some(1)
-        } else {
-            None
-        };
+        assign(
+            &TURNIP_CHOSEN,
+            if [*ITEM_VARIATION_PEACHDAIKON_8, *ITEM_VARIATION_DAISYDAIKON_8].contains(&variation) {
+                Some(8)
+            } else if [*ITEM_VARIATION_PEACHDAIKON_7, *ITEM_VARIATION_DAISYDAIKON_7]
+                .contains(&variation)
+            {
+                Some(7)
+            } else if [*ITEM_VARIATION_PEACHDAIKON_6, *ITEM_VARIATION_DAISYDAIKON_6]
+                .contains(&variation)
+            {
+                Some(6)
+            } else if [*ITEM_VARIATION_PEACHDAIKON_1, *ITEM_VARIATION_DAISYDAIKON_1]
+                .contains(&variation)
+            {
+                Some(1)
+            } else {
+                None
+            },
+        );
 
         let article_kind = **article_kind;
         if article_kind == FIGHTER_DIDDY_GENERATE_ARTICLE_ITEM_BANANA {
@@ -416,7 +418,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
                 false,
             );
             // Grab item from the middle of the stage where it gets shot
-            let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+            let item_mgr = *(read(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
             let item = ItemManager::get_active_item(item_mgr, 0);
             ItemModule::have_item_instance(
                 player_module_accessor,
@@ -428,16 +430,18 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
                 false,
             );
         } else {
-            TARGET_PLAYER = Some(player_module_accessor); // set so we generate CPU article on the player (in dittos, items always belong to player, even if cpu item is chosen)
+            // Set the target player so we generate CPU article on the player during handle_generate_article_for_target
+            // (in dittos, items always belong to player, even if cpu item is chosen)
+            assign(&TARGET_PLAYER, Some(*player_module_accessor));
             ArticleModule::generate_article(
                 generator_module_accessor, // we want CPU's article
                 article_kind,
                 false,
                 0,
             );
-            TARGET_PLAYER = None;
+            assign(&TARGET_PLAYER, None);
         }
-        TURNIP_CHOSEN = None;
+        assign(&TURNIP_CHOSEN, None);
     });
 }
 
@@ -479,9 +483,10 @@ macro_rules! daikon_replace {
             pub unsafe fn [<handle_ $char daikon_ $num _prob>]() -> f32 {
                 let orig = original!()();
                 if is_training_mode() {
-                    if TURNIP_CHOSEN == Some($num) {
+                    let turnip_chosen = read(&TURNIP_CHOSEN);
+                    if turnip_chosen == Some($num) {
                         return 58.0;
-                    } else if TURNIP_CHOSEN != None {
+                    } else if turnip_chosen != None {
                         return 0.0;
                     }
                 }
@@ -512,14 +517,14 @@ daikon_replace!(DAISY, daisy, 1);
 // GenerateArticleForTarget for Peach/Diddy(/Link?) item creation
 #[skyline::hook(offset = *OFFSET_GENERATE_ARTICLE_FOR_TARGET)]
 pub unsafe fn handle_generate_article_for_target(
-    article_module_accessor: *mut BattleObjectModuleAccessor,
+    article_module_accessor: BattleObjectModuleAccessor,
     int_1: i32,
-    module_accessor: *mut BattleObjectModuleAccessor, // this is always 0x0 normally
+    module_accessor: BattleObjectModuleAccessor, // this is always 0x0 normally
     bool_1: bool,
     int_2: i32,
 ) -> u64 {
     // unknown return value, gets cast to an (Article *)
-    let target_module_accessor = TARGET_PLAYER.unwrap_or(module_accessor);
+    let target_module_accessor = read(&TARGET_PLAYER).unwrap_or(module_accessor);
 
     original!()(
         article_module_accessor,

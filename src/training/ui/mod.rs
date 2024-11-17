@@ -11,6 +11,7 @@ use crate::common::{is_ready_go, is_training_mode};
 #[cfg(feature = "layout_arc_from_file")]
 use crate::consts::LAYOUT_ARC_PATH;
 use crate::training::frame_counter;
+use training_mod_sync::*;
 
 mod damage;
 mod display;
@@ -71,7 +72,7 @@ pub unsafe fn handle_draw(layout: *mut Layout, draw_info: u64, cmd_buffer: u64) 
     {
         // InfluencedAlpha means "Should my children panes' alpha be influenced by mine, as the parent?"
         root_pane.flags |= 1 << PaneFlag::InfluencedAlpha as u8;
-        root_pane.set_visible(MENU.hud == OnOff::ON && !QUICK_MENU_ACTIVE);
+        root_pane.set_visible(read(&MENU).hud == OnOff::ON && !read(&QUICK_MENU_ACTIVE));
     }
 
     damage::draw(root_pane, &layout_name);

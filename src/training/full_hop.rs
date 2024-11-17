@@ -3,18 +3,17 @@ use smash::app::{self, lua_bind::*};
 use smash::lib::lua_const::*;
 
 use crate::common::*;
+use training_mod_sync::*;
 
 // the current full hop status
-static mut FULL_HOP: bool = false;
+static FULL_HOP: RwLock<bool> = RwLock::new(false);
 
 pub fn should_full_hop() -> bool {
-    unsafe { FULL_HOP }
+    read(&FULL_HOP)
 }
 
 pub fn roll_full_hop() {
-    unsafe {
-        FULL_HOP = MENU.full_hop.get_random().into_bool();
-    }
+    assign(&FULL_HOP, read(&MENU).full_hop.get_random().into_bool());
 }
 
 pub unsafe fn check_button_on(

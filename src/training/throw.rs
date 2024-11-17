@@ -5,78 +5,65 @@ use crate::common::consts::*;
 use crate::common::*;
 use crate::training::frame_counter;
 use crate::training::mash;
-
-use once_cell::sync::Lazy;
+use training_mod_sync::*;
 
 const NOT_SET: u32 = 9001;
-static mut THROW_DELAY: u32 = NOT_SET;
-static mut PUMMEL_DELAY: u32 = NOT_SET;
-static mut THROW_CASE: ThrowOption = ThrowOption::empty();
+static THROW_DELAY: RwLock<u32> = RwLock::new(NOT_SET);
+static PUMMEL_DELAY: RwLock<u32> = RwLock::new(NOT_SET);
+static THROW_CASE: RwLock<ThrowOption> = RwLock::new(ThrowOption::empty());
 
-static THROW_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
-static PUMMEL_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+static THROW_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+static PUMMEL_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 // Rolling Throw Delays and Pummel Delays separately
 
 pub fn reset_throw_delay() {
-    unsafe {
-        if THROW_DELAY != NOT_SET {
-            THROW_DELAY = NOT_SET;
-            frame_counter::full_reset(*THROW_DELAY_COUNTER);
-        }
+    if read(&THROW_DELAY) != NOT_SET {
+        assign(&THROW_DELAY, NOT_SET);
+        frame_counter::full_reset(*THROW_DELAY_COUNTER);
     }
 }
 
 pub fn reset_pummel_delay() {
-    unsafe {
-        if PUMMEL_DELAY != NOT_SET {
-            PUMMEL_DELAY = NOT_SET;
-            frame_counter::full_reset(*PUMMEL_DELAY_COUNTER);
-        }
+    if read(&PUMMEL_DELAY) != NOT_SET {
+        assign(&PUMMEL_DELAY, NOT_SET);
+        frame_counter::full_reset(*PUMMEL_DELAY_COUNTER);
     }
 }
 
 pub fn reset_throw_case() {
-    unsafe {
-        if THROW_CASE != ThrowOption::empty() {
-            // Don't roll another throw option if one is already selected
-            THROW_CASE = ThrowOption::empty();
-        }
+    if read(&THROW_CASE) != ThrowOption::empty() {
+        // Don't roll another throw option if one is already selected
+        assign(&THROW_CASE, ThrowOption::empty());
     }
 }
 
 fn roll_throw_delay() {
-    unsafe {
-        if THROW_DELAY != NOT_SET {
-            // Don't roll another throw delay if one is already selected
-            return;
-        }
-
-        THROW_DELAY = MENU.throw_delay.get_random().into_meddelay();
+    if read(&THROW_DELAY) == NOT_SET {
+        // Only roll another throw delay if one is not already selected
+        assign(
+            &THROW_DELAY,
+            read(&MENU).throw_delay.get_random().into_meddelay(),
+        );
     }
 }
 
 fn roll_pummel_delay() {
-    unsafe {
-        if PUMMEL_DELAY != NOT_SET {
-            // Don't roll another pummel delay if one is already selected
-            return;
-        }
-
-        PUMMEL_DELAY = MENU.pummel_delay.get_random().into_meddelay();
+    if read(&PUMMEL_DELAY) == NOT_SET {
+        // Don't roll another pummel delay if one is already selected
+        assign(
+            &PUMMEL_DELAY,
+            read(&MENU).pummel_delay.get_random().into_meddelay(),
+        );
     }
 }
 
 fn roll_throw_case() {
-    unsafe {
-        // Don't re-roll if there is already a throw option selected
-        if THROW_CASE != ThrowOption::empty() {
-            return;
-        }
-
-        THROW_CASE = MENU.throw_state.get_random();
+    if read(&THROW_CASE) == ThrowOption::empty() {
+        // Only re-roll if there is not already a throw option selected
+        assign(&THROW_CASE, read(&MENU).throw_state.get_random());
     }
 }
 
@@ -112,20 +99,20 @@ pub unsafe fn get_command_flag_throw_direction(
 
     roll_pummel_delay();
 
-    if THROW_CASE == ThrowOption::NONE {
+    if read(&THROW_CASE) == ThrowOption::NONE {
         // Do nothing, but don't reroll the throw case.
         return 0;
     }
 
-    if frame_counter::should_delay(THROW_DELAY, *THROW_DELAY_COUNTER) {
+    if frame_counter::should_delay(read(&THROW_DELAY), *THROW_DELAY_COUNTER) {
         // Not yet time to perform the throw action
-        if frame_counter::should_delay(PUMMEL_DELAY, *PUMMEL_DELAY_COUNTER) {
+        if frame_counter::should_delay(read(&PUMMEL_DELAY), *PUMMEL_DELAY_COUNTER) {
             // And not yet time to pummel either, so don't do anything
             return 0;
         }
 
         // If no pummel delay is selected (default), then don't pummel
-        if MENU.pummel_delay == MedDelay::empty() {
+        if read(&MENU).pummel_delay == MedDelay::empty() {
             return 0;
         }
 
@@ -143,8 +130,8 @@ pub unsafe fn get_command_flag_throw_direction(
         module_accessor,
         *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_THROW_HI,
     ) {
-        let cmd = THROW_CASE.into_cmd().unwrap_or(0);
-        mash::external_buffer_menu_mash(MENU.mash_state.get_random());
+        let cmd = read(&THROW_CASE).into_cmd().unwrap_or(0);
+        mash::external_buffer_menu_mash(read(&MENU).mash_state.get_random());
         return cmd;
     }
 

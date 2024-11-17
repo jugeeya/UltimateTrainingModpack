@@ -11,24 +11,20 @@ use crate::training::input_record;
 use crate::training::shield;
 use crate::training::{attack_angle, save_states};
 
-use once_cell::sync::Lazy;
+use training_mod_sync::*;
 
 const DISTANCE_CLOSE_THRESHOLD: f32 = 16.0;
 const DISTANCE_MID_THRESHOLD: f32 = 37.0;
 const DISTANCE_FAR_THRESHOLD: f32 = 64.0;
 
-static mut CURRENT_AERIAL: Action = Action::NAIR;
-static mut QUEUE: Vec<Action> = vec![];
+static CURRENT_AERIAL: RwLock<Action> = RwLock::new(Action::NAIR);
+static QUEUE: RwLock<Vec<Action>> = RwLock::new(Vec::new());
+static FALLING_AERIAL: RwLock<bool> = RwLock::new(false);
+static AERIAL_DELAY: RwLock<u32> = RwLock::new(0);
+static IS_TRANSITIONING_DASH: RwLock<bool> = RwLock::new(false);
 
-static mut FALLING_AERIAL: bool = false;
-
-static mut AERIAL_DELAY: u32 = 0;
-
-static AERIAL_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
-
-// Track if we're about to do another command flag cat run in the same frame for a dash or dash attack
-static mut IS_TRANSITIONING_DASH: bool = false;
+static AERIAL_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let current_status = StatusModule::status_kind(module_accessor);
@@ -44,7 +40,8 @@ unsafe fn is_beginning_dash_attack(module_accessor: &mut app::BattleObjectModule
 }
 
 unsafe fn dash_transition_check(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    IS_TRANSITIONING_DASH &= is_dashing_for_dash_attack(module_accessor);
+    let mut is_transitioning_dash = lock_write(&IS_TRANSITIONING_DASH);
+    *is_transitioning_dash &= is_dashing_for_dash_attack(module_accessor);
 }
 
 pub fn is_playback_queued() -> bool {
@@ -66,21 +63,22 @@ pub unsafe fn is_dashing_for_dash_attack(
 }
 
 pub fn buffer_action(action: Action) {
-    unsafe {
-        if !QUEUE.is_empty() {
-            return;
-        }
+    let queue = lock_read(&QUEUE);
+    if !queue.is_empty() {
+        // Something is already buffered
+        return;
     }
+    drop(queue);
 
     if action == Action::empty() {
         return;
     }
 
     // We want to allow for triggering a mash to end playback for neutral playbacks, but not for SDI/disadv playbacks
+    // exit playback if we want to perform mash actions out of it
+    // TODO: Figure out some way to deal with trying to playback into another playback
     unsafe {
-        // exit playback if we want to perform mash actions out of it
-        // TODO: Figure out some way to deal with trying to playback into another playback
-        if MENU.playback_mash == OnOff::ON
+        if read(&MENU).playback_mash == OnOff::ON
             && input_record::is_playback()
             && !input_record::is_recording()
             && !input_record::is_standby()
@@ -96,21 +94,16 @@ pub fn buffer_action(action: Action) {
     }
 
     attack_angle::roll_direction();
-
     roll_aerial_delay(action);
 
-    unsafe {
-        QUEUE.insert(0, action);
-        buffer_follow_up();
-    }
+    let mut queue = lock_write(&QUEUE);
+    queue.insert(0, action);
+    drop(queue);
+    buffer_follow_up();
 }
 
 pub fn buffer_follow_up() {
-    let action;
-
-    unsafe {
-        action = MENU.follow_up.get_random();
-    }
+    let action = read(&MENU).follow_up.get_random();
 
     if action == Action::empty() {
         return;
@@ -118,60 +111,44 @@ pub fn buffer_follow_up() {
 
     roll_aerial_delay(action);
 
-    unsafe {
-        QUEUE.insert(0, action);
-    }
+    let mut queue = lock_write(&QUEUE);
+    queue.insert(0, action);
+    drop(queue);
 }
 
 pub fn get_current_buffer() -> Action {
-    unsafe {
-        if QUEUE.is_empty() {
-            return Action::empty();
-        }
-
-        *QUEUE.last().unwrap()
-    }
+    let queue = lock_read(&QUEUE);
+    *(queue.last().unwrap_or(&Action::empty()))
 }
 
 pub fn reset() {
-    unsafe {
-        QUEUE.pop();
-    }
+    let mut queue = lock_write(&QUEUE);
+    queue.pop();
+    drop(queue);
 
     shield::suspend_shield(get_current_buffer());
-
-    unsafe {
-        frame_counter::full_reset(*AERIAL_DELAY_COUNTER);
-        AERIAL_DELAY = 0;
-    }
+    frame_counter::full_reset(*AERIAL_DELAY_COUNTER);
+    assign(&AERIAL_DELAY, 0);
 }
 
 pub fn full_reset() {
-    unsafe {
-        while !QUEUE.is_empty() {
-            reset();
-        }
-    }
+    clear_queue();
+    reset();
 }
 
 pub fn clear_queue() {
-    unsafe { QUEUE.clear() }
+    assign(&QUEUE, Vec::new());
 }
 
 pub fn set_aerial(attack: Action) {
-    unsafe {
-        CURRENT_AERIAL = attack;
-    }
+    assign(&CURRENT_AERIAL, attack);
 }
 
-pub unsafe fn get_attack_air_kind(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-) -> Option<i32> {
+pub fn get_attack_air_kind(module_accessor: &mut app::BattleObjectModuleAccessor) -> Option<i32> {
     if !is_operation_cpu(module_accessor) {
         return None;
     }
-
-    CURRENT_AERIAL.into_attack_air_kind()
+    read(&CURRENT_AERIAL).into_attack_air_kind()
 }
 
 pub unsafe fn get_command_flag_cat(
@@ -216,91 +193,92 @@ unsafe fn get_buffered_action(
         return None;
     }
     let fighter_distance = get_fighter_distance();
+    let menu = read(&MENU);
     if is_in_tech(module_accessor) {
-        let action = MENU.tech_action_override.get_random();
+        let action = menu.tech_action_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::TECH) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::TECH) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
     } else if is_in_clatter(module_accessor) {
-        let action = MENU.clatter_override.get_random();
+        let action = menu.clatter_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::CLATTER) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::CLATTER) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
     } else if is_in_tumble(module_accessor) {
         // Note that the tumble check needs to come before hitstun,
         // otherwise the hitstun check will always return first
-        let action = MENU.tumble_override.get_random();
+        let action = menu.tumble_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::TUMBLE) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::TUMBLE) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
     } else if is_in_hitstun(module_accessor) {
-        let action = MENU.hitstun_override.get_random();
+        let action = menu.hitstun_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::HIT) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::HIT) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
     } else if is_in_parry(module_accessor) {
-        let action = MENU.parry_override.get_random();
+        let action = menu.parry_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::PARRY) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::PARRY) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
     } else if is_in_footstool(module_accessor) {
-        let action = MENU.footstool_override.get_random();
+        let action = menu.footstool_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::FOOTSTOOL) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::FOOTSTOOL) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
     } else if is_in_ledgetrump(module_accessor) {
-        let action = MENU.trump_override.get_random();
+        let action = menu.trump_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::TRUMP) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::TRUMP) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
     } else if is_in_landing(module_accessor) {
-        let action = MENU.landing_override.get_random();
+        let action = menu.landing_override.get_random();
         if action != Action::empty() {
             Some(action)
-        } else if MENU.mash_triggers.contains(&MashTrigger::LANDING) {
-            Some(MENU.mash_state.get_random())
+        } else if menu.mash_triggers.contains(&MashTrigger::LANDING) {
+            Some(menu.mash_state.get_random())
         } else {
             None
         }
-    } else if (MENU.mash_triggers.contains(&MashTrigger::GROUNDED) && is_grounded(module_accessor))
-        || (MENU.mash_triggers.contains(&MashTrigger::AIRBORNE) && is_airborne(module_accessor))
-        || (MENU.mash_triggers.contains(&MashTrigger::DISTANCE_CLOSE)
+    } else if (menu.mash_triggers.contains(&MashTrigger::GROUNDED) && is_grounded(module_accessor))
+        || (menu.mash_triggers.contains(&MashTrigger::AIRBORNE) && is_airborne(module_accessor))
+        || (menu.mash_triggers.contains(&MashTrigger::DISTANCE_CLOSE)
             && fighter_distance < DISTANCE_CLOSE_THRESHOLD)
-        || (MENU.mash_triggers.contains(&MashTrigger::DISTANCE_MID)
+        || (menu.mash_triggers.contains(&MashTrigger::DISTANCE_MID)
             && fighter_distance < DISTANCE_MID_THRESHOLD)
-        || (MENU.mash_triggers.contains(&MashTrigger::DISTANCE_FAR)
+        || (menu.mash_triggers.contains(&MashTrigger::DISTANCE_FAR)
             && fighter_distance < DISTANCE_FAR_THRESHOLD)
-        || MENU.mash_triggers.contains(&MashTrigger::ALWAYS)
+        || menu.mash_triggers.contains(&MashTrigger::ALWAYS)
     {
-        Some(MENU.mash_state.get_random())
+        Some(menu.mash_state.get_random())
     } else {
         // SHIELD handled in shield.rs
         // LEDGE handled in ledge.rs
@@ -309,12 +287,13 @@ unsafe fn get_buffered_action(
 }
 
 fn buffer_menu_mash(action: Action) {
-    unsafe {
-        buffer_action(action);
-        full_hop::roll_full_hop();
-        fast_fall::roll_fast_fall();
-        FALLING_AERIAL = MENU.falling_aerials.get_random().into_bool();
-    }
+    buffer_action(action);
+    full_hop::roll_full_hop();
+    fast_fall::roll_fast_fall();
+    assign(
+        &FALLING_AERIAL,
+        read(&MENU).falling_aerials.get_random().into_bool(),
+    );
 }
 
 pub fn external_buffer_menu_mash(action: Action) {
@@ -510,9 +489,10 @@ unsafe fn get_attack_flag(
 
             if current_status == *FIGHTER_STATUS_KIND_DASH && motion_frame == 0.0 && is_motion_dash
             {
-                if !IS_TRANSITIONING_DASH {
+                let mut is_transitioning_dash = lock_write(&IS_TRANSITIONING_DASH);
+                if !*is_transitioning_dash {
                     // The first time these conditions are met, we aren't ready to begin dash attacking, so get ready to transition next frame
-                    IS_TRANSITIONING_DASH = true;
+                    *is_transitioning_dash = true;
                 } else {
                     // Begin dash attacking now that we've dashed for one frame
                     StatusModule::change_status_request_from_script(module_accessor, status, true);
@@ -546,7 +526,7 @@ unsafe fn get_aerial_flag(
 
     let status = *FIGHTER_STATUS_KIND_ATTACK_AIR;
 
-    if FALLING_AERIAL && !fast_fall::is_falling(module_accessor) {
+    if read(&FALLING_AERIAL) && !fast_fall::is_falling(module_accessor) {
         return flag;
     }
 
@@ -576,17 +556,20 @@ fn roll_aerial_delay(action: Action) {
     if !shield::is_aerial(action) {
         return;
     }
-    unsafe {
-        AERIAL_DELAY = MENU.aerial_delay.get_random().into_delay();
-    }
+
+    assign(
+        &AERIAL_DELAY,
+        read(&MENU).aerial_delay.get_random().into_delay(),
+    );
 }
 
 fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    unsafe {
-        if AERIAL_DELAY == 0 {
-            return false;
-        }
+    let aerial_delay = read(&AERIAL_DELAY);
+    if aerial_delay == 0 {
+        return false;
+    }
 
+    unsafe {
         if StatusModule::status_kind(module_accessor) == *FIGHTER_STATUS_KIND_ATTACK_AIR {
             return false;
         }
@@ -597,9 +580,8 @@ fn should_delay_aerial(module_accessor: &mut app::BattleObjectModuleAccessor) ->
         ) {
             return true;
         }
-
-        frame_counter::should_delay(AERIAL_DELAY, *AERIAL_DELAY_COUNTER)
     }
+    frame_counter::should_delay(aerial_delay, *AERIAL_DELAY_COUNTER)
 }
 
 /**

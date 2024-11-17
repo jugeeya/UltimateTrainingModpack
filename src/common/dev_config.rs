@@ -1,12 +1,11 @@
 use std::fs;
 
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
 use serde::Deserialize;
 
 use crate::common::input::*;
 use crate::consts::DEV_TOML_PATH;
 use crate::logging::info;
+use training_mod_sync::*;
 
 /// Hot-reloadable configs for quicker development
 ///
@@ -29,16 +28,15 @@ use crate::logging::info;
 /// quit_menu_button.pos_y = dev_config.quit_menu_pos_y;
 /// quit_menu_text.as_textbox().set_text_string(&dev_config.quit_menu_title);
 /// ```
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Clone)]
 pub struct DevConfig {}
 
-pub unsafe fn config() -> &'static DevConfig {
-    &*DEV_CONFIG.data_ptr()
+pub unsafe fn config() -> DevConfig {
+    read_clone(&(*DEV_CONFIG))
 }
 
-lazy_static! {
-    pub static ref DEV_CONFIG: Mutex<DevConfig> = Mutex::new(DevConfig::load_from_toml());
-}
+pub static DEV_CONFIG: LazyLock<RwLock<DevConfig>> =
+    LazyLock::new(|| RwLock::new(DevConfig::load_from_toml()));
 
 impl DevConfig {
     fn load_from_toml() -> DevConfig {
@@ -57,7 +55,6 @@ impl DevConfig {
 pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &SomeControllerStruct) {
     let current_buttons = controller_struct.controller.current_buttons;
     if player_idx == 0 && current_buttons.l() && current_buttons.r() && current_buttons.a() {
-        let mut dev_config = DEV_CONFIG.lock();
-        *dev_config = DevConfig::load_from_toml();
+        assign(&(*DEV_CONFIG), DevConfig::load_from_toml());
     }
 }

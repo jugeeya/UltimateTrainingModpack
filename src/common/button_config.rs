@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
-use crate::common::*;
+use crate::common::menu::{MENU_CLOSE_FRAME_COUNTER, QUICK_MENU_ACTIVE};
+use crate::common::ButtonConfig;
 use crate::input::{ControllerStyle::*, *};
 use crate::training::frame_counter;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
 
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
-use strum_macros::EnumIter;
+use training_mod_consts::{OnOff, MENU};
+use training_mod_sync::*;
 
-use super::menu::QUICK_MENU_ACTIVE;
+use strum_macros::EnumIter;
 
 pub fn button_mapping(
     button_config: ButtonConfig,
@@ -176,29 +176,29 @@ unsafe fn get_combo_keys(combo: ButtonCombo) -> ButtonConfig {
     match combo {
         // For OpenMenu, have a default in addition to accepting start press
         ButtonCombo::OpenMenu => DEFAULT_OPEN_MENU_CONFIG,
-        ButtonCombo::SaveState => MENU.save_state_save,
-        ButtonCombo::LoadState => MENU.save_state_load,
-        ButtonCombo::InputRecord => MENU.input_record,
-        ButtonCombo::InputPlayback => MENU.input_playback,
+        ButtonCombo::SaveState => read(&MENU).save_state_save,
+        ButtonCombo::LoadState => read(&MENU).save_state_load,
+        ButtonCombo::InputRecord => read(&MENU).input_record,
+        ButtonCombo::InputPlayback => read(&MENU).input_playback,
     }
 }
 
-lazy_static! {
-    static ref BUTTON_COMBO_REQUESTS: Mutex<HashMap<ButtonCombo, bool>> =
-        Mutex::new(HashMap::from([
-            (ButtonCombo::OpenMenu, false),
-            (ButtonCombo::SaveState, false),
-            (ButtonCombo::LoadState, false),
-            (ButtonCombo::InputRecord, false),
-            (ButtonCombo::InputPlayback, false),
-        ]));
-    static ref START_HOLD_FRAMES: Mutex<u32> = Mutex::new(0);
-}
+// Note: in addition to RwLock we also need a LazyLock initializer because HashMap::from() is not const
+static BUTTON_COMBO_REQUESTS: LazyLock<RwLock<HashMap<ButtonCombo, bool>>> = LazyLock::new(|| {
+    RwLock::new(HashMap::from([
+        (ButtonCombo::OpenMenu, false),
+        (ButtonCombo::SaveState, false),
+        (ButtonCombo::LoadState, false),
+        (ButtonCombo::InputRecord, false),
+        (ButtonCombo::InputPlayback, false),
+    ]))
+});
+static START_HOLD_FRAMES: RwLock<u32> = RwLock::new(0);
 
 fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
         // Prevent button combos from passing if either the vanilla or mod menu is open
-        if VANILLA_MENU_ACTIVE || QUICK_MENU_ACTIVE {
+        if read(&VANILLA_MENU_ACTIVE) || read(&QUICK_MENU_ACTIVE) {
             return false;
         }
 
@@ -226,19 +226,16 @@ fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
 }
 
 pub fn combo_passes(combo: ButtonCombo) -> bool {
-    unsafe {
-        let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.data_ptr();
-        let passes = button_combo_requests.get_mut(&combo);
-        let mut did_pass = false;
-        if let Some(passes) = passes {
-            if *passes {
-                did_pass = true;
-            }
-            *passes = false;
+    let mut button_combo_requests_lock = lock_write(&BUTTON_COMBO_REQUESTS);
+    let passes = (*button_combo_requests_lock).get_mut(&combo);
+    let mut did_pass = false;
+    if let Some(passes) = passes {
+        if *passes {
+            did_pass = true;
         }
-
-        did_pass
+        *passes = false;
     }
+    did_pass
 }
 
 pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeControllerStruct) {
@@ -246,37 +243,36 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
         let p1_controller = &mut *controller_struct.controller;
         let mut start_menu_request = false;
 
-        let menu_close_wait_frame = frame_counter::get_frame_count(*menu::MENU_CLOSE_FRAME_COUNTER);
-        if unsafe { MENU.menu_open_start_press == OnOff::ON } {
-            let start_hold_frames = &mut *START_HOLD_FRAMES.lock();
+        let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
+        if read(&MENU).menu_open_start_press == OnOff::ON {
+            let mut start_hold_frames = read(&START_HOLD_FRAMES);
             if p1_controller.current_buttons.plus() {
-                *start_hold_frames += 1;
+                start_hold_frames += 1;
                 p1_controller.previous_buttons.set_plus(false);
                 p1_controller.current_buttons.set_plus(false);
                 p1_controller.just_down.set_plus(false);
                 p1_controller.just_release.set_plus(false);
-                if *start_hold_frames >= 10 && unsafe { !VANILLA_MENU_ACTIVE } {
+                if start_hold_frames >= 10 && !read(&VANILLA_MENU_ACTIVE) {
                     // If we've held for more than 10 frames,
                     // let's open the training mod menu
                     start_menu_request = true;
                 }
             } else {
                 // Here, we just finished holding start
-                if *start_hold_frames > 0
-                    && *start_hold_frames < 10
-                    && unsafe { !QUICK_MENU_ACTIVE }
+                if start_hold_frames > 0
+                    && start_hold_frames < 10
+                    && !read(&QUICK_MENU_ACTIVE)
                     && menu_close_wait_frame == 0
                 {
                     // If we held for fewer than 10 frames, let's let the game know that
                     // we had pressed start
                     p1_controller.current_buttons.set_plus(true);
                     p1_controller.just_down.set_plus(true);
-                    unsafe {
-                        VANILLA_MENU_ACTIVE = true;
-                    }
+                    assign(&VANILLA_MENU_ACTIVE, true);
                 }
-                *start_hold_frames = 0;
+                start_hold_frames = 0;
             }
+            assign(&START_HOLD_FRAMES, start_hold_frames);
 
             // If we ever press minus, open the mod menu
             if p1_controller.current_buttons.minus() {
@@ -284,13 +280,13 @@ pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeC
             }
         }
 
-        let button_combo_requests = &mut *BUTTON_COMBO_REQUESTS.lock();
-        button_combo_requests
+        let mut button_combo_requests_lock = lock_write(&BUTTON_COMBO_REQUESTS);
+        (*button_combo_requests_lock)
             .iter_mut()
             .for_each(|(combo, is_request)| {
                 if !*is_request {
                     *is_request = _combo_passes(*p1_controller, *combo);
-                    if *combo == button_config::ButtonCombo::OpenMenu && start_menu_request {
+                    if *combo == ButtonCombo::OpenMenu && start_menu_request {
                         *is_request = true;
                     }
                 }

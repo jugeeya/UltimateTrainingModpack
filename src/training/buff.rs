@@ -8,60 +8,59 @@ use crate::is_operation_cpu;
 use crate::training::frame_counter;
 use crate::training::handle_add_limit;
 
-use once_cell::sync::Lazy;
+use training_mod_sync::*;
 
-static mut BUFF_REMAINING_PLAYER: usize = 0;
-static mut BUFF_REMAINING_CPU: usize = 0;
+static BUFF_REMAINING_PLAYER: RwLock<usize> = RwLock::new(0);
+static BUFF_REMAINING_CPU: RwLock<usize> = RwLock::new(0);
 
-static mut IS_BUFFING_PLAYER: bool = false;
-static mut IS_BUFFING_CPU: bool = false;
+static IS_BUFFING_PLAYER: RwLock<bool> = RwLock::new(false);
+static IS_BUFFING_CPU: RwLock<bool> = RwLock::new(false);
 
-static BUFF_DELAY_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+static BUFF_DELAY_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
-pub unsafe fn restart_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn restart_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_operation_cpu(module_accessor) {
-        IS_BUFFING_CPU = false;
-        return;
+        assign(&IS_BUFFING_CPU, false);
+    } else {
+        assign(&IS_BUFFING_PLAYER, false);
     }
-    IS_BUFFING_PLAYER = false;
 }
 
-pub unsafe fn start_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn start_buff(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if is_operation_cpu(module_accessor) {
-        IS_BUFFING_CPU = true;
-        return;
+        assign(&IS_BUFFING_CPU, true);
+    } else {
+        assign(&IS_BUFFING_PLAYER, true);
     }
-    IS_BUFFING_PLAYER = true;
 }
 
-pub unsafe fn is_buffing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+pub fn is_buffing(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     if is_operation_cpu(module_accessor) {
-        return IS_BUFFING_CPU;
+        read(&IS_BUFFING_CPU)
+    } else {
+        read(&IS_BUFFING_PLAYER)
     }
-    IS_BUFFING_PLAYER
 }
 
-pub unsafe fn is_buffing_any() -> bool {
-    IS_BUFFING_CPU || IS_BUFFING_PLAYER
+pub fn is_buffing_any() -> bool {
+    read(&IS_BUFFING_CPU) || read(&IS_BUFFING_PLAYER)
 }
 
-pub unsafe fn set_buff_rem(
-    module_accessor: &mut app::BattleObjectModuleAccessor,
-    new_value: usize,
-) {
+pub fn set_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor, new_value: usize) {
     if is_operation_cpu(module_accessor) {
-        BUFF_REMAINING_CPU = new_value;
-        return;
+        assign(&BUFF_REMAINING_CPU, new_value);
+    } else {
+        assign(&BUFF_REMAINING_PLAYER, new_value);
     }
-    BUFF_REMAINING_PLAYER = new_value;
 }
 
-pub unsafe fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> usize {
+pub fn get_buff_rem(module_accessor: &mut app::BattleObjectModuleAccessor) -> usize {
     if is_operation_cpu(module_accessor) {
-        return BUFF_REMAINING_CPU;
+        read(&BUFF_REMAINING_CPU)
+    } else {
+        read(&BUFF_REMAINING_PLAYER)
     }
-    BUFF_REMAINING_PLAYER
 }
 
 pub unsafe fn handle_buffs(
@@ -79,7 +78,7 @@ pub unsafe fn handle_buffs(
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_M); // stops Psyche-Up quake
     CameraModule::stop_quake(module_accessor, *CAMERA_QUAKE_KIND_S); // stops Monado Art quake
 
-    let menu_vec = MENU.buff_state;
+    let menu_vec = read(&MENU).buff_state;
 
     if fighter_kind == *FIGHTER_KIND_BRAVE {
         return buff_hero(module_accessor, status);
@@ -104,7 +103,7 @@ pub unsafe fn handle_buffs(
 }
 
 unsafe fn buff_hero(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let buff_vec: Vec<BuffOption> = MENU.buff_state.hero_buffs().to_vec();
+    let buff_vec: Vec<BuffOption> = read(&MENU).buff_state.hero_buffs().to_vec();
     if !is_buffing(module_accessor) {
         // Initial set up for spells
         start_buff(module_accessor);
@@ -241,7 +240,7 @@ unsafe fn buff_sepiroth(module_accessor: &mut app::BattleObjectModuleAccessor) -
 
 unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     if !is_buffing(module_accessor) {
-        let waft_level: BuffOption = MENU.buff_state.wario_buffs().get_random();
+        let waft_level: BuffOption = read(&MENU).buff_state.wario_buffs().get_random();
         let waft_count_secs = match waft_level {
             BuffOption::WAFT_MINI => WorkModule::get_param_float(
                 module_accessor,
@@ -277,7 +276,7 @@ unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
 }
 
 unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, status: i32) -> bool {
-    let current_art = MENU.buff_state.shulk_buffs().get_random();
+    let current_art = read(&MENU).buff_state.shulk_buffs().get_random();
     if current_art == BuffOption::empty() {
         // No Monado Arts selected in the buff menu, so we don't need to buff
         return true;

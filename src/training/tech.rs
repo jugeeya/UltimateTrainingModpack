@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use skyline::hooks::{getRegionAddress, Region};
 use smash::app::{lua_bind::*, sv_system, BattleObjectModuleAccessor};
 use smash::hash40;
 use smash::lib::lua_const::*;
@@ -6,28 +9,24 @@ use smash::lua2cpp::L2CFighterBase;
 use smash::phx::{Hash40, Vector3f};
 
 use crate::common::consts::*;
-use crate::common::offsets::OFFSET_CHANGE_ACTIVE_CAMERA;
-
-use crate::common::offsets::OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES;
+use crate::common::offsets::{
+    OFFSET_CHANGE_ACTIVE_CAMERA, OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES,
+};
 use crate::common::*;
 use crate::training::{frame_counter, mash, save_states};
+use training_mod_sync::*;
 
-use skyline::hooks::{getRegionAddress, Region};
-
-use once_cell::sync::Lazy;
-use std::collections::HashMap;
-
-static mut TECH_ROLL_DIRECTION: Direction = Direction::empty();
-static mut MISS_TECH_ROLL_DIRECTION: Direction = Direction::empty();
-static mut NEEDS_VISIBLE: bool = false;
-static mut DEFAULT_FIXED_CAM_CENTER: Vector3f = Vector3f {
+static TECH_ROLL_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());
+static MISS_TECH_ROLL_DIRECTION: RwLock<Direction> = RwLock::new(Direction::empty());
+static NEEDS_VISIBLE: RwLock<bool> = RwLock::new(false);
+static DEFAULT_FIXED_CAM_CENTER: RwLock<Vector3f> = RwLock::new(Vector3f {
     x: 0.0,
     y: 0.0,
     z: 0.0,
-};
+});
 
-static FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
+static FRAME_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 unsafe fn is_enable_passive(module_accessor: &mut BattleObjectModuleAccessor) -> bool {
     let fighter = get_fighter_common_from_accessor(module_accessor);
@@ -64,7 +63,7 @@ unsafe fn mod_handle_change_status(
         .try_get_int()
         .unwrap_or(*FIGHTER_STATUS_KIND_WAIT as u64) as i32;
 
-    let state: TechFlags = MENU.tech_state.get_random();
+    let state: TechFlags = read(&MENU).tech_state.get_random();
 
     if handle_grnd_tech(module_accessor, status_kind, unk, status_kind_int, state) {
         return;
@@ -115,22 +114,22 @@ unsafe fn handle_grnd_tech(
         TechFlags::ROLL_F => {
             *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
             *unk = LUA_TRUE;
-            TECH_ROLL_DIRECTION = Direction::IN; // = In
+            assign(&TECH_ROLL_DIRECTION, Direction::IN);
             true
         }
         TechFlags::ROLL_B => {
             *status_kind = FIGHTER_STATUS_KIND_PASSIVE_FB.as_lua_int();
             *unk = LUA_TRUE;
-            TECH_ROLL_DIRECTION = Direction::OUT; // = Away
+            assign(&TECH_ROLL_DIRECTION, Direction::OUT);
             true
         }
         _ => false,
     };
-    if do_tech && MENU.mash_triggers.contains(&MashTrigger::TECH) {
-        if MENU.tech_action_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+    if do_tech && read(&MENU).mash_triggers.contains(&MashTrigger::TECH) {
+        if read(&MENU).tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(read(&MENU).mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(read(&MENU).tech_action_override.get_random())
         }
     }
 
@@ -173,11 +172,11 @@ unsafe fn handle_wall_tech(
         }
         _ => false,
     };
-    if do_tech && MENU.mash_triggers.contains(&MashTrigger::TECH) {
-        if MENU.tech_action_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+    if do_tech && read(&MENU).mash_triggers.contains(&MashTrigger::TECH) {
+        if read(&MENU).tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(read(&MENU).mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(read(&MENU).tech_action_override.get_random())
         }
     }
     true
@@ -208,18 +207,18 @@ unsafe fn handle_ceil_tech(
 
     *status_kind = FIGHTER_STATUS_KIND_PASSIVE_CEIL.as_lua_int();
     *unk = LUA_TRUE;
-    if MENU.mash_triggers.contains(&MashTrigger::TECH) {
-        if MENU.tech_action_override == Action::empty() {
-            mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+    if read(&MENU).mash_triggers.contains(&MashTrigger::TECH) {
+        if read(&MENU).tech_action_override == Action::empty() {
+            mash::external_buffer_menu_mash(read(&MENU).mash_state.get_random())
         } else {
-            mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+            mash::external_buffer_menu_mash(read(&MENU).tech_action_override.get_random())
         }
     }
     true
 }
 
 pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
-    if !is_operation_cpu(module_accessor) || MENU.tech_state == TechFlags::empty() {
+    if !is_operation_cpu(module_accessor) || read(&MENU).tech_state == TechFlags::empty() {
         return;
     }
 
@@ -232,15 +231,15 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
     .contains(&status)
     {
         // Mistech
-        requested_status = match MENU.miss_tech_state.get_random() {
+        requested_status = match read(&MENU).miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
             MissTechFlags::ROLL_F => {
-                MISS_TECH_ROLL_DIRECTION = Direction::IN; // = In
+                assign(&MISS_TECH_ROLL_DIRECTION, Direction::IN);
                 *FIGHTER_STATUS_KIND_DOWN_STAND_FB
             }
             MissTechFlags::ROLL_B => {
-                MISS_TECH_ROLL_DIRECTION = Direction::OUT; // = Away
+                assign(&MISS_TECH_ROLL_DIRECTION, Direction::OUT);
                 *FIGHTER_STATUS_KIND_DOWN_STAND_FB
             }
             _ => return,
@@ -251,22 +250,22 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
         if frame_counter::should_delay(lockout_time, *FRAME_COUNTER) {
             return;
         };
-        requested_status = match MENU.miss_tech_state.get_random() {
+        requested_status = match read(&MENU).miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_DOWN_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_DOWN_STAND_ATTACK,
             MissTechFlags::ROLL_F => {
-                MISS_TECH_ROLL_DIRECTION = Direction::IN; // = In
+                assign(&MISS_TECH_ROLL_DIRECTION, Direction::IN);
                 *FIGHTER_STATUS_KIND_DOWN_STAND_FB
             }
             MissTechFlags::ROLL_B => {
-                MISS_TECH_ROLL_DIRECTION = Direction::OUT; // = Away
+                assign(&MISS_TECH_ROLL_DIRECTION, Direction::OUT);
                 *FIGHTER_STATUS_KIND_DOWN_STAND_FB
             }
             _ => return,
         };
     } else if status == *FIGHTER_STATUS_KIND_SLIP_WAIT {
         // Handle slips (like Diddy banana)
-        requested_status = match MENU.miss_tech_state.get_random() {
+        requested_status = match read(&MENU).miss_tech_state.get_random() {
             MissTechFlags::GETUP => *FIGHTER_STATUS_KIND_SLIP_STAND,
             MissTechFlags::ATTACK => *FIGHTER_STATUS_KIND_SLIP_STAND_ATTACK,
             MissTechFlags::ROLL_F => *FIGHTER_STATUS_KIND_SLIP_STAND_F,
@@ -280,11 +279,11 @@ pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAcces
 
     if requested_status != 0 {
         StatusModule::change_status_force(module_accessor, requested_status, true);
-        if MENU.mash_triggers.contains(&MashTrigger::MISTECH) {
-            if MENU.tech_action_override == Action::empty() {
-                mash::external_buffer_menu_mash(MENU.mash_state.get_random())
+        if read(&MENU).mash_triggers.contains(&MashTrigger::MISTECH) {
+            if read(&MENU).tech_action_override == Action::empty() {
+                mash::external_buffer_menu_mash(read(&MENU).mash_state.get_random())
             } else {
-                mash::external_buffer_menu_mash(MENU.tech_action_override.get_random())
+                mash::external_buffer_menu_mash(read(&MENU).tech_action_override.get_random())
             }
         }
     }
@@ -298,24 +297,24 @@ pub unsafe fn change_motion(
         return None;
     }
 
-    if MENU.tech_state == TechFlags::empty() {
+    if read(&MENU).tech_state == TechFlags::empty() {
         return None;
     }
 
     if [hash40("passive_stand_f"), hash40("passive_stand_b")].contains(&motion_kind) {
-        if TECH_ROLL_DIRECTION == Direction::IN {
+        if read(&TECH_ROLL_DIRECTION) == Direction::IN {
             return Some(hash40("passive_stand_f"));
         } else {
             return Some(hash40("passive_stand_b"));
         }
     } else if [hash40("down_forward_u"), hash40("down_back_u")].contains(&motion_kind) {
-        if MISS_TECH_ROLL_DIRECTION == Direction::IN {
+        if read(&MISS_TECH_ROLL_DIRECTION) == Direction::IN {
             return Some(hash40("down_forward_u"));
         } else {
             return Some(hash40("down_back_u"));
         }
     } else if [hash40("down_forward_d"), hash40("down_back_d")].contains(&motion_kind) {
-        if MISS_TECH_ROLL_DIRECTION == Direction::IN {
+        if read(&MISS_TECH_ROLL_DIRECTION) == Direction::IN {
             return Some(hash40("down_forward_d"));
         } else {
             return Some(hash40("down_back_d"));
@@ -350,7 +349,7 @@ unsafe fn get_snake_laydown_lockout_time(module_accessor: &mut BattleObjectModul
 }
 
 pub unsafe fn hide_tech() {
-    if !is_training_mode() || MENU.tech_hide == OnOff::OFF {
+    if !is_training_mode() || read(&MENU).tech_hide == OnOff::OFF {
         return;
     }
     let module_accessor = get_module_accessor(FighterId::CPU);
@@ -370,7 +369,7 @@ pub unsafe fn hide_tech() {
         );
         // Disable visibility
         if MotionModule::frame(module_accessor) >= 6.0 {
-            NEEDS_VISIBLE = true;
+            assign(&NEEDS_VISIBLE, true);
             VisibilityModule::set_whole(module_accessor, false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_nopassive"), false);
             EffectModule::set_visible_kind(module_accessor, Hash40::new("sys_down_smoke"), false);
@@ -384,15 +383,17 @@ pub unsafe fn hide_tech() {
         }
         if MotionModule::end_frame(module_accessor) - MotionModule::frame(module_accessor) <= 5.0 {
             // Re-enable visibility
-            NEEDS_VISIBLE = false;
+            assign(&NEEDS_VISIBLE, false);
             VisibilityModule::set_whole(module_accessor, true);
         }
     } else {
         // If the CPU's tech status was interrupted, make them visible again
-        if NEEDS_VISIBLE {
-            NEEDS_VISIBLE = false;
+        let mut needs_visible_lock = lock_write(&NEEDS_VISIBLE);
+        if *needs_visible_lock {
+            *needs_visible_lock = false;
             VisibilityModule::set_whole(module_accessor, true);
         }
+        drop(needs_visible_lock);
     }
 }
 
@@ -406,7 +407,7 @@ pub unsafe fn handle_fighter_req_quake_pos(
         return original!()(module_accessor, quake_kind);
     }
     let status = StatusModule::status_kind(module_accessor);
-    if status == FIGHTER_STATUS_KIND_DOWN && MENU.tech_hide == OnOff::ON {
+    if status == FIGHTER_STATUS_KIND_DOWN && read(&MENU).tech_hide == OnOff::ON {
         // We're hiding techs, prevent mistech quake from giving away missed tech
         return original!()(module_accessor, *CAMERA_QUAKE_KIND_NONE);
     }
@@ -449,9 +450,9 @@ pub struct CameraManager {
 
 unsafe fn set_fixed_camera_values() {
     let camera_manager = get_camera_manager();
-    if MENU.tech_hide == OnOff::OFF {
+    if read(&MENU).tech_hide == OnOff::OFF {
         // Use Stage's Default Values for fixed Camera
-        camera_manager.fixed_camera_center = DEFAULT_FIXED_CAM_CENTER;
+        camera_manager.fixed_camera_center = read(&DEFAULT_FIXED_CAM_CENTER);
     } else {
         // We're in CameraMode 4, which is Fixed, and we are hiding tech chases, so we want a better view of the stage
         if let Some(camera_vector) = get_stage_camera_values(save_states::stage_id()) {
@@ -738,7 +739,10 @@ pub unsafe fn handle_set_training_fixed_camera_values(
     if !is_training_mode() {
         return original!()(camera_manager, fixed_camera_values);
     }
-    DEFAULT_FIXED_CAM_CENTER = fixed_camera_values.fixed_camera_center;
+    assign(
+        &DEFAULT_FIXED_CAM_CENTER,
+        fixed_camera_values.fixed_camera_center,
+    );
     original!()(camera_manager, fixed_camera_values);
     // Set Fixed Camera Values now, since L + R + A reset switches without calling ChangeActiveCamera
     set_fixed_camera_values();

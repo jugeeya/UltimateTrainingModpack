@@ -1,13 +1,13 @@
 use itertools::Itertools;
-use once_cell::sync::Lazy;
 use std::collections::VecDeque;
 
-use crate::common::{input::*, menu::QUICK_MENU_ACTIVE, try_get_module_accessor};
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
+use crate::common::input::*;
+use crate::menu::QUICK_MENU_ACTIVE;
+use crate::try_get_module_accessor;
 use skyline::nn::ui2d::ResColor;
 use smash::app::{lua_bind::*, utility};
 use training_mod_consts::{FighterId, InputDisplay, MENU};
+use training_mod_sync::*;
 
 use super::{frame_counter, input_record::STICK_CLAMP_MULTIPLIER};
 
@@ -60,13 +60,15 @@ pub const WHITE: ResColor = ResColor {
     a: 0,
 };
 
-pub static PER_LOG_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
-pub static OVERALL_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset));
+pub static PER_LOG_FRAME_COUNTER: LazyLock<usize> = LazyLock::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset)
+});
+pub static OVERALL_FRAME_COUNTER: LazyLock<usize> = LazyLock::new(|| {
+    frame_counter::register_counter(frame_counter::FrameCounterType::InGameNoReset)
+});
 
 pub const NUM_LOGS: usize = 15;
-pub static mut DRAW_LOG_BASE_IDX: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
+pub static DRAW_LOG_BASE_IDX: RwLock<usize> = RwLock::new(0);
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum DirectionStrength {
@@ -134,50 +136,51 @@ fn bin_stick_values(x: i8, y: i8) -> (DirectionStrength, f32) {
 
 impl InputLog {
     pub fn is_different(&self, other: &InputLog) -> bool {
-        unsafe {
-            match MENU.input_display {
-                InputDisplay::SMASH => self.is_smash_different(other),
-                InputDisplay::RAW => self.is_raw_different(other),
-                InputDisplay::STATUS => self.is_status_different(other),
-                InputDisplay::NONE => false,
-                _ => panic!("Invalid value in is_different: {}", MENU.input_display),
-            }
+        match read(&MENU).input_display {
+            InputDisplay::SMASH => self.is_smash_different(other),
+            InputDisplay::RAW => self.is_raw_different(other),
+            InputDisplay::STATUS => self.is_status_different(other),
+            InputDisplay::NONE => false,
+            _ => panic!(
+                "Invalid value in is_different: {}",
+                read(&MENU).input_display
+            ),
         }
     }
 
     pub fn binned_lstick(&self) -> (DirectionStrength, f32) {
-        unsafe {
-            match MENU.input_display {
-                InputDisplay::SMASH => self.smash_binned_lstick(),
-                InputDisplay::RAW => self.raw_binned_lstick(),
-                InputDisplay::STATUS => (DirectionStrength::None, 0.0),
-                InputDisplay::NONE => panic!("Invalid input display to log"),
-                _ => panic!("Invalid value in binned_lstick: {}", MENU.input_display),
-            }
+        match read(&MENU).input_display {
+            InputDisplay::SMASH => self.smash_binned_lstick(),
+            InputDisplay::RAW => self.raw_binned_lstick(),
+            InputDisplay::STATUS => (DirectionStrength::None, 0.0),
+            InputDisplay::NONE => panic!("Invalid input display to log"),
+            _ => panic!(
+                "Invalid value in binned_lstick: {}",
+                read(&MENU).input_display
+            ),
         }
     }
 
     pub fn binned_rstick(&self) -> (DirectionStrength, f32) {
-        unsafe {
-            match MENU.input_display {
-                InputDisplay::SMASH => self.smash_binned_rstick(),
-                InputDisplay::RAW => self.raw_binned_rstick(),
-                InputDisplay::STATUS => (DirectionStrength::None, 0.0),
-                InputDisplay::NONE => panic!("Invalid input display to log"),
-                _ => panic!("Invalid value in binned_rstick: {}", MENU.input_display),
-            }
+        match read(&MENU).input_display {
+            InputDisplay::SMASH => self.smash_binned_rstick(),
+            InputDisplay::RAW => self.raw_binned_rstick(),
+            InputDisplay::STATUS => (DirectionStrength::None, 0.0),
+            InputDisplay::NONE => panic!("Invalid input display to log"),
+            _ => panic!(
+                "Invalid value in binned_rstick: {}",
+                read(&MENU).input_display
+            ),
         }
     }
 
     pub fn button_icons(&self) -> VecDeque<(&str, ResColor)> {
-        unsafe {
-            match MENU.input_display {
-                InputDisplay::SMASH => self.smash_button_icons(),
-                InputDisplay::RAW => self.raw_button_icons(),
-                InputDisplay::STATUS => VecDeque::new(),
-                InputDisplay::NONE => panic!("Invalid input display to log"),
-                _ => unreachable!(),
-            }
+        match read(&MENU).input_display {
+            InputDisplay::SMASH => self.smash_button_icons(),
+            InputDisplay::RAW => self.raw_button_icons(),
+            InputDisplay::STATUS => VecDeque::new(),
+            InputDisplay::NONE => panic!("Invalid input display to log"),
+            _ => unreachable!(),
         }
     }
 
@@ -258,14 +261,12 @@ impl InputLog {
         self.smash_inputs.buttons != other.smash_inputs.buttons
             || self.smash_binned_lstick() != other.smash_binned_lstick()
             || self.smash_binned_rstick() != other.smash_binned_rstick()
-            || (unsafe { MENU.input_display_status.as_bool() } && self.status != other.status)
+            || (read(&MENU).input_display_status.as_bool() && self.status != other.status)
     }
 
     fn is_status_different(&self, other: &InputLog) -> bool {
-        unsafe {
-            let input_display_status = MENU.input_display_status.as_bool();
-            input_display_status && (self.status != other.status)
-        }
+        let input_display_status = read(&MENU).input_display_status.as_bool();
+        input_display_status && (self.status != other.status)
     }
 
     fn smash_binned_lstick(&self) -> (DirectionStrength, f32) {
@@ -280,7 +281,7 @@ impl InputLog {
         self.raw_inputs.current_buttons != other.raw_inputs.current_buttons
             || self.raw_binned_lstick() != other.raw_binned_lstick()
             || self.raw_binned_rstick() != other.raw_binned_rstick()
-            || (unsafe { MENU.input_display_status.as_bool() } && self.status != other.status)
+            || (read(&MENU).input_display_status.as_bool() && self.status != other.status)
     }
 
     fn raw_binned_lstick(&self) -> (DirectionStrength, f32) {
@@ -305,10 +306,8 @@ fn insert_in_front<T>(array: &mut [T], value: T) {
     insert_in_place(array, value, 0);
 }
 
-lazy_static! {
-    pub static ref P1_INPUT_LOGS: Mutex<[InputLog; NUM_LOGS]> =
-        Mutex::new([InputLog::default(); NUM_LOGS]);
-}
+pub static P1_INPUT_LOGS: LazyLock<RwLock<[InputLog; NUM_LOGS]>> =
+    LazyLock::new(|| RwLock::new([InputLog::default(); NUM_LOGS]));
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
@@ -316,11 +315,11 @@ pub fn handle_final_input_mapping(
     out: *mut MappedInputs,
 ) {
     unsafe {
-        if MENU.input_display == InputDisplay::NONE {
+        if read(&MENU).input_display == InputDisplay::NONE {
             return;
         }
 
-        if QUICK_MENU_ACTIVE {
+        if read(&QUICK_MENU_ACTIVE) {
             return;
         }
 
@@ -347,7 +346,8 @@ pub fn handle_final_input_mapping(
                 fighter_kind: utility::get_kind(&mut *module_accessor),
             };
 
-            let input_logs = &mut *P1_INPUT_LOGS.lock();
+            let mut input_logs_lock = lock_write(&(*P1_INPUT_LOGS));
+            let input_logs = &mut *input_logs_lock;
             let latest_input_log = input_logs.first_mut().unwrap();
             let prev_overall_frames = latest_input_log.overall_frame;
             let prev_ttl = latest_input_log.ttl;
@@ -358,8 +358,9 @@ pub fn handle_final_input_mapping(
                 // We should count this frame already
                 frame_counter::tick_idx(*PER_LOG_FRAME_COUNTER);
                 insert_in_front(input_logs, potential_input_log);
-                let draw_log_base_idx = &mut *DRAW_LOG_BASE_IDX.data_ptr();
-                *draw_log_base_idx = (*draw_log_base_idx + 1) % NUM_LOGS;
+                let mut draw_log_base_idx_lock = lock_write(&DRAW_LOG_BASE_IDX);
+                *draw_log_base_idx_lock = (*draw_log_base_idx_lock + 1) % NUM_LOGS;
+                drop(draw_log_base_idx_lock);
             } else if is_new_frame {
                 *latest_input_log = potential_input_log;
                 latest_input_log.frames = std::cmp::min(current_frame, 99);

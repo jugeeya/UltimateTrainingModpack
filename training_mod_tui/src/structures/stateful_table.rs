@@ -266,7 +266,7 @@ impl<'a, T: Clone + Serialize> Iterator for StatefulTableIteratorMut<'a, T> {
 }
 
 impl<'a, T: Clone + Serialize + 'a> StatefulTable<T> {
-    pub fn iter_mut(&'a mut self) -> StatefulTableIteratorMut<T> {
+    pub fn iter_mut(&'a mut self) -> StatefulTableIteratorMut<'a, T> {
         StatefulTableIteratorMut {
             inner: self.items.iter_mut().flatten(),
         }

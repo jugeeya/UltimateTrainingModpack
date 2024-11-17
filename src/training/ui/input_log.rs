@@ -4,15 +4,14 @@ use skyline::nn::ui2d::*;
 use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_consts::{InputDisplay, MENU};
 
-use crate::{
-    common::{consts::status_display_name, menu::QUICK_MENU_ACTIVE},
-    training::{
-        input_log::{
-            DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
-        },
-        ui::{fade_out, menu::VANILLA_MENU_ACTIVE},
-    },
+use crate::common::consts::status_display_name;
+use crate::menu::QUICK_MENU_ACTIVE;
+use crate::training::input_log::{
+    DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
 };
+use crate::training::ui::fade_out;
+use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
+use training_mod_sync::*;
 
 macro_rules! log_parent_fmt {
     ($x:ident) => {
@@ -69,7 +68,8 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
 }
 
 unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
-    let draw_log_idx = (log_idx + (NUM_LOGS - *DRAW_LOG_BASE_IDX.data_ptr())) % NUM_LOGS;
+    let draw_log_base_idx = read(&DRAW_LOG_BASE_IDX);
+    let draw_log_idx = (log_idx + (NUM_LOGS - draw_log_base_idx)) % NUM_LOGS;
     let log_pane = root_pane
         .find_pane_by_name_recursive(log_parent_fmt!(draw_log_idx))
         .unwrap();
@@ -176,7 +176,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         .as_textbox()
         .set_text_string(frame_text.as_str());
 
-    let status_text = if MENU.input_display_status.as_bool() {
+    let status_text = if read(&MENU).input_display_status.as_bool() {
         status_display_name(log.fighter_kind, log.status)
     } else {
         "".to_string()
@@ -193,17 +193,15 @@ pub unsafe fn draw(root_pane: &Pane) {
         .find_pane_by_name_recursive("TrModInputLog")
         .unwrap();
     logs_pane.set_visible(
-        !QUICK_MENU_ACTIVE && !VANILLA_MENU_ACTIVE && MENU.input_display != InputDisplay::NONE,
+        !read(&QUICK_MENU_ACTIVE)
+            && !read(&VANILLA_MENU_ACTIVE)
+            && read(&MENU).input_display != InputDisplay::NONE,
     );
-    if MENU.input_display == InputDisplay::NONE {
+    if read(&MENU).input_display == InputDisplay::NONE {
         return;
     }
 
-    let logs_ptr = P1_INPUT_LOGS.data_ptr();
-    if logs_ptr.is_null() {
-        return;
-    }
-    let logs = &*logs_ptr;
+    let logs = read(&(*P1_INPUT_LOGS));
 
     for (log_idx, log) in logs.iter().enumerate() {
         draw_log(root_pane, log_idx, log);

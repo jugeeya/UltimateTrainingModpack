@@ -1,7 +1,5 @@
 use std::cmp::Ordering;
 
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
 use skyline::nn::ui2d::ResColor;
 use smash::app::{lua_bind::*, utility, BattleObjectModuleAccessor};
 use smash::lib::lua_const::*;
@@ -17,10 +15,12 @@ use crate::common::{
     get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
 };
 use crate::training::mash;
-use crate::training::ui::notifications::{clear_notifications, color_notification};
+use crate::training::ui::notifications::{clear_notification, color_notification};
 use crate::{error, warn};
 
-#[derive(PartialEq, Debug)]
+use training_mod_sync::*;
+
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum InputRecordState {
     None,
     Pause,
@@ -28,7 +28,7 @@ pub enum InputRecordState {
     Playback,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum PossessionState {
     Player,
     Cpu,
@@ -56,30 +56,26 @@ pub const STICK_NEUTRAL: f32 = 0.2;
 pub const STICK_CLAMP_MULTIPLIER: f32 = 1.0 / 120.0; // 120.0 = CLAMP_MAX
 const FINAL_RECORD_MAX: usize = 600; // Maximum length for input recording sequences (capacity)
 const TOTAL_SLOT_COUNT: usize = 5; // Total number of input recording slots
-pub static mut INPUT_RECORD: InputRecordState = InputRecordState::None;
-pub static mut INPUT_RECORD_FRAME: usize = 0;
-pub static mut POSSESSION: PossessionState = PossessionState::Player;
-pub static mut LOCKOUT_FRAME: usize = 0;
-pub static mut BUFFER_FRAME: usize = 0;
-pub static mut RECORDED_LR: f32 = 1.0; // The direction the CPU was facing before the current recording was recorded
-pub static mut CURRENT_LR: f32 = 1.0; // The direction the CPU was facing at the beginning of this playback
-pub static mut STARTING_STATUS: i32 = 0; // The first status entered in the recording outside of waits
-                                         //     used to calculate if the input playback should begin before hitstun would normally end (hitstun cancel, monado art?)
-pub static mut CURRENT_RECORD_SLOT: usize = 0; // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
-pub static mut CURRENT_PLAYBACK_SLOT: usize = 0; // Which slot is being used for playback right now?
-pub static mut CURRENT_FRAME_LENGTH: usize = 60;
-
-lazy_static! {
-    static ref P1_FINAL_MAPPING: Mutex<[[MappedInputs; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]> =
-        Mutex::new([[{ MappedInputs::empty() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
-    static ref P1_FRAME_LENGTH_MAPPING: Mutex<[usize; TOTAL_SLOT_COUNT]> =
-        Mutex::new([60usize; TOTAL_SLOT_COUNT]);
-    static ref P1_STARTING_STATUSES: Mutex<[StartingStatus; TOTAL_SLOT_COUNT]> =
-        Mutex::new([{ StartingStatus::Other }; TOTAL_SLOT_COUNT]);
-}
+pub static INPUT_RECORD: RwLock<InputRecordState> = RwLock::new(InputRecordState::None);
+pub static INPUT_RECORD_FRAME: RwLock<usize> = RwLock::new(0);
+pub static POSSESSION: RwLock<PossessionState> = RwLock::new(PossessionState::Player);
+pub static LOCKOUT_FRAME: RwLock<usize> = RwLock::new(0);
+pub static BUFFER_FRAME: RwLock<usize> = RwLock::new(0);
+pub static RECORDED_LR: RwLock<f32> = RwLock::new(1.0); // The direction the CPU was facing before the current recording was recorded
+pub static CURRENT_LR: RwLock<f32> = RwLock::new(1.0); // The direction the CPU was facing at the beginning of this playback
+pub static STARTING_STATUS: RwLock<i32> = RwLock::new(0); // The first status entered in the recording outside of waits
+                                                          //     used to calculate if the input playback should begin before hitstun would normally end (hitstun cancel, monado art?)
+pub static CURRENT_RECORD_SLOT: RwLock<usize> = RwLock::new(0); // Which slot is being used for recording right now? Want to make sure this is synced with menu choices, maybe just use menu instead
+pub static CURRENT_PLAYBACK_SLOT: RwLock<usize> = RwLock::new(0); // Which slot is being used for playback right now?
+pub static CURRENT_FRAME_LENGTH: RwLock<usize> = RwLock::new(60);
+pub static P1_FINAL_MAPPING: RwLock<[[MappedInputs; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]> =
+    RwLock::new([[{ MappedInputs::empty() }; FINAL_RECORD_MAX]; TOTAL_SLOT_COUNT]);
+pub static P1_FRAME_LENGTH_MAPPING: RwLock<[usize; TOTAL_SLOT_COUNT]> =
+    RwLock::new([60; TOTAL_SLOT_COUNT]);
+// pub static P1_STARTING_STATUSES: RwLock<[StartingStatus; TOTAL_SLOT_COUNT]> = RwLock::new([StartingStatus::Other; TOTAL_SLOT_COUNT]); // TODO! Not used currently
 
 unsafe fn can_transition(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
-    let transition_term = into_transition_term(into_starting_status(STARTING_STATUS));
+    let transition_term = into_transition_term(into_starting_status(read(&STARTING_STATUS)));
     WorkModule::is_enable_transition_term(module_accessor, transition_term)
 }
 
@@ -104,17 +100,18 @@ unsafe fn should_mash_playback() {
 
     if is_in_hitstun(&mut *cpu_module_accessor) {
         // if we're in hitstun and want to enter the frame we start hitstop for SDI, start if we're in any damage status instantly
-        if MENU.hitstun_playback == HitstunPlayback::INSTANT {
+        if read(&MENU).hitstun_playback == HitstunPlayback::INSTANT {
             should_playback = true;
         }
         // if we want to wait until we exit hitstop and begin flying away for shield art etc, start if we're not in hitstop
-        if MENU.hitstun_playback == HitstunPlayback::HITSTOP
+        if read(&MENU).hitstun_playback == HitstunPlayback::HITSTOP
             && !StopModule::is_stop(cpu_module_accessor)
         {
             should_playback = true;
         }
         // if we're in hitstun and want to wait till FAF to act, then we want to match our starting status to the correct transition term to see if we can hitstun cancel
-        if MENU.hitstun_playback == HitstunPlayback::HITSTUN && can_transition(cpu_module_accessor)
+        if read(&MENU).hitstun_playback == HitstunPlayback::HITSTUN
+            && can_transition(cpu_module_accessor)
         {
             should_playback = true;
         }
@@ -193,53 +190,65 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
     let fighter_kind = utility::get_kind(module_accessor);
     let fighter_is_nana = fighter_kind == *FIGHTER_KIND_NANA;
 
-    CURRENT_RECORD_SLOT = MENU.recording_slot.into_idx().unwrap_or(0);
+    assign(
+        &CURRENT_RECORD_SLOT,
+        read(&MENU).recording_slot.into_idx().unwrap_or(0),
+    );
 
     if entry_id_int == 0 && !fighter_is_nana {
         if button_config::combo_passes(button_config::ButtonCombo::InputPlayback) {
-            playback(MENU.playback_button_slots.get_random().into_idx());
-        } else if MENU.record_trigger.contains(&RecordTrigger::COMMAND)
+            playback(read(&MENU).playback_button_slots.get_random().into_idx());
+        } else if read(&MENU).record_trigger.contains(&RecordTrigger::COMMAND)
             && button_config::combo_passes(button_config::ButtonCombo::InputRecord)
         {
             lockout_record();
         }
-        if INPUT_RECORD == None {
-            clear_notifications("Input Recording");
+        let input_record = read(&INPUT_RECORD);
+        if input_record == None {
+            clear_notification("Input Recording");
         }
         // Handle recording end
-        if (INPUT_RECORD == Record || INPUT_RECORD == Playback)
-            && INPUT_RECORD_FRAME >= CURRENT_FRAME_LENGTH - 1
+        let mut input_record_frame = lock_write(&INPUT_RECORD_FRAME);
+        if (input_record == Record || input_record == Playback)
+            && *input_record_frame >= read(&CURRENT_FRAME_LENGTH) - 1
         {
-            POSSESSION = Player;
+            assign(&POSSESSION, Player);
             if mash::is_playback_queued() {
                 mash::reset();
             }
 
             // If we need to crop the recording for neutral input
             // INPUT_RECORD_FRAME must be > 0 to prevent bounding errors
-            if INPUT_RECORD == Record && MENU.recording_crop == OnOff::ON && INPUT_RECORD_FRAME > 0
+            if input_record == Record
+                && read(&MENU).recording_crop == OnOff::ON
+                && *input_record_frame > 0
             {
-                while INPUT_RECORD_FRAME > 0 && is_input_neutral(INPUT_RECORD_FRAME - 1) {
+                while *input_record_frame > 0 && is_input_neutral(*input_record_frame - 1) {
                     // Discard frames at the end of the recording until the last frame with input
-                    INPUT_RECORD_FRAME -= 1;
+                    *input_record_frame -= 1;
                 }
-                CURRENT_FRAME_LENGTH = INPUT_RECORD_FRAME;
-                P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
+                assign(&CURRENT_FRAME_LENGTH, *input_record_frame);
+                let mut p1_frame_length_mapping = lock_write(&P1_FRAME_LENGTH_MAPPING);
+                (*p1_frame_length_mapping)[read(&CURRENT_RECORD_SLOT)] = *input_record_frame;
+                drop(p1_frame_length_mapping);
             }
 
-            INPUT_RECORD_FRAME = 0;
+            *input_record_frame = 0;
 
-            if MENU.playback_loop == OnOff::ON && INPUT_RECORD == Playback {
-                playback(Some(CURRENT_PLAYBACK_SLOT));
+            if read(&MENU).playback_loop == OnOff::ON && input_record == Playback {
+                let playback_slot = read(&CURRENT_PLAYBACK_SLOT);
+                playback(Some(playback_slot));
             } else {
-                INPUT_RECORD = None;
+                assign(&INPUT_RECORD, None);
             }
         }
+        drop(input_record_frame);
     }
 
     // Handle Possession Coloring
-    if entry_id_int == 1 && POSSESSION == Lockout {
-        clear_notifications("Input Recording");
+    let possession = read(&POSSESSION);
+    if entry_id_int == 1 && possession == Lockout {
+        clear_notification("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Lockout".to_owned(),
@@ -258,8 +267,8 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             1.0,
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
-    } else if entry_id_int == 1 && POSSESSION == Standby {
-        clear_notifications("Input Recording");
+    } else if entry_id_int == 1 && possession == Standby {
+        clear_notification("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Standby".to_owned(),
@@ -278,8 +287,8 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             1.0,
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
-    } else if entry_id_int == 1 && POSSESSION == Cpu {
-        clear_notifications("Input Recording");
+    } else if entry_id_int == 1 && possession == Cpu {
+        clear_notification("Input Recording");
         color_notification(
             "Input Recording".to_string(),
             "Recording".to_owned(),
@@ -298,15 +307,17 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             0.0,
             *MODEL_COLOR_TYPE_COLOR_BLEND,
         );
-    } else if entry_id_int == 1 && POSSESSION == Player && INPUT_RECORD == Playback {
+    } else if entry_id_int == 1 && possession == Player && read(&INPUT_RECORD) == Playback {
+        // Need to re-read INPUT_RECORD instead of using the local variable because we might have assigned to it early
         // Displays if the inputs from the current frame were a result of playback
-        if INPUT_RECORD_FRAME == 0 || INPUT_RECORD_FRAME == 1 {
+        let input_record_frame = read(&INPUT_RECORD_FRAME);
+        if input_record_frame == 0 || input_record_frame == 1 {
             // can be either, seems like a thread issue
-            clear_notifications("Input Recording");
+            clear_notification("Input Recording");
             color_notification(
                 "Input Recording".to_string(),
                 "Playback".to_owned(),
-                CURRENT_FRAME_LENGTH as u32,
+                read(&CURRENT_FRAME_LENGTH) as u32,
                 ResColor {
                     r: 0,
                     g: 0,
@@ -319,27 +330,29 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 }
 
 pub unsafe fn lockout_record() {
-    INPUT_RECORD = Pause;
-    INPUT_RECORD_FRAME = 0;
-    POSSESSION = Lockout;
-    P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT]
-        .iter_mut()
-        .for_each(|mapped_input| {
-            *mapped_input = MappedInputs::empty();
-        });
-    CURRENT_FRAME_LENGTH = MENU.recording_duration.into_frames();
-    P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_RECORD_SLOT] = CURRENT_FRAME_LENGTH;
-    LOCKOUT_FRAME = 30; // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
-    BUFFER_FRAME = 0;
-    // Store the direction the CPU is facing when we initially record, so we can turn their inputs around if needed
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-    RECORDED_LR = PostureModule::lr(cpu_module_accessor);
-    CURRENT_LR = RECORDED_LR;
+    let recording_duration = read(&MENU).recording_duration.into_frames();
+    let current_record_slot = read(&CURRENT_RECORD_SLOT);
+    let mut p1_final_mapping = lock_write(&P1_FINAL_MAPPING);
+    (*p1_final_mapping)[current_record_slot] = [{ MappedInputs::empty() }; FINAL_RECORD_MAX];
+    drop(p1_final_mapping);
+    let mut p1_frame_length_mapping = lock_write(&P1_FRAME_LENGTH_MAPPING);
+    (*p1_frame_length_mapping)[current_record_slot] = recording_duration;
+    drop(p1_frame_length_mapping);
+    assign(&CURRENT_FRAME_LENGTH, recording_duration);
+    assign(&INPUT_RECORD, Pause);
+    assign(&INPUT_RECORD_FRAME, 0);
+    assign(&POSSESSION, Lockout);
+    assign(&LOCKOUT_FRAME, 30); // This needs to be this high or issues occur dropping shield - but does this cause problems when trying to record ledge?
+    assign(&BUFFER_FRAME, 0);
+    // Store the direction the CPU is facing when we initially record, so we can turn their inputs around if needed
+    assign(&RECORDED_LR, PostureModule::lr(cpu_module_accessor));
+    assign(&CURRENT_LR, PostureModule::lr(cpu_module_accessor));
 }
 
 // Returns whether we did playback
 pub unsafe fn playback(slot: Option<usize>) -> bool {
-    if INPUT_RECORD == Pause {
+    if read(&INPUT_RECORD) == Pause {
         warn!("Tried to playback during lockout!");
         return false;
     }
@@ -348,15 +361,15 @@ pub unsafe fn playback(slot: Option<usize>) -> bool {
         return false;
     }
     let slot = slot.unwrap();
-
-    CURRENT_PLAYBACK_SLOT = slot;
-    CURRENT_FRAME_LENGTH = P1_FRAME_LENGTH_MAPPING.lock()[CURRENT_PLAYBACK_SLOT];
-    INPUT_RECORD = Playback;
-    POSSESSION = Player;
-    INPUT_RECORD_FRAME = 0;
-    BUFFER_FRAME = 0;
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-    CURRENT_LR = PostureModule::lr(cpu_module_accessor);
+    let frame_length = read(&P1_FRAME_LENGTH_MAPPING)[slot];
+    assign(&CURRENT_FRAME_LENGTH, frame_length);
+    assign(&CURRENT_PLAYBACK_SLOT, slot);
+    assign(&INPUT_RECORD, Playback);
+    assign(&POSSESSION, Player);
+    assign(&INPUT_RECORD_FRAME, 0);
+    assign(&BUFFER_FRAME, 0);
+    assign(&CURRENT_LR, PostureModule::lr(cpu_module_accessor));
 
     true
 }
@@ -364,26 +377,28 @@ pub unsafe fn playback(slot: Option<usize>) -> bool {
 pub unsafe fn playback_ledge(slot: Option<usize>) {
     let did_playback = playback(slot);
     if did_playback {
-        BUFFER_FRAME = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
-                          // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
-                          // Need to buffer 1 less frame for non-lassos
+        let mut buffer_frame = lock_write(&BUFFER_FRAME);
+        *buffer_frame = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
+                           // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
+                           // Need to buffer 1 less frame for non-lassos
         let cpu_module_accessor = get_module_accessor(FighterId::CPU);
         let status_kind = StatusModule::status_kind(cpu_module_accessor);
         if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
-            BUFFER_FRAME -= 1;
+            *buffer_frame -= 1;
         }
     }
 }
 
 pub unsafe fn stop_playback() {
-    INPUT_RECORD = None;
-    INPUT_RECORD_FRAME = 0;
-    POSSESSION = Player;
+    assign(&INPUT_RECORD, None);
+    assign(&INPUT_RECORD_FRAME, 0);
+    assign(&POSSESSION, Player);
 }
 
 pub unsafe fn is_input_neutral(input_frame: usize) -> bool {
     // Returns whether we should be done with standby this frame (if any significant controller input has been made)
-    let frame_input = P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][input_frame];
+    let current_record_slot = read(&CURRENT_RECORD_SLOT);
+    let frame_input = read(&P1_FINAL_MAPPING)[current_record_slot][input_frame];
 
     let clamped_lstick_x =
         ((frame_input.lstick_x as f32) * STICK_CLAMP_MULTIPLIER).clamp(-1.0, 1.0);
@@ -405,31 +420,40 @@ pub unsafe fn is_input_neutral(input_frame: usize) -> bool {
 }
 
 pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
+    let mut possession = lock_write(&POSSESSION);
     if player_idx == 0 {
         // if player 1
-        if INPUT_RECORD == Record {
+        if read(&INPUT_RECORD) == Record {
+            let mut input_record_frame = lock_write(&INPUT_RECORD_FRAME);
             // check for standby before starting action:
-            if POSSESSION == Standby && !is_input_neutral(0) {
+            if *possession == Standby && !is_input_neutral(0) {
                 // last input made us start an action, so start recording and end standby.
-                INPUT_RECORD_FRAME += 1;
-                POSSESSION = Cpu;
+                *input_record_frame += 1;
+                *possession = Cpu;
             }
 
-            if INPUT_RECORD_FRAME == 1 {
+            if *input_record_frame == 1 {
                 // We're on the second frame of recording, grabbing the status should give us the status that resulted from the first frame of input
                 // We'll want to save this status so that we use the correct TRANSITION TERM for hitstun cancelling out of damage fly
                 let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-                P1_STARTING_STATUSES.lock()[CURRENT_PLAYBACK_SLOT] =
-                    into_starting_status(StatusModule::status_kind(cpu_module_accessor));
-                STARTING_STATUS = StatusModule::status_kind(cpu_module_accessor);
+                assign(
+                    &STARTING_STATUS,
+                    StatusModule::status_kind(cpu_module_accessor),
+                );
                 // TODO: Handle this based on slot later instead
+                // let p1_starting_statuses = lock_write_rwlock(&P1_STARTING_STATUSES);
+                // (*p1_starting_statuses)[read(&CURRENT_PLAYBACK_SLOT)] =
+                //     into_starting_status(StatusModule::status_kind(cpu_module_accessor));
+                // drop(p1_starting_statuses);
             }
-
-            P1_FINAL_MAPPING.lock()[CURRENT_RECORD_SLOT][INPUT_RECORD_FRAME] = *out;
+            let mut p1_final_mapping = lock_write(&P1_FINAL_MAPPING);
+            let current_record_slot = read(&CURRENT_RECORD_SLOT);
+            (*p1_final_mapping)[current_record_slot][*input_record_frame] = *out;
+            drop(p1_final_mapping);
             *out = MappedInputs::empty(); // don't control player while recording
         }
         // Don't allow for player input during Lockout
-        if POSSESSION == Lockout {
+        if *possession == Lockout {
             *out = MappedInputs::empty();
         }
     }
@@ -449,7 +473,7 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     // TODO: Setup STARTING_STATUS based on current playback slot here
 
     // This check prevents out of shield if mash exiting is on
-    if INPUT_RECORD == None {
+    if read(&INPUT_RECORD) == None {
         should_mash_playback();
     }
 
@@ -461,20 +485,22 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
     }
     let cpu_module_accessor = cpu_module_accessor.unwrap();
 
-    if INPUT_RECORD == Pause {
-        match LOCKOUT_FRAME.cmp(&0) {
-            Ordering::Greater => LOCKOUT_FRAME -= 1,
+    if read(&INPUT_RECORD) == Pause {
+        let lockout_frame = read(&LOCKOUT_FRAME);
+        match lockout_frame.cmp(&0) {
+            Ordering::Greater => assign(&LOCKOUT_FRAME, lockout_frame - 1),
             Ordering::Equal => {
-                INPUT_RECORD = Record;
-                POSSESSION = Standby;
+                assign(&INPUT_RECORD, Record);
+                assign(&POSSESSION, Standby);
             }
             Ordering::Less => error!("LOCKOUT_FRAME OUT OF BOUNDS"),
         }
     }
 
-    if INPUT_RECORD == Record || INPUT_RECORD == Playback {
+    let input_record = read(&INPUT_RECORD);
+    if input_record == Record || input_record == Playback {
         // if we aren't facing the way we were when we initially recorded, we reverse horizontal inputs
-        let mut x_input_multiplier = RECORDED_LR * CURRENT_LR;
+        let mut x_input_multiplier = read(&RECORDED_LR) * read(&CURRENT_LR);
         // Don't flip Shulk's dial inputs
         let fighter_kind = utility::get_kind(&mut *cpu_module_accessor);
         if fighter_kind == *FIGHTER_KIND_SHULK {
@@ -504,13 +530,16 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
             );
         }
 
-        let mut saved_mapped_inputs = P1_FINAL_MAPPING.lock()[if INPUT_RECORD == Record {
-            CURRENT_RECORD_SLOT
+        let mut input_record_frame = lock_write(&INPUT_RECORD_FRAME);
+        let slot = if input_record == Record {
+            read(&CURRENT_RECORD_SLOT)
         } else {
-            CURRENT_PLAYBACK_SLOT
-        }][INPUT_RECORD_FRAME];
-
-        if BUFFER_FRAME <= 3 && BUFFER_FRAME > 0 {
+            read(&CURRENT_PLAYBACK_SLOT)
+        };
+        let p1_final_mapping = lock_write(&P1_FINAL_MAPPING);
+        let mut saved_mapped_inputs = p1_final_mapping[slot][*input_record_frame];
+        let mut buffer_frame = lock_write(&BUFFER_FRAME);
+        if (0 < *buffer_frame) && (*buffer_frame <= 3) {
             // Our option is already buffered, now we need to 0 out inputs to make sure our future controls act like flicks/presses instead of holding the button
             saved_mapped_inputs = MappedInputs::empty();
         }
@@ -539,24 +568,28 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
 
         // Keep counting frames, unless we're in standby waiting for an input, or are buffering an option
         // When buffering an option, we keep inputting the first frame of input during the buffer window
-        if BUFFER_FRAME > 0 {
-            BUFFER_FRAME -= 1;
-        } else if INPUT_RECORD_FRAME < CURRENT_FRAME_LENGTH - 1 && POSSESSION != Standby {
-            INPUT_RECORD_FRAME += 1;
+        if *buffer_frame > 0 {
+            *buffer_frame -= 1;
+        } else if *input_record_frame < read(&CURRENT_FRAME_LENGTH) - 1
+            && read(&POSSESSION) != Standby
+        {
+            *input_record_frame += 1;
         }
     }
 }
 
-pub unsafe fn is_playback() -> bool {
-    INPUT_RECORD == Record || INPUT_RECORD == Playback
+pub fn is_playback() -> bool {
+    let input_record = read(&INPUT_RECORD);
+    input_record == Record || input_record == Playback
 }
 
-pub unsafe fn is_recording() -> bool {
-    INPUT_RECORD == Record
+pub fn is_recording() -> bool {
+    read(&INPUT_RECORD) == Record
 }
 
 pub unsafe fn is_standby() -> bool {
-    POSSESSION == Standby || POSSESSION == Lockout
+    let possession = read(&POSSESSION);
+    possession == Standby || possession == Lockout
 }
 
 extern "C" {

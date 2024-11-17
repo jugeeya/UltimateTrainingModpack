@@ -1,22 +1,24 @@
-use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
 use std::io::BufReader;
-use std::ptr::addr_of;
 
-use lazy_static::lazy_static;
-use parking_lot::Mutex;
 use skyline::nn::hid::GetNpadStyleSet;
 
-use crate::common::button_config::button_mapping;
-use crate::common::*;
+use crate::common::{button_config, ButtonConfig};
+use crate::common::{DEFAULTS_MENU, MENU};
 use crate::events::{Event, EVENT_QUEUE};
-use crate::input::*;
+use crate::input::{ButtonBitfield, ControllerStyle, MappedInputs, SomeControllerStruct};
 use crate::logging::*;
 use crate::training::frame_counter;
 
+use training_mod_consts::{create_app, InputControl, MenuJsonStruct, MENU_OPTIONS_PATH};
+use training_mod_sync::*;
+use training_mod_tui::AppPage;
+
+use DirectionButton::*;
+
 pub const MENU_CLOSE_WAIT_FRAMES: u32 = 15;
-pub static mut QUICK_MENU_ACTIVE: bool = false;
+pub static QUICK_MENU_ACTIVE: RwLock<bool> = RwLock::new(false);
 
 pub unsafe fn menu_condition() -> bool {
     button_config::combo_passes(button_config::ButtonCombo::OpenMenu)
@@ -32,11 +34,9 @@ pub fn load_from_file() {
         let reader = BufReader::new(menu_conf);
         if let Ok(menu_conf_json) = serde_json::from_reader::<BufReader<_>, MenuJsonStruct>(reader)
         {
-            unsafe {
-                MENU = menu_conf_json.menu;
-                DEFAULTS_MENU = menu_conf_json.defaults_menu;
-                info!("Previous menu found. Loading...");
-            }
+            assign(&MENU, menu_conf_json.menu);
+            assign(&DEFAULTS_MENU, menu_conf_json.defaults_menu);
+            info!("Previous menu found. Loading...");
         } else {
             warn!("Previous menu found but is invalid. Deleting...");
             let err_msg = format!(
@@ -49,23 +49,21 @@ pub fn load_from_file() {
         info!("No previous menu file found.");
     }
     info!("Setting initial menu selections...");
-    unsafe {
-        let mut app = QUICK_MENU_APP.lock();
-        app.serialized_default_settings = serde_json::to_string(&*addr_of!(DEFAULTS_MENU))
-            .expect("Could not serialize DEFAULTS_MENU");
-        app.update_all_from_json(
-            &serde_json::to_string(&*addr_of!(MENU)).expect("Could not serialize MENU"),
-        );
-    }
+    let mut app = lock_write(&QUICK_MENU_APP);
+    app.serialized_default_settings =
+        serde_json::to_string(&read(&DEFAULTS_MENU)).expect("Could not serialize DEFAULTS_MENU");
+    app.update_all_from_json(
+        &serde_json::to_string(&read(&MENU)).expect("Could not serialize MENU"),
+    );
 }
 
-pub unsafe fn set_menu_from_json(message: &str) {
+pub fn set_menu_from_json(message: &str) {
     let response = serde_json::from_str::<MenuJsonStruct>(message);
     info!("Received menu message: {message}");
     if let Ok(message_json) = response {
         // Includes both MENU and DEFAULTS_MENU
-        MENU = message_json.menu;
-        DEFAULTS_MENU = message_json.defaults_menu;
+        assign(&MENU, message_json.menu);
+        assign(&DEFAULTS_MENU, message_json.defaults_menu);
         fs::write(
             MENU_OPTIONS_PATH,
             serde_json::to_string_pretty(&message_json).unwrap(),
@@ -81,12 +79,10 @@ pub unsafe fn set_menu_from_json(message: &str) {
 }
 
 pub fn spawn_menu() {
-    unsafe {
-        QUICK_MENU_ACTIVE = true;
-        let mut app = QUICK_MENU_APP.lock();
-        app.page = AppPage::SUBMENU;
-        *MENU_RECEIVED_INPUT.data_ptr() = true;
-    }
+    assign(&QUICK_MENU_ACTIVE, true);
+    let mut app = lock_write(&QUICK_MENU_APP);
+    app.page = AppPage::SUBMENU;
+    assign(&MENU_RECEIVED_INPUT, true);
 }
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
@@ -101,16 +97,17 @@ enum DirectionButton {
     RUp,
 }
 
-lazy_static! {
-    pub static ref QUICK_MENU_APP: Mutex<training_mod_tui::App<'static>> = Mutex::new({
+pub static QUICK_MENU_APP: LazyLock<RwLock<training_mod_tui::App<'static>>> = LazyLock::new(|| {
+    RwLock::new({
         info!("Initialized lazy_static: QUICK_MENU_APP");
         unsafe { create_app() }
-    });
-    pub static ref P1_CONTROLLER_STYLE: Mutex<ControllerStyle> =
-        Mutex::new(ControllerStyle::default());
-    static ref DIRECTION_HOLD_FRAMES: Mutex<HashMap<DirectionButton, u32>> = {
-        use DirectionButton::*;
-        Mutex::new(HashMap::from([
+    })
+});
+pub static P1_CONTROLLER_STYLE: LazyLock<RwLock<ControllerStyle>> =
+    LazyLock::new(|| RwLock::new(ControllerStyle::default()));
+static DIRECTION_HOLD_FRAMES: LazyLock<RwLock<HashMap<DirectionButton, u32>>> =
+    LazyLock::new(|| {
+        RwLock::new(HashMap::from([
             (LLeft, 0),
             (RLeft, 0),
             (LDown, 0),
@@ -120,12 +117,11 @@ lazy_static! {
             (LUp, 0),
             (RUp, 0),
         ]))
-    };
-    pub static ref MENU_RECEIVED_INPUT: Mutex<bool> = Mutex::new(true);
-}
+    });
+pub static MENU_RECEIVED_INPUT: RwLock<bool> = RwLock::new(true);
 
-pub static MENU_CLOSE_FRAME_COUNTER: Lazy<usize> =
-    Lazy::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::Real));
+pub static MENU_CLOSE_FRAME_COUNTER: LazyLock<usize> =
+    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::Real));
 
 pub fn handle_final_input_mapping(
     player_idx: i32,
@@ -135,7 +131,7 @@ pub fn handle_final_input_mapping(
     unsafe {
         if player_idx == 0 {
             let p1_controller = &mut *controller_struct.controller;
-            *P1_CONTROLLER_STYLE.lock() = p1_controller.style;
+            assign(&P1_CONTROLLER_STYLE, p1_controller.style);
             let visual_frame_count = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
             if visual_frame_count > 0 && visual_frame_count < MENU_CLOSE_WAIT_FRAMES {
                 // If we just closed the menu, kill all inputs to avoid accidental presses
@@ -149,7 +145,7 @@ pub fn handle_final_input_mapping(
                 frame_counter::reset_frame_count(*MENU_CLOSE_FRAME_COUNTER);
             }
 
-            if QUICK_MENU_ACTIVE {
+            if read(&QUICK_MENU_ACTIVE) {
                 // If we're here, remove all other presses
                 *out = MappedInputs::empty();
 
@@ -157,7 +153,7 @@ pub fn handle_final_input_mapping(
 
                 const DIRECTION_HOLD_REPEAT_FRAMES: u32 = 20;
                 use DirectionButton::*;
-                let direction_hold_frames = &mut *DIRECTION_HOLD_FRAMES.lock();
+                let mut direction_hold_frames = read_clone(&DIRECTION_HOLD_FRAMES); // TODO!("Refactor this, it doesn't need to be a hashmap")
 
                 // Check for all controllers unplugged
                 let mut potential_controller_ids = (0..8).collect::<Vec<u32>>();
@@ -166,7 +162,7 @@ pub fn handle_final_input_mapping(
                     .iter()
                     .all(|i| GetNpadStyleSet(i as *const _).flags == 0)
                 {
-                    QUICK_MENU_ACTIVE = false;
+                    assign(&QUICK_MENU_ACTIVE, false);
                     return;
                 }
 
@@ -194,41 +190,44 @@ pub fn handle_final_input_mapping(
                         }
                     });
 
-                let app = &mut *QUICK_MENU_APP.data_ptr(); // TODO: Why aren't we taking a lock here?
-                button_mapping(ButtonConfig::A, style, button_presses).then(|| {
+                let mut app = lock_write(&QUICK_MENU_APP);
+                button_config::button_mapping(ButtonConfig::A, style, button_presses).then(|| {
                     app.on_a();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::B, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::B, style, button_presses).then(|| {
                     received_input = true;
                     app.on_b();
                     if app.page == AppPage::CLOSE {
                         // Leave menu.
                         frame_counter::start_counting(*MENU_CLOSE_FRAME_COUNTER);
-                        QUICK_MENU_ACTIVE = false;
+                        assign(&QUICK_MENU_ACTIVE, false);
                         let menu_json = app.get_serialized_settings_with_defaults();
                         set_menu_from_json(&menu_json);
-                        EVENT_QUEUE.push(Event::menu_open(menu_json));
+
+                        let mut event_queue_lock = lock_write(&EVENT_QUEUE);
+                        (*event_queue_lock).push(Event::menu_open(menu_json));
+                        drop(event_queue_lock);
                     }
                 });
-                button_mapping(ButtonConfig::X, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::X, style, button_presses).then(|| {
                     app.on_x();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::Y, style, button_presses).then(|| {
                     app.on_y();
                     received_input = true;
                 });
 
-                button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::ZL, style, button_presses).then(|| {
                     app.on_zl();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::ZR, style, button_presses).then(|| {
                     app.on_zr();
                     received_input = true;
                 });
-                button_mapping(ButtonConfig::R, style, button_presses).then(|| {
+                button_config::button_mapping(ButtonConfig::R, style, button_presses).then(|| {
                     app.on_r();
                     received_input = true;
                 });
@@ -271,7 +270,7 @@ pub fn handle_final_input_mapping(
 
                 if received_input {
                     direction_hold_frames.iter_mut().for_each(|(_, f)| *f = 0);
-                    *MENU_RECEIVED_INPUT.lock() = true;
+                    assign(&MENU_RECEIVED_INPUT, true);
                 }
             }
         }

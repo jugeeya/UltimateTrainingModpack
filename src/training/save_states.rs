@@ -35,6 +35,7 @@ use crate::training::items::apply_item;
 use crate::training::reset;
 use crate::training::ui::notifications;
 use crate::{is_ptrainer, ITEM_MANAGER_ADDR};
+use training_mod_sync::*;
 
 // Don't remove Mii hats, Pikmin, Luma, or crafting table
 const ARTICLE_ALLOWLIST: [(LuaConst, LuaConst); 9] = [
@@ -232,11 +233,11 @@ static mut MIRROR_STATE: f32 = 1.0;
 static mut RANDOM_SLOT: usize = 0;
 
 unsafe fn get_slot() -> usize {
-    let random_slot = MENU.randomize_slots.get_random();
+    let random_slot = read(&MENU).randomize_slots.get_random();
     if random_slot != SaveStateSlot::empty() {
         RANDOM_SLOT
     } else {
-        MENU.save_state_slot.into_idx().unwrap_or(0)
+        read(&MENU).save_state_slot.into_idx().unwrap_or(0)
     }
 }
 
@@ -255,13 +256,13 @@ pub unsafe fn is_loading() -> bool {
 }
 
 pub unsafe fn should_mirror() -> f32 {
-    match MENU.save_state_mirroring {
+    match read(&MENU).save_state_mirroring {
         SaveStateMirroring::NONE => 1.0,
         SaveStateMirroring::ALTERNATE => -1.0 * MIRROR_STATE,
         SaveStateMirroring::RANDOM => ([-1.0, 1.0])[get_random_int(2) as usize],
         _ => panic!(
             "Invalid value in should_mirror: {}",
-            MENU.save_state_mirroring
+            read(&MENU).save_state_mirroring
         ),
     }
 }
@@ -383,7 +384,7 @@ pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjec
                 ArticleModule::remove_exist_object_id(module_accessor, article_object_id as u32);
             }
         });
-    let item_mgr = *(ITEM_MANAGER_ADDR as *mut *mut app::ItemManager);
+    let item_mgr = *(read(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
     (0..ItemManager::get_num_of_active_item_all(item_mgr)).for_each(|item_idx| {
         let item = ItemManager::get_active_item(item_mgr, item_idx);
         if item != 0 {
@@ -416,7 +417,7 @@ pub unsafe fn on_death(fighter_kind: i32, module_accessor: &mut app::BattleObjec
 }
 
 pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor) {
-    if MENU.save_state_enable == OnOff::OFF {
+    if read(&MENU).save_state_enable == OnOff::OFF {
         return;
     }
 
@@ -448,7 +449,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     .contains(&fighter_kind);
 
     // Reset state
-    let autoload_reset = MENU.save_state_autoload == OnOff::ON
+    let autoload_reset = read(&MENU).save_state_autoload == OnOff::ON
         && save_state.state == NoAction
         && is_dead(module_accessor);
     let mut triggered_reset: bool = false;
@@ -457,7 +458,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     }
     if (autoload_reset || triggered_reset) && !fighter_is_nana {
         if save_state.state == NoAction {
-            let random_slot = MENU.randomize_slots.get_random();
+            let random_slot = read(&MENU).randomize_slots.get_random();
             let slot = if random_slot != SaveStateSlot::empty() {
                 RANDOM_SLOT = random_slot.into_idx().unwrap_or(0);
                 RANDOM_SLOT
@@ -572,48 +573,48 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state.state == NoAction {
             // Set damage of the save state
             if !is_cpu {
-                match MENU.save_damage_player {
+                match read(&MENU).save_damage_player {
                     SaveDamage::SAVED => {
                         set_damage(module_accessor, save_state.percent);
                     }
                     SaveDamage::RANDOM => {
                         // Gen random value
                         let pct: f32 = get_random_float(
-                            MENU.save_damage_limits_player.0 as f32,
-                            MENU.save_damage_limits_player.1 as f32,
+                            read(&MENU).save_damage_limits_player.0 as f32,
+                            read(&MENU).save_damage_limits_player.1 as f32,
                         );
                         set_damage(module_accessor, pct);
                     }
                     SaveDamage::DEFAULT => {}
                     _ => panic!(
                         "Invalid value in save_states()::save_damage_player: {}",
-                        MENU.save_damage_player
+                        read(&MENU).save_damage_player
                     ),
                 }
             } else {
-                match MENU.save_damage_cpu {
+                match read(&MENU).save_damage_cpu {
                     SaveDamage::SAVED => {
                         set_damage(module_accessor, save_state.percent);
                     }
                     SaveDamage::RANDOM => {
                         // Gen random value
                         let pct: f32 = get_random_float(
-                            MENU.save_damage_limits_cpu.0 as f32,
-                            MENU.save_damage_limits_cpu.1 as f32,
+                            read(&MENU).save_damage_limits_cpu.0 as f32,
+                            read(&MENU).save_damage_limits_cpu.1 as f32,
                         );
                         set_damage(module_accessor, pct);
                     }
                     SaveDamage::DEFAULT => {}
                     _ => panic!(
                         "Invalid value in save_states()::save_damage_cpu: {}",
-                        MENU.save_damage_cpu
+                        read(&MENU).save_damage_cpu
                     ),
                 }
             }
 
             // Set to held item
-            if !is_cpu && !fighter_is_nana && MENU.character_item != CharacterItem::NONE {
-                apply_item(MENU.character_item);
+            if !is_cpu && !fighter_is_nana && read(&MENU).character_item != CharacterItem::NONE {
+                apply_item(read(&MENU).character_item);
             }
 
             // Set the charge of special moves if the fighter matches the kind in the save state
@@ -661,17 +662,20 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         }
 
         // if we're recording on state load, record
-        if MENU.record_trigger.contains(&RecordTrigger::SAVESTATE) {
+        if read(&MENU)
+            .record_trigger
+            .contains(&RecordTrigger::SAVESTATE)
+        {
             input_record::lockout_record();
             return;
         }
         // otherwise, begin input recording playback if selected
         // for ledge, don't do this - if you want playback on a ledge, you have to set it as a ledge option,
         // otherwise there too many edge cases here
-        else if MENU.save_state_playback.get_random() != PlaybackSlot::empty()
+        else if read(&MENU).save_state_playback.get_random() != PlaybackSlot::empty()
             && save_state.situation_kind != SITUATION_KIND_CLIFF
         {
-            input_record::playback(MENU.save_state_playback.get_random().into_idx());
+            input_record::playback(read(&MENU).save_state_playback.get_random().into_idx());
         }
 
         return;
@@ -706,12 +710,12 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
     if button_config::combo_passes(button_config::ButtonCombo::SaveState) {
         // Don't begin saving state if Nana's delayed input is captured
         MIRROR_STATE = 1.0;
-        save_state_player(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
-        save_state_cpu(MENU.save_state_slot.into_idx().unwrap_or(0)).state = Save;
-        notifications::clear_notifications("Save State");
+        save_state_player(read(&MENU).save_state_slot.into_idx().unwrap_or(0)).state = Save;
+        save_state_cpu(read(&MENU).save_state_slot.into_idx().unwrap_or(0)).state = Save;
+        notifications::clear_notification("Save State");
         notifications::notification(
             "Save State".to_string(),
-            format!("Saved Slot {}", MENU.save_state_slot),
+            format!("Saved Slot {}", read(&MENU).save_state_slot),
             120,
         );
     }

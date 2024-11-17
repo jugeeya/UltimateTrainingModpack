@@ -21,6 +21,7 @@ use std::path::PathBuf;
 
 use skyline::nro::{self, NroInfo};
 use training_mod_consts::{OnOff, LEGACY_TRAINING_MODPACK_ROOT};
+use training_mod_sync::*;
 
 use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
@@ -75,10 +76,10 @@ pub fn main() {
 
     info!("Initialized.");
 
-    unsafe {
-        EVENT_QUEUE.push(Event::smash_open());
-        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-    }
+    let mut event_queue = lock_write(&EVENT_QUEUE);
+    (*event_queue).push(Event::smash_open());
+    drop(event_queue);
+    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
@@ -125,38 +126,36 @@ pub fn main() {
         info!("Skipping version check because we are using an emulator");
     }
 
-    unsafe {
-        notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
-        notification(
-            "Open Menu".to_string(),
-            if MENU.menu_open_start_press == OnOff::ON {
-                "Hold Start".to_string()
-            } else {
-                DEFAULT_OPEN_MENU_CONFIG.to_string()
-            },
-            120,
-        );
-        notification(
-            "Save State".to_string(),
-            MENU.save_state_save.to_string(),
-            120,
-        );
-        notification(
-            "Load State".to_string(),
-            MENU.save_state_load.to_string(),
-            120,
-        );
-        notification(
-            "Input Record".to_string(),
-            MENU.input_record.to_string(),
-            120,
-        );
-        notification(
-            "Input Playback".to_string(),
-            MENU.input_playback.to_string(),
-            120,
-        );
-    }
+    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+    notification(
+        "Open Menu".to_string(),
+        if read(&MENU).menu_open_start_press == OnOff::ON {
+            "Hold Start".to_string()
+        } else {
+            DEFAULT_OPEN_MENU_CONFIG.to_string()
+        },
+        120,
+    );
+    notification(
+        "Save State".to_string(),
+        read(&MENU).save_state_save.to_string(),
+        120,
+    );
+    notification(
+        "Load State".to_string(),
+        read(&MENU).save_state_load.to_string(),
+        120,
+    );
+    notification(
+        "Input Record".to_string(),
+        read(&MENU).input_record.to_string(),
+        120,
+    );
+    notification(
+        "Input Playback".to_string(),
+        read(&MENU).input_playback.to_string(),
+        120,
+    );
 
     std::thread::spawn(events_loop);
 }

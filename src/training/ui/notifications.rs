@@ -1,8 +1,8 @@
-use std::ptr::addr_of_mut;
-
 use skyline::nn::ui2d::ResColor;
 
-pub static mut QUEUE: Vec<Notification> = vec![];
+use training_mod_sync::*;
+
+pub static NOTIFICATIONS_QUEUE: RwLock<Vec<Notification>> = RwLock::new(vec![]);
 
 #[derive(Clone)]
 pub struct Notification {
@@ -36,42 +36,49 @@ impl Notification {
         self.length -= 1;
     }
 
-    // Returns: has_completed
-    pub fn check_completed(&mut self) -> bool {
-        if self.length <= 1 {
-            return true;
-        }
-        false
+    pub fn has_completed(&self) -> bool {
+        self.length <= 1
     }
 }
 
 pub fn notification(header: String, message: String, len: u32) {
-    unsafe {
-        let queue = addr_of_mut!(QUEUE);
-        (*queue).push(Notification::new(
-            header,
-            message,
-            len,
-            ResColor {
-                r: 0,
-                g: 0,
-                b: 0,
-                a: 255,
-            },
-        ));
-    }
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).push(Notification::new(
+        header,
+        message,
+        len,
+        ResColor {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 255,
+        },
+    ));
+    drop(queue_lock);
 }
 
 pub fn color_notification(header: String, message: String, len: u32, color: ResColor) {
-    unsafe {
-        let queue = addr_of_mut!(QUEUE);
-        (*queue).push(Notification::new(header, message, len, color));
-    }
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).push(Notification::new(header, message, len, color));
+    drop(queue_lock);
 }
 
-pub fn clear_notifications(header: &'static str) {
-    unsafe {
-        let queue = addr_of_mut!(QUEUE);
-        (*queue).retain(|notif| notif.header != header);
+pub fn clear_notification(header: &'static str) {
+    if (*lock_read(&NOTIFICATIONS_QUEUE)).is_empty() {
+        // Before acquiring an exclusive write lock, check if there are even any notifications to clear out
+        return;
     }
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).retain(|notif| notif.header != header);
+    drop(queue_lock);
+}
+
+pub fn clear_all_notifications() {
+    if (*lock_read(&NOTIFICATIONS_QUEUE)).is_empty() {
+        // Before acquiring an exclusive write lock, check if there are even any notifications to clear out
+        return;
+    }
+    let mut queue_lock = lock_write(&NOTIFICATIONS_QUEUE);
+    (*queue_lock).clear();
+    drop(queue_lock);
 }

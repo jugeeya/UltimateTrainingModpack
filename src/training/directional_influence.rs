@@ -7,18 +7,17 @@ use smash::lua2cpp::L2CFighterCommon;
 
 use crate::common::consts::*;
 use crate::common::*;
+use training_mod_sync::*;
 
-static mut DI_CASE: Direction = Direction::empty();
+static DI_CASE: RwLock<Direction> = RwLock::new(Direction::empty());
 
 pub fn roll_di_case() {
-    unsafe {
-        if DI_CASE != Direction::empty() {
-            // DI direction already selected, don't pick a new one
-            return;
-        }
-
-        DI_CASE = MENU.di_state.get_random();
+    let mut di_case_lock = lock_write(&DI_CASE);
+    if *di_case_lock != Direction::empty() {
+        // DI direction already selected, don't pick a new one
+        return;
     }
+    *di_case_lock = read(&MENU).di_state.get_random();
 }
 
 pub fn reset_di_case(module_accessor: &mut app::BattleObjectModuleAccessor) {
@@ -26,10 +25,9 @@ pub fn reset_di_case(module_accessor: &mut app::BattleObjectModuleAccessor) {
         // Don't reset the DI direction during hitstun
         return;
     }
-    unsafe {
-        if DI_CASE != Direction::empty() {
-            DI_CASE = Direction::empty();
-        }
+    let mut di_case_lock = lock_write(&DI_CASE);
+    if *di_case_lock != Direction::empty() {
+        *di_case_lock = Direction::empty();
     }
 }
 
@@ -46,7 +44,7 @@ pub unsafe fn handle_correct_damage_vector_common(
 }
 
 unsafe fn mod_handle_di(fighter: &L2CFighterCommon, _arg1: L2CValue) {
-    if MENU.di_state == Direction::empty() {
+    if read(&MENU).di_state == Direction::empty() {
         return;
     }
 
@@ -56,9 +54,9 @@ unsafe fn mod_handle_di(fighter: &L2CFighterCommon, _arg1: L2CValue) {
     }
 
     roll_di_case();
-
-    let angle_tuple = DI_CASE.into_angle().map_or((0.0, 0.0), |angle| {
-        let a = if should_reverse_angle(DI_CASE) {
+    let di_case = read(&DI_CASE);
+    let angle_tuple = di_case.into_angle().map_or((0.0, 0.0), |angle| {
+        let a = if should_reverse_angle(di_case) {
             PI - angle
         } else {
             angle

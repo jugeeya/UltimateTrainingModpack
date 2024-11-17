@@ -2,13 +2,15 @@ use smash::app::{self};
 
 use crate::common::consts::*;
 use crate::common::*;
+use training_mod_sync::*;
 
-static mut DIRECTION: AttackAngle = AttackAngle::NEUTRAL;
+static ATTACK_ANGLE_DIRECTION: RwLock<AttackAngle> = RwLock::new(AttackAngle::NEUTRAL);
 
 pub fn roll_direction() {
-    unsafe {
-        DIRECTION = MENU.attack_angle.get_random();
-    }
+    assign(
+        &ATTACK_ANGLE_DIRECTION,
+        read(&MENU).attack_angle.get_random(),
+    );
 }
 
 pub unsafe fn mod_get_stick_dir(
@@ -18,7 +20,7 @@ pub unsafe fn mod_get_stick_dir(
         return None;
     }
 
-    match DIRECTION {
+    match read(&ATTACK_ANGLE_DIRECTION) {
         AttackAngle::UP => Some(1.0),
         AttackAngle::DOWN => Some(-1.0),
         _ => None,
