@@ -11,9 +11,8 @@ pub use files::*;
 pub mod config;
 pub use config::*;
 
-use paste::paste;
-
 use training_mod_sync::*;
+use training_mod_tui::SubMenuType::*;
 pub use training_mod_tui::*;
 
 pub const TOGGLE_MAX: u8 = 5;
@@ -209,624 +208,95 @@ pub static BASE_MENU: TrainingModpackMenu = TrainingModpackMenu {
 pub static DEFAULTS_MENU: RwLock<TrainingModpackMenu> = RwLock::new(BASE_MENU);
 pub static MENU: RwLock<TrainingModpackMenu> = RwLock::new(BASE_MENU);
 
-impl_toggletrait! {
-    OnOff,
-    "Menu Open Start Press",
-    "menu_open_start_press",
-    "Menu Open Start Press: Hold start or press minus to open the mod menu. To open the original menu, press start.\nThe default menu open option is always available as Hold DPad Up + Press B.",
-    true,
-    1,
-}
-impl_toggletrait! {
-    ButtonConfig,
-    "Save State Save",
-    "save_state_save",
-    "Save State Save: Hold any one button and press the others to trigger",
-    false,
-    1,
-}
-impl_toggletrait! {
-    ButtonConfig,
-    "Save State Load",
-    "save_state_load",
-    "Save State Load: Hold any one button and press the others to trigger",
-    false,
-    1,
-}
-impl_toggletrait! {
-    ButtonConfig,
-    "Input Record",
-    "input_record",
-    "Input Record: Hold any one button and press the others to trigger",
-    false,
-    1,
-}
-impl_toggletrait! {
-    ButtonConfig,
-    "Input Playback",
-    "input_playback",
-    "Input Playback: Hold any one button and press the others to trigger",
-    false,
-    1,
-}
-impl_toggletrait! {
-    Action,
-    "Mash Toggles",
-    "mash_state",
-    "Mash Toggles: Actions to be performed as soon as possible",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Followup Toggles",
-    "follow_up",
-    "Followup Toggles: Actions to be performed after a Mash option",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    MashTrigger,
-    "Mash Triggers",
-    "mash_triggers",
-    "Mash triggers: Configure what causes the CPU to perform a Mash option",
-    false,
-    1,
-}
-impl_toggletrait! {
-    AttackAngle,
-    "Attack Angle",
-    "attack_angle",
-    "Attack Angle: For attacks that can be angled, such as some forward tilts",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    ThrowOption,
-    "Throw Options",
-    "throw_state",
-    "Throw Options: Throw to be performed when a grab is landed",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    MedDelay,
-    "Throw Delay",
-    "throw_delay",
-    "Throw Delay: How many frames to delay the throw option",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    MedDelay,
-    "Pummel Delay",
-    "pummel_delay",
-    "Pummel Delay: How many frames after a grab to wait before starting to pummel",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    BoolFlag,
-    "Falling Aerials",
-    "falling_aerials",
-    "Falling Aerials: Should aerials be performed when rising or when falling",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    BoolFlag,
-    "Full Hop",
-    "full_hop",
-    "Full Hop: Should the CPU perform a full hop or a short hop",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Delay,
-    "Aerial Delay",
-    "aerial_delay",
-    "Aerial Delay: How long to delay a Mash aerial attack",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    BoolFlag,
-    "Fast Fall",
-    "fast_fall",
-    "Fast Fall: Should the CPU fastfall during a jump",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Delay,
-    "Fast Fall Delay",
-    "fast_fall_delay",
-    "Fast Fall Delay: How many frames the CPU should delay their fastfall",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Delay,
-    "OoS Offset",
-    "oos_offset",
-    "OoS Offset: How many times the CPU shield can be hit before performing a Mash option",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Delay,
-    "Reaction Time",
-    "reaction_time",
-    "Reaction Time: How many frames to delay before performing a mash option",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Ledge Neutral Getup",
-    "ledge_neutral_override",
-    "Neutral Getup Override: Mash Actions to be performed after a Neutral Getup from ledge",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Ledge Roll",
-    "ledge_roll_override",
-    "Ledge Roll Override: Mash Actions to be performed after a Roll Getup from ledge",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Ledge Jump",
-    "ledge_jump_override",
-    "Ledge Jump Override: Mash Actions to be performed after a Jump Getup from ledge",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Ledge Attack",
-    "ledge_attack_override",
-    "Ledge Attack Override: Mash Actions to be performed after a Getup Attack from ledge",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Tech Action",
-    "tech_action_override",
-    "Tech Action Override: Mash Actions to be performed after any tech action",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Clatter",
-    "clatter_override",
-    "Clatter Override: Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Tumble",
-    "tumble_override",
-    "Tumble Override: Mash Actions to be performed after exiting a tumble state",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Hitstun",
-    "hitstun_override",
-    "Hitstun Override: Mash Actions to be performed after exiting a hitstun state",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Parry",
-    "parry_override",
-    "Parry Override: Mash Actions to be performed after a parry",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Shieldstun",
-    "shieldstun_override",
-    "Shieldstun Override: Mash Actions to be performed after exiting a shieldstun state",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Footstool",
-    "footstool_override",
-    "Footstool Override: Mash Actions to be performed after exiting a footstool state",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Landing",
-    "landing_override",
-    "Landing Override: Mash Actions to be performed after landing on the ground",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Action,
-    "Ledge Trump",
-    "trump_override",
-    "Ledge Trump Override: Mash Actions to be performed after leaving a ledgetrump state",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Direction,
-    "Airdodge Direction",
-    "air_dodge_dir",
-    "Airdodge Direction: Direction to angle airdodges",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Direction,
-    "DI Direction",
-    "di_state",
-    "DI Direction: Direction to angle the directional influence during hitlag",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Direction,
-    "SDI Direction",
-    "sdi_state",
-    "SDI Direction: Direction to angle the smash directional influence during hitlag",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    SdiFrequency,
-    "SDI Strength",
-    "sdi_strength",
-    "SDI Strength: Relative strength of the smash directional influence inputs",
-    true,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    ClatterFrequency,
-    "Clatter Strength",
-    "clatter_strength",
-    "Clatter Strength: Configure how rapidly the CPU will mash out of grabs, buries, etc.",
-    true,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    LedgeOption,
-    "Ledge Options",
-    "ledge_state",
-    "Ledge Options: Actions to be taken when on the ledge",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    LongDelay,
-    "Ledge Delay",
-    "ledge_delay",
-    "Ledge Delay: How many frames to delay the ledge option",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    TechFlags,
-    "Tech Options",
-    "tech_state",
-    "Tech Options: Actions to take when slammed into a hard surface",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    MissTechFlags,
-    "Mistech Options",
-    "miss_tech_state",
-    "Mistech Options: Actions to take after missing a tech",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    Shield,
-    "Shield Toggles",
-    "shield_state",
-    "Shield Toggles: CPU Shield Behavior",
-    true,
-    1,
-}
-impl_toggletrait! {
-    Direction,
-    "Shield Tilt",
-    "shield_tilt",
-    "Shield Tilt: Direction to tilt the shield",
-    true,
-    1,
-}
-
-impl_toggletrait! {
-    OnOff,
-    "Crouch",
-    "crouch",
-    "Crouch: Have the CPU crouch when on the ground",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Dodge Staling",
-    "stale_dodges",
-    "Dodge Staling: Controls whether the CPU's dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Hide Tech Animations",
-    "tech_hide",
-    "Hide Tech Animations: Hides tech animations and effects after 7 frames to help with reacting to tech animation startup",
-    true,
-    1,
-}
-impl_toggletrait! {
-    SaveStateMirroring,
-    "Mirroring",
-    "save_state_mirroring",
-    "Mirroring: Flips save states in the left-right direction across the stage center",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Auto Save States",
-    "save_state_autoload",
-    "Auto Save States: Load save state when any fighter dies",
-    true,
-    1,
-}
-impl_toggletrait! {
-    SaveDamage,
-    "Save Dmg (CPU)",
-    "save_damage_cpu",
-    "Save Damage: Should save states retain CPU damage",
-    true,
-    1,
-}
-impl_slidertrait! {
-    DamagePercent,
-    "Dmg Range (CPU)",
-    "save_damage_limits_cpu",
-    "Limits on random damage to apply to the CPU when loading a save state",
-}
-impl_toggletrait! {
-    SaveDamage,
-    "Save Dmg (Player)",
-    "save_damage_player",
-    "Save Damage: Should save states retain player damage",
-    true,
-    1,
-}
-impl_slidertrait! {
-    DamagePercent,
-    "Dmg Range (Player)",
-    "save_damage_limits_player",
-    "Limits on random damage to apply to the player when loading a save state",
-}
-impl_toggletrait! {
-    OnOff,
-    "Enable Save States",
-    "save_state_enable",
-    "Save States: Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.",
-    true,
-    1,
-}
-impl_toggletrait! {
-    SaveStateSlot,
-    "Save State Slot",
-    "save_state_slot",
-    "Save State Slot: Save and load states from different slots.",
-    true,
-    1,
-}
-impl_toggletrait! {
-    SaveStateSlot,
-    "Randomize Slots",
-    "randomize_slots",
-    "Randomize Slots: Slots to randomize when loading save state.",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    CharacterItem,
-    "Character Item",
-    "character_item",
-    "Character Item: The item to give to the player's fighter when loading a save state",
-    true,
-    1,
-}
-impl_toggletrait! {
-    BuffOption,
-    "Buff Options",
-    "buff_state",
-    "Buff Options: Buff(s) to be applied to the respective fighters when loading a save state",
-    false,
-    1,
-}
-impl_toggletrait! {
-    PlaybackSlot,
-    "Save State Playback",
-    "save_state_playback",
-    "Save State Playback: Choose which slots to playback input recording upon loading a save state",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    OnOff,
-    "Frame Advantage",
-    "frame_advantage",
-    "Frame Advantage: Display the time difference between when the player is actionable and the CPU is actionable\nNote that the CPU must not be mashing any options.",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Hitbox Visualization",
-    "hitbox_vis",
-    "Hitbox Visualization: Display a visual representation for active hitboxes (hides other visual effects)",
-    true,
-    1,
-}
-impl_toggletrait! {
-    InputDisplay,
-    "Input Display",
-    "input_display",
-    "Input Display: Log inputs in a queue on the left of the screen",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Input Display Status",
-    "input_display_status",
-    "Input Display Status: Group input logs by status in which they occurred",
-    true,
-    1,
-}
-impl_toggletrait! {
-    Delay,
-    "Input Delay",
-    "input_delay",
-    "Input Delay: Frames to delay player inputs by",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Stage Hazards",
-    "stage_hazards",
-    "Stage Hazards: Turn stage hazards on/off",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "HUD",
-    "hud",
-    "HUD: Show/hide elements of the UI",
-    true,
-    1,
-}
-impl_toggletrait! {
-    UpdatePolicy,
-    "Auto-Update",
-    "update_policy",
-    "Auto-Update: What type of Training Modpack updates to automatically apply. (Console Only!)",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "L+R+A Reset",
-    "lra_reset",
-    "L+R+A Reset: Reset Training Room when pressing L+R+A",
-    true,
-    1,
-}
-impl_toggletrait! {
-    RecordSlot,
-    "Recording Slot",
-    "recording_slot",
-    "Recording Slot: Choose which slot to record into",
-    true,
-    1,
-}
-impl_toggletrait! {
-    RecordTrigger,
-    "Recording Trigger",
-    "record_trigger",
-    "Recording Trigger: Whether to begin recording via button combination or upon loading a Save State",
-    false,
-    1,
-}
-impl_toggletrait! {
-    RecordingDuration,
-    "Recording Duration",
-    "recording_duration",
-    "Recording Duration: How long an input recording should last in frames",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Recording Crop",
-    "recording_crop",
-    "Recording Crop: Remove neutral input frames at the end of your recording",
-    true,
-    1,
-}
-impl_toggletrait! {
-    PlaybackSlot,
-    "Playback Button Slots",
-    "playback_button_slots",
-    "Playback Button Slots: Choose which slots to playback input recording upon pressing button combination",
-    false,
-    TOGGLE_MAX,
-}
-impl_toggletrait! {
-    HitstunPlayback,
-    "Playback Hitstun Timing",
-    "hitstun_playback",
-    "Playback Hitstun Timing: When to begin playing back inputs when a hitstun mash trigger occurs",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Playback Mash Interrupt",
-    "playback_mash",
-    "Playback Mash Interrupt: End input playback when a mash trigger occurs",
-    true,
-    1,
-}
-impl_toggletrait! {
-    OnOff,
-    "Playback Loop",
-    "playback_loop",
-    "Playback Loop: Repeat triggered input playbacks indefinitely",
-    true,
-    1,
-}
-
 pub unsafe fn create_app<'a>() -> App<'a> {
-    // Note that the to_submenu_xxx() functions are defined in the `impl_toggletrait` and `impl_slidertrait` macros
     let mut overall_menu = App::new();
 
     // Mash Tab
     let mut mash_tab_submenus: Vec<SubMenu> = Vec::new();
-    mash_tab_submenus.push(to_submenu_mash_state());
-    mash_tab_submenus.push(to_submenu_follow_up());
-    mash_tab_submenus.push(to_submenu_mash_triggers());
-    mash_tab_submenus.push(to_submenu_attack_angle());
-    mash_tab_submenus.push(to_submenu_throw_state());
-    mash_tab_submenus.push(to_submenu_throw_delay());
-    mash_tab_submenus.push(to_submenu_pummel_delay());
-    mash_tab_submenus.push(to_submenu_falling_aerials());
-    mash_tab_submenus.push(to_submenu_full_hop());
-    mash_tab_submenus.push(to_submenu_aerial_delay());
-    mash_tab_submenus.push(to_submenu_fast_fall());
-    mash_tab_submenus.push(to_submenu_fast_fall_delay());
-    mash_tab_submenus.push(to_submenu_oos_offset());
-    mash_tab_submenus.push(to_submenu_reaction_time());
+    mash_tab_submenus.push(Action::to_submenu(
+        "Mash Toggles",
+        "mash_state",
+        "Action to be performed as soon as possible",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(Action::to_submenu(
+        "Followup Toggles",
+        "follow_up",
+        "Actions to be performed after a Mash Option",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(MashTrigger::to_submenu(
+        "Mash Triggers",
+        "mash_triggers",
+        "Configure what causes the CPU to perform a Mash Option",
+        ToggleSingle,
+    ));
+    mash_tab_submenus.push(AttackAngle::to_submenu(
+        "Attack Angle",
+        "attack_angle",
+        "For attacks that can be angled, such as some forward tilts",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(ThrowOption::to_submenu(
+        "Throw Options",
+        "throw_state",
+        "Throw to be performed when a grab is landed",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(MedDelay::to_submenu(
+        "Throw Delay",
+        "throw_delay",
+        "How many frames to delay the throw option",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(MedDelay::to_submenu(
+        "Pummel Delay",
+        "pummel_delay",
+        "How many frames after a grab to wait before starting to pummel",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(BoolFlag::to_submenu(
+        "Falling Aerials",
+        "falling_aerials",
+        "Should aerials be performed when rising or when falling",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(BoolFlag::to_submenu(
+        "Full Hop",
+        "full_hop",
+        "Should the CPU perform a ful hop or a short hop when jumping",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(Delay::to_submenu(
+        "Aerial Delay",
+        "aerial_delay",
+        "How long to delay an aerial attack",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(BoolFlag::to_submenu(
+        "Fast Fall",
+        "fast_fall",
+        "Should the CPU fastfall during a jump",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(Delay::to_submenu(
+        "Fast Fall Delay",
+        "fast_fall_delay",
+        "How many frames the CPU should delay their fastfall",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(Delay::to_submenu(
+        "OoS Offset",
+        "oos_offset",
+        "How many times the CPU shield can be hit before performing a Mash option",
+        ToggleMultiple,
+    ));
+    mash_tab_submenus.push(Delay::to_submenu(
+        "Reaction Time",
+        "reaction_time",
+        "How many frames to delay before performing a Mash option",
+        ToggleMultiple,
+    ));
     let mash_tab = Tab {
         id: "mash",
         title: "Mash Settings",
@@ -836,19 +306,84 @@ pub unsafe fn create_app<'a>() -> App<'a> {
 
     // Mash Override Tab
     let mut override_tab_submenus: Vec<SubMenu> = Vec::new();
-    override_tab_submenus.push(to_submenu_ledge_neutral_override());
-    override_tab_submenus.push(to_submenu_ledge_roll_override());
-    override_tab_submenus.push(to_submenu_ledge_jump_override());
-    override_tab_submenus.push(to_submenu_ledge_attack_override());
-    override_tab_submenus.push(to_submenu_tech_action_override());
-    override_tab_submenus.push(to_submenu_clatter_override());
-    override_tab_submenus.push(to_submenu_tumble_override());
-    override_tab_submenus.push(to_submenu_hitstun_override());
-    override_tab_submenus.push(to_submenu_parry_override());
-    override_tab_submenus.push(to_submenu_shieldstun_override());
-    override_tab_submenus.push(to_submenu_footstool_override());
-    override_tab_submenus.push(to_submenu_landing_override());
-    override_tab_submenus.push(to_submenu_trump_override());
+    override_tab_submenus.push(Action::to_submenu(
+        "Ledge Neutral Getup",
+        "ledge_neutral_override",
+        "Mash Actions to be performed after a Neutral Getup from ledge",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Ledge Roll",
+        "ledge_roll_override",
+        "Mash Actions to be performed after a Roll Getup from ledge",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Ledge Jump",
+        "ledge_jump_override",
+        "Mash Actions to be performed after a Jump Get up from ledge",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Ledge Attack",
+        "ledge_attack_override",
+        "Mash Actions to be performed after a Getup Attack from ledge",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Tech Action",
+        "tech_action_override",
+        "Mash Actions to be performed after any tech action",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Clatter",
+        "clatter_override",
+        "Mash Actions to be performed after leaving a clatter situation (grab, bury, etc)",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Tumble",
+        "tumble_override",
+        "Mash Actions to be performed after exiting a tumble state",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Hitstun",
+        "hitstun_override",
+        "Mash Actions to be performed after exiting a hitstun state",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Parry",
+        "parry_override",
+        "Mash Actions to be performed after a parry",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Shieldstun",
+        "shieldstun_override",
+        "Mash Actions to be performed after exiting a shieldstun state",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Footstool",
+        "footstool_override",
+        "Mash Actions to be performed after exiting a footstool state",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Landing",
+        "landing_override",
+        "Mash Actions to be performed after landing on the ground",
+        ToggleMultiple,
+    ));
+    override_tab_submenus.push(Action::to_submenu(
+        "Ledge Trump",
+        "trump_override",
+        "Mash Actions to be performed after leaving a ledgetrump state",
+        ToggleMultiple,
+    ));
     let override_tab = Tab {
         id: "override",
         title: "Override Settings",
@@ -862,20 +397,80 @@ pub unsafe fn create_app<'a>() -> App<'a> {
 
     // Defensive Tab
     let mut defensive_tab_submenus: Vec<SubMenu> = Vec::new();
-    defensive_tab_submenus.push(to_submenu_air_dodge_dir());
-    defensive_tab_submenus.push(to_submenu_di_state());
-    defensive_tab_submenus.push(to_submenu_sdi_state());
-    defensive_tab_submenus.push(to_submenu_sdi_strength());
-    defensive_tab_submenus.push(to_submenu_clatter_strength());
-    defensive_tab_submenus.push(to_submenu_ledge_state());
-    defensive_tab_submenus.push(to_submenu_ledge_delay());
-    defensive_tab_submenus.push(to_submenu_tech_state());
-    defensive_tab_submenus.push(to_submenu_miss_tech_state());
-    defensive_tab_submenus.push(to_submenu_shield_state());
-    defensive_tab_submenus.push(to_submenu_shield_tilt());
-    defensive_tab_submenus.push(to_submenu_crouch());
-    defensive_tab_submenus.push(to_submenu_stale_dodges());
-    defensive_tab_submenus.push(to_submenu_tech_hide());
+    defensive_tab_submenus.push(Direction::to_submenu(
+        "Airdodge Direction",
+        "air_dodge_dir",
+        "Direction to angle airdodges",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(Direction::to_submenu(
+        "DI Direction",
+        "di_state",
+        "Direction to angle the directional influence during hitlag",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(Direction::to_submenu(
+        "SDI Direction",
+        "sdi_state",
+        "Direction to angle the smash directional influence during hitlag",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(SdiFrequency::to_submenu(
+        "SDI Strength",
+        "sdi_strength",
+        "Relative strength of the smash directional influence inputs",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(ClatterFrequency::to_submenu(
+        "Clatter Strength",
+        "clatter_strength",
+        "Configure how rapidly the CPU will mash out of grabs, buries, etc.",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(LedgeOption::to_submenu(
+        "Ledge Options",
+        "ledge_state",
+        "Actions to be taken when on the ledge",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(LongDelay::to_submenu(
+        "Ledge Delay",
+        "ledge_delay",
+        "How many frames to delay the ledge option",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(TechFlags::to_submenu(
+        "Tech Options",
+        "tech_state",
+        "Actions to take when slammed into a hard surface",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(MissTechFlags::to_submenu(
+        "Mistech Options",
+        "miss_tech_state",
+        "Actions to take after missing a tech",
+        ToggleMultiple,
+    ));
+    defensive_tab_submenus.push(Shield::to_submenu(
+        "Shield Toggles",
+        "shield_state",
+        "CPU Shield Behavior",
+        ToggleSingle,
+    ));
+    defensive_tab_submenus.push(Direction::to_submenu(
+        "Shield Tilt",
+        "shield_tilt",
+        "Direction to tilt the shield",
+        ToggleSingle,
+    ));
+    defensive_tab_submenus.push(OnOff::to_submenu(
+        "Crouch",
+        "crouch",
+        "Have the CPU crouch when on the ground",
+        ToggleSingle,
+    ));
+    defensive_tab_submenus.push(OnOff::to_submenu("Dodge Staling", "stale_dodges", "Controls whether the CPU's dodges will worsen with repetitive use\n(Note: This can setting can cause combo behavior not possible in the original game)", ToggleSingle));
+    defensive_tab_submenus.push(OnOff::to_submenu("Hide Tech Animations", "tech_hide", "Hides tech animations and effects after 7 frames to help with reacting to tech animation startup", ToggleSingle));
     let defensive_tab = Tab {
         id: "defensive",
         title: "Defensive Settings",
@@ -889,15 +484,60 @@ pub unsafe fn create_app<'a>() -> App<'a> {
 
     // Input Recording Tab
     let mut input_recording_tab_submenus: Vec<SubMenu> = Vec::new();
-    input_recording_tab_submenus.push(to_submenu_recording_slot());
-    input_recording_tab_submenus.push(to_submenu_record_trigger());
-    input_recording_tab_submenus.push(to_submenu_recording_duration());
-    input_recording_tab_submenus.push(to_submenu_recording_crop());
-    input_recording_tab_submenus.push(to_submenu_playback_button_slots());
-    input_recording_tab_submenus.push(to_submenu_hitstun_playback());
-    input_recording_tab_submenus.push(to_submenu_save_state_playback());
-    input_recording_tab_submenus.push(to_submenu_playback_mash());
-    input_recording_tab_submenus.push(to_submenu_playback_loop());
+    input_recording_tab_submenus.push(RecordSlot::to_submenu(
+        "Recording Slot",
+        "recording_slot",
+        "Choose which slot to record into",
+        ToggleSingle,
+    ));
+    input_recording_tab_submenus.push(RecordTrigger::to_submenu(
+        "Recording Trigger",
+        "record_trigger",
+        "Whether to begin recording via button combination or upon loading a Save State",
+        ToggleSingle,
+    ));
+    input_recording_tab_submenus.push(RecordingDuration::to_submenu(
+        "Recording Duration",
+        "recording_duration",
+        "How long an input recording should last in frames",
+        ToggleSingle,
+    ));
+    input_recording_tab_submenus.push(OnOff::to_submenu(
+        "Recording Crop",
+        "recording_crop",
+        "Remove neutral input frames at the end of your recording",
+        ToggleSingle,
+    ));
+    input_recording_tab_submenus.push(PlaybackSlot::to_submenu(
+        "Playback Button Slots",
+        "playback_button_slots",
+        "Choose which slots to playback input recording upon pressing button combination",
+        ToggleMultiple,
+    ));
+    input_recording_tab_submenus.push(HitstunPlayback::to_submenu(
+        "Playback Hitstun Timing",
+        "hitstun_playback",
+        "When to begin playing back inputs when a hitstun mash trigger occurs",
+        ToggleSingle,
+    ));
+    input_recording_tab_submenus.push(PlaybackSlot::to_submenu(
+        "Save State Playback",
+        "save_state_playback",
+        "Choose which slots to playback input recording upon loading a save state",
+        ToggleMultiple,
+    ));
+    input_recording_tab_submenus.push(OnOff::to_submenu(
+        "Playback Mash Interrupt",
+        "playback_mash",
+        "End input playback when a mash trigger occurs",
+        ToggleSingle,
+    ));
+    input_recording_tab_submenus.push(OnOff::to_submenu(
+        "Playback Loop",
+        "playback_loop",
+        "Repeat triggered input playbacks indefinitely",
+        ToggleSingle,
+    ));
     let input_tab = Tab {
         id: "input",
         title: "Input Recording",
@@ -911,11 +551,31 @@ pub unsafe fn create_app<'a>() -> App<'a> {
 
     // Button Tab
     let mut button_tab_submenus: Vec<SubMenu> = Vec::new();
-    button_tab_submenus.push(to_submenu_menu_open_start_press());
-    button_tab_submenus.push(to_submenu_save_state_save());
-    button_tab_submenus.push(to_submenu_save_state_load());
-    button_tab_submenus.push(to_submenu_input_record());
-    button_tab_submenus.push(to_submenu_input_playback());
+    button_tab_submenus.push(OnOff::to_submenu("Menu Open Start Press", "menu_open_start_press", "Hold start or press minus to open the mod menu. To open the original menu, press start.\nThe default menu open option is always available as Hold DPad Up + Press B.", ToggleSingle));
+    button_tab_submenus.push(ButtonConfig::to_submenu(
+        "Save State Save",
+        "save_state_save",
+        "Hold any one button and press the others to trigger",
+        ToggleSingle,
+    ));
+    button_tab_submenus.push(ButtonConfig::to_submenu(
+        "Save State Load",
+        "save_state_load",
+        "Hold any one button and press the others to trigger",
+        ToggleSingle,
+    ));
+    button_tab_submenus.push(ButtonConfig::to_submenu(
+        "Input Record",
+        "input_record",
+        "Hold any one button and press the others to trigger",
+        ToggleSingle,
+    ));
+    button_tab_submenus.push(ButtonConfig::to_submenu(
+        "Input Playback",
+        "input_playback",
+        "Hold any one button and press the others to trigger",
+        ToggleSingle,
+    ));
     let button_tab = Tab {
         id: "button",
         title: "Button Config",
@@ -929,17 +589,72 @@ pub unsafe fn create_app<'a>() -> App<'a> {
 
     // Save State Tab
     let mut save_state_tab_submenus: Vec<SubMenu> = Vec::new();
-    save_state_tab_submenus.push(to_submenu_save_state_mirroring());
-    save_state_tab_submenus.push(to_submenu_save_state_autoload());
-    save_state_tab_submenus.push(to_submenu_save_damage_cpu());
-    save_state_tab_submenus.push(to_submenu_save_damage_limits_cpu());
-    save_state_tab_submenus.push(to_submenu_save_damage_player());
-    save_state_tab_submenus.push(to_submenu_save_damage_limits_player());
-    save_state_tab_submenus.push(to_submenu_save_state_enable());
-    save_state_tab_submenus.push(to_submenu_save_state_slot());
-    save_state_tab_submenus.push(to_submenu_randomize_slots());
-    save_state_tab_submenus.push(to_submenu_character_item());
-    save_state_tab_submenus.push(to_submenu_buff_state());
+    save_state_tab_submenus.push(SaveStateMirroring::to_submenu(
+        "Mirroring",
+        "save_state_mirroring",
+        "Flips save states in the left-right direction across the stage center",
+        ToggleSingle,
+    ));
+    save_state_tab_submenus.push(OnOff::to_submenu(
+        "Auto Save States",
+        "save_state_autoload",
+        "Load save state when any fighter dies",
+        ToggleSingle,
+    ));
+    save_state_tab_submenus.push(SaveDamage::to_submenu(
+        "Save Dmg (CPU)",
+        "save_damage_cpu",
+        "Should save states retain CPU damage",
+        ToggleSingle,
+    ));
+    save_state_tab_submenus.push(DamagePercent::to_submenu(
+        "Dmg Range (CPU)",
+        "save_damage_limits_cpu",
+        "Limits on Random Damage to apply to the CPU when loading a save state",
+        Slider,
+    ));
+    save_state_tab_submenus.push(SaveDamage::to_submenu(
+        "Save Dmg (Player)",
+        "save_damage_player",
+        "Should save states retain player damage",
+        ToggleSingle,
+    ));
+    save_state_tab_submenus.push(DamagePercent::to_submenu(
+        "Dmg Range (Player)",
+        "save_damage_limits_player",
+        "Limits on random damage to apply to the player when loading a save state",
+        Slider,
+    ));
+    save_state_tab_submenus.push(OnOff::to_submenu(
+        "Enable Save States",
+        "save_state_enable",
+        "Enable save states! Save a state with Shield+Down Taunt, load it with Shield+Up Taunt.",
+        ToggleSingle,
+    ));
+    save_state_tab_submenus.push(SaveStateSlot::to_submenu(
+        "Save State Slot",
+        "save_state_slot",
+        "Save and load states from different slots.",
+        ToggleSingle,
+    ));
+    save_state_tab_submenus.push(SaveStateSlot::to_submenu(
+        "Randomize Slots",
+        "randomize_slots",
+        "Slots to randomize when loading save state.",
+        ToggleMultiple,
+    ));
+    save_state_tab_submenus.push(CharacterItem::to_submenu(
+        "Character Item",
+        "character_item",
+        "The item to give to the player's fighter when loading a save state",
+        ToggleSingle,
+    ));
+    save_state_tab_submenus.push(BuffOption::to_submenu(
+        "Buff Options",
+        "buff_state",
+        "Buff(s) to be applied to the respective fighters when loading a save state",
+        ToggleSingle,
+    ));
     let save_state_tab = Tab {
         id: "save_state",
         title: "Save States",
@@ -953,15 +668,55 @@ pub unsafe fn create_app<'a>() -> App<'a> {
 
     // Miscellaneous Tab
     let mut misc_tab_submenus: Vec<SubMenu> = Vec::new();
-    misc_tab_submenus.push(to_submenu_frame_advantage());
-    misc_tab_submenus.push(to_submenu_hitbox_vis());
-    misc_tab_submenus.push(to_submenu_input_display());
-    misc_tab_submenus.push(to_submenu_input_display_status());
-    misc_tab_submenus.push(to_submenu_input_delay());
-    misc_tab_submenus.push(to_submenu_stage_hazards());
-    misc_tab_submenus.push(to_submenu_hud());
-    misc_tab_submenus.push(to_submenu_update_policy());
-    misc_tab_submenus.push(to_submenu_lra_reset());
+    misc_tab_submenus.push(OnOff::to_submenu("Frame Advantage", "frame_advantage", "Display the time difference between when the player is actionable and the CPU is actionable\nNote that the CPU must not be mashing any options.", ToggleSingle));
+    misc_tab_submenus.push(OnOff::to_submenu(
+        "Hitbox Visualization",
+        "hitbox_vis",
+        "Display a visual representation for active hitboxes (hides other visual effects)",
+        ToggleSingle,
+    ));
+    misc_tab_submenus.push(InputDisplay::to_submenu(
+        "Input Display",
+        "input_display",
+        "Log inputs in a queue on the left of the screen",
+        ToggleSingle,
+    ));
+    misc_tab_submenus.push(OnOff::to_submenu(
+        "Input Display Status",
+        "input_display_status",
+        "Group input logs by status in which they occurred",
+        ToggleSingle,
+    ));
+    misc_tab_submenus.push(Delay::to_submenu(
+        "Input Delay",
+        "input_delay",
+        "Frames to delay player inputs by",
+        ToggleSingle,
+    ));
+    misc_tab_submenus.push(OnOff::to_submenu(
+        "Stage Hazards",
+        "stage_hazards",
+        "Turn stage hazards on/off",
+        ToggleSingle,
+    ));
+    misc_tab_submenus.push(OnOff::to_submenu(
+        "HUD",
+        "hud",
+        "Show/hide elements of the UI",
+        ToggleSingle,
+    ));
+    misc_tab_submenus.push(UpdatePolicy::to_submenu(
+        "Auto-Update",
+        "update_policy",
+        "What type of Training Modpack updates to automatically apply. (Console Only!)",
+        ToggleSingle,
+    ));
+    misc_tab_submenus.push(OnOff::to_submenu(
+        "L+R+A Reset",
+        "lra_reset",
+        "Reset Training Room when pressing L+R+A",
+        ToggleSingle,
+    ));
     let misc_tab = Tab {
         id: "misc",
         title: "Misc Settings",

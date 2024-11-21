@@ -1,67 +1,97 @@
+use crate::TOGGLE_MAX;
 use byteflags::*;
 use core::f64::consts::PI;
-use serde::{Deserialize, Serialize};
+
 #[cfg(feature = "smash")]
 use smash::lib::lua_const::*;
+use training_mod_tui::{
+    StatefulSlider, StatefulTable, SubMenu, SubMenuType, Toggle, NX_SUBMENU_COLUMNS,
+    NX_SUBMENU_ROWS,
+};
 
-#[macro_export]
-macro_rules! impl_toggletrait {
-    (
-        $e:ty,
-        $title:literal,
-        $id:literal,
-        $help_text:literal,
-        $single:literal,
-        $max:expr,
-    ) => {
-        paste! {
-            fn [<to_submenu_ $id>]<'a>() -> SubMenu<'a> {
-                let submenu_type = if $single { SubMenuType::ToggleSingle } else { SubMenuType::ToggleMultiple };
-                let value = 0;
-                let max: u8 = $max;
-                let toggles_vec: Vec<Toggle> = <$e>::ALL_NAMES
-                    .iter()
-                    .map(|title| Toggle { title, value, max })
-                    .collect();
-                SubMenu {
-                    title: $title,
-                    id: $id,
-                    help_text: $help_text,
-                    submenu_type: submenu_type,
-                    toggles: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, toggles_vec),
-                    slider: None
-                }
-            }
-        }
-    }
+pub trait SubMenuTrait {
+    fn to_submenu<'a>(
+        title: &'a str,
+        id: &'a str,
+        help_text: &'a str,
+        submenu_type: SubMenuType,
+    ) -> SubMenu<'a>;
 }
 
 #[macro_export]
-macro_rules! impl_slidertrait {
-    (
-        $e:ty,
-        $title:literal,
-        $id:literal,
-        $help_text:literal,
-    ) => {
-        paste! {
-            fn [<to_submenu_ $id>]<'a>() -> SubMenu<'a> {
-                let slider = StatefulSlider {
-                    lower: 0,
-                    upper: 150,
-                    ..StatefulSlider::new()
-                };
-                SubMenu {
-                    title: $title,
-                    id: $id,
-                    help_text: $help_text,
-                    submenu_type: SubMenuType::Slider,
-                    toggles: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, Vec::new()),
-                    slider: Some(slider)
+macro_rules! impl_submenutrait {
+    ($e:ty) => {
+        impl SubMenuTrait for $e {
+            fn to_submenu<'a>(
+                title: &'a str,
+                id: &'a str,
+                help_text: &'a str,
+                submenu_type: SubMenuType,
+            ) -> SubMenu<'a> {
+                match submenu_type {
+                    SubMenuType::ToggleSingle => {
+                        let value = 0;
+                        let max = 1;
+                        let toggles_vec: Vec<Toggle> = Self::ALL_NAMES
+                            .iter()
+                            .map(|title| Toggle { title, value, max })
+                            .collect();
+                        SubMenu {
+                            title: title,
+                            id: id,
+                            help_text: help_text,
+                            submenu_type: submenu_type,
+                            toggles: StatefulTable::with_items(
+                                NX_SUBMENU_ROWS,
+                                NX_SUBMENU_COLUMNS,
+                                toggles_vec,
+                            ),
+                            slider: None,
+                        }
+                    }
+                    SubMenuType::ToggleMultiple => {
+                        let value = 0;
+                        let max = TOGGLE_MAX;
+                        let toggles_vec: Vec<Toggle> = Self::ALL_NAMES
+                            .iter()
+                            .map(|title| Toggle { title, value, max })
+                            .collect();
+                        SubMenu {
+                            title: title,
+                            id: id,
+                            help_text: help_text,
+                            submenu_type: submenu_type,
+                            toggles: StatefulTable::with_items(
+                                NX_SUBMENU_ROWS,
+                                NX_SUBMENU_COLUMNS,
+                                toggles_vec,
+                            ),
+                            slider: None,
+                        }
+                    }
+                    SubMenuType::Slider => {
+                        let slider = StatefulSlider {
+                            lower: 0,
+                            upper: 150,
+                            ..StatefulSlider::new()
+                        };
+                        SubMenu {
+                            title: title,
+                            id: id,
+                            help_text: help_text,
+                            submenu_type: submenu_type,
+                            toggles: StatefulTable::with_items(
+                                NX_SUBMENU_ROWS,
+                                NX_SUBMENU_COLUMNS,
+                                Vec::new(),
+                            ),
+                            slider: Some(slider),
+                        }
+                    }
                 }
             }
         }
-    }
+    };
 }
 
 pub fn get_random_int(_max: i32) -> i32 {
@@ -113,6 +143,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(Direction);
+
 impl Direction {
     pub fn into_angle(self) -> Option<f64> {
         let index = self.into_index();
@@ -160,6 +192,8 @@ byteflags! {
         pub PLAYBACK_5 = "Playback Slot 5",
     }
 }
+
+impl_submenutrait!(LedgeOption);
 
 impl LedgeOption {
     pub fn into_status(self) -> Option<i32> {
@@ -228,6 +262,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(TechFlags);
+
 // Missed Tech Options
 byteflags! {
     pub struct MissTechFlags {
@@ -238,6 +274,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(MissTechFlags);
+
 byteflags! {
     pub struct Shield {
         pub NONE = "None",
@@ -247,6 +285,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(Shield);
+
 byteflags! {
     pub struct SaveStateMirroring {
         pub NONE = "None",
@@ -255,12 +295,16 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(SaveStateMirroring);
+
 byteflags! {
     pub struct OnOff {
         pub ON = "On",
         pub OFF = "Off",
     }
 }
+
+impl_submenutrait!(OnOff);
 
 impl OnOff {
     pub fn from_val(val: u32) -> Option<Self> {
@@ -315,6 +359,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(Action);
+
 impl Action {
     pub fn into_attack_air_kind(self) -> Option<i32> {
         #[cfg(feature = "smash")]
@@ -363,6 +409,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(AttackAngle);
+
 byteflags! {
     pub struct Delay {
         pub D0 = "0",
@@ -398,6 +446,8 @@ byteflags! {
         pub D30 = "30",
     }
 }
+
+impl_submenutrait!(Delay);
 
 impl Delay {
     pub fn into_delay(&self) -> u32 {
@@ -477,6 +527,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(MedDelay);
+
 impl MedDelay {
     pub fn into_meddelay(&self) -> u32 {
         if *self == MedDelay::empty() {
@@ -555,6 +607,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(LongDelay);
+
 impl LongDelay {
     pub fn into_longdelay(&self) -> u32 {
         if *self == LongDelay::empty() {
@@ -620,6 +674,8 @@ byteflags! {
         pub WAFT_FULL = "Full Waft",
     }
 }
+
+impl_submenutrait!(BuffOption);
 
 impl BuffOption {
     pub fn into_int(self) -> Option<i32> {
@@ -690,6 +746,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(ThrowOption);
+
 impl ThrowOption {
     pub fn into_cmd(self) -> Option<i32> {
         #[cfg(feature = "smash")]
@@ -717,6 +775,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(BoolFlag);
+
 impl BoolFlag {
     pub fn into_bool(self) -> bool {
         matches!(self, BoolFlag::TRUE)
@@ -731,6 +791,8 @@ byteflags! {
         pub HIGH = "High",
     }
 }
+
+impl_submenutrait!(SdiFrequency);
 
 impl SdiFrequency {
     pub fn into_u32(self) -> u32 {
@@ -752,6 +814,8 @@ byteflags! {
         pub HIGH = "High",
     }
 }
+
+impl_submenutrait!(ClatterFrequency);
 
 impl ClatterFrequency {
     pub fn into_u32(self) -> u32 {
@@ -786,6 +850,8 @@ byteflags! {
         pub CPU_VARIATION_8 = "CPU 8th Var.",
     }
 }
+
+impl_submenutrait!(CharacterItem);
 
 impl CharacterItem {
     pub fn as_idx(&self) -> usize {
@@ -834,6 +900,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(MashTrigger);
+
 impl MashTrigger {
     pub const fn default() -> MashTrigger {
         // Hit, block, clatter
@@ -847,12 +915,21 @@ impl MashTrigger {
     }
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
-pub struct DamagePercent(pub u32, pub u32);
+byteflags! {
+    pub struct DamagePercent {
+        pub LOWER = "Lower",
+        pub UPPER = "Upper",
+    }
+}
+
+impl_submenutrait!(DamagePercent);
 
 impl DamagePercent {
     pub const fn default() -> DamagePercent {
-        DamagePercent(0, 150)
+        DamagePercent {
+            LOWER: 0,
+            UPPER: 150,
+        }
     }
 }
 
@@ -864,6 +941,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(SaveDamage);
+
 byteflags! {
     pub struct SaveStateSlot
     {
@@ -874,6 +953,8 @@ byteflags! {
         pub S5 = "Slot 5",
     }
 }
+
+impl_submenutrait!(SaveStateSlot);
 
 impl SaveStateSlot {
     pub fn into_idx(&self) -> Option<usize> {
@@ -898,6 +979,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(RecordSlot);
+
 impl RecordSlot {
     pub fn into_idx(&self) -> Option<usize> {
         match *self {
@@ -921,6 +1004,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(PlaybackSlot);
+
 impl PlaybackSlot {
     pub fn into_idx(&self) -> Option<usize> {
         match *self {
@@ -943,12 +1028,16 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(HitstunPlayback);
+
 byteflags! {
     pub struct RecordTrigger {
         pub COMMAND = "Button Combination",
         pub SAVESTATE = "Save State Load",
     }
 }
+
+impl_submenutrait!(RecordTrigger);
 
 byteflags! {
     pub struct RecordingDuration {
@@ -973,6 +1062,8 @@ byteflags! {
         pub F600 = "600",
     }
 }
+
+impl_submenutrait!(RecordingDuration);
 
 impl RecordingDuration {
     pub fn into_frames(&self) -> usize {
@@ -1022,6 +1113,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(ButtonConfig);
+
 byteflags! {
     pub struct UpdatePolicy {
         pub STABLE = "Stable",
@@ -1029,6 +1122,8 @@ byteflags! {
         pub DISABLED = "Disabled",
     }
 }
+
+impl_submenutrait!(UpdatePolicy);
 
 impl UpdatePolicy {
     pub const fn default() -> UpdatePolicy {
@@ -1044,3 +1139,5 @@ byteflags! {
         pub STATUS = "Status Only",
     }
 }
+
+impl_submenutrait!(InputDisplay);
