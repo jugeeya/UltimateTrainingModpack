@@ -139,13 +139,13 @@ fn get_release(beta: bool) -> Result<Release> {
             break;
         }
     }
-    if beta && beta_release.is_some() {
-        Ok(beta_release.unwrap())
-    } else if !beta && stable_release.is_some() {
-        Ok(stable_release.unwrap())
+    if beta {
+        beta_release.ok_or(anyhow!(
+            "The specified beta release was not found in the GitHub JSON response!"
+        ))
     } else {
-        Err(anyhow!(
-            "The specified release was not found in the GitHub JSON response!"
+        stable_release.ok_or(anyhow!(
+            "The specified stable release was not found in the GitHub JSON response!"
         ))
     }
 }

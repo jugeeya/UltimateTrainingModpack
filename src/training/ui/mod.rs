@@ -163,6 +163,7 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
             .iter()
             .enumerate()
             .for_each(|(idx, byte)| LAYOUT_ARC[idx] = *byte);
+        #[allow(static_mut_refs)]
         inject_arc = LAYOUT_ARC.as_ptr();
     }
 
