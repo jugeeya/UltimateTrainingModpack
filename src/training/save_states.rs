@@ -580,8 +580,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     SaveDamage::RANDOM => {
                         // Gen random value
                         let pct: f32 = get_random_float(
-                            read(&MENU).save_damage_limits_player.0 as f32,
-                            read(&MENU).save_damage_limits_player.1 as f32,
+                            read(&MENU).save_damage_limits_player.LOWER as f32,
+                            read(&MENU).save_damage_limits_player.UPPER as f32,
                         );
                         set_damage(module_accessor, pct);
                     }
@@ -599,8 +599,8 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                     SaveDamage::RANDOM => {
                         // Gen random value
                         let pct: f32 = get_random_float(
-                            read(&MENU).save_damage_limits_cpu.0 as f32,
-                            read(&MENU).save_damage_limits_cpu.1 as f32,
+                            read(&MENU).save_damage_limits_cpu.UPPER as f32,
+                            read(&MENU).save_damage_limits_cpu.LOWER as f32,
                         );
                         set_damage(module_accessor, pct);
                     }
