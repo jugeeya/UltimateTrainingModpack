@@ -1,28 +1,28 @@
 {
   "common": {
-    "plugin_title": "Modpack de Formation",
+    "plugin_title": "Modpack d'Entraînement'",
     "hold_button": "Maintenir %{button}",
     "open_menu": "Ouvrir le Menu",
     "language": "Langue",
-    "modpack_menu": "asdfsdfasfdad",
-    "yes": "oui",
-    "no": "non",
-    "on": "activé",
-    "off": "désactivé"
+    "modpack_menu": "Menu du Modpack",
+    "yes": "Oui",
+    "no": "Non",
+    "on": "Activé",
+    "off": "Désactivé"
   },
   "buttons": {
-    "start": "commencer",
-    "a": "a",
-    "b": "b",
-    "x": "x",
-    "y": "y",
-    "l": "l",
-    "r": "r",
+    "start": "Commencer",
+    "a": "A",
+    "b": "B",
+    "x": "X",
+    "y": "Y",
+    "l": "L",
+    "r": "R",
     "z": "z",
     "dpad_Up": "dpad haut",
-    "dpad_Down": "dpad descendante",
+    "dpad_Down": "dpad bas",
     "dpad_Left": "dpad gauche",
-    "dpad_Right": "dpad droit",
+    "dpad_Right": "dpad droite",
     "pro": {
       "l": "pro l",
       "r": "pro r; gcc z",
@@ -31,68 +31,68 @@
     },
     "analog_stick": {
       "up": "haut",
-      "down": "descendante",
+      "down": "bas",
       "left": "gauche",
-      "right": "droit"
+      "right": "droite"
     }
   },
   "menus": {
     "mash_settings": {
       "mash_toggles": {
-        "title": "Ecraser Toggles",
-        "description": "Actions à mener dans les plus brefs délais"
+        "title": "Options de Mashing",
+        "description": "Mashing à effectuer dès que possible"
       },
       "followup_toggles": {
-        "title": "Déclencheurs de Suivi",
-        "description": "Actions à effectuer après une option d'empâtage"
+        "title": "Déclencheurs de Followups",
+        "description": "Followups à effectuer dès que possible"
       },
       "mash_triggers": {
-        "title": "Mash Triggers",
-        "description": "Configure what causes the cpu to perform a mash option"
+        "title": "Déclencheurs de Mashing",
+        "description": "Configurer les actions qui feront que le CPU mashera."
       },
       "attack_angle": {
-        "title": "Attack Angle",
-        "description": "For attacks that can be angled, such as some forward tilts"
+        "title": "Angle d'Attaque",
+        "description": "Modifie l'angle des attaques qui peuvent être orientées, par ex. le F-Tilt de Falco."
       },
       "throw_options": {
-        "title": "Throw Options",
-        "description": "Throw to be performed when a grab is landed"
+        "title": "Options de Grabs",
+        "description": "Définit dans quelle direction le CPU doit faire un grab."
       },
       "throw_delay": {
-        "title": "Throw Delay",
-        "description": "How many frames to delay the throw option"
+        "title": "Délai de Grab",
+        "description": "De combien de frames retarder le grab."
       },
       "pummel_delay": {
-        "title": "Pummel Delay",
-        "description": "How many frames after a grab to wait before starting to pummel"
+        "title": "Délai de Pummel",
+        "description": "Combien de frames attendre avant de pummel pendant un grab."
       },
       "falling_aerials": {
-        "title": "Falling Aerials",
-        "description": "Should aerials be performed when rising or when falling"
+        "title": "Aerials descendants",
+        "description": "Définit si les Aerials doivent se faire pendant la montée ou la descente d'un saut."
       },
       "full_hop": {
-        "title": "Full Hop",
-        "description": "Should the cpu perform a full hop or a short hop"
+        "title": "Saut",
+        "description": "Définit si le CPU doit faire un Saut ou un Demi-Saut"
       },
       "aerial_delay": {
-        "title": "Aerial Delay",
-        "description": "How long to delay a mash aerial attack"
+        "title": "Délai d'Aerial",
+        "description": "De combien de frames retarder l'Aerial."
       },
       "fast_fall": {
         "title": "Fast Fall",
-        "description": "Should the cpu fastfall during a jump"
+        "description": "Définit si le CPU doit Fast Fall pendant son saut."
       },
       "fast_fall_delay": {
-        "title": "Fast Fall Delay",
-        "description": "How many frames the cpu should delay their fastfall"
+        "title": "Délai de Fast Fall",
+        "description": "De combien de frames retarder le Fast Fall."
       },
       "oos_offset": {
-        "title": "OoS Offset",
-        "description": "How many times the cpu shield can be hit before performing a mash option"
+        "title": "Limite d'Out of Shield",
+        "description": "Combien de fois le shield doit être touché avant que l'option Out of Shield se lance."
       },
       "reaction_time": {
-        "title": "Reaction Time",
-        "description": "How many frames to delay before performing a mash option"
+        "title": "Temps de réaction",
+        "description": "De combien de frames retarder l'option de mashing."
       }
     }
   }
