@@ -72,7 +72,7 @@ pub fn main() {
         let version_report =
             format!("Smash version: {game_version}.\nAtmosphère version: {atmosphere_version}");
 
-        let complete_error_message = format!("{msg}\n{version_report}\n{location}");
+        let complete_error_message = format!("{version_report}\n{msg}\n{location}");
 
         skyline::error::show_error(
             69,
