@@ -80,7 +80,7 @@ static USER_ID: LazyLock<String> = LazyLock::new(|| unsafe {
         .collect::<Vec<String>>()
         .join("")
 });
-static SMASH_VERSION: LazyLock<String> = LazyLock::new(|| {
+pub static SMASH_VERSION: LazyLock<String> = LazyLock::new(|| {
     let mut smash_version = oe::DisplayVersion { name: [0; 16] };
     unsafe {
         oe::GetDisplayVersion(&mut smash_version);

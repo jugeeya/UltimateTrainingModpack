@@ -19,6 +19,7 @@
 use std::fs;
 use std::path::PathBuf;
 
+use skyline::nn::oe;
 use skyline::nro::{self, NroInfo};
 use training_mod_consts::{OnOff, LEGACY_TRAINING_MODPACK_ROOT};
 use training_mod_sync::*;
@@ -27,6 +28,7 @@ use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
 use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
+use crate::events;
 use crate::events::{Event, EVENT_QUEUE};
 use crate::logging::*;
 use crate::training::ui::notifications::notification;
@@ -65,11 +67,17 @@ pub fn main() {
             },
         };
 
-        let err_msg = format!("SSBU Training Modpack has panicked at '{msg}', {location}");
+        let game_version = events::SMASH_VERSION.to_string();
+        let atmosphere_version = oe::get_display_version().to_owned();
+        let version_report =
+            format!("Smash version: {game_version}.\nAtmosphère version: {atmosphere_version}");
+
+        let complete_error_message = format!("{msg}\n{version_report}\n{location}");
+
         skyline::error::show_error(
             69,
             "SSBU Training Modpack has panicked! Please open the details and send a screenshot to the developer, then close the game.\n",
-            &err_msg,
+            &complete_error_message,
         );
     }));
     init_logger().unwrap();
