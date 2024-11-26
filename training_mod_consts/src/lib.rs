@@ -301,7 +301,7 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     ));
     let mash_tab = Tab {
         id: "mash",
-        title: "Mash Settings",
+        title: "menus.mash_settings.title",
         submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, mash_tab_submenus),
     };
     overall_menu.tabs.push(mash_tab);

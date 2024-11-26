@@ -18,7 +18,7 @@
 
 #[macro_use]
 extern crate rust_i18n;
-i18n!(fallback = "fr");
+i18n!(fallback = "en_us");
 
 use std::fs;
 use std::path::PathBuf;

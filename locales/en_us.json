@@ -6,6 +6,7 @@
     "open_menu": "Open Menu",
     "language": "Language",
     "modpack_menu": "Modpack Menu",
+    "welcome": "Welcome!",
     "yes": "yes",
     "no": "no",
     "on": "on",
@@ -39,6 +40,7 @@
   },
   "menus": {
     "mash_settings": {
+      "tab_name": "Mash Settings",
       "mash_toggles": {
         "title": "Mash Toggles",
         "description": "Actions to be performed as soon as possible"
@@ -97,9 +99,14 @@
       }
     },
     "misc_settings": {
+      "tab_name": "Misc Settings",
       "language": {
         "title": "Language",
-        "description": "How many frames to delay before performing a mash option"
+        "help_text": "Language: Select your preferred language",
+        "locales": {
+          "en_us": "English (US)",
+          "fr": "French"
+        }
       }
     }
   }

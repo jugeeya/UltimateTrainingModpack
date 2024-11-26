@@ -1144,8 +1144,8 @@ impl_submenutrait!(InputDisplay);
 
 byteflags! {
     pub struct Locale {
-        pub ENGLISH_US = "en_us",
-        pub FRENCH = "fr",
+        pub ENGLISH_US = "English (US)",
+        pub FRENCH = "French",
     }
 }
 
