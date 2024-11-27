@@ -87,7 +87,7 @@
         "description": "De combien de frames retarder le Fast Fall."
       },
       "oos_offset": {
-        "title": "Limite d'Out of Shield",
+        "title": "Coups avant Out of Shield",
         "description": "Combien de fois le shield doit être touché avant que l'option Out of Shield se lance."
       },
       "reaction_time": {
