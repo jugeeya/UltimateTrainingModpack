@@ -70,9 +70,9 @@ pub fn main() {
         let game_version = events::SMASH_VERSION.to_string();
         let atmosphere_version = oe::get_display_version().to_owned();
         let version_report =
-            format!("Smash version: {game_version}.\nAtmosphère version: {atmosphere_version}");
+            format!("Smash version: {game_version}.\nAtmosphere version: {atmosphere_version}");
 
-        let complete_error_message = format!("{version_report}\n{msg}\n{location}");
+        let complete_error_message = format!("{msg}\n{location}\n{version_report}");
 
         skyline::error::show_error(
             69,
