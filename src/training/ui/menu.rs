@@ -602,7 +602,7 @@ pub unsafe fn draw(root_pane: &Pane) {
             help_pane.set_default_material_colors();
             help_pane.set_color(255, 255, 0, 255);
         }
-        help_pane.set_text_string(tab_titles[idx]);
+        help_pane.set_text_string(&t!(tab_titles[idx]));
     });
 
     // Save Defaults Keyhelp

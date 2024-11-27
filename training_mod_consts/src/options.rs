@@ -1149,6 +1149,8 @@ byteflags! {
     }
 }
 
+impl_submenutrait!(Locale);
+
 impl Locale {
     pub const fn default() -> Locale {
         Locale::ENGLISH_US

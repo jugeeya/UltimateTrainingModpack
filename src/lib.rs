@@ -29,7 +29,6 @@ use training_mod_sync::*;
 
 use crate::common::button_config::DEFAULT_OPEN_MENU_CONFIG;
 use crate::common::events::events_loop;
-use crate::common::localization::set_language_from_menu;
 use crate::common::*;
 use crate::consts::TRAINING_MODPACK_ROOT;
 use crate::events::{Event, EVENT_QUEUE};
@@ -84,7 +83,11 @@ pub fn main() {
     let mut event_queue = lock_write(&EVENT_QUEUE);
     (*event_queue).push(Event::smash_open());
     drop(event_queue);
-    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+    notification(
+        t!("common.plugin_title").to_string(),
+        "Welcome!".to_string(),
+        60,
+    );
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
@@ -131,14 +134,7 @@ pub fn main() {
         info!("Skipping version check because we are using an emulator");
     }
 
-    info!("Setting mod language");
-    set_language_from_menu();
-
-    notification(
-        t!("common.plugin_title").to_string(),
-        "Welcome!".to_string(),
-        60,
-    );
+    localization::init();
 
     notification(
         t!("common.open_menu").to_string(),
