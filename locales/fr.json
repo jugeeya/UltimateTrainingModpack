@@ -11,7 +11,7 @@
     "off": "Désactivé"
   },
   "buttons": {
-    "start": "Commencer",
+    "start": "Start",
     "a": "A",
     "b": "B",
     "x": "X",
@@ -43,12 +43,12 @@
         "description": "Mashing à effectuer dès que possible"
       },
       "followup_toggles": {
-        "title": "Déclencheurs de Followups",
+        "title": "Options de Followups",
         "description": "Followups à effectuer dès que possible"
       },
       "mash_triggers": {
         "title": "Déclencheurs de Mashing",
-        "description": "Configurer les actions qui feront que le CPU mashera."
+        "description": "Configurer les actions qui feront réagir le CPU."
       },
       "attack_angle": {
         "title": "Angle d'Attaque",
