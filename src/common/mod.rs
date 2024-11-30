@@ -15,6 +15,7 @@ pub mod dev_config;
 pub mod dialog;
 pub mod events;
 pub mod input;
+pub mod localization;
 pub mod menu;
 pub mod offsets;
 pub mod raygun_printer;

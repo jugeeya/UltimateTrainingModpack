@@ -4,8 +4,8 @@ use crate::common::button_config;
 use crate::common::consts::{BuffOption, FighterId, MENU};
 use crate::common::offsets::*;
 use crate::common::{
-    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu, PauseMenu,
-    FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, TRAINING_MENU_ADDR,
+    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, localization, menu,
+    PauseMenu, FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, TRAINING_MENU_ADDR,
 };
 use crate::hitbox_visualizer;
 use crate::input::*;
@@ -154,6 +154,7 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
     shield::get_command_flag_cat(module_accessor);
     directional_influence::get_command_flag_cat(module_accessor);
     reset::check_reset(module_accessor);
+    localization::handle_language_change();
 }
 
 /**

@@ -7,4 +7,7 @@
         "--message-format=json",
         "--all-features",
     ],
+    "i18n-ally.localesPaths": [
+        "locales"
+    ],
 }

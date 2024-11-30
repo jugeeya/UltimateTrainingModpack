@@ -95,6 +95,7 @@ pub struct TrainingModpackMenu {
     pub tech_hide: OnOff,
     pub update_policy: UpdatePolicy,
     pub lra_reset: OnOff,
+    pub selected_locale: Locale,
 }
 
 #[repr(C)]
@@ -203,6 +204,7 @@ pub static BASE_MENU: TrainingModpackMenu = TrainingModpackMenu {
     tech_hide: OnOff::OFF,
     update_policy: UpdatePolicy::default(),
     lra_reset: OnOff::ON,
+    selected_locale: Locale::default(),
 };
 
 pub static DEFAULTS_MENU: RwLock<TrainingModpackMenu> = RwLock::new(BASE_MENU);
@@ -214,92 +216,92 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     // Mash Tab
     let mut mash_tab_submenus: Vec<SubMenu> = Vec::new();
     mash_tab_submenus.push(Action::to_submenu(
-        "Mash Toggles",
+        "menus.mash_settings.mash_toggles.title",
         "mash_state",
-        "Action to be performed as soon as possible",
+        "menus.mash_settings.mash_toggles.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(Action::to_submenu(
-        "Followup Toggles",
+        "menus.mash_settings.follow_up.title",
         "follow_up",
-        "Actions to be performed after a Mash Option",
+        "menus.mash_settings.follow_up.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(MashTrigger::to_submenu(
-        "Mash Triggers",
+        "menus.mash_settings.mash_triggers.title",
         "mash_triggers",
-        "Configure what causes the CPU to perform a Mash Option",
+        "menus.mash_settings.mash_triggers.description",
         ToggleSingle,
     ));
     mash_tab_submenus.push(AttackAngle::to_submenu(
-        "Attack Angle",
+        "menus.mash_settings.attack_angle.title",
         "attack_angle",
-        "For attacks that can be angled, such as some forward tilts",
+        "menus.mash_settings.attack_angle.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(ThrowOption::to_submenu(
-        "Throw Options",
+        "menus.mash_settings.throw_options.title",
         "throw_state",
-        "Throw to be performed when a grab is landed",
+        "menus.mash_settings.throw_options.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(MedDelay::to_submenu(
-        "Throw Delay",
+        "menus.mash_settings.throw_delay.title",
         "throw_delay",
-        "How many frames to delay the throw option",
+        "menus.mash_settings.throw_delay.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(MedDelay::to_submenu(
-        "Pummel Delay",
+        "menus.mash_settings.pummel_delay.title",
         "pummel_delay",
-        "How many frames after a grab to wait before starting to pummel",
+        "menus.mash_settings.pummel_delay.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(BoolFlag::to_submenu(
-        "Falling Aerials",
+        "menus.mash_settings.falling_aerials.title",
         "falling_aerials",
-        "Should aerials be performed when rising or when falling",
+        "menus.mash_settings.falling_aerials.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(BoolFlag::to_submenu(
-        "Full Hop",
+        "menus.mash_settings.full_hop.title",
         "full_hop",
-        "Should the CPU perform a ful hop or a short hop when jumping",
+        "menus.mash_settings.full_hop.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(Delay::to_submenu(
-        "Aerial Delay",
+        "menus.mash_settings.aerial_delay.title",
         "aerial_delay",
-        "How long to delay an aerial attack",
+        "menus.mash_settings.aerial_delay.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(BoolFlag::to_submenu(
-        "Fast Fall",
+        "menus.mash_settings.fast_fall.title",
         "fast_fall",
-        "Should the CPU fastfall during a jump",
+        "menus.mash_settings.fast_fall.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(Delay::to_submenu(
-        "Fast Fall Delay",
+        "menus.mash_settings.fast_fall_delay.title",
         "fast_fall_delay",
-        "How many frames the CPU should delay their fastfall",
+        "menus.mash_settings.fast_fall_delay.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(Delay::to_submenu(
-        "OoS Offset",
+        "menus.mash_settings.oos_offset.title",
         "oos_offset",
-        "How many times the CPU shield can be hit before performing a Mash option",
+        "menus.mash_settings.oos_offset.description",
         ToggleMultiple,
     ));
     mash_tab_submenus.push(Delay::to_submenu(
-        "Reaction Time",
+        "menus.mash_settings.reaction_time.title",
         "reaction_time",
-        "How many frames to delay before performing a Mash option",
+        "menus.mash_settings.reaction_time.description",
         ToggleMultiple,
     ));
     let mash_tab = Tab {
         id: "mash",
-        title: "Mash Settings",
+        title: "menus.mash_settings.title",
         submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, mash_tab_submenus),
     };
     overall_menu.tabs.push(mash_tab);
@@ -717,9 +719,15 @@ pub unsafe fn create_app<'a>() -> App<'a> {
         "Reset Training Room when pressing L+R+A",
         ToggleSingle,
     ));
+    misc_tab_submenus.push(Locale::to_submenu(
+        "menus.misc_settings.language.title",
+        "selected_locale",
+        "menus.misc_settings.language.help_text",
+        ToggleSingle,
+    ));
     let misc_tab = Tab {
         id: "misc",
-        title: "Misc Settings",
+        title: "menus.misc_settings.tab_name",
         submenus: StatefulTable::with_items(NX_SUBMENU_ROWS, NX_SUBMENU_COLUMNS, misc_tab_submenus),
     };
     overall_menu.tabs.push(misc_tab);

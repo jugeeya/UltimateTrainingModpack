@@ -16,6 +16,10 @@
     clippy::missing_transmute_annotations
 )]
 
+#[macro_use]
+extern crate rust_i18n;
+i18n!(fallback = "en_us");
+
 use std::fs;
 use std::path::PathBuf;
 
@@ -87,7 +91,11 @@ pub fn main() {
     let mut event_queue = lock_write(&EVENT_QUEUE);
     (*event_queue).push(Event::smash_open());
     drop(event_queue);
-    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+    notification(
+        t!("common.plugin_title").to_string(),
+        "Welcome!".to_string(),
+        60,
+    );
 
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
@@ -134,16 +142,18 @@ pub fn main() {
         info!("Skipping version check because we are using an emulator");
     }
 
-    notification("Training Modpack".to_string(), "Welcome!".to_string(), 60);
+    localization::init();
+
     notification(
-        "Open Menu".to_string(),
+        t!("common.open_menu").to_string(),
         if read(&MENU).menu_open_start_press == OnOff::ON {
-            "Hold Start".to_string()
+            t!("common.hold_button", button = t!("buttons.start")).to_string()
         } else {
             DEFAULT_OPEN_MENU_CONFIG.to_string()
         },
         120,
     );
+
     notification(
         "Save State".to_string(),
         read(&MENU).save_state_save.to_string(),
