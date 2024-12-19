@@ -15,6 +15,7 @@ pub trait SubMenuTrait {
         id: &'a str,
         help_text: &'a str,
         submenu_type: SubMenuType,
+        allow_weights: bool,
     ) -> SubMenu<'a>;
 }
 
@@ -27,6 +28,7 @@ macro_rules! impl_submenutrait {
                 id: &'a str,
                 help_text: &'a str,
                 submenu_type: SubMenuType,
+                allow_weights: bool,
             ) -> SubMenu<'a> {
                 match submenu_type {
                     SubMenuType::ToggleSingle => {
@@ -51,7 +53,7 @@ macro_rules! impl_submenutrait {
                     }
                     SubMenuType::ToggleMultiple => {
                         let value = 0;
-                        let max = TOGGLE_MAX;
+                        let max = if allow_weights { TOGGLE_MAX } else { 1 };
                         let toggles_vec: Vec<Toggle> = Self::ALL_NAMES
                             .iter()
                             .map(|title| Toggle { title, value, max })
