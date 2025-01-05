@@ -255,18 +255,11 @@ fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
         // actually released the start button, by waiting for a few more frames.
         if read(&START_RELEASE_FRAMES) < 2 {
             assign(&START_RELEASE_FRAMES, read(&START_RELEASE_FRAMES) + 1);
-            dbg!("--------------1---------------");
-            dbg!(controller.current_buttons.plus());
-            dbg!(controller.previous_buttons.plus());
-            dbg!(read(&START_RELEASE_FRAMES));
-            dbg!(read(&START_HOLD_FRAMES));
-            dbg!("--------------1---------------");
             return false;
         }
     }
 
-    // If we are holding start on this frame,
-    if controller.current_buttons.plus() {
+    if controller.current_buttons.plus()
 
         assign(&START_RELEASE_FRAMES, 0);
 
@@ -279,39 +272,28 @@ fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
 
         assign(&START_HOLD_FRAMES, read(&START_HOLD_FRAMES) + 1);
 
-        dbg!("--------------2---------------");
-        dbg!(controller.current_buttons.plus());
-        dbg!(controller.previous_buttons.plus());
-        dbg!(read(&START_RELEASE_FRAMES));
-        dbg!(read(&START_HOLD_FRAMES));
-        dbg!("--------------2---------------");
-
+        // Reset the (+) button state, so that the game doesn't
+        // process the (+) button input until we're sure which action to take.
+        // (i.e.: open the vanilla menu, open the modpack menu, or do nothing)
         controller.previous_buttons.set_plus(false);
         controller.current_buttons.set_plus(false);
         controller.just_down.set_plus(false);
         controller.just_release.set_plus(false);
 
+        // If we've held the (+) button for more than 10 frames,
+        // open the modpack menu.
         if read(&START_HOLD_FRAMES) >= 10 {
-            // If we've held for more than 10 frames,
-            // let's open the training mod menu.
-            // Reset the start hold frames to 0.
             assign(&START_HOLD_FRAMES, 0);
             return true;
         }
+
+        // Don't open the modpack menu (at least, not on this frame).
         return false;
     }
 
-    // If either:
-    // 1) the user held start for 1-10 frames.
-    // 2) the user pressed start while the vanilla menu was already open.
-    // then we need to handle the start button press.
+    // If the (+) button was held for 1-10 frames, then released,
+    // we should simulate a normal (+) button input, opening the vanilla menu.
     if read(&START_HOLD_FRAMES) > 0 && read(&START_HOLD_FRAMES) < 10 {
-        dbg!("--------------3---------------");
-        dbg!(controller.current_buttons.plus());
-        dbg!(controller.previous_buttons.plus());
-        dbg!(read(&START_RELEASE_FRAMES));
-        dbg!(read(&START_HOLD_FRAMES));
-        dbg!("--------------3---------------");
         if !read(&QUICK_MENU_ACTIVE) && frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER) == 0 {
             // If we held for fewer than 10 frames, let's let the game know that
             // we had pressed start
@@ -322,6 +304,7 @@ fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
         assign(&START_HOLD_FRAMES, 0);
     }
 
+    // Don't open the modpack menu (at least, not on this frame).
     return false;
 }
 
