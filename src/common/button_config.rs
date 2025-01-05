@@ -259,7 +259,7 @@ fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
         }
     }
 
-    if controller.current_buttons.plus()
+    if controller.current_buttons.plus() {
 
         assign(&START_RELEASE_FRAMES, 0);
 
