@@ -240,7 +240,6 @@ pub fn combo_passes(combo: ButtonCombo) -> bool {
 }
 
 fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
-
     // If we press (-), open the modpack menu.
     // Exception: If the vanilla menu is open, don't open the modpack menu.
     if controller.current_buttons.minus() && !read(&VANILLA_MENU_ACTIVE) {
@@ -260,7 +259,6 @@ fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
     }
 
     if controller.current_buttons.plus() {
-
         assign(&START_RELEASE_FRAMES, 0);
 
         // If the vanilla menu is open, we don't want to open the modpack menu.
@@ -294,7 +292,9 @@ fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
     // If the (+) button was held for 1-10 frames, then released,
     // we should simulate a normal (+) button input, opening the vanilla menu.
     if read(&START_HOLD_FRAMES) > 0 && read(&START_HOLD_FRAMES) < 10 {
-        if !read(&QUICK_MENU_ACTIVE) && frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER) == 0 {
+        if !read(&QUICK_MENU_ACTIVE)
+            && frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER) == 0
+        {
             // If we held for fewer than 10 frames, let's let the game know that
             // we had pressed start
             controller.current_buttons.set_plus(true);
