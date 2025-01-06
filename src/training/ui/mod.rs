@@ -150,11 +150,11 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
         return;
     }
 
-    #[allow(static_mut_refs)]
     let inject_arc;
     let inject_arc_size: u64;
 
     #[cfg(feature = "layout_arc_from_file")]
+    #[allow(static_mut_refs)]
     {
         let inject_arc_from_file = std::fs::read(LAYOUT_ARC_PATH).unwrap();
         inject_arc_size = inject_arc_from_file.len() as u64;
