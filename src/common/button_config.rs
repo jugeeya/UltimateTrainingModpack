@@ -305,7 +305,7 @@ fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
     }
 
     // Don't open the modpack menu (at least, not on this frame).
-    return false;
+    false
 }
 
 pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeControllerStruct) {
