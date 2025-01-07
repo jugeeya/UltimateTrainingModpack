@@ -100,15 +100,21 @@ jobs:
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: atmosphere/contents/01006A800016E000/romfs/skyline/plugins 
+          merge-multiple: true
       - name: Prepare zip
         id: prepare_zip
         env:
           SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
         run: |
-          mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
-          cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
-          curl --output-dir ${{env.SMASH_PLUGIN_DIR}} https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.3/libparam_hook.nro
-          curl --output-dir ${{env.SMASH_PLUGIN_DIR}} https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
+          curl \
+            --no-progress-meter \
+            --create-dirs \
+            --output-dir ${{env.SMASH_PLUGIN_DIR}} \
+            --remote-name-all \
+            https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.3/libparam_hook.nro \
+            https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
           zip -r training_modpack_beta.zip atmosphere
       - name: Delete Release
         uses: dev-drprasad/delete-tag-and-release@v0.2.1
