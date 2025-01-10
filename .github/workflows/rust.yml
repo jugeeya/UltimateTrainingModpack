@@ -56,13 +56,13 @@ jobs:
           cache-all-crates: true
       - name: Install Skyline
         run: |
-          cargo install --git https://github.com/Raytwo/cargo-skyline --branch std-change --force
+          cargo install --git https://github.com/jam1garner/cargo-skyline --branch master --force
           cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
         run: RUSTFLAGS=-g cargo-skyline skyline build --release
       - name: Upload plugin artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
@@ -82,12 +82,12 @@ jobs:
           cache-all-crates: true
       - name: Install Skyline
         run: |
-          cargo install --git https://github.com/Raytwo/cargo-skyline --branch std-change --force
+          cargo install --git https://github.com/jam1garner/cargo-skyline --branch master --force
           cargo-skyline skyline update-std
       - name: Build outside_training_mode NRO
         run: RUSTFLAGS=-g cargo-skyline skyline build --release --features outside_training_mode
       - name: Upload plugin (outside training mode) artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: plugin_outside_training_mode
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
@@ -99,18 +99,22 @@ jobs:
       - plugin
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
+        with:
+          path: atmosphere/contents/01006A800016E000/romfs/skyline/plugins 
+          merge-multiple: true
       - name: Prepare zip
         id: prepare_zip
         env:
           SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
         run: |
-          mkdir -p ${{env.SMASH_PLUGIN_DIR}} 
-          cp plugin/libtraining_modpack.nro ${{env.SMASH_PLUGIN_DIR}}/libtraining_modpack.nro
-          wget https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.3/libparam_hook.nro
-          wget https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
-          cp libparam_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libparam_hook.nro
-          cp libnro_hook.nro ${{env.SMASH_PLUGIN_DIR}}/libnro_hook.nro
+          curl \
+            --no-progress-meter \
+            --create-dirs \
+            --output-dir ${{env.SMASH_PLUGIN_DIR}} \
+            --remote-name-all \
+            https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.3/libparam_hook.nro \
+            https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
           zip -r training_modpack_beta.zip atmosphere
       - name: Delete Release
         uses: dev-drprasad/delete-tag-and-release@v0.2.1
@@ -181,7 +185,7 @@ jobs:
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: full_build
           path: training_modpack_beta.zip 
