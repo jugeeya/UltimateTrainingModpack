@@ -109,6 +109,7 @@ jobs:
           SMASH_PLUGIN_DIR: atmosphere/contents/01006A800016E000/romfs/skyline/plugins
         run: |
           curl \
+            --location \
             --no-progress-meter \
             --create-dirs \
             --output-dir ${{env.SMASH_PLUGIN_DIR}} \
