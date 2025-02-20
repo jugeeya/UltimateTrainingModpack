@@ -175,28 +175,14 @@ pub unsafe fn param_installer() {
     }
 }
 
-pub fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
-    // Don't let shield override input recording playback
-    unsafe {
-        if input_record::is_playback() || input_record::is_standby() {
-            return false;
-        }
-    }
-    // Mash shield
-    if mash::request_shield(module_accessor) {
-        return true;
-    }
-
+pub unsafe fn should_hold_shield(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let shield_state = &read(&MENU).shield_state;
-
-    // We should hold shield if the state requires it
-    if unsafe { save_states::is_loading() }
-        || ![Shield::HOLD, Shield::INFINITE, Shield::CONSTANT].contains(shield_state)
-    {
-        return false;
-    }
-
-    true
+    !input_record::is_playback()
+        && !input_record::is_standby()
+        && !save_states::is_loading()
+        && !was_airborne(module_accessor)
+        && (mash::request_shield(module_accessor)
+            || [Shield::HOLD, Shield::INFINITE, Shield::CONSTANT].contains(shield_state))
 }
 
 #[skyline::hook(replace = smash::lua2cpp::L2CFighterCommon_sub_guard_cont)]

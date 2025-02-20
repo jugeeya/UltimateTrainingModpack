@@ -123,6 +123,12 @@ pub fn is_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> boo
     situation_kind == SITUATION_KIND_AIR
 }
 
+pub fn was_airborne(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
+    let situation_kind = unsafe { StatusModule::prev_situation_kind(module_accessor) };
+
+    situation_kind == SITUATION_KIND_AIR
+}
+
 pub fn is_idle(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
 
