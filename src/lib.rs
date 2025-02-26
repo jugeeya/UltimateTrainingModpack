@@ -125,7 +125,7 @@ pub fn main() {
     if !is_emulator() {
         info!("Performing version check...");
         let _updater = std::thread::Builder::new()
-            .stack_size(0x20000)
+            .stack_size(0x80000)
             .spawn(move || {
                 release::perform_version_check();
             })
