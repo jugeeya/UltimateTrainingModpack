@@ -1,12 +1,19 @@
 [package]
 name = "training_mod_metrics"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-datafusion = "5.0.0"
-tokio = "1.11.0"
+datafusion = "42.1.0"
+tokio = { version = "1.11.0", features = ["rt", "macros"] }
 plotters = "0.3.1"
-chrono = "0.4.19"
+chrono = { version = "0.4.19", features = ["serde"] }
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+structopt = "0.3"
+
+[dev-dependencies]
+tempfile = "3.2"
