@@ -114,7 +114,7 @@ jobs:
             --create-dirs \
             --output-dir ${{env.SMASH_PLUGIN_DIR}} \
             --remote-name-all \
-            https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.3/libparam_hook.nro \
+            https://github.com/ultimate-research/params-hook-plugin/releases/download/v13.0.4/libparam_hook.nro \
             https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
           zip -r training_modpack_beta.zip atmosphere
       - name: Delete Release
