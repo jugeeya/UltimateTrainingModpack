@@ -56,7 +56,7 @@ jobs:
           cache-all-crates: true
       - name: Install Skyline
         run: |
-          cargo install --git https://github.com/jam1garner/cargo-skyline --branch master --force
+          cargo install --git https://github.com/jugeeya/cargo-skyline --branch patch-3 --force
           cargo-skyline skyline update-std
       - name: Build release NRO
         id: build_release
