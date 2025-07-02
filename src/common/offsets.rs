@@ -5,23 +5,28 @@ use training_mod_sync::LazyLock;
 
 // Stolen from HDR who stole it from Arcropolis
 // https://github.com/HDR-Development/HewDraw-Remix/blob/dev/dynamic/src/util.rs
-pub fn byte_search<T: Eq>(needle: &[T]) -> Option<usize> {
-    let text = unsafe {
-        let start = skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as *const T;
-        let end = skyline::hooks::getRegionAddress(skyline::hooks::Region::Rodata) as *const T;
+pub fn byte_search(needle: &[u8]) -> (Option<usize>, Option<usize>) {
+    let haystack = unsafe {
+        let start = skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as *const u8;
+        let end = skyline::hooks::getRegionAddress(skyline::hooks::Region::Rodata) as *const u8;
         let length = end.offset_from(start) as usize;
         std::slice::from_raw_parts(start, length)
     };
-
-    text.windows(needle.len())
-        .position(|window| window == needle)
+    use memchr::memmem;
+    let first = memmem::find(haystack, needle);
+    let last = memmem::rfind(haystack, needle);
+    return (first, last);
 }
 
 // Wrapper around byte_search() with some additional logging
 fn find_offset(name: &str, needle: &[u8]) -> Option<usize> {
     info!("Searching for {}", name);
     let offset_opt = byte_search(needle);
-    match offset_opt {
+    if offset_opt.0 != offset_opt.1 {
+        error!("Found multiple offsets for {}. Extend the bytecode to be more specific", name);
+        return None;
+    }
+    match offset_opt.0 {
         Some(offset) => {
             info!("Found offset for {} at {:#x}", name, offset);
             Some(offset)
@@ -73,10 +78,11 @@ static NEEDLE_COPY_SETUP: &[u8] = &[
     0xf4, 0x4f, 0x05, 0xa9,
     0xfd, 0x7b, 0x06, 0xa9,
     0xfd, 0x83, 0x01, 0x91,
+    0xff, 0x43, 0x17, 0xd1,
 ];
 impl_offset!(COPY_SETUP);
 
-// OFFSET_IS_VISIBLE_BACKSHIELD = 0x1655410
+// OFFSET_IS_VISIBLE_BACKSHIELD = 0x1655610
 static NEEDLE_IS_VISIBLE_BACKSHIELD: &[u8] = &[
     0xfd, 0x7b, 0xbf, 0xa9,
     0xfd, 0x03, 0x00, 0x91,

@@ -27,6 +27,7 @@ num-traits = "0.2"
 wsl = "0.1.0"
 strum = "0.21.0"
 strum_macros = "0.21.0"
+memchr = "2.7.4"
 minreq = { version = "2", features = ["https-native", "json-using-serde"] }
 sarc = { version = "1.2.0", features = [], default-features = false }
 serde = { version = "1", features = ["derive"] }
