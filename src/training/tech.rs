@@ -464,7 +464,7 @@ unsafe fn set_fixed_camera_values() {
 
 pub unsafe fn get_camera_manager() -> &'static mut CameraManager {
     // CameraManager pointer is located here
-    let on_cam_mgr_ptr = (getRegionAddress(Region::Text) as u64) + 0x52b6f00;
+    let on_cam_mgr_ptr = (getRegionAddress(Region::Text) as u64) + 0x52b5f00;
     let pointer_arith = on_cam_mgr_ptr as *const *mut *mut CameraManager;
     &mut ***pointer_arith
 }

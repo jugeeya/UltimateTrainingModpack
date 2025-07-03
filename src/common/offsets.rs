@@ -5,23 +5,28 @@ use training_mod_sync::LazyLock;
 
 // Stolen from HDR who stole it from Arcropolis
 // https://github.com/HDR-Development/HewDraw-Remix/blob/dev/dynamic/src/util.rs
-pub fn byte_search<T: Eq>(needle: &[T]) -> Option<usize> {
-    let text = unsafe {
-        let start = skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as *const T;
-        let end = skyline::hooks::getRegionAddress(skyline::hooks::Region::Rodata) as *const T;
+pub fn byte_search(needle: &[u8]) -> (Option<usize>, Option<usize>) {
+    let haystack = unsafe {
+        let start = skyline::hooks::getRegionAddress(skyline::hooks::Region::Text) as *const u8;
+        let end = skyline::hooks::getRegionAddress(skyline::hooks::Region::Rodata) as *const u8;
         let length = end.offset_from(start) as usize;
         std::slice::from_raw_parts(start, length)
     };
-
-    text.windows(needle.len())
-        .position(|window| window == needle)
+    use memchr::memmem;
+    let first = memmem::find(haystack, needle);
+    let last = memmem::rfind(haystack, needle);
+    return (first, last);
 }
 
 // Wrapper around byte_search() with some additional logging
 fn find_offset(name: &str, needle: &[u8]) -> Option<usize> {
     info!("Searching for {}", name);
     let offset_opt = byte_search(needle);
-    match offset_opt {
+    if offset_opt.0 != offset_opt.1 {
+        error!("Found multiple offsets for {}. Extend the bytecode to be more specific", name);
+        return None;
+    }
+    match offset_opt.0 {
         Some(offset) => {
             info!("Found offset for {} at {:#x}", name, offset);
             Some(offset)
@@ -63,7 +68,7 @@ static NEEDLE_GET_BATTLE_OBJECT_FROM_ID: &[u8] = &[
 ];
 impl_offset!(GET_BATTLE_OBJECT_FROM_ID);
 
-// OFFSET_COPY_SETUP = 0xba0e60
+// OFFSET_COPY_SETUP = 0xba0e80
 static NEEDLE_COPY_SETUP: &[u8] = &[
     0xe8, 0x0f, 0x19, 0xfc,
     0xfc, 0x6f, 0x01, 0xa9,
@@ -73,10 +78,15 @@ static NEEDLE_COPY_SETUP: &[u8] = &[
     0xf4, 0x4f, 0x05, 0xa9,
     0xfd, 0x7b, 0x06, 0xa9,
     0xfd, 0x83, 0x01, 0x91,
+    0xff, 0x43, 0x17, 0xd1,
+    0x18, 0xa4, 0x40, 0xf9,
+    0xfa, 0x03, 0x03, 0x2a,
+    0x5f, 0x18, 0x00, 0x71,
+    0xc1, 0x02, 0x00, 0x54,
 ];
 impl_offset!(COPY_SETUP);
 
-// OFFSET_IS_VISIBLE_BACKSHIELD = 0x1655400
+// OFFSET_IS_VISIBLE_BACKSHIELD = 0x1655610
 static NEEDLE_IS_VISIBLE_BACKSHIELD: &[u8] = &[
     0xfd, 0x7b, 0xbf, 0xa9,
     0xfd, 0x03, 0x00, 0x91,
@@ -170,7 +180,7 @@ impl_offset!(CLOUD_ADD_LIMIT);
 // OFFSET_STALE_MENU = 0x13e88c0
 static NEEDLE_STALE_MENU: &[u8] = &[
     0xdf, 0x82, 0x2d, 0x39,
-    0xb3, 0x43, 0x8e, 0x94,
+    0xab, 0x44, 0x8e, 0x94,
     0x00, 0x1d, 0xa8, 0x4e,
     0xc0, 0xa2, 0x06, 0x91,
 ];
@@ -179,7 +189,7 @@ impl_offset!(STALE_MENU);
 // IMPORTANT! See above comment for STALE_MENU
 // OFFSET_STALE = 0x13e88c4
 static NEEDLE_STALE: &[u8] = &[
-    0xb3, 0x43, 0x8e, 0x94,
+    0xab, 0x44, 0x8e, 0x94,
     0x00, 0x1d, 0xa8, 0x4e,
     0xc0, 0xa2, 0x06, 0x91,
     0xdf, 0x22, 0x2f, 0x39,
@@ -295,7 +305,7 @@ static NEEDLE_KIRBY_OPFF: &[u8] = &[
 ];
 impl_offset!(KIRBY_OPFF);
 
-// OFFSET_ACTIVATE_AUTONOMY = 0x34b6990
+// OFFSET_ACTIVATE_AUTONOMY = 0x34B6720
 static NEEDLE_ACTIVATE_AUTONOMY: &[u8] = &[
     0xf6, 0x57, 0xbd, 0xa9,
     0xf4, 0x4f, 0x01, 0xa9,
@@ -308,7 +318,7 @@ static NEEDLE_ACTIVATE_AUTONOMY: &[u8] = &[
 ];
 impl_offset!(ACTIVATE_AUTONOMY);
 
-// OFFSET_POKEMON_DECIDE = 0x34ce904
+// OFFSET_POKEMON_DECIDE = 0x34CE694
 static NEEDLE_POKEMON_DECIDE: &[u8] = &[
     0x28, 0x69, 0x2b, 0x38,
     0x48, 0x26, 0x8b, 0x52,
@@ -317,7 +327,7 @@ static NEEDLE_POKEMON_DECIDE: &[u8] = &[
 ];
 impl_offset!(POKEMON_DECIDE);
 
-// OFFSET_LAYOUT_ARC_MALLOC = 0x3773d74
+// OFFSET_LAYOUT_ARC_MALLOC = 0x3774154
 static NEEDLE_LAYOUT_ARC_MALLOC: &[u8] = &[
     0xe3, 0xe6, 0x06, 0x94,
     0xa0, 0x05, 0x00, 0xb4,
@@ -330,7 +340,7 @@ impl_offset!(LAYOUT_ARC_MALLOC);
 static NEEDLE_TRAINING_RESET_CHECK: &[u8] = &[
     0x1f, 0x09, 0x00, 0x71,
     0x41, 0x1c, 0x00, 0x54,
-    0x08, 0xfa, 0x01, 0xb0,
+    0x08, 0xfa, 0x01, 0x90,
     0x08, 0x7d, 0x42, 0xf9,
     0x08, 0x01, 0x40, 0xf9,
     0x09, 0xa1, 0x40, 0xb9,
