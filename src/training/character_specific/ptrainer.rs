@@ -145,13 +145,12 @@ unsafe fn handle_pokemon_decide(ctx: &mut InlineCtx) {
     if !is_training_mode() || !save_states::is_loading() {
         return;
     }
-    let x20 = ctx.registers[20].x.as_mut();
-    let fighter = *x20 as *mut u64 as *mut app::Fighter;
+    let x20 = ctx.registers[20].x();
+    let fighter = x20 as *mut app::Fighter;
     let module_accessor = (*fighter).battle_object.module_accessor;
     let pokemon_value = save_states::get_state_pokemon(module_accessor);
     if pokemon_value <= 2 {
-        let w8 = ctx.registers[8].w.as_mut();
-        *w8 = pokemon_value;
+        ctx.registers[8].set_w(pokemon_value);
     }
 }
 

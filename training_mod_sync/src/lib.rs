@@ -24,13 +24,13 @@ pub fn assign<T>(rwlock: &RwLock<T>, new_val: T) {
 /// Locks a RwLock for writing and returns the guard
 ///
 /// Don't forget to drop the guard as soon as you're finished with it
-pub fn lock_write<T>(rwlock: &RwLock<T>) -> RwLockWriteGuard<T> {
+pub fn lock_write<T>(rwlock: &RwLock<T>) -> RwLockWriteGuard<'_, T> {
     rwlock.write().unwrap()
 }
 
 /// Locks a RwLock for reading and returns the guard
 ///
 /// Don't forget to drop the guard as soon as you're finished with it
-pub fn lock_read<T>(rwlock: &RwLock<T>) -> RwLockReadGuard<T> {
+pub fn lock_read<T>(rwlock: &RwLock<T>) -> RwLockReadGuard<'_, T> {
     rwlock.read().unwrap()
 }
