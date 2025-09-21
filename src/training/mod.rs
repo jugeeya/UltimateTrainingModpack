@@ -427,7 +427,7 @@ pub unsafe fn handle_add_damage(
 // This function already checks for training mode, so we don't need to check for training mode here
 #[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
-    let x8 = ctx.registers[8].x.as_mut();
+    let x8 = ctx.registers[8].x() as *mut u64;
     if !(read(&MENU).lra_reset.as_bool()) {
         *x8 = 0;
     }
@@ -437,8 +437,7 @@ unsafe fn lra_handle(ctx: &mut InlineCtx) {
 // One instruction after stale moves toggle register is set to 0
 #[skyline::hook(offset = *OFFSET_STALE, inline)]
 unsafe fn stale_handle(ctx: &mut InlineCtx) {
-    let x22 = ctx.registers[22].x.as_mut();
-    TRAINING_MENU_ADDR = (*x22) as *mut PauseMenu;
+    TRAINING_MENU_ADDR = ctx.registers[22].x() as *mut PauseMenu;
     (*TRAINING_MENU_ADDR).stale_move_toggle = 1;
 }
 
@@ -448,8 +447,7 @@ unsafe fn stale_handle(ctx: &mut InlineCtx) {
 unsafe fn stale_menu_handle(ctx: &mut InlineCtx) {
     // Set the text pointer to where "mel_training_on" is located
     let on_text_ptr = (getRegionAddress(Region::Text) as u64) + 0x42b315e;
-    let x1 = ctx.registers[1].x.as_mut();
-    *x1 = on_text_ptr;
+    ctx.registers[1].set_x(on_text_ptr);
 }
 
 #[skyline::hook(replace = SoundModule::play_se)] // hooked to prevent death sfx from playing when loading save states

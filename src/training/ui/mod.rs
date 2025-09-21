@@ -135,8 +135,8 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
         return;
     }
 
-    let decompressed_file = *ctx.registers[21].x.as_ref() as *const u8;
-    let decompressed_size = *ctx.registers[1].x.as_ref() as usize;
+    let decompressed_file = ctx.registers[21].x() as *const u8;
+    let decompressed_size = ctx.registers[1].x() as usize;
 
     let layout_arc = SarcFile::read(std::slice::from_raw_parts(
         decompressed_file,
@@ -177,13 +177,12 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
     }
 
     // Decompressed file pointer
-    let decompressed_file = ctx.registers[21].x.as_mut();
-    *decompressed_file = inject_arc as u64;
+    ctx.registers[21].set_x(inject_arc as u64);
 
     // Decompressed size is in each of these registers
-    *ctx.registers[1].x.as_mut() = inject_arc_size;
-    *ctx.registers[23].x.as_mut() = inject_arc_size;
-    *ctx.registers[24].x.as_mut() = inject_arc_size;
+    ctx.registers[1].set_x(inject_arc_size);
+    ctx.registers[23].set_x(inject_arc_size);
+    ctx.registers[24].set_x(inject_arc_size);
 }
 
 pub fn init() {

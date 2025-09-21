@@ -118,7 +118,7 @@ impl<T: Serialize> StatefulList<T> {
     pub fn iter(&self) -> impl Iterator<Item = &T> + '_ {
         self.items.iter()
     }
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
         self.items.iter_mut()
     }
 }

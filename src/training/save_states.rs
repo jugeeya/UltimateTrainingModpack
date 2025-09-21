@@ -762,7 +762,7 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state_player(selected_slot).state != Save
             && save_state_cpu(selected_slot).state != Save
         {
-            save_to_file();
+            std::thread::spawn(move || save_to_file());
         }
     }
 }

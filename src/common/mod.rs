@@ -289,7 +289,9 @@ pub unsafe fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
 
 pub unsafe fn get_fighter_distance() -> f32 {
     let player_module_accessor = get_module_accessor(FighterId::Player);
-    if StatusModule::status_kind(player_module_accessor) == *FIGHTER_STATUS_KIND_NONE { return f32::MAX }
+    if StatusModule::status_kind(player_module_accessor) == *FIGHTER_STATUS_KIND_NONE {
+        return f32::MAX;
+    }
     let cpu_module_accessor = get_module_accessor(FighterId::CPU);
     let player_pos = *PostureModule::pos(player_module_accessor);
     let cpu_pos = *PostureModule::pos(cpu_module_accessor);
