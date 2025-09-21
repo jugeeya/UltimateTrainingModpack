@@ -194,6 +194,7 @@ static BUTTON_COMBO_REQUESTS: LazyLock<RwLock<HashMap<ButtonCombo, bool>>> = Laz
     ]))
 });
 static START_HOLD_FRAMES: RwLock<u32> = RwLock::new(0);
+static START_RELEASE_FRAMES: RwLock<u32> = RwLock::new(0);
 
 fn _combo_passes(p1_controller: Controller, combo: ButtonCombo) -> bool {
     unsafe {
@@ -238,58 +239,95 @@ pub fn combo_passes(combo: ButtonCombo) -> bool {
     did_pass
 }
 
-pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeControllerStruct) {
-    if player_idx == 0 {
-        let p1_controller = &mut *controller_struct.controller;
-        let mut start_menu_request = false;
+fn handle_menu_open_start_press(controller: &mut Controller) -> bool {
+    // If we press (-), open the modpack menu.
+    // Exception: If the vanilla menu is open, don't open the modpack menu.
+    if controller.current_buttons.minus() && !read(&VANILLA_MENU_ACTIVE) {
+        return true;
+    }
 
-        let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
-        if read(&MENU).menu_open_start_press == OnOff::ON {
-            let mut start_hold_frames = read(&START_HOLD_FRAMES);
-            if p1_controller.current_buttons.plus() {
-                start_hold_frames += 1;
-                p1_controller.previous_buttons.set_plus(false);
-                p1_controller.current_buttons.set_plus(false);
-                p1_controller.just_down.set_plus(false);
-                p1_controller.just_release.set_plus(false);
-                if start_hold_frames >= 10 && !read(&VANILLA_MENU_ACTIVE) {
-                    // If we've held for more than 10 frames,
-                    // let's open the training mod menu
-                    start_menu_request = true;
-                }
-            } else {
-                // Here, we just finished holding start
-                if start_hold_frames > 0
-                    && start_hold_frames < 10
-                    && !read(&QUICK_MENU_ACTIVE)
-                    && menu_close_wait_frame == 0
-                {
-                    // If we held for fewer than 10 frames, let's let the game know that
-                    // we had pressed start
-                    p1_controller.current_buttons.set_plus(true);
-                    p1_controller.just_down.set_plus(true);
-                    assign(&VANILLA_MENU_ACTIVE, true);
-                }
-                start_hold_frames = 0;
-            }
-            assign(&START_HOLD_FRAMES, start_hold_frames);
+    // If we aren't currently holding start on this frame...
+    // and we weren't holding start on the previous frame...
+    if !controller.current_buttons.plus() && !controller.previous_buttons.plus() {
+        // If we've only been releasing the start button for < 2 frames,
+        // end here. This is done in order to ensure that the user has
+        // actually released the start button, by waiting for a few more frames.
+        if read(&START_RELEASE_FRAMES) < 2 {
+            assign(&START_RELEASE_FRAMES, read(&START_RELEASE_FRAMES) + 1);
+            return false;
+        }
+    }
 
-            // If we ever press minus, open the mod menu
-            if p1_controller.current_buttons.minus() {
-                start_menu_request = true;
-            }
+    if controller.current_buttons.plus() {
+        assign(&START_RELEASE_FRAMES, 0);
+
+        // If the vanilla menu is open, we don't want to open the modpack menu.
+        // Instead, we should just close the vanilla menu.
+        if read(&VANILLA_MENU_ACTIVE) {
+            assign(&START_HOLD_FRAMES, 0);
+            return false;
         }
 
-        let mut button_combo_requests_lock = lock_write(&BUTTON_COMBO_REQUESTS);
-        (*button_combo_requests_lock)
-            .iter_mut()
-            .for_each(|(combo, is_request)| {
-                if !*is_request {
-                    *is_request = _combo_passes(*p1_controller, *combo);
-                    if *combo == ButtonCombo::OpenMenu && start_menu_request {
-                        *is_request = true;
-                    }
-                }
-            })
+        assign(&START_HOLD_FRAMES, read(&START_HOLD_FRAMES) + 1);
+
+        // Reset the (+) button state, so that the game doesn't
+        // process the (+) button input until we're sure which action to take.
+        // (i.e.: open the vanilla menu, open the modpack menu, or do nothing)
+        controller.previous_buttons.set_plus(false);
+        controller.current_buttons.set_plus(false);
+        controller.just_down.set_plus(false);
+        controller.just_release.set_plus(false);
+
+        // If we've held the (+) button for more than 10 frames,
+        // open the modpack menu.
+        if read(&START_HOLD_FRAMES) >= 10 {
+            assign(&START_HOLD_FRAMES, 0);
+            return true;
+        }
+
+        // Don't open the modpack menu (at least, not on this frame).
+        return false;
     }
+
+    // If the (+) button was held for 1-10 frames, then released,
+    // we should simulate a normal (+) button input, opening the vanilla menu.
+    if read(&START_HOLD_FRAMES) > 0 && read(&START_HOLD_FRAMES) < 10 {
+        if !read(&QUICK_MENU_ACTIVE)
+            && frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER) == 0
+        {
+            // If we held for fewer than 10 frames, let's let the game know that
+            // we had pressed start
+            controller.current_buttons.set_plus(true);
+            controller.just_down.set_plus(true);
+            assign(&VANILLA_MENU_ACTIVE, true);
+        }
+        assign(&START_HOLD_FRAMES, 0);
+    }
+
+    // Don't open the modpack menu (at least, not on this frame).
+    false
+}
+
+pub fn handle_final_input_mapping(player_idx: i32, controller_struct: &mut SomeControllerStruct) {
+    if player_idx != 0 {
+        return;
+    }
+    let p1_controller = &mut *controller_struct.controller;
+    let mut start_menu_request = false;
+
+    if read(&MENU).menu_open_start_press == OnOff::ON {
+        start_menu_request = handle_menu_open_start_press(p1_controller);
+    }
+
+    let mut button_combo_requests_lock = lock_write(&BUTTON_COMBO_REQUESTS);
+    (*button_combo_requests_lock)
+        .iter_mut()
+        .for_each(|(combo, is_request)| {
+            if !*is_request {
+                *is_request = _combo_passes(*p1_controller, *combo);
+                if *combo == ButtonCombo::OpenMenu && start_menu_request {
+                    *is_request = true;
+                }
+            }
+        })
 }
