@@ -64,11 +64,13 @@ pub fn set_menu_from_json(message: &str) {
         // Includes both MENU and DEFAULTS_MENU
         assign(&MENU, message_json.menu);
         assign(&DEFAULTS_MENU, message_json.defaults_menu);
-        fs::write(
-            MENU_OPTIONS_PATH,
-            serde_json::to_string_pretty(&message_json).unwrap(),
-        )
-        .expect("Failed to write menu settings file");
+        std::thread::spawn(move || {
+            fs::write(
+                MENU_OPTIONS_PATH,
+                serde_json::to_string_pretty(&message_json).unwrap(),
+            )
+            .expect("Failed to write menu settings file");
+        });
     } else {
         skyline::error::show_error(
             0x70,
