@@ -246,7 +246,7 @@ impl<'a, T: Clone + Serialize> Iterator for StatefulTableIterator<'a, T> {
 }
 
 impl<T: Clone + Serialize> StatefulTable<T> {
-    pub fn iter(&self) -> StatefulTableIterator<T> {
+    pub fn iter(&self) -> StatefulTableIterator<'_, T> {
         StatefulTableIterator {
             stateful_table: self,
             index: 0,

@@ -15,7 +15,7 @@ pub fn byte_search(needle: &[u8]) -> (Option<usize>, Option<usize>) {
     use memchr::memmem;
     let first = memmem::find(haystack, needle);
     let last = memmem::rfind(haystack, needle);
-    return (first, last);
+    (first, last)
 }
 
 // Wrapper around byte_search() with some additional logging
