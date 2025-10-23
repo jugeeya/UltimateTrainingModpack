@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use skyline::nn::ui2d::*;
-use smash::ui2d::{SmashPane, SmashTextBox};
+use smash::ui2d::SmashTextBox;
 use training_mod_consts::{InputDisplay, MENU};
 
 use crate::common::consts::status_display_name;
@@ -9,8 +9,8 @@ use crate::menu::QUICK_MENU_ACTIVE;
 use crate::training::input_log::{
     DirectionStrength, InputLog, DRAW_LOG_BASE_IDX, NUM_LOGS, P1_INPUT_LOGS, WHITE, YELLOW,
 };
-use crate::training::ui::fade_out;
 use crate::training::ui::menu::VANILLA_MENU_ACTIVE;
+use crate::training::ui::{fade_out, PaneExt};
 use training_mod_sync::*;
 
 macro_rules! log_parent_fmt {
@@ -70,9 +70,7 @@ fn get_input_icons(log: &InputLog) -> VecDeque<(&str, ResColor)> {
 unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     let draw_log_base_idx = read(&DRAW_LOG_BASE_IDX);
     let draw_log_idx = (log_idx + (NUM_LOGS - draw_log_base_idx)) % NUM_LOGS;
-    let log_pane = root_pane
-        .find_pane_by_name_recursive(log_parent_fmt!(draw_log_idx))
-        .unwrap();
+    let log_pane = root_pane.find_pane_by_name_recursive_expect(log_parent_fmt!(draw_log_idx));
 
     // Handle visibility and alpha
     log_pane.set_visible(true);
@@ -136,13 +134,12 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
     ];
 
     for idx in 0..NUM_ICON_SLOTS {
-        let input_pane = log_pane
-            .find_pane_by_name_recursive(format!("Input{}", idx).as_str())
-            .unwrap();
+        let input_pane =
+            log_pane.find_pane_by_name_recursive_expect(format!("Input{}", idx).as_str());
 
         available_icons
             .iter()
-            .map(|name| input_pane.find_pane_by_name_recursive(name).unwrap())
+            .map(|name| input_pane.find_pane_by_name_recursive_expect(name))
             .for_each(|icon_pane| {
                 icon_pane.set_visible(false);
             });
@@ -156,13 +153,11 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
             continue;
         }
 
-        let input_pane = log_pane
-            .find_pane_by_name_recursive(format!("Input{}", index).as_str())
-            .unwrap();
+        let input_pane =
+            log_pane.find_pane_by_name_recursive_expect(format!("Input{}", index).as_str());
 
         let icon_pane = input_pane
-            .find_pane_by_name_recursive(icon_name)
-            .unwrap()
+            .find_pane_by_name_recursive_expect(icon_name)
             .as_picture();
 
         icon_pane.set_visible(true);
@@ -171,8 +166,7 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
 
     let frame_text = format!("{}", log.frames);
     log_pane
-        .find_pane_by_name_recursive("Frame")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("Frame")
         .as_textbox()
         .set_text_string(frame_text.as_str());
 
@@ -182,16 +176,13 @@ unsafe fn draw_log(root_pane: &Pane, log_idx: usize, log: &InputLog) {
         "".to_string()
     };
     log_pane
-        .find_pane_by_name_recursive("Status")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("Status")
         .as_textbox()
         .set_text_string(status_text.as_str());
 }
 
 pub unsafe fn draw(root_pane: &Pane) {
-    let logs_pane = root_pane
-        .find_pane_by_name_recursive("TrModInputLog")
-        .unwrap();
+    let logs_pane = root_pane.find_pane_by_name_recursive_expect("TrModInputLog");
     logs_pane.set_visible(
         !read(&QUICK_MENU_ACTIVE)
             && !read(&VANILLA_MENU_ACTIVE)
