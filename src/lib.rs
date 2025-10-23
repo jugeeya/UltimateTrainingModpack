@@ -81,7 +81,7 @@ pub fn main() {
             &complete_error_message,
         );
     }));
-    init_logger().unwrap();
+    init_logger().expect("Could not initialize logger");
 
     info!("Initialized.");
 

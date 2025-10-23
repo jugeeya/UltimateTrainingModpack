@@ -63,10 +63,6 @@ pub unsafe fn try_get_battle_object(battle_object_id: u32) -> Option<&'static ap
     battle_object_ptr.as_ref()
 }
 
-pub fn get_module_accessor(fighter_id: FighterId) -> *mut app::BattleObjectModuleAccessor {
-    try_get_module_accessor(fighter_id).unwrap()
-}
-
 pub fn try_get_module_accessor(
     fighter_id: FighterId,
 ) -> Option<*mut app::BattleObjectModuleAccessor> {
@@ -278,7 +274,8 @@ pub unsafe fn entry_count() -> i32 {
 }
 
 pub unsafe fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
-    let module_accessor = get_module_accessor(p);
+    let module_accessor =
+        try_get_module_accessor(p).expect("Could not get module accessor in get_player_dmg_digits");
     let dmg = DamageModule::damage(module_accessor, 0);
     let hundreds = dmg as u16 / 100;
     let tens = (dmg as u16 - hundreds * 100) / 10;
@@ -288,11 +285,13 @@ pub unsafe fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
 }
 
 pub unsafe fn get_fighter_distance() -> f32 {
-    let player_module_accessor = get_module_accessor(FighterId::Player);
+    let player_module_accessor = try_get_module_accessor(FighterId::Player)
+        .expect("Could not get player_module_accessor in get_fighter_distance");
     if StatusModule::status_kind(player_module_accessor) == *FIGHTER_STATUS_KIND_NONE {
         return f32::MAX;
     }
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module_accessor in get_fighter_distance");
     let player_pos = *PostureModule::pos(player_module_accessor);
     let cpu_pos = *PostureModule::pos(cpu_module_accessor);
     app::sv_math::vec3_distance(

@@ -67,7 +67,8 @@ pub fn set_menu_from_json(message: &str) {
         std::thread::spawn(move || {
             fs::write(
                 MENU_OPTIONS_PATH,
-                serde_json::to_string_pretty(&message_json).unwrap(),
+                serde_json::to_string_pretty(&message_json)
+                    .expect("Could not serialize menu settings"),
             )
             .expect("Failed to write menu settings file");
         });
