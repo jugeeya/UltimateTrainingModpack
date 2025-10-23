@@ -12,6 +12,7 @@ use crate::common::menu::{
 };
 use crate::input::*;
 use crate::training::frame_counter;
+use crate::training::ui::PaneExt;
 use training_mod_consts::TOGGLE_MAX;
 use training_mod_sync::*;
 
@@ -87,22 +88,18 @@ unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
     let tab = app.selected_tab();
     for row in 0..NX_SUBMENU_ROWS {
         let menu_button_row = root_pane
-            .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row}").as_str())
-            .unwrap();
+            .find_pane_by_name_recursive_expect(format!("TrModMenuButtonRow{row}").as_str());
         menu_button_row.set_visible(true);
         for col in 0..NX_SUBMENU_COLUMNS {
             if let Some(submenu) = tab.submenus.get(row, col) {
                 // Find all the panes we need to modify
                 let menu_button = menu_button_row
-                    .find_pane_by_name_recursive(format!("Button{col}").as_str())
-                    .unwrap();
+                    .find_pane_by_name_recursive_expect(format!("Button{col}").as_str());
                 let title_text = menu_button
-                    .find_pane_by_name_recursive("TitleTxt")
-                    .unwrap()
+                    .find_pane_by_name_recursive_expect("TitleTxt")
                     .as_textbox();
                 let title_bg = menu_button
-                    .find_pane_by_name_recursive("TitleBg")
-                    .unwrap()
+                    .find_pane_by_name_recursive_expect("TitleBg")
                     .as_picture();
                 let title_bg_material = &mut *title_bg.material;
                 let is_selected = row == tab.submenus.state.selected_row().unwrap()
@@ -126,8 +123,7 @@ unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
                 }
 
                 menu_button
-                    .find_pane_by_name_recursive("check")
-                    .unwrap()
+                    .find_pane_by_name_recursive_expect("check")
                     .set_visible(false);
 
                 for value in 1..=TOGGLE_MAX {
@@ -143,8 +139,7 @@ unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
                 if is_selected {
                     // Help text
                     root_pane
-                        .find_pane_by_name_recursive("FooterTxt")
-                        .unwrap()
+                        .find_pane_by_name_recursive_expect("FooterTxt")
                         .as_textbox()
                         .set_text_string(submenu.help_text);
 
@@ -162,8 +157,7 @@ unsafe fn render_submenu_page(app: &mut App, root_pane: &Pane) {
                 }
                 menu_button.set_visible(true);
                 menu_button
-                    .find_pane_by_name_recursive("Icon")
-                    .unwrap()
+                    .find_pane_by_name_recursive_expect("Icon")
                     .set_visible(true);
             }
         }
@@ -178,22 +172,18 @@ unsafe fn render_toggle_page(app: &mut App, root_pane: &Pane) {
     let use_check_icon = submenu.toggles.get(0, 0).unwrap().max == 1;
     for row in 0..NX_SUBMENU_ROWS {
         let menu_button_row = root_pane
-            .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row}").as_str())
-            .unwrap();
+            .find_pane_by_name_recursive_expect(format!("TrModMenuButtonRow{row}").as_str());
         menu_button_row.set_visible(true);
         for col in 0..NX_SUBMENU_COLUMNS {
             if let Some(toggle) = submenu.toggles.get(row, col) {
                 let menu_button = menu_button_row
-                    .find_pane_by_name_recursive(format!("Button{col}").as_str())
-                    .unwrap();
+                    .find_pane_by_name_recursive_expect(format!("Button{col}").as_str());
                 menu_button.set_visible(true);
                 let title_text = menu_button
-                    .find_pane_by_name_recursive("TitleTxt")
-                    .unwrap()
+                    .find_pane_by_name_recursive_expect("TitleTxt")
                     .as_textbox();
                 let title_bg = menu_button
-                    .find_pane_by_name_recursive("TitleBg")
-                    .unwrap()
+                    .find_pane_by_name_recursive_expect("TitleBg")
                     .as_picture();
                 let title_bg_material = &mut *title_bg.material;
                 let is_selected = row == submenu.toggles.state.selected_row().unwrap()
@@ -227,22 +217,18 @@ unsafe fn render_toggle_page(app: &mut App, root_pane: &Pane) {
 
                 if use_check_icon {
                     menu_button
-                        .find_pane_by_name_recursive("check")
-                        .unwrap()
+                        .find_pane_by_name_recursive_expect("check")
                         .set_visible(true);
 
                     menu_button
-                        .find_pane_by_name_recursive("Icon")
-                        .unwrap()
+                        .find_pane_by_name_recursive_expect("Icon")
                         .set_visible(toggle.value > 0);
                 } else {
                     menu_button
-                        .find_pane_by_name_recursive("check")
-                        .unwrap()
+                        .find_pane_by_name_recursive_expect("check")
                         .set_visible(false);
                     menu_button
-                        .find_pane_by_name_recursive("Icon")
-                        .unwrap()
+                        .find_pane_by_name_recursive_expect("Icon")
                         .set_visible(toggle.value > 0);
 
                     // Note there's no pane for 0
@@ -265,51 +251,39 @@ unsafe fn render_slider_page(app: &mut App, root_pane: &Pane) {
     let selected_min = slider.lower;
     let selected_max = slider.upper;
 
-    let slider_pane = root_pane
-        .find_pane_by_name_recursive("TrModSlider")
-        .unwrap();
+    let slider_pane = root_pane.find_pane_by_name_recursive_expect("TrModSlider");
     slider_pane.set_visible(true);
 
     let _background = slider_pane
-        .find_pane_by_name_recursive("Background")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("Background")
         .as_picture();
     let header = slider_pane
-        .find_pane_by_name_recursive("Header")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("Header")
         .as_textbox();
     header.set_text_string(submenu.title);
     let min_button = slider_pane
-        .find_pane_by_name_recursive("MinButton")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("MinButton")
         .as_picture();
     let max_button = slider_pane
-        .find_pane_by_name_recursive("MaxButton")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("MaxButton")
         .as_picture();
     let min_title_text = min_button
-        .find_pane_by_name_recursive("TitleTxt")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("TitleTxt")
         .as_textbox();
     let min_title_bg = min_button
-        .find_pane_by_name_recursive("TitleBg")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("TitleBg")
         .as_picture();
     let min_value_text = min_button
-        .find_pane_by_name_recursive("ValueTxt")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("ValueTxt")
         .as_textbox();
     let max_title_text = max_button
-        .find_pane_by_name_recursive("TitleTxt")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("TitleTxt")
         .as_textbox();
     let max_title_bg = max_button
-        .find_pane_by_name_recursive("TitleBg")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("TitleBg")
         .as_picture();
     let max_value_text = max_button
-        .find_pane_by_name_recursive("ValueTxt")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("ValueTxt")
         .as_textbox();
 
     min_title_text.set_text_string("Min");
@@ -368,7 +342,7 @@ unsafe fn render_slider_page(app: &mut App, root_pane: &Pane) {
 
     // Hide the Icon pane for MinButton and MaxButton
     [min_button, max_button].iter().for_each(|button| {
-        let icon = button.find_pane_by_name_recursive("Icon").unwrap();
+        let icon = button.find_pane_by_name_recursive_expect("Icon");
         icon.set_visible(false);
     });
 }
@@ -388,8 +362,7 @@ unsafe fn render_confirmation_page(app: &mut App, root_pane: &Pane) {
 
     // Set help text
     root_pane
-        .find_pane_by_name_recursive("FooterTxt")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("FooterTxt")
         .as_textbox()
         .set_text_string(help_text);
 
@@ -397,24 +370,20 @@ unsafe fn render_confirmation_page(app: &mut App, root_pane: &Pane) {
     for row in 0..NX_SUBMENU_ROWS {
         let should_show_row = row == show_row;
         let menu_button_row = root_pane
-            .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row}").as_str())
-            .unwrap();
+            .find_pane_by_name_recursive_expect(format!("TrModMenuButtonRow{row}").as_str());
         menu_button_row.set_visible(should_show_row);
         if should_show_row {
             for col in 0..NX_SUBMENU_COLUMNS {
                 let should_show_col = show_cols.contains(&col);
                 let menu_button = menu_button_row
-                    .find_pane_by_name_recursive(format!("Button{col}").as_str())
-                    .unwrap();
+                    .find_pane_by_name_recursive_expect(format!("Button{col}").as_str());
                 menu_button.set_visible(should_show_col);
                 if should_show_col {
                     let title_text = menu_button
-                        .find_pane_by_name_recursive("TitleTxt")
-                        .unwrap()
+                        .find_pane_by_name_recursive_expect("TitleTxt")
                         .as_textbox();
                     let title_bg = menu_button
-                        .find_pane_by_name_recursive("TitleBg")
-                        .unwrap()
+                        .find_pane_by_name_recursive_expect("TitleBg")
                         .as_picture();
                     let title_bg_material = &mut *title_bg.material;
 
@@ -465,13 +434,12 @@ pub unsafe fn draw(root_pane: &Pane) {
     assign(
         &VANILLA_MENU_ACTIVE,
         root_pane
-            .find_pane_by_name_recursive("L_staying_help")
-            .unwrap()
+            .find_pane_by_name_recursive_expect("L_staying_help")
             .pos_y
             != -80.0,
     );
 
-    let overall_parent_pane = root_pane.find_pane_by_name_recursive("TrModMenu").unwrap();
+    let overall_parent_pane = root_pane.find_pane_by_name_recursive_expect("TrModMenu");
     overall_parent_pane.set_visible(read(&QUICK_MENU_ACTIVE) && !read(&VANILLA_MENU_ACTIVE));
     let menu_close_wait_frame = frame_counter::get_frame_count(*MENU_CLOSE_FRAME_COUNTER);
     fade_out(
@@ -499,19 +467,17 @@ pub unsafe fn draw(root_pane: &Pane) {
     // Make all invisible first
     for row_idx in 0..NX_SUBMENU_ROWS {
         for col_idx in 0..NX_SUBMENU_COLUMNS {
-            let menu_button_row = root_pane
-                .find_pane_by_name_recursive(format!("TrModMenuButtonRow{row_idx}").as_str())
-                .unwrap();
+            let menu_button_row = root_pane.find_pane_by_name_recursive_expect(
+                format!("TrModMenuButtonRow{row_idx}").as_str(),
+            );
             menu_button_row.set_visible(false);
 
             let menu_button = menu_button_row
-                .find_pane_by_name_recursive(format!("Button{col_idx}").as_str())
-                .unwrap();
+                .find_pane_by_name_recursive_expect(format!("Button{col_idx}").as_str());
             menu_button.set_visible(false);
 
             menu_button
-                .find_pane_by_name_recursive("ValueTxt")
-                .unwrap()
+                .find_pane_by_name_recursive_expect("ValueTxt")
                 .set_visible(false);
         }
     }
@@ -525,8 +491,7 @@ pub unsafe fn draw(root_pane: &Pane) {
     status_r_pane.set_visible(!read(&QUICK_MENU_ACTIVE));
 
     root_pane
-        .find_pane_by_name_recursive("TrModSlider")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("TrModSlider")
         .set_visible(false);
 
     // Update menu display
@@ -577,15 +542,13 @@ pub unsafe fn draw(root_pane: &Pane) {
     .iter()
     .enumerate()
     .for_each(|(idx, (key, name))| {
-        let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
+        let key_help_pane = root_pane.find_pane_by_name_recursive_expect(name);
 
         let icon_pane = key_help_pane
-            .find_pane_by_name_recursive("set_txt_icon")
-            .unwrap()
+            .find_pane_by_name_recursive_expect("set_txt_icon")
             .as_textbox();
         let help_pane = key_help_pane
-            .find_pane_by_name_recursive("set_txt_help")
-            .unwrap()
+            .find_pane_by_name_recursive_expect("set_txt_help")
             .as_textbox();
         icon_pane.set_text_string("");
 
@@ -607,15 +570,13 @@ pub unsafe fn draw(root_pane: &Pane) {
     let name = "SaveDefaults";
     let key = save_defaults_key;
     let title = "Save Defaults";
-    let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
+    let key_help_pane = root_pane.find_pane_by_name_recursive_expect(name);
     let icon_pane = key_help_pane
-        .find_pane_by_name_recursive("set_txt_icon")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("set_txt_icon")
         .as_textbox();
     set_icon_text(icon_pane, &[*key.unwrap()]);
     key_help_pane
-        .find_pane_by_name_recursive("set_txt_help")
-        .unwrap()
+        .find_pane_by_name_recursive_expect("set_txt_help")
         .as_textbox()
         .set_text_string(title);
 
@@ -630,33 +591,28 @@ pub unsafe fn draw(root_pane: &Pane) {
         AppPage::CLOSE => "",
     };
     if !title.is_empty() {
-        let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
+        let key_help_pane = root_pane.find_pane_by_name_recursive_expect(name);
         let icon_pane = key_help_pane
-            .find_pane_by_name_recursive("set_txt_icon")
-            .unwrap()
+            .find_pane_by_name_recursive_expect("set_txt_icon")
             .as_textbox();
         set_icon_text(icon_pane, &[*key.unwrap()]);
         key_help_pane
-            .find_pane_by_name_recursive("set_txt_help")
-            .unwrap()
+            .find_pane_by_name_recursive_expect("set_txt_help")
             .as_textbox()
             .set_text_string(title);
     }
 
     // Clear Toggle Keyhelp
     let name = "ClearToggle";
-    let key_help_pane = root_pane.find_pane_by_name_recursive(name).unwrap();
-    let icon_pane = key_help_pane
-        .find_pane_by_name_recursive("set_txt_icon")
-        .unwrap();
+    let key_help_pane = root_pane.find_pane_by_name_recursive_expect(name);
+    let icon_pane = key_help_pane.find_pane_by_name_recursive_expect("set_txt_icon");
     if app.should_show_clear_keyhelp() {
         // This is only displayed when you're in a multiple selection toggle menu w/ toggle.max > 1
         let key = clear_toggle_key;
         let title = "Clear Toggle";
         set_icon_text(icon_pane.as_textbox(), &[*key.unwrap()]);
         key_help_pane
-            .find_pane_by_name_recursive("set_txt_help")
-            .unwrap()
+            .find_pane_by_name_recursive_expect("set_txt_help")
             .as_textbox()
             .set_text_string(title);
         icon_pane.set_visible(true);
