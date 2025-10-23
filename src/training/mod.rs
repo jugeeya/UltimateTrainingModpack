@@ -4,7 +4,7 @@ use crate::common::button_config;
 use crate::common::consts::{BuffOption, FighterId, MENU};
 use crate::common::offsets::*;
 use crate::common::{
-    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu, PauseMenu,
+    dev_config, is_operation_cpu, is_training_mode, menu, try_get_module_accessor, PauseMenu,
     FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, TRAINING_MENU_ADDR,
 };
 use crate::hitbox_visualizer;
@@ -756,8 +756,10 @@ pub unsafe fn handle_reused_ui(
     }
 
     if save_states::is_loading() {
-        let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
-        let cpu_module_accessor = &mut *get_module_accessor(FighterId::CPU);
+        let player_module_accessor = &mut *try_get_module_accessor(FighterId::Player)
+            .expect("Could not get player module accessor in reused_ui");
+        let cpu_module_accessor = &mut *try_get_module_accessor(FighterId::CPU)
+            .expect("Could not get CPU module accessor in reused_ui");
         let player_fighter_kind = utility::get_kind(player_module_accessor);
         let cpu_fighter_kind = utility::get_kind(cpu_module_accessor);
         // If Little Mac is in the game and we're buffing him, set the meter to 100

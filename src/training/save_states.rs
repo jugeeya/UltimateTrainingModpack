@@ -23,8 +23,8 @@ use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
-use crate::common::get_module_accessor;
 use crate::common::is_dead;
+use crate::common::try_get_module_accessor;
 use crate::common::MENU;
 use crate::is_operation_cpu;
 use crate::training::buff;
@@ -192,7 +192,8 @@ pub unsafe fn get_state_pokemon(
 ) -> u32 {
     let selected_slot = get_slot();
     let pokemon_module_accessor = ptrainer::get_pokemon_module_accessor(ptrainer_module_accessor);
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in get_state_pokemon");
     let fighter_kind = if !ptr::eq(pokemon_module_accessor, cpu_module_accessor) {
         save_state_player(selected_slot).fighter_kind
     } else {
@@ -205,7 +206,8 @@ pub unsafe fn get_charge_state(
     module_accessor: *mut app::BattleObjectModuleAccessor,
 ) -> ChargeState {
     let selected_slot = get_slot();
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in get_charge_state");
     if !ptr::eq(module_accessor, cpu_module_accessor) {
         save_state_player(selected_slot).charge
     } else {
@@ -215,7 +217,8 @@ pub unsafe fn get_charge_state(
 
 pub unsafe fn end_copy_ability(module_accessor: *mut app::BattleObjectModuleAccessor) {
     let selected_slot = get_slot();
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in end_copy_ability");
     let save_state = if !ptr::eq(module_accessor, cpu_module_accessor) {
         save_state_player(selected_slot)
     } else {

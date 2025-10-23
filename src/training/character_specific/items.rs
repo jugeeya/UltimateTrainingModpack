@@ -331,8 +331,10 @@ pub const ALL_CHAR_ITEMS: [CharItem; 45] = [
 ];
 
 unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
-    let player_module_accessor = get_module_accessor(FighterId::Player);
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let player_module_accessor = try_get_module_accessor(FighterId::Player)
+        .expect("Could not get player module accessor in apply_single_item");
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in apply_single_item");
     // Now we make sure the module_accessor we use to generate the item/article is the correct character
     let generator_module_accessor = if item.fighter_kind == player_fighter_kind {
         player_module_accessor
@@ -446,8 +448,10 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
 }
 
 pub unsafe fn apply_item(character_item: CharacterItem) {
-    let player_module_accessor = get_module_accessor(FighterId::Player);
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let player_module_accessor = try_get_module_accessor(FighterId::Player)
+        .expect("Could not get player module accessor in apply_item");
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in apply_item");
     let player_fighter_kind = app::utility::get_kind(&mut *player_module_accessor);
     let cpu_fighter_kind = app::utility::get_kind(&mut *cpu_module_accessor);
     let character_item_num = character_item.as_idx();
