@@ -119,7 +119,7 @@ pub fn main() {
         .spawn(move || {
             menu::load_from_file();
         })
-        .unwrap();
+        .expect("Couldn't create data loader thread");
     let _result = data_loader.join();
 
     if !is_emulator() {
@@ -129,7 +129,7 @@ pub fn main() {
             .spawn(move || {
                 release::perform_version_check();
             })
-            .unwrap();
+            .expect("Couldn't create version check thread");
         let _result = _updater.join();
     } else {
         info!("Skipping version check because we are using an emulator");

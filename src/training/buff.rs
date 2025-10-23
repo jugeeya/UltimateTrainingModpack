@@ -140,7 +140,10 @@ unsafe fn buff_hero_single(
         // There are no spells selected, or something went wrong with making the vector
         return;
     }
-    let real_spell_value = spell_option.unwrap().into_int().unwrap();
+    let real_spell_value = spell_option
+        .unwrap()
+        .into_int()
+        .expect("Invalid option for spell_option");
     if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
         WorkModule::set_int(
             module_accessor,
@@ -267,7 +270,9 @@ unsafe fn buff_wario(module_accessor: &mut app::BattleObjectModuleAccessor) -> b
         );
         WorkModule::set_int(
             module_accessor,
-            waft_level.into_int().unwrap(),
+            waft_level
+                .into_int()
+                .expect("Invalid option for waft_level"),
             *FIGHTER_WARIO_INSTANCE_WORK_ID_INT_GASS_LEVEL,
         );
     }
@@ -293,7 +298,9 @@ unsafe fn buff_shulk(module_accessor: &mut app::BattleObjectModuleAccessor, stat
     if status != FIGHTER_SHULK_STATUS_KIND_SPECIAL_N_ACTION {
         WorkModule::set_int(
             module_accessor,
-            current_art.into_int().unwrap(),
+            current_art
+                .into_int()
+                .expect("Invalid option for current_art"),
             *FIGHTER_SHULK_INSTANCE_WORK_ID_INT_SPECIAL_N_TYPE_SELECT,
         );
         WorkModule::set_int(
