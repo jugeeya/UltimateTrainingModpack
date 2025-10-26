@@ -633,9 +633,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
                 save_state.state = ApplyBuff;
             }
             // Perform fighter specific loading actions
-            save_state.steve_state.map(|load_steve| {
+            if let Some(load_steve) = save_state.steve_state {
                 steve::load_steve_state(module_accessor, load_steve);
-            });
+            }
             // Play Training Reset SFX, since silence is eerie
             // Only play for the CPU so we don't have 2 overlapping
             if is_cpu {

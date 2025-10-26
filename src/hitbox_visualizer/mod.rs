@@ -340,7 +340,7 @@ unsafe fn mod_handle_handle_set_rebound(
     }
 
     // only if we're not shielding
-    if is_shielding(module_accessor) {
+    if is_shielding(&mut *module_accessor) {
         return;
     }
 
