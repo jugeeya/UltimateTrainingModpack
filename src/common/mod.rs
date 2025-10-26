@@ -143,7 +143,7 @@ pub fn is_in_footstool(module_accessor: &mut app::BattleObjectModuleAccessor) ->
     (*FIGHTER_STATUS_KIND_TREAD_DAMAGE..=*FIGHTER_STATUS_KIND_TREAD_FALL).contains(&status_kind)
 }
 
-pub fn is_shielding(module_accessor: *mut app::BattleObjectModuleAccessor) -> bool {
+pub fn is_shielding(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     let status_kind = unsafe { StatusModule::status_kind(module_accessor) };
 
     (*FIGHTER_STATUS_KIND_GUARD_ON..=*FIGHTER_STATUS_KIND_GUARD_DAMAGE).contains(&status_kind)

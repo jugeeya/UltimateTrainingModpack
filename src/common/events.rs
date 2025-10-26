@@ -22,7 +22,7 @@ static SESSION_ID: LazyLock<String> = LazyLock::new(|| unsafe {
         .expect("Time went backwards")
         .as_millis();
     let mut session_id_hash = Sha256Hash { hash: [0; 0x20] };
-    let event_time_bytes: [u8; 16] = std::mem::transmute(event_time.to_be());
+    let event_time_bytes: [u8; 16] = event_time.to_be_bytes();
     let session_id_bytes: [u8; 32] = [event_time_bytes, device_uuid.data]
         .concat()
         .try_into()

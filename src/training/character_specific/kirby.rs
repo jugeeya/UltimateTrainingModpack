@@ -219,7 +219,7 @@ pub unsafe fn handle_kirby_hat_charge(
 ) {
     // Samus/Dark Samus Charge Shot - 0 to 112
     if opponent_fighter_kind == FIGHTER_KIND_SAMUS || opponent_fighter_kind == FIGHTER_KIND_SAMUSD {
-        charge.int_x.map(|shot_charge| {
+        if let Some(shot_charge) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 shot_charge,
@@ -265,11 +265,11 @@ pub unsafe fn handle_kirby_hat_charge(
                     *FIGHTER_SAMUS_INSTANCE_WORK_ID_INT_EFH_CHARGE_MAX,
                 );
             }
-        });
+        }
     }
     // Sheik Needles - 0 to 6
     else if opponent_fighter_kind == FIGHTER_KIND_SHEIK {
-        charge.int_x.map(|needle_charge| {
+        if let Some(needle_charge) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 needle_charge,
@@ -278,18 +278,18 @@ pub unsafe fn handle_kirby_hat_charge(
             if needle_charge == 6 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
-        });
+        }
     }
     // Mewtwo Shadowball - 0 to 120, Boolean
     else if opponent_fighter_kind == FIGHTER_KIND_MEWTWO {
-        charge.int_x.map(|charge_frame| {
+        if let Some(charge_frame) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 charge_frame,
                 *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_SHADOWBALL_CHARGE_FRAME,
             );
-        });
-        charge.int_y.map(|prev_frame| {
+        }
+        if let Some(prev_frame) = charge.int_y {
             WorkModule::set_int(
                 module_accessor,
                 prev_frame,
@@ -353,18 +353,18 @@ pub unsafe fn handle_kirby_hat_charge(
                     *FIGHTER_MEWTWO_INSTANCE_WORK_ID_INT_EF_ID_SHADOWBALL_MAX_R,
                 );
             }
-        });
-        charge.has_charge.map(|has_shadowball| {
+        }
+        if let Some(has_shadowball) = charge.has_charge {
             WorkModule::set_flag(
                 module_accessor,
                 has_shadowball,
                 *FIGHTER_MEWTWO_INSTANCE_WORK_ID_FLAG_SHADOWBALL_HAD,
             );
-        });
+        }
     }
     // Squirtle Water Gun - 0 to 45
     else if opponent_fighter_kind == FIGHTER_KIND_PZENIGAME {
-        charge.int_x.map(|water_charge| {
+        if let Some(water_charge) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 water_charge,
@@ -373,35 +373,35 @@ pub unsafe fn handle_kirby_hat_charge(
             if water_charge == 45 {
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
             }
-        });
+        }
     }
     // Olimar Pikmin - 0 to 4
     else if opponent_fighter_kind == FIGHTER_KIND_PIKMIN {
-        charge.int_x.map(|pre| {
+        if let Some(pre) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 pre,
                 *FIGHTER_PIKMIN_INSTANCE_WORK_INT_PRE_PIKMIN_VARIATION,
             );
-        });
-        charge.int_y.map(|before_pre| {
+        }
+        if let Some(before_pre) = charge.int_y {
             WorkModule::set_int(
                 module_accessor,
                 before_pre,
                 *FIGHTER_PIKMIN_INSTANCE_WORK_INT_BEFORE_PRE_PIKMIN_VARIATION,
             );
-        });
+        }
     }
     // Lucario Aura Sphere - 0 to 90
     else if opponent_fighter_kind == FIGHTER_KIND_LUCARIO {
-        charge.int_x.map(|charge_frame| {
+        if let Some(charge_frame) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 charge_frame,
                 *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_AURABALL_CHARGE_FRAME,
             );
-        });
-        charge.int_y.map(|prev_frame| {
+        }
+        if let Some(prev_frame) = charge.int_y {
             WorkModule::set_int(
                 module_accessor,
                 prev_frame,
@@ -466,39 +466,39 @@ pub unsafe fn handle_kirby_hat_charge(
                     *FIGHTER_LUCARIO_INSTANCE_WORK_ID_INT_EF_ID_AURABALL_MAX_R,
                 );
             }
-        });
-        charge.has_charge.map(|has_shadowball| {
+        }
+        if let Some(has_shadowball) = charge.has_charge {
             WorkModule::set_flag(
                 module_accessor,
                 has_shadowball,
                 *FIGHTER_LUCARIO_INSTANCE_WORK_ID_FLAG_AURABALL_HAD,
             );
-        });
+        }
     }
     // ROB Laser
     else if opponent_fighter_kind == FIGHTER_KIND_ROBOT {
-        charge.float_x.map(|beam_energy| {
+        if let Some(beam_energy) = charge.float_x {
             WorkModule::set_float(
                 module_accessor,
                 beam_energy,
                 *FIGHTER_ROBOT_INSTANCE_WORK_ID_FLOAT_BEAM_ENERGY_VALUE,
             );
-        });
+        }
     }
     // Wii Fit Sun Salutation - 0 to 1
     else if opponent_fighter_kind == FIGHTER_KIND_WIIFIT {
-        charge.float_x.map(|sun_ratio| {
+        if let Some(sun_ratio) = charge.float_x {
             WorkModule::set_float(
                 module_accessor,
                 sun_ratio,
                 *FIGHTER_WIIFIT_INSTANCE_WORK_ID_FLOAT_SPECIAL_N_CHARGE_LEVEL_RATIO,
             )
-        });
+        }
     }
     // Pac-Man Bonus Fruit - 0 to 12
     else if opponent_fighter_kind == FIGHTER_KIND_PACMAN {
         let mut has_key = false;
-        charge.int_x.map(|charge_rank| {
+        if let Some(charge_rank) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 charge_rank,
@@ -509,8 +509,8 @@ pub unsafe fn handle_kirby_hat_charge(
                 EffectModule::req_common(module_accessor, Hash40::new("charge_max"), 0.0);
                 has_key = true;
             }
-        });
-        charge.has_charge.map(|has_fruit| {
+        }
+        if let Some(has_fruit) = charge.has_charge {
             WorkModule::set_flag(
                 module_accessor,
                 has_fruit,
@@ -523,11 +523,11 @@ pub unsafe fn handle_kirby_hat_charge(
                     *FIGHTER_PACMAN_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_HAVE_ITEM,
                 );
             }
-        });
+        }
     }
     // Robin Thunder Tome Spells - 0 to 3
     else if opponent_fighter_kind == FIGHTER_KIND_REFLET {
-        charge.int_x.map(|thunder_kind| {
+        if let Some(thunder_kind) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 thunder_kind,
@@ -564,7 +564,7 @@ pub unsafe fn handle_kirby_hat_charge(
                     false,
                 );
             }
-        });
+        }
     }
     // Hero (Ka)frizz(le) - 0 to 81
     else if opponent_fighter_kind == FIGHTER_KIND_BRAVE {
@@ -573,17 +573,17 @@ pub unsafe fn handle_kirby_hat_charge(
             module_accessor,
             *FIGHTER_BRAVE_INSTANCE_WORK_ID_FLAG_SPECIAL_N_MAX_EFFECT,
         );
-        charge.int_x.map(|frizz_charge| {
+        if let Some(frizz_charge) = charge.int_x {
             WorkModule::set_int(
                 module_accessor,
                 frizz_charge,
                 *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_N_HOLD_FRAME,
             );
-        });
+        }
     }
     // Sora Spell - 0 to 2
     else if opponent_fighter_kind == FIGHTER_KIND_TRAIL {
-        charge.int_x.map(|spell_kind| {
+        if let Some(spell_kind) = charge.int_x {
             let prev_spell_kind = (spell_kind + 1) % 3;
             WorkModule::set_int(
                 module_accessor,
@@ -599,7 +599,7 @@ pub unsafe fn handle_kirby_hat_charge(
                 let fighter = battle_object as *const app::BattleObject as *mut app::Fighter;
                 app::FighterSpecializer_Trail::change_magic(fighter);
             }
-        });
+        }
     }
 }
 

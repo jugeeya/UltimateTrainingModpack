@@ -342,7 +342,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
         cpu_module_accessor
     };
     let variation = item.variation.as_ref().map(|v| **v).unwrap_or(0);
-    item.item_kind.as_ref().map(|item_kind| {
+    if let Some(item_kind) = item.item_kind.as_ref() {
         let item_kind = **item_kind;
         // For Link, use special article generation to link the bomb for detonation
         if item_kind == *ITEM_KIND_LINKBOMB {
@@ -377,9 +377,9 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
                 false,
             );
         }
-    });
+    }
 
-    item.article_kind.as_ref().map(|article_kind| {
+    if let Some(article_kind) = item.article_kind.as_ref() {
         assign(
             &TURNIP_CHOSEN,
             if [*ITEM_VARIATION_PEACHDAIKON_8, *ITEM_VARIATION_DAISYDAIKON_8].contains(&variation) {
@@ -444,7 +444,7 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
             assign(&TARGET_PLAYER, None);
         }
         assign(&TURNIP_CHOSEN, None);
-    });
+    }
 }
 
 pub unsafe fn apply_item(character_item: CharacterItem) {
@@ -467,11 +467,13 @@ pub unsafe fn apply_item(character_item: CharacterItem) {
                 (character_item_num - CharacterItem::CPU_VARIATION_1.as_idx()),
             )
         };
-    ALL_CHAR_ITEMS
+    if let Some(item) = ALL_CHAR_ITEMS
         .iter()
         .filter(|item| item_fighter_kind == item.fighter_kind)
         .nth(variation_idx)
-        .map(|item| apply_single_item(player_fighter_kind, item));
+    {
+        apply_single_item(player_fighter_kind, item)
+    }
     mash::clear_queue();
 }
 

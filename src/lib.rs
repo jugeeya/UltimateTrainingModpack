@@ -1,21 +1,8 @@
 #![feature(proc_macro_hygiene)]
 #![feature(iter_intersperse)]
-#![feature(const_mut_refs)]
-#![feature(exclusive_range_pattern)]
 #![feature(c_variadic)]
-#![allow(stable_features)]
 #![feature(stmt_expr_attributes)]
-#![feature(pointer_byte_offsets)]
-#![allow(
-    clippy::borrow_interior_mutable_const,
-    clippy::declare_interior_mutable_const,
-    clippy::not_unsafe_ptr_arg_deref,
-    clippy::missing_safety_doc,
-    clippy::wrong_self_convention,
-    clippy::option_map_unit_fn,
-    clippy::transmute_num_to_bytes,
-    clippy::missing_transmute_annotations
-)]
+#![allow(clippy::missing_safety_doc)]
 
 use std::fs;
 use std::path::PathBuf;

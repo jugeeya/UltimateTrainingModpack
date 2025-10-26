@@ -1,3 +1,4 @@
+#![allow(clippy::mut_from_ref)]
 #[cfg(feature = "layout_arc_from_file")]
 use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
@@ -192,7 +193,7 @@ pub trait PaneExt {
 impl PaneExt for Pane {
     unsafe fn find_pane_by_name_recursive_expect(&self, name: &str) -> &mut Pane {
         self.find_pane_by_name_recursive(name)
-            .expect(&format!("Could not find pane {name}"))
+            .unwrap_or_else(|| panic!("Could not find pane {}", name))
     }
 }
 
