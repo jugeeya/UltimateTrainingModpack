@@ -4,7 +4,7 @@ use crate::common::button_config;
 use crate::common::consts::{BuffOption, FighterId, MENU};
 use crate::common::offsets::*;
 use crate::common::{
-    dev_config, get_module_accessor, is_operation_cpu, is_training_mode, menu, PauseMenu,
+    dev_config, is_operation_cpu, is_training_mode, menu, try_get_module_accessor, PauseMenu,
     FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, TRAINING_MENU_ADDR,
 };
 use crate::hitbox_visualizer;
@@ -427,8 +427,9 @@ pub unsafe fn handle_add_damage(
 // This function already checks for training mode, so we don't need to check for training mode here
 #[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
+    let x8 = ctx.registers[8].x() as *mut u64;
     if !(read(&MENU).lra_reset.as_bool()) {
-        ctx.registers[8].set_x(0);
+        *x8 = 0;
     }
 }
 
@@ -756,8 +757,10 @@ pub unsafe fn handle_reused_ui(
     }
 
     if save_states::is_loading() {
-        let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
-        let cpu_module_accessor = &mut *get_module_accessor(FighterId::CPU);
+        let player_module_accessor = &mut *try_get_module_accessor(FighterId::Player)
+            .expect("Could not get player module accessor in reused_ui");
+        let cpu_module_accessor = &mut *try_get_module_accessor(FighterId::CPU)
+            .expect("Could not get CPU module accessor in reused_ui");
         let player_fighter_kind = utility::get_kind(player_module_accessor);
         let cpu_fighter_kind = utility::get_kind(cpu_module_accessor);
         // If Little Mac is in the game and we're buffing him, set the meter to 100
@@ -862,7 +865,7 @@ pub fn training_mods() {
         );
         drop(item_manager_addr_lock);
 
-        add_hook(params_main).unwrap();
+        add_hook(params_main).expect("Could not find the params_hook plugin");
     }
 
     // Enable Custom Stages for Training Mode
@@ -870,7 +873,7 @@ pub fn training_mods() {
     //  from being set to false when we load the SSS in Training Mode
     skyline::patching::Patch::in_text(*OFFSET_SSS_TRAINING)
         .nop()
-        .unwrap();
+        .expect("Failed to nop OFFSET_SSS_TRAINING");
 
     println!(
         "Searching for STALE_MENU offset first! : {}",

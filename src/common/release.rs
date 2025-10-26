@@ -185,11 +185,11 @@ pub fn perform_version_check() {
         }
         _ => panic!("Invalid value in perform_version_check: {}", update_policy),
     };
-    if release_to_apply.is_ok() {
-        let published_at = release_to_apply.as_ref().unwrap().published_at.clone();
+    if let Ok(release) = release_to_apply.as_ref() {
+        let published_at = release.published_at.clone();
         info!("Current version: {}", *CURRENT_VERSION);
         info!("Github  version: {}", published_at);
-        if release_to_apply.as_ref().unwrap().is_older_than_installed() {
+        if release.is_older_than_installed() {
             release_to_apply = Err(anyhow!(
                 "Github version is not newer than the current installed version.",
             ))

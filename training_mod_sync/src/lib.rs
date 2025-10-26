@@ -6,31 +6,31 @@ use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 ///
 /// Requires <T: Copy> such as a bool or usize
 pub fn read<T: Copy>(rwlock: &RwLock<T>) -> T {
-    *rwlock.read().unwrap()
+    *rwlock.read().expect("Read lock is poisoned")
 }
 
 /// Gets a clone of a value inside a RwLock and immediately unlocks
 ///
 /// Can be used if <T> is not Copy, such as Vec<u32>
 pub fn read_clone<T: Clone>(rwlock: &RwLock<T>) -> T {
-    rwlock.read().unwrap().clone()
+    rwlock.read().expect("Read_Clone lock is poisoned").clone()
 }
 
 /// Assigns a new value to a RwLock and immediately unlocks
 pub fn assign<T>(rwlock: &RwLock<T>, new_val: T) {
-    *rwlock.write().unwrap() = new_val
+    *rwlock.write().expect("Assign lock is poisoned") = new_val
 }
 
 /// Locks a RwLock for writing and returns the guard
 ///
 /// Don't forget to drop the guard as soon as you're finished with it
 pub fn lock_write<T>(rwlock: &RwLock<T>) -> RwLockWriteGuard<'_, T> {
-    rwlock.write().unwrap()
+    rwlock.write().expect("Lock_Write lock is poisoned")
 }
 
 /// Locks a RwLock for reading and returns the guard
 ///
 /// Don't forget to drop the guard as soon as you're finished with it
 pub fn lock_read<T>(rwlock: &RwLock<T>) -> RwLockReadGuard<'_, T> {
-    rwlock.read().unwrap()
+    rwlock.read().expect("Lock_Read lock is poisoned")
 }

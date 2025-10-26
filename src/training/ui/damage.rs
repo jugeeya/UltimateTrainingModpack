@@ -15,7 +15,10 @@ pub unsafe fn iterate_anim_list(
         if curr != (*curr).next {
             let anim_transform = (curr as *mut u64).add(2) as *mut AnimTransform;
 
-            parse_anim_transform(anim_transform.as_mut().unwrap(), layout_name);
+            parse_anim_transform(
+                anim_transform.as_mut().expect("Invalid anim_transform"),
+                layout_name,
+            );
         }
 
         curr = (*curr).next;

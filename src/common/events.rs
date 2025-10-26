@@ -26,7 +26,7 @@ static SESSION_ID: LazyLock<String> = LazyLock::new(|| unsafe {
     let session_id_bytes: [u8; 32] = [event_time_bytes, device_uuid.data]
         .concat()
         .try_into()
-        .unwrap();
+        .expect("Session_id_bytes not the correct length");
 
     GenerateSha256Hash(
         &mut session_id_hash as *mut _ as *mut c_void,

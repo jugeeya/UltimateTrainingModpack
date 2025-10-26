@@ -2,7 +2,7 @@
 use byte_unit::MEBIBYTE;
 use sarc::SarcFile;
 use skyline::nn::ui2d::*;
-use smash::ui2d::SmashTextBox;
+use smash::ui2d::{SmashPane, SmashTextBox};
 use training_mod_consts::{OnOff, MENU};
 
 use crate::common::menu::QUICK_MENU_ACTIVE;
@@ -142,7 +142,7 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
         decompressed_file,
         decompressed_size,
     ))
-    .unwrap();
+    .expect("Could not read layout.arc SarcFile!");
     let training_layout = layout_arc.files.iter().find(|f| {
         f.name.is_some() && f.name.as_ref().unwrap() == &String::from("blyt/info_training.bflyt")
     });
@@ -156,7 +156,8 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
     #[cfg(feature = "layout_arc_from_file")]
     #[allow(static_mut_refs)]
     {
-        let inject_arc_from_file = std::fs::read(LAYOUT_ARC_PATH).unwrap();
+        let inject_arc_from_file =
+            std::fs::read(LAYOUT_ARC_PATH).expect("Could not read layout.arc from file!");
         inject_arc_size = inject_arc_from_file.len() as u64;
 
         // Copy read file to global
@@ -182,6 +183,17 @@ unsafe fn handle_layout_arc_malloc(ctx: &mut skyline::hooks::InlineCtx) {
     ctx.registers[1].set_x(inject_arc_size);
     ctx.registers[23].set_x(inject_arc_size);
     ctx.registers[24].set_x(inject_arc_size);
+}
+
+pub trait PaneExt {
+    unsafe fn find_pane_by_name_recursive_expect(&self, name: &str) -> &mut Pane;
+}
+
+impl PaneExt for Pane {
+    unsafe fn find_pane_by_name_recursive_expect(&self, name: &str) -> &mut Pane {
+        self.find_pane_by_name_recursive(name)
+            .expect(&format!("Could not find pane {name}"))
+    }
 }
 
 pub fn init() {

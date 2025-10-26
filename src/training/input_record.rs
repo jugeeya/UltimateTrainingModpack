@@ -11,9 +11,7 @@ use crate::common::consts::{FighterId, HitstunPlayback, OnOff, RecordTrigger};
 use crate::common::input::*;
 use crate::common::offsets::OFFSET_SET_CPU_CONTROLS;
 use crate::common::{button_config, is_training_mode};
-use crate::common::{
-    get_module_accessor, is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU,
-};
+use crate::common::{is_in_hitstun, is_in_shieldstun, try_get_module_accessor, MENU};
 use crate::training::mash;
 use crate::training::ui::notifications::{clear_notification, color_notification};
 use crate::{error, warn};
@@ -93,7 +91,8 @@ unsafe fn should_mash_playback() {
         return;
     }
     let mut should_playback = false;
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in should_mash_playback");
     // depending on our current status, we want to wait for different timings to begin playback
 
     // TODO: This isn't the best way to write this I'm sure, want to rewrite
@@ -171,13 +170,12 @@ fn into_transition_term(starting_status: StartingStatus) -> i32 {
     }
 }
 
-#[allow(clippy::unnecessary_unwrap)]
 pub unsafe fn handle_recording() {
-    let player_module_accessor = try_get_module_accessor(FighterId::Player);
-    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
-    if player_module_accessor.is_some() && cpu_module_accessor.is_some() {
-        handle_recording_for_fighter(&mut *player_module_accessor.unwrap());
-        handle_recording_for_fighter(&mut *cpu_module_accessor.unwrap());
+    if let Some(player_module_accessor) = try_get_module_accessor(FighterId::Player) {
+        if let Some(cpu_module_accessor) = try_get_module_accessor(FighterId::CPU) {
+            handle_recording_for_fighter(&mut *player_module_accessor);
+            handle_recording_for_fighter(&mut *cpu_module_accessor);
+        }
     }
 }
 
@@ -330,7 +328,8 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
 }
 
 pub unsafe fn lockout_record() {
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in lockout_record");
     let recording_duration = read(&MENU).recording_duration.into_frames();
     let current_record_slot = read(&CURRENT_RECORD_SLOT);
     let mut p1_final_mapping = lock_write(&P1_FINAL_MAPPING);
@@ -356,22 +355,22 @@ pub unsafe fn playback(slot: Option<usize>) -> bool {
         warn!("Tried to playback during lockout!");
         return false;
     }
-    if slot.is_none() {
+    if let Some(slot) = slot {
+        let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+            .expect("Could not get CPU module accessor in playback");
+        let frame_length = read(&P1_FRAME_LENGTH_MAPPING)[slot];
+        assign(&CURRENT_FRAME_LENGTH, frame_length);
+        assign(&CURRENT_PLAYBACK_SLOT, slot);
+        assign(&INPUT_RECORD, Playback);
+        assign(&POSSESSION, Player);
+        assign(&INPUT_RECORD_FRAME, 0);
+        assign(&BUFFER_FRAME, 0);
+        assign(&CURRENT_LR, PostureModule::lr(cpu_module_accessor));
+        true
+    } else {
         warn!("Tried to playback without a slot selected!");
-        return false;
+        false
     }
-    let slot = slot.unwrap();
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
-    let frame_length = read(&P1_FRAME_LENGTH_MAPPING)[slot];
-    assign(&CURRENT_FRAME_LENGTH, frame_length);
-    assign(&CURRENT_PLAYBACK_SLOT, slot);
-    assign(&INPUT_RECORD, Playback);
-    assign(&POSSESSION, Player);
-    assign(&INPUT_RECORD_FRAME, 0);
-    assign(&BUFFER_FRAME, 0);
-    assign(&CURRENT_LR, PostureModule::lr(cpu_module_accessor));
-
-    true
 }
 
 pub unsafe fn playback_ledge(slot: Option<usize>) {
@@ -381,7 +380,8 @@ pub unsafe fn playback_ledge(slot: Option<usize>) {
         *buffer_frame = 5; // So we can make sure the option is buffered and won't get ledge trumped if delay is 0
                            // drop down from ledge can't be buffered on the same frame as jump/attack/roll/ngu so we have to do this
                            // Need to buffer 1 less frame for non-lassos
-        let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+        let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+            .expect("Could not get CPU module accessor in playback_ledge");
         let status_kind = StatusModule::status_kind(cpu_module_accessor);
         if status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH {
             *buffer_frame -= 1;
@@ -435,7 +435,8 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
             if *input_record_frame == 1 {
                 // We're on the second frame of recording, grabbing the status should give us the status that resulted from the first frame of input
                 // We'll want to save this status so that we use the correct TRANSITION TERM for hitstun cancelling out of damage fly
-                let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+                let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+                    .expect("Could not get CPU module accessor in handle_final_input_mapping");
                 assign(
                     &STARTING_STATUS,
                     StatusModule::status_kind(cpu_module_accessor),
@@ -477,13 +478,10 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         should_mash_playback();
     }
 
-    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
-
-    // Sometimes we can try to grab their module accessor before they are valid?
-    if cpu_module_accessor.is_none() {
+    let Some(cpu_module_accessor) = try_get_module_accessor(FighterId::CPU) else {
+        // Sometimes we can try to grab their module accessor before they are valid?
         return;
-    }
-    let cpu_module_accessor = cpu_module_accessor.unwrap();
+    };
 
     if read(&INPUT_RECORD) == Pause {
         let lockout_frame = read(&LOCKOUT_FRAME);

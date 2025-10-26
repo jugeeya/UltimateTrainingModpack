@@ -1,6 +1,6 @@
 use crate::common::consts::FighterId;
 use crate::common::offsets::OFFSET_COPY_SETUP;
-use crate::common::{get_module_accessor, try_get_battle_object};
+use crate::common::{try_get_battle_object, try_get_module_accessor};
 use crate::training::character_specific::{kirby, pikmin};
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, FighterFacial, FighterUtil};
@@ -497,8 +497,10 @@ pub unsafe fn handle_charge(
     // Kirby Copy Abilities
     else if fighter_kind == FIGHTER_KIND_KIRBY {
         charge.has_charge.map(|_has_copy_ability| {
-            let cpu_module_accessor = &mut *get_module_accessor(FighterId::CPU);
-            let player_module_accessor = &mut *get_module_accessor(FighterId::Player);
+            let cpu_module_accessor = &mut *try_get_module_accessor(FighterId::CPU)
+                .expect("Could not get CPU module accessor for Kirby copy ability charge setup");
+            let player_module_accessor = &mut *try_get_module_accessor(FighterId::Player)
+                .expect("Could not get Player module accessor for Kirby copy ability charge setup");
             let opponent_module_accessor: &mut app::BattleObjectModuleAccessor =
                 if ptr::eq(module_accessor, player_module_accessor) {
                     cpu_module_accessor
@@ -509,7 +511,15 @@ pub unsafe fn handle_charge(
             let opponent_matches_fighter =
                 kirby::is_kirby_hat_okay(opponent_module_accessor, charge.int_z);
             if opponent_matches_fighter == Some(true) {
-                copy_setup(module_accessor, 1, charge.int_z.unwrap(), true, false);
+                copy_setup(
+                    module_accessor,
+                    1,
+                    charge
+                        .int_z
+                        .expect("charge.int_z is None in handle_charge::Kirby"),
+                    true,
+                    false,
+                );
                 //kirby::handle_kirby_hat_charge(module_accessor, charge.int_z.unwrap(), charge);
             }
         });

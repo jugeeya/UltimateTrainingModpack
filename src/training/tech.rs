@@ -352,7 +352,8 @@ pub unsafe fn hide_tech() {
     if !is_training_mode() || read(&MENU).tech_hide == OnOff::OFF {
         return;
     }
-    let module_accessor = get_module_accessor(FighterId::CPU);
+    let module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in hide_tech");
     // Handle invisible tech animations
     let status = StatusModule::status_kind(module_accessor);
     let teching_statuses = [

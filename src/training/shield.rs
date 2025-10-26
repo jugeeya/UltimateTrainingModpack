@@ -170,7 +170,9 @@ pub unsafe fn param_installer() {
         } else {
             // reset the game's shield_damage_mul back to what
             // it originally was at game boot.
-            common_params.shield_damage_mul = (*cached_shield_damage_mul_lock).unwrap();
+            common_params.shield_damage_mul = (*cached_shield_damage_mul_lock).expect(
+                "Something went wrong with the cached_shield_damage_mul in param_installer",
+            );
         }
     }
 }

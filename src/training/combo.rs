@@ -4,9 +4,9 @@ use smash::app::BattleObjectModuleAccessor;
 use smash::lib::lua_const::*;
 
 use crate::consts::Action;
-use crate::get_module_accessor;
 use crate::training::frame_counter;
 use crate::training::ui::notifications;
+use crate::try_get_module_accessor;
 
 use training_mod_consts::{FighterId, OnOff, MENU};
 use training_mod_sync::*;
@@ -91,8 +91,10 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     if entry_id_int != (FighterId::Player as i32) {
         return;
     }
-    let player_module_accessor = get_module_accessor(FighterId::Player);
-    let cpu_module_accessor = get_module_accessor(FighterId::CPU);
+    let player_module_accessor = try_get_module_accessor(FighterId::Player)
+        .expect("Could not get player module accessor in once_per_frame");
+    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+        .expect("Could not get CPU module accessor in once_per_frame");
     let player_is_actionable = is_actionable(player_module_accessor);
     let player_was_actionable = read(&PLAYER_WAS_ACTIONABLE);
     let player_just_actionable = !player_was_actionable && player_is_actionable;
