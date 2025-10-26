@@ -104,36 +104,36 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     let is_counting = frame_counter::is_counting(*PLAYER_FRAME_COUNTER_INDEX)
         || frame_counter::is_counting(*CPU_FRAME_COUNTER_INDEX);
 
+    if read(&MENU).mash_state == Action::empty()
+        && !player_is_actionable
+        && !cpu_is_actionable
+        && (!was_in_shieldstun(cpu_module_accessor) && is_in_shieldstun(cpu_module_accessor)
+            || (!was_in_hitstun(cpu_module_accessor) && is_in_hitstun(cpu_module_accessor)))
+    {
+        // Start counting when:
+        // 1. We have no mash option selected AND
+        // 2. Neither fighter is currently actionable AND
+        // 3. Either
+        //  a.     the CPU has just entered shieldstun
+        //  b.     the CPU has just entered hitstun
+        //
+        // If a mash option is selected, this can interfere with our ability to determine when
+        // a character becomes actionable. So don't ever start counting if we can't reliably stop.
+        //
+        // Since our "just_actionable" checks assume that neither character is already actionable,
+        // we need to guard against instances where the player is already actionable by the time that
+        // the CPU get hit, such as if the player threw a projectile from far away.
+        // Otherwise our "just_actionable" checks are not valid.
+        //
+        // We also need to guard against instances where the CPU's status is in hitstun but they are actually actionable.
+        // I dunno, makes no sense to me either. Can trigger this edge case with PAC-MAN jab 1 against Lucas at 0%.
+        // This shows up as the count restarting immediately after the last one ended.
+        frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
+        frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(*PLAYER_FRAME_COUNTER_INDEX);
+        frame_counter::start_counting(*CPU_FRAME_COUNTER_INDEX);
+    }
     if !is_counting {
-        if read(&MENU).mash_state == Action::empty()
-            && !player_is_actionable
-            && !cpu_is_actionable
-            && (!was_in_shieldstun(cpu_module_accessor) && is_in_shieldstun(cpu_module_accessor)
-                || (!was_in_hitstun(cpu_module_accessor) && is_in_hitstun(cpu_module_accessor)))
-        {
-            // Start counting when:
-            // 1. We have no mash option selected AND
-            // 2. Neither fighter is currently actionable AND
-            // 3. Either
-            //  a.     the CPU has just entered shieldstun
-            //  b.     the CPU has just entered hitstun
-            //
-            // If a mash option is selected, this can interfere with our ability to determine when
-            // a character becomes actionable. So don't ever start counting if we can't reliably stop.
-            //
-            // Since our "just_actionable" checks assume that neither character is already actionable,
-            // we need to guard against instances where the player is already actionable by the time that
-            // the CPU get hit, such as if the player threw a projectile from far away.
-            // Otherwise our "just_actionable" checks are not valid.
-            //
-            // We also need to guard against instances where the CPU's status is in hitstun but they are actually actionable.
-            // I dunno, makes no sense to me either. Can trigger this edge case with PAC-MAN jab 1 against Lucas at 0%.
-            // This shows up as the count restarting immediately after the last one ended.
-            frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
-            frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(*PLAYER_FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(*CPU_FRAME_COUNTER_INDEX);
-        }
     } else {
         // Uncomment this if you want some frame logging
         // if (player_is_actionable && cpu_is_actionable) {

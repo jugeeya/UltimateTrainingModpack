@@ -233,7 +233,7 @@ pub unsafe fn get_charge(
     // Olimar Pikmin
     else if fighter_kind == FIGHTER_KIND_PIKMIN {
         let pikmin_array = pikmin::get_current_pikmin(module_accessor);
-        return charge_state.set_pikmin(pikmin_array[0], pikmin_array[1], pikmin_array[2]);
+        charge_state.set_pikmin(pikmin_array[0], pikmin_array[1], pikmin_array[2])
     }
     // Lucario Aura Sphere
     else if fighter_kind == FIGHTER_KIND_LUCARIO {

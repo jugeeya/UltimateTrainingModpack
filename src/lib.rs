@@ -13,8 +13,8 @@
     clippy::missing_safety_doc,
     clippy::wrong_self_convention,
     clippy::option_map_unit_fn,
-    clippy::transmute_num_to_bytes,
-    clippy::missing_transmute_annotations
+    clippy::missing_transmute_annotations,
+    unnecessary_transmutes
 )]
 
 use std::fs;

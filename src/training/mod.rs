@@ -347,7 +347,7 @@ pub unsafe fn handle_req_quake(
     original!()(module_accessor, my_int)
 }
 
-pub static mut COMMON_PARAMS: *mut CommonParams = 0 as *mut _;
+pub static mut COMMON_PARAMS: *mut CommonParams = std::ptr::null_mut();
 
 fn params_main(params_info: &ParamsInfo<'_>) {
     if let Ok(common) = params_info.get::<CommonParams>() {

@@ -1,3 +1,4 @@
+#![allow(unused_parens)]
 use bitflags::bitflags;
 use modular_bitfield::{bitfield, specifiers::*};
 

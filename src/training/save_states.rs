@@ -261,7 +261,7 @@ pub unsafe fn is_loading() -> bool {
 pub unsafe fn should_mirror() -> f32 {
     match read(&MENU).save_state_mirroring {
         SaveStateMirroring::NONE => 1.0,
-        SaveStateMirroring::ALTERNATE => -1.0 * MIRROR_STATE,
+        SaveStateMirroring::ALTERNATE => -MIRROR_STATE,
         SaveStateMirroring::RANDOM => ([-1.0, 1.0])[get_random_int(2) as usize],
         _ => panic!(
             "Invalid value in should_mirror: {}",
@@ -340,7 +340,7 @@ fn set_damage(module_accessor: &mut app::BattleObjectModuleAccessor, damage: f32
     unsafe {
         DamageModule::heal(
             module_accessor,
-            -1.0 * DamageModule::damage(module_accessor, 0),
+            -DamageModule::damage(module_accessor, 0),
             0,
         );
         DamageModule::add_damage(module_accessor, damage, 0);

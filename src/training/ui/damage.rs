@@ -23,7 +23,8 @@ pub unsafe fn iterate_anim_list(
 
         curr = (*curr).next;
         _anim_idx += 1;
-        if curr == anim_transform_node as *mut AnimTransformNode || curr == (*curr).next {
+        if std::ptr::eq(curr, anim_transform_node as *mut AnimTransformNode) || curr == (*curr).next
+        {
             break;
         }
     }

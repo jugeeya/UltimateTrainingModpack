@@ -12,7 +12,7 @@ static CLATTER_STEP: RwLock<f32> = RwLock::new(8.0);
 
 unsafe fn do_clatter_input(module_accessor: &mut BattleObjectModuleAccessor) {
     let clatter_step = read(&CLATTER_STEP);
-    ControlModule::add_clatter_time(module_accessor, -1.0 * clatter_step, 0);
+    ControlModule::add_clatter_time(module_accessor, -clatter_step, 0);
     let zeros = Vector3f {
         x: 0.0,
         y: 0.0,
