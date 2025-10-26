@@ -135,30 +135,26 @@ unsafe fn buff_hero_single(
     }
     let spell_index = get_buff_rem(module_accessor) - 1;
     // Used to get spell from our vector
-    let spell_option = buff_vec.get(spell_index);
-    if spell_option.is_none() {
-        // There are no spells selected, or something went wrong with making the vector
-        return;
-    }
-    let real_spell_value = spell_option
-        .unwrap()
-        .into_int()
-        .expect("Invalid option for spell_option");
-    if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
-        WorkModule::set_int(
-            module_accessor,
-            real_spell_value,
-            *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND,
-        );
-        StatusModule::change_status_force(
-            module_accessor,
-            *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START,
-            true,
-            // True to prevent Shielding over the spells
-        );
-    }
-    if status == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
-        MotionModule::set_rate(module_accessor, 50.0);
+    if let Some(spell_option) = buff_vec.get(spell_index) {
+        let real_spell_value = spell_option
+            .into_int()
+            .expect("Invalid option for spell_option");
+        if status != FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
+            WorkModule::set_int(
+                module_accessor,
+                real_spell_value,
+                *FIGHTER_BRAVE_INSTANCE_WORK_ID_INT_SPECIAL_LW_DECIDE_COMMAND,
+            );
+            StatusModule::change_status_force(
+                module_accessor,
+                *FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START,
+                true,
+                // True to prevent Shielding over the spells
+            );
+        }
+        if status == FIGHTER_BRAVE_STATUS_KIND_SPECIAL_LW_START {
+            MotionModule::set_rate(module_accessor, 50.0);
+        }
     }
 }
 

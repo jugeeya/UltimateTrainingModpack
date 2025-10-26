@@ -427,8 +427,9 @@ pub unsafe fn handle_add_damage(
 // This function already checks for training mode, so we don't need to check for training mode here
 #[skyline::hook(offset = *OFFSET_TRAINING_RESET_CHECK, inline)]
 unsafe fn lra_handle(ctx: &mut InlineCtx) {
+    let x8 = ctx.registers[8].x() as *mut u64;
     if !(read(&MENU).lra_reset.as_bool()) {
-        ctx.registers[8].set_x(0);
+        *x8 = 0;
     }
 }
 
@@ -864,7 +865,7 @@ pub fn training_mods() {
         );
         drop(item_manager_addr_lock);
 
-        add_hook(params_main).unwrap();
+        add_hook(params_main).expect("Could not find the params_hook plugin");
     }
 
     // Enable Custom Stages for Training Mode
@@ -872,7 +873,7 @@ pub fn training_mods() {
     //  from being set to false when we load the SSS in Training Mode
     skyline::patching::Patch::in_text(*OFFSET_SSS_TRAINING)
         .nop()
-        .unwrap();
+        .expect("Failed to nop OFFSET_SSS_TRAINING");
 
     println!(
         "Searching for STALE_MENU offset first! : {}",

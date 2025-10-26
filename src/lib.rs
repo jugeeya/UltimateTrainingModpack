@@ -93,15 +93,17 @@ pub fn main() {
     hitbox_visualizer::hitbox_visualization();
     hazard_manager::hazard_manager();
     training::training_mods();
-    nro::add_hook(nro_main).unwrap();
+    nro::add_hook(nro_main).expect("Did not find nro_hook plugin!");
 
     fs::create_dir_all(TRAINING_MODPACK_ROOT)
         .expect("Could not create Training Modpack root folder!");
 
     // Migrate legacy if exists
     if fs::metadata(LEGACY_TRAINING_MODPACK_ROOT).is_ok() {
-        for entry in fs::read_dir(LEGACY_TRAINING_MODPACK_ROOT).unwrap() {
-            let entry = entry.unwrap();
+        for entry in
+            fs::read_dir(LEGACY_TRAINING_MODPACK_ROOT).expect("Couldn't read legacy folder")
+        {
+            let entry = entry.expect("Couldn't read legacy file during migration");
             let src_path = &entry.path();
             let dest_path = &PathBuf::from(TRAINING_MODPACK_ROOT).join(entry.file_name());
             fs::rename(src_path, dest_path).unwrap_or_else(|e| {

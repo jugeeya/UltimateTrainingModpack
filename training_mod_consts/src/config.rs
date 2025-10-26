@@ -40,7 +40,7 @@ impl TrainingModpackConfig {
             Ok(c) => Ok(c),
             Err(e) => {
                 if e.is::<io::Error>()
-                    && e.downcast_ref::<io::Error>().unwrap().kind() == io::ErrorKind::NotFound
+                    && e.downcast_ref::<io::Error>().expect("Couldn't convert error in load_or_create()").kind() == io::ErrorKind::NotFound
                 {
                     // No config file exists already
                     TrainingModpackConfig::create_default()?;

@@ -46,7 +46,7 @@ pub unsafe fn draw(root_pane: &Pane) {
         return;
     }
 
-    let notification = notification.unwrap();
+    let notification = notification.expect("notification not none in draw()");
     notification.tick();
     let color = notification.color;
 

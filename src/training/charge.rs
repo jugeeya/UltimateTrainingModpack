@@ -511,7 +511,15 @@ pub unsafe fn handle_charge(
             let opponent_matches_fighter =
                 kirby::is_kirby_hat_okay(opponent_module_accessor, charge.int_z);
             if opponent_matches_fighter == Some(true) {
-                copy_setup(module_accessor, 1, charge.int_z.unwrap(), true, false);
+                copy_setup(
+                    module_accessor,
+                    1,
+                    charge
+                        .int_z
+                        .expect("charge.int_z is None in handle_charge::Kirby"),
+                    true,
+                    false,
+                );
                 //kirby::handle_kirby_hat_charge(module_accessor, charge.int_z.unwrap(), charge);
             }
         });

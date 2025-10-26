@@ -170,13 +170,12 @@ fn into_transition_term(starting_status: StartingStatus) -> i32 {
     }
 }
 
-#[allow(clippy::unnecessary_unwrap)]
 pub unsafe fn handle_recording() {
-    let player_module_accessor = try_get_module_accessor(FighterId::Player);
-    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
-    if player_module_accessor.is_some() && cpu_module_accessor.is_some() {
-        handle_recording_for_fighter(&mut *player_module_accessor.unwrap());
-        handle_recording_for_fighter(&mut *cpu_module_accessor.unwrap());
+    if let Some(player_module_accessor) = try_get_module_accessor(FighterId::Player) {
+        if let Some(cpu_module_accessor) = try_get_module_accessor(FighterId::CPU) {
+            handle_recording_for_fighter(&mut *player_module_accessor);
+            handle_recording_for_fighter(&mut *cpu_module_accessor);
+        }
     }
 }
 
@@ -356,23 +355,22 @@ pub unsafe fn playback(slot: Option<usize>) -> bool {
         warn!("Tried to playback during lockout!");
         return false;
     }
-    if slot.is_none() {
+    if let Some(slot) = slot {
+        let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
+            .expect("Could not get CPU module accessor in playback");
+        let frame_length = read(&P1_FRAME_LENGTH_MAPPING)[slot];
+        assign(&CURRENT_FRAME_LENGTH, frame_length);
+        assign(&CURRENT_PLAYBACK_SLOT, slot);
+        assign(&INPUT_RECORD, Playback);
+        assign(&POSSESSION, Player);
+        assign(&INPUT_RECORD_FRAME, 0);
+        assign(&BUFFER_FRAME, 0);
+        assign(&CURRENT_LR, PostureModule::lr(cpu_module_accessor));
+        true
+    } else {
         warn!("Tried to playback without a slot selected!");
-        return false;
+        false
     }
-    let slot = slot.unwrap();
-    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU)
-        .expect("Could not get CPU module accessor in playback");
-    let frame_length = read(&P1_FRAME_LENGTH_MAPPING)[slot];
-    assign(&CURRENT_FRAME_LENGTH, frame_length);
-    assign(&CURRENT_PLAYBACK_SLOT, slot);
-    assign(&INPUT_RECORD, Playback);
-    assign(&POSSESSION, Player);
-    assign(&INPUT_RECORD_FRAME, 0);
-    assign(&BUFFER_FRAME, 0);
-    assign(&CURRENT_LR, PostureModule::lr(cpu_module_accessor));
-
-    true
 }
 
 pub unsafe fn playback_ledge(slot: Option<usize>) {
@@ -480,13 +478,10 @@ unsafe fn set_cpu_controls(p_data: *mut *mut u8) {
         should_mash_playback();
     }
 
-    let cpu_module_accessor = try_get_module_accessor(FighterId::CPU);
-
-    // Sometimes we can try to grab their module accessor before they are valid?
-    if cpu_module_accessor.is_none() {
+    let Some(cpu_module_accessor) = try_get_module_accessor(FighterId::CPU) else {
+        // Sometimes we can try to grab their module accessor before they are valid?
         return;
-    }
-    let cpu_module_accessor = cpu_module_accessor.unwrap();
+    };
 
     if read(&INPUT_RECORD) == Pause {
         let lockout_frame = read(&LOCKOUT_FRAME);
