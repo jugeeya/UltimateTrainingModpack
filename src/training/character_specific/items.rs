@@ -2,18 +2,16 @@
 use smash::app;
 use smash::app::lua_bind::*;
 use smash::app::ItemKind;
-use smash::app::{ArticleOperationTarget, BattleObjectModuleAccessor, Item};
+use smash::app::{ArticleOperationTarget, Item};
 use smash::cpp::l2c_value::LuaConst;
 use smash::lib::lua_const::*;
 
 use crate::common::consts::*;
 use crate::common::*;
-use crate::offsets::OFFSET_GENERATE_ARTICLE_FOR_TARGET;
 use crate::training::mash;
 use training_mod_sync::*;
 
 pub static TURNIP_CHOSEN: RwLock<Option<u32>> = RwLock::new(None);
-pub static TARGET_PLAYER: RwLock<Option<BattleObjectModuleAccessor>> = RwLock::new(None);
 pub struct CharItem {
     pub fighter_kind: LuaConst,
     pub item_kind: Option<LuaConst>,
@@ -419,30 +417,22 @@ unsafe fn apply_single_item(player_fighter_kind: i32, item: &CharItem) {
                 ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL),
                 false,
             );
-            // Grab item from the middle of the stage where it gets shot
-            let item_mgr = *(read(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
-            let item = ItemManager::get_active_item(item_mgr, 0);
-            ItemModule::have_item_instance(
-                player_module_accessor,
-                item as *mut Item,
-                0,
-                false,
-                false,
-                false,
-                false,
-            );
         } else {
-            // Set the target player so we generate CPU article on the player during handle_generate_article_for_target
-            // (in dittos, items always belong to player, even if cpu item is chosen)
-            assign(&TARGET_PLAYER, Some(*player_module_accessor));
-            ArticleModule::generate_article(
-                generator_module_accessor, // we want CPU's article
-                article_kind,
-                false,
-                0,
-            );
-            assign(&TARGET_PLAYER, None);
+            ArticleModule::generate_article(generator_module_accessor, article_kind, false, 0);
         }
+        // Transfer the item to the player
+        ItemModule::drop_item(cpu_module_accessor, 0.0, 0.0, 0);
+        let item_mgr = *(read(&ITEM_MANAGER_ADDR) as *mut *mut app::ItemManager);
+        let item = ItemManager::get_active_item(item_mgr, 0);
+        ItemModule::have_item_instance(
+            player_module_accessor,
+            item as *mut Item,
+            0,
+            false,
+            false,
+            false,
+            false,
+        );
         assign(&TURNIP_CHOSEN, None);
     }
 }
@@ -520,27 +510,6 @@ daikon_replace!(DAISY, daisy, 3);
 daikon_replace!(DAISY, daisy, 2);
 daikon_replace!(DAISY, daisy, 1);
 
-// GenerateArticleForTarget for Peach/Diddy(/Link?) item creation
-#[skyline::hook(offset = *OFFSET_GENERATE_ARTICLE_FOR_TARGET)]
-pub unsafe fn handle_generate_article_for_target(
-    article_module_accessor: BattleObjectModuleAccessor,
-    int_1: i32,
-    module_accessor: BattleObjectModuleAccessor, // this is always 0x0 normally
-    bool_1: bool,
-    int_2: i32,
-) -> u64 {
-    // unknown return value, gets cast to an (Article *)
-    let target_module_accessor = read(&TARGET_PLAYER).unwrap_or(module_accessor);
-
-    original!()(
-        article_module_accessor,
-        int_1,
-        target_module_accessor,
-        bool_1,
-        int_2,
-    )
-}
-
 pub fn init() {
     skyline::install_hooks!(
         handle_peachdaikon_8_prob,
@@ -559,7 +528,5 @@ pub fn init() {
         handle_daisydaikon_3_prob,
         handle_daisydaikon_2_prob,
         handle_daisydaikon_1_prob,
-        // Items
-        handle_generate_article_for_target,
     );
 }
