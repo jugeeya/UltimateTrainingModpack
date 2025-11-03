@@ -280,14 +280,18 @@ pub unsafe fn entry_count() -> i32 {
 }
 
 pub unsafe fn get_player_dmg_digits(p: FighterId) -> (u8, u8, u8, u8) {
-    let module_accessor =
-        try_get_module_accessor(p).expect("Could not get module accessor in get_player_dmg_digits");
-    let dmg = DamageModule::damage(module_accessor, 0);
-    let hundreds = dmg as u16 / 100;
-    let tens = (dmg as u16 - hundreds * 100) / 10;
-    let ones = (dmg as u16) - (hundreds * 100) - (tens * 10);
-    let dec = ((dmg * 10.0) as u16) - (hundreds * 1000) - (tens * 100) - ones * 10;
-    (hundreds as u8, tens as u8, ones as u8, dec as u8)
+    if let Some(module_accessor) = try_get_module_accessor(p) {
+        let dmg = DamageModule::damage(module_accessor, 0);
+        let hundreds = dmg as u16 / 100;
+        let tens = (dmg as u16 - hundreds * 100) / 10;
+        let ones = (dmg as u16) - (hundreds * 100) - (tens * 10);
+        let dec = ((dmg * 10.0) as u16) - (hundreds * 1000) - (tens * 100) - ones * 10;
+        (hundreds as u8, tens as u8, ones as u8, dec as u8)
+    } else {
+        // If we can't get the module accessor, return 0's
+        // This happens when background matchmaking finds a match and unloads the fighters
+        (0, 0, 0, 0)
+    }
 }
 
 pub unsafe fn get_fighter_distance() -> f32 {
