@@ -1,5 +1,5 @@
 use skyline::nn::ui2d::ResColor;
-use smash::app::lua_bind::{AttackModule, CancelModule, WorkModule};
+use smash::app::lua_bind::{AttackModule, CancelModule, StatusModule, WorkModule};
 use smash::app::BattleObjectModuleAccessor;
 use smash::lib::lua_const::*;
 
@@ -110,8 +110,9 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     if !player_is_actionable && !cpu_is_actionable {
         if AttackModule::is_infliction(
             player_module_accessor,
-            *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD
-        ) {
+            *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD,
+        ) || StatusModule::status_kind(player_module_accessor) == *FIGHTER_STATUS_KIND_THROW
+        {
             if !read(&IS_COUNTING) {
                 // Start counting when the player lands a hit
                 info!("Starting frame counter");
