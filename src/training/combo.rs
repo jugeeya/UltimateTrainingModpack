@@ -1,5 +1,5 @@
 use skyline::nn::ui2d::ResColor;
-use smash::app::lua_bind::{AttackModule, CancelModule, StatusModule, WorkModule};
+use smash::app::lua_bind::{AttackModule, CancelModule, WorkModule};
 use smash::app::BattleObjectModuleAccessor;
 use smash::lib::lua_const::*;
 
@@ -21,16 +21,6 @@ static PLAYER_FRAME_COUNTER_INDEX: LazyLock<usize> =
 static CPU_FRAME_COUNTER_INDEX: LazyLock<usize> =
     LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
-unsafe fn was_in_hitstun(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
-    (*FIGHTER_STATUS_KIND_DAMAGE..=*FIGHTER_STATUS_KIND_DAMAGE_FALL).contains(&prev_status)
-}
-
-unsafe fn was_in_shieldstun(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
-    let prev_status = StatusModule::prev_status_kind(module_accessor, 0);
-    prev_status == FIGHTER_STATUS_KIND_GUARD_DAMAGE
-}
-
 unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
     [
         FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR, // Airdodge
@@ -47,11 +37,11 @@ unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> boo
 
 fn update_frame_advantage(frame_advantage: i32) {
     if read(&MENU).frame_advantage == OnOff::ON {
-        // Prioritize Frame Advantages over all others
+        // Prioritize notifications for Frame Advantage
         notifications::clear_all_notifications();
         notifications::color_notification(
             "Frame Advantage".to_string(),
-            format!("{frame_advantage}"),
+            format!("{frame_advantage:+}"),
             60,
             match frame_advantage {
                 x if x < 0 => ResColor {
@@ -106,8 +96,6 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
 
     // DEBUG LOGGING
     // if read(&IS_COUNTING) {
-    //     info!("P0:{:x}\tC0:{:x}", StatusModule::status_kind(player_module_accessor), StatusModule::status_kind(cpu_module_accessor));
-    //     info!("P1:{:x}\tC1:{:x}", StatusModule::prev_status_kind(player_module_accessor,0), StatusModule::prev_status_kind(cpu_module_accessor,0));
     //     if player_is_actionable && cpu_is_actionable {
     //         info!("!");
     //     } else if !player_is_actionable && cpu_is_actionable {
@@ -120,41 +108,41 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     // }
 
     if !player_is_actionable && !cpu_is_actionable {
-        if !read(&IS_COUNTING) {
-            // Start counting since neither fighter is actionable
+        if AttackModule::is_infliction(
+            player_module_accessor,
+            *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD
+        ) {
+            if !read(&IS_COUNTING) {
+                // Start counting when the player lands a hit
+                info!("Starting frame counter");
+            } else {
+                // Note that we want the same behavior even if we are already counting!
+                // This prevents multihit moves which aren't true combos from miscounting
+                // from the first hit (e.g. Pikachu back air on shield)
+                info!("Restarting frame counter");
+            }
+
             frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
             frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
             frame_counter::start_counting(*PLAYER_FRAME_COUNTER_INDEX);
             frame_counter::start_counting(*CPU_FRAME_COUNTER_INDEX);
             assign(&IS_COUNTING, true);
-        } else if AttackModule::is_infliction(
-            player_module_accessor,
-            *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD,
-        ) {
-            // We are already counting, but the player just landed a hit so reset the counters
-            // This prevents multihit moves which aren't true combos from miscounting from the first hit
-            // e.g. Pikachu back air on shield
-            info!("Resetting frame counters due to new hit");
-            frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
-            frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(*PLAYER_FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(*CPU_FRAME_COUNTER_INDEX);
         }
     } else if player_is_actionable && cpu_is_actionable {
         if read(&IS_COUNTING) {
-            if was_in_shieldstun(cpu_module_accessor) || was_in_hitstun(cpu_module_accessor) {
-                update_frame_advantage(
-                    frame_counter::get_frame_count(*CPU_FRAME_COUNTER_INDEX) as i32
-                        - frame_counter::get_frame_count(*PLAYER_FRAME_COUNTER_INDEX) as i32,
-                );
-                frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
-                frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
-            }
+            let frame_advantage = frame_counter::get_frame_count(*CPU_FRAME_COUNTER_INDEX) as i32
+                - frame_counter::get_frame_count(*PLAYER_FRAME_COUNTER_INDEX) as i32;
+            info!(
+                "Stopping frame counter, frame advantage: {}",
+                frame_advantage
+            );
+            update_frame_advantage(frame_advantage);
+            frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
+            frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
             assign(&IS_COUNTING, false);
         }
     } else {
-        // One of the fighters is still not actionable
-        // Keep counting until both are actionable
+        // No need to start or stop counting, one of the fighters is still not actionable
     }
 
     assign(&CPU_WAS_ACTIONABLE, cpu_is_actionable);
