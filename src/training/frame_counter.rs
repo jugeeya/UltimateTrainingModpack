@@ -37,7 +37,7 @@ pub fn stop_counting(index: usize) {
     (*counters_lock)[index].should_count = false;
 }
 
-pub fn is_counting(index: usize) -> bool {
+pub fn _is_counting(index: usize) -> bool {
     let counters_lock = lock_read(&COUNTERS);
     (*counters_lock)[index].should_count
 }
