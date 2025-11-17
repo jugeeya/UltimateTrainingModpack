@@ -284,7 +284,7 @@ To install the Training Modpack, download the .zip file from the [latest release
 ## Installation on Nintendo Switch
 
 * Atmosphere: https://github.com/Atmosphere-NX/Atmosphere/releases
-  * This is the custom firmware that is required for any hacked Switch. One great guide for installation here can be found at https://switch.homebrew.guide/.
+  * This is the custom firmware that is required for any hacked Switch.
 
 1) Transfer the extracted contents of the TrainingModpack .zip (`atmosphere` folder) onto the root of your SD card, merging the `/atmosphere` folder with the one on your SD card. 
 2) Similarly, transfer the extracted contents of the Skyline .zip (`exefs` folder) into `sd:/atmosphere/contents/01006A800016E000`.
