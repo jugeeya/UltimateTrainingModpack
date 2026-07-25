@@ -1,7 +1,3 @@
-#![feature(proc_macro_hygiene)]
-#![feature(iter_intersperse)]
-#![feature(c_variadic)]
-#![feature(stmt_expr_attributes)]
 #![allow(clippy::missing_safety_doc)]
 
 use std::fs;

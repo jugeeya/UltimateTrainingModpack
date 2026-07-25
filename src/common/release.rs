@@ -26,14 +26,14 @@ pub struct Release {
 impl Release {
     /// Downloads and installs the release
     pub fn install(self: &Release) -> Result<()> {
-        info!("Installing asset from URL: {}", &self.url);
+        info!("Installing asset from URL: {}", self.url);
         let response = minreq::get(&self.url)
             .with_header("User-Agent", "UltimateTrainingModpack")
             .with_header("Accept", "application/octet-stream")
             .send_lazy()?;
         info!(
             "Ok response from Github. Status Code: {}",
-            &response.status_code
+            response.status_code
         );
         let mut vec = Vec::new();
         for result in response {
@@ -200,7 +200,7 @@ pub fn perform_version_check() {
     match release_to_apply {
         Ok(release) => {
             if user_wants_to_install() {
-                info!("Installing update: {}", &release.to_string());
+                info!("Installing update: {}", release.to_string());
                 if let Err(e) = release.install() {
                     error!("Failed to install the update. Reason: {:?}", e);
                 }

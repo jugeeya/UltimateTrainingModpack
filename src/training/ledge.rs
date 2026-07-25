@@ -107,20 +107,19 @@ pub unsafe fn force_option(module_accessor: &mut app::BattleObjectModuleAccessor
     #[allow(clippy::unnecessary_cast)]
     let status_kind = StatusModule::status_kind(module_accessor) as i32;
     let should_buffer_playback = (ledge_delay == 0) && (current_frame == 13); // 18 - 5 of buffer
-    let should_buffer;
     let prev_status_kind = StatusModule::prev_status_kind(module_accessor, 0);
 
-    if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT
+    let should_buffer = if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT
         && prev_status_kind == *FIGHTER_STATUS_KIND_CLIFF_CATCH
     {
         // For regular ledge grabs, we were just in catch and want to buffer on this frame
-        should_buffer = (ledge_delay == 0) && (current_frame == 19) && (!flag_cliff);
+        (ledge_delay == 0) && (current_frame == 19) && (!flag_cliff)
     } else if status_kind == *FIGHTER_STATUS_KIND_CLIFF_WAIT {
         // otherwise we're in "wait" from grabbing with lasso, so we want to buffer on frame
-        should_buffer = (ledge_delay == 0) && (current_frame == 18) && (flag_cliff);
+        (ledge_delay == 0) && (current_frame == 18) && (flag_cliff)
     } else {
-        should_buffer = false;
-    }
+        false
+    };
 
     if !WorkModule::is_enable_transition_term(
         module_accessor,
