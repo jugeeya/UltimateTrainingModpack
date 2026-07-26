@@ -73,6 +73,8 @@ jobs:
     needs:
       - plugin
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
