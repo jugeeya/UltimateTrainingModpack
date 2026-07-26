@@ -66,31 +66,6 @@ jobs:
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
-  plugin_outside_training_mode:
-    name: Plugin NRO (Outside Training Mode)
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          target: x86_64-unknown-linux-gnu
-      - uses: Swatinem/rust-cache@v2
-        name: Rust Cache
-        with:
-          prefix-key: "plugin"
-          cache-all-crates: true
-      - name: Install Skyline
-        run: |
-          cargo install --git https://github.com/jam1garner/cargo-skyline --branch master --force
-          cargo-skyline skyline update-std
-      - name: Build outside_training_mode NRO
-        run: RUSTFLAGS=-g cargo-skyline skyline build --release --features outside_training_mode
-      - name: Upload plugin (outside training mode) artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: plugin_outside_training_mode
-          path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
   upload:
     name: Upload Beta Release
     runs-on: ubuntu-latest

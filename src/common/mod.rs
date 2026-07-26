@@ -25,15 +25,9 @@ pub static ITEM_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);
 pub static STAGE_MANAGER_ADDR: RwLock<usize> = RwLock::new(0);
 pub static mut TRAINING_MENU_ADDR: *mut PauseMenu = core::ptr::null_mut();
 
-#[cfg(not(feature = "outside_training_mode"))]
 extern "C" {
     #[link_name = "\u{1}_ZN3app9smashball16is_training_modeEv"]
     pub fn is_training_mode() -> bool;
-}
-
-#[cfg(feature = "outside_training_mode")]
-pub fn is_training_mode() -> bool {
-    true
 }
 
 #[repr(C)]

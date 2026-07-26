@@ -66,5 +66,4 @@ plugin-dependencies = [
 ]
 
 [features]
-outside_training_mode = []
 layout_arc_from_file = []
