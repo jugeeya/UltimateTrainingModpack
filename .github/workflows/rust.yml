@@ -62,7 +62,7 @@ jobs:
         id: build_release
         run: RUSTFLAGS=-g cargo-skyline skyline build --release
       - name: Upload plugin artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: plugin
           path: target/aarch64-skyline-switch/release/libtraining_modpack.nro
@@ -74,7 +74,7 @@ jobs:
       - plugin
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: atmosphere/contents/01006A800016E000/romfs/skyline/plugins 
           merge-multiple: true
@@ -93,10 +93,7 @@ jobs:
             https://github.com/ultimate-research/nro-hook-plugin/releases/download/v0.4.0/libnro_hook.nro
           zip -r training_modpack_beta.zip atmosphere
       - name: Delete Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
-        with:
-          tag_name: beta 
-          delete_release: true 
+        run: gh release delete beta -y
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update Release
@@ -161,7 +158,7 @@ jobs:
           files: >
             training_modpack_beta.zip
       - name: Upload zip as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: full_build
           path: training_modpack_beta.zip 
