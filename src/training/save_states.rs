@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log::info;
+use log::{error, info};
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, Item};
@@ -9,6 +9,7 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use std::ptr;
+use std::sync::atomic::{AtomicBool, Ordering};
 use training_mod_consts::{CharacterItem, SaveDamage, SaveStateSlot};
 
 use SaveState::*;
@@ -172,11 +173,25 @@ pub fn load_from_file() -> SaveStateSlots {
     defaults
 }
 
+static SAVE_TO_FILE_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
+
 pub unsafe fn save_to_file() {
+    if SAVE_TO_FILE_IN_PROGRESS
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
+        info!("save_to_file: write already in progress, skipping");
+        return;
+    }
+
     let save_states_str = toml::to_string_pretty(&*SAVE_STATE_SLOTS.data_ptr())
         .expect("Error serializing save state information");
-    std::fs::write(SAVE_STATES_TOML_PATH, save_states_str)
-        .expect("Could not write save state information to file");
+    match std::fs::write(SAVE_STATES_TOML_PATH, save_states_str) {
+        Ok(()) => info!("Saved save state information to {SAVE_STATES_TOML_PATH}"),
+        Err(e) => error!("Could not write save state information to {SAVE_STATES_TOML_PATH}: {e}"),
+    }
+
+    SAVE_TO_FILE_IN_PROGRESS.store(false, Ordering::SeqCst);
 }
 
 unsafe fn save_state_player(slot: usize) -> &'static mut SavedState {
