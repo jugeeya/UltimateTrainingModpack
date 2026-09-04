@@ -1,4 +1,5 @@
 // TODO!(Do all these need to be referenced by offset? Or do some of them have symbols?)
+// TODO!(Find a way to search for the offsets for the stale menu text (on_text_ptr) and camera manager address (on_cam_mgr_ptr))
 #![cfg_attr(rustfmt, rustfmt_skip)] // We want the assembly needles to stay in lines of four bytes each
 use crate::logging::*;
 use training_mod_sync::LazyLock;
@@ -60,7 +61,7 @@ static NEEDLE_GET_BATTLE_OBJECT_FROM_ID: &[u8] = &[
     0x08, 0x7c, 0x1c, 0x53,
     0x1f, 0x11, 0x00, 0x71,
     0x68, 0x07, 0x00, 0x54,
-    0x49, 0x08, 0x02, 0xf0,
+    0x69, 0x08, 0x02, 0x90,
     0x29, 0xd1, 0x07, 0x91,
     0x28, 0x79, 0xa8, 0xb8,
     0x08, 0x01, 0x09, 0x8b,
@@ -135,7 +136,7 @@ static NEEDLE_CHANGE_ACTIVE_CAMERA: &[u8] = &[
 ];
 impl_offset!(CHANGE_ACTIVE_CAMERA);
 
-// OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES = 0x3158850
+// OFFSET_SET_TRAINING_FIXED_CAMERA_VALUES = 0x3158e00
 static NEEDLE_SET_TRAINING_FIXED_CAMERA_VALUES: &[u8] = &[
     0x01, 0xe4, 0x00, 0x2f,
     0x20, 0x00, 0xc0, 0x3d,
@@ -180,7 +181,7 @@ impl_offset!(CLOUD_ADD_LIMIT);
 // OFFSET_STALE_MENU = 0x13e88c0
 static NEEDLE_STALE_MENU: &[u8] = &[
     0xdf, 0x82, 0x2d, 0x39,
-    0xab, 0x44, 0x8e, 0x94,
+    0x17, 0x46, 0x8e, 0x94,
     0x00, 0x1d, 0xa8, 0x4e,
     0xc0, 0xa2, 0x06, 0x91,
 ];
@@ -189,7 +190,7 @@ impl_offset!(STALE_MENU);
 // IMPORTANT! See above comment for STALE_MENU
 // OFFSET_STALE = 0x13e88c4
 static NEEDLE_STALE: &[u8] = &[
-    0xab, 0x44, 0x8e, 0x94,
+    0x17, 0x46, 0x8e, 0x94,
     0x00, 0x1d, 0xa8, 0x4e,
     0xc0, 0xa2, 0x06, 0x91,
     0xdf, 0x22, 0x2f, 0x39,
@@ -209,7 +210,7 @@ static NEEDLE_PLAY_SE: &[u8] = &[
 ];
 impl_offset!(PLAY_SE);
 
-// OFFSET_CAN_FUTTOBI_BACK = 0x26105f0
+// OFFSET_CAN_FUTTOBI_BACK = 0x2610a40
 static NEEDLE_CAN_FUTTOBI_BACK: &[u8] = &[
     0x00, 0x07, 0x00, 0xb4,
     0x09, 0x04, 0x40, 0xf9,
@@ -253,7 +254,7 @@ static NEEDLE_OPCF: &[u8] = &[
 ];
 impl_offset!(OPCF);
 
-// OFFSET_FIM = 0x1750f70
+// OFFSET_FIM = 0x1750dd0
 static NEEDLE_FIM: &[u8] = &[
     0xff, 0x03, 0x02, 0xd1,
     0xf7, 0x23, 0x00, 0xf9,
@@ -294,7 +295,7 @@ static NEEDLE_KIRBY_OPFF: &[u8] = &[
 ];
 impl_offset!(KIRBY_OPFF);
 
-// OFFSET_ACTIVATE_AUTONOMY = 0x34B6720
+// OFFSET_ACTIVATE_AUTONOMY = 0x34b6cd0
 static NEEDLE_ACTIVATE_AUTONOMY: &[u8] = &[
     0xf6, 0x57, 0xbd, 0xa9,
     0xf4, 0x4f, 0x01, 0xa9,
@@ -307,7 +308,7 @@ static NEEDLE_ACTIVATE_AUTONOMY: &[u8] = &[
 ];
 impl_offset!(ACTIVATE_AUTONOMY);
 
-// OFFSET_POKEMON_DECIDE = 0x34CE694
+// OFFSET_POKEMON_DECIDE = 0x34cec44
 static NEEDLE_POKEMON_DECIDE: &[u8] = &[
     0x28, 0x69, 0x2b, 0x38,
     0x48, 0x26, 0x8b, 0x52,
@@ -316,7 +317,7 @@ static NEEDLE_POKEMON_DECIDE: &[u8] = &[
 ];
 impl_offset!(POKEMON_DECIDE);
 
-// OFFSET_LAYOUT_ARC_MALLOC = 0x3774154
+// OFFSET_LAYOUT_ARC_MALLOC = 0x3774704
 static NEEDLE_LAYOUT_ARC_MALLOC: &[u8] = &[
     0xe3, 0xe6, 0x06, 0x94,
     0xa0, 0x05, 0x00, 0xb4,
@@ -329,7 +330,7 @@ impl_offset!(LAYOUT_ARC_MALLOC);
 static NEEDLE_TRAINING_RESET_CHECK: &[u8] = &[
     0x1f, 0x09, 0x00, 0x71,
     0x41, 0x1c, 0x00, 0x54,
-    0x08, 0xfa, 0x01, 0x90,
+    0x08, 0xfa, 0x01, 0xb0,
     0x08, 0x7d, 0x42, 0xf9,
     0x08, 0x01, 0x40, 0xf9,
     0x09, 0xa1, 0x40, 0xb9,
