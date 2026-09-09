@@ -14,6 +14,7 @@ pub mod consts;
 pub mod dev_config;
 pub mod dialog;
 pub mod events;
+pub mod filesystem;
 pub mod input;
 pub mod menu;
 pub mod offsets;

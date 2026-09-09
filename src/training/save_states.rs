@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log::{error, info};
+use log::{info, warn};
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use smash::app::{self, lua_bind::*, ArticleOperationTarget, Item};
@@ -9,7 +9,6 @@ use smash::hash40;
 use smash::lib::lua_const::*;
 use smash::phx::{Hash40, Vector3f};
 use std::ptr;
-use std::sync::atomic::{AtomicBool, Ordering};
 use training_mod_consts::{CharacterItem, SaveDamage, SaveStateSlot};
 
 use SaveState::*;
@@ -24,6 +23,7 @@ use crate::common::consts::RecordTrigger;
 use crate::common::consts::SaveStateMirroring;
 //TODO: Cleanup above
 use crate::common::consts::SAVE_STATES_TOML_PATH;
+use crate::common::filesystem;
 use crate::common::is_dead;
 use crate::common::try_get_module_accessor;
 use crate::common::MENU;
@@ -158,40 +158,14 @@ pub fn load_from_file() -> SaveStateSlots {
     };
 
     info!("Checking for previous save state settings in {SAVE_STATES_TOML_PATH}...");
-    if std::fs::metadata(SAVE_STATES_TOML_PATH).is_err() {
-        return defaults;
-    }
-
-    info!("Previous save state settings found. Loading...");
-    if let Ok(data) = std::fs::read_to_string(SAVE_STATES_TOML_PATH) {
-        let input_slots = toml::from_str::<SaveStateSlots>(&data);
-        if let Ok(input_slots) = input_slots {
-            return input_slots;
-        }
-    }
-
-    defaults
+    filesystem::read_toml(SAVE_STATES_TOML_PATH).unwrap_or_else(|e| {
+        warn!("Could not load previous save state settings! {e}");
+        defaults
+    })
 }
 
-static SAVE_TO_FILE_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
-
-pub unsafe fn save_to_file() {
-    if SAVE_TO_FILE_IN_PROGRESS
-        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
-        .is_err()
-    {
-        info!("save_to_file: write already in progress, skipping");
-        return;
-    }
-
-    let save_states_str = toml::to_string_pretty(&*SAVE_STATE_SLOTS.data_ptr())
-        .expect("Error serializing save state information");
-    match std::fs::write(SAVE_STATES_TOML_PATH, save_states_str) {
-        Ok(()) => info!("Saved save state information to {SAVE_STATES_TOML_PATH}"),
-        Err(e) => error!("Could not write save state information to {SAVE_STATES_TOML_PATH}: {e}"),
-    }
-
-    SAVE_TO_FILE_IN_PROGRESS.store(false, Ordering::SeqCst);
+fn save_to_file(save_state_slots: SaveStateSlots) {
+    filesystem::write_toml(SAVE_STATES_TOML_PATH, &save_state_slots);
 }
 
 unsafe fn save_state_player(slot: usize) -> &'static mut SavedState {
@@ -780,7 +754,9 @@ pub unsafe fn save_states(module_accessor: &mut app::BattleObjectModuleAccessor)
         if save_state_player(selected_slot).state != Save
             && save_state_cpu(selected_slot).state != Save
         {
-            std::thread::spawn(move || save_to_file());
+            // Copy here on the game thread, the only mutator of SAVE_STATE_SLOTS, to avoid races.
+            let save_state_slots_copy = *SAVE_STATE_SLOTS.data_ptr();
+            save_to_file(save_state_slots_copy);
         }
     }
 }

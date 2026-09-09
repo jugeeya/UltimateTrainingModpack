@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::fs;
-use std::io::BufReader;
 
 use skyline::nn::hid::GetNpadStyleSet;
 
 use crate::common::{button_config, ButtonConfig};
 use crate::common::{DEFAULTS_MENU, MENU};
 use crate::events::{Event, EVENT_QUEUE};
+use crate::filesystem;
 use crate::input::{ButtonBitfield, ControllerStyle, MappedInputs, SomeControllerStruct};
 use crate::logging::*;
 use crate::training::frame_counter;
@@ -28,22 +28,18 @@ pub fn load_from_file() {
     // Note that this function requires a larger stack size
     // With the switch default, it'll crash w/o a helpful error message
     info!("Checking for previous menu in {MENU_OPTIONS_PATH}...");
-    let err_msg = format!("Could not read {}", MENU_OPTIONS_PATH);
     if fs::metadata(MENU_OPTIONS_PATH).is_ok() {
-        let menu_conf = fs::File::open(MENU_OPTIONS_PATH).expect(&err_msg);
-        let reader = BufReader::new(menu_conf);
-        if let Ok(menu_conf_json) = serde_json::from_reader::<BufReader<_>, MenuJsonStruct>(reader)
-        {
-            assign(&MENU, menu_conf_json.menu);
-            assign(&DEFAULTS_MENU, menu_conf_json.defaults_menu);
-            info!("Previous menu found. Loading...");
-        } else {
-            warn!("Previous menu found but is invalid. Deleting...");
-            let err_msg = format!(
-                "{} has invalid schema but could not be deleted!",
-                MENU_OPTIONS_PATH
-            );
-            fs::remove_file(MENU_OPTIONS_PATH).expect(&err_msg);
+        match filesystem::read_json::<MenuJsonStruct>(MENU_OPTIONS_PATH) {
+            Ok(menu_conf_json) => {
+                assign(&MENU, menu_conf_json.menu);
+                assign(&DEFAULTS_MENU, menu_conf_json.defaults_menu);
+                info!("Previous menu found. Loading...");
+            }
+            Err(e) => {
+                warn!("Previous menu found at {MENU_OPTIONS_PATH} but could not be loaded: {e}");
+                info!("Deleting previous menu file so it can be recreated");
+                fs::remove_file(MENU_OPTIONS_PATH).expect("Could not remove invalid menu file!");
+            }
         }
     } else {
         info!("No previous menu file found.");
@@ -64,14 +60,7 @@ pub fn set_menu_from_json(message: &str) {
         // Includes both MENU and DEFAULTS_MENU
         assign(&MENU, message_json.menu);
         assign(&DEFAULTS_MENU, message_json.defaults_menu);
-        std::thread::spawn(move || {
-            fs::write(
-                MENU_OPTIONS_PATH,
-                serde_json::to_string_pretty(&message_json)
-                    .expect("Could not serialize menu settings"),
-            )
-            .expect("Failed to write menu settings file");
-        });
+        filesystem::write_json(MENU_OPTIONS_PATH, &message_json);
     } else {
         skyline::error::show_error(
             0x70,
