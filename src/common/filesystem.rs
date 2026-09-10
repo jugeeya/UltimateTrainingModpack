@@ -20,6 +20,11 @@ static WRITER: LazyLock<Sender<WriteMessage>> = LazyLock::new(|| {
     tx
 });
 
+pub fn init() {
+    LazyLock::force(&WRITER);
+    info!("Initialized writer thread");
+}
+
 pub fn read_toml<T: DeserializeOwned>(path: &str) -> Result<T> {
     let contents = read_to_string(path)?;
     let parsed = toml::from_str::<T>(&contents)?;
