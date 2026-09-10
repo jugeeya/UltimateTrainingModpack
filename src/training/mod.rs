@@ -7,6 +7,7 @@ use crate::common::{
     dev_config, is_operation_cpu, is_training_mode, menu, try_get_module_accessor, PauseMenu,
     FIGHTER_MANAGER_ADDR, ITEM_MANAGER_ADDR, STAGE_MANAGER_ADDR, TRAINING_MENU_ADDR,
 };
+use crate::filesystem;
 use crate::hitbox_visualizer;
 use crate::input::*;
 use crate::logging::*;
@@ -946,6 +947,7 @@ pub fn training_mods() {
     ptrainer::init();
     kirby::init();
     tech::init();
+    filesystem::init();
 
     #[cfg(debug_assertions)]
     debug::init();

@@ -33,11 +33,7 @@ fn should_reset(module_accessor: &mut app::BattleObjectModuleAccessor) -> bool {
     }
 
     // Only reset automatically on training mode reset
-    if prev_status != *FIGHTER_STATUS_KIND_NONE {
-        return false;
-    }
-
-    true
+    prev_status == *FIGHTER_STATUS_KIND_NONE
 }
 
 pub fn on_reset() {

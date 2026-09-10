@@ -1,10 +1,8 @@
-use std::fs;
-
 use serde::Deserialize;
 
 use crate::common::input::*;
 use crate::consts::DEV_TOML_PATH;
-use crate::logging::info;
+use crate::filesystem;
 use training_mod_sync::*;
 
 /// Hot-reloadable configs for quicker development
@@ -40,15 +38,7 @@ pub static DEV_CONFIG: LazyLock<RwLock<DevConfig>> =
 
 impl DevConfig {
     fn load_from_toml() -> DevConfig {
-        let dev_path = DEV_TOML_PATH;
-        if fs::metadata(dev_path).is_ok() {
-            info!("Loading dev.toml configs...");
-            let dev_config_str = fs::read_to_string(dev_path)
-                .unwrap_or_else(|_| panic!("Could not read {}", dev_path));
-            return toml::from_str(&dev_config_str).expect("Could not parse dev config");
-        }
-
-        DevConfig::default()
+        filesystem::read_toml(DEV_TOML_PATH).unwrap_or_default()
     }
 }
 
