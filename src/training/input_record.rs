@@ -420,16 +420,15 @@ pub unsafe fn is_input_neutral(input_frame: usize) -> bool {
 }
 
 pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
-    let mut possession = lock_write(&POSSESSION);
     if player_idx == 0 {
         // if player 1
         if read(&INPUT_RECORD) == Record {
             let mut input_record_frame = lock_write(&INPUT_RECORD_FRAME);
             // check for standby before starting action:
-            if *possession == Standby && !is_input_neutral(0) {
+            if read(&POSSESSION) == Standby && !is_input_neutral(0) {
                 // last input made us start an action, so start recording and end standby.
                 *input_record_frame += 1;
-                *possession = Cpu;
+                assign(&POSSESSION, Cpu);
             }
 
             if *input_record_frame == 1 {
@@ -454,7 +453,7 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
             *out = MappedInputs::empty(); // don't control player while recording
         }
         // Don't allow for player input during Lockout
-        if *possession == Lockout {
+        if read(&POSSESSION) == Lockout {
             *out = MappedInputs::empty();
         }
     }
