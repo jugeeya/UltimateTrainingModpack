@@ -206,9 +206,9 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             clear_notification("Input Recording");
         }
         // Handle recording end
-        let mut input_record_frame = lock_write(&INPUT_RECORD_FRAME);
-        if (input_record == Record || input_record == Playback)
-            && *input_record_frame >= read(&CURRENT_FRAME_LENGTH) - 1
+        let input_record_frame = read(&INPUT_RECORD_FRAME);
+        let last_frame = read(&CURRENT_FRAME_LENGTH) - 1;
+        if (input_record == Record || input_record == Playback) && input_record_frame >= last_frame
         {
             assign(&POSSESSION, Player);
             if mash::is_playback_queued() {
@@ -219,19 +219,20 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
             // INPUT_RECORD_FRAME must be > 0 to prevent bounding errors
             if input_record == Record
                 && read(&MENU).recording_crop == OnOff::ON
-                && *input_record_frame > 0
+                && input_record_frame > 0
             {
-                while *input_record_frame > 0 && is_input_neutral(*input_record_frame - 1) {
+                let mut input_record_len = input_record_frame;
+                while input_record_len > 0 && is_input_neutral(input_record_len - 1) {
                     // Discard frames at the end of the recording until the last frame with input
-                    *input_record_frame -= 1;
+                    input_record_len -= 1;
                 }
-                assign(&CURRENT_FRAME_LENGTH, *input_record_frame);
+                assign(&CURRENT_FRAME_LENGTH, input_record_len);
                 let mut p1_frame_length_mapping = lock_write(&P1_FRAME_LENGTH_MAPPING);
-                (*p1_frame_length_mapping)[read(&CURRENT_RECORD_SLOT)] = *input_record_frame;
+                (*p1_frame_length_mapping)[read(&CURRENT_RECORD_SLOT)] = input_record_len;
                 drop(p1_frame_length_mapping);
             }
 
-            *input_record_frame = 0;
+            assign(&INPUT_RECORD_FRAME, 0);
 
             if read(&MENU).playback_loop == OnOff::ON && input_record == Playback {
                 let playback_slot = read(&CURRENT_PLAYBACK_SLOT);
@@ -240,7 +241,6 @@ unsafe fn handle_recording_for_fighter(module_accessor: &mut BattleObjectModuleA
                 assign(&INPUT_RECORD, None);
             }
         }
-        drop(input_record_frame);
     }
 
     // Handle Possession Coloring
@@ -420,16 +420,15 @@ pub unsafe fn is_input_neutral(input_frame: usize) -> bool {
 }
 
 pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs) {
-    let mut possession = lock_write(&POSSESSION);
     if player_idx == 0 {
         // if player 1
         if read(&INPUT_RECORD) == Record {
             let mut input_record_frame = lock_write(&INPUT_RECORD_FRAME);
             // check for standby before starting action:
-            if *possession == Standby && !is_input_neutral(0) {
+            if read(&POSSESSION) == Standby && !is_input_neutral(0) {
                 // last input made us start an action, so start recording and end standby.
                 *input_record_frame += 1;
-                *possession = Cpu;
+                assign(&POSSESSION, Cpu);
             }
 
             if *input_record_frame == 1 {
@@ -454,7 +453,7 @@ pub unsafe fn handle_final_input_mapping(player_idx: i32, out: *mut MappedInputs
             *out = MappedInputs::empty(); // don't control player while recording
         }
         // Don't allow for player input during Lockout
-        if *possession == Lockout {
+        if read(&POSSESSION) == Lockout {
             *out = MappedInputs::empty();
         }
     }
