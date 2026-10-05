@@ -101,13 +101,6 @@ pub unsafe fn handle_get_command_flag_cat(
 ) -> i32 {
     let mut flag = original!()(module_accessor, category);
 
-    // this must be run even outside of training mode
-    // because otherwise it won't reset the shield_damage_mul
-    // back to "normal" once you leave training mode.
-    if category == FIGHTER_PAD_COMMAND_CATEGORY1 {
-        shield::param_installer();
-    }
-
     if !is_training_mode() {
         return flag;
     }
@@ -116,17 +109,21 @@ pub unsafe fn handle_get_command_flag_cat(
     // Get throw directions
     flag |= throw::get_command_flag_throw_direction(module_accessor);
 
-    once_per_frame_per_fighter(module_accessor, category);
-
     flag
 }
 
-fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, category: i32) {
-    if category != FIGHTER_PAD_COMMAND_CATEGORY1 {
-        return;
-    }
+#[skyline::from_offset(0x614630)]
+unsafe extern "C" fn fighter_vtable_on_frame_inner(fighter: &mut smash::app::Fighter);
 
+unsafe extern "C" fn fighter_vtable_on_frame(fighter: &mut smash::app::Fighter) {
+    fighter_vtable_on_frame_inner(fighter);
+    once_per_frame_per_fighter(&mut *fighter.battle_object.module_accessor);
+}
+
+fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor) {
     unsafe {
+        shield::param_installer();
+
         if menu::menu_condition() {
             menu::spawn_menu();
         }
@@ -144,17 +141,24 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor, 
         }
 
         combo::once_per_frame(module_accessor);
-        hitbox_visualizer::get_command_flag_cat(module_accessor);
+        hitbox_visualizer::once_per_frame(module_accessor);
         save_states::save_states(module_accessor);
-        tech::get_command_flag_cat(module_accessor);
+        tech::once_per_frame(module_accessor);
         clatter::handle_clatter(module_accessor);
     }
 
-    fast_fall::get_command_flag_cat(module_accessor);
-    ledge::get_command_flag_cat(module_accessor);
-    shield::get_command_flag_cat(module_accessor);
-    directional_influence::get_command_flag_cat(module_accessor);
-    reset::check_reset(module_accessor);
+    fast_fall::do_fast_fall(module_accessor);
+    ledge::do_ledge_option(module_accessor);
+    shield::handle_shield(module_accessor);
+    directional_influence::set_di(module_accessor);
+}
+
+#[skyline::from_offset(0x60dfa0)]
+unsafe extern "C" fn fighter_vtable_on_init_inner(fighter: &mut smash::app::Fighter, param_2: u64);
+
+unsafe extern "C" fn fighter_vtable_on_init(fighter: &mut smash::app::Fighter, param_2: u64) {
+    fighter_vtable_on_init_inner(fighter, param_2);
+    reset::check_reset(&mut *fighter.battle_object.module_accessor);
 }
 
 /**
@@ -880,6 +884,10 @@ pub fn training_mods() {
         *OFFSET_STALE_MENU
     );
     println!("Searching for STALE offset second! : {}", *OFFSET_STALE);
+
+    println!("Patching global fighter vtable functions with our own!");
+    let _ = skyline::patching::Patch::in_text(0x4f80240).data(fighter_vtable_on_init as *const () as u64);
+    let _ = skyline::patching::Patch::in_text(0x4f80568).data(fighter_vtable_on_frame as *const () as u64);
 
     skyline::install_hooks!(
         // Mash airdodge/jump

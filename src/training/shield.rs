@@ -87,7 +87,7 @@ pub fn allow_oos() -> bool {
     read(&MULTI_HIT_OFFSET) == 0
 }
 
-pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn handle_shield(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }

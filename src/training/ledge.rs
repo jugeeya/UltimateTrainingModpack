@@ -190,7 +190,7 @@ pub unsafe fn is_enable_transition_term(
     None
 }
 
-pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn do_ledge_option(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }

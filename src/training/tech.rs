@@ -217,7 +217,7 @@ unsafe fn handle_ceil_tech(
     true
 }
 
-pub unsafe fn get_command_flag_cat(module_accessor: &mut BattleObjectModuleAccessor) {
+pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) || read(&MENU).tech_state == TechFlags::empty() {
         return;
     }
