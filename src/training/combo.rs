@@ -1,5 +1,5 @@
 use skyline::nn::ui2d::ResColor;
-use smash::app::lua_bind::{AttackModule, CancelModule, StatusModule, WorkModule};
+use smash::app::lua_bind::{CancelModule, WorkModule};
 use smash::app::BattleObjectModuleAccessor;
 use smash::lib::lua_const::*;
 
@@ -15,10 +15,11 @@ use training_mod_sync::*;
 static PLAYER_WAS_ACTIONABLE: RwLock<bool> = RwLock::new(false);
 static CPU_WAS_ACTIONABLE: RwLock<bool> = RwLock::new(false);
 static IS_COUNTING: RwLock<bool> = RwLock::new(false);
+// Frame (relative to the start of counting) on which each fighter first became actionable
+static PLAYER_ACTIONABLE_AT: RwLock<Option<u32>> = RwLock::new(None);
+static CPU_ACTIONABLE_AT: RwLock<Option<u32>> = RwLock::new(None);
 
-static PLAYER_FRAME_COUNTER_INDEX: LazyLock<usize> =
-    LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
-static CPU_FRAME_COUNTER_INDEX: LazyLock<usize> =
+static ELAPSED_FRAME_COUNTER_INDEX: LazyLock<usize> =
     LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
 unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
@@ -67,6 +68,13 @@ fn update_frame_advantage(frame_advantage: i32) {
     }
 }
 
+pub fn reset() {
+    frame_counter::full_reset(*ELAPSED_FRAME_COUNTER_INDEX);
+    assign(&PLAYER_ACTIONABLE_AT, None);
+    assign(&CPU_ACTIONABLE_AT, None);
+    assign(&IS_COUNTING, false);
+}
+
 pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     // Skip the CPU so we don't run twice per frame
     // Also skip if the CPU is set to mash since that interferes with the frame calculation
@@ -85,15 +93,6 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     let cpu_was_actionable = read(&CPU_WAS_ACTIONABLE);
     let cpu_just_actionable = !cpu_was_actionable && cpu_is_actionable;
 
-    // Lock in frames
-    if cpu_just_actionable {
-        frame_counter::stop_counting(*CPU_FRAME_COUNTER_INDEX);
-    }
-
-    if player_just_actionable {
-        frame_counter::stop_counting(*PLAYER_FRAME_COUNTER_INDEX);
-    }
-
     // DEBUG LOGGING
     // if read(&IS_COUNTING) {
     //     if player_is_actionable && cpu_is_actionable {
@@ -107,43 +106,43 @@ pub unsafe fn once_per_frame(module_accessor: &mut BattleObjectModuleAccessor) {
     //     }
     // }
 
-    if !player_is_actionable && !cpu_is_actionable {
-        if AttackModule::is_infliction(
-            player_module_accessor,
-            *COLLISION_KIND_MASK_HIT | *COLLISION_KIND_MASK_SHIELD,
-        ) || StatusModule::status_kind(player_module_accessor) == *FIGHTER_STATUS_KIND_THROW
-        {
-            if !read(&IS_COUNTING) {
-                // Start counting when the player lands a hit
-                info!("Starting frame counter");
-            } else {
-                // Note that we want the same behavior even if we are already counting!
-                // This prevents multihit moves which aren't true combos from miscounting
-                // from the first hit (e.g. Pikachu back air on shield)
-                info!("Restarting frame counter");
-            }
-
-            frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
-            frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(*PLAYER_FRAME_COUNTER_INDEX);
-            frame_counter::start_counting(*CPU_FRAME_COUNTER_INDEX);
+    if !read(&IS_COUNTING) {
+        // Start counting as soon as either fighter stops being actionable
+        if !player_is_actionable || !cpu_is_actionable {
+            info!("Starting frame counter");
+            frame_counter::reset_frame_count(*ELAPSED_FRAME_COUNTER_INDEX);
+            frame_counter::start_counting(*ELAPSED_FRAME_COUNTER_INDEX);
+            // A fighter who is still actionable has no frames to wait out
+            assign(&PLAYER_ACTIONABLE_AT, player_is_actionable.then_some(0));
+            assign(&CPU_ACTIONABLE_AT, cpu_is_actionable.then_some(0));
             assign(&IS_COUNTING, true);
         }
-    } else if player_is_actionable && cpu_is_actionable {
-        if read(&IS_COUNTING) {
-            let frame_advantage = frame_counter::get_frame_count(*CPU_FRAME_COUNTER_INDEX) as i32
-                - frame_counter::get_frame_count(*PLAYER_FRAME_COUNTER_INDEX) as i32;
-            info!(
-                "Stopping frame counter, frame advantage: {}",
-                frame_advantage
-            );
-            update_frame_advantage(frame_advantage);
-            frame_counter::reset_frame_count(*PLAYER_FRAME_COUNTER_INDEX);
-            frame_counter::reset_frame_count(*CPU_FRAME_COUNTER_INDEX);
-            assign(&IS_COUNTING, false);
-        }
     } else {
-        // No need to start or stop counting, one of the fighters is still not actionable
+        // Lock in frames
+        let elapsed = frame_counter::get_frame_count(*ELAPSED_FRAME_COUNTER_INDEX);
+        if player_just_actionable {
+            println!("Locking in Player frame: {}", elapsed);
+            assign(&PLAYER_ACTIONABLE_AT, Some(elapsed));
+        }
+        if cpu_just_actionable {
+            println!("Locking in CPU frame: {}", elapsed);
+            assign(&CPU_ACTIONABLE_AT, Some(elapsed));
+        }
+
+        if player_is_actionable && cpu_is_actionable {
+            info!("Both players are actionable!");
+            if let (Some(player_frames), Some(cpu_frames)) =
+                (read(&PLAYER_ACTIONABLE_AT), read(&CPU_ACTIONABLE_AT))
+            {
+                let frame_advantage = cpu_frames as i32 - player_frames as i32;
+                info!(
+                    "Stopping frame counter, frame advantage: {}",
+                    frame_advantage
+                );
+                update_frame_advantage(frame_advantage);
+            }
+            reset();
+        }
     }
 
     assign(&CPU_WAS_ACTIONABLE, cpu_is_actionable);
