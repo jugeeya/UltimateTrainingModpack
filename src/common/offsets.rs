@@ -338,3 +338,28 @@ static NEEDLE_TRAINING_RESET_CHECK: &[u8] = &[
     0x2b, 0x0a, 0x00, 0x54,
 ];
 impl_offset!(TRAINING_RESET_CHECK);
+
+// OFFSET_FIGHTER_VTABLE_ON_INIT = 0x60dfa0
+static NEEDLE_FIGHTER_VTABLE_ON_INIT: &[u8] = &[
+    0xff, 0xc3, 0x04, 0xd1,
+    0xfc, 0x6f, 0x0d, 0xa9,
+    0xfa, 0x67, 0x0e, 0xa9,
+    0xf8, 0x5f, 0x0f, 0xa9,
+    0xf6, 0x57, 0x10, 0xa9,
+    0xf4, 0x4f, 0x11, 0xa9,
+    0xfd, 0x7b, 0x12, 0xa9,
+    0xfd, 0x83, 0x04, 0x91,
+    0x09, 0xa0, 0x41, 0x29,
+];
+impl_offset!(FIGHTER_VTABLE_ON_INIT);
+
+pub static OFFSET_FIGHTER_VTABLE_ON_INIT_ADDR: usize = 0x4f80240;
+
+// OFFSET_FIGHTER_VTABLE_ON_FRAME = 0x614630
+// static NEEDLE_FIGHTER_VTABLE_ON_FRAME: &[u8] = &[
+//     // TODO
+// ];
+// impl_offset!(FIGHTER_VTABLE_ON_FRAME);
+pub static OFFSET_FIGHTER_VTABLE_ON_FRAME: usize = 0x614630;
+
+pub static OFFSET_FIGHTER_VTABLE_ON_FRAME_ADDR: usize = 0x4f80568;
