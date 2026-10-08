@@ -1,5 +1,6 @@
 **/target
 Cargo.lock
+**/.DS_Store
 
 .idea/
 release/

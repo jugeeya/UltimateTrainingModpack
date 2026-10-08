@@ -20,7 +20,7 @@ pub fn roll_fast_fall() {
     assign(&FAST_FALL, read(&MENU).fast_fall.get_random().into_bool());
 }
 
-pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn do_fast_fall(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !should_fast_fall() {
         return;
     }

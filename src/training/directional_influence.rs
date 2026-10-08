@@ -94,7 +94,7 @@ fn set_x_y(module_accessor: &mut app::BattleObjectModuleAccessor, x: f32, y: f32
     }
 }
 
-pub fn get_command_flag_cat(module_accessor: &mut app::BattleObjectModuleAccessor) {
+pub fn set_di(module_accessor: &mut app::BattleObjectModuleAccessor) {
     if !is_operation_cpu(module_accessor) {
         return;
     }
