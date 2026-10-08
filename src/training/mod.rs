@@ -886,8 +886,10 @@ pub fn training_mods() {
     println!("Searching for STALE offset second! : {}", *OFFSET_STALE);
 
     println!("Patching global fighter vtable functions with our own!");
-    let _ = skyline::patching::Patch::in_text(OFFSET_FIGHTER_VTABLE_ON_INIT_ADDR).data(fighter_vtable_on_init as *const () as u64);
-    let _ = skyline::patching::Patch::in_text(OFFSET_FIGHTER_VTABLE_ON_FRAME_ADDR).data(fighter_vtable_on_frame as *const () as u64);
+    let _ = skyline::patching::Patch::in_text(OFFSET_FIGHTER_VTABLE_ON_INIT_ADDR)
+        .data(fighter_vtable_on_init as *const () as u64);
+    let _ = skyline::patching::Patch::in_text(OFFSET_FIGHTER_VTABLE_ON_FRAME_ADDR)
+        .data(fighter_vtable_on_frame as *const () as u64);
 
     skyline::install_hooks!(
         // Mash airdodge/jump
