@@ -122,7 +122,12 @@ unsafe extern "C" fn fighter_vtable_on_frame(fighter: &mut smash::app::Fighter) 
 
 fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor) {
     unsafe {
+        // Must run outside training mode to restore shield_damage_mul
         shield::param_installer();
+
+        if !is_training_mode() {
+            return;
+        }
 
         if menu::menu_condition() {
             menu::spawn_menu();
@@ -158,7 +163,9 @@ unsafe extern "C" fn fighter_vtable_on_init_inner(fighter: &mut smash::app::Figh
 
 unsafe extern "C" fn fighter_vtable_on_init(fighter: &mut smash::app::Fighter, param_2: u64) {
     fighter_vtable_on_init_inner(fighter, param_2);
-    reset::check_reset(&mut *fighter.battle_object.module_accessor);
+    if !is_training_mode() {
+        reset::check_reset(&mut *fighter.battle_object.module_accessor);
+    }
 }
 
 /**
