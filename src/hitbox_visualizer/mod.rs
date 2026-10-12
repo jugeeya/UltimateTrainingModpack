@@ -134,6 +134,10 @@ pub unsafe fn generate_hitbox_effects(
 }
 
 pub unsafe fn once_per_frame(module_accessor: &mut app::BattleObjectModuleAccessor) {
+    if !is_training_mode() {
+        return;
+    }
+
     // Resume Effect AnimCMD incase we don't display hitboxes
     MotionAnimcmdModule::set_sleep_effect(module_accessor, false);
 
