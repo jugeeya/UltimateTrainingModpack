@@ -32,6 +32,7 @@ pub mod frame_counter;
 pub mod ledge;
 pub mod sdi;
 pub mod shield;
+pub mod state_tint;
 pub mod tech;
 pub mod throw;
 pub mod ui;
@@ -146,6 +147,7 @@ fn once_per_frame_per_fighter(module_accessor: &mut BattleObjectModuleAccessor) 
         }
 
         combo::once_per_frame(module_accessor);
+        state_tint::once_per_frame(module_accessor);
         hitbox_visualizer::once_per_frame(module_accessor);
         save_states::save_states(module_accessor);
         tech::once_per_frame(module_accessor);

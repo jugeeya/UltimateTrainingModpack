@@ -22,7 +22,7 @@ static CPU_ACTIONABLE_AT: RwLock<Option<u32>> = RwLock::new(None);
 static ELAPSED_FRAME_COUNTER_INDEX: LazyLock<usize> =
     LazyLock::new(|| frame_counter::register_counter(frame_counter::FrameCounterType::InGame));
 
-unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
+pub unsafe fn is_actionable(module_accessor: *mut BattleObjectModuleAccessor) -> bool {
     [
         FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ESCAPE_AIR, // Airdodge
         FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_ATTACK_AIR, // Aerial

@@ -62,6 +62,7 @@ pub struct TrainingModpackMenu {
     pub shield_state: Shield,
     pub shield_tilt: Direction,
     pub stage_hazards: OnOff,
+    pub state_tint: OnOff,
     pub tech_state: TechFlags,
     pub throw_delay: MedDelay,
     pub throw_state: ThrowOption,
@@ -154,6 +155,7 @@ pub static BASE_MENU: TrainingModpackMenu = TrainingModpackMenu {
     shield_state: Shield::NONE,
     shield_tilt: Direction::empty(),
     stage_hazards: OnOff::OFF,
+    state_tint: OnOff::OFF,
     tech_state: TechFlags::all(),
     throw_delay: MedDelay::empty(),
     throw_state: ThrowOption::NONE,
@@ -732,6 +734,13 @@ pub unsafe fn create_app<'a>() -> App<'a> {
     // Miscellaneous Tab
     let mut misc_tab_submenus: Vec<SubMenu> = Vec::new();
     misc_tab_submenus.push(OnOff::to_submenu("Frame Advantage", "frame_advantage", "Display the time difference between when the player is actionable and the CPU is actionable\nNote that the CPU must not be mashing any options.", ToggleSingle, false));
+    misc_tab_submenus.push(OnOff::to_submenu(
+        "State Tint",
+        "state_tint",
+        "Tint fighters green when actionable and red when not. Tech and ledge options get their own colors.",
+        ToggleSingle,
+        false,
+    ));
     misc_tab_submenus.push(OnOff::to_submenu(
         "Hitbox Visualization",
         "hitbox_vis",
