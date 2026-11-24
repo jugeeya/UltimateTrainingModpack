@@ -43,6 +43,9 @@ byte-unit = "4.0.18"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 anyhow = "1.0.72"
 
+[build-dependencies]
+smush-ui = { git = "https://github.com/asimon-1/smush-ui.git", rev = "90f424aa095c19e3634765740f56fe5744e262f5" }
+
 [patch.crates-io]
 native-tls = { git = "https://github.com/skyline-rs/rust-native-tls", branch = "switch" }
 nnsdk = { git = "https://github.com/ultimate-research/nnsdk-rs" }

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "upsert": [
+    {
+      "archive_path": "blyt/com_btn_keyhelp_00.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/com_btn_keyhelp_00.json"
+    },
+    {
+      "archive_path": "blyt/info_training.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/info_training.json"
+    },
+    {
+      "archive_path": "blyt/info_training_btn0_00_item.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/info_training_btn0_00_item.json"
+    },
+    {
+      "archive_path": "blyt/info_training_btn0_01_itembtn.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/info_training_btn0_01_itembtn.json"
+    },
+    {
+      "archive_path": "blyt/training_mod_input_icon.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/training_mod_input_icon.json"
+    },
+    {
+      "archive_path": "blyt/training_mod_input_log.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/training_mod_input_log.json"
+    },
+    {
+      "archive_path": "blyt/training_mod_menu_button.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/training_mod_menu_button.json"
+    },
+    {
+      "archive_path": "blyt/training_mod_menu_button_row.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/training_mod_menu_button_row.json"
+    },
+    {
+      "archive_path": "blyt/training_mod_menu_slider.bflyt",
+      "kind": "bflyt-json",
+      "source": "bflyt/training_mod_menu_slider.json"
+    }
+  ],
+  "patch": [
+    {
+      "archive_path": "timg/__Combined.bntx",
+      "kind": "bntx",
+      "source": "bntx"
+    }
+  ]
+}

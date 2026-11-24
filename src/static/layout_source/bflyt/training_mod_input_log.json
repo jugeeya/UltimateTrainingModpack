@@ -1,0 +1,1317 @@
+{
+  "version": [
+    0,
+    0,
+    0,
+    9
+  ],
+  "sections": [
+    {
+      "Layout": {
+        "is_drawn_from_middle": true,
+        "width": 1920.0,
+        "height": 1080.0,
+        "max_parts_height": 798.0,
+        "max_parts_width": 113.000015,
+        "name": "info_training_btn0_00_item"
+      }
+    },
+    {
+      "User": {
+        "data": {
+          "entries": [
+            {
+              "name": "ui2dsys",
+              "value": {
+                "SystemData": [
+                  {
+                    "AnimationTagNames": [
+                      "OnOff",
+                      "Decide",
+                      "SelectOff",
+                      "SelectOn",
+                      "txt_move_l",
+                      "txt_move_r",
+                      "panel_main",
+                      "panel_others",
+                      "fp_disable"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "FontList": {
+        "filenames": [
+          "FOT-RodinNTLGPro-EB64"
+        ]
+      }
+    },
+    {
+      "Material": {
+        "materials": [
+          {
+            "name": "BackgroundC ",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "texture_coordinate_generators": [
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "BackgroundLT",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "texture_coordinate_generators": [
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "BackgroundRT",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "texture_coordinate_generators": [
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "BackgroundLBackground",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "texture_coordinate_generators": [
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "BackgroundRBackground",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "texture_coordinate_generators": [
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "Frame",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "Status",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          }
+        ]
+      }
+    },
+    {
+      "Pane": {
+        "pane": {
+          "flags": {
+            "is_visible": true,
+            "transmits_alpha_to_children": true
+          },
+          "origin": {
+            "x": "Center",
+            "y": "Center",
+            "parent_x": "Center",
+            "parent_y": "Center"
+          },
+          "alpha": 255,
+          "part_scaling": {
+            "unk1": false,
+            "unk2": false,
+            "unk3": false
+          },
+          "name": "RootPane",
+          "user_name": "",
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "size": {
+            "x": 1920.0,
+            "y": 1080.0
+          }
+        },
+        "children": [
+          {
+            "Pane": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": true
+                },
+                "origin": {
+                  "x": "Left",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": true,
+                  "unk3": false
+                },
+                "name": "InputLog",
+                "user_name": "",
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                },
+                "size": {
+                  "x": 336.0,
+                  "y": 57.5
+                }
+              },
+              "children": [
+                {
+                  "Window": {
+                    "pane": {
+                      "flags": {
+                        "is_visible": true,
+                        "transmits_alpha_to_children": true
+                      },
+                      "origin": {
+                        "x": "Center",
+                        "y": "Center",
+                        "parent_x": "Center",
+                        "parent_y": "Center"
+                      },
+                      "alpha": 166,
+                      "part_scaling": {
+                        "unk1": false,
+                        "unk2": false,
+                        "unk3": false
+                      },
+                      "name": "Background",
+                      "user_name": "",
+                      "position": {
+                        "x": -50.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0
+                      },
+                      "size": {
+                        "x": 225.0,
+                        "y": 57.5
+                      }
+                    },
+                    "content_expansion_left": 0,
+                    "content_expansion_right": 0,
+                    "content_expansion_top": 0,
+                    "content_expansion_bottom": 0,
+                    "frame_thickness_left": 1,
+                    "frame_thickness_right": 1,
+                    "frame_thickness_top": 1,
+                    "frame_thickness_bottom": 1,
+                    "flags": {
+                      "use_top_left_frame_material_for_all": true,
+                      "tint_frames_with_content_colors": true,
+                      "frame_mode": "FullFrame",
+                      "hide_content": false
+                    },
+                    "content": {
+                      "top_left_color": {
+                        "red": 255,
+                        "green": 255,
+                        "blue": 255,
+                        "alpha": 255
+                      },
+                      "top_right_color": {
+                        "red": 255,
+                        "green": 255,
+                        "blue": 255,
+                        "alpha": 255
+                      },
+                      "bottom_left_color": {
+                        "red": 255,
+                        "green": 255,
+                        "blue": 255,
+                        "alpha": 255
+                      },
+                      "bottom_right_color": {
+                        "red": 255,
+                        "green": 255,
+                        "blue": 255,
+                        "alpha": 255
+                      },
+                      "material_index": 1,
+                      "texture_coordinates": [
+                        [
+                          {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          {
+                            "x": 1.0,
+                            "y": 0.0
+                          },
+                          {
+                            "x": 0.0,
+                            "y": 1.0
+                          },
+                          {
+                            "x": 1.0,
+                            "y": 1.0
+                          }
+                        ]
+                      ]
+                    },
+                    "frames": [
+                      {
+                        "material_index": 2,
+                        "texture_flip": "None"
+                      },
+                      {
+                        "material_index": 3,
+                        "texture_flip": "None"
+                      },
+                      {
+                        "material_index": 4,
+                        "texture_flip": "None"
+                      },
+                      {
+                        "material_index": 5,
+                        "texture_flip": "None"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "Textbox": {
+                    "pane": {
+                      "flags": {
+                        "is_visible": true,
+                        "transmits_alpha_to_children": true
+                      },
+                      "origin": {
+                        "x": "Left",
+                        "y": "Top",
+                        "parent_x": "Left",
+                        "parent_y": "Top"
+                      },
+                      "alpha": 255,
+                      "part_scaling": {
+                        "unk1": false,
+                        "unk2": false,
+                        "unk3": false
+                      },
+                      "name": "Status",
+                      "user_name": "",
+                      "position": {
+                        "x": 5.0,
+                        "y": 2.5,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0
+                      },
+                      "size": {
+                        "x": 195.0,
+                        "y": 25.0
+                      }
+                    },
+                    "text_buffer_length": 2,
+                    "text_restrict_length": 2,
+                    "material_index": 6,
+                    "font_index": 0,
+                    "origin": {
+                      "vertical": "Top",
+                      "horizontal": "Center"
+                    },
+                    "line_alignment": "Synchronous",
+                    "flags": {
+                      "enable_shadow": false,
+                      "limit_glyph_count_to_length": false,
+                      "invisible_border": false,
+                      "double_border": false,
+                      "enable_per_character_transform": false,
+                      "enable_center_ceiling": false,
+                      "enable_line_transform": false,
+                      "use_default_tag_processor": false,
+                      "split_per_character_transform_by_character_width": false,
+                      "mix_shadow_alpha": false,
+                      "reverse_text": false,
+                      "per_character_transform_origin_is_center": false,
+                      "keep_font_scale": false,
+                      "per_character_transform_fix_space": false,
+                      "split_inserted_space": false
+                    },
+                    "italic_tilt": 0.0,
+                    "top_color": {
+                      "red": 255,
+                      "green": 255,
+                      "blue": 255,
+                      "alpha": 255
+                    },
+                    "bottom_color": {
+                      "red": 255,
+                      "green": 255,
+                      "blue": 255,
+                      "alpha": 255
+                    },
+                    "font_size": {
+                      "x": 13.88,
+                      "y": 25.0
+                    },
+                    "character_size": 2.0,
+                    "line_size": 0.0,
+                    "shadow_offset": {
+                      "x": 1.0,
+                      "y": -1.0
+                    },
+                    "shadow_scale": {
+                      "x": 1.0,
+                      "y": 1.0
+                    },
+                    "shadow_top_color": {
+                      "red": 0,
+                      "green": 0,
+                      "blue": 0,
+                      "alpha": 255
+                    },
+                    "shadow_bottom_color": {
+                      "red": 0,
+                      "green": 0,
+                      "blue": 0,
+                      "alpha": 255
+                    },
+                    "shadow_italic_tilt": 0.0,
+                    "data": {
+                      "text": "",
+                      "call_name": "utm_input_status",
+                      "line_transforms": null,
+                      "per_character_transform": null
+                    }
+                  }
+                },
+                {
+                  "Textbox": {
+                    "pane": {
+                      "flags": {
+                        "is_visible": true,
+                        "transmits_alpha_to_children": true
+                      },
+                      "origin": {
+                        "x": "Left",
+                        "y": "Top",
+                        "parent_x": "Left",
+                        "parent_y": "Top"
+                      },
+                      "alpha": 255,
+                      "part_scaling": {
+                        "unk1": false,
+                        "unk2": false,
+                        "unk3": false
+                      },
+                      "name": "Frame",
+                      "user_name": "",
+                      "position": {
+                        "x": 5.0,
+                        "y": -17.5,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0
+                      },
+                      "size": {
+                        "x": 42.0,
+                        "y": 37.5
+                      }
+                    },
+                    "text_buffer_length": 2,
+                    "text_restrict_length": 2,
+                    "material_index": 5,
+                    "font_index": 0,
+                    "origin": {
+                      "vertical": "Center",
+                      "horizontal": "Center"
+                    },
+                    "line_alignment": "Synchronous",
+                    "flags": {
+                      "enable_shadow": false,
+                      "limit_glyph_count_to_length": false,
+                      "invisible_border": false,
+                      "double_border": false,
+                      "enable_per_character_transform": false,
+                      "enable_center_ceiling": false,
+                      "enable_line_transform": false,
+                      "use_default_tag_processor": false,
+                      "split_per_character_transform_by_character_width": false,
+                      "mix_shadow_alpha": false,
+                      "reverse_text": false,
+                      "per_character_transform_origin_is_center": false,
+                      "keep_font_scale": false,
+                      "per_character_transform_fix_space": false,
+                      "split_inserted_space": false
+                    },
+                    "italic_tilt": 0.0,
+                    "top_color": {
+                      "red": 255,
+                      "green": 255,
+                      "blue": 255,
+                      "alpha": 255
+                    },
+                    "bottom_color": {
+                      "red": 255,
+                      "green": 255,
+                      "blue": 255,
+                      "alpha": 255
+                    },
+                    "font_size": {
+                      "x": 20.83,
+                      "y": 37.5
+                    },
+                    "character_size": 2.0,
+                    "line_size": 0.0,
+                    "shadow_offset": {
+                      "x": 1.0,
+                      "y": -1.0
+                    },
+                    "shadow_scale": {
+                      "x": 1.0,
+                      "y": 1.0
+                    },
+                    "shadow_top_color": {
+                      "red": 0,
+                      "green": 0,
+                      "blue": 0,
+                      "alpha": 255
+                    },
+                    "shadow_bottom_color": {
+                      "red": 0,
+                      "green": 0,
+                      "blue": 0,
+                      "alpha": 255
+                    },
+                    "shadow_italic_tilt": 0.0,
+                    "data": {
+                      "text": "",
+                      "call_name": "utm_input_frame_value",
+                      "line_transforms": null,
+                      "per_character_transform": null
+                    }
+                  }
+                },
+                {
+                  "Pane": {
+                    "pane": {
+                      "flags": {
+                        "is_visible": true,
+                        "transmits_alpha_to_children": true
+                      },
+                      "origin": {
+                        "x": "Left",
+                        "y": "Top",
+                        "parent_x": "Left",
+                        "parent_y": "Top"
+                      },
+                      "alpha": 255,
+                      "part_scaling": {
+                        "unk1": false,
+                        "unk2": false,
+                        "unk3": false
+                      },
+                      "name": "Inputs",
+                      "user_name": "",
+                      "position": {
+                        "x": 52.0,
+                        "y": -21.25,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0
+                      },
+                      "size": {
+                        "x": 275.0,
+                        "y": 30.0
+                      }
+                    },
+                    "children": [
+                      {
+                        "Parts": {
+                          "pane": {
+                            "flags": {
+                              "is_visible": true,
+                              "transmits_alpha_to_children": true
+                            },
+                            "origin": {
+                              "x": "Center",
+                              "y": "Center",
+                              "parent_x": "Center",
+                              "parent_y": "Center"
+                            },
+                            "alpha": 255,
+                            "part_scaling": {
+                              "unk1": false,
+                              "unk2": false,
+                              "unk3": false
+                            },
+                            "name": "Input0",
+                            "user_name": "",
+                            "position": {
+                              "x": 15.0,
+                              "y": -15.0,
+                              "z": 0.0
+                            },
+                            "rotation": {
+                              "x": 0.0,
+                              "y": 0.0,
+                              "z": 0.0
+                            },
+                            "scale": {
+                              "x": 1.0,
+                              "y": 1.0
+                            },
+                            "size": {
+                              "x": 30.0,
+                              "y": 30.0
+                            }
+                          },
+                          "magnify": {
+                            "x": 1.0,
+                            "y": 1.0
+                          },
+                          "properties": [],
+                          "data": {
+                            "part_name": "training_mod_input_icon"
+                          }
+                        }
+                      },
+                      {
+                        "Parts": {
+                          "pane": {
+                            "flags": {
+                              "is_visible": true,
+                              "transmits_alpha_to_children": true
+                            },
+                            "origin": {
+                              "x": "Center",
+                              "y": "Center",
+                              "parent_x": "Center",
+                              "parent_y": "Center"
+                            },
+                            "alpha": 255,
+                            "part_scaling": {
+                              "unk1": false,
+                              "unk2": false,
+                              "unk3": false
+                            },
+                            "name": "Input1",
+                            "user_name": "",
+                            "position": {
+                              "x": 50.0,
+                              "y": -15.0,
+                              "z": 0.0
+                            },
+                            "rotation": {
+                              "x": 0.0,
+                              "y": 0.0,
+                              "z": 0.0
+                            },
+                            "scale": {
+                              "x": 1.0,
+                              "y": 1.0
+                            },
+                            "size": {
+                              "x": 30.0,
+                              "y": 30.0
+                            }
+                          },
+                          "magnify": {
+                            "x": 1.0,
+                            "y": 1.0
+                          },
+                          "properties": [],
+                          "data": {
+                            "part_name": "training_mod_input_icon"
+                          }
+                        }
+                      },
+                      {
+                        "Parts": {
+                          "pane": {
+                            "flags": {
+                              "is_visible": true,
+                              "transmits_alpha_to_children": true
+                            },
+                            "origin": {
+                              "x": "Center",
+                              "y": "Center",
+                              "parent_x": "Center",
+                              "parent_y": "Center"
+                            },
+                            "alpha": 255,
+                            "part_scaling": {
+                              "unk1": false,
+                              "unk2": false,
+                              "unk3": false
+                            },
+                            "name": "Input2",
+                            "user_name": "",
+                            "position": {
+                              "x": 85.0,
+                              "y": -15.0,
+                              "z": 0.0
+                            },
+                            "rotation": {
+                              "x": 0.0,
+                              "y": 0.0,
+                              "z": 0.0
+                            },
+                            "scale": {
+                              "x": 1.0,
+                              "y": 1.0
+                            },
+                            "size": {
+                              "x": 30.0,
+                              "y": 30.0
+                            }
+                          },
+                          "magnify": {
+                            "x": 1.0,
+                            "y": 1.0
+                          },
+                          "properties": [],
+                          "data": {
+                            "part_name": "training_mod_input_icon"
+                          }
+                        }
+                      },
+                      {
+                        "Parts": {
+                          "pane": {
+                            "flags": {
+                              "is_visible": true,
+                              "transmits_alpha_to_children": true
+                            },
+                            "origin": {
+                              "x": "Center",
+                              "y": "Center",
+                              "parent_x": "Center",
+                              "parent_y": "Center"
+                            },
+                            "alpha": 255,
+                            "part_scaling": {
+                              "unk1": false,
+                              "unk2": false,
+                              "unk3": false
+                            },
+                            "name": "Input3",
+                            "user_name": "",
+                            "position": {
+                              "x": 120.0,
+                              "y": -15.0,
+                              "z": 0.0
+                            },
+                            "rotation": {
+                              "x": 0.0,
+                              "y": 0.0,
+                              "z": 0.0
+                            },
+                            "scale": {
+                              "x": 1.0,
+                              "y": 1.0
+                            },
+                            "size": {
+                              "x": 30.0,
+                              "y": 30.0
+                            }
+                          },
+                          "magnify": {
+                            "x": 1.0,
+                            "y": 1.0
+                          },
+                          "properties": [],
+                          "data": {
+                            "part_name": "training_mod_input_icon"
+                          }
+                        }
+                      },
+                      {
+                        "Parts": {
+                          "pane": {
+                            "flags": {
+                              "is_visible": true,
+                              "transmits_alpha_to_children": true
+                            },
+                            "origin": {
+                              "x": "Center",
+                              "y": "Center",
+                              "parent_x": "Center",
+                              "parent_y": "Center"
+                            },
+                            "alpha": 255,
+                            "part_scaling": {
+                              "unk1": false,
+                              "unk2": false,
+                              "unk3": false
+                            },
+                            "name": "Input4",
+                            "user_name": "",
+                            "position": {
+                              "x": 155.0,
+                              "y": -15.0,
+                              "z": 0.0
+                            },
+                            "rotation": {
+                              "x": 0.0,
+                              "y": 0.0,
+                              "z": 0.0
+                            },
+                            "scale": {
+                              "x": 1.0,
+                              "y": 1.0
+                            },
+                            "size": {
+                              "x": 30.0,
+                              "y": 30.0
+                            }
+                          },
+                          "magnify": {
+                            "x": 1.0,
+                            "y": 1.0
+                          },
+                          "properties": [],
+                          "data": {
+                            "part_name": "training_mod_input_icon"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Group": {
+        "name": "RootGroup",
+        "children": [
+          {
+            "Group": {
+              "name": "btn_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "btn_select_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "btn_blink_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "txt_move_anim"
+            }
+          },
+          {
+            "Group": {
+              "name": "color_grp"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Control": {
+        "data": {
+          "control_name": "CrossNormalButton",
+          "reserve0_name": "CrossNormalButton",
+          "pane_bindings": [
+            "hit",
+            "set_txt_title",
+            "set_txt_val",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "core_anims": [
+            "OnOff",
+            "",
+            "",
+            "",
+            "SelectOn",
+            "SelectOff",
+            "",
+            "",
+            ""
+          ],
+          "pane_names": [
+            "Hit",
+            "TitleText0",
+            "TitleText1",
+            "TitleText2",
+            "TitleText3",
+            "TitleText4",
+            "TitleText5",
+            "TitleText6",
+            "TitleText7",
+            "TitleText8",
+            "TitleText9"
+          ],
+          "anim_names": [
+            "OnOff",
+            "Down",
+            "Disable",
+            "Decide",
+            "SelectOn",
+            "SelectOff",
+            "BlinkOn",
+            "BlinkOff",
+            "OldStyle"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,743 @@
+{
+  "schema_version": 1,
+  "upsert": [
+    {
+      "source_format": "png",
+      "name": "hud",
+      "source": "textures/0043-hud.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "buff_state",
+      "source": "textures/0044-buff_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "attack_angle",
+      "source": "textures/0045-attack_angle.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "air_dodge_dir",
+      "source": "textures/0046-air_dodge_dir.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "aerial_delay",
+      "source": "textures/0047-aerial_delay.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "character_item",
+      "source": "textures/0048-character_item.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "check",
+      "source": "textures/0049-check.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "clatter_strength",
+      "source": "textures/0050-clatter_strength.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "crouch",
+      "source": "textures/0051-crouch.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "di_state",
+      "source": "textures/0052-di_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "falling_aerials",
+      "source": "textures/0053-falling_aerials.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "fast_fall",
+      "source": "textures/0054-fast_fall.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "fast_fall_delay",
+      "source": "textures/0055-fast_fall_delay.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "follow_up",
+      "source": "textures/0056-follow_up.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "frame_advantage",
+      "source": "textures/0057-frame_advantage.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "full_hop",
+      "source": "textures/0058-full_hop.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "sdi_strength",
+      "source": "textures/0059-sdi_strength.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "sdi_state",
+      "source": "textures/0060-sdi_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_state_mirroring",
+      "source": "textures/0061-save_state_mirroring.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_state_enable",
+      "source": "textures/0062-save_state_enable.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_state_autoload",
+      "source": "textures/0063-save_state_autoload.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_damage_player",
+      "source": "textures/0064-save_damage_player.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_damage_limits_player",
+      "source": "textures/0065-save_damage_limits_player.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_damage_limits_cpu",
+      "source": "textures/0066-save_damage_limits_cpu.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_damage_cpu",
+      "source": "textures/0067-save_damage_cpu.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "reaction_time",
+      "source": "textures/0068-reaction_time.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "quick_menu",
+      "source": "textures/0069-quick_menu.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "pummel_delay",
+      "source": "textures/0070-pummel_delay.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "oos_offset",
+      "source": "textures/0071-oos_offset.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "miss_tech_state",
+      "source": "textures/0072-miss_tech_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "mash_triggers",
+      "source": "textures/0073-mash_triggers.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "mash_state",
+      "source": "textures/0074-mash_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "m_retnormal",
+      "source": "textures/0075-m_retnormal.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "ledge_state",
+      "source": "textures/0076-ledge_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "ledge_delay",
+      "source": "textures/0077-ledge_delay.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "input_delay",
+      "source": "textures/0078-input_delay.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "hud0",
+      "source": "textures/0079-hud0.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "hitbox_vis",
+      "source": "textures/0080-hitbox_vis.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "shield_state",
+      "source": "textures/0081-shield_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "shield_tilt",
+      "source": "textures/0082-shield_tilt.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "stage_hazards",
+      "source": "textures/0083-stage_hazards.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "tech_state",
+      "source": "textures/0084-tech_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "throw_delay",
+      "source": "textures/0085-throw_delay.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "throw_state",
+      "source": "textures/0086-throw_state.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "tumble_override",
+      "source": "textures/0087-tumble_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "shieldstun_override",
+      "source": "textures/0088-shieldstun_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "clatter_override",
+      "source": "textures/0089-clatter_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "footstool_override",
+      "source": "textures/0090-footstool_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "hitstun_override",
+      "source": "textures/0091-hitstun_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "landing_override",
+      "source": "textures/0092-landing_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "ledge_attack_override",
+      "source": "textures/0093-ledge_attack_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "ledge_jump_override",
+      "source": "textures/0094-ledge_jump_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "ledge_neutral_override",
+      "source": "textures/0095-ledge_neutral_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "ledge_roll_override",
+      "source": "textures/0096-ledge_roll_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "parry_override",
+      "source": "textures/0097-parry_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "tech_action_override",
+      "source": "textures/0098-tech_action_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "trump_override",
+      "source": "textures/0099-trump_override.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "randomize_slots",
+      "source": "textures/0100-randomize_slots.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "save_state_slot",
+      "source": "textures/0101-save_state_slot.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "end_record_early",
+      "source": "textures/0102-end_record_early.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "playback_loop",
+      "source": "textures/0103-playback_loop.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "playback_mash_interrupt",
+      "source": "textures/0104-playback_mash_interrupt.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "record_input",
+      "source": "textures/0105-record_input.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "recording_duration",
+      "source": "textures/0106-recording_duration.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "recording_playback",
+      "source": "textures/0107-recording_playback.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "recording_slot",
+      "source": "textures/0108-recording_slot.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "hitstun_playback",
+      "source": "textures/0109-hitstun_playback.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "playback_button_slots",
+      "source": "textures/0110-playback_button_slots.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "recording_crop",
+      "source": "textures/0111-recording_crop.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "update_policy",
+      "source": "textures/0112-update_policy.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "menu_open_start_press",
+      "source": "textures/0113-menu_open_start_press.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "save_state_load",
+      "source": "textures/0114-save_state_load.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "save_state_save",
+      "source": "textures/0115-save_state_save.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "a",
+      "source": "textures/0116-a.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "b",
+      "source": "textures/0117-b.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "down",
+      "source": "textures/0118-down.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "down_left",
+      "source": "textures/0119-down_left.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "down_right",
+      "source": "textures/0120-down_right.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "dpad_down",
+      "source": "textures/0121-dpad_down.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "dpad_left",
+      "source": "textures/0122-dpad_left.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "dpad_left_right",
+      "source": "textures/0123-dpad_left_right.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "dpad_right",
+      "source": "textures/0124-dpad_right.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "dpad_up",
+      "source": "textures/0125-dpad_up.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "gcc_c_stick",
+      "source": "textures/0126-gcc_c_stick.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "gcc_l",
+      "source": "textures/0127-gcc_l.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "gcc_r",
+      "source": "textures/0128-gcc_r.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "gcc_z",
+      "source": "textures/0129-gcc_z.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "l_stick",
+      "source": "textures/0130-l_stick.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "lb",
+      "source": "textures/0131-lb.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "left",
+      "source": "textures/0132-left.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "r_stick",
+      "source": "textures/0133-r_stick.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "rb",
+      "source": "textures/0134-rb.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "right",
+      "source": "textures/0135-right.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "right_strong",
+      "source": "textures/0136-right_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "left_strong",
+      "source": "textures/0137-left_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "up_strong",
+      "source": "textures/0138-up_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "down_strong",
+      "source": "textures/0139-down_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "up_right_strong",
+      "source": "textures/0140-up_right_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "up",
+      "source": "textures/0141-up.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "up_left",
+      "source": "textures/0142-up_left.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "up_right",
+      "source": "textures/0143-up_right.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "x",
+      "source": "textures/0144-x.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "y",
+      "source": "textures/0145-y.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "zl",
+      "source": "textures/0146-zl.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "zr",
+      "source": "textures/0147-zr.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "plus",
+      "source": "textures/0148-plus.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "minus",
+      "source": "textures/0149-minus.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "input_display",
+      "source": "textures/0150-input_display.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "input_display_status",
+      "source": "textures/0151-input_display_status.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "stale_dodges",
+      "source": "textures/0152-stale_dodges.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "tech_hide",
+      "source": "textures/0153-tech_hide.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "down_left_strong",
+      "source": "textures/0154-down_left_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "down_right_strong",
+      "source": "textures/0155-down_right_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "up_left_strong",
+      "source": "textures/0156-up_left_strong.png",
+      "format": "bc1-unorm"
+    },
+    {
+      "source_format": "png",
+      "name": "1",
+      "source": "textures/0157-1.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "2",
+      "source": "textures/0158-2.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "3",
+      "source": "textures/0159-3.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "4",
+      "source": "textures/0160-4.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "5",
+      "source": "textures/0161-5.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "6",
+      "source": "textures/0162-6.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "7",
+      "source": "textures/0163-7.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "8",
+      "source": "textures/0164-8.png",
+      "format": "bc1-srgb"
+    },
+    {
+      "source_format": "png",
+      "name": "lra_reset",
+      "source": "textures/0165-lra_reset.png",
+      "format": "bc1-unorm"
+    }
+  ]
+}

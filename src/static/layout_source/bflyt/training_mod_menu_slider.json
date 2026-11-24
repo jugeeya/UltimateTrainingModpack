@@ -1,0 +1,2632 @@
+{
+  "version": [
+    0,
+    0,
+    0,
+    9
+  ],
+  "sections": [
+    {
+      "Layout": {
+        "is_drawn_from_middle": true,
+        "width": 1920.0,
+        "height": 1080.0,
+        "max_parts_height": 0.0,
+        "max_parts_width": 0.0,
+        "name": "info_training"
+      }
+    },
+    {
+      "User": {
+        "data": {
+          "entries": [
+            {
+              "name": "ui2dsys",
+              "value": {
+                "SystemData": [
+                  {
+                    "AnimationTagNames": [
+                      "in",
+                      "set_current_main",
+                      "set_current_others",
+                      "set_current_items",
+                      "in_menu",
+                      "menu_main_to_others",
+                      "menu_main_to_items",
+                      "menu_others_to_main",
+                      "menu_items_to_main",
+                      "menu_item_out",
+                      "menu_item_in",
+                      "menu_itemset_default",
+                      "menu_itemset_monsterball",
+                      "menu_itemset_assist",
+                      "menu_itemset_masterball",
+                      "out_menu",
+                      "out",
+                      "in_numbers",
+                      "out_numbers",
+                      "in_speed",
+                      "out_speed",
+                      "help_off",
+                      "help_items_default",
+                      "help_items_finish",
+                      "category_00",
+                      "category_01",
+                      "category_02",
+                      "category_03",
+                      "category_04",
+                      "category_05",
+                      "category_06",
+                      "category_07",
+                      "category_08",
+                      "category_09",
+                      "category_10",
+                      "category_11",
+                      "category_12",
+                      "category_13",
+                      "category_14",
+                      "category_15",
+                      "camera_change",
+                      "hit_color_black",
+                      "hit_color_red",
+                      "speed_stat_normal",
+                      "speed_stat_effect"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "TextureList": {
+        "filenames": [
+          "com_black16^u",
+          "com_circle_half64^u",
+          "com_pic_stripe_mask^u",
+          "com_scr_lct_00_bg_cnr1_00_l^u",
+          "com_white16^u",
+          "info_training_icn_00^u",
+          "info_training_lct_cnr_00^u"
+        ]
+      }
+    },
+    {
+      "FontList": {
+        "filenames": [
+          "FOT-RodinNTLGPro-B64",
+          "FOT-RodinNTLGPro-EB64",
+          "nintendo64"
+        ]
+      }
+    },
+    {
+      "Material": {
+        "materials": [
+          {
+            "name": "Background",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [
+              {
+                "texture_index": 0,
+                "wrap_flags": {
+                  "u": "Clamp",
+                  "v": "Repeat"
+                },
+                "filter_flags": {
+                  "minification": "Nearest",
+                  "magnification": "Linear"
+                }
+              },
+              {
+                "texture_index": 2,
+                "wrap_flags": {
+                  "u": "Clamp",
+                  "v": "Clamp"
+                },
+                "filter_flags": {
+                  "minification": "Nearest",
+                  "magnification": "Nearest"
+                }
+              }
+            ],
+            "texture_transforms": [
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "translation": {
+                  "x": -0.02,
+                  "y": 0.0
+                },
+                "rotation": 90.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "texture_coordinate_generators": [
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "tev_stages": [
+              {
+                "color_mode": 0,
+                "alpha_mode": 0
+              }
+            ],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "Header",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 207,
+              "green": 207,
+              "blue": 207,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_icon",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 191,
+              "green": 191,
+              "blue": 191,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_help",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 191,
+              "green": 191,
+              "blue": 191,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_icon",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 191,
+              "green": 191,
+              "blue": 191,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_help",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 191,
+              "green": 191,
+              "blue": 191,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_00",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 2,
+              "blue": 36,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 207,
+              "green": 219,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_01",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 93,
+              "green": 100,
+              "blue": 105,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 8,
+              "blue": 41,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 46,
+              "green": 18,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "bgC ",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "bgLT",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 102
+            },
+            "texture_references": [
+              {
+                "texture_index": 3,
+                "wrap_flags": {
+                  "u": "Clamp",
+                  "v": "Repeat"
+                },
+                "filter_flags": {
+                  "minification": "Nearest",
+                  "magnification": "Linear"
+                }
+              }
+            ],
+            "texture_transforms": [
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "rotation": 0.0,
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "texture_coordinate_generators": [
+              {
+                "matrix": 0,
+                "source": 0,
+                "unknown": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_icon",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 191,
+              "green": 191,
+              "blue": 191,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_help",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 191,
+              "green": 191,
+              "blue": 191,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": null,
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val_old",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 0,
+              "green": 0,
+              "blue": 0,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 0
+              },
+              "white_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 255,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_val",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          },
+          {
+            "name": "set_txt_title",
+            "unknown_header_value": 134480384,
+            "black_color": {
+              "red": 5,
+              "green": 10,
+              "blue": 14,
+              "alpha": 0
+            },
+            "white_color": {
+              "red": 255,
+              "green": 255,
+              "blue": 255,
+              "alpha": 255
+            },
+            "texture_references": [],
+            "texture_transforms": [],
+            "texture_coordinate_generators": [],
+            "tev_stages": [],
+            "alpha_compare": null,
+            "blend_mode": null,
+            "separate_blend_logic_mode": null,
+            "indirect_texture_transform": null,
+            "projection_texture_parameters": [],
+            "font_shadow_parameter": {
+              "black_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "white_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 0,
+                "alpha": 0
+              }
+            },
+            "unk1": null,
+            "texture_only": false,
+            "unk2": false,
+            "alpha_interpolation": false,
+            "reserved_flags": 0
+          }
+        ]
+      }
+    },
+    {
+      "Pane": {
+        "pane": {
+          "flags": {
+            "is_visible": true,
+            "transmits_alpha_to_children": false
+          },
+          "origin": {
+            "x": "Center",
+            "y": "Center",
+            "parent_x": "Center",
+            "parent_y": "Center"
+          },
+          "alpha": 255,
+          "part_scaling": {
+            "unk1": false,
+            "unk2": false,
+            "unk3": false
+          },
+          "name": "RootPane",
+          "user_name": "",
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "size": {
+            "x": 1920.0,
+            "y": 1080.0
+          }
+        },
+        "children": [
+          {
+            "Picture": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": false
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 166,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "Background",
+                "user_name": "",
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                },
+                "size": {
+                  "x": 720.0,
+                  "y": 300.0
+                }
+              },
+              "material": {
+                "top_left_color": {
+                  "red": 255,
+                  "green": 255,
+                  "blue": 255,
+                  "alpha": 255
+                },
+                "top_right_color": {
+                  "red": 255,
+                  "green": 255,
+                  "blue": 255,
+                  "alpha": 255
+                },
+                "bottom_left_color": {
+                  "red": 255,
+                  "green": 255,
+                  "blue": 255,
+                  "alpha": 255
+                },
+                "bottom_right_color": {
+                  "red": 255,
+                  "green": 255,
+                  "blue": 255,
+                  "alpha": 255
+                },
+                "material_index": 0,
+                "texture_coordinates": [
+                  [
+                    {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": 1.0,
+                      "y": 0.0
+                    },
+                    {
+                      "x": 0.0,
+                      "y": 1.5
+                    },
+                    {
+                      "x": 1.0,
+                      "y": 1.5
+                    }
+                  ]
+                ]
+              }
+            }
+          },
+          {
+            "Textbox": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": false
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "Header",
+                "user_name": "",
+                "position": {
+                  "x": 0.0,
+                  "y": 100.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                },
+                "size": {
+                  "x": 460.0,
+                  "y": 80.0
+                }
+              },
+              "text_buffer_length": 2,
+              "text_restrict_length": 2,
+              "material_index": 1,
+              "font_index": 1,
+              "origin": {
+                "vertical": "Center",
+                "horizontal": "Center"
+              },
+              "line_alignment": "Synchronous",
+              "flags": {
+                "enable_shadow": false,
+                "limit_glyph_count_to_length": false,
+                "invisible_border": true,
+                "double_border": false,
+                "enable_per_character_transform": false,
+                "enable_center_ceiling": false,
+                "enable_line_transform": false,
+                "use_default_tag_processor": false,
+                "split_per_character_transform_by_character_width": false,
+                "mix_shadow_alpha": false,
+                "reverse_text": false,
+                "per_character_transform_origin_is_center": false,
+                "keep_font_scale": false,
+                "per_character_transform_fix_space": false,
+                "split_inserted_space": false
+              },
+              "italic_tilt": 0.0,
+              "top_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "bottom_color": {
+                "red": 255,
+                "green": 255,
+                "blue": 255,
+                "alpha": 255
+              },
+              "font_size": {
+                "x": 33.28,
+                "y": 57.2
+              },
+              "character_size": 0.0,
+              "line_size": 0.0,
+              "shadow_offset": {
+                "x": 1.0,
+                "y": -1.0
+              },
+              "shadow_scale": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "shadow_top_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 255
+              },
+              "shadow_bottom_color": {
+                "red": 0,
+                "green": 0,
+                "blue": 0,
+                "alpha": 255
+              },
+              "shadow_italic_tilt": 0.0,
+              "data": {
+                "text": "",
+                "call_name": "mel_training_hit",
+                "line_transforms": null,
+                "per_character_transform": null
+              }
+            }
+          },
+          {
+            "Parts": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": false
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "MinButton",
+                "user_name": "",
+                "position": {
+                  "x": -175.0,
+                  "y": -50.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                },
+                "size": {
+                  "x": 30.0,
+                  "y": 40.0
+                }
+              },
+              "magnify": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "properties": [],
+              "data": {
+                "part_name": "training_mod_menu_button"
+              }
+            }
+          },
+          {
+            "Parts": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": false
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "MaxButton",
+                "user_name": "",
+                "position": {
+                  "x": 171.0,
+                  "y": -50.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0
+                },
+                "size": {
+                  "x": 30.0,
+                  "y": 40.0
+                }
+              },
+              "magnify": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "properties": [],
+              "data": {
+                "part_name": "training_mod_menu_button"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Group": {
+        "name": "RootGroup",
+        "children": [
+          {
+            "Group": {
+              "name": "trans_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "mode_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "selector_menu"
+            }
+          },
+          {
+            "Group": {
+              "name": "selector_finish"
+            }
+          },
+          {
+            "Group": {
+              "name": "scroll_items"
+            }
+          },
+          {
+            "Group": {
+              "name": "selector_lr_main"
+            }
+          },
+          {
+            "Group": {
+              "name": "selector_lr_others"
+            }
+          },
+          {
+            "Group": {
+              "name": "numbers_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "keyhelp_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "category_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "camera_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "speed_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "item_bg_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "hit_color_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "help_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "speed_stat_grp"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
