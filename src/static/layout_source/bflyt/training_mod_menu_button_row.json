@@ -1,0 +1,400 @@
+{
+  "version": [
+    0,
+    0,
+    0,
+    9
+  ],
+  "sections": [
+    {
+      "Layout": {
+        "is_drawn_from_middle": true,
+        "width": 1920.0,
+        "height": 1080.0,
+        "max_parts_height": 798.0,
+        "max_parts_width": 113.000015,
+        "name": "info_training_btn0_00_item"
+      }
+    },
+    {
+      "User": {
+        "data": {
+          "entries": [
+            {
+              "name": "ui2dsys",
+              "value": {
+                "SystemData": [
+                  {
+                    "AnimationTagNames": [
+                      "OnOff",
+                      "Decide",
+                      "SelectOff",
+                      "SelectOn",
+                      "txt_move_l",
+                      "txt_move_r",
+                      "panel_main",
+                      "panel_others",
+                      "fp_disable"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "TextureList": {
+        "filenames": [
+          "com_pic_cnr0_01_lb^u",
+          "com_pic_cnr0_01_lt^u",
+          "com_pic_cnr0_01_rb^u",
+          "com_pic_cnr0_01_rt^u",
+          "com_pic_stripe_mask^u",
+          "com_pic_stripe_s_01^u",
+          "com_white16^u"
+        ]
+      }
+    },
+    {
+      "FontList": {
+        "filenames": [
+          "FOT-RodinNTLGPro-EB64"
+        ]
+      }
+    },
+    {
+      "Pane": {
+        "pane": {
+          "flags": {
+            "is_visible": true,
+            "transmits_alpha_to_children": true
+          },
+          "origin": {
+            "x": "Center",
+            "y": "Center",
+            "parent_x": "Center",
+            "parent_y": "Center"
+          },
+          "alpha": 255,
+          "part_scaling": {
+            "unk1": false,
+            "unk2": false,
+            "unk3": false
+          },
+          "name": "RootPane",
+          "user_name": "",
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "size": {
+            "x": 1920.0,
+            "y": 1080.0
+          }
+        },
+        "children": [
+          {
+            "Parts": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": true
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "Button0",
+                "user_name": "",
+                "position": {
+                  "x": 75.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.5,
+                  "y": 1.5
+                },
+                "size": {
+                  "x": 30.0,
+                  "y": 40.0
+                }
+              },
+              "magnify": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "properties": [],
+              "data": {
+                "part_name": "training_mod_menu_button"
+              }
+            }
+          },
+          {
+            "Parts": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": true
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "Button1",
+                "user_name": "",
+                "position": {
+                  "x": 550.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.5,
+                  "y": 1.5
+                },
+                "size": {
+                  "x": 30.0,
+                  "y": 40.0
+                }
+              },
+              "magnify": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "properties": [],
+              "data": {
+                "part_name": "training_mod_menu_button"
+              }
+            }
+          },
+          {
+            "Parts": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": true
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "Button2",
+                "user_name": "",
+                "position": {
+                  "x": 1025.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.5,
+                  "y": 1.5
+                },
+                "size": {
+                  "x": 30.0,
+                  "y": 40.0
+                }
+              },
+              "magnify": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "properties": [],
+              "data": {
+                "part_name": "training_mod_menu_button"
+              }
+            }
+          },
+          {
+            "Parts": {
+              "pane": {
+                "flags": {
+                  "is_visible": true,
+                  "transmits_alpha_to_children": true
+                },
+                "origin": {
+                  "x": "Center",
+                  "y": "Center",
+                  "parent_x": "Center",
+                  "parent_y": "Center"
+                },
+                "alpha": 255,
+                "part_scaling": {
+                  "unk1": false,
+                  "unk2": false,
+                  "unk3": false
+                },
+                "name": "Button3",
+                "user_name": "",
+                "position": {
+                  "x": 1500.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.5,
+                  "y": 1.5
+                },
+                "size": {
+                  "x": 30.0,
+                  "y": 40.0
+                }
+              },
+              "magnify": {
+                "x": 1.0,
+                "y": 1.0
+              },
+              "properties": [],
+              "data": {
+                "part_name": "training_mod_menu_button"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Group": {
+        "name": "RootGroup",
+        "children": [
+          {
+            "Group": {
+              "name": "btn_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "btn_select_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "btn_blink_grp"
+            }
+          },
+          {
+            "Group": {
+              "name": "txt_move_anim"
+            }
+          },
+          {
+            "Group": {
+              "name": "color_grp"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Control": {
+        "data": {
+          "control_name": "CrossNormalButton",
+          "reserve0_name": "CrossNormalButton",
+          "pane_bindings": [
+            "hit",
+            "set_txt_title",
+            "set_txt_val",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "core_anims": [
+            "OnOff",
+            "",
+            "",
+            "",
+            "SelectOn",
+            "SelectOff",
+            "",
+            "",
+            ""
+          ],
+          "pane_names": [
+            "Hit",
+            "TitleText0",
+            "TitleText1",
+            "TitleText2",
+            "TitleText3",
+            "TitleText4",
+            "TitleText5",
+            "TitleText6",
+            "TitleText7",
+            "TitleText8",
+            "TitleText9"
+          ],
+          "anim_names": [
+            "OnOff",
+            "Down",
+            "Disable",
+            "Decide",
+            "SelectOn",
+            "SelectOff",
+            "BlinkOn",
+            "BlinkOff",
+            "OldStyle"
+          ]
+        }
+      }
+    }
+  ]
+}
